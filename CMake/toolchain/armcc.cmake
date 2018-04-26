@@ -28,8 +28,9 @@ set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O3 --debug" CACHE STRING "")
 
 set(CMAKE_EXE_LINKER_FLAGS
     "--map --xref --summary_stderr --info summarysizes --info stack --callgraph --symbols --info sizes --info totals --info unused --info veneers")
-# Suppress the "duplicate input" warning caused by circular linking by CMake
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --diag_suppress 6304" CACHE STRING "")
+# 6304: Suppress the "duplicate input" warning caused by circular linking by CMake
+# 6330: Supress undefined symbol warning
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --diag_suppress 6304,6330" CACHE STRING "")
 set(CMAKE_ASM_FLAGS "--cpreproc --apcs=interwork  --predefine \"__HEAP_SIZE SETA 1024\"")
 
 set(cortex-m0_DEFINES
@@ -52,7 +53,8 @@ function (create_hex executable)
     add_custom_command(
         TARGET ${executable}
         POST_BUILD
-        COMMAND ${ARMCC_FROMELF} --i32combined -o  ${CMAKE_CURRENT_BINARY_DIR}/${executable}.hex ${CMAKE_CURRENT_BINARY_DIR}/${executable}.elf)
+        COMMAND ${ARMCC_FROMELF} --i32combined -o ${CMAKE_CURRENT_BINARY_DIR}/${executable}.hex ${CMAKE_CURRENT_BINARY_DIR}/${executable}.elf
+        BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/${executable}.hex)
 endfunction(create_hex)
 
 # We have to cache the variable before the enable_language() call.

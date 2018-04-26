@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -79,5 +79,11 @@ void toolchain_init_irqs(void);
 
 #endif
 
+/*Segger embedded studio originally has offsetof macro which cannot be used in macros (like STATIC_ASSERT).
+  This redefinition is to allow using that. */
+#if defined(__SES_ARM) && defined(__GNUC__)
+#undef offsetof
+#define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+#endif
 
 #endif /* TOOLCHAIN_H__ */

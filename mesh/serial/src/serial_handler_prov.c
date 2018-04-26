@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -134,13 +134,13 @@ static void serial_handler_prov_evt_in(const nrf_mesh_prov_evt_t * p_evt)
             p_packet->opcode = SERIAL_OPCODE_EVT_PROV_COMPLETE;
             serial_evt_prov_complete_t * p_prov_complete = &p_packet->payload.evt.prov.complete;
             p_prov_complete->context_id = find_context_id(p_evt->params.complete.p_context);
-            p_prov_complete->iv_index = p_evt->params.complete.iv_index;
-            p_prov_complete->address = p_evt->params.complete.address;
-            p_prov_complete->net_key_index = p_evt->params.complete.netkey_index;
-            p_prov_complete->iv_update_flag = p_evt->params.complete.flags.iv_update;
-            p_prov_complete->key_refresh_flag = p_evt->params.complete.flags.key_refresh;
+            p_prov_complete->iv_index = p_evt->params.complete.p_prov_data->iv_index;
+            p_prov_complete->address = p_evt->params.complete.p_prov_data->address;
+            p_prov_complete->net_key_index = p_evt->params.complete.p_prov_data->netkey_index;
+            p_prov_complete->iv_update_flag = p_evt->params.complete.p_prov_data->flags.iv_update;
+            p_prov_complete->key_refresh_flag = p_evt->params.complete.p_prov_data->flags.key_refresh;
             memcpy(p_prov_complete->device_key, p_evt->params.complete.p_devkey, NRF_MESH_KEY_SIZE);
-            memcpy(p_prov_complete->net_key, p_evt->params.complete.p_netkey, NRF_MESH_KEY_SIZE);
+            memcpy(p_prov_complete->net_key, p_evt->params.complete.p_prov_data->netkey, NRF_MESH_KEY_SIZE);
             serial_tx(p_packet);
             break;
         }

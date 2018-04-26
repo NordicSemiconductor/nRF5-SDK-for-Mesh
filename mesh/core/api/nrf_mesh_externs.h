@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -115,7 +115,7 @@ extern void nrf_mesh_beacon_info_next_get(const uint8_t * p_network_id, const nr
  * This function is expected to iterate, starting from the @c p_address, if it points to a
  * valid virtual address since multiple virtual addresses may have the same raw_address.
  *
- * @note This function is implemted by the Device State Manager module.
+ * @note This function is implemented by the Device State Manager module.
  *
  * @param[in] raw_address The 16-bit address value.
  * @param[in, out] p_address The address struct to be populated with the full address information,
@@ -124,6 +124,16 @@ extern void nrf_mesh_beacon_info_next_get(const uint8_t * p_network_id, const nr
  * @returns True if the address is in the RX address list, otherwise false.
  */
 extern bool nrf_mesh_rx_address_get(uint16_t raw_address, nrf_mesh_address_t * p_address);
+
+/**
+ * Get the device's unicast address.
+ *
+ * @note This function is implemented by the Device State Manager module.
+ *
+ * @param[out] p_addr_start Outputs the device's start address.
+ * @param[out] p_addr_count Outputs the number of addresses allocated.
+ */
+extern void nrf_mesh_unicast_address_get(uint16_t * p_addr_start, uint16_t * p_addr_count);
 
 /** @} end of NRF_MESH_EXTERNS */
 

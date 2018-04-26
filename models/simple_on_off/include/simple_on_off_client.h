@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -45,7 +45,7 @@
 /**
  * @defgroup SIMPLE_ON_OFF_CLIENT Simple OnOff Client
  * @ingroup SIMPLE_ON_OFF_MODEL
- * This module implements a simple proprietary Simple OnOff Client.
+ * This module implements a vendor specific Simple OnOff Client.
  *
  * @{
  */
@@ -62,7 +62,9 @@ typedef enum
     /** Received status OFF from the server. */
     SIMPLE_ON_OFF_STATUS_OFF,
     /** The server did not reply to a Simple OnOff Set/Get. */
-    SIMPLE_ON_OFF_STATUS_ERROR_NO_REPLY
+    SIMPLE_ON_OFF_STATUS_ERROR_NO_REPLY,
+    /** Simple OnOff Set/Get was cancelled. */
+    SIMPLE_ON_OFF_STATUS_CANCELLED
 } simple_on_off_status_t;
 
 /** Forward declaration. */
@@ -76,6 +78,13 @@ typedef struct __simple_on_off_client simple_on_off_client_t;
  * @param[in] src    Element address of the remote server.
  */
 typedef void (*simple_on_off_status_cb_t)(const simple_on_off_client_t * p_self, simple_on_off_status_t status, uint16_t src);
+/**
+ * Simple OnOff timeout callback type.
+ *
+ * @param[in] handle Model handle
+ * @param[in] p_self Pointer to the Simple OnOff client structure that received the status.
+ */
+typedef void (*simple_on_off_timeout_cb_t)(access_model_handle_t handle, void * p_self);
 
 /** Simple OnOff Client state structure. */
 struct __simple_on_off_client
@@ -84,6 +93,8 @@ struct __simple_on_off_client
     access_model_handle_t model_handle;
     /** Status callback called after status received from server. */
     simple_on_off_status_cb_t status_cb;
+    /** Timeout callback called after acknowledged message sending times out */
+    simple_on_off_timeout_cb_t timeout_cb;
     /** Internal client state. */
     struct
     {
@@ -98,8 +109,8 @@ struct __simple_on_off_client
  * @note This function should only be called _once_.
  * @note The client handles the model allocation and adding.
  *
- * @param[in] p_client      Simple OnOff Client structure pointer.
- * @param[in] element_index Element index to add the server model.
+ * @param[in,out] p_client      Simple OnOff Client structure pointer.
+ * @param[in]     element_index Element index to add the server model.
  *
  * @retval NRF_SUCCESS         Successfully added client.
  * @retval NRF_ERROR_NULL      NULL pointer supplied to function.
@@ -112,8 +123,8 @@ uint32_t simple_on_off_client_init(simple_on_off_client_t * p_client, uint16_t e
 /**
  * Sets the state of the Simple OnOff server.
  *
- * @param[in] p_client Simple OnOff Client structure pointer.
- * @param[in] on_off   Value to set the Simple OnOff Server state to.
+ * @param[in,out] p_client Simple OnOff Client structure pointer.
+ * @param[in]     on_off   Value to set the Simple OnOff Server state to.
  *
  * @retval NRF_SUCCESS              Successfully sent message.
  * @retval NRF_ERROR_NULL           NULL pointer in function arguments
@@ -130,9 +141,9 @@ uint32_t simple_on_off_client_set(simple_on_off_client_t * p_client, bool on_off
 /**
  * Sets the state of the Simple OnOff Server unreliably (without acknowledgment).
  *
- * @param[in] p_client Simple OnOff Client structure pointer.
- * @param[in] on_off   Value to set the Simple OnOff Server state to.
- * @param[in] repeats  Number of messages to send in a single burst. Increasing the number may
+ * @param[in,out] p_client Simple OnOff Client structure pointer.
+ * @param[in]     on_off   Value to set the Simple OnOff Server state to.
+ * @param[in]     repeats  Number of messages to send in a single burst. Increasing the number may
  *                     increase probability of successful delivery.
  *
  * @retval NRF_SUCCESS              Successfully sent message.
@@ -151,7 +162,7 @@ uint32_t simple_on_off_client_set_unreliable(simple_on_off_client_t * p_client, 
  *
  * @note The state of the server will be given in the @ref simple_on_off_status_cb_t callback.
  *
- * @param[in] p_client Simple OnOff Client structure pointer.
+ * @param[in,out] p_client Simple OnOff Client structure pointer.
  *
  * @retval NRF_SUCCESS              Successfully sent message.
  * @retval NRF_ERROR_NULL           NULL pointer in function arguments
@@ -164,6 +175,13 @@ uint32_t simple_on_off_client_set_unreliable(simple_on_off_client_t * p_client, 
  *                                  opcode format.
  */
 uint32_t simple_on_off_client_get(simple_on_off_client_t * p_client);
+
+/**
+ * Cancel any ongoing reliable message transfer.
+ *
+ * @param[in,out] p_client Pointer to the client instance structure.
+ */
+void simple_on_off_client_pending_msg_cancel(simple_on_off_client_t * p_client);
 
 
 

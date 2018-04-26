@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -40,120 +40,139 @@
 #include "advertiser.h"
 #include "nrf_mesh_assert.h"
 
-static uint32_t m_adv_tx_count[CORE_TX_ROLE_COUNT];
-static advertiser_t m_advertisers[CORE_TX_ROLE_COUNT];
+
+static struct
+{
+    uint32_t adv_tx_count;
+    advertiser_t advertiser;
+} m_bearer_roles[CORE_TX_ROLE_COUNT];
+
+static struct
+{
+    core_tx_role_t role;
+    adv_packet_t * p_packet;
+} m_current_alloc;
+
 
 static uint8_t m_originator_adv_packet_buffer[CORE_TX_QUEUE_BUFFER_SIZE_ORIGINATOR];
 static uint8_t m_relay_adv_packet_buffer[CORE_TX_QUEUE_BUFFER_SIZE_RELAY];
 
-static uint8_t * packet_alloc(uint32_t net_packet_len,
-                              const core_tx_metadata_t * p_metadata,
-                              nrf_mesh_tx_token_t token);
-static void packet_send(const core_tx_metadata_t * p_metadata, uint8_t * p_packet);
-static void packet_discard(const core_tx_metadata_t * p_metadata, uint8_t * p_packet);
+static core_tx_alloc_result_t packet_alloc(core_tx_bearer_t * p_bearer, const core_tx_alloc_params_t * p_params);
+static void packet_send(core_tx_bearer_t * p_bearer, const uint8_t * p_packet, uint32_t packet_length);
+static void packet_discard(core_tx_bearer_t * p_bearer);
 
 static const core_tx_bearer_interface_t m_interface = {packet_alloc,
                                                        packet_send,
                                                        packet_discard};
+static core_tx_bearer_t m_bearer;
 /*****************************************************************************
 * Static functions
 *****************************************************************************/
-static inline adv_packet_t * get_adv_packet_from_net_packet(void * p_net_packet)
-{
-    return PARENT_BY_FIELD_GET(adv_packet_t, packet.payload[sizeof(ble_ad_header_t)], p_net_packet);
-}
-
 static void adv_tx_complete_callback(advertiser_t * p_adv,
                                      nrf_mesh_tx_token_t token,
                                      timestamp_t timestamp)
 {
-    core_tx_metadata_t metadata;
-    metadata.bearer = CORE_TX_BEARER_ADV;
-    metadata.role = (core_tx_role_t)(p_adv - m_advertisers);
-    core_tx_complete(&metadata, timestamp, token);
+    core_tx_role_t role = (core_tx_role_t) (p_adv - &m_bearer_roles[0].advertiser);
+    core_tx_complete(&m_bearer, role, timestamp, token);
 }
 
-static uint8_t * packet_alloc(uint32_t net_packet_len,
-                              const core_tx_metadata_t * p_metadata,
-                              nrf_mesh_tx_token_t token)
+static core_tx_alloc_result_t packet_alloc(core_tx_bearer_t * p_bearer, const core_tx_alloc_params_t * p_params)
 {
-    adv_packet_t * p_packet = advertiser_packet_alloc(&m_advertisers[p_metadata->role],
-                                                      sizeof(ble_ad_header_t) + net_packet_len);
-    if (p_packet == NULL)
+    NRF_MESH_ASSERT(p_bearer == &m_bearer);
+    NRF_MESH_ASSERT(m_current_alloc.p_packet == NULL);
+
+    m_current_alloc.p_packet =
+        advertiser_packet_alloc(&m_bearer_roles[p_params->role].advertiser,
+                                sizeof(ble_ad_header_t) + p_params->net_packet_len);
+
+    if (m_current_alloc.p_packet == NULL)
     {
-        return NULL;
+        return CORE_TX_ALLOC_FAIL_NO_MEM;
     }
     else
     {
-        p_packet->token = token;
-        p_packet->config.repeats = m_adv_tx_count[p_metadata->role];
-        ble_ad_data_t * p_ad_data = (ble_ad_data_t *) &p_packet->packet.payload[0];
-        p_ad_data->type = AD_TYPE_MESH;
-        p_ad_data->length = BLE_AD_DATA_OVERHEAD + net_packet_len;
-        return p_ad_data->data;
+        m_current_alloc.p_packet->token          = p_params->token;
+        m_current_alloc.p_packet->config.repeats = m_bearer_roles[p_params->role].adv_tx_count;
+        m_current_alloc.role                     = p_params->role;
+
+        return CORE_TX_ALLOC_SUCCESS;
     }
 }
 
-static void packet_send(const core_tx_metadata_t * p_metadata, uint8_t * p_packet)
+static void packet_send(core_tx_bearer_t * p_bearer, const uint8_t * p_packet, uint32_t packet_length)
 {
-    advertiser_packet_send(&m_advertisers[p_metadata->role],
-                           get_adv_packet_from_net_packet(p_packet));
+    NRF_MESH_ASSERT(p_bearer == &m_bearer);
+    NRF_MESH_ASSERT(m_current_alloc.p_packet != NULL);
+
+    /* Build the packet data */
+    ble_ad_data_t * p_ad_data = (ble_ad_data_t *) &m_current_alloc.p_packet->packet.payload[0];
+    p_ad_data->type           = AD_TYPE_MESH;
+    p_ad_data->length         = BLE_AD_DATA_OVERHEAD + packet_length;
+    memcpy(p_ad_data->data, p_packet, packet_length);
+
+    advertiser_packet_send(&m_bearer_roles[m_current_alloc.role].advertiser,
+                           m_current_alloc.p_packet);
+    m_current_alloc.p_packet = NULL;
 }
 
-static void packet_discard(const core_tx_metadata_t * p_metadata, uint8_t * p_packet)
+static void packet_discard(core_tx_bearer_t * p_bearer)
 {
-    advertiser_packet_discard(&m_advertisers[p_metadata->role],
-                              get_adv_packet_from_net_packet(p_packet));
+    NRF_MESH_ASSERT(p_bearer == &m_bearer);
+    NRF_MESH_ASSERT(m_current_alloc.p_packet != NULL);
+
+    advertiser_packet_discard(&m_bearer_roles[m_current_alloc.role].advertiser,
+                              m_current_alloc.p_packet);
+    m_current_alloc.p_packet = NULL;
 }
 /*****************************************************************************
 * Interface functions
 *****************************************************************************/
 void core_tx_adv_init(void)
 {
-    m_adv_tx_count[CORE_TX_ROLE_ORIGINATOR] = CORE_TX_REPEAT_ORIGINATOR_DEFAULT;
-    advertiser_instance_init(&m_advertisers[CORE_TX_ROLE_ORIGINATOR],
+    m_bearer_roles[CORE_TX_ROLE_ORIGINATOR].adv_tx_count = CORE_TX_REPEAT_ORIGINATOR_DEFAULT;
+    advertiser_instance_init(&m_bearer_roles[CORE_TX_ROLE_ORIGINATOR].advertiser,
                              adv_tx_complete_callback,
                              m_originator_adv_packet_buffer,
                              sizeof(m_originator_adv_packet_buffer));
-    advertiser_enable(&m_advertisers[CORE_TX_ROLE_ORIGINATOR]);
+    advertiser_enable(&m_bearer_roles[CORE_TX_ROLE_ORIGINATOR].advertiser);
 
-    m_adv_tx_count[CORE_TX_ROLE_RELAY] = CORE_TX_REPEAT_RELAY_DEFAULT;
-    advertiser_instance_init(&m_advertisers[CORE_TX_ROLE_RELAY],
+    m_bearer_roles[CORE_TX_ROLE_RELAY].adv_tx_count = CORE_TX_REPEAT_RELAY_DEFAULT;
+    advertiser_instance_init(&m_bearer_roles[CORE_TX_ROLE_RELAY].advertiser,
                              NULL,
                              m_relay_adv_packet_buffer,
                              sizeof(m_relay_adv_packet_buffer));
-    advertiser_enable(&m_advertisers[CORE_TX_ROLE_RELAY]);
+    advertiser_enable(&m_bearer_roles[CORE_TX_ROLE_RELAY].advertiser);
 
-    core_tx_bearer_register(CORE_TX_BEARER_ADV, &m_interface);
+    core_tx_bearer_add(&m_bearer, &m_interface, CORE_TX_BEARER_TYPE_ADV);
 }
 
 void core_tx_adv_count_set(core_tx_role_t role, uint8_t tx_count)
 {
     NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
     NRF_MESH_ASSERT(tx_count > 0);
-    m_adv_tx_count[role] = tx_count;
+    m_bearer_roles[role].adv_tx_count = tx_count;
 }
 
 uint8_t core_tx_adv_count_get(core_tx_role_t role)
 {
     NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
-    return m_adv_tx_count[role];
+    return m_bearer_roles[role].adv_tx_count;
 }
 
 void core_tx_adv_interval_set(core_tx_role_t role, uint32_t interval_ms)
 {
     NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
-    advertiser_interval_set(&m_advertisers[role], interval_ms);
+    advertiser_interval_set(&m_bearer_roles[role].advertiser, interval_ms);
 }
 
 uint32_t core_tx_adv_interval_get(core_tx_role_t role)
 {
     NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
-    return US_TO_MS(m_advertisers[role].config.advertisement_interval_us);
+    return US_TO_MS(m_bearer_roles[role].advertiser.config.advertisement_interval_us);
 }
 
 void core_tx_adv_address_set(core_tx_role_t role, const ble_gap_addr_t * p_addr)
 {
     NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
-    advertiser_address_set(&m_advertisers[role], p_addr);
+    advertiser_address_set(&m_bearer_roles[role].advertiser, p_addr);
 }

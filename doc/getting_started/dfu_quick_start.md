@@ -87,7 +87,8 @@ the firmware that is installed on the device. The device page is generated using
 `bootloader_config_default.json` file to prepare the device page. The public key obtained above must
 be inserted in this JSON object.
 
-To add the public key information to the bootloader configurator JSON, create a new property named `"public_key"` and assign the concatenated values of the `Qx` and the `Qy` strings to this key. For example:
+To add the public key information to the bootloader configurator JSON, create a new property named `"public_key"` and
+assign the concatenated values of the `Qx` and the `Qy` strings to this key. For example:
 
 ```
 {
@@ -107,7 +108,7 @@ transfer has the private key associated with this public key.
 
 You may also want to change the company ID entry. In the example, the company ID is set to
 `89`, which is the decimal version of Nordic Semiconductor's @link_companyID
-<!--Bluetooth SIG assigned Company ID: https://www.bluetooth.com/specifications/assigned-numbers/company-identifiers-->.
+<!--Bluetooth SIG assigned Company ID: https://www.bluetooth.com/specifications/assigned-numbers/company-identifiers-->\.
 
 If your company has an assigned ID, you can use that ID number. If you do not represent a company
 with an assigned ID, use a random 32-bit number higher than 65535.
@@ -201,16 +202,16 @@ mesh-sdk$ nrfjprog --eraseall
 
 > **Important:** Steps 6-9 must be executed in order.
 
-SoftDevices for nRF51 and nRF52 are located in the `external/softdevice` folder.
+SoftDevices for nRF51 and nRF52 are located in the `bin/softdevice` folder.
 
 ```
-mesh-sdk$ nrfjprog --program external/softdevice/<SoftDevice HEX file>
+mesh-sdk$ nrfjprog --program bin/softdevice/<SoftDevice HEX file>
 ```
 
 For example, to flash S132 SoftDevice v5.0.0, run the following command:
 
 ```
-mesh-sdk$ nrfjprog --program external/softdevice/s132_5.0.0/s132_nrf52_5.0.0_softdevice.hex --chiperase
+mesh-sdk$ nrfjprog --program bin/softdevice/s132_5.0.0/s132_nrf52_5.0.0_softdevice.hex --chiperase
 ```
 
 ### 7. Flash the serial bootloader on all devices

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -42,7 +42,7 @@
 
 #include "ccm_soft.h"
 #include "nrf_mesh.h"
-#include "network.h"
+#include "net_packet.h"
 
 /**
  * @defgroup ENCRYPTION Encryption Module
@@ -59,9 +59,10 @@
  */
 typedef enum
 {
-    ENC_NONCE_NET = 0x00,              /**< Nonce for network data. */
-    ENC_NONCE_APP = 0x01,              /**< Nonce for application data. */
-    ENC_NONCE_DEV = 0x02               /**< Nonce for device key data. */
+    ENC_NONCE_NET   = 0x00,              /**< Nonce for network data. */
+    ENC_NONCE_APP   = 0x01,              /**< Nonce for application data. */
+    ENC_NONCE_DEV   = 0x02,              /**< Nonce for device key data. */
+    ENC_NONCE_PROXY = 0x03               /**< Nonce for proxy configuration data. */
 } enc_nonce_t;
 
 /*lint -align_max(push) -align_max(1) */
@@ -98,6 +99,20 @@ typedef struct __attribute((packed))
  * Device key nonce structure.
  */
 typedef enc_nonce_app_t enc_nonce_dev_t;
+
+
+/**
+ * Proxy nonce structure.
+ */
+typedef struct __attribute((packed))
+{
+    uint8_t type;      /**< Nonce type. */
+    uint8_t pad;       /**< Padding. */
+    uint32_t seq : 24; /**< Sequence number. */
+    uint16_t src;      /**< Source address. */
+    uint16_t pad2;     /**< Padding zero bytes. */
+    uint32_t iv_index; /**< IV index. */
+} enc_nonce_proxy_t;
 
 /*lint -align_max(pop) */
 

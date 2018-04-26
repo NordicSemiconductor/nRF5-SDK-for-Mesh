@@ -41,12 +41,11 @@ if (BUILD_BOOTLOADER)
 
     set(BOOTLOADER_INCLUDE_DIRS
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
-        "${SDK_ROOT}/components/drivers_nrf/hal"
-        "${SDK_ROOT}/components/libraries/sha256"
-        "${SDK_ROOT}/components/libraries/util" CACHE INTERNAL "")
+        ${${nRF5_SDK_VERSION}_INCLUDE_DIRS}
+        "${SDK_ROOT}/components/libraries/sha256" CACHE INTERNAL "")
 
     set(BOOTLOADER_DEFINES
-        -DNORDIC_SDK_VERSION=14
+        -DNORDIC_SDK_VERSION=15
         -DBOOTLOADER
         -DRBC_MESH_PACKET_POOL_SIZE=32
         -DuECC_CURVE=uECC_secp256r1

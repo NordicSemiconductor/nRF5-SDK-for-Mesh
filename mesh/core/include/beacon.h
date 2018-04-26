@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -66,41 +66,9 @@
 #define BEACON_TYPE_INVALID       (0xFF)  /**< Invalid beacon type. */
 /** @} */
 
-#define BEACON_INTERVAL_MS_MAX    (60000) /**< Maximum advertisement interval for the unprovisioned beacon. */
-#define BEACON_INTERVAL_MS_MIN    (100)   /**< Minimum advertisement interval for the unprovisioned beacon. */
-
 #define BEACON_PACKET_OVERHEAD    (1)     /**< Overhead of beacon packet. */
 #define BEACON_PACKET_AD_LEN_OVERHEAD (BEACON_PACKET_OVERHEAD + BLE_AD_DATA_OVERHEAD) /**< Overhead of beacon packet for the AD length field. */
 #define BEACON_DATA_MAXLEN            (BLE_ADV_PACKET_PAYLOAD_MAX_LENGTH - (sizeof(ble_ad_header_t) + BEACON_PACKET_OVERHEAD)) /**< Maximum length of beacon data. */
-
-/**
- * Initialize the beacon module.
- *
- * @param[in] interval_ms The beacon advertisement interval in milliseconds.
- * Must be between @ref BEACON_INTERVAL_MS_MIN and @ref BEACON_INTERVAL_MS_MAX.
- */
-void beacon_init(uint32_t interval_ms);
-
-/**
- * Enable the mesh beacon with the given contents. Will replace any current
- * beacons.
- *
- * @param[in] beacon_type The beacon type to run. Must be a value in @ref
- * BEACON_TYPE, that's not @ref BEACON_TYPE_INVALID.
- * @param[in] p_payload Pointer to payload data that will be copied into the
- * beacon packet. Cannot be NULL.
- * @param[in] payload_len Length of the payload given in the p_payload
- * parameter. Must be between 1 and @ref BEACON_DATA_MAXLEN, inclusive.
- * @param[in] count Number of transmissions, or  @ref ADVERTISER_REPEAT_INFINITE.
- *
- * @retval NRF_SUCCESS Successfully enabled beacon with the given parameters.
- * @retval NRF_ERROR_INVALID_PARAM One or more of the parameter conditions have
- * been broken.
- * @retval NRF_ERROR_INVALID_LENGTH The given payload length is too long to fit
- * into a single advertisement packet, or is 0.
- * @retval NRF_ERROR_NO_MEM Not enough memory for beacon to be scheduled.
- */
-uint32_t beacon_tx(uint8_t beacon_type, const void* p_payload, uint8_t payload_len, uint8_t count);
 
 /**
  * Create a mesh beacon with the given contents.

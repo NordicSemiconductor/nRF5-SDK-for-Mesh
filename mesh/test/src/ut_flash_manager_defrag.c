@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -64,7 +64,14 @@ static NRF_UICR_Type m_uicr;
 static NRF_FICR_Type m_ficr;
 static flash_manager_recovery_area_t * mp_recovery_area;
 static flash_manager_page_t * mp_page_to_recover;
+
+#if defined(NRF51)
 static uint8_t m_buffer[3*PAGE_SIZE];
+#elif defined(NRF52) || defined(NRF52_SERIES)
+/* On nRF52 we need an extra page for the SoftDevice MBRPARAM page. */
+static uint8_t m_buffer[4*PAGE_SIZE];
+#endif
+
 static flash_manager_t * mp_on_defrag_end_expected_manager;
 
 /* Externs that are instantiated in the flash_manager.c */
@@ -93,8 +100,14 @@ void setUp(void)
 
     NRF_UICR = &m_uicr;
     NRF_FICR = &m_ficr;
-    NRF_UICR->BOOTLOADERADDR = (uint32_t) (mp_recovery_area + 1); /*lint !e123 Usage of symbol declared as function-like macro elsewhere */
-    NRF_FICR->CODESIZE = NRF_UICR->BOOTLOADERADDR / PAGE_SIZE;    /*lint !e123 Usage of symbol declared as function-like macro elsewhere */
+    #if NRF51
+    BOOTLOADERADDR() = (uint32_t) (mp_recovery_area + 1);
+    #else
+    /* 52 needs an extra page for softdevice MBR dfu-ing. */
+    BOOTLOADERADDR() = (uint32_t) (mp_recovery_area + 2);
+    #endif
+
+    NRF_FICR->CODESIZE = BOOTLOADERADDR() / PAGE_SIZE;    /*lint !e123 Usage of symbol declared as function-like macro elsewhere */
     NRF_FICR->CODEPAGESIZE = PAGE_SIZE;
     memset((uint8_t *)mp_recovery_area, 0, sizeof(flash_manager_recovery_area_t));
     flash_manager_defrag_reset();
@@ -136,7 +149,7 @@ static void setup_test_areas(flash_manager_page_t * p_area,
         for (uint32_t i = 0; i < entry_count; ++i)
         {
             p_entries[i].data_value = ((i + 1) << 24) | ((i + 1) << 16) | ((i + 1) << 8) | (i + 1);
-            p_entries[i].len        = 4;
+            p_entries[i].len        = WORD_SIZE;
             p_entries[i].handle     = i + 1;
             /* make some entries invalid: */
             if (invalid_entry_interval > 0 && ((i % invalid_entry_interval) == (invalid_entry_interval - 1)))
@@ -244,7 +257,7 @@ void test_two_pages_to_single_page(void)
 {
     flash_manager_page_t expected_result[2] __attribute__((aligned((PAGE_SIZE))));
     flash_manager_page_t area[2] __attribute__((aligned(PAGE_SIZE)));
-    setup_test_areas(area, expected_result, 2, 64, 4);
+    setup_test_areas(area, expected_result, 2, PAGE_SIZE / WORD_SIZE / WORD_SIZE, 4);
     flash_manager_t      manager = DEFAULT_MANAGER(area, 2);
 
     TEST_ASSERT_FALSE(flash_manager_defrag_init());
@@ -263,7 +276,7 @@ void test_three_pages_to_single_page(void)
 {
     flash_manager_page_t expected_result[3] __attribute__((aligned((PAGE_SIZE))));
     flash_manager_page_t area[3] __attribute__((aligned(PAGE_SIZE)));
-    setup_test_areas(area, expected_result, 3, 123, 2);
+    setup_test_areas(area, expected_result, 3, (PAGE_SIZE / WORD_SIZE / WORD_SIZE) - 5, 2);
     /* Add a couple of extra entries at the end to push us over the 3-page line, but make one
        invalid, so we can get below 1 page after defrag: */
     test_entry_t final_entries[] = {{.handle = FLASH_MANAGER_HANDLE_INVALID, .len = 8, .data_value = 0xabababab},
@@ -295,7 +308,7 @@ void test_full_page(void)
 {
     flash_manager_page_t expected_result[1] __attribute__((aligned((PAGE_SIZE))));
     flash_manager_page_t area[1] __attribute__((aligned(PAGE_SIZE)));
-    setup_test_areas(area, expected_result, 1, 62, 0);
+    setup_test_areas(area, expected_result, 1, (PAGE_SIZE / WORD_SIZE/ WORD_SIZE) - 2, 0);
     /* Add a last entry manually to perfectly fill out the page:
        Note that there must be room for a seal. */
     test_entry_t last_entry = {.handle = 0x1234, .len = 5, .data_value = 0xabababab};
@@ -319,7 +332,7 @@ void test_full_second_page(void)
 {
     flash_manager_page_t expected_result[3] __attribute__((aligned((PAGE_SIZE))));
     flash_manager_page_t area[3] __attribute__((aligned(PAGE_SIZE)));
-    setup_test_areas(area, expected_result, 3, 62, 4);
+    setup_test_areas(area, expected_result, 3, (PAGE_SIZE / WORD_SIZE/ WORD_SIZE) - 2, 4);
     /* Add an entry manually to perfectly fill out the first page:
        Don't need to make room for a seal */
     test_entry_t last_entry = {.handle = 0x1234, .len = 4, .data_value = 0xabababab};
@@ -381,7 +394,7 @@ void test_perfect_fit(void)
 {
     flash_manager_page_t expected_result[2] __attribute__((aligned((PAGE_SIZE))));
     flash_manager_page_t area[2] __attribute__((aligned(PAGE_SIZE)));
-    setup_test_areas(area, expected_result, 2, 62, 0);
+    setup_test_areas(area, expected_result, 2, PAGE_SIZE / WORD_SIZE / WORD_SIZE - 2, 0);
     /* We need at least one invalid entry in the page to keep the algorithm from ignoring it: */
     test_entry_t invalid_entry = {.handle = FLASH_MANAGER_HANDLE_INVALID, .len = 4, .data_value = 0xdeadbeef};
     test_page_add_entry(area, &invalid_entry, true);
@@ -503,7 +516,7 @@ void test_invalid_second_page(void)
 {
     flash_manager_page_t expected_result[3] __attribute__((aligned((PAGE_SIZE))));
     flash_manager_page_t area[3] __attribute__((aligned(PAGE_SIZE)));
-    setup_test_areas(area, expected_result, 3, 63, 4);
+    setup_test_areas(area, expected_result, 3, (PAGE_SIZE / WORD_SIZE / WORD_SIZE) - 1, 4);
 
     /* Add a bunch of invalid handles to the second page: */
     test_entry_t invalid_entry = {.handle     = FLASH_MANAGER_HANDLE_INVALID,
@@ -553,7 +566,7 @@ void test_invalid_last_page(void)
 {
     flash_manager_page_t expected_result[3] __attribute__((aligned((PAGE_SIZE))));
     flash_manager_page_t area[3] __attribute__((aligned(PAGE_SIZE)));
-    setup_test_areas(area, expected_result, 3, 126, 4);
+    setup_test_areas(area, expected_result, 3, (PAGE_SIZE / WORD_SIZE / WORD_SIZE) - 2, 4);
 
     /* Add a bunch of invalid handles to the third page: */
     test_entry_t invalid_entry = {.handle     = FLASH_MANAGER_HANDLE_INVALID,

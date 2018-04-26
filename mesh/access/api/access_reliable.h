@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -49,6 +49,8 @@
  * Reliable message sending for the access layer.
  * @{
  * @defgroup ACCESS_RELIABLE_MSCS Message sequence charts
+ * @brief Reliable publishing sequence diagrams
+ *
  * @{
  * @mscfile access_reliable_publish.msc "Reliable publish API usage"
  * @mscfile access_reliable_publish_fail.msc "Reliable publish API errors"
@@ -108,7 +110,9 @@ typedef enum
      */
     ACCESS_RELIABLE_TRANSFER_SUCCESS,
     /** The reliable transfer reached its timeout. */
-    ACCESS_RELIABLE_TRANSFER_TIMEOUT
+    ACCESS_RELIABLE_TRANSFER_TIMEOUT,
+    /** The reliable transfer has been cancelled. */
+    ACCESS_RELIABLE_TRANSFER_CANCELLED
 } access_reliable_status_t;
 
 /**

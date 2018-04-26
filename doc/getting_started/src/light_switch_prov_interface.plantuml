@@ -1,0 +1,75 @@
+@startuml
+skinparam defaultFontName Arial
+box "Application" #FFFFFF
+participant a as "main.c"
+participant p as "provisioner_helper.c \nnode_setup.c"
+end box
+
+participant c as "Configuration client"
+
+box "Mesh core modules"
+participant core as "    "
+end box
+
+note over a: SoftDevice and core mesh modules initialized
+loop While provisioned devices < 30
+group Provisioning
+      a -> p: provisioner_wait_for_unprov()
+      core -> p: NRF_MESH_EVT_UNPROV_BEACON
+      p -> core: nrf_mesh_prov_init(...)
+      p -> core: nrf_mesh_prov_provision(UUID, ...)
+
+      ... Device is provisioned ...
+
+      core -> p: NRF_MESH_EVT_PROV_COMPLETE
+      p -> a: provisioner_prov_complete_cb()
+      a -> core: dsm_address_publish_add(...)
+      a -> core: dsm_devkey_add(...)
+      a -> c: config_client_server_bind(...)
+      a -> c: config_client_server_set(...)
+end
+group Configuration
+      a -> p: provisioner_configure()
+      p -> c: config_client_composition_data_get()
+      activate c
+      c -> core
+      ...
+      core -> c
+      c -> p: CONFIG_OPCODE_COMPOSITION_DATA
+      deactivate c
+
+      p -> c: config_client_appkey_add()
+      activate c
+      c -> core
+      ...
+      core -> c
+      c -> p: CONFIG_OPCODE_APPKEY_STATUS
+      deactivate c
+
+      p -> c: config_client_model_app_bind()
+      activate c
+      c -> core
+      ...
+      core -> c
+      c -> p: CONFIG_OPCODE_MODEL_APP_STATUS
+      deactivate c
+
+      p -> c: config_client_model_publication_set()
+      activate c
+      c -> core
+      ...
+      core -> c
+      c -> p: CONFIG_OPCODE_MODEL_PUBLICATION_STATUS
+      deactivate c
+
+      p -> c: config_client_model_subscription_add()
+      activate c
+      c -> core
+      ...
+      core -> c
+      c -> p: CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS
+      deactivate c
+      p -> a: provisioner_config_successful_cb()
+end
+end
+@enduml

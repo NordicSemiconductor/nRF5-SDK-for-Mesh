@@ -822,7 +822,7 @@ _The response has no parameters._
 
 _Opcode:_ `0x66`
 
-_Total length: 4 bytes_
+_Total length: 5 bytes_
 
 Used to respond to the _Provisioning Capabilities Received_ event. It is used to select which kind of OOB authentication method to use. The values can be found in nrf_mesh_prov.h.  If authentication is enabled, the application will receive a _Provisioning Auth Request_ event requesting authentication data.  A _Provisioning ECDH Request_ will be received when the provisioner needs to calculate the ECDH shared secret for the nodes.  The _Provisioning Complete_ event is received when the provisioning procedure has completed successfully. At this point, a provisioner must wait for the _Provisioning Link Closed_ event before re-using the provisioning context.
 
@@ -832,7 +832,8 @@ Type          | Name                                    | Size | Offset | Descri
 --------------|-----------------------------------------|------|--------|------------
 `uint8_t`     | Context ID                              | 1    | 0      | ID of context to set the oob method for.
 `uint8_t`     | OOB Method                              | 1    | 1      | OOB method to use, see @ref nrf_mesh_prov_oob_method_t for accepted values.
-`uint8_t`     | Size                                    | 1    | 2      | Size of the OOB data.
+`uint8_t`     | OOB Action                              | 1    | 2      | OOB action to use, see @ref nrf_mesh_prov_input_action_t or @ref nrf_mesh_prov_output_action_t for values.
+`uint8_t`     | Size                                    | 1    | 3      | Size of the OOB data.
 
 ### Response
 
@@ -2062,7 +2063,7 @@ Type          | Name                                    | Size | Offset | Descri
 
 _Opcode:_ `0xab`
 
-_Total length: 9..98 bytes_
+_Total length: 10..98 bytes_
 
 Send a mesh packet. The source address handle must represent a local unicast address.
 
@@ -2074,8 +2075,9 @@ Type          | Name                                    | Size | Offset | Descri
 `uint16_t`    | SRC Addr                                | 2    | 2      | Raw unicast address to use as source address. Must be in the range of local unicast addresses.
 `uint16_t`    | DST Addr Handle                         | 2    | 4      | Handle of destination address to use in packet.
 `uint8_t`     | TTL                                     | 1    | 6      | Time To Live value to use in packet.
-`uint8_t`     | Reliable                                | 1    | 7      | Whether or not to make the transmission reliable.
-`uint8_t[89]` | Data                                    | 0..89 | 8      | Payload of the packet.
+`uint8_t`     | Force Segmented                         | 1    | 7      | Whether or not to force use of segmented message type for the transmission.
+`uint8_t`     | Transmic Size                           | 1    | 8      | Transport MIC size used enum. SMALL=0, LARGE=1, DEFAULT=2. LARGE may only be used with segmented packets.
+`uint8_t[88]` | Data                                    | 0..88 | 9      | Payload of the packet.
 
 ### Response
 
@@ -2373,7 +2375,7 @@ _Model Pub Addr Get Response Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`dsm_handle_t` | Addr Handle                             | 2    | 0      | Addr Handle
+`dsm_handle_t` | Addr Handle                             | 2    | 0      | Address handle for the publish address.
 
 
 ### Access Layer Model Pub Period Set {#access-layer-model-pub-period-set}
@@ -2701,7 +2703,7 @@ _Model Pub App Get Response Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`dsm_handle_t` | Appkey Handle                           | 2    | 0      | Appkey Handle
+`dsm_handle_t` | Appkey Handle                           | 2    | 0      | Handle of the application key used for publishing.
 
 
 ### Access Layer Model Pub TTL Set {#access-layer-model-pub-ttl-set}
@@ -2717,7 +2719,7 @@ _Model Pub TTL Set Parameters:_
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
 `access_model_handle_t` | Model Handle                            | 2    | 0      | Handle of the model that the access module should operate on.
-`uint8_t`     | TTL                                     | 1    | 2      | TTL
+`uint8_t`     | TTL                                     | 1    | 2      | TTL for outgoing messages.
 
 ### Response
 
@@ -2765,7 +2767,7 @@ _Model Pub TTL Get Response Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`uint8_t`     | TTL                                     | 1    | 0      | TTL
+`uint8_t`     | TTL                                     | 1    | 0      | TTL for published messages.
 
 
 ### Access Layer Elem Loc Set {#access-layer-elem-loc-set}
@@ -2780,7 +2782,7 @@ _Elem Loc Set Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`uint16_t`    | Element Index                           | 2    | 0      | The index of the element addressed.
+`uint16_t`    | Element Index                           | 2    | 0      | Index of the addressed element.
 `uint16_t`    | Location                                | 2    | 2      | Location value for the element.
 
 ### Response
@@ -2807,7 +2809,7 @@ _Elem Loc Get Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`uint16_t`    | Element Index                           | 2    | 0      | Element Index
+`uint16_t`    | Element Index                           | 2    | 0      | Index of the addressed element.
 
 ### Response
 
@@ -2823,7 +2825,7 @@ _Elem Loc Get Response Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`uint16_t`    | Location                                | 2    | 0      | Location
+`uint16_t`    | Location                                | 2    | 0      | Element location info.
 
 
 ### Access Layer Elem Sig Model Count Get {#access-layer-elem-sig-model-count-get}
@@ -2838,7 +2840,7 @@ _Elem Sig Model Count Get Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`uint16_t`    | Element Index                           | 2    | 0      | Element Index
+`uint16_t`    | Element Index                           | 2    | 0      | Index of the addressed element.
 
 ### Response
 
@@ -2854,7 +2856,7 @@ _Elem Sig Model Count Get Response Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`uint8_t`     | Model Count                             | 1    | 0      | Model Count
+`uint8_t`     | Model Count                             | 1    | 0      | Number of existing models.
 
 
 ### Access Layer Elem Vendor Model Count Get {#access-layer-elem-vendor-model-count-get}
@@ -2869,7 +2871,7 @@ _Elem Vendor Model Count Get Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`uint16_t`    | Element Index                           | 2    | 0      | Element Index
+`uint16_t`    | Element Index                           | 2    | 0      | Index of the addressed element.
 
 ### Response
 
@@ -2885,7 +2887,7 @@ _Elem Vendor Model Count Get Response Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`uint8_t`     | Model Count                             | 1    | 0      | Model Count
+`uint8_t`     | Model Count                             | 1    | 0      | Number of existing models.
 
 
 ### Access Layer Model ID Get {#access-layer-model-id-get}
@@ -2918,7 +2920,7 @@ _Model ID Get Response Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`access_model_id_t` | Model ID                                | 4    | 0      | Model ID
+`access_model_id_t` | Model ID                                | 4    | 0      | Company and model IDs.
 
 
 ### Access Layer Handle Get {#access-layer-handle-get}
@@ -2933,8 +2935,8 @@ _Handle Get Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`uint16_t`    | Element Index                           | 2    | 0      | Element Index
-`access_model_id_t` | Model ID                                | 4    | 2      | Model ID
+`uint16_t`    | Element Index                           | 2    | 0      | Index of the addressed element which owns the model.
+`access_model_id_t` | Model ID                                | 4    | 2      | Company and model IDs.
 
 ### Response
 
@@ -2950,7 +2952,7 @@ _Handle Get Response Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`access_model_handle_t` | Model Handle                            | 2    | 0      | Model Handle
+`access_model_handle_t` | Model Handle                            | 2    | 0      | Handle of the requested model.
 
 
 ### Access Layer Elem Models Get {#access-layer-elem-models-get}
@@ -2965,7 +2967,7 @@ _Elem Models Get Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`uint16_t`    | Element Index                           | 2    | 0      | Element Index
+`uint16_t`    | Element Index                           | 2    | 0      | Index of the addressed element.
 
 ### Response
 
@@ -3062,7 +3064,7 @@ _Init Response Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`access_model_handle_t` | Model Handle                            | 2    | 0      | Model Handle
+`access_model_handle_t` | Model Handle                            | 2    | 0      | Handle of the initialized model.
 
 
 ### Model Specific Command {#model-specific-command}
@@ -3096,7 +3098,7 @@ _Command Response Parameters:_
 
 Type          | Name                                    | Size | Offset | Description
 --------------|-----------------------------------------|------|--------|------------
-`uint8_t`     | Data Len                                | 1    | 0      | Data Len
-`uint8_t[94]` | Data                                    | 0..94 | 1      | Data
+`uint8_t`     | Data Len                                | 1    | 0      | Length of data array. Set to 0 to indicate no data to send
+`uint8_t[94]` | Data                                    | 0..94 | 1      | Command response data specific to each model.
 
 

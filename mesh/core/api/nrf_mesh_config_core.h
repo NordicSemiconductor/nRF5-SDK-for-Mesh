@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -39,6 +39,9 @@
 #define NRF_MESH_CONFIG_CORE_H__
 
 #include "nrf_mesh_defines.h"
+#ifdef CONFIG_APP_IN_CORE
+#include "nrf_mesh_config_app.h"
+#endif
 
 /**
  * @defgroup NRF_MESH_CONFIG_CORE Compile time configuration
@@ -170,7 +173,7 @@
  * is not set to @c Debug or @c RelWithDebInfo when configuring CMake.
  */
 #ifndef INTERNAL_EVT_ENABLE
-#define INTERNAL_EVT_ENABLE 1
+#define INTERNAL_EVT_ENABLE 0
 #endif
 
 /** Internal event buffer size. */
@@ -400,7 +403,45 @@
 #define FLASH_MANAGER_ENTRY_MAX_SIZE 128
 #endif
 
+/** Number of flash pages to be reserved between the flash manager recovery page and the bootloader.
+ *  @note This value will be ignored if FLASH_MANAGER_RECOVERY_PAGE is set.
+ */
+#ifndef FLASH_MANAGER_RECOVERY_PAGE_OFFSET_PAGES
+#define FLASH_MANAGER_RECOVERY_PAGE_OFFSET_PAGES 0
+#endif
+
 /** @} end of MESH_CONFIG_FLASH_MANAGER */
+
+/**
+ * @defgroup MESH_CONFIG_GATT GATT configuration defines
+ * @{
+ */
+
+/** GATT feature, should only be enabled in combination with linking GATT files. */
+#ifndef MESH_FEATURE_GATT
+#define MESH_FEATURE_GATT 0
+#endif
+
+/** GATT proxy feature, should only be enabled in combination with linking GATT proxy files. */
+#ifndef GATT_PROXY
+#define GATT_PROXY 0
+#endif
+
+/** Maximum number of addresses in the GATT proxy address filter, per connection. */
+#ifndef MESH_GATT_PROXY_FILTER_ADDR_COUNT
+#define MESH_GATT_PROXY_FILTER_ADDR_COUNT 32
+#endif
+
+/** Advertisement interval for Mesh GATT proxy advertisements. */
+#ifndef MESH_GATT_PROXY_ADV_INT_MS
+#define MESH_GATT_PROXY_ADV_INT_MS 2000
+#endif
+
+/** Number of network beacons to cache in proxy to limit impact on GATT link bandwidth */
+#ifndef MESH_GATT_PROXY_BEACON_CACHE_SIZE
+#define MESH_GATT_PROXY_BEACON_CACHE_SIZE 8
+#endif
+/** @} end of MESH_CONFIG_GATT */
 
 /** @} end of NRF_MESH_CONFIG_CORE */
 

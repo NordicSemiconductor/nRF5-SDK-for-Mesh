@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -53,7 +53,6 @@ typedef struct
 static replay_cache_entry_t m_replay_cache[2][REPLAY_CACHE_ENTRIES];
 
 static uint8_t m_cache_index = 0;
-static bool m_cache_full = false;
 
 void replay_cache_init(void)
 {
@@ -69,10 +68,6 @@ uint32_t replay_cache_add(uint16_t src, uint32_t seqno, uint8_t ivi)
             /* Free slot! */
             m_replay_cache[ivi][i].seqno = seqno;
             m_replay_cache[ivi][i].src   = src;
-            if (i == (REPLAY_CACHE_ENTRIES - 1))
-            {
-                m_cache_full = true;
-            }
             return NRF_SUCCESS;
         }
 
@@ -87,22 +82,6 @@ uint32_t replay_cache_add(uint16_t src, uint32_t seqno, uint8_t ivi)
     return NRF_ERROR_NO_MEM;
 }
 
-
-bool replay_cache_has_room(uint16_t src, uint8_t ivi)
-{
-    if (!m_cache_full)
-    {
-        return true;
-    }
-    for (uint32_t i=0; i<REPLAY_CACHE_ENTRIES; i++)
-    {
-        if (m_replay_cache[ivi][i].src == src)
-        {
-            return true;
-        }
-    }
-    return false;
-}
 
 bool replay_cache_has_elem(uint16_t src, uint32_t seqno, uint8_t ivi)
 {
@@ -134,5 +113,4 @@ void replay_cache_clear(void)
 {
     memset(m_replay_cache, 0, sizeof(m_replay_cache));
     m_cache_index = 0;
-    m_cache_full = false;
 }

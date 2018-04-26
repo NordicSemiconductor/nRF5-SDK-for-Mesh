@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -76,7 +76,7 @@
 /**
  * The default TTL value for the node.
  */
-#define ACCESS_DEFAULT_TTL (SERVER_COUNT)
+#define ACCESS_DEFAULT_TTL (SERVER_NODE_COUNT > NRF_MESH_TTL_MAX ? NRF_MESH_TTL_MAX : SERVER_NODE_COUNT)
 
 /**
  * The number of models in the application.
@@ -84,10 +84,10 @@
  * @note This value has to be greater than two to fit the configuration and health models,
  * plus the number of models needed by the application.
  */
-#define ACCESS_MODEL_COUNT (1 + /* Configuration client */  \
-                            1 + /* Health client */  \
-                            1 + /* Simple OnOff client (group) */ \
-                            SERVER_COUNT /* Simple OnOff client (per server) */)
+#define ACCESS_MODEL_COUNT (1 + /* Configuration server */  \
+                            1 + /* Health server */  \
+                            2 + /* Simple OnOff client (2 groups) */ \
+                            2   /* Simple OnOff client (2 unicast) */)
 
 /**
  * The number of elements in the application.
@@ -95,7 +95,7 @@
  * @warning If the application is to support multiple _instances_ of the _same_ model, they cannot
  * belong in the same element and a separate element is needed for the new instance.
  */
-#define ACCESS_ELEMENT_COUNT (1 + SERVER_COUNT) /* One element per Simple OnOff client instance */
+#define ACCESS_ELEMENT_COUNT (1 + CLIENT_MODEL_INSTANCE_COUNT) /* One element per Simple OnOff client instance */
 
 /**
  * The number of allocated subscription lists for the application.
@@ -134,11 +134,11 @@
 /** Maximum number of applications */
 #define DSM_APP_MAX                                     (1)
 /** Maximum number of device keys */
-#define DSM_DEVICE_MAX                                  (SERVER_COUNT)
+#define DSM_DEVICE_MAX                                  (1)
 /** Maximum number of virtual addresses. */
 #define DSM_VIRTUAL_ADDR_MAX                            (1)
 /** Maximum number of non-virtual addresses. One for each of the servers and a group address. */
-#define DSM_NONVIRTUAL_ADDR_MAX                         (SERVER_COUNT + 1)
+#define DSM_NONVIRTUAL_ADDR_MAX                         (ACCESS_MODEL_COUNT + 1)
 /** Number of flash pages reserved for the DSM storage */
 #define DSM_FLASH_PAGE_COUNT                            (1)
 /** @} end of DSM_CONFIG */

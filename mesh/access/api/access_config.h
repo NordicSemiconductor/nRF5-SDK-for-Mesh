@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -72,8 +72,11 @@ void access_flash_config_store(void);
 /**
  * Sets the default TTL for the node.
  * @param ttl The new value to use as the default TTL for message being sent from this node.
+ *
+ * @retval     NRF_SUCCESS              Successfully set default TTL.
+ * @retval     NRF_ERROR_INVALID_PARAM  Invalid default TTL.
  */
-void access_default_ttl_set(uint8_t ttl);
+uint32_t access_default_ttl_set(uint8_t ttl);
 
 /**
  * Gets the default TTL for the node.
@@ -99,6 +102,26 @@ uint8_t access_default_ttl_get(void);
  */
 uint32_t access_model_publish_address_set(access_model_handle_t handle,
                                           dsm_handle_t address_handle);
+/**
+ * Stops the publication with the resetting of states for the given model.
+ *
+ * @param[in]  handle                   Access model handle.
+ *
+ * @retval     NRF_SUCCESS              Success.
+ * @retval     NRF_ERROR_NOT_FOUND      Access handle invalid.
+ */
+uint32_t access_model_publication_stop(access_model_handle_t handle);
+
+/**
+ * Stops the publication with the resetting of states for all models
+ * which are bound to the @c appkey_handle application key.
+ *
+ * @param[in]  appkey_handle            Application key handle.
+ *
+ * @retval     NRF_SUCCESS              Success.
+ * @retval     NRF_ERROR_INVALID_PARAM  Application key handle invalid.
+ */
+uint32_t access_model_publication_by_appkey_stop(dsm_handle_t appkey_handle);
 
 /**
  * Gets the current publish address for the given model.
@@ -115,6 +138,31 @@ uint32_t access_model_publish_address_set(access_model_handle_t handle,
  */
 uint32_t access_model_publish_address_get(access_model_handle_t handle,
                                           dsm_handle_t * p_address_handle);
+/**
+ * Sets the publish retransmit parameters for the given model.
+ *
+ * @param[in]  handle            Access model handle.
+ * @param[in]  retransmit_params Retransmit parameters to be set.
+ *
+ * @retval NRF_SUCCESS             Successfully set the retransmit params.
+ * @retval NRF_ERROR_NOT_FOUND     Access handle invalid.
+ */
+uint32_t access_model_publish_retransmit_set(access_model_handle_t handle,
+                                             access_publish_retransmit_t retransmit_params);
+
+/**
+ * Gets the current publish retransmit parameters for the given model.
+ *
+ *
+ * @param[in]  handle              Access model handle.
+ * @param[out] p_retransmit_params Pointer to store the current publish retransmit params.
+ *
+ * @retval NRF_SUCCESS             Successfully returned the publish retransmit params.
+ * @retval NRF_ERROR_NULL          Null pointer given to function.
+ * @retval NRF_ERROR_NOT_FOUND     Access handle invalid.
+ */
+uint32_t access_model_publish_retransmit_get(access_model_handle_t handle,
+                                             access_publish_retransmit_t * p_retransmit_params);
 
 /**
  * Sets the publish period for the given model.

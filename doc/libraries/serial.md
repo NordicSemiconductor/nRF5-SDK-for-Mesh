@@ -35,5 +35,7 @@ A detailed overview over all serial commands and events can be found in
 The Mesh serial interface uses a set of status codes to communicate the result of a command. A list of potential status codes can
 be found here: @subpage md_doc_libraries_serial_status.
 
+## Evaluation
+
 There is an interactive Python script for communicating with a device running the serial interface.
-An introduction to it can be found here: @subpage md_scripts_interactive_pyaci_README.
+Read the @subpage md_scripts_interactive_pyaci_README README to get started.

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -57,6 +57,7 @@
 #include "flash_manager_mock.h"
 #include "nrf_mesh_events_mock.h"
 #include "nrf_mesh_mock.h"
+#include "nrf_mesh_utils_mock.h"
 #include "event_mock.h"
 #include "bearer_event_mock.h"
 
@@ -369,6 +370,7 @@ static uint32_t address_get_stub(dsm_handle_t handle, nrf_mesh_address_t * p_add
         p_address->type = m_addresses[handle].type;
         p_address->value = m_addresses[handle].value;
         p_address->p_virtual_uuid = m_addresses[handle].p_virtual_uuid;
+        nrf_mesh_address_type_get_ExpectAndReturn(m_addresses[handle].value, m_addresses[handle].type);
         return NRF_SUCCESS;
     }
     else
@@ -394,7 +396,7 @@ static inline void expect_msg(access_opcode_t opcode, uint32_t ref, const uint8_
                               "Unable to push to expect_msg FIFO.");
 }
 
-static inline void expect_tx(const uint8_t * p_data, uint32_t length, uint16_t src, uint16_t dst, dsm_handle_t appkey_handle)
+static inline void expect_tx(const uint8_t * p_data, uint32_t length, uint16_t src, uint16_t dst, dsm_handle_t appkey_handle, dsm_handle_t subnet_handle)
 {
     tx_evt_t tx_evt;
     tx_evt.p_data = p_data;
@@ -405,7 +407,7 @@ static inline void expect_tx(const uint8_t * p_data, uint32_t length, uint16_t s
     nrf_mesh_packet_send_StubWithCallback(packet_tx_stub);
     dsm_address_get_StubWithCallback(address_get_stub);
 
-    dsm_tx_secmat_get_ExpectAndReturn(appkey_handle, NULL, NRF_SUCCESS);
+    dsm_tx_secmat_get_ExpectAndReturn(subnet_handle, appkey_handle, NULL, NRF_SUCCESS);
     dsm_tx_secmat_get_IgnoreArg_p_secmat();
     dsm_local_unicast_addresses_get_Expect(NULL);
     dsm_local_unicast_addresses_get_IgnoreArg_p_address();
@@ -483,6 +485,7 @@ static void send_msg(access_opcode_t opcode, const uint8_t * p_data, uint16_t le
         TEST_FAIL_MESSAGE("Unknown handle");
     }
     dsm_appkey_handle_get_ExpectAndReturn(NULL, key_index);
+    dsm_subnet_handle_get_ExpectAndReturn(NULL, key_index);
 
     mp_evt_handler->evt_cb(&mesh_evt);
 }
@@ -504,6 +507,8 @@ static void opcode_handler(access_model_handle_t handle, const access_message_rx
     reply.opcode.company_id = ACCESS_COMPANY_ID_NONE;
     reply.p_buffer = data;
     reply.length = sizeof(data);
+    reply.force_segmented = false;
+    reply.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
     uint8_t expected_data[sizeof(data) + sizeof(uint32_t)];
     uint16_t length = opcode_raw_write(reply.opcode, expected_data);
     memcpy(&expected_data[length], data, sizeof(data));
@@ -530,7 +535,8 @@ static void opcode_handler(access_model_handle_t handle, const access_message_rx
                   length,
                   ELEMENT_ADDRESS_START + handle * ACCESS_ELEMENT_COUNT / ACCESS_MODEL_COUNT,
                   p_message->meta_data.src.value,
-                  p_message->meta_data.appkey_handle);
+                  p_message->meta_data.appkey_handle,
+                  p_message->meta_data.subnet_handle);
     }
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_reply(handle, p_message, &reply));
@@ -629,6 +635,7 @@ void setUp(void)
     flash_manager_mock_Init();
     nrf_mesh_mock_Init();
     nrf_mesh_events_mock_Init();
+    nrf_mesh_utils_mock_Init();
     event_mock_Init();
     bearer_event_mock_Init();
     access_publish_mock_Init();
@@ -678,6 +685,8 @@ void tearDown(void)
     nrf_mesh_mock_Destroy();
     nrf_mesh_events_mock_Verify();
     nrf_mesh_events_mock_Destroy();
+    nrf_mesh_utils_mock_Verify();
+    nrf_mesh_utils_mock_Destroy();
     event_mock_Verify();
     event_mock_Destroy();
     bearer_event_mock_Verify();
@@ -824,6 +833,7 @@ void test_unicast_loopback(void)
     dsm_address_get_ExpectAndReturn(0, NULL, NRF_SUCCESS);
     dsm_address_get_IgnoreArg_p_address();
     dsm_address_get_ReturnThruPtr_p_address(&destination);
+    nrf_mesh_address_type_get_ExpectAndReturn(destination.value, NRF_MESH_ADDRESS_TYPE_UNICAST);
     access_reliable_message_rx_cb_ExpectAnyArgs();
     expect_msg(opcode, (uint32_t) TEST_REFERENCE, data, data_length);
 
@@ -859,7 +869,7 @@ void test_group_loopback(void)
     expect_msg(opcode, (uint32_t) TEST_REFERENCE, data, data_length);
 
     const uint8_t raw_packet_data[] = "\x00loopback";
-    expect_tx(raw_packet_data, data_length + 1 /* opcode */, ELEMENT_ADDRESS_START, m_addresses[address_handle].value, 0);
+    expect_tx(raw_packet_data, data_length + 1 /* opcode */, ELEMENT_ADDRESS_START, m_addresses[address_handle].value, 0, DSM_HANDLE_INVALID);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish(0, &message));
 }
@@ -900,7 +910,7 @@ void test_virtual_loopback(void)
     expect_msg(opcode, (uint32_t) TEST_REFERENCE, data, data_length);
 
     const uint8_t raw_packet_data[] = "\x00loopback";
-    expect_tx(raw_packet_data, data_length + 1 /* opcode */, ELEMENT_ADDRESS_START, m_addresses[address_handle].value, 0);
+    expect_tx(raw_packet_data, data_length + 1 /* opcode */, ELEMENT_ADDRESS_START, m_addresses[address_handle].value, 0, DSM_HANDLE_INVALID);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish(0, &message));
 
@@ -974,6 +984,8 @@ void test_model_publish(void)
     message.opcode.company_id =opcodes[0].company_id;
     message.p_buffer = data;
     message.length = sizeof(data);
+    message.force_segmented = false;
+    message.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
 
     TEST_ASSERT_EQUAL(NRF_ERROR_NULL, access_model_publish(0, NULL));
     TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, access_model_publish(ACCESS_MODEL_COUNT, &message));
@@ -1001,7 +1013,7 @@ void test_model_publish(void)
         uint32_t length = opcode_raw_write(message.opcode, expected_data);
         memcpy(&expected_data[length], data, message.length);
         length += message.length;
-        expect_tx(expected_data, length, src, dst, 0);
+        expect_tx(expected_data, length, src, dst, 0, DSM_HANDLE_INVALID);
 
         TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish(i, &message));
     }

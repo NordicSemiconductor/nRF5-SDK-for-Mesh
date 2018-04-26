@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -77,7 +77,8 @@ static uint32_t nrf_mesh_packet_send_cb(const nrf_mesh_tx_params_t * p_params, u
     TEST_ASSERT_EQUAL(m_expected_tx_params.dst.value, p_params->dst.value);
     TEST_ASSERT_EQUAL(m_expected_tx_params.dst.p_virtual_uuid, p_params->dst.p_virtual_uuid);
     TEST_ASSERT_EQUAL(m_expected_tx_params.ttl, p_params->ttl);
-    TEST_ASSERT_EQUAL(m_expected_tx_params.reliable, p_params->reliable);
+    TEST_ASSERT_EQUAL(m_expected_tx_params.force_segmented, p_params->force_segmented);
+    TEST_ASSERT_EQUAL(m_expected_tx_params.transmic_size, p_params->transmic_size);
     TEST_ASSERT_EQUAL(m_expected_tx_params.src, p_params->src);
     TEST_ASSERT_EQUAL(m_expected_tx_params.security_material.p_net, p_params->security_material.p_net);
     TEST_ASSERT_EQUAL(m_expected_tx_params.security_material.p_app, p_params->security_material.p_app);
@@ -655,9 +656,10 @@ void test_packet_send(void)
     serial_packet_t cmd;
 
     cmd.opcode = SERIAL_OPCODE_CMD_MESH_PACKET_SEND;
-    cmd.length = 9; // no payload
+    cmd.length = 10; // no payload
     cmd.payload.cmd.mesh.packet_send.appkey_handle = 0x5678;
-    cmd.payload.cmd.mesh.packet_send.reliable = true;
+    cmd.payload.cmd.mesh.packet_send.force_segmented = true;
+    cmd.payload.cmd.mesh.packet_send.transmic_size = 1;
     cmd.payload.cmd.mesh.packet_send.ttl = 0x32;
     cmd.payload.cmd.mesh.packet_send.src_addr = 0xABCD;
     cmd.payload.cmd.mesh.packet_send.dst_addr_handle = 0x0102;
@@ -675,7 +677,8 @@ void test_packet_send(void)
     m_expected_tx_params.dst.value = 0x1234;
     m_expected_tx_params.dst.p_virtual_uuid = NULL;
     m_expected_tx_params.ttl = 0x32;
-    m_expected_tx_params.reliable = true;
+    m_expected_tx_params.force_segmented = true;
+    m_expected_tx_params.transmic_size = 1;
     m_expected_tx_params.src = 0xABCD;
     m_expected_tx_params.security_material.p_net = &net;
     m_expected_tx_params.security_material.p_app = &app;
@@ -687,7 +690,7 @@ void test_packet_send(void)
     dsm_address_get_ExpectAndReturn(0x0102, NULL, NRF_SUCCESS);
     dsm_address_get_IgnoreArg_p_address();
     dsm_address_get_ReturnThruPtr_p_address(&m_expected_tx_params.dst);
-    dsm_tx_secmat_get_ExpectAndReturn(0x5678, NULL, NRF_SUCCESS);
+    dsm_tx_secmat_get_ExpectAndReturn(DSM_HANDLE_INVALID, 0x5678, NULL, NRF_SUCCESS);
     dsm_tx_secmat_get_IgnoreArg_p_secmat();
     dsm_tx_secmat_get_ReturnMemThruPtr_p_secmat(&secmat, sizeof(secmat));
     dsm_local_unicast_addresses_get_Expect(NULL);
@@ -699,18 +702,18 @@ void test_packet_send(void)
     serial_handler_mesh_rx(&cmd);
     TEST_ASSERT_EQUAL(0, m_expected_packet_send);
 
-    cmd.length = 8; // one too short
+    cmd.length = 9; // one too short
     serial_cmd_rsp_send_Expect(cmd.opcode, SERIAL_STATUS_ERROR_INVALID_LENGTH, NULL, 0);
     serial_handler_mesh_rx(&cmd);
 
     cmd.length = 98; //maxlen
     m_expected_packet_send = 1;
-    m_expected_tx_params.data_len = 89;
+    m_expected_tx_params.data_len = 88;
     m_expected_tx_params.p_data = cmd.payload.cmd.mesh.packet_send.data;
     dsm_address_get_ExpectAndReturn(0x0102, NULL, NRF_SUCCESS);
     dsm_address_get_IgnoreArg_p_address();
     dsm_address_get_ReturnThruPtr_p_address(&m_expected_tx_params.dst);
-    dsm_tx_secmat_get_ExpectAndReturn(0x5678, NULL, NRF_SUCCESS);
+    dsm_tx_secmat_get_ExpectAndReturn(DSM_HANDLE_INVALID, 0x5678, NULL, NRF_SUCCESS);
     dsm_tx_secmat_get_IgnoreArg_p_secmat();
     dsm_tx_secmat_get_ReturnMemThruPtr_p_secmat(&secmat, sizeof(secmat));
     dsm_local_unicast_addresses_get_Expect(NULL);

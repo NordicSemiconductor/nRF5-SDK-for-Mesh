@@ -21,7 +21,7 @@ set(SERIAL_INCLUDE_DIRS
 set(lint_include_dirs
     ${SERIAL_INCLUDE_DIRS}
     ${${BOARD}_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../app
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../examples/templates
     ${CMAKE_CURRENT_SOURCE_DIR}/api
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../prov/api
@@ -36,7 +36,8 @@ set(lint_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/include
     ${${SOFTDEVICE}_INCLUDE_DIRS}
-    ${${PLATFORM}_INCLUDE_DIRS})
+    ${${PLATFORM}_INCLUDE_DIRS}
+    ${${nRF5_SDK_VERSION}_INCLUDE_DIRS})
 
 add_pc_lint(serial_${PLATFORM}
     "${SERIAL_SOURCE_FILES}"

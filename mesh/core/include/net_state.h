@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -52,6 +52,15 @@
 
 /** Mask for the IVI field of the network packet. */
 #define NETWORK_IVI_MASK     (0x00000001)
+
+/**
+ * Signals for IV update test mode.
+ */
+typedef enum
+{
+	NET_STATE_TO_IV_UPDATE_IN_PROGRESS_SIGNAL,
+	NET_STATE_TO_NORMAL_SIGNAL,
+} net_state_iv_update_signals_t;
 
 /**
  * Initializes the net state module.
@@ -111,6 +120,18 @@ uint32_t net_state_seqnum_alloc(uint32_t * p_seqnum);
 void net_state_iv_update_test_mode_set(bool test_mode_on);
 
 /**
+ * Runs transition of the IV Update procedure states for the IV Update test mode.
+ * @note Mesh Profile Specification v1.0, section 3.10.5.1 details how IV Update Test Mode works.
+ *
+ * @param[in] signal Activates IV Update transition.
+ *
+ * @retval NRF_SUCCESS         Transition has been activated.
+ * @retval NRF_ERROR_FORBIDDEN Transition has been forbidden
+ *                             due to IV Update is already in the destination state.
+ */
+uint32_t net_state_test_mode_transition_run(net_state_iv_update_signals_t signal);
+
+/**
  * Initiates an IV update procedure.
  *
  * The time between IV updates must be at least 96 hours. An IV update procedure takes at least
@@ -124,10 +145,15 @@ uint32_t net_state_iv_update_start(void);
 /**
  * Notifies the application of a change in the current key refresh phase.
  *
+ * @note The network ID parameter should be the network ID that is to be advertised in beacons.
+ *
  * @param[in] subnet_index Index of the network that is affected.
- * @param[in] new_phase    The key refresh phase that the network has moved to.
+ * @param[in] p_network_id The Network ID of the network that is affected.
+ * @param[in] new_phase The key refresh phase that the network has moved to.
  */
-void net_state_key_refresh_phase_changed(uint16_t subnet_index, nrf_mesh_key_refresh_phase_t new_phase);
+void net_state_key_refresh_phase_changed(uint16_t subnet_index,
+                                         const uint8_t * p_network_id,
+                                         nrf_mesh_key_refresh_phase_t new_phase);
 
 /**
  * Locks or unlocks the IV index. While locked, the network won't initiate
@@ -136,18 +162,6 @@ void net_state_key_refresh_phase_changed(uint16_t subnet_index, nrf_mesh_key_ref
  * @param[in] lock Whether to lock or unlock the IV index.
  */
 void net_state_iv_index_lock(bool lock);
-
-/**
- * Callback for when an authenticated beacon is received by the net beacon
- * module. The network state module will adjust its state according to Mesh 
- * Profile Specification v1.0 rules.
- *
- * @param[in] iv_index    IV index of the incoming beacon.
- * @param[in] iv_update   Value of the IV update flag of the incoming beacon.
- * @param[in] key_refresh Value of the key refresh flag of the incoming beacon.
- */
-void net_state_beacon_received(uint32_t iv_index, bool iv_update, bool key_refresh);
-
 
 /**
  * Gets the IV index that should be beaconed with the Secure Network Beacon.

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -278,10 +278,16 @@ static void handle_cmd_addr_get_all(const serial_packet_t * p_cmd)
     uint32_t count = sizeof(rsp.address_handles) / sizeof(rsp.address_handles[0]);
     /* May safely cast away the packed attribute, as the rsp is word-aligned on stack: */
     uint32_t status = dsm_address_get_all((dsm_handle_t *) rsp.address_handles, &count);
-    serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode,
-            status,
-            (uint8_t *) rsp.address_handles,
-            sizeof(rsp.address_handles[0]) * count);
+    if (count > 0)
+    {
+        serial_handler_common_cmd_rsp_nodata_on_error(
+            p_cmd->opcode, status, (uint8_t *) rsp.address_handles, sizeof(rsp.address_handles[0]) * count);
+    }
+    else
+    {
+        serial_handler_common_cmd_rsp_nodata_on_error(
+            p_cmd->opcode, status, NULL, 0);
+    }
 }
 
 static void handle_cmd_addr_nonvirtual_count_max_get(const serial_packet_t * p_cmd)
@@ -353,6 +359,7 @@ static void handle_cmd_addr_publication_remove(const serial_packet_t * p_cmd)
 static void handle_cmd_packet_send(const serial_packet_t * p_cmd)
 {
     nrf_mesh_tx_params_t tx_params;
+    memset(&tx_params, 0, sizeof(tx_params));
     uint32_t status = dsm_address_get(p_cmd->payload.cmd.mesh.packet_send.dst_addr_handle, &tx_params.dst);
     if (status == NRF_SUCCESS)
     {
@@ -366,12 +373,15 @@ static void handle_cmd_packet_send(const serial_packet_t * p_cmd)
         }
         else
         {
-            status = dsm_tx_secmat_get(p_cmd->payload.cmd.mesh.packet_send.appkey_handle, &tx_params.security_material);
+            status = dsm_tx_secmat_get(DSM_HANDLE_INVALID,
+                                       p_cmd->payload.cmd.mesh.packet_send.appkey_handle,
+                                       &tx_params.security_material);
             if (status == NRF_SUCCESS)
             {
                 tx_params.src       = p_cmd->payload.cmd.mesh.packet_send.src_addr;
                 tx_params.ttl       = p_cmd->payload.cmd.mesh.packet_send.ttl;
-                tx_params.reliable  = p_cmd->payload.cmd.mesh.packet_send.reliable;
+                tx_params.force_segmented  = p_cmd->payload.cmd.mesh.packet_send.force_segmented;
+                tx_params.transmic_size = (nrf_mesh_transmic_size_t) p_cmd->payload.cmd.mesh.packet_send.transmic_size;
                 if (p_cmd->length > NRF_MESH_SERIAL_PACKET_OVERHEAD + SERIAL_CMD_MESH_PACKET_SEND_OVERHEAD)
                 {
                     tx_params.p_data    = p_cmd->payload.cmd.mesh.packet_send.data;

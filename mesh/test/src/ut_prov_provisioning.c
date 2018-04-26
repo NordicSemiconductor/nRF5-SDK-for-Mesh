@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -344,9 +344,10 @@ void test_oob_authentication(void)
 
     /* 1 Test provisionee invitation */
     /* 1.1 Initialization */
-    TEST_ASSERT_EQUAL_UINT32(NRF_SUCCESS, prov_provisionee_init(&m_provisionee_ctx,
-                                                                URI,
-                                                                oob_info_sources));
+    TEST_ASSERT_EQUAL_UINT32(NRF_SUCCESS, prov_provisionee_listen(&m_provisionee_ctx,
+                                                                  &m_bearer_provisionee,
+                                                                  URI,
+                                                                  oob_info_sources));
     /* 1.2 Start listening */
     m_bearer_provisionee.p_callbacks->opened(&m_bearer_provisionee);
 

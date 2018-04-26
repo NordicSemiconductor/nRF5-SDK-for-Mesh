@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -114,7 +114,7 @@ uint32_t sd_radio_session_close(void)
     return m_return_code_session_close;
 }
 
-uint32_t sd_radio_request(nrf_radio_request_t* p_req)
+uint32_t sd_radio_request(nrf_radio_request_t const * p_req)
 {
     TEST_ASSERT_NOT_EQUAL(0, m_radio_request_expect);
     m_radio_request_expect--;

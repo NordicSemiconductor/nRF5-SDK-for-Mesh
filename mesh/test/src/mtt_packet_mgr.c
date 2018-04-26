@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -54,12 +54,10 @@
 
 #define TEST_RANDSIZE_MAX   NRF_MESH_SEG_PAYLOAD_SIZE_MAX
 
-nrf_mesh_assertion_handler_t m_assertion_handler;
-
 uint32_t        m_nomem_counter;
 pthread_mutex_t m_nomem_counter_mutex;
 
-void nrf_mesh_assertion_handler(uint32_t pc)
+void mesh_assertion_handler(uint32_t pc)
 {
     __LOG(LOG_SRC_TEST, LOG_LEVEL_ERROR, "Assertion at PC = %.08x\n", pc);
     mttest_fail();
@@ -186,9 +184,6 @@ int main(void)
 
     /* Initialize the logging module so we can know what is happening: */
     __LOG_INIT(LOG_SRC_TEST | LOG_SRC_PACMAN, LOG_LEVEL_INFO, LOG_CALLBACK_DEFAULT);
-
-    /* Set the assertion handler: */
-    m_assertion_handler = nrf_mesh_assertion_handler;
 
     /* Initialize the toolchain module, which provides the global IRQ lock: */
     toolchain_init_irqs();

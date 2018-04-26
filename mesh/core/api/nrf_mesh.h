@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -86,12 +86,13 @@ typedef enum
     NRF_MESH_RX_SOURCE_FRIEND,  /**< The packet came from a friend node. */
     NRF_MESH_RX_SOURCE_LOW_POWER,  /**< The packet came from a low power node. */
     NRF_MESH_RX_SOURCE_INSTABURST,  /**< The packet came from an Instaburst event. */
+    NRF_MESH_RX_SOURCE_LOOPBACK,  /**< The packet came from this device. */
 } nrf_mesh_rx_source_t;
 
 /** Metadata structure for packets received with the scanner */
 typedef struct
 {
-    uint32_t timestamp; /**< Timestamp of the packet in microseconds. */
+    uint32_t timestamp; /**< Device local timestamp of the start of the advertisement header of the packet in microseconds. */
     uint32_t access_addr; /**< Access address the packet was received on. */
     uint8_t  channel; /**< Channel the packet was received on. */
     int8_t   rssi; /**< RSSI value of the received packet. */
@@ -99,25 +100,38 @@ typedef struct
     uint8_t adv_type;  /**< BLE GAP advertising type. */
 } nrf_mesh_rx_metadata_scanner_t;
 
+/** Event ID for an extended advertising event with Instaburst. */
 typedef struct
 {
-    uint16_t data_id;
-    uint8_t set_id;
+    uint16_t data_id; /**< ID for this particular event */
+    uint8_t set_id;  /**< ID for the set this event belongs in. */
 } nrf_mesh_instaburst_event_id_t;
 
 /** Metadata structure for packets received with Instaburst */
 typedef struct
 {
-    uint32_t timestamp; /**< Timestamp of the packet in microseconds. */
+    uint32_t timestamp; /**< Device local timestamp of the packet preamble of the adv ext packet in microseconds. */
     uint8_t  channel; /**< Channel the packet was received on. */
     int8_t   rssi; /**< RSSI value of the received packet. */
     struct
     {
-        nrf_mesh_instaburst_event_id_t id;
-        uint8_t packet_index;
-        bool is_last_in_chain;
+        nrf_mesh_instaburst_event_id_t id; /**< Event ID for the full advertising event. */
+        uint8_t packet_index; /**< Index of the packet in the advertising event. */
+        bool is_last_in_chain; /**< Whether this packet is the last packet in the advertising event. */
     } event;
 } nrf_mesh_rx_metadata_instaburst_t;
+
+typedef struct
+{
+    uint32_t timestamp; /**< Device local timestamp of the packet being processed in the stack in microseconds. */
+    uint16_t connection_index; /**< Proxy connection index the packet was received from. */
+} nrf_mesh_rx_metadata_gatt_t;
+
+/** Metadata structure for packets that originated on this device. */
+typedef struct
+{
+    nrf_mesh_tx_token_t tx_token; /**< TX Token attached to the loopback packet. */
+} nrf_mesh_rx_metadata_loopback_t;
 
 /** RX packet metadata. */
 typedef struct
@@ -129,6 +143,10 @@ typedef struct
         nrf_mesh_rx_metadata_scanner_t scanner;
         /** Instaburst packet metadata */
         nrf_mesh_rx_metadata_instaburst_t instaburst;
+        /** GATT packet metadata */
+        nrf_mesh_rx_metadata_gatt_t gatt;
+        /** Loopback packet metadata */
+        nrf_mesh_rx_metadata_loopback_t loopback;
     } params;
 } nrf_mesh_rx_metadata_t;
 
@@ -193,27 +211,6 @@ typedef enum
 } nrf_mesh_key_refresh_phase_t;
 
 /**
- * Bluetooth Mesh beacon timer structure.
- *
- * @warning  All parameters are for internal use.
- * @internal If the interval is zero, a default broadcasting interval is used,
- *           otherwise the provided value is used.
- */
-typedef struct nrf_mesh_beacon_timer
-{
-    /** Timestamp at which the beacon is sent. */
-    uint32_t timestamp;
-    /** Callback function pointer. */
-    void (*callback)(uint32_t, void*);
-    /** Interval between each beacon packet. */
-    uint32_t interval;
-    /** Beacon context pointer. */
-    void * p_context;
-    /** Pointer to next beacon in linked list. */
-    struct nrf_mesh_beacon_timer * p_next;
-} nrf_mesh_beacon_timer_t;
-
-/**
  * Application security material structure.
  *
  * This structure is required for the encryption of the application data.
@@ -260,6 +257,10 @@ typedef struct
     uint8_t key[NRF_MESH_KEY_SIZE];
     /** Network ID */
     uint8_t net_id[NRF_MESH_NETID_SIZE];
+#if GATT_PROXY
+    /** Identity key used with Proxy identity beacons. */
+    uint8_t identity_key[NRF_MESH_KEY_SIZE];
+#endif
 } nrf_mesh_beacon_secmat_t;
 
 /**
@@ -268,41 +269,18 @@ typedef struct
  */
 typedef struct
 {
-    /** Number of beacons received since this beacon was last transmitted. */
-    uint16_t rx_count;
-    /** Current beacon interval in seconds. */
-    uint16_t tx_interval_seconds;
+    /** Rolling number of beacons received in each preceding period. */
+    uint16_t rx_count[NRF_MESH_BEACON_OBSERVATION_PERIODS];
     /** Last transmission time for this beacon. */
     uint32_t tx_timestamp;
 } nrf_mesh_beacon_tx_info_t;
-
-/** Forward declaration for the nrf_mesh_beacon_info_t type. */
-typedef struct __nrf_mesh_beacon_info_t nrf_mesh_beacon_info_t;
-
-/**
- * Callback function for incoming network beacons.
- * This can be used to take additional actions when a network beacon is received.
- *
- * @param[in] p_beacon    Pointer to the beacon information structure for the network
- *                        the beacon was received for.
- * @param[in] p_netid     Network ID used in the received beacon. This will point to the
- *                        @c net_id field in either the @c p_beacon->secmat or the
- *                        @c p_beacon->secmat_updated structs, and can be used to determine
- *                        whether the beacon was sent with updated security credentials
- *                        using the key refresh procedure.
- * @param[in] iv_index    IV index of the received beacon.
- * @param[in] iv_update   Value of the IV update flag in the received beacon.
- * @param[in] key_refresh Value of the key refresh flag in the received beacon.
- */
-typedef void (*nrf_mesh_net_beacon_cb_t)(const nrf_mesh_beacon_info_t * p_beacon,
-        const uint8_t * p_netid, uint32_t iv_index, bool iv_update, bool key_refresh);
 
 /**
  * Information structure for the Bluetooth Mesh network beacons.
  * This structure keeps track of all information related to a single mesh
  * network beacon.
  */
-struct __nrf_mesh_beacon_info_t
+typedef struct
 {
     /** Flag indicating whether the given structure is allowed to initiate an
      * IV update. */
@@ -313,9 +291,7 @@ struct __nrf_mesh_beacon_info_t
     nrf_mesh_beacon_secmat_t secmat;
     /** Beacon security material during key refresh. */
     nrf_mesh_beacon_secmat_t secmat_updated;
-    /** Callback function for received beacons. */
-    nrf_mesh_net_beacon_cb_t callback;
-};
+} nrf_mesh_beacon_info_t;
 
 /**
  * Bluetooth Mesh security material structure.
@@ -377,6 +353,19 @@ typedef struct
     const uint8_t * p_virtual_uuid;
 } nrf_mesh_address_t;
 
+/** Message MIC size selection */
+typedef enum
+{
+    /** Selects 4 byte MIC size for the transport PDU */
+    NRF_MESH_TRANSMIC_SIZE_SMALL,
+    /** Selects 8 byte MIC size for the transport PDU */
+    NRF_MESH_TRANSMIC_SIZE_LARGE,
+    /** Selects default stack configured MIC size for the transport PDU */
+    NRF_MESH_TRANSMIC_SIZE_DEFAULT,
+    /** Invalid size */
+    NRF_MESH_TRANSMIC_SIZE_INVALID
+} nrf_mesh_transmic_size_t;
+
 /**
  * Mesh packet transmission parameters.
  *
@@ -392,7 +381,9 @@ typedef struct
     /** Time to live value for the packet, this is a 7 bit value. */
     uint8_t ttl;
     /** See Section 3.7.5.2 in the Mesh Profile Specification v1.0. */
-    bool reliable;
+    bool force_segmented;
+    /** Transport MIC Size selection */
+    nrf_mesh_transmic_size_t transmic_size;
     /** Points to the payload to be sent. */
     const uint8_t * p_data;
     /** Length of the payload being sent. */
@@ -415,9 +406,9 @@ typedef struct
 #else
     #error "Unknown target softdevice version"
 #endif
-    nrf_mesh_assertion_handler_t assertion_handler; /**< Assert callback function. */
     nrf_mesh_relay_check_cb_t relay_cb; /**< Application call back for relay decisions, can be NULL. */
-    uint8_t irq_priority; /**< Application IRQ priority (NRF_MESH_IRQ_PRIORITY_THREAD if thread mode). */
+    uint8_t irq_priority; /**< Application IRQ priority (NRF_MESH_IRQ_PRIORITY_LOWEST or NRF_MESH_IRQ_PRIORITY_THREAD). */
+    const uint8_t * p_uuid; /** UUID to be used for unprovisioned node beacons. If NULL, UUID will be auto generated */
 } nrf_mesh_init_params_t;
 
 /** @} end of MESH_CORE_COMMON_TYPES */
@@ -529,21 +520,6 @@ uint32_t nrf_mesh_packet_send(const nrf_mesh_tx_params_t * p_params,
 bool nrf_mesh_process(void);
 
 /**
- * Pass SoftDevice BLE events to the Mesh.
- *
- * @warning This API call is not implemented.
- *
- * Add this function in the BLE event dispatcher function used with the
- * SoftDevice handler module (see softdevice_ble_evt_handler_set()
- * softdevice_handler.h in the SDK).
- *
- * @param[in] p_ble_evt Pointer to SoftDevice BLE event.
- *
- * @retval NRF_SUCCESS
- */
-uint32_t nrf_mesh_on_ble_evt(ble_evt_t * p_ble_evt);
-
-/**
  * Pass SoftDevice SoC events to the Mesh.
  *
  * Add this function in the SoC event dispatcher function used with the
@@ -569,6 +545,15 @@ void nrf_mesh_rx_cb_set(nrf_mesh_rx_cb_t rx_cb);
  * Unregister the RX callback, if any.
  */
 void nrf_mesh_rx_cb_clear(void);
+
+/**
+ * Notify the core stack that a subnet was added to the device.
+ *
+ * @param[in] net_key_index Key index of the added subnet.
+ * @param[in] p_network_id Network ID of the added subnet.
+ */
+void nrf_mesh_subnet_added(uint16_t net_key_index, const uint8_t * p_network_id);
+
 
 /** @} end of MESH_API_GROUP_CORE */
 /** @} */

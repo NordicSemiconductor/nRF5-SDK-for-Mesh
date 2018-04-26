@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -50,6 +50,15 @@
  * @{
  */
 
+/** Size of the network beacon buffer. */
+#define NET_BEACON_BUFFER_SIZE 22
+
+/**
+ * Size (in octets) of the CMAC field in a secure network broadcast beacon
+ * packet.
+ */
+#define NET_BEACON_CMAC_SIZE 8
+
 /**
  * Initializes the network beacon module.
  */
@@ -68,6 +77,25 @@ void net_beacon_state_set(bool enabled);
 bool net_beacon_state_get(void);
 
 /**
+ * Build a network beacon packet in the given buffer.
+ *
+ * @param[in] p_beacon_secmat Security material to authenticate the beacon.
+ * @param[in] iv_index IV index.
+ * @param[in] iv_update IV update state.
+ * @param[in] key_refresh Key refresh flag.
+ * @param[in,out] p_buffer Buffer to build the packet in. Must be at least @ref
+ * NET_BEACON_BUFFER_SIZE bytes long.
+ *
+ * @retval NRF_SUCCESS The beacon packet was built successfully with the given parameters.
+ * @retval NRF_ERROR_NULL One or more of the parameters are NULL.
+ */
+uint32_t net_beacon_build(const nrf_mesh_beacon_secmat_t * p_beacon_secmat,
+                          uint32_t iv_index,
+                          net_state_iv_update_t iv_update,
+                          bool key_refresh,
+                          uint8_t * p_buffer);
+
+/**
  * Processes incoming network beacon packets.
  *
  * Called for an incoming packet with the secure network broadcast beacon type.
@@ -78,8 +106,17 @@ bool net_beacon_state_get(void);
  */
 void net_beacon_packet_in(const uint8_t * p_beacon_data, uint8_t data_length, const nrf_mesh_rx_metadata_t * p_meta);
 
-
-
+/**
+ * Get the network beacon flag representation of the given key refresh phase.
+ *
+ * @param[in] phase Key refresh phase to get the key refresh flag for.
+ *
+ * @returns The key refresh flag corresponding to the given phase.
+ */
+static inline bool net_beacon_key_refresh_flag(nrf_mesh_key_refresh_phase_t phase)
+{
+    return (phase == NRF_MESH_KEY_REFRESH_PHASE_2);
+}
 
 /** @} */
 

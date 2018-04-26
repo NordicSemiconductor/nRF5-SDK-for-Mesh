@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -44,21 +44,26 @@
 
 static instaburst_tx_t m_instaburst[CORE_TX_ROLE_COUNT];
 
+static struct
+{
+    core_tx_role_t role;
+    uint8_t * p_packet;
+} m_current_alloc;
+
 static uint8_t m_originator_instaburst_packet_buffer[CORE_TX_QUEUE_BUFFER_SIZE_INSTABURST_ORIGINATOR];
 static uint8_t m_relay_instaburst_packet_buffer[CORE_TX_QUEUE_BUFFER_SIZE_INSTABURST_RELAY];
 
 static const uint8_t m_instaburst_channels[] = CORE_TX_INSTABURST_CHANNELS;
 
 
-static uint8_t * packet_alloc(uint32_t net_packet_len,
-                              const core_tx_metadata_t * p_metadata,
-                              nrf_mesh_tx_token_t token);
-static void packet_send(const core_tx_metadata_t * p_metadata, uint8_t * p_packet);
-static void packet_discard(const core_tx_metadata_t * p_metadata, uint8_t * p_packet);
+static core_tx_alloc_result_t packet_alloc(core_tx_bearer_t * p_bearer, const core_tx_alloc_params_t * p_params);
+static void packet_send(core_tx_bearer_t * p_bearer, const uint8_t * p_packet, uint32_t packet_length);
+static void packet_discard(core_tx_bearer_t * p_bearer);
 
 static const core_tx_bearer_interface_t m_interface = {packet_alloc,
                                                        packet_send,
                                                        packet_discard};
+static core_tx_bearer_t m_bearer;
 /*****************************************************************************
 * Static functions
 *****************************************************************************/
@@ -67,41 +72,48 @@ static void instaburst_tx_complete_callback(instaburst_tx_t * p_instaburst,
                                             nrf_mesh_tx_token_t token,
                                             uint32_t timestamp)
 {
-    core_tx_metadata_t metadata;
-    metadata.bearer = CORE_TX_BEARER_ADV;
-    metadata.role = (core_tx_role_t)(p_instaburst - m_instaburst);
-    core_tx_complete(&metadata, timestamp, token);
+    core_tx_role_t role = (core_tx_role_t) (p_instaburst - &m_instaburst[0]);
+    core_tx_complete(&m_bearer, role, timestamp, token);
 }
 
-static uint8_t * packet_alloc(uint32_t net_packet_len,
-                              const core_tx_metadata_t * p_metadata,
-                              nrf_mesh_tx_token_t token)
+static core_tx_alloc_result_t packet_alloc(core_tx_bearer_t * p_bearer, const core_tx_alloc_params_t * p_params)
 {
-    uint8_t * p_buffer =
-        instaburst_tx_buffer_alloc(&m_instaburst[p_metadata->role], sizeof(ble_ad_header_t) + net_packet_len, token);
-    if (p_buffer)
-    {
-        ble_ad_data_t * p_ad_data = (ble_ad_data_t *) p_buffer;
-        p_ad_data->type = AD_TYPE_MESH;
-        p_ad_data->length = BLE_AD_DATA_OVERHEAD + net_packet_len;
-        return p_ad_data->data;
-    }
-    else
-    {
-        return NULL;
-    }
+    NRF_MESH_ASSERT(p_bearer == &m_bearer);
+    NRF_MESH_ASSERT(m_current_alloc.p_packet == NULL);
+
+    m_current_alloc.p_packet = instaburst_tx_buffer_alloc(&m_instaburst[p_params->role],
+                                                          sizeof(ble_ad_header_t) + p_params->net_packet_len,
+                                                          p_params->token);
+    m_current_alloc.role     = p_params->role;
+
+    return ((m_current_alloc.p_packet != NULL) ? CORE_TX_ALLOC_SUCCESS : CORE_TX_ALLOC_FAIL_NO_MEM);
 }
 
-static void packet_send(const core_tx_metadata_t * p_metadata, uint8_t * p_packet)
+static void packet_send(core_tx_bearer_t * p_bearer, const uint8_t * p_packet, uint32_t packet_length)
 {
-    instaburst_tx_buffer_commit(&m_instaburst[p_metadata->role],
-                                (uint8_t *) PARENT_BY_FIELD_GET(ble_ad_data_t, data, p_packet));
+    NRF_MESH_ASSERT(p_bearer == &m_bearer);
+    NRF_MESH_ASSERT(m_current_alloc.p_packet != NULL);
+
+    ble_ad_data_t * p_ad_data = (ble_ad_data_t *) m_current_alloc.p_packet;
+    p_ad_data->type = AD_TYPE_MESH;
+    p_ad_data->length = BLE_AD_DATA_OVERHEAD + packet_length;
+    memcpy(p_ad_data->data, p_packet, packet_length);
+
+    instaburst_tx_buffer_commit(&m_instaburst[m_current_alloc.role],
+                                m_current_alloc.p_packet);
+
+    m_current_alloc.p_packet = NULL;
 }
 
-static void packet_discard(const core_tx_metadata_t * p_metadata, uint8_t * p_packet)
+static void packet_discard(core_tx_bearer_t * p_bearer)
 {
-    instaburst_tx_buffer_discard(&m_instaburst[p_metadata->role],
-                                 (uint8_t *) PARENT_BY_FIELD_GET(ble_ad_data_t, data, p_packet));
+    NRF_MESH_ASSERT(p_bearer == &m_bearer);
+    NRF_MESH_ASSERT(m_current_alloc.p_packet != NULL);
+
+    instaburst_tx_buffer_discard(&m_instaburst[m_current_alloc.role],
+                                 m_current_alloc.p_packet);
+
+    m_current_alloc.p_packet = NULL;
 }
 /*****************************************************************************
 * Interface functions
@@ -132,7 +144,7 @@ void core_tx_instaburst_init(void)
                              sizeof(m_relay_instaburst_packet_buffer));
     instaburst_tx_enable(&m_instaburst[CORE_TX_ROLE_RELAY]);
 
-    core_tx_bearer_register(CORE_TX_BEARER_ADV, &m_interface);
+    core_tx_bearer_add(&m_bearer, &m_interface, CORE_TX_BEARER_TYPE_ADV);
 }
 
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -204,13 +204,14 @@ void test_cmd_mesh(void)
     cmd.opcode = SERIAL_OPCODE_CMD_MESH_PACKET_SEND;
     cmd.length = SERIAL_PACKET_LENGTH_OVERHEAD + SERIAL_CMD_MESH_PACKET_SEND_OVERHEAD + 8;
     cmd.payload.cmd.mesh.packet_send.appkey_handle = 0x1234;
-    cmd.payload.cmd.mesh.packet_send.reliable = 0x67;
+    cmd.payload.cmd.mesh.packet_send.force_segmented = 0x67;
     cmd.payload.cmd.mesh.packet_send.src_addr = 0xabcd;
     cmd.payload.cmd.mesh.packet_send.dst_addr_handle = 0x7890;
     cmd.payload.cmd.mesh.packet_send.ttl = 0x56;
+    cmd.payload.cmd.mesh.packet_send.transmic_size = 1;
     for (uint32_t i = 0; i < 8; i++)
         cmd.payload.cmd.mesh.packet_send.data[i] = i;
-    TEST_PACKET_EQUAL(cmd, 17, 0xAB, 0x34, 0x12, 0xcd, 0xab, 0x90, 0x78, 0x56, 0x67,
+    TEST_PACKET_EQUAL(cmd, 18, 0xAB, 0x34, 0x12, 0xcd, 0xab, 0x90, 0x78, 0x56, 0x67, 0x01,
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07);
 }
 

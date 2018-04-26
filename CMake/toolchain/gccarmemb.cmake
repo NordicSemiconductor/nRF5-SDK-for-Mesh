@@ -37,6 +37,7 @@ function (create_hex executable)
     add_custom_command(
         TARGET ${executable}
         POST_BUILD
-        COMMAND arm-none-eabi-objcopy -O ihex ${CMAKE_CURRENT_BINARY_DIR}/${executable}.elf ${CMAKE_CURRENT_BINARY_DIR}/${executable}.hex)
+        COMMAND arm-none-eabi-objcopy -O ihex ${CMAKE_CURRENT_BINARY_DIR}/${executable}.elf ${CMAKE_CURRENT_BINARY_DIR}/${executable}.hex
+        BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/${executable}.hex)
 endfunction(create_hex)
 

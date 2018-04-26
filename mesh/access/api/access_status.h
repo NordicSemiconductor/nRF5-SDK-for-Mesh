@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -59,12 +59,11 @@ typedef enum
     ACCESS_STATUS_FEATURE_NOT_SUPPORTED              = 0x0A, /**< The feature is not supported in this node. */
     ACCESS_STATUS_CANNOT_UPDATE                      = 0x0B, /**< The requested update operation cannot be performed due to general constraints. */
     ACCESS_STATUS_CANNOT_REMOVE                      = 0x0C, /**< The requested delete operation cannot be performed due to general constraints. */
-    ACCESS_STATUS_PERIODIC_NOT_SUPPORTED             = 0x0D, /**< Periodic publishing of Status messages is not supported by the Model. */
-    ACCESS_STATUS_CANNOT_BIND                        = 0x0E, /**< The requested bind operation cannot be performed due to general constraints. */
-    ACCESS_STATUS_TEMPORARILY_UNABLE_TO_CHANGE_STATE = 0x0F, /**< The requested operation temporarily cannot be performed due to internal state of the node. */
-    ACCESS_STATUS_CANNOT_SET                         = 0x10, /**< The requested set operation cannot be performed due to general constraints. */
-    ACCESS_STATUS_UNSPECIFIED_ERROR                  = 0x11, /**< An error occurred that does not correspond to any error conditions defined for a given state. */
-    ACCESS_STATUS_INVALID_BINDING                    = 0x12 /**< The NetKeyIndex and AppKeyIndex combination is not valid. */
+    ACCESS_STATUS_CANNOT_BIND                        = 0x0D, /**< The requested bind operation cannot be performed due to general constraints. */
+    ACCESS_STATUS_TEMPORARILY_UNABLE_TO_CHANGE_STATE = 0x0E, /**< The requested operation temporarily cannot be performed due to internal state of the node. */
+    ACCESS_STATUS_CANNOT_SET                         = 0x0F, /**< The requested set operation cannot be performed due to general constraints. */
+    ACCESS_STATUS_UNSPECIFIED_ERROR                  = 0x10, /**< An error occurred that does not correspond to any error conditions defined for a given state. */
+    ACCESS_STATUS_INVALID_BINDING                    = 0x11, /**< The NetKeyIndex and AppKeyIndex combination is not valid. */
 } access_status_t;
 
 /** @} ACCESS_TYPES */

@@ -1,0 +1,25 @@
+; nRF5 SDK for Mesh Bootloader scatter file -- Generated 2018-04-16 14:38:46 by tools/linker/linker_file_generator.py.
+
+LR_IROM1 0x3a000 0x5800 {
+  ER_IROM1 0x3a000 0x5800 {
+   *.o (RESET, +First)
+   *(InRoot$$Sections)
+   .ANY (+RO)
+  }
+
+  RW_IRAM1 0x20000004 0x3cfc {
+   .ANY (+RW +ZI)
+  }
+
+  RW_IRAM2 0x20003d00 0x300 {
+    bootloader_app_bridge.o (+ZI +RW)
+    bootloader_info.o (+ZI +RW)
+    dfu_mesh.o (+ZI +RW)
+    dfu_transfer_mesh.o (+ZI +RW)
+    dfu_bank.o (+ZI +RW)
+    dfu_util.o (+ZI +RW)
+    ; sha256.o (+ZI +RW)   ; Does not contain any zero-initilized data.
+    ; uECC.o (+ZI +RW)     ; Does not contain any zero-initilized data.
+   .ANY (+RW +ZI)
+  }
+}

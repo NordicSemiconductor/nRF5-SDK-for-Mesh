@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -176,23 +176,10 @@ typedef struct
 {
     /** Provisioning context pointer. */
     nrf_mesh_prov_ctx_t * p_context;
-    /** Pointer to the received network key. This must be copied into static memory before use. */
-    const uint8_t * p_netkey;
     /** Device key of the provisioned device. This must be copied into static memory before use. */
     const uint8_t * p_devkey;
-    /** IV index for the network. */
-    uint32_t iv_index;
-    /** Network key index. */
-    uint16_t netkey_index;
-    /** Unicast address for the device. */
-    uint16_t address;
-    /** Flags. */
-    struct {
-        /** IV update in progress flag. */
-        uint8_t iv_update   : 1;
-        /** Key refresh in progress flag. */
-        uint8_t key_refresh : 1;
-    } flags;
+    /** Pointer to provisioning data structure. */
+    const nrf_mesh_prov_provisioning_data_t * p_prov_data;
 } nrf_mesh_prov_evt_complete_t;
 
 /**

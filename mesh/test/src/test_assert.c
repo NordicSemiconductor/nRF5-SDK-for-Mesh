@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -44,13 +44,7 @@
 bool mesh_assert_expect;
 jmp_buf assert_jump_buf;
 
-/* Forward declaration of the assertion handler: */
-static void assertion_handler(uint32_t pc_value);
-
-/* Global assertion handler instance for unit tests: */
-nrf_mesh_assertion_handler_t m_assertion_handler = assertion_handler;
-
-static void assertion_handler(uint32_t pc_value)
+void mesh_assertion_handler(uint32_t pc)
 {
     if(mesh_assert_expect)
     {
@@ -62,4 +56,3 @@ static void assertion_handler(uint32_t pc_value)
         TEST_FAIL_MESSAGE("Unexpected mesh assertion");
     }
 }
-

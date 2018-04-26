@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -40,15 +40,26 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "hal.h"
 
 /**
  * @defgroup SIMPLE_HAL Simple Hardware Abstraction Layer
+ * @ingroup MESH_API_GROUP_APP_SUPPORT
  * Simple hardware abstraction layer for the example applications.
  * @{
  */
 
 /** Acceptable button press frequency in RTC ticks. */
-#define HAL_BUTTON_PRESS_FREQUENCY (6554) /* 200ms */
+#define HAL_BUTTON_PRESS_FREQUENCY  HAL_MS_TO_RTC_TICKS(400)
+
+/** Set LED Mask state to Off. */
+#define LED_MASK_STATE_OFF    (false)
+/** Set LED Mask state to On. */
+#define LED_MASK_STATE_ON     (true)
+
+
+/** Boards with user buttons */
+#define BUTTON_BOARD (defined(BOARD_PCA10040) || defined(BOARD_PCA10028) || defined(BOARD_PCA10056)) //lint -e491 // Suppress "non-standard use of 'defined' preprocessor operator"
 
 /**
  * Button event handler callback type.
@@ -80,7 +91,7 @@ void hal_led_pin_set(uint32_t pin, bool value);
 
 /**
  * Sets the LEDs for the given mask.
- * @param[in] mask  Mask of LED pins to set/clear.
+ * @param[in] led_mask  Mask of LED pins to set/clear.
  * @param[in] value @c true for on, @c false for off.
  */
 void hal_led_mask_set(uint32_t led_mask, bool value);
@@ -88,19 +99,21 @@ void hal_led_mask_set(uint32_t led_mask, bool value);
 /**
  * Gets the current state of a (LED) pin.
  * @note The LEDs are active low, i.e., on when it's GPIO is set low.
+ *
+ * @param[in] pin Pin to get state of.
+ *
  * @returns @c true if the LED is on, @c false otherwise.
  */
 bool hal_led_pin_get(uint32_t pin);
 
 /**
- * Blinks pin_mask a specified number of times.
+ * Blinks (one toggle cycle) pin_mask a specified number of times.
  *
- * @param[in] pin_mask Mask of LED pins.
- * @param[in] delay_ms Delay in milliseconds between each state change.
- * @param[in] repeat   Number of repeats. This number is rounded down if it
- *                     is not an even number.
+ * @param[in] pin_mask      Mask of LED pins.
+ * @param[in] delay_ms      Delay in milliseconds between each state change.
+ * @param[in] blink_count   Number of times to blink.
  */
-void hal_led_blink_ms(uint32_t pin_mask, uint32_t delay_ms, uint32_t repeat);
+void hal_led_blink_ms(uint32_t pin_mask, uint32_t delay_ms, uint32_t blink_count);
 
 /** @} end of SIMPLE_HAL */
 

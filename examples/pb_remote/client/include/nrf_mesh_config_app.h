@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -82,7 +82,7 @@
  * @note This value has to be greater than two to fit the configuration and health models,
  * plus the number of models needed by the application.
  */
-#define ACCESS_MODEL_COUNT (2)
+#define ACCESS_MODEL_COUNT (3)
 
 /**
  * The number of elements in the application.

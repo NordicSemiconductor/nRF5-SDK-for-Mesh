@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -129,7 +129,10 @@ typedef struct
     uint16_t subscription_pool_index;
     /** This model's TTL value for each published packet */
     uint8_t publish_ttl;
+    /** Number of steps and step resolution for the publication functionality. */
     access_publish_period_t publication_period;
+    /** The publish retransmit count and the interval of the retransmitting steps for the retransmitting functionality. */
+    access_publish_retransmit_t publication_retransmit;
 }access_model_state_data_t;
 
 typedef struct

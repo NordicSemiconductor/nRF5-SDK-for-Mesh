@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -48,11 +48,11 @@
 
 #define SERIAL_QUEUE_SIZE       (4)
 #if defined(NRF51)
-/** UART IRQ level defaults to correspond with `APP_IRQ_PRIORITY_LOW` */
+/** UART IRQ level defaults to correspond with `APP_IRQ_PRIORITY_LOWEST` */
 #define UART_IRQ_LEVEL (3)
 #elif defined(NRF52_SERIES)
-/** UART IRQ level defaults to correspond with `APP_IRQ_PRIORITY_LOW` */
-#define UART_IRQ_LEVEL (6)
+/** UART IRQ level defaults to correspond with `APP_IRQ_PRIORITY_LOWEST` */
+#define UART_IRQ_LEVEL (7)
 #endif
 #define SERIAL_UART_BAUDRATE UART_BAUDRATE_BAUDRATE_Baud115200
 

@@ -1,51 +1,63 @@
-# Installing the mesh toolchain
+# Installing the toolchain
 
 To build the example applications, a toolchain based on either CMake or SEGGER Embedded Studio is required.
 Install instructions are provided for Windows and Debian/Ubuntu. The steps should be similar for
 other platforms.
 
-## SEGGER Embedded Studio
+## List of tools
 
-Please see the @link_seggerstudio
-<!--https://www.segger.com/products/development-tools/embedded-studio/?L=0--> website for download and
-installation instructions.
+> **Important:** Ensure that all command line tools are available in a folder referenced by
+> the system path (e.g. the `PATH` environment variable).
 
-## Python
+The following table lists the required tools to work with the nRF5 SDK for Mesh:
 
-Python is _not_ required to build the mesh stack and examples, but it is required when working with
-DFU, the @ref md_scripts_interactive_pyaci_README, generating SEGGER Embedded Studio projects and when
-building documentation. The nRF5 SDK for Mesh uses @link_python3<!--Python 3: https://www.python.org/downloads-->,
-_however_, the @link_nrfutil_github_name<!--https://github.com/NordicSemiconductor/pc-nrfutil/tree/mesh_dfu-->
-tool used for transferring firmware images over serial requires @link_python27<!-- Python 2.7: https://www.python.org/downloads/ -->.
+ | Download link                                                                                                                                                                                              | Recommended *minimum* version | Installation notes                               |
+ |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------|--------------------------------------------------|
+ | <a href="http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.tools%2Fdita%2Ftools%2Fnrf5x_command_line_tools%2Fnrf5x_installation.html" target="_blank">nRF5x Command Line Tools</a> | 9.5.0                         |                                                  |
+ | <a href="https://www.segger.com/downloads/jlink/" target="_blank">SEGGER J-Link Software Pack</a>                                                                                                          | 6.16a                         |                                                  |
+ | <a href="https://www.python.org/downloads/" target="_blank">Python 2.7</a>                                                                                                                                 | 2.7                           | Only needed for DFU. See note about Python below |
+ | <a href="https://www.python.org/downloads/" target="_blank">Python 3</a>                                                                                                                                   | 3.5.1.32                      | Must be 32-bit for `nrfjprog` DLL to work        |
 
-## Development tools
+In addition to these tools, a build environment is needed.
+The nRF5 SDK for Mesh supports both CMake and SEGGER Embedded Studio.
+You only need to install one of them.
 
-For programming nRF5x devices, using `nrfjprog` is recommended. It is available in the
-@link_nrf5x_cmd_line_tools_w32 <!-- nRF5x command line tools: http://www.nordicsemi.com/eng/nordic/Products/nRF51822/nRF5x-Command-Line-Tools-Win32/33444 -->
-and @link_nrf5x_cmd_line_tools_linux<!--nRF5x command line tools: https://www.nordicsemi.com/eng/nordic/Products/nRF51822/nRF5x-Command-Line-Tools-Linux64/51386 -->.
+### SEGGER Embedded Studio
 
-## CMake based setup
+To use SEGGER Embedded Studio, download the installer from the
+<a href="https://www.segger.com/downloads/embedded-studio/" target="_blank">SEGGER website</a>
+and follow the installation instructions. You will find project files for each of the examples in
+their respective folders.
 
-@link_cmake <!--CMake: https://cmake.org/--> is a build management system used for managing an
-environment that is independent of the compiler and build system used. Version 3.6 or above is
-required by the mesh stack.
+### CMake
+As an alternative to SEGGER Embedded Studio, @link_cmake <!--CMake: https://cmake.org/-->
+is a build management system used for managing an environment that is independent of the
+compiler and build system used. Version 3.6 or above is required by the mesh stack.
 
 The following tools must be installed:
 * @link_cmake <!--CMake: https://cmake.org/-->
-* A _toolchain_. Supported toolchaings are the @link_armnone <!--arm-none-eabi-gcc: https://developer.arm.com/open-source/gnu-toolchain/gnu-rm-->
+* A _toolchain_. Supported toolchains are the @link_armnone <!--arm-none-eabi-gcc: https://developer.arm.com/open-source/gnu-toolchain/gnu-rm-->
   toolchain and the @link_armcc <!--armcc v5: https://developer.arm.com/products/software-development-tools/compilers/arm-compiler/downloads/version-5-->
   toolchain. The armcc v5 toolchain is also provided by @link_keil <!--Keil: http://www2.keil.com/mdk5/compiler/5/-->
   and comes bundled with the @link_keiluvision<!--Keil uVision IDE: http://www2.keil.com/mdk5/uvision/-->.
 * A _build system_. CMake supports a range of build systems, e.g., @link_ninja and @link_make.
 
-Instructions for how to install these tools are provided for the following platforms:
-* @subpage md_doc_getting_started_how_to_windows_tools
-* @subpage md_doc_getting_started_how_to_debian_tools
-
-If you want to build the documentation, make sure that the following tools are installed and available from the command line:
+Additionally, if you want to build the documentation, make sure that the following tools are installed and available from the command line:
 * @link_doxygen <!--Doxygen: https://doxygen.org-->
 * @link_graphviz <!--Graphviz: http://graphviz.org-->
 * @link_mscgen <!--Mscgen: http://www.mcternan.me.uk/mscgen-->
-* @link_python3 <!--Python 3: https://www.python.org/downloads-->
 
-See the tools' websites for installation instructions.
+Instructions for how to install these tools are provided for the following platforms:
+
+* @subpage md_doc_getting_started_how_to_windows_tools
+* @subpage md_doc_getting_started_how_to_debian_tools
+
+## Python
+
+Python is _not_ required to build the mesh stack and examples, but it is required when working with
+DFU, the @ref md_scripts_interactive_pyaci_README, generating SEGGER Embedded Studio projects and when
+building documentation. The nRF5 SDK for Mesh uses
+<a href="https://www.python.org/downloads/" target="_blank">Python 3</a>,
+_however_, the @link_nrfutil_github_name<!--https://github.com/NordicSemiconductor/pc-nrfutil/tree/mesh_dfu-->
+tool used for DFU transfers over serial requires
+<a href="https://www.python.org/downloads/" target="_blank">Python 2.7</a>.

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -97,11 +97,11 @@
 /** Interval for secure network broadcast beacons, in seconds. */
 #define NRF_MESH_BEACON_SECURE_NET_BCAST_INTERVAL_SECONDS 10
 
+/** Number of periods to keep beacon observations of. */
+#define NRF_MESH_BEACON_OBSERVATION_PERIODS 2
+
 /** Size (in octets) of the unprovisioned beacon URI hash. */
 #define NRF_MESH_BEACON_UNPROV_URI_HASH_SIZE    (4)
-
-/** Default beacon interval. */
-#define BEACON_INTERVAL_MS_DEFAULT (1 * 1000)
 
 /** Size of an ECDH public key. */
 #define NRF_MESH_ECDH_PUBLIC_KEY_SIZE    (64)

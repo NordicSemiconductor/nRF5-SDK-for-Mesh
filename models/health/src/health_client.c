@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -50,6 +50,7 @@
 static void reliable_status_cb(access_model_handle_t model_handle, void * p_args, access_reliable_status_t status)
 {
     health_client_t * p_client = p_args;
+    health_client_evt_t event;
 
     if (p_client->p_buffer != NULL)
     {
@@ -57,14 +58,25 @@ static void reliable_status_cb(access_model_handle_t model_handle, void * p_args
         p_client->p_buffer = NULL;
     }
 
-    if (status == ACCESS_RELIABLE_TRANSFER_TIMEOUT)
-    {
-        health_client_evt_t event;
-        event.type = HEALTH_CLIENT_EVT_TYPE_TIMEOUT;
-        p_client->event_handler(p_client, &event);
-    }
-
     p_client->waiting_for_reply = false;
+
+    switch (status)
+    {
+        case ACCESS_RELIABLE_TRANSFER_SUCCESS:
+            /* Ignore */
+            break;
+        case ACCESS_RELIABLE_TRANSFER_TIMEOUT:
+            event.type = HEALTH_CLIENT_EVT_TYPE_TIMEOUT;
+            p_client->event_handler(p_client, &event);
+            break;
+        case ACCESS_RELIABLE_TRANSFER_CANCELLED:
+            event.type = HEALTH_CLIENT_EVT_TYPE_CANCELLED;
+            p_client->event_handler(p_client, &event);
+            break;
+        default:
+            NRF_MESH_ASSERT(false);
+            break;
+    }
 }
 
 static uint32_t reliable_send(health_client_t * p_client, uint16_t opcode, uint16_t reply_opcode,
@@ -98,6 +110,8 @@ static uint32_t reliable_send(health_client_t * p_client, uint16_t opcode, uint1
         .message.p_buffer = p_client->p_buffer,
         .message.length = message_length,
         .message.opcode = ACCESS_OPCODE_SIG(opcode),
+        .message.force_segmented = false,
+        .message.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT,
         .reply_opcode = ACCESS_OPCODE_SIG(reply_opcode),
         .timeout = ACCESS_RELIABLE_TIMEOUT_MIN,
         .status_cb = reliable_status_cb
@@ -210,7 +224,9 @@ uint32_t health_client_fault_clear(health_client_t * p_client, uint16_t company_
         {
             .opcode = ACCESS_OPCODE_SIG(HEALTH_OPCODE_FAULT_CLEAR_UNACKED),
             .p_buffer = (const uint8_t *) &message,
-            .length = sizeof(health_msg_fault_clear_t)
+            .length = sizeof(health_msg_fault_clear_t),
+            .force_segmented = false,
+            .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT
         };
         return access_model_publish(p_client->model_handle, &packet);
     }
@@ -234,7 +250,9 @@ uint32_t health_client_fault_test(health_client_t * p_client, uint16_t company_i
         {
             .opcode = ACCESS_OPCODE_SIG(HEALTH_OPCODE_FAULT_TEST_UNACKED),
             .p_buffer = (const uint8_t *) &message,
-            .length = sizeof(health_msg_fault_test_t)
+            .length = sizeof(health_msg_fault_test_t),
+            .force_segmented = false,
+            .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT
         };
         return access_model_publish(p_client->model_handle, &packet);
     }
@@ -258,7 +276,9 @@ uint32_t health_client_period_set(health_client_t * p_client, uint8_t fast_perio
         {
             .opcode = ACCESS_OPCODE_SIG(HEALTH_OPCODE_PERIOD_SET_UNACKED),
             .p_buffer = (const uint8_t *) &message,
-            .length = sizeof(health_msg_period_set_t)
+            .length = sizeof(health_msg_period_set_t),
+            .force_segmented = false,
+            .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT
         };
         return access_model_publish(p_client->model_handle, &packet);
     }
@@ -282,7 +302,9 @@ uint32_t health_client_attention_set(health_client_t * p_client, uint8_t attenti
         {
             .opcode = ACCESS_OPCODE_SIG(HEALTH_OPCODE_ATTENTION_SET_UNACKED),
             .p_buffer = (const uint8_t *) &message,
-            .length = sizeof(health_msg_attention_set_t)
+            .length = sizeof(health_msg_attention_set_t),
+            .force_segmented = false,
+            .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT
         };
         return access_model_publish(p_client->model_handle, &packet);
     }
@@ -306,7 +328,7 @@ uint32_t health_client_init(health_client_t * p_client, uint16_t element_index, 
     access_model_add_params_t add_params =
     {
         .element_index = element_index,
-        .model_id = ACCESS_OPCODE_SIG(HEALTH_CLIENT_MODEL_ID),
+        .model_id = ACCESS_MODEL_SIG(HEALTH_CLIENT_MODEL_ID), /*lint !e64 Type Mismatch */
         .p_opcode_handlers = m_opcode_handlers,
         .opcode_count = sizeof(m_opcode_handlers) / sizeof(m_opcode_handlers[0]),
         .p_args = p_client
@@ -320,3 +342,7 @@ uint32_t health_client_init(health_client_t * p_client, uint16_t element_index, 
     return access_model_subscription_list_alloc(p_client->model_handle);
 }
 
+void health_client_pending_msg_cancel(health_client_t * p_client)
+{
+    (void)access_model_reliable_cancel(p_client->model_handle);
+}

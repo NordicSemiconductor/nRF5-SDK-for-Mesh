@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -103,10 +103,14 @@ static void m_radio_config_config_state_verify(radio_config_t my_radio_config, u
 {
     TEST_ASSERT_EQUAL(my_radio_config.tx_power, m_radio.TXPOWER);
     TEST_ASSERT_EQUAL(my_radio_config.radio_mode, m_radio.MODE);
-    uint32_t expected_packet_conf_reg0 = (lflen << RADIO_PCNF0_LFLEN_Pos) |
-                                         (s1len << RADIO_PCNF0_S1LEN_Pos) |
-                                         (s0len << RADIO_PCNF0_S0LEN_Pos);
-    TEST_ASSERT_EQUAL(expected_packet_conf_reg0, m_radio.PCNF0);
+    uint32_t expected_packet_conf_reg0 = ((lflen << RADIO_PCNF0_LFLEN_Pos) |
+                                          (s1len << RADIO_PCNF0_S1LEN_Pos) |
+                                          (s0len << RADIO_PCNF0_S0LEN_Pos));
+    #ifdef NRF52
+    expected_packet_conf_reg0 |= ((RADIO_PCNF0_S1INCL_Include << RADIO_PCNF0_S1INCL_Pos) & RADIO_PCNF0_S1INCL_Msk);
+    #endif
+
+    TEST_ASSERT_EQUAL_HEX32(expected_packet_conf_reg0, m_radio.PCNF0);
 
     uint32_t expected_packet_conf_reg1 = (my_radio_config.payload_maxlen << RADIO_PCNF1_MAXLEN_Pos) |
                                          (RADIO_CONFIG_DEFAULT_BA_LEN << RADIO_PCNF1_BALEN_Pos) |
@@ -193,12 +197,7 @@ void test_radio_config_unhappy(void)
     radio_config_config(&my_radio_config);
 
     /* Test that the radio config is not happy with invalid modes */
-    my_radio_config.radio_mode = RADIO_MODE_BLE_1MBIT + 1; /*lint !e64 Invalid value for enum */
-#ifdef NRF52_SERIES
-    radio_config_config(&my_radio_config);
-    m_radio_config_config_state_verify(my_radio_config, 6, 1, 2);
-    my_radio_config.radio_mode = RADIO_MODE_NRF_62K5BIT + 1; /*lint !e64 Invalid value for enum */
-#endif
+    my_radio_config.radio_mode = RADIO_MODE_END;
     TEST_NRF_MESH_ASSERT_EXPECT(radio_config_config(&my_radio_config));
 
     /* Test that non-existing channel configuration causes the assertion handler to be called. */

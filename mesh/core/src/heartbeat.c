@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -56,6 +56,7 @@
 #include "utils.h"
 #include "timer.h"
 #include "nrf_mesh_opt.h"
+#include "nrf_mesh_externs.h"
 
 //@todo:  How frequently should we store heartbeat states in the flash? Need algorithm,
 //        or hardware solution, as discussed.
@@ -64,9 +65,8 @@
 /*****************************************************************************
 * Local defines
 *****************************************************************************/
-
-#define HEARTBEAT_MIN_HOPS_INIT (0x7F)
-#define HEARTBEAT_MAX_HOPS_INIT (0x00)
+#define HEARTBEAT_MIN_HOPS_INIT  (0x7F)
+#define HEARTBEAT_MAX_HOPS_INIT  (0x00)
 
 #define HEARTBEAT_PUBLISH_SUB_INTERVAL_S (1800)
 #define HEARTBEAT_SUBSCRIPTION_TIMER_GRANULARITY_S (1)
@@ -145,7 +145,9 @@ static void heartbeat_restart_publication(heartbeat_publication_information_t * 
 static void heartbeat_opcode_handle(const transport_control_packet_t * p_control_packet,
                                     const nrf_mesh_rx_metadata_t *     p_rx_metadata)
 {
-    if ((p_control_packet->src != m_heartbeat_subscription.src) ||
+    if ((p_control_packet->opcode != TRANSPORT_CONTROL_OPCODE_HEARTBEAT) ||
+        (p_control_packet->src != m_heartbeat_subscription.src) ||
+        (p_control_packet->dst.value != m_heartbeat_subscription.dst) ||
         (p_control_packet->data_len != PACKET_MESH_TRS_CONTROL_HEARTBEAT_SIZE))
     {
         return;
@@ -411,6 +413,10 @@ uint32_t heartbeat_subscription_set(const heartbeat_subscription_state_t * p_hb_
 {
     NRF_MESH_ASSERT(p_hb_sub != NULL);
 
+    uint16_t addr_start;
+    uint16_t addr_count;
+    nrf_mesh_unicast_address_get(&addr_start, &addr_count);
+
     // Validate period, src, and dst
     if (
          (p_hb_sub->period > (HEARTBEAT_MAX_PERIOD)) ||
@@ -419,7 +425,9 @@ uint32_t heartbeat_subscription_set(const heartbeat_subscription_state_t * p_hb_
            (nrf_mesh_address_type_get(p_hb_sub->src) == NRF_MESH_ADDRESS_TYPE_INVALID)
           ) &&
           (
-           (nrf_mesh_address_type_get(p_hb_sub->dst) != NRF_MESH_ADDRESS_TYPE_VIRTUAL)
+           (nrf_mesh_address_type_get(p_hb_sub->dst) == NRF_MESH_ADDRESS_TYPE_INVALID) ||
+           (nrf_mesh_address_type_get(p_hb_sub->dst) == NRF_MESH_ADDRESS_TYPE_GROUP)   ||
+           (p_hb_sub->dst == addr_start)
           ))
        )
     {

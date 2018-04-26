@@ -100,4 +100,9 @@
  * - @subpage md_mesh_bootloader_README
  * @}
  *
+ * @page SCRIPTS Scripts
+ * @{
+ * - @subpage md_scripts_interactive_pyaci_README
+ * @}
+ *
  */

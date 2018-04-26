@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -47,7 +47,8 @@
 
 /**
  * @defgroup INTERNAL_EVT Internal event module
- * @ingroup MESH_CORE
+ * @ingroup MESH_API_GROUP_CORE
+ * Module for reporting internal stack events, to help traceability and debugging.
  * @{
  */
 

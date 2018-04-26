@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -40,6 +40,7 @@
 
 #include <stdint.h>
 #include "device_state_manager.h"
+#include "nrf_mesh.h"
 
 /**
  * @defgroup ACCESS Access layer API
@@ -52,6 +53,8 @@
  *
  * @{
  * @defgroup ACCESS_MSCS Access layer API MSCs
+ * @brief Access layer sequence diagrams
+ *
  * @{
  * @mscfile model.msc "Basic access layer usage"
  * @mscfile message_rx.msc "Receiving an access layer message"
@@ -98,7 +101,7 @@
  * @return Expands to an initializer for an @ref access_model_id_t struct.
  * @see access_model_id_t
  */
-#define ACCESS_MODEL_SIG(id)                  { (id), ACCESS_COMPANY_ID_NONE }
+#define ACCESS_MODEL_SIG(id)  {.company_id = ACCESS_COMPANY_ID_NONE, .model_id = (id)}
 
 /**
  * Macro used to define a vendor model ID.
@@ -107,7 +110,7 @@
  * @return Expands to an initializer for an @ref access_model_id_t struct.
  * @see access_model_id_t
  */
-#define ACCESS_MODEL_VENDOR(id, company)  { (id), (company) }
+#define ACCESS_MODEL_VENDOR(id, company) (access_model_id_t) {.company_id = (company), .model_id = (id)}
 
 /** Value used for TTL parameters in order to set the TTL to the default value. */
 #define ACCESS_TTL_USE_DEFAULT  (0xFF)
@@ -126,6 +129,10 @@
 #define ACCESS_PUBLISH_STEP_RES_BITS (2)
 /** Publish step number, number of bits. */
 #define ACCESS_PUBLISH_STEP_NUM_BITS (6)
+/** Publish Retransmit Count, number of bits. */
+#define ACCESS_PUBLISH_RETRANSMIT_COUNT_BITS (3)
+/** Publish Retransmit Interval Steps, number of bits. */
+#define ACCESS_PUBLISH_RETRANSMIT_INTERVAL_STEPS_BITS (5)
 
 /** Value used for access_publish_period_t structs when publishing is disabled. */
 #define ACCESS_PUBLISH_PERIOD_NONE   { ACCESS_PUBLISH_RESOLUTION_100MS, 0 }
@@ -143,10 +150,10 @@
 /** Access layer model ID. */
 typedef struct __attribute((packed))
 {
-    /** Model ID. */
-    uint16_t model_id;
     /** Company ID. Bluetooth SIG models shall set this to @ref ACCESS_COMPANY_ID_NONE. */
     uint16_t company_id;
+    /** Model ID. */
+    uint16_t model_id;
 } access_model_id_t;
 
 /*lint -align_max(pop) */
@@ -192,14 +199,14 @@ typedef struct
     nrf_mesh_address_t src;
     /** Destination address of the message. */
     nrf_mesh_address_t dst;
-    /** Timestamp of when the (last part of the) message was received in microseconds. */
-    uint32_t timestamp;
-    /** RSSI value for the received message */
-    int8_t rssi;
     /** TTL value for the received message. */
     uint8_t ttl;
     /** Application key handle that decrypted the message. */
     dsm_handle_t appkey_handle;
+    /** Core RX metadata attached to the packet */
+    const nrf_mesh_rx_metadata_t * p_core_metadata;
+    /** Network key handle that decrypted the message. */
+    dsm_handle_t subnet_handle;
 } access_message_rx_meta_t;
 
 /** Access layer RX event structure. */
@@ -224,6 +231,11 @@ typedef struct
     const uint8_t * p_buffer;
     /** Length of the data (excluding the opcode). */
     uint16_t length;
+    /** Forces the message to be sent out as a segmented message, if message is shorter than the size
+     * required for the unsegmented access message for a given MIC size */
+    bool force_segmented;
+    /** Select desired transport MIC size. See @ref nrf_mesh_transmic_size_t */
+    nrf_mesh_transmic_size_t transmic_size;
     /** Token that can be used as a reference in the TX complete callback. */
     nrf_mesh_tx_token_t access_token;
 } access_message_tx_t;
@@ -288,6 +300,17 @@ typedef struct
     /** Number of steps. */
     uint8_t step_num : ACCESS_PUBLISH_STEP_NUM_BITS;
 } access_publish_period_t;
+
+/**
+ * Model publish retransmit structure.
+ */
+typedef struct
+{
+    /** Publish Retransmit Count. */
+    uint8_t count : ACCESS_PUBLISH_RETRANSMIT_COUNT_BITS;
+    /** Publish Retransmit Interval Steps. */
+    uint8_t interval_steps : ACCESS_PUBLISH_RETRANSMIT_INTERVAL_STEPS_BITS;
+} access_publish_retransmit_t;
 
 /**
  * Periodic publishing step resolution.

@@ -11,11 +11,22 @@ set(header_globbing_expression
     "${CMAKE_SOURCE_DIR}/mesh/dfu/include/*.h"
     "${CMAKE_SOURCE_DIR}/mesh/serial/api/*.h"
     "${CMAKE_SOURCE_DIR}/mesh/serial/include/*.h"
+    "${CMAKE_SOURCE_DIR}/mesh/gatt/api/*.h"
+    "${CMAKE_SOURCE_DIR}/mesh/gatt/include/*.h"
+    "${CMAKE_SOURCE_DIR}/mesh/stack/api/*.h"
+    "${CMAKE_SOURCE_DIR}/mesh/stack/include/*.h"
     "${CMAKE_SOURCE_DIR}/mesh/test/include/device_wrappers/*.h"
     "${CMAKE_SOURCE_DIR}/models/config/include/*.h"
     "${CMAKE_SOURCE_DIR}/models/health/include/*.h"
     "${CMAKE_SOURCE_DIR}/models/remote_provisioning/include/*.h"
-    "${CMAKE_SOURCE_DIR}/external/micro-ecc/*.h")
+    "${CMAKE_SOURCE_DIR}/external/micro-ecc/*.h"
+    )
+
+foreach(__include ${${SOFTDEVICE}_INCLUDE_DIRS})
+    set(header_globbing_expression
+        ${header_globbing_expression}
+        "${__include}*.h")
+endforeach(__include)
 
 set(header_exclude_regex "nrf_mesh_hw")
 set(CMOCK_SETTINGS_FILE_IN "${CMAKE_CURRENT_SOURCE_DIR}/cmock_config.yaml.in")
@@ -24,6 +35,7 @@ configure_file(${CMOCK_SETTINGS_FILE_IN} ${CMOCK_SETTINGS_FILE})
 generate_mock_targets("${header_globbing_expression}" "${header_exclude_regex}")
 
 set(include_directories
+    "${CMAKE_SOURCE_DIR}/mesh/stack/api"
     "${CMAKE_SOURCE_DIR}/mesh/core/api"
     "${CMAKE_SOURCE_DIR}/mesh/core/include"
     "${CMAKE_SOURCE_DIR}/mesh/access/api"
@@ -36,6 +48,8 @@ set(include_directories
     "${CMAKE_SOURCE_DIR}/mesh/dfu/include"
     "${CMAKE_SOURCE_DIR}/mesh/serial/api"
     "${CMAKE_SOURCE_DIR}/mesh/serial/include"
+    "${CMAKE_SOURCE_DIR}/mesh/gatt/api"
+    "${CMAKE_SOURCE_DIR}/mesh/gatt/include"
     "${CMAKE_SOURCE_DIR}/mesh/test/include"
     "${CMAKE_SOURCE_DIR}/mesh/test/include/device_wrappers"
     "${CMAKE_SOURCE_DIR}/models/config/include"
@@ -104,20 +118,35 @@ set(network_test_srcs
     ${CMOCK_BIN}/transport_mock.c
     ${CMOCK_BIN}/net_state_mock.c
     ${CMOCK_BIN}/net_beacon_mock.c
+    ${CMOCK_BIN}/net_packet_mock.c
     ${CMOCK_BIN}/core_tx_mock.c
     ${CMOCK_BIN}/core_tx_adv_mock.c
     ${CMOCK_BIN}/enc_mock.c
     ${CMOCK_BIN}/heartbeat_mock.c
     ${CMOCK_BIN}/nrf_mesh_externs_mock.c
+    ${CMOCK_BIN}/net_packet_mock.c
     )
 add_unit_test(network "${network_test_srcs}" "${include_directories}" "${compile_options}")
 
+# Network Layer - net packet
+set(net_packet_srcs
+    src/ut_net_packet.c
+    ../core/src/net_packet.c
+    ../core/src/toolchain.c
+    ../core/src/log.c
+    ${CMOCK_BIN}/msg_cache_mock.c
+    ${CMOCK_BIN}/net_state_mock.c
+    ${CMOCK_BIN}/enc_mock.c
+    ${CMOCK_BIN}/nrf_mesh_externs_mock.c
+    )
+add_unit_test(net_packet "${net_packet_srcs}" "${include_directories}" "${compile_options}")
 
 # Network Layer - network vectors
 set(network_vectors_test_srcs
     src/ut_network_vectors.c
     src/aes_soft.c
     ../core/src/network.c
+    ../core/src/net_packet.c
     ../core/src/toolchain.c
     ../core/src/log.c
     ../core/src/enc.c
@@ -141,7 +170,7 @@ set(timer_test_srcs
     ../core/src/timer.c
     ../core/src/toolchain.c
     )
-add_unit_test(timer "${timer_test_srcs}" "${include_directories}" "${compile_options};-DNRF51")
+add_unit_test(timer "${timer_test_srcs}" "${include_directories}" "${compile_options};-DNRF52")
 
 # Message Cache - msg_cache
 set(msg_cache_test_srcs
@@ -163,7 +192,7 @@ set(radio_config_test_srcs
     src/ut_radio_config.c
     ../bearer/src/radio_config.c
     )
-add_unit_test(radio_config "${radio_config_test_srcs}" "${include_directories}" "${compile_options};-DNRF51")
+add_unit_test(radio_config "${radio_config_test_srcs}" "${include_directories}" "${compile_options};-DNRF52;-DNRF52_SERIES")
 
 # Timer scheduler
 set(timer_sch_test_srcs
@@ -183,14 +212,14 @@ set(packet_mgr_test_srcs
     )
 add_unit_test(packet_mgr "${packet_mgr_test_srcs}" "${include_directories}" "${compile_options};-DPACKET_MGR_DEBUG_MODE=1")
 
-# Packet Buffer - packet_buffer - DISABLED, PENDING MBTLE-1971
-# set(packet_buffer_test_srcs
-#     src/ut_packet_buffer.c
-#     ../core/src/packet_buffer.c
-#     ../core/src/toolchain.c
-#     ../core/src/log.c
-#     )
-# add_unit_test(packet_buffer "${packet_buffer_test_srcs}" "${include_directories}" "${compile_options};-DPACKET_BUFFER_DEBUG_MODE=1")
+# Packet Buffer - packet_buffer
+set(packet_buffer_test_srcs
+    src/ut_packet_buffer.c
+    ../core/src/packet_buffer.c
+    ../core/src/toolchain.c
+    ../core/src/log.c
+    )
+add_unit_test(packet_buffer "${packet_buffer_test_srcs}" "${include_directories}" "${compile_options};-DPACKET_BUFFER_DEBUG_MODE=1")
 
 # CCM Software implementation - ccm_soft
 set(ccm_soft_test_srcs
@@ -219,7 +248,7 @@ set(timeslot_test_srcs
   ${CMOCK_BIN}/bearer_handler_mock.c
   ${CMOCK_BIN}/nrf_mesh_cmsis_mock_mock.c
   )
-add_unit_test(timeslot "${timeslot_test_srcs}" "${include_directories}" "${compile_options};-DNRF51;-DS130;-DSD_BLE_API_VERSION=2")
+add_unit_test(timeslot "${timeslot_test_srcs}" "${include_directories}" "${compile_options};-DNRF52;-DS130;-DSD_BLE_API_VERSION=2")
 
 # Encryption
 set(enc_test_srcs
@@ -368,6 +397,7 @@ set(serial_handler_mesh_srcs
     ${CMOCK_BIN}/access_mock.c
     ${CMOCK_BIN}/net_state_mock.c
     ${CMOCK_BIN}/device_state_manager_mock.c
+    ${CMOCK_BIN}/flash_manager_mock.c
     )
 add_unit_test(serial_handler_mesh "${serial_handler_mesh_srcs}" "${include_directories}" "${compile_options}")
 
@@ -482,7 +512,7 @@ set(serial_srcs
     ${CMOCK_BIN}/serial_handler_prov_mock.c
     ${CMOCK_BIN}/serial_handler_dfu_mock.c
     )
-add_unit_test(serial "${serial_srcs}" "${include_directories}" "${compile_options};-DNRF51")
+add_unit_test(serial "${serial_srcs}" "${include_directories}" "${compile_options};-DNRF52")
 
 # Serial bearer unit test - serial_bearer_slip_enc
 set(serial_bearer_slip_enc_srcs
@@ -493,7 +523,7 @@ set(serial_bearer_slip_enc_srcs
     ${CMOCK_BIN}/packet_buffer_mock.c
     ${CMOCK_BIN}/bearer_event_mock.c
     )
-add_unit_test(serial_bearer_slip_enc "${serial_bearer_slip_enc_srcs}" "${include_directories}" "${compile_options};-DNRF51;-DSERIAL_SLIP_ENCODING")
+add_unit_test(serial_bearer_slip_enc "${serial_bearer_slip_enc_srcs}" "${include_directories}" "${compile_options};-DNRF52;-DNRF52_SERIES;-DSERIAL_SLIP_ENCODING")
 target_sources(ut_serial_bearer_slip_enc PUBLIC
     src/test_serial_bearer_common.c)
 
@@ -506,7 +536,7 @@ set(serial_bearer_simple_srcs
     ${CMOCK_BIN}/packet_buffer_mock.c
     ${CMOCK_BIN}/bearer_event_mock.c
     )
-add_unit_test(serial_bearer_simple "${serial_bearer_simple_srcs}" "${include_directories}" "${compile_options};-DNRF51")
+add_unit_test(serial_bearer_simple "${serial_bearer_simple_srcs}" "${include_directories}" "${compile_options};-DNRF52")
 target_sources(ut_serial_bearer_simple PUBLIC
     src/test_serial_bearer_common.c)
 
@@ -516,7 +546,7 @@ set(ticker_srcs
     ${CMOCK_BIN}/timer_mock.c
     ${CMOCK_BIN}/timer_scheduler_mock.c
     )
-add_unit_test(ticker "${ticker_srcs}" "${include_directories}" "${compile_options};-DNRF51")
+add_unit_test(ticker "${ticker_srcs}" "${include_directories}" "${compile_options};-DNRF52")
 
 set(queue_srcs
   src/ut_queue.c
@@ -533,7 +563,7 @@ set(bearer_handler_srcs
   ${CMOCK_BIN}/queue_mock.c
   ${CMOCK_BIN}/nrf_mesh_cmsis_mock_mock.c
   )
-add_unit_test(bearer_handler "${bearer_handler_srcs}" "${include_directories}" "${compile_options}")
+add_unit_test(bearer_handler "${bearer_handler_srcs}" "${include_directories}" "${compile_options};-DNRF52")
 
 set(net_beacon_srcs
     src/ut_net_beacon.c
@@ -544,9 +574,11 @@ set(net_beacon_srcs
     ${CMOCK_BIN}/enc_mock.c
     ${CMOCK_BIN}/rand_mock.c
     ${CMOCK_BIN}/net_state_mock.c
+    ${CMOCK_BIN}/event_mock.c
+    ${CMOCK_BIN}/advertiser_mock.c
     ../core/src/log.c
     )
-add_unit_test(net_beacon "${net_beacon_srcs}" "${include_directories}" "${compile_options};-DNRF51")
+add_unit_test(net_beacon "${net_beacon_srcs}" "${include_directories}" "${compile_options};-DNRF52")
 
 set(prov_beacon_srcs
     src/ut_prov_beacon.c
@@ -557,7 +589,7 @@ set(prov_beacon_srcs
     ${CMOCK_BIN}/enc_mock.c
     ../core/src/log.c
     )
-add_unit_test(prov_beacon "${prov_beacon_srcs}" "${include_directories}" "${compile_options};-DNRF51")
+add_unit_test(prov_beacon "${prov_beacon_srcs}" "${include_directories}" "${compile_options};-DNRF52")
 
 set(provisioning_srcs
     src/ut_provisioning.c
@@ -591,6 +623,7 @@ set(access_srcs
     ${CMOCK_BIN}/flash_manager_mock.c
     ${CMOCK_BIN}/nrf_mesh_mock.c
     ${CMOCK_BIN}/nrf_mesh_events_mock.c
+    ${CMOCK_BIN}/nrf_mesh_utils_mock.c
     ${CMOCK_BIN}/access_publish_mock.c
     ${CMOCK_BIN}/access_reliable_mock.c
     ${CMOCK_BIN}/bearer_event_mock.c
@@ -610,6 +643,7 @@ set(access_reliable_srcs
     ${CMOCK_BIN}/timer_mock.c
     ${CMOCK_BIN}/timer_scheduler_mock.c
     ${CMOCK_BIN}/bearer_event_mock.c
+    ${CMOCK_BIN}/device_state_manager_mock.c
     ../access/src/access_reliable.c)
 set(access_reliable_defines
     -DACCESS_MODEL_COUNT=16
@@ -650,6 +684,10 @@ set(config_server_srcs
     ${CMOCK_BIN}/nrf_mesh_opt_mock.c
     ${CMOCK_BIN}/nrf_mesh_keygen_mock.c
     ${CMOCK_BIN}/rand_mock.c
+    ${CMOCK_BIN}/flash_manager_mock.c
+    ${CMOCK_BIN}/nrf_mesh_events_mock.c
+    ${CMOCK_BIN}/event_mock.c
+    ${CMOCK_BIN}/mesh_stack_mock.c
     )
 add_unit_test(config_server "${config_server_srcs}" "${include_directories}" "${compile_options};-DACCESS_ELEMENT_COUNT=1024;-DACCESS_SUBSCRIPTION_LIST_COUNT=3")
 
@@ -674,6 +712,7 @@ set(device_state_manager_srcs
     ../core/src/nrf_mesh_utils.c
     ${CMOCK_BIN}/rand_mock.c
     ${CMOCK_BIN}/nrf_mesh_mock.c
+    ${CMOCK_BIN}/nrf_mesh_events_mock.c
     ${CMOCK_BIN}/nrf_mesh_keygen_mock.c
     ${CMOCK_BIN}/net_state_mock.c
     ${CMOCK_BIN}/flash_manager_mock.c
@@ -699,7 +738,7 @@ set(nrf_mesh_configure_srcs
     src/ut_nrf_mesh_configure.c
     ../core/src/nrf_mesh_configure.c
     )
-add_unit_test(nrf_mesh_configure "${nrf_mesh_configure_srcs}" "${include_directories}" "${compile_options};-DNRF51")
+add_unit_test(nrf_mesh_configure "${nrf_mesh_configure_srcs}" "${include_directories}" "${compile_options};-DNRF52")
 
 set(bearer_event_srcs
     src/ut_bearer_event.c
@@ -708,25 +747,7 @@ set(bearer_event_srcs
     ../core/src/queue.c
     ${CMOCK_BIN}/nrf_mesh_cmsis_mock_mock.c
     )
-add_unit_test(bearer_event "${bearer_event_srcs}" "${include_directories}" "${compile_options};-DNRF51")
-
-set(nrf_mesh_node_config_srcs
-    src/ut_nrf_mesh_node_config.c
-    ../access/src/nrf_mesh_node_config.c
-    ../core/src/log.c
-    ${CMOCK_BIN}/config_server_mock.c
-    ${CMOCK_BIN}/device_state_manager_mock.c
-    ${CMOCK_BIN}/health_server_mock.c
-    ${CMOCK_BIN}/nrf_mesh_mock.c
-    ${CMOCK_BIN}/nrf_mesh_events_mock.c
-    ${CMOCK_BIN}/nrf_mesh_prov_mock.c
-    ${CMOCK_BIN}/nrf_mesh_prov_bearer_adv_mock.c
-    ${CMOCK_BIN}/net_state_mock.c
-    ${CMOCK_BIN}/access_mock.c
-    ${CMOCK_BIN}/access_config_mock.c
-    ${CMOCK_BIN}/flash_manager_mock.c
-    )
-add_unit_test(nrf_mesh_node_config "${nrf_mesh_node_config_srcs}" "${include_directories}" "${compile_options};-DNRF51")
+add_unit_test(bearer_event "${bearer_event_srcs}" "${include_directories}" "${compile_options};-DNRF52")
 
 set(flash_manager_srcs
     src/ut_flash_manager.c
@@ -736,6 +757,7 @@ set(flash_manager_srcs
     ../core/src/packet_buffer.c
     ../core/src/fifo.c
     ../core/src/queue.c
+    ../core/src/list.c
     ${CMOCK_BIN}/flash_manager_defrag_mock.c
     )
 add_unit_test(flash_manager "${flash_manager_srcs}" "${include_directories}" "${compile_options}")
@@ -748,7 +770,7 @@ set(flash_manager_defrag_srcs
     ../core/src/flash_manager_internal.c
     ${CMOCK_BIN}/flash_manager_mock.c
     )
-add_unit_test(flash_manager_defrag "${flash_manager_defrag_srcs}" "${include_directories}" "${compile_options};-DNRF51")
+add_unit_test(flash_manager_defrag "${flash_manager_defrag_srcs}" "${include_directories}" "${compile_options};-DNRF52;-DNRF52_SERIES")
 
 set(msqueue_srcs
     src/ut_msqueue.c
@@ -769,7 +791,7 @@ set(advertiser_srcs
     ${CMOCK_BIN}/rand_mock.c
     ${CMOCK_BIN}/bearer_event_mock.c
     )
-add_unit_test(advertiser "${advertiser_srcs}" "${include_directories}" "${compile_options}")
+add_unit_test(advertiser "${advertiser_srcs}" "${include_directories}" "${compile_options};-DNRF52")
 
 set(health_server_srcs
     src/ut_health_server.c
@@ -805,7 +827,7 @@ set(scanner_srcs
     ${CMOCK_BIN}/filter_engine_mock.c
     ${CMOCK_BIN}/bearer_event_mock.c
     )
-add_unit_test(scanner "${scanner_srcs}" "${include_directories}" "${compile_options}")
+add_unit_test(scanner "${scanner_srcs}" "${include_directories}" "${compile_options};-DNRF52")
 
 # set(virtual_addressing_srcs
 # src/ut_virtual_addressing.c
@@ -827,6 +849,8 @@ add_unit_test(scanner "${scanner_srcs}" "${include_directories}" "${compile_opti
 set(core_tx_srcs
     src/ut_core_tx.c
     ../core/src/core_tx.c
+    ../core/src/list.c
+    ../core/src/log.c
 )
 add_unit_test(core_tx "${core_tx_srcs}" "${include_directories}" "${compile_options}")
 
@@ -851,20 +875,21 @@ set(filters_srcs
 add_unit_test(filters "${filters_srcs}" "${include_directories}" "${compile_options}")
 
 # Heartbeat module
-set(heartbeat_test_srcs
-	src/ut_heartbeat.c
+set(heartbeat_srcs
+    src/ut_heartbeat.c
     ../core/src/heartbeat.c
-	../core/src/nrf_mesh_utils.c
+    ../core/src/nrf_mesh_utils.c
     ${CMOCK_BIN}/timer_scheduler_mock.c
     ${CMOCK_BIN}/event_mock.c
-	${CMOCK_BIN}/rand_mock.c
-	${CMOCK_BIN}/timer_mock.c
-	${CMOCK_BIN}/nrf_mesh_opt_mock.c
-	${CMOCK_BIN}/transport_mock.c
+    ${CMOCK_BIN}/rand_mock.c
+    ${CMOCK_BIN}/timer_mock.c
+    ${CMOCK_BIN}/nrf_mesh_opt_mock.c
+    ${CMOCK_BIN}/transport_mock.c
     ${CMOCK_BIN}/config_server_mock.c
+    ${CMOCK_BIN}/nrf_mesh_externs_mock.c
     ../core/src/log.c
     )
-add_unit_test(heartbeat "${heartbeat_test_srcs}" "${include_directories}" "${compile_options}")
+add_unit_test(heartbeat "${heartbeat_srcs}" "${include_directories}" "${compile_options}")
 
 # AD listener (scanner mux)
 set(ad_listener_srcs
@@ -874,3 +899,81 @@ set(ad_listener_srcs
     ${CMOCK_BIN}/list_mock.c
     )
 add_unit_test(ad_listener "${ad_listener_srcs}" "${include_directories}" "${compile_options};-DAD_LISTENER_DEBUG_MODE")
+
+set(mesh_gatt_srcs
+    src/ut_mesh_gatt.c
+    ../gatt/src/mesh_gatt.c
+    ../core/src/packet_buffer.c
+    ${CMOCK_BIN}/ble_gatts_mock.c
+    ${CMOCK_BIN}/ble_gap_mock.c
+    ${CMOCK_BIN}/timer_scheduler_mock.c
+    ${CMOCK_BIN}/timer_mock.c)
+add_unit_test(mesh_gatt "${mesh_gatt_srcs}" "${include_directories}" "${compile_options};-DNRF52")
+
+# Mesh stack module
+set(mesh_stack_srcs
+    src/ut_mesh_stack.c
+    ../stack/src/mesh_stack.c
+    ${CMOCK_BIN}/config_server_mock.c
+    ${CMOCK_BIN}/health_server_mock.c
+    ${CMOCK_BIN}/device_state_manager_mock.c
+    ${CMOCK_BIN}/nrf_mesh_mock.c
+    ${CMOCK_BIN}/net_state_mock.c
+    ${CMOCK_BIN}/access_mock.c
+    ${CMOCK_BIN}/access_config_mock.c
+    ${CMOCK_BIN}/flash_manager_mock.c
+    ${CMOCK_BIN}/hal_mock.c
+    )
+add_unit_test(mesh_stack "${mesh_stack_srcs}" "${include_directories}" "${compile_options};-DNRF51")
+
+# Proxy module
+set(proxy_srcs
+    src/ut_proxy.c
+    src/proxy_test_common.c
+    ../gatt/src/proxy.c
+    ../core/src/log.c
+    ${CMOCK_BIN}/proxy_filter_mock.c
+    ${CMOCK_BIN}/timer_scheduler_mock.c
+    ${CMOCK_BIN}/network_mock.c
+    ${CMOCK_BIN}/net_state_mock.c
+    ${CMOCK_BIN}/net_packet_mock.c
+    ${CMOCK_BIN}/enc_mock.c
+    ${CMOCK_BIN}/net_beacon_mock.c
+    ${CMOCK_BIN}/rand_mock.c
+    ${CMOCK_BIN}/mesh_adv_mock.c
+    ${CMOCK_BIN}/cache_mock.c)
+add_unit_test(proxy "${proxy_srcs}" "${include_directories}" "${compile_options};-DGATT_PROXY")
+
+
+# Proxy module - Sample data verifications
+set(proxy_vectors_srcs
+    src/ut_proxy_vectors.c
+    ../gatt/src/proxy.c
+    src/aes_soft.c
+    src/proxy_test_common.c
+    ../core/src/net_packet.c
+    ../core/src/toolchain.c
+    ../core/src/log.c
+    ../core/src/enc.c
+    ../core/src/ccm_soft.c
+    ../core/src/aes_cmac.c
+    ../core/src/nrf_mesh_utils.c
+    ../core/src/net_beacon.c
+    ../core/src/event.c
+    ../core/src/list.c
+    ../core/src/cache.c
+    ${CMOCK_BIN}/proxy_filter_mock.c
+    ${CMOCK_BIN}/timer_scheduler_mock.c
+    ${CMOCK_BIN}/net_state_mock.c
+    ${CMOCK_BIN}/msg_cache_mock.c
+    ${CMOCK_BIN}/advertiser_mock.c
+    ${CMOCK_BIN}/beacon_mock.c
+    ${CMOCK_BIN}/rand_mock.c
+    ${CMOCK_BIN}/mesh_adv_mock.c)
+add_unit_test(proxy_vectors "${proxy_vectors_srcs}" "${include_directories}" "${compile_options};-DGATT_PROXY")
+
+# Proxy module
+set(proxy_filter_srcs
+    src/ut_proxy_filter.c
+    ../gatt/src/proxy_filter.c)
+add_unit_test(proxy_filter "${proxy_filter_srcs}" "${include_directories}" "${compile_options};-DGATT_PROXY")

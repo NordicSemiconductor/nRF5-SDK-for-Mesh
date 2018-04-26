@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -43,13 +43,15 @@
 #include "composition_data.h"
 #include "test_assert.h"
 
-#define SIG_MODELS {0x0000, ACCESS_COMPANY_ID_NONE},    \
-                   {0x8000, ACCESS_COMPANY_ID_NONE},    \
-                   {0x0001, ACCESS_COMPANY_ID_NONE},    \
-                   {0x1000, ACCESS_COMPANY_ID_NONE},    \
-                   {0x1003, ACCESS_COMPANY_ID_NONE}
+#define SIG_MODELS ACCESS_MODEL_SIG(0x0000),  \
+                   ACCESS_MODEL_SIG(0x8000),  \
+                   ACCESS_MODEL_SIG(0x0001),  \
+                   ACCESS_MODEL_SIG(0x1000),  \
+                   ACCESS_MODEL_SIG(0x1003)
+
 #define SIG_MODELS_COUNT 5
-#define VENDOR_MODELS {0x002A, 0x003F}
+#define VENDOR_MODELS ACCESS_MODEL_VENDOR(0x002A, 0x003F)
+
 #define VENDOR_MODELS_COUNT 1
 #define ELEMENT_LOCATION 0x0100 /* Front */
 

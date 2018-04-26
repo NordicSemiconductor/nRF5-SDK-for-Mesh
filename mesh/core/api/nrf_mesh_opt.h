@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -76,7 +76,7 @@ typedef enum
     NRF_MESH_OPT_TRS_SAR_TX_RETRIES,
     /** Default TTL value for segment acknowledgement messages. */
     NRF_MESH_OPT_TRS_SAR_SEGACK_TTL,
-    /** 32-bit (0) or 64-bit (1) MIC size for transport layer. */
+    /** 32-bit (@ref NRF_MESH_TRANSMIC_SIZE_SMALL) or 64-bit (@ref NRF_MESH_TRANSMIC_SIZE_LARGE) MIC size for transport layer. */
     NRF_MESH_OPT_TRS_SZMIC,
     /** Packet relaying enabled (1) or disabled (0). */
     NRF_MESH_OPT_NET_RELAY_ENABLE = NRF_MESH_OPT_NET_START,

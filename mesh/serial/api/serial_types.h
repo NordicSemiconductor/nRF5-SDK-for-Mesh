@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -56,7 +56,7 @@
 /** Invalid key index. */
 #define SERIAL_EVT_KEY_INDEX_INVALID                    (0xFF)
 /** Mesh packet send command overhead. */
-#define SERIAL_CMD_MESH_PACKET_SEND_OVERHEAD            (8)
+#define SERIAL_CMD_MESH_PACKET_SEND_OVERHEAD            (9)
 
 /** @} */
 

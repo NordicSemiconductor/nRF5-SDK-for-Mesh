@@ -243,7 +243,7 @@ link_nordicsemi="<a href=\"http://www.nordicsemi.com/\" target=\"_blank\">nordic
 link_pyserial="<a href=\"https://pypi.python.org/pypi/pyserial\" target=\"_blank\">pyserial package</a>" \
 link_cmake="<a href=\"https://cmake.org/\" target=\"_blank\">CMake</a>" \
 link_seggerstudio="<a href=\"https://www.segger.com/products/development-tools/embedded-studio/?L=0\" target=\"_blank\">SEGGER Embedded Studio</a>" \
-link_armnone="<a href=\"https://developer.arm.com/open-source/gnu-toolchain/gnu-rm\" target=\"_blank\">arm-none-eabi-gcc</a>" \
+link_armnone="<a href=\"https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads\" target=\"_blank\">arm-none-eabi-gcc</a>" \
 link_armcc="<a href=\"https://developer.arm.com/products/software-development-tools/compilers/arm-compiler/downloads/version-5\" target=\"_blank\">armcc v5</a>" \
 link_keil="<a href=\"http://www2.keil.com/mdk5/compiler/5/\" target=\"_blank\">Keil</a>" \
 link_keiluvision="<a href=\"http://www2.keil.com/mdk5/uvision/\" target=\"_blank\">Keil uVision IDE</a>" \
@@ -254,8 +254,6 @@ link_unity="<a href=\"https://github.com/ThrowTheSwitch/Unity\" target=\"_blank\
 link_cmock="<a href=\"https://github.com/ThrowTheSwitch/CMock\" target=\"_blank\">CMock</a>" \
 link_ruby="<a href=\"https://www.ruby-lang.org/\" target=\"_blank\">Ruby</a>" \
 link_about_cmake="<a href=\"https://cmake.org/overview/\" target=\"_blank\">About CMake</a>" \
-link_cmake_download="<a href=\"https://cmake.org/download/\" target=\"_blank\">CMake download site</a>" \
-link_ninja_download="<a href=\"https://github.com/ninja-build/ninja/releases\" target=\"_blank\">Ninja download site</a>" \
 link_mingw="<a href=\"https://sourceforge.net/projects/mingw/files/\" target=\"_blank\">MinGW</a>" \
 link_btsig_intro="<a href=\"https://blog.bluetooth.com/introducing-bluetooth-mesh-networking\" target=\"_blank\">Bluetooth SIG's introduction to Bluetooth Mesh</a>" \
 link_btsig_spec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications?_ga=2.18257471.723078495.1501226603-93769939.1480503530\" target=\"_blank\">Bluetooth Mesh Networking Specifications</a>" \
@@ -263,18 +261,26 @@ link_doxygen="<a href=\"https://www.stack.nl/~dimitri/doxygen/\" target=\"_blank
 link_git="<a href=\"https://git-scm.com\" target=\"_blank\">Git</a>" \
 link_graphviz="<a href=\"http://www.graphviz.org\" target=\"_blank\">Graphviz</a>" \
 link_mscgen="<a href=\"http://www.mcternan.me.uk/mscgen\" target=\"_blank\">Mscgen</a>" \
-link_python3="<a href=\"https://www.python.org/downloads/\" target=\"_blank\">Python 3</a>" \
-link_python27="<a href=\"https://www.python.org/downloads/\" target=\"_blank\">Python 2.7</a>" \
 link_infocenter="<a href=\"http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.sdk/dita/sdk/mesh_sdk.html\" target=\"_blank\">Infocenter</a>" \
 link_nrf5x_cmd_line_tools_w32="<a href=\"http://www.nordicsemi.com/eng/nordic/Products/nRF51822/nRF5x-Command-Line-Tools-Win32/33444\" target=\"_blank\">nRFx Command Line Tools for Windows</a>" \
-link_nrf5x_cmd_line_tools_linux="<a href=\"https://www.nordicsemi.com/eng/nordic/Products/nRF51822/nRF5x-Command-Line-Tools-Linux64/51386\" target=\"_blank\">nRFx Command Line Tools for Linux (64-bit)</a>"
+link_nrf5x_cmd_line_tools_linux="<a href=\"https://www.nordicsemi.com/eng/nordic/Products/nRF51822/nRF5x-Command-Line-Tools-Linux64/51386\" target=\"_blank\">nRFx Command Line Tools for Linux (64-bit)</a>" \
+link_rtt="<a href=\"https://www.segger.com/products/debug-probes/j-link/technology/real-time-transfer/about-real-time-transfer/\" target=\"_blank\">SEGGER RTT</a>" \
+link_nRFConnectDesktop="<a href=\"https://www.nordicsemi.com/eng/Products/Bluetooth-low-energy/nRF-Connect-for-desktop\" target=\"_blank\">nRF Connect for desktop</a>" \
+link_nRFConnectMobile="<a href=\"https://www.nordicsemi.com/eng/Products/Nordic-mobile-Apps/nRF-Connect-for-Mobile\" target=\"_blank\">nRF Connect for mobile</a>"
+
 # rufu: Links to the Infocenter must use a prefix because they differ for
 # offline and online documentation.
 ALIASES               += \
 link_ic_SDtimeslotAPI="[SoftDevice Timeslot API](@INFOCENTER@/com.nordic.infocenter.s132.sds/dita/softdevices/s130/concurrent_multiprotocol_tsl_api/concurrent_multiprotocol_tsl_api.html)" \
 link_ic_nrfutil="[nrfutil](@INFOCENTER@/com.nordic.infocenter.tools/dita/tools/nrfutil/nrfutil_intro.html)" \
 link_ic_nRF51PS="[nRF51](@INFOCENTER@/com.nordic.infocenter.nrf51/dita/nrf51/pdflinks/51822_ps.html)" \
-link_ic_nRF52832PS="[nRF52832](@INFOCENTER@/com.nordic.infocenter.nrf52/dita/nrf52/chips/nrf52832_ps.html)"
+link_ic_nRF52832PS="[nRF52832](@INFOCENTER@/com.nordic.infocenter.nrf52/dita/nrf52/chips/nrf52832_ps.html)" \
+link_enocean_ds="<a href=\"https://www.enocean.com/en/enocean_modules_2.4ghz_ble/ptm-215b/\" target=\"_blank\">EnOcean PTM215B Datasheet</a>" \
+link_APIref="<a href=\"modules.html\">API Reference</a>" \
+link_Structref="<a href=\"annotated.html\">Data structures</a>" \
+link_MeshSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\">Mesh Profile Specification</a>" \
+link_ModelSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\">Mesh Model Specification</a>" \
+link_MeshSdk_download="<a href=\"http://www.nordicsemi.com/eng/Products/Bluetooth-low-energy/nRF5-SDK-for-Mesh#Downloads\">Download</a>"
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"
@@ -809,23 +815,35 @@ WARN_LOGFILE           =
 #          order of the output
 #########
 
+#########
+# TODO: Remove /mesh/core/include/internal_event.h and mesh/serial/include
+#       It is not public API. Serial application requires refactoring\restructuration
+#       MBTLE-2433 has been created
+#########
+
 INPUT                  = \
-"@PROJECT_SOURCE_DIR@/mesh/app" \
+"@PROJECT_SOURCE_DIR@/examples/templates" \
+"@PROJECT_SOURCE_DIR@/examples/common/include" \
 "@PROJECT_SOURCE_DIR@/mesh/access/api" \
 "@PROJECT_SOURCE_DIR@/mesh/core/api" \
+"@PROJECT_SOURCE_DIR@/mesh/core/include/internal_event.h" \
 "@PROJECT_SOURCE_DIR@/mesh/bearer/api" \
 "@PROJECT_SOURCE_DIR@/mesh/serial/api" \
+"@PROJECT_SOURCE_DIR@/mesh/serial/include" \
 "@PROJECT_SOURCE_DIR@/mesh/prov/api" \
+"@PROJECT_SOURCE_DIR@/mesh/gatt/api" \
 "@PROJECT_SOURCE_DIR@/mesh/dfu/api" \
+"@PROJECT_SOURCE_DIR@/mesh/stack/api" \
 "@PROJECT_SOURCE_DIR@/models/pb_remote/include" \
 "@PROJECT_SOURCE_DIR@/models/config/include" \
 "@PROJECT_SOURCE_DIR@/models/health/include" \
 "@PROJECT_SOURCE_DIR@/models/simple_on_off/include" \
 "@PROJECT_SOURCE_DIR@/RELEASE_NOTES.md" \
+"@PROJECT_SOURCE_DIR@/MIGRATION_GUIDE.md" \
+"@PROJECT_SOURCE_DIR@/doc/migration" \
 "@PROJECT_SOURCE_DIR@/COPYING.md" \
 "@PROJECT_SOURCE_DIR@/README.md" \
 "@PROJECT_SOURCE_DIR@/mesh/bootloader/README.md" \
-"@PROJECT_SOURCE_DIR@/doc/getting_started/getting_started.md" \
 "@PROJECT_SOURCE_DIR@/mesh/doc" \
 "@PROJECT_SOURCE_DIR@/doc" \
 "@PROJECT_SOURCE_DIR@/doc/doxygen" \
@@ -833,16 +851,16 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/doc/introduction" \
 "@PROJECT_SOURCE_DIR@/doc/libraries" \
 "@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/README.md" \
+"@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/doc/demo_loopback.md" \
+"@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/doc/demo_sending_packets.md" \
+"@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/doc/demo_configuration.md" \
 "@PROJECT_SOURCE_DIR@/models/README.md" \
 "@PROJECT_SOURCE_DIR@/models/simple_on_off/README.md" \
-"@PROJECT_SOURCE_DIR@/examples/light_switch/README.md" \
-"@PROJECT_SOURCE_DIR@/examples/light_switch/server/src/main.c" \
-"@PROJECT_SOURCE_DIR@/examples/light_switch/client/src/main.c" \
-"@PROJECT_SOURCE_DIR@/examples/light_switch/client/src/provisioner.c" \
 "@PROJECT_SOURCE_DIR@/examples/pb_remote/client/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/pb_remote/server/README.md" \
 "@PROJECT_SOURCE_DIR@/models/simple_on_off/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/light_switch/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/enocean_switch/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/dfu/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/serial/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/beaconing/README.md" \
@@ -938,6 +956,7 @@ EXAMPLE_RECURSIVE      = NO
 IMAGE_PATH             = "@PROJECT_SOURCE_DIR@/mesh/doc" \
                          "@PROJECT_SOURCE_DIR@/models/pb_remote/doc" \
                          "@PROJECT_SOURCE_DIR@/examples/light_switch/img" \
+                         "@PROJECT_SOURCE_DIR@/examples/enocean_switch/img" \
                          "@PROJECT_SOURCE_DIR@/models/simple_on_off/img" \
                          "@PROJECT_SOURCE_DIR@/doc/getting_started/img" \
                          "@PROJECT_SOURCE_DIR@/doc/libraries/img"

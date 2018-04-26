@@ -1,7 +1,7 @@
 # From https://blog.kitware.com/cmake-and-the-default-build-type/
 
 # Set a default build type if none was specified
-set(default_build_type "Release")
+set(default_build_type "RelWithDebInfo")
 if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
     set(default_build_type "Debug")
 endif()

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -146,10 +146,13 @@ static inline const fm_entry_t * get_next_entry(const fm_entry_t * p_entry)
 
 static inline const fm_entry_t * get_next_data_entry(const fm_entry_t * p_entry, const void * p_end)
 {
+    const void * p_start = p_entry;
+
     do
     {
         p_entry = get_next_entry(p_entry);
-        if ((const void *) p_entry >= p_end)
+
+        if ((const void *) p_entry >= p_end || (void *) p_entry <= p_start)
         {
             return NULL;
         }

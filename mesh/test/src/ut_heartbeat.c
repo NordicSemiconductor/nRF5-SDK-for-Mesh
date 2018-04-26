@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -49,12 +49,13 @@
 #include "nrf_mesh_opt_mock.h"
 #include "transport_mock.h"
 #include "config_server_mock.h"
-
+#include "nrf_mesh_externs_mock.h"
 
 #define UT_ADDRESS_UNASSIGNED_SAMPLE    (0x0000)
 
 #define UT_ADDRESS_UNICAST_SAMPLE       (0x7FFF)
 #define UT_ADDRESS_UNICAST_SAMPLE2      (0x0FFF)
+#define UT_ADDRESS_UNICAST_SAMPLE3      (0x00FF)
 
 #define UT_ADDRESS_VIRTUAL_SAMPLE       (0xBFFF)
 
@@ -319,6 +320,7 @@ void setUp(void)
     timer_mock_Init();
     nrf_mesh_opt_mock_Init();
     transport_mock_Init();
+    nrf_mesh_externs_mock_Init();
 
     // clean local cb counters
     m_timer_sch_reschedule_stub_cnt   = 0;
@@ -343,6 +345,8 @@ void tearDown(void)
     transport_mock_Destroy();
     nrf_mesh_opt_mock_Verify();
     nrf_mesh_opt_mock_Destroy();
+    nrf_mesh_externs_mock_Verify();
+    nrf_mesh_externs_mock_Destroy();
 }
 
 
@@ -459,6 +463,8 @@ void test_heartbeat_subscription_set(void)
     m_ut_hb_sub.max_hops   = 0x50;
     timer_now_ExpectAndReturn(TIME_0);
     timer_sch_reschedule_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
 
     heartbeat_subscription_state_t * sub_state;
@@ -477,6 +483,8 @@ void test_heartbeat_subscription_set(void)
     m_ut_hb_sub.period     = HEARTBEAT_MAX_PERIOD + 1;
     m_ut_hb_sub.min_hops   = 0x11;
     m_ut_hb_sub.max_hops   = 0x50;
+    nrf_mesh_unicast_address_get_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_ERROR_INVALID_PARAM);
 
     // TEST: Invalid input - Src address is neither group or virtual
@@ -486,6 +494,8 @@ void test_heartbeat_subscription_set(void)
     m_ut_hb_sub.period     = 0x1000;
     m_ut_hb_sub.min_hops   = 0x11;
     m_ut_hb_sub.max_hops   = 0x50;
+    nrf_mesh_unicast_address_get_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_ERROR_INVALID_PARAM);
     m_ut_hb_sub.src        = UT_ADDRESS_VIRTUAL_SAMPLE;
     m_ut_hb_sub.dst        = UT_ADDRESS_UNICAST_SAMPLE;
@@ -493,15 +503,19 @@ void test_heartbeat_subscription_set(void)
     m_ut_hb_sub.period     = 0x1000;
     m_ut_hb_sub.min_hops   = 0x11;
     m_ut_hb_sub.max_hops   = 0x50;
+    nrf_mesh_unicast_address_get_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_ERROR_INVALID_PARAM);
 
-    // TEST: Invalid input - Dst address os virtual
+    // TEST: Invalid input - Dst address is virtual
     m_ut_hb_sub.src        = UT_ADDRESS_UNICAST_SAMPLE;
     m_ut_hb_sub.dst        = UT_ADDRESS_VIRTUAL_SAMPLE;
     m_ut_hb_sub.count      = 0x0000;
-    m_ut_hb_sub.period  = 0x1000;
+    m_ut_hb_sub.period     = 0x1000;
     m_ut_hb_sub.min_hops   = 0x11;
     m_ut_hb_sub.max_hops   = 0x50;
+    nrf_mesh_unicast_address_get_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.src);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_ERROR_INVALID_PARAM);
 
     // TEST: If period is zero, or  src/dst  is unassigned, corresponding params are set to zeros.
@@ -513,6 +527,8 @@ void test_heartbeat_subscription_set(void)
     m_ut_hb_sub.max_hops   = 0x50;
     timer_now_ExpectAndReturn(TIME_0);
     timer_sch_abort_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
     TEST_ASSERT_EQUAL(sub_state->src, 0x0000);
     TEST_ASSERT_EQUAL(sub_state->dst, 0x0000);
@@ -521,11 +537,13 @@ void test_heartbeat_subscription_set(void)
     m_ut_hb_sub.src        = UT_ADDRESS_UNASSIGNED_SAMPLE;
     m_ut_hb_sub.dst        = UT_ADDRESS_UNICAST_SAMPLE;
     m_ut_hb_sub.count      = 0x0000;
-    m_ut_hb_sub.period  = 0x1000;
+    m_ut_hb_sub.period     = 0x1000;
     m_ut_hb_sub.min_hops   = 0x11;
     m_ut_hb_sub.max_hops   = 0x50;
     timer_now_ExpectAndReturn(TIME_0);
     timer_sch_abort_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
     TEST_ASSERT_EQUAL(sub_state->src, 0x0000);
     TEST_ASSERT_EQUAL(sub_state->dst, 0x0000);
@@ -534,11 +552,13 @@ void test_heartbeat_subscription_set(void)
     m_ut_hb_sub.src        = UT_ADDRESS_UNICAST_SAMPLE;
     m_ut_hb_sub.dst        = UT_ADDRESS_UNASSIGNED_SAMPLE;
     m_ut_hb_sub.count      = 0x0000;
-    m_ut_hb_sub.period  = 0x1000;
+    m_ut_hb_sub.period     = 0x1000;
     m_ut_hb_sub.min_hops   = 0x11;
     m_ut_hb_sub.max_hops   = 0x50;
     timer_now_ExpectAndReturn(TIME_0);
     timer_sch_abort_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
     TEST_ASSERT_EQUAL(sub_state->src, 0x0000);
     TEST_ASSERT_EQUAL(sub_state->dst, 0x0000);
@@ -857,28 +877,48 @@ void test_heartbeat_opcode_handle(void)
                              ut_mock_config_server_hb_pub_count_dec);
 
     // Reset subscription state, src and dst are UNASSIGNED, and period is zero
-    m_ut_hb_sub.src = NRF_MESH_ADDR_UNASSIGNED;
-    m_ut_hb_sub.dst = NRF_MESH_ADDR_UNASSIGNED;
-    m_ut_hb_sub.period = 0x0000;
-    timer_sch_abort_ExpectAnyArgs();
+    m_ut_hb_sub.src = UT_ADDRESS_UNICAST_SAMPLE2;
+    m_ut_hb_sub.dst = UT_ADDRESS_UNICAST_SAMPLE3;
+    m_ut_hb_sub.period = 0x0100;
+    timer_now_ExpectAndReturn(TIME_0);
+    timer_sch_reschedule_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
 
-    //Test1: HB message are ignored when not subscribed to given src
+    //Test1: HB message are ignored when not subscribed to given src/dst
     // create valid hb message
     hb_init_ttl = 0x05;
     hb_rx_ttl   = 0x02;
     hb_features = HEARTBEAT_TRIGGER_TYPE_RELAY | HEARTBEAT_TRIGGER_TYPE_PROXY;
-    hb_src      = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_src      = UT_ADDRESS_UNICAST_SAMPLE2;
     hb_dst      = UT_ADDRESS_GROUP_MAX_SAMPLE;
     control_packet = helper_create_hb_control_packet (hb_src, hb_dst, hb_rx_ttl, hb_init_ttl, hb_features);
     m_transport_hb_opcode_handler.callback(&control_packet, NULL);
 
-    //Test2: HB messages is processed when subscribed to a source and period is not expired
+    hb_init_ttl = 0x05;
+    hb_rx_ttl   = 0x02;
+    hb_features = HEARTBEAT_TRIGGER_TYPE_RELAY | HEARTBEAT_TRIGGER_TYPE_PROXY;
+    hb_src      = UT_ADDRESS_GROUP_MAX_SAMPLE;
+    hb_dst      = UT_ADDRESS_UNICAST_SAMPLE3;
+    control_packet = helper_create_hb_control_packet (hb_src, hb_dst, hb_rx_ttl, hb_init_ttl, hb_features);
+    m_transport_hb_opcode_handler.callback(&control_packet, NULL);
+
+    //Test2: HB messages is processed when subscribed to given source and dst, and period is not expired
+    hb_init_ttl = 0x05;
+    hb_rx_ttl   = 0x02;
+    hb_features = HEARTBEAT_TRIGGER_TYPE_RELAY | HEARTBEAT_TRIGGER_TYPE_PROXY;
+    hb_src      = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_dst      = UT_ADDRESS_UNICAST_SAMPLE2;
+    control_packet = helper_create_hb_control_packet (hb_src, hb_dst, hb_rx_ttl, hb_init_ttl, hb_features);
+
     m_ut_hb_sub.src        = hb_src;
     m_ut_hb_sub.dst        = UT_ADDRESS_UNICAST_SAMPLE2;
     m_ut_hb_sub.period     = 10;
     timer_now_ExpectAndReturn(TIME_0);
     timer_sch_reschedule_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
 
     nrf_mesh_evt_t evt = {
@@ -898,6 +938,8 @@ void test_heartbeat_opcode_handle(void)
     m_ut_hb_sub.period     = 10;                              // 10 seconds
     timer_now_ExpectAndReturn(TIME_0);
     RESCHEDULE_EXPECT(TIME_0 + SEC_TO_US(HEARTBEAT_SUBSCRIPTION_TIMER_GRANULARITY_S));
+    nrf_mesh_unicast_address_get_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
     helper_ut_check_timer_sch_reschedule_called();
 
@@ -929,6 +971,8 @@ void test_heartbeat_opcode_handle(void)
     m_ut_hb_sub.period     = 10;                              // 10 seconds
     timer_now_ExpectAndReturn(TIME_0);
     RESCHEDULE_EXPECT(TIME_0 + SEC_TO_US(HEARTBEAT_SUBSCRIPTION_TIMER_GRANULARITY_S));
+    nrf_mesh_unicast_address_get_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
     helper_ut_check_timer_sch_reschedule_called();
 

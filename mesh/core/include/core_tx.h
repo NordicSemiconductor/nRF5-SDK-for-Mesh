@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -40,6 +40,15 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "nrf_mesh.h"
+#include "net_packet.h"
+#include "list.h"
+
+/** Maximum number of concurrent bearers. Limited by the number of bits in the
+ * core_tx_bearer_bitmap_t type. */
+#define CORE_TX_BEARER_COUNT_MAX 32
+
+/** TX token that shall be used when sending relay packets. */
+#define CORE_TX_TOKEN_RELAY (0xFFFFFFFF)
 
 /**
  * @defgroup CORE_TX Core Transmission Handler
@@ -59,14 +68,25 @@ typedef enum
 
 typedef enum
 {
-    CORE_TX_BEARER_ADV = (1 << 0),
-} core_tx_bearer_t;
+    CORE_TX_BEARER_TYPE_INVALID,
+    CORE_TX_BEARER_TYPE_ADV,
+    CORE_TX_BEARER_TYPE_GATT_SERVER,
+    CORE_TX_BEARER_TYPE_GATT_CLIENT,
+    CORE_TX_BEARER_TYPE_FRIEND,
+    CORE_TX_BEARER_TYPE_LOW_POWER,
+} core_tx_bearer_type_t;
 
+/** Parameter structure for @ref core_tx_packet_alloc(). */
 typedef struct
 {
-    core_tx_bearer_t bearer;
-    core_tx_role_t role;
-} core_tx_metadata_t;
+    core_tx_role_t role; /**< Packet role. */
+    uint32_t net_packet_len; /**< Requited network packet length. */
+    const network_packet_metadata_t * p_metadata; /*< Network packet metadata to pass to bearer for allocation decision. */
+    nrf_mesh_tx_token_t token; /**< TX token used to identify the packet in the TX complete callback. */
+} core_tx_alloc_params_t;
+
+/** Bitmap type representing multiple bearers. */
+typedef uint32_t core_tx_bearer_bitmap_t;
 
 /**
  * @defgroup CORE_TX_BEARER_API Core TX bearer API
@@ -74,33 +94,54 @@ typedef struct
  * @{
  */
 
+/** Allocation result returned by the bearers to indicate result of allocation. */
+typedef enum
+{
+    /** The allocation was successful. */
+    CORE_TX_ALLOC_SUCCESS,
+    /** The bearer rejected the packet based on its metadata. */
+    CORE_TX_ALLOC_FAIL_REJECTED,
+    /** The bearer didn't have enough memory to fit the packet. */
+    CORE_TX_ALLOC_FAIL_NO_MEM
+} core_tx_alloc_result_t;
+
+typedef struct core_tx_bearer core_tx_bearer_t;
+
 /**
  * Packet allocation function type for Core TX bearer interfaces.
- * @param[in] net_packet_len Length of the network packet
- * @param[in] p_metadata Core TX metadata for the packet
- * @param[in] token TX token that shall be presented in the TX complete callback for the packet.
  *
- * @returns A pointer to a network packet buffer ready to be populated or NULL if the allocation
- * failed.
+ * The bearer is expected to allocate space for a packet with the given parameters or present a
+ * reason for rejecting it. The bearer may later be expected to commit the packet without failure.
+ * Only one packet will be allocated at a time.
+ *
+ * @param[in] p_bearer Bearer to allocate on.
+ * @param[in] p_params Allocation parameters to aid the bearer in allocating.
+ *
+ * @returns The result of the allocation.
  */
-typedef uint8_t * (*core_tx_bearer_packet_alloc_t)(uint32_t net_packet_len,
-                                                   const core_tx_metadata_t * p_metadata,
-                                                   nrf_mesh_tx_token_t token);
+typedef core_tx_alloc_result_t (*core_tx_bearer_packet_alloc_t)(core_tx_bearer_t * p_bearer,
+                                                                const core_tx_alloc_params_t * p_params);
 /**
  * Packet send function type for Core TX bearer interfaces.
  *
- * @param[in] p_metadata Core TX metadata for the packet, as passed into the alloc function
- * @param[in,out] p_packet Pointer to the packet to send. Comes from the alloc callback in the same interface.
+ * The bearer is expected to copy the payload of the packet, and commit it for sending.
+ *
+ * @param[in] p_bearer Bearer to send on.
+ * @param[in] p_packet Pointer to the packet to send. Shall be copied into the allocated bearer buffer.
+ * @param[in] packet_length Length of the packet.
  */
-typedef void (*core_tx_bearer_packet_send_t)(const core_tx_metadata_t * p_metadata, uint8_t * p_packet);
+typedef void (*core_tx_bearer_packet_send_t)(core_tx_bearer_t * p_bearer,
+                                             const uint8_t * p_packet,
+                                             uint32_t packet_length);
 
 /**
  * Packet discard function type for Core TX bearer interfaces.
  *
- * @param[in] p_metadata Core TX metadata for the packet, as passed into the alloc function.
- * @param[in,out] p_packet Pointer to the packet to discard. Comes from the alloc callback in the same interface.
+ * The bearer is expected to discard the currently allocated packet.
+ *
+ * @param[in] p_bearer Bearer to discard the packet on.
  */
-typedef void (*core_tx_bearer_packet_discard_t)(const core_tx_metadata_t * p_metadata, uint8_t * p_packet);
+typedef void (*core_tx_bearer_packet_discard_t)(core_tx_bearer_t * p_bearer);
 
 /**
  * Core TX interface definition, providing packet sending functionality for a single Core TX bearer type.
@@ -112,19 +153,46 @@ typedef struct
     core_tx_bearer_packet_discard_t packet_discard;
 } core_tx_bearer_interface_t;
 
+struct core_tx_bearer
+{
+#ifdef CORE_TX_DEBUG
+    struct
+    {
+        uint32_t alloc_count;
+        uint32_t no_mem_count;
+        uint32_t reject_count;
+        uint32_t discard_count;
+        uint32_t send_count;
+    } debug;
+#endif
+
+    const core_tx_bearer_interface_t * p_interface;
+
+    uint8_t bearer_index;
+    core_tx_bearer_type_t type;
+
+    list_node_t list_node;
+};
+
 /** @} */
 
 /**
  * Transmission complete callback type used to notify the user of ended transmissions.
  *
- * @warning The transmission complete callback executes in an interrupt, and should do as little as
- * possible before returning.
+ * The @p bearer_index parameter maps to an offset in the bearer bitmap. Combined with the bitmap
+ * returned in the corresponding @ref core_tx_packet_alloc call, it can be used to determine whether
+ * all bearers are finished sending this packet.
  *
- * @param[in] p_metadata Metadata for the transmission.
+ * @param[in] role Packet role, as set in the corresponding alloc call.
+ * @param[in] bearer_index Index of the bearer reporting the TX complete event. Is always the offset
+ * of one of the marked bits returned in the corresponding alloc call.
  * @param[in] timestamp Timestamp of the packet transmission in microseconds.
  * @param[in] token Token set in the packet alloc call.
  */
-typedef void (*core_tx_complete_cb_t)(const core_tx_metadata_t * p_metadata, uint32_t timestamp, nrf_mesh_tx_token_t token);
+typedef void (*core_tx_complete_cb_t)(core_tx_role_t role,
+                                      uint32_t bearer_index,
+                                      uint32_t timestamp,
+                                      nrf_mesh_tx_token_t token);
 
 /**
  * Set the core tx complete callback.
@@ -137,34 +205,45 @@ void core_tx_complete_cb_set(core_tx_complete_cb_t tx_complete_callback);
 /**
  * Allocate a network packet for transmission.
  *
- * @param[in] net_packet_len Desired network packet length, including header and MIC.
- * @param[in] p_metadata Metadata for the packet.
- * @param[in,out] pp_packet Packet pointer to populate.
- * @param[in] token User token that can be used to identify the packet in the TX complete callback.
+ * The packet allocation will succeed if one or more bearers accept the allocation. Every set bit
+ * in the return value will yield a corresponding TX complete callback once that specific bearer
+ * has completed sending. Every successful call to this function has to be followed by a send or
+ * discard call before the next alloc call can be issued.
  *
- * @returns A bitmask of the bearers that were able to allocate data.
+ * @warning Will assert if a previous alloc call hasn't had a matching send or discard call.
+ *
+ * @param[in] p_params Packet allocation parameters.
+ * @param[out] pp_packet Packet pointer to populate.
+ *
+ * @returns A bitmap of the bearers that were able to allocate data.
  */
-core_tx_bearer_t core_tx_packet_alloc(uint32_t net_packet_len,
-                                      const core_tx_metadata_t * p_metadata,
-                                      uint8_t ** pp_packet,
-                                      nrf_mesh_tx_token_t token);
+core_tx_bearer_bitmap_t core_tx_packet_alloc(const core_tx_alloc_params_t * p_params, uint8_t ** pp_packet);
 
 /**
- * Send a network packet acquired through the @ref core_tx_packet_alloc() function.
- *
- * @param[in] p_metadata Metadata used when allocating the packet.
- * @param[in,out] p_packet Packet pointer to send.
+ * Send the currently allocated packet.
  */
-void core_tx_packet_send(const core_tx_metadata_t * p_metadata, uint8_t * p_packet);
+void core_tx_packet_send(void);
 
 /**
- * Discard a packet buffer acquired through the @ref core_tx_packet_alloc() function. The packet
- * memory will be made available for reallocation, and its contents discarded.
- *
- * @param[in] p_metadata Metadata used when allocating the packet.
- * @param[in,out] p_packet Packet pointer to send.
+ * Discard the currently allocated packet.
  */
-void core_tx_packet_discard(const core_tx_metadata_t * p_metadata, uint8_t * p_packet);
+void core_tx_packet_discard(void);
+
+/**
+ * Get the bearer type at the given index.
+ *
+ * @param[in] bearer_index Bearer index to look up.
+ *
+ * @returns The type of bearer the given bearer index represents.
+ */
+core_tx_bearer_type_t core_tx_bearer_type_get(uint32_t bearer_index);
+
+/**
+ * Get the number of registered bearers.
+ *
+ * @returns The number of bearers registered.
+ */
+uint32_t core_tx_bearer_count_get(void);
 
 /**
  * @ingroup CORE_TX_BEARER_API
@@ -172,28 +251,43 @@ void core_tx_packet_discard(const core_tx_metadata_t * p_metadata, uint8_t * p_p
  */
 
 /**
- * Register an interface for the specified bearer.
+ * Add a bearer.
  *
- * Registering multiple handlers for the same bearer will result in an assert.
+ * Once added, all fields in the bearer structure are read-only.
  *
- * @param[in] bearer Bearer to register for.
- * @param[in] p_interface Interface structure. Must be static memory, with no NULL-pointer functions.
+ * @param[in,out] p_bearer Bearer to register for.
+ * @param[in] p_interface Interface structure. Must be static memory, with no NULL-pointer
+ * functions.
+ * @param[in] type The type of bearer this is.
  */
-void core_tx_bearer_register(core_tx_bearer_t bearer, const core_tx_bearer_interface_t * p_interface);
+void core_tx_bearer_add(core_tx_bearer_t * p_bearer,
+                        const core_tx_bearer_interface_t * p_interface,
+                        core_tx_bearer_type_t type);
 
 /**
  * TX complete callback for bearers to call upon successful sending.
  *
- * @param[in] p_metadata Metadata for the sent packet, as passed to the bearer's alloc interface
- * for the given packet.
+ * @note Must be called in order of allocation.
+ *
+ * @param[in,out] p_bearer Bearer to register a TX complete for.
+ * @param[in] role TX role the packet was transmitted in.
  * @param[in] timestamp Timestamp of the packet transmission in microseconds.
  * @param[in] token Token set in the packet alloc call.
  */
-void core_tx_complete(const core_tx_metadata_t * p_metadata,
+void core_tx_complete(core_tx_bearer_t * p_bearer,
+                      core_tx_role_t role,
                       uint32_t timestamp,
                       nrf_mesh_tx_token_t token);
 /** @} */
 
+#ifdef UNIT_TEST
+
+/**
+ * @internal
+ * Reset the core TX state. Unsafe outside of unit testing.
+ */
+void core_tx_reset(void);
+#endif
 /** @} */
 
 #endif /* CORE_TX_H__ */

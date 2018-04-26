@@ -11,16 +11,18 @@ OnOff Model provides additional features such as control over when
 and for how long the transition between the on/off state should be
 performed.
 
-For more information about creating models, see
-[Creating custom models](@ref md_doc_getting_started_how_to_models).
-
-> **Important:** When the server has a publish address set (as in the light switch example), the server
-will publish its state to its publish address every time its state changes.
+> **Important:** When the server has a publish address set (as in the light switch example),
+> the server will publish its state to its publish address every time its state changes.
 
 ## Messages and behavior
+
+@copydoc SIMPLE_ON_OFF_MODEL
 
 See [the message documentation](@ref SIMPLE_ON_OFF_COMMON) for details about the message format.
 
 The behavior of the simple OnOff server is very simple and illustrated by the following message chart.
 ![Simple OnOff behavior](img/simple_on_off_model.png "Simple OnOff behavior")
 
+## More information
+For more information about creating models, see
+[Creating new models](@ref md_doc_getting_started_how_to_models).

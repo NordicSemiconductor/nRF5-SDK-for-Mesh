@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -46,12 +46,13 @@
 #include "boards.h"
 #include "nrf_delay.h"
 
+#include "nrf_mesh_defines.h"
 #include "timer.h"
+
 
 /*****************************************************************************
  * Definitions
  *****************************************************************************/
-#define BUTTON_BOARD (BOARD_PCA10040 || BOARD_PCA10028 || BOARD_PCA10056)
 #define LED_PIN_CONFIG ((GPIO_PIN_CNF_SENSE_Disabled << GPIO_PIN_CNF_SENSE_Pos)   | \
                         (GPIO_PIN_CNF_DRIVE_S0S1 << GPIO_PIN_CNF_DRIVE_Pos)       | \
                         (GPIO_PIN_CNF_PULL_Disabled << GPIO_PIN_CNF_PULL_Pos)     | \
@@ -66,11 +67,7 @@
                            (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_Pos))
 #endif
 
-#if defined(NRF51)
-#define GPIOTE_IRQ_LEVEL (3)
-#else
-#define GPIOTE_IRQ_LEVEL (6)
-#endif
+#define GPIOTE_IRQ_LEVEL NRF_MESH_IRQ_PRIORITY_LOWEST
 
 /*****************************************************************************
  * Static variables
@@ -117,11 +114,9 @@ void hal_led_mask_set(uint32_t led_mask, bool value)
     }
 }
 
-void hal_led_blink_ms(uint32_t led_mask, uint32_t delay_ms, uint32_t repeat)
+void hal_led_blink_ms(uint32_t led_mask, uint32_t delay_ms, uint32_t blink_count)
 {
-    /* Make it an even number. */
-    repeat &= 0xFE;
-    for (uint32_t i = 0; i < repeat; ++i)
+    for (uint32_t i = 0; i < blink_count*2; ++i)
     {
         NRF_GPIO->OUT ^= led_mask;
         nrf_delay_ms(delay_ms);

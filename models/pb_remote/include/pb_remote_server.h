@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -44,7 +44,7 @@
 #include "provisioning.h"
 
 /**
- * @defgroup PB_REMOTE_SERVER Remote Provisioning Server
+ * @defgroup PB_REMOTE_SERVER Remote Provisioning Server (experimental)
  * @ingroup  PB_REMOTE
  * This module implements the remote provisioning server (PB-remote server) model.
  *

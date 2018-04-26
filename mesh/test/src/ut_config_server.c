@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -49,6 +49,8 @@
 #include "nrf_mesh_opt_mock.h"
 #include "nrf_mesh_keygen_mock.h"
 #include "rand_mock.h"
+#include "nrf_mesh_events_mock.h"
+#include "mesh_stack_mock.h"
 
 #include "access.h"
 #include "config_messages.h"
@@ -193,6 +195,8 @@ static uint32_t access_model_reply_mock(access_model_handle_t handle, const acce
     m_previous_reply.opcode = p_reply->opcode;
     m_previous_reply.p_buffer = mp_previous_reply_buffer;
     m_previous_reply.length = p_reply->length;
+    m_previous_reply.force_segmented = false;
+    m_previous_reply.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
 
     m_previous_reply_received = true;
     return NRF_SUCCESS;
@@ -253,6 +257,8 @@ void setUp(void)
     nrf_mesh_opt_mock_Init();
     nrf_mesh_keygen_mock_Init();
     rand_mock_Init();
+    nrf_mesh_events_mock_Init();
+    mesh_stack_mock_Init();
 
     m_previous_reply_received = false;
     mp_previous_reply_buffer = NULL;
@@ -263,6 +269,7 @@ void setUp(void)
     heartbeat_config_server_cb_set_Expect(NULL, NULL);
     heartbeat_config_server_cb_set_IgnoreArg_p_cb();
     heartbeat_config_server_cb_set_IgnoreArg_p_pub_cnt_cb();
+    nrf_mesh_evt_handler_add_ExpectAnyArgs();
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_server_init(config_server_evt_cb));
 }
 
@@ -292,6 +299,10 @@ void tearDown(void)
     nrf_mesh_keygen_mock_Destroy();
     rand_mock_Verify();
     rand_mock_Destroy();
+    nrf_mesh_events_mock_Verify();
+    nrf_mesh_events_mock_Destroy();
+    mesh_stack_mock_Verify();
+    mesh_stack_mock_Destroy();
 }
 
 /*********** Test Cases ***********/
@@ -405,14 +416,28 @@ void test_config_default_ttl_get(void)
 
 void test_config_default_ttl_set(void)
 {
-    const config_msg_default_ttl_t message = { 8 };
-    access_default_ttl_set_Expect(8);
-    send_message(CONFIG_OPCODE_DEFAULT_TTL_SET, (const uint8_t *) &message, sizeof(message));
+    /* Test valid parameter path */
+    const config_msg_default_ttl_set_t valid_message = { 8 };
+    access_default_ttl_set_ExpectAndReturn(8, NRF_SUCCESS);
+    send_message(CONFIG_OPCODE_DEFAULT_TTL_SET, (const uint8_t *) &valid_message, sizeof(valid_message));
 
     TEST_ASSERT_TRUE(m_previous_reply_received);
     VERIFY_REPLY_OPCODE(CONFIG_OPCODE_DEFAULT_TTL_STATUS);
     TEST_ASSERT_EQUAL(1, m_previous_reply.length);
     TEST_ASSERT_EQUAL_UINT8(8, m_previous_reply.p_buffer[0]);
+
+    /* Test invalid parameter path */
+    m_previous_reply_received = false;
+    const config_msg_default_ttl_set_t invalid_message_1 = { 1 };
+    access_default_ttl_set_ExpectAndReturn(1, NRF_ERROR_INVALID_PARAM);
+    send_message(CONFIG_OPCODE_DEFAULT_TTL_SET, (const uint8_t *) &invalid_message_1, sizeof(invalid_message_1));
+    TEST_ASSERT_FALSE(m_previous_reply_received);
+
+    m_previous_reply_received = false;
+    const config_msg_default_ttl_set_t invalid_message_high = { NRF_MESH_TTL_MAX + 1 };
+    access_default_ttl_set_ExpectAndReturn(NRF_MESH_TTL_MAX + 1, NRF_ERROR_INVALID_PARAM);
+    send_message(CONFIG_OPCODE_DEFAULT_TTL_SET, (const uint8_t *) &invalid_message_high, sizeof(invalid_message_high));
+    TEST_ASSERT_FALSE(m_previous_reply_received);
 
     m_previous_reply_received = false;
     send_message(CONFIG_OPCODE_DEFAULT_TTL_SET, NULL, 0); /* Message length too short */
@@ -536,16 +561,16 @@ void test_config_relay_set(void)
 void test_publication_get(void)
 {
     config_msg_publication_get_t message[2] =
+    {
         {
-            {
-                .element_address = 0x3132,
-                .model_id        = { .model_id = 0x1351, .company_id = ACCESS_COMPANY_ID_NONE }
-            },
-            {
-                .element_address = 0x3132,
-                .model_id        = {.model_id = 0x4321, .company_id = 8765 }
-            }
-        };
+            .element_address = 0x3132,
+            .model_id.sig        = { .model_id = 0x1351 }
+        },
+        {
+            .element_address = 0x3132,
+            .model_id.vendor        = {.model_id = 0x4321, .company_id = 8765 }
+        }
+    };
 
     for (uint8_t i = 0; i < 2; ++i)
     {
@@ -556,13 +581,12 @@ void test_publication_get(void)
 
         access_model_handle_t model_handle = 8;
         access_model_id_t expected_id =
-            {
-                .model_id = message[i].model_id.model_id,
-                .company_id = message[i].model_id.company_id,
-            };
+        {
+            .model_id = sig_identifier ? message[i].model_id.sig.model_id : message[i].model_id.vendor.model_id,
+            .company_id = sig_identifier ? ACCESS_COMPANY_ID_NONE : message[i].model_id.vendor.company_id,
+        };
 
-        access_handle_get_ExpectAndReturn(element_index, expected_id, NULL, NRF_SUCCESS);
-        access_handle_get_IgnoreArg_p_handle();
+        access_handle_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
         access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
         access_model_id_get_ExpectAndReturn(model_handle, NULL, NRF_SUCCESS);
@@ -602,6 +626,14 @@ void test_publication_get(void)
         access_model_publish_period_get_ReturnThruPtr_p_resolution(&publish_resolution);
         access_model_publish_period_get_ReturnThruPtr_p_step_number(&publish_steps);
 
+        access_publish_retransmit_t publish_retransmit =
+        {
+            .count = 0x07,
+            .interval_steps = 0x1F
+        };
+        access_model_publish_retransmit_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+        access_model_publish_retransmit_get_ReturnThruPtr_p_retransmit_params(&publish_retransmit);
+
         send_message(CONFIG_OPCODE_MODEL_PUBLICATION_GET, (const uint8_t *) &message[i], sizeof(config_msg_publication_get_t) - sig_identifier * sizeof(uint16_t));
 
         TEST_ASSERT_TRUE(m_previous_reply_received);
@@ -619,10 +651,12 @@ void test_publication_get(void)
 
         uint8_t expected_period = publish_resolution << ACCESS_PUBLISH_STEP_NUM_BITS | publish_steps;
         TEST_ASSERT_EQUAL(expected_period, p_reply->state.publish_period);
+        TEST_ASSERT_EQUAL(publish_retransmit.count, p_reply->state.retransmit_count);
+        TEST_ASSERT_EQUAL(publish_retransmit.interval_steps, p_reply->state.retransmit_interval);
 
         if (sig_identifier)
         {
-            TEST_ASSERT_EQUAL_UINT16(message[i].model_id.model_id, *((uint16_t *) &p_reply->state.model_id));
+            TEST_ASSERT_EQUAL_UINT16(message[i].model_id.sig.model_id, *((uint16_t *) &p_reply->state.model_id));
         }
         else
         {
@@ -634,32 +668,33 @@ void test_publication_get(void)
 void test_publication_set(void)
 {
     config_msg_publication_set_t messages[2] =
+    {
         {
-            {
-                .element_address = 0x1234,
-                .publish_address = 0x4321,
-                .state = {
-                    .appkey_index = 56,
-                    .publish_ttl = 8,
-                    .publish_period = ACCESS_PUBLISH_RESOLUTION_10S << ACCESS_PUBLISH_STEP_NUM_BITS | 24,
-                    .retransmit_count = 2,
-                    .model_id.model_id = 0x4421,
-                    .model_id.company_id = ACCESS_COMPANY_ID_NONE
-                }
-            },
-            {
-                .element_address = 0x4321,
-                .publish_address = 0x1234,
-                .state = {
-                    .appkey_index = 65,
-                    .publish_ttl = 100,
-                    .publish_period = ACCESS_PUBLISH_RESOLUTION_100MS << ACCESS_PUBLISH_STEP_NUM_BITS | 12,
-                    .retransmit_count = 3,
-                    .model_id.model_id = 0x1244,
-                    .model_id.company_id = 0x2288
-                }
+            .element_address = 0x1234,
+            .publish_address = 0x4321,
+            .state = {
+                .appkey_index = 56,
+                .publish_ttl = 8,
+                .publish_period = ACCESS_PUBLISH_RESOLUTION_10S << ACCESS_PUBLISH_STEP_NUM_BITS | 24,
+                .retransmit_count = 2,
+                .retransmit_interval = 3,
+                .model_id.sig.model_id = 0x4421,
             }
-        };
+        },
+        {
+            .element_address = 0x4321,
+            .publish_address = 0x1234,
+            .state = {
+                .appkey_index = 65,
+                .publish_ttl = 100,
+                .publish_period = ACCESS_PUBLISH_RESOLUTION_100MS << ACCESS_PUBLISH_STEP_NUM_BITS | 12,
+                .retransmit_count = 4,
+                .retransmit_interval = 5,
+                .model_id.vendor.model_id = 0x1244,
+                .model_id.vendor.company_id = 0x2288
+            }
+        }
+    };
 
 
     for (int i = 0; i < 2; ++i)
@@ -671,26 +706,27 @@ void test_publication_set(void)
 
         access_model_handle_t model_handle = 33;
         access_model_id_t expected_id =
-            {
-                .model_id = messages[i].state.model_id.model_id,
-                .company_id = messages[i].state.model_id.company_id
-            };
-        access_handle_get_ExpectAndReturn(element_index, expected_id, NULL, NRF_SUCCESS);
-        access_handle_get_IgnoreArg_p_handle();
+        {
+            .model_id = sig_model ? messages[i].state.model_id.sig.model_id : messages[i].state.model_id.vendor.model_id,
+            .company_id = sig_model ? ACCESS_COMPANY_ID_NONE : messages[i].state.model_id.vendor.company_id,
+        };
+        access_handle_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
         access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
         dsm_handle_t appkey_handle = 33331;
         dsm_appkey_index_to_appkey_handle_ExpectAndReturn(messages[i].state.appkey_index, appkey_handle);
 
         dsm_handle_t address_handle = 22115;
-        dsm_address_publish_add_ExpectAndReturn(messages[i].publish_address, NULL, NRF_SUCCESS);
-        dsm_address_publish_add_IgnoreArg_p_address_handle();
-        dsm_address_publish_add_ReturnThruPtr_p_address_handle(&address_handle);
-
         access_model_publish_address_set_ExpectAndReturn(model_handle, address_handle, NRF_SUCCESS);
         access_model_publish_period_set_ExpectAndReturn(model_handle, ACCESS_PUBLISH_RESOLUTION_100MS, 0, NRF_SUCCESS);
         access_model_publish_period_set_ExpectAndReturn(model_handle, (access_publish_resolution_t) (messages[i].state.publish_period >> ACCESS_PUBLISH_STEP_NUM_BITS),
             messages[i].state.publish_period & (0xff >> (8 - ACCESS_PUBLISH_STEP_NUM_BITS)), NRF_SUCCESS);
+        access_publish_retransmit_t publish_retransmit =
+        {
+            .count = messages[i].state.retransmit_count,
+            .interval_steps = messages[i].state.retransmit_interval
+        };
+        access_model_publish_retransmit_set_ExpectAndReturn(model_handle, publish_retransmit, NRF_SUCCESS);
         access_model_publish_application_set_ExpectAndReturn(model_handle, appkey_handle, NRF_SUCCESS);
         access_model_publish_ttl_set_ExpectAndReturn(model_handle, messages[i].state.publish_ttl, NRF_SUCCESS);
         access_flash_config_store_Expect();
@@ -699,11 +735,21 @@ void test_publication_set(void)
         access_model_id_get_IgnoreArg_p_model_id();
         access_model_id_get_ReturnThruPtr_p_model_id(&expected_id);
 
+        // the first is for handle_config_model_publication_set
+        access_model_publish_address_get_ExpectAndReturn(model_handle, NULL, NRF_SUCCESS);
+        access_model_publish_address_get_IgnoreArg_p_address_handle();
+        access_model_publish_address_get_ReturnThruPtr_p_address_handle(&address_handle);
+        // the second is for send_publication_status
         access_model_publish_address_get_ExpectAndReturn(model_handle, NULL, NRF_SUCCESS);
         access_model_publish_address_get_IgnoreArg_p_address_handle();
         access_model_publish_address_get_ReturnThruPtr_p_address_handle(&address_handle);
 
         nrf_mesh_address_t publish_address = { .type = NRF_MESH_ADDRESS_TYPE_UNICAST, .value = messages[i].publish_address };
+        // the first is for handle_config_model_publication_set
+        dsm_address_get_ExpectAndReturn(address_handle, NULL, NRF_SUCCESS);
+        dsm_address_get_IgnoreArg_p_address();
+        dsm_address_get_ReturnThruPtr_p_address(&publish_address);
+        // the second is for send_publication_status
         dsm_address_get_ExpectAndReturn(address_handle, NULL, NRF_SUCCESS);
         dsm_address_get_IgnoreArg_p_address();
         dsm_address_get_ReturnThruPtr_p_address(&publish_address);
@@ -730,6 +776,9 @@ void test_publication_set(void)
         access_model_publish_period_get_ReturnThruPtr_p_resolution(&publish_resolution);
         access_model_publish_period_get_ReturnThruPtr_p_step_number(&publish_steps);
 
+        access_model_publish_retransmit_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+        access_model_publish_retransmit_get_ReturnThruPtr_p_retransmit_params(&publish_retransmit);
+
         m_previous_reply_received = false;
         send_message(CONFIG_OPCODE_MODEL_PUBLICATION_SET, (const uint8_t *) &messages[i], sizeof(messages[i]) - sig_model * sizeof(uint16_t));
 
@@ -746,15 +795,17 @@ void test_publication_set(void)
         TEST_ASSERT_EQUAL(0, p_reply->state.rfu);
         TEST_ASSERT_EQUAL(messages[i].state.publish_ttl, p_reply->state.publish_ttl);
         TEST_ASSERT_EQUAL_HEX(messages[i].state.publish_period, p_reply->state.publish_period);
+        TEST_ASSERT_EQUAL(publish_retransmit.count, p_reply->state.retransmit_count);
+        TEST_ASSERT_EQUAL(publish_retransmit.interval_steps, p_reply->state.retransmit_interval);
 
         if (sig_model)
         {
-            TEST_ASSERT_EQUAL_UINT16(messages[i].state.model_id.model_id, p_reply->state.model_id.model_id);
+            TEST_ASSERT_EQUAL_UINT16(messages[i].state.model_id.sig.model_id, p_reply->state.model_id.sig.model_id);
         }
         else
         {
-            TEST_ASSERT_EQUAL_UINT16(messages[i].state.model_id.model_id, p_reply->state.model_id.model_id);
-            TEST_ASSERT_EQUAL_UINT16(messages[i].state.model_id.company_id, p_reply->state.model_id.company_id);
+            TEST_ASSERT_EQUAL_UINT16(messages[i].state.model_id.vendor.model_id, p_reply->state.model_id.vendor.model_id);
+            TEST_ASSERT_EQUAL_UINT16(messages[i].state.model_id.vendor.company_id, p_reply->state.model_id.vendor.company_id);
         }
     }
 }
@@ -808,12 +859,22 @@ void test_netkey_update(void)
 void test_netkey_delete(void)
 {
     const config_msg_netkey_delete_t message =
-        {
-            .netkey_index = 12
-        };
+    {
+        .netkey_index = 12
+    };
 
     dsm_net_key_index_to_subnet_handle_ExpectAndReturn(message.netkey_index, 9);
+
+    dsm_appkey_get_all_ExpectAndReturn(9, NULL, NULL, NRF_SUCCESS);
+    dsm_appkey_get_all_IgnoreArg_p_key_list();
+    dsm_appkey_get_all_IgnoreArg_p_count();
+
+    uint32_t bound_app_key_count = 1;
+    dsm_appkey_get_all_ReturnThruPtr_p_count(&bound_app_key_count);
+    dsm_appkey_index_to_appkey_handle_ExpectAnyArgsAndReturn(13);
+
     dsm_subnet_delete_ExpectAndReturn(9, NRF_SUCCESS);
+    access_model_publication_by_appkey_stop_ExpectAndReturn(13, NRF_SUCCESS);
 
     send_message(CONFIG_OPCODE_NETKEY_DELETE, (const uint8_t *) &message, sizeof(config_msg_netkey_delete_t));
 
@@ -893,8 +954,16 @@ void test_appkey_update(void)
     config_msg_key_index_24_set(&message.key_indexes, netkey_index, appkey_index);
     memcpy(message.appkey, appkey, sizeof(appkey));
 
-    dsm_appkey_index_to_appkey_handle_ExpectAndReturn(appkey_index, 8);
-    dsm_appkey_update_ExpectAndReturn(8, message.appkey, NRF_SUCCESS);
+    dsm_handle_t network_handle = 13;
+    dsm_net_key_index_to_subnet_handle_ExpectAndReturn(netkey_index, network_handle);
+
+    dsm_handle_t appkey_handle = 55;
+    dsm_appkey_index_to_appkey_handle_ExpectAndReturn(appkey_index, appkey_handle);
+    dsm_appkey_update_ExpectAndReturn(appkey_handle, message.appkey, NRF_SUCCESS);
+
+    dsm_appkey_handle_to_subnet_handle_ExpectAndReturn(appkey_handle, NULL, NRF_SUCCESS);
+    dsm_appkey_handle_to_subnet_handle_IgnoreArg_p_netkey_handle();
+    dsm_appkey_handle_to_subnet_handle_ReturnThruPtr_p_netkey_handle(&network_handle);
 
     send_message(CONFIG_OPCODE_APPKEY_UPDATE, (const uint8_t *) &message, sizeof(config_msg_appkey_add_t));
 
@@ -919,6 +988,15 @@ void test_appkey_delete(void)
     config_msg_appkey_delete_t message;
     config_msg_key_index_24_set(&message.key_indexes, netkey_index, appkey_index);
     dsm_appkey_index_to_appkey_handle_ExpectAndReturn(appkey_index, appkey_handle);
+
+    dsm_handle_t network_handle = 13;
+    dsm_net_key_index_to_subnet_handle_ExpectAndReturn(netkey_index, network_handle);
+
+    dsm_appkey_handle_to_subnet_handle_ExpectAndReturn(appkey_handle, NULL, NRF_SUCCESS);
+    dsm_appkey_handle_to_subnet_handle_IgnoreArg_p_netkey_handle();
+    dsm_appkey_handle_to_subnet_handle_ReturnThruPtr_p_netkey_handle(&network_handle);
+
+    access_model_publication_by_appkey_stop_ExpectAndReturn(appkey_handle, NRF_SUCCESS);
     dsm_appkey_delete_ExpectAndReturn(appkey_handle, NRF_SUCCESS);
 
     send_message(CONFIG_OPCODE_APPKEY_DELETE, (const uint8_t *) &message, sizeof(config_msg_appkey_delete_t));
@@ -1015,20 +1093,19 @@ void test_identity_set(void)
 void test_model_app_bind_unbind(void)
 {
     const config_msg_app_bind_unbind_t messages[2] =
+    {
         {
-            {
-                .element_address = 0x4321,
-                .appkey_index = 4,
-                .model_id.model_id = 0x1453,
-                .model_id.company_id = ACCESS_COMPANY_ID_NONE
-            },
-            {
-                .element_address = 0x1234,
-                .appkey_index = 5,
-                .model_id.model_id = 0x6651,
-                .model_id.company_id = 0x4449
-            }
-        };
+            .element_address = 0x4321,
+            .appkey_index = 4,
+            .model_id.sig.model_id = 0x1453
+        },
+        {
+            .element_address = 0x1234,
+            .appkey_index = 5,
+            .model_id.vendor.model_id = 0x6651,
+            .model_id.vendor.company_id = 0x4449
+        }
+    };
 
     /* This loop runs 4 times, the first two testing the Model App Bind message, and the last two testing the
      * Model App Unbind message.
@@ -1040,15 +1117,8 @@ void test_model_app_bind_unbind(void)
         uint16_t element_index = 88;
         EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(messages[i % 2].element_address, element_index);
 
-        access_model_id_t expected_id =
-            {
-                .model_id = messages[i % 2].model_id.model_id,
-                .company_id = messages[i % 2].model_id.company_id
-            };
-
         access_model_handle_t model_handle = 77;
-        access_handle_get_ExpectAndReturn(element_index, expected_id, NULL, NRF_SUCCESS);
-        access_handle_get_IgnoreArg_p_handle();
+        access_handle_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
         access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
         dsm_handle_t appkey_handle = 15;
@@ -1062,6 +1132,11 @@ void test_model_app_bind_unbind(void)
         else
         {
             access_model_application_unbind_ExpectAndReturn(model_handle, appkey_handle, NRF_SUCCESS);
+
+            access_model_publish_application_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+            access_model_publish_application_get_ReturnThruPtr_p_appkey_handle(&appkey_handle);
+            access_model_publication_stop_ExpectAndReturn(model_handle, NRF_SUCCESS);
+
             send_message(CONFIG_OPCODE_MODEL_APP_UNBIND, (const uint8_t *) &messages[i % 2], sizeof(messages[i % 2]) - sig_model * sizeof(uint16_t));
         }
 
@@ -1137,38 +1212,16 @@ void test_key_refresh_phase_set(void)
     send_message(CONFIG_OPCODE_KEY_REFRESH_PHASE_SET, NULL, 31); /* Invalid length */
     TEST_ASSERT_FALSE(m_previous_reply_received);
 
-    /* Test vectors for each initial phase (3) and transition value (4) pair: */
-    const struct {
-        access_status_t              reply_status;
-        nrf_mesh_key_refresh_phase_t reply_phase;
-    } test_vectors[3][4] = {
-        [0] = {
-            { ACCESS_STATUS_INVALID_NETKEY, NRF_MESH_KEY_REFRESH_PHASE_0 }, /* Transition phase 0 -> 0 */
-            { ACCESS_STATUS_INVALID_NETKEY, NRF_MESH_KEY_REFRESH_PHASE_0 }, /* Transition phase 0 -> 1 */
-            { ACCESS_STATUS_INVALID_NETKEY, NRF_MESH_KEY_REFRESH_PHASE_0 }, /* Transition phase 0 -> 2 */
-            { ACCESS_STATUS_SUCCESS,        NRF_MESH_KEY_REFRESH_PHASE_0 }, /* Transition phase 0 -> 3 */
-        },
-        [1] = {
-            { ACCESS_STATUS_INVALID_NETKEY, NRF_MESH_KEY_REFRESH_PHASE_0 }, /* Transition phase 1 -> 0 */
-            { ACCESS_STATUS_INVALID_NETKEY, NRF_MESH_KEY_REFRESH_PHASE_0 }, /* Transition phase 1 -> 1 */
-            { ACCESS_STATUS_SUCCESS,        NRF_MESH_KEY_REFRESH_PHASE_2 }, /* Transition phase 1 -> 2 */
-            { ACCESS_STATUS_SUCCESS,        NRF_MESH_KEY_REFRESH_PHASE_0 }, /* Transition phase 1 -> 3 */
-        },
-        [2] = {
-            { ACCESS_STATUS_INVALID_NETKEY, NRF_MESH_KEY_REFRESH_PHASE_0 }, /* Transition phase 2 -> 0 */
-            { ACCESS_STATUS_INVALID_NETKEY, NRF_MESH_KEY_REFRESH_PHASE_0 }, /* Transition phase 2 -> 1 */
-            { ACCESS_STATUS_SUCCESS,        NRF_MESH_KEY_REFRESH_PHASE_2 }, /* Transition phase 2 -> 2 */
-            { ACCESS_STATUS_SUCCESS,        NRF_MESH_KEY_REFRESH_PHASE_0 }, /* Transition phase 2 -> 3 */
-        },
-    };
-
     const config_msg_key_index_12_t netkey_index = 22;
     const dsm_handle_t netkey_handle = 11;
+    access_status_t reply_status = ACCESS_STATUS_UNSPECIFIED_ERROR;
+    nrf_mesh_key_refresh_phase_t reply_phase = NRF_MESH_KEY_REFRESH_PHASE_0;
 
     for (uint8_t initial_phase = 0; initial_phase < 3; initial_phase++)
     {
         for (uint8_t transition = 0; transition < 4; transition++)
         {
+            bool is_replayed = false;
             m_previous_reply_received = false;
 
             dsm_net_key_index_to_subnet_handle_ExpectAndReturn(netkey_index, netkey_handle);
@@ -1177,30 +1230,53 @@ void test_key_refresh_phase_set(void)
             dsm_subnet_kr_phase_get_IgnoreArg_p_phase();
             dsm_subnet_kr_phase_get_ReturnThruPtr_p_phase((nrf_mesh_key_refresh_phase_t *) &initial_phase);
 
-            if (initial_phase != transition)
+            switch (transition)
             {
-                if (test_vectors[initial_phase][transition].reply_phase == NRF_MESH_KEY_REFRESH_PHASE_2)
-                {
-                    dsm_subnet_update_swap_keys_ExpectAndReturn(netkey_handle, NRF_SUCCESS);
-                }
-                else if (initial_phase != 0 && transition == (uint8_t) NRF_MESH_KEY_REFRESH_PHASE_3 &&
-                        test_vectors[initial_phase][transition].reply_status == ACCESS_STATUS_SUCCESS)
-                {
-                    dsm_subnet_update_commit_ExpectAndReturn(netkey_handle, NRF_SUCCESS);
-                }
+                case 2:
+                    if (initial_phase == NRF_MESH_KEY_REFRESH_PHASE_2 || initial_phase == NRF_MESH_KEY_REFRESH_PHASE_1)
+                    {
+                        if (initial_phase == NRF_MESH_KEY_REFRESH_PHASE_1)
+                        {
+                            dsm_subnet_update_swap_keys_ExpectAndReturn(netkey_handle, NRF_SUCCESS);
+                        }
+                        reply_status = ACCESS_STATUS_SUCCESS;
+                        reply_phase = NRF_MESH_KEY_REFRESH_PHASE_2;
+                        is_replayed = true;
+
+                    }
+                    break;
+                case 3:
+                    if (initial_phase != NRF_MESH_KEY_REFRESH_PHASE_3)
+                    {
+                        if (initial_phase != NRF_MESH_KEY_REFRESH_PHASE_0)
+                        {
+                            dsm_subnet_update_commit_ExpectAndReturn(netkey_handle, NRF_SUCCESS);
+                        }
+                        reply_status = ACCESS_STATUS_SUCCESS;
+                        reply_phase = NRF_MESH_KEY_REFRESH_PHASE_0;
+                        is_replayed = true;
+                    }
+                    break;
             }
 
             const config_msg_key_refresh_phase_set_t message = { netkey_index, transition };
             send_message(CONFIG_OPCODE_KEY_REFRESH_PHASE_SET, (const uint8_t *) &message, sizeof(message));
 
-            TEST_ASSERT_TRUE(m_previous_reply_received);
-            TEST_ASSERT_NOT_NULL(mp_previous_reply_buffer);
-            VERIFY_REPLY_OPCODE(CONFIG_OPCODE_KEY_REFRESH_PHASE_STATUS);
+            if (is_replayed)
+            {
+                TEST_ASSERT_TRUE(m_previous_reply_received);
+                TEST_ASSERT_NOT_NULL(mp_previous_reply_buffer);
+                VERIFY_REPLY_OPCODE(CONFIG_OPCODE_KEY_REFRESH_PHASE_STATUS);
 
-            const config_msg_key_refresh_phase_status_t * p_reply = (const config_msg_key_refresh_phase_status_t *) m_previous_reply.p_buffer;
-            TEST_ASSERT_EQUAL(test_vectors[initial_phase][transition].reply_status, p_reply->status);
-            TEST_ASSERT_EQUAL(test_vectors[initial_phase][transition].reply_phase, p_reply->phase);
-            TEST_ASSERT_EQUAL(netkey_index, p_reply->netkey_index);
+                const config_msg_key_refresh_phase_status_t * p_reply = (const config_msg_key_refresh_phase_status_t *) m_previous_reply.p_buffer;
+                TEST_ASSERT_EQUAL(reply_status, p_reply->status);
+                TEST_ASSERT_EQUAL(reply_phase, p_reply->phase);
+                TEST_ASSERT_EQUAL(netkey_index, p_reply->netkey_index);
+            }
+            else
+            {
+                TEST_ASSERT_FALSE(m_previous_reply_received);
+            }
         }
     }
 }
@@ -1208,20 +1284,19 @@ void test_key_refresh_phase_set(void)
 void test_subscription_add(void)
 {
     const config_msg_subscription_add_del_owr_t messages[2] =
+    {
         {
-            {
-                .element_address = 0x1234,
-                .address = 0xc345,
-                .model_id.model_id = 0x4211,
-                .model_id.company_id = ACCESS_COMPANY_ID_NONE
-            },
-            {
-                .element_address = 0x4321,
-                .address = 0xc432,
-                .model_id.model_id = 0x1289,
-                .model_id.company_id = 0x9922
-            }
-        };
+            .element_address = 0x1234,
+            .address = 0xc345,
+            .model_id.sig.model_id = 0x4211,
+        },
+        {
+            .element_address = 0x4321,
+            .address = 0xc432,
+            .model_id.vendor.model_id = 0x1289,
+            .model_id.vendor.company_id = 0x9922
+        }
+    };
 
     for (int i = 0; i < 2; ++i)
     {
@@ -1231,14 +1306,8 @@ void test_subscription_add(void)
         EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(messages[i].element_address, element_index);
 
         access_model_handle_t model_handle = 0x9962;
-        access_model_id_t model_id =
-            {
-                .model_id = messages[i].model_id.model_id,
-                .company_id = messages[i].model_id.company_id
-            };
 
-        access_handle_get_ExpectAndReturn(element_index, model_id, NULL, NRF_SUCCESS);
-        access_handle_get_IgnoreArg_p_handle();
+        access_handle_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
         access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
         dsm_handle_t address_handle = 83;
@@ -1268,20 +1337,19 @@ void test_subscription_add(void)
 void test_subscription_delete(void)
 {
     const config_msg_subscription_add_del_owr_t messages[2] =
+    {
         {
-            {
-                .element_address = 0x1234,
-                .address = 0xc345,
-                .model_id.model_id = 0x4211,
-                .model_id.company_id = ACCESS_COMPANY_ID_NONE
-            },
-            {
-                .element_address = 0x4321,
-                .address = 0xc432,
-                .model_id.model_id = 0x1289,
-                .model_id.company_id = 0x9922
-            }
-        };
+            .element_address = 0x1234,
+            .address = 0xc345,
+            .model_id.sig.model_id = 0x4211,
+        },
+        {
+            .element_address = 0x4321,
+            .address = 0xc432,
+            .model_id.vendor.model_id = 0x1289,
+            .model_id.vendor.company_id = 0x9922
+        }
+    };
 
     for (int i = 0; i < 2; ++i)
     {
@@ -1291,14 +1359,8 @@ void test_subscription_delete(void)
         EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(messages[i].element_address, element_index);
 
         access_model_handle_t model_handle = 0x9962;
-        access_model_id_t model_id =
-            {
-                .model_id = messages[i].model_id.model_id,
-                .company_id = messages[i].model_id.company_id
-            };
 
-        access_handle_get_ExpectAndReturn(element_index, model_id, NULL, NRF_SUCCESS);
-        access_handle_get_IgnoreArg_p_handle();
+        access_handle_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
         access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
         dsm_handle_t address_handle = 923;
@@ -1331,20 +1393,19 @@ void test_subscription_delete(void)
 void test_subscription_overwrite(void)
 {
     const config_msg_subscription_add_del_owr_t messages[2] =
+    {
         {
-            {
-                .element_address = 0x1234,
-                .address = 0xc345,
-                .model_id.model_id = 0x4211,
-                .model_id.company_id = ACCESS_COMPANY_ID_NONE
-            },
-            {
-                .element_address = 0x4321,
-                .address = 0xc432,
-                .model_id.model_id = 0x1289,
-                .model_id.company_id = 0x9922
-            }
-        };
+            .element_address = 0x1234,
+            .address = 0xc345,
+            .model_id.sig.model_id = 0x4211,
+        },
+        {
+            .element_address = 0x4321,
+            .address = 0xc432,
+            .model_id.vendor.model_id = 0x1289,
+            .model_id.vendor.company_id = 0x9922
+        }
+    };
 
     for (int i = 0; i < 2; ++i)
     {
@@ -1354,14 +1415,8 @@ void test_subscription_overwrite(void)
         EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(messages[i].element_address, element_index);
 
         access_model_handle_t model_handle = 0x9962;
-        access_model_id_t model_id =
-            {
-                .model_id = messages[i].model_id.model_id,
-                .company_id = messages[i].model_id.company_id
-            };
 
-        access_handle_get_ExpectAndReturn(element_index, model_id, NULL, NRF_SUCCESS);
-        access_handle_get_IgnoreArg_p_handle();
+        access_handle_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
         access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
         dsm_handle_t subscriptions[] = { 2, 98, 14 };
@@ -1401,18 +1456,17 @@ void test_subscription_overwrite(void)
 void test_subscription_delete_all(void)
 {
     const config_msg_subscription_delete_all_t messages[2] =
+    {
         {
-            {
-                .element_address = 0x2277,
-                .model_id.model_id = 0x1425,
-                .model_id.company_id = ACCESS_COMPANY_ID_NONE
-            },
-            {
-                .element_address = 0x3366,
-                .model_id.model_id = 0x3647,
-                .model_id.company_id = 0x8675
-            }
-        };
+            .element_address = 0x2277,
+            .model_id.sig.model_id = 0x1425,
+        },
+        {
+            .element_address = 0x3366,
+            .model_id.vendor.model_id = 0x3647,
+            .model_id.vendor.company_id = 0x8675
+        }
+    };
 
     for (int i = 0; i < 2; ++i)
     {
@@ -1422,14 +1476,8 @@ void test_subscription_delete_all(void)
         EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(messages[i].element_address, element_index);
 
         access_model_handle_t model_handle = 0x9962;
-        access_model_id_t model_id =
-            {
-                .model_id = messages[i].model_id.model_id,
-                .company_id = messages[i].model_id.company_id
-            };
 
-        access_handle_get_ExpectAndReturn(element_index, model_id, NULL, NRF_SUCCESS);
-        access_handle_get_IgnoreArg_p_handle();
+        access_handle_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
         access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
         dsm_handle_t subscriptions[] = { 2, 98, 14 };
@@ -1463,20 +1511,19 @@ void test_subscription_delete_all(void)
 void test_subscription_virtual_add(void)
 {
     const config_msg_subscription_virtual_add_del_owr_t messages[] =
+    {
         {
-            {
-                .element_address = 0x1234,
-                .virtual_uuid = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
-                .model_id.model_id = 0x9182,
-                .model_id.company_id = ACCESS_COMPANY_ID_NONE
-            },
-            {
-                .element_address = 0x4321,
-                .virtual_uuid = { 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
-                .model_id.model_id = 0x8765,
-                .model_id.company_id = 0x4321
-            }
-        };
+            .element_address = 0x1234,
+            .virtual_uuid = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
+            .model_id.sig.model_id = 0x9182,
+        },
+        {
+            .element_address = 0x4321,
+            .virtual_uuid = { 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
+            .model_id.vendor.model_id = 0x8765,
+            .model_id.vendor.company_id = 0x4321
+        }
+    };
 
     for (int i = 0; i < 2; ++i)
     {
@@ -1486,14 +1533,8 @@ void test_subscription_virtual_add(void)
         EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(messages[i].element_address, element_index);
 
         access_model_handle_t model_handle = 0x0013;
-        access_model_id_t model_id =
-            {
-                .model_id = messages[i].model_id.model_id,
-                .company_id = messages[i].model_id.company_id
-            };
 
-        access_handle_get_ExpectAndReturn(element_index, model_id, NULL, NRF_SUCCESS);
-        access_handle_get_IgnoreArg_p_handle();
+        access_handle_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
         access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
         dsm_handle_t address_handle = 442;
@@ -1527,20 +1568,19 @@ void test_subscription_virtual_add(void)
 void test_subscription_virtual_overwrite(void)
 {
     const config_msg_subscription_virtual_add_del_owr_t messages[] =
+    {
         {
-            {
-                .element_address = 0x1234,
-                .virtual_uuid = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
-                .model_id.model_id = 0x9182,
-                .model_id.company_id = ACCESS_COMPANY_ID_NONE
-            },
-            {
-                .element_address = 0x4321,
-                .virtual_uuid = { 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
-                .model_id.model_id = 0x8765,
-                .model_id.company_id = 0x4321
-            }
-        };
+            .element_address = 0x1234,
+            .virtual_uuid = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
+            .model_id.sig.model_id = 0x9182
+        },
+        {
+            .element_address = 0x4321,
+            .virtual_uuid = { 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
+            .model_id.vendor.model_id = 0x8765,
+            .model_id.vendor.company_id = 0x4321
+        }
+    };
 
     for (int i = 0; i < 2; ++i)
     {
@@ -1550,14 +1590,8 @@ void test_subscription_virtual_overwrite(void)
         EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(messages[i].element_address, element_index);
 
         access_model_handle_t model_handle = 0x0013;
-        access_model_id_t model_id =
-            {
-                .model_id = messages[i].model_id.model_id,
-                .company_id = messages[i].model_id.company_id
-            };
 
-        access_handle_get_ExpectAndReturn(element_index, model_id, NULL, NRF_SUCCESS);
-        access_handle_get_IgnoreArg_p_handle();
+        access_handle_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
         access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
         dsm_handle_t subscriptions[] = { 2, 98, 14 };
@@ -1603,20 +1637,19 @@ void test_subscription_virtual_overwrite(void)
 void test_subscription_virtual_delete(void)
 {
     const config_msg_subscription_virtual_add_del_owr_t messages[] =
+    {
         {
-            {
-                .element_address = 0x1234,
-                .virtual_uuid = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
-                .model_id.model_id = 0x9182,
-                .model_id.company_id = ACCESS_COMPANY_ID_NONE
-            },
-            {
-                .element_address = 0x4321,
-                .virtual_uuid = { 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
-                .model_id.model_id = 0x8765,
-                .model_id.company_id = 0x4321
-            }
-        };
+            .element_address = 0x1234,
+            .virtual_uuid = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
+            .model_id.sig.model_id = 0x9182,
+        },
+        {
+            .element_address = 0x4321,
+            .virtual_uuid = { 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
+            .model_id.vendor.model_id = 0x8765,
+            .model_id.vendor.company_id = 0x4321
+        }
+    };
 
     for (int i = 0; i < 2; ++i)
     {
@@ -1626,14 +1659,8 @@ void test_subscription_virtual_delete(void)
         EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(messages[i].element_address, element_index);
 
         access_model_handle_t model_handle = 0x0013;
-        access_model_id_t model_id =
-            {
-                .model_id = messages[i].model_id.model_id,
-                .company_id = messages[i].model_id.company_id
-            };
 
-        access_handle_get_ExpectAndReturn(element_index, model_id, NULL, NRF_SUCCESS);
-        access_handle_get_IgnoreArg_p_handle();
+        access_handle_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
         access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
         uint16_t mock_address = 0x8998;
@@ -1669,21 +1696,16 @@ void test_subscription_virtual_delete(void)
 void test_sig_model_subscription_get(void)
 {
     const config_msg_model_subscription_get_t message =
-        {
-            .element_address = 0x6411,
-            .model_id = {0x1144, ACCESS_COMPANY_ID_NONE},
-        };
+    {
+        .element_address = 0x6411,
+        .model_id.sig.model_id = 0x1144
+    };
 
     uint16_t element_index = 2;
     EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(message.element_address, element_index);
 
     access_model_handle_t model_handle = 0x9c21;
-    access_model_id_t model_id =
-        {
-            .model_id = message.model_id.model_id,
-            .company_id = ACCESS_COMPANY_ID_NONE
-        };
-    access_handle_get_ExpectAndReturn(element_index, model_id, NULL, NRF_SUCCESS);
+    access_handle_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
     access_handle_get_IgnoreArg_p_handle();
     access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
@@ -1692,6 +1714,15 @@ void test_sig_model_subscription_get(void)
     access_model_subscriptions_get_StubWithCallback(access_model_subscriptions_get_mock);
     ACCESS_MODEL_SUBSCRIPTIONS_GET_MOCK_SETUP(model_handle, subscriptions,
                                               subscription_count, NRF_SUCCESS);
+
+    nrf_mesh_address_t addr[sizeof(subscriptions)];
+    for (uint8_t itr = 0; itr < ARRAY_SIZE(subscriptions); itr++)
+    {
+        addr[itr].type = NRF_MESH_ADDRESS_TYPE_GROUP;
+        addr[itr].value = subscriptions[itr];
+        dsm_address_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+        dsm_address_get_ReturnThruPtr_p_address(&addr[itr]);
+    }
 
     send_message(CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_GET, (const uint8_t *) &message, sizeof(message) - sizeof(uint16_t));
 
@@ -1702,7 +1733,7 @@ void test_sig_model_subscription_get(void)
     const config_msg_sig_model_subscription_list_t * p_reply = (const config_msg_sig_model_subscription_list_t *) m_previous_reply.p_buffer;
     TEST_ASSERT_EQUAL(ACCESS_STATUS_SUCCESS, p_reply->status);
     TEST_ASSERT_EQUAL(message.element_address, p_reply->element_address);
-    TEST_ASSERT_EQUAL(message.model_id.model_id, p_reply->sig_model_id);
+    TEST_ASSERT_EQUAL(message.model_id.sig.model_id, p_reply->sig_model_id);
     for (uint16_t i = 0; i < subscription_count; ++i)
     {
         TEST_ASSERT_EQUAL_UINT16(subscriptions[i], p_reply->subscriptions[i]);
@@ -1712,21 +1743,21 @@ void test_sig_model_subscription_get(void)
 void test_vendor_model_subscription_get(void)
 {
     const config_msg_model_subscription_get_t message =
-        {
-            .element_address = 0x1144,
-            .model_id.model_id = 0x4321,
-            .model_id.company_id = 0x1234
-        };
+    {
+        .element_address = 0x1144,
+        .model_id.vendor.model_id = 0x4321,
+        .model_id.vendor.company_id = 0x1234
+    };
 
     uint16_t element_index = 5;
     EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(message.element_address, element_index);
 
     access_model_handle_t model_handle = 0x9c2f;
     access_model_id_t model_id =
-        {
-            .model_id = message.model_id.model_id,
-            .company_id = message.model_id.company_id
-        };
+    {
+        .model_id = message.model_id.vendor.model_id,
+        .company_id = message.model_id.vendor.company_id
+    };
     access_handle_get_ExpectAndReturn(element_index, model_id, NULL, NRF_SUCCESS);
     access_handle_get_IgnoreArg_p_handle();
     access_handle_get_ReturnThruPtr_p_handle(&model_handle);
@@ -1737,6 +1768,15 @@ void test_vendor_model_subscription_get(void)
     ACCESS_MODEL_SUBSCRIPTIONS_GET_MOCK_SETUP(model_handle, subscriptions,
                                               subscription_count, NRF_SUCCESS);
 
+    nrf_mesh_address_t addr[sizeof(subscriptions)];
+    for (uint8_t itr = 0; itr < ARRAY_SIZE(subscriptions); itr++)
+    {
+        addr[itr].type = NRF_MESH_ADDRESS_TYPE_GROUP;
+        addr[itr].value = subscriptions[itr];
+        dsm_address_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+        dsm_address_get_ReturnThruPtr_p_address(&addr[itr]);
+    }
+
     send_message(CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_GET, (const uint8_t *) &message, sizeof(message));
 
     TEST_ASSERT_TRUE(m_previous_reply_received);
@@ -1746,8 +1786,8 @@ void test_vendor_model_subscription_get(void)
     const config_msg_vendor_model_subscription_list_t * p_reply = (const config_msg_vendor_model_subscription_list_t *) m_previous_reply.p_buffer;
     TEST_ASSERT_EQUAL(ACCESS_STATUS_SUCCESS, p_reply->status);
     TEST_ASSERT_EQUAL(message.element_address, p_reply->element_address);
-    TEST_ASSERT_EQUAL(message.model_id.model_id, p_reply->vendor_model_id);
-    TEST_ASSERT_EQUAL(message.model_id.company_id, p_reply->vendor_company_id);
+    TEST_ASSERT_EQUAL(message.model_id.vendor.model_id, p_reply->vendor_model_id);
+    TEST_ASSERT_EQUAL(message.model_id.vendor.company_id, p_reply->vendor_company_id);
     for (uint16_t i = 0; i < subscription_count; ++i)
     {
         TEST_ASSERT_EQUAL_UINT16(subscriptions[i], p_reply->subscriptions[i]);
@@ -1757,23 +1797,16 @@ void test_vendor_model_subscription_get(void)
 void test_sig_model_app_get(void)
 {
     const config_msg_model_app_get_t message =
-        {
-            .element_address = 0x1111,
-            .model_id.model_id = 0x2222,
-            .model_id.company_id = ACCESS_COMPANY_ID_NONE
-        };
+    {
+        .element_address = 0x1111,
+        .model_id.sig.model_id = 0x2222
+    };
 
     uint16_t element_index = 7;
     EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(message.element_address, element_index);
 
     access_model_handle_t model_handle = 0x2ffa;
-    access_model_id_t model_id =
-        {
-            .model_id = message.model_id.model_id,
-            .company_id = ACCESS_COMPANY_ID_NONE
-        };
-    access_handle_get_ExpectAndReturn(element_index, model_id, NULL, NRF_SUCCESS);
-    access_handle_get_IgnoreArg_p_handle();
+    access_handle_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
     access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
     dsm_handle_t appkey_handles[] = { 1, 2, 3, 4, 5 };
@@ -1789,7 +1822,7 @@ void test_sig_model_app_get(void)
         dsm_appkey_handle_to_appkey_index_ReturnThruPtr_p_index(&appkey_indexes[i]);
     }
 
-    send_message(CONFIG_OPCODE_SIG_MODEL_APP_GET, (const uint8_t *) &message, sizeof(message));
+    send_message(CONFIG_OPCODE_SIG_MODEL_APP_GET, (const uint8_t *) &message, sizeof(message) - sizeof(uint16_t));
 
     TEST_ASSERT_TRUE(m_previous_reply_received);
     VERIFY_REPLY_OPCODE(CONFIG_OPCODE_SIG_MODEL_APP_LIST);
@@ -1799,7 +1832,7 @@ void test_sig_model_app_get(void)
 
     TEST_ASSERT_EQUAL(ACCESS_STATUS_SUCCESS, p_reply->status);
     TEST_ASSERT_EQUAL(message.element_address, p_reply->element_address);
-    TEST_ASSERT_EQUAL(message.model_id.model_id, p_reply->sig_model_id);
+    TEST_ASSERT_EQUAL(message.model_id.sig.model_id, p_reply->sig_model_id);
 
     const uint8_t appkey_indexes_packed[] = {
         0x0b, 0xc0, 0x00, /* (11, 12) */
@@ -1814,8 +1847,8 @@ void test_vendor_model_app_get(void)
     const config_msg_model_app_get_t message =
         {
             .element_address = 0x2222,
-            .model_id.model_id = 0x3333,
-            .model_id.company_id = 0x4444,
+            .model_id.vendor.model_id = 0x3333,
+            .model_id.vendor.company_id = 0x4444,
         };
 
     uint16_t element_index = 8;
@@ -1824,8 +1857,8 @@ void test_vendor_model_app_get(void)
     access_model_handle_t model_handle = 0x9ffc;
     access_model_id_t model_id =
         {
-            .model_id = message.model_id.model_id,
-            .company_id = message.model_id.company_id
+            .model_id = message.model_id.vendor.model_id,
+            .company_id = message.model_id.vendor.company_id
         };
     access_handle_get_ExpectAndReturn(element_index, model_id, NULL, NRF_SUCCESS);
     access_handle_get_IgnoreArg_p_handle();
@@ -1854,8 +1887,8 @@ void test_vendor_model_app_get(void)
 
     TEST_ASSERT_EQUAL(ACCESS_STATUS_SUCCESS, p_reply->status);
     TEST_ASSERT_EQUAL(message.element_address, p_reply->element_address);
-    TEST_ASSERT_EQUAL(message.model_id.model_id, p_reply->vendor_model_id);
-    TEST_ASSERT_EQUAL(message.model_id.company_id, p_reply->vendor_company_id);
+    TEST_ASSERT_EQUAL(message.model_id.vendor.model_id, p_reply->vendor_model_id);
+    TEST_ASSERT_EQUAL(message.model_id.vendor.company_id, p_reply->vendor_company_id);
 
     const uint8_t appkey_indexes_packed[] = {
         0x0b, 0xc0, 0x00, /* (11, 12) */

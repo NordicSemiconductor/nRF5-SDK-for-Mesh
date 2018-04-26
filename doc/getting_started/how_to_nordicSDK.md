@@ -1,76 +1,209 @@
-# Coexistence with other Nordic SDKs
+# Coexistence with nRF5 SDK BLE functionality
 
 **NOTE:**
-* nRF5 SDK coexistence is only tested with nRF5 SDK version 14.2.
-* nRF5 SDK version 14.2 does not support nRF51.
+* nRF5 SDK coexistence is only tested with nRF5 SDK version 15.0.
+* nRF5 SDK version 15.0 does not support nRF51.
 
 ## nRF5 SDK integration
 
-If you plan to use an example from the nRF5 SDK in combination with the mesh stack, move the mesh stack repository into the Nordic nRF5 SDK examples folder and include the necessary source files in the Nordic nRF5 SDK project that you want to use.
+See @ref md_doc_getting_started_how_to_build for information on how to download and install
+the nRF5 SDK.
 
-To do so, make the following changes:
- - Apply the patches supplied in the mesh stack's external/nRF5_SDK_14.2.0_17b948a:
-    - Start a Git Bash shell
-    - Change the working directory to the top level folder inside your SDK installation
-    - Run the command `patch -p3 < ../nRF5_SDK_14.2.0_17b948a.patch` (modify to point to your actual patch file location)
- - Remove the external/nRF5_SDK_14.2.0_17b948a folder from the mesh stack folder.
- - Add all `core`, `prov`, `access`, `dfu`, `nrf_mesh_weak.c`, `external/micro-ecc`, relevant `model` and `example` files, and (if used) `serial` files and their include paths to the Nordic nRF5 SDK project.
- - If the Nordic nRF5 SDK application already uses the SoftDevice, remove the following functions and variables from the `nrf_mesh_sdk` module (they will be replaced by corresponding functionality in the nRF5 SDK):
-    - `app_error_handler`
-    - `HardFault_Handler`
-    - `SD_EVT_IRQHandler`
-    - `softdevice_assert_handler`
-    - `mesh_softdevice_enable`
-    - `mesh_softdevice_setup` (including the call to it in `mesh_core_setup`)
-    - `m_ble_evt_buffer`
- - Define `NRF_MESH_LOG_ENABLE` to be ` NRF_LOG_USES_RTT` in `nrf_mesh_config_core.h`, because the logging in the mesh stack relies on RTT.
- - Examples using the module `simple_hal` in the mesh stack may need to be updated to use the Nordic nRF5 SDK module `bsp`. It is possible to use both, but in this case `GPIOTE_IRQHandler` must be removed from one of the files and only one of the modules may register callback functions.
- - If the original Nordic nRF5 SDK example uses the SoftDevice, make sure that the mesh stack is initialized and enabled after the SoftDevice is enabled. In that case SoftDevice events must be forwarded to the mesh stack (see the *SoftDevice events* section for more information). Add the following defines and functions:
+### Including nRF5 SDK in an nRF5 SDK for Mesh example
+
+When using Segger Embedded Studio, resources from nRF5 SDK can be included
+in an existing mesh project by simply adding code files and include paths to the corresponding
+SES project file.
+
+When building the nRF5 SDK for Mesh stack using CMake, resources from nRF5 SDK can be included
+by simply adding code files and include paths to the corresponding CMakeLists.txt file.
+The SDK_ROOT root symbol is used to refer to the nRF5 SDK installation folder
+(see e.g. CMakeLists.txt in the Light Switch Server example).
+
+### Including nRF5 SDK for Mesh functionality in an nRF5 SDK example
+
+Include the following source files from nRF5 SDK for Mesh in the nRF5 SDK example's project file:
+- All C files in `mesh/core/src`
+- All C files in `mesh/bearer/src`
+- All C files in `mesh/prov/src` except nrf_mesh_prov_bearer_gatt.c
+- All C files in `mesh/access/src`
+- All C files in `mesh/dfu/src`
+- All C files in `mesh/stack/src`
+- `models/config/src/config_server.c`
+- `models/config/src/composition_data.c`
+- `models/config/src/packed_index_list.c`
+- `models/health/src/health_server.c`
+- Any other mesh models that are used in your application
+- `external/micro-ecc/uECC.c`
+- `examples/common/src/assertion_handler_weak.c`
+- `examples/common/src/mesh_provisionee.c`
+
+**NOTE**: If various mesh features are not needed (like e.g. DFU), the corresponding files may simply be
+omitted from the project file. Then `examples/nrf_mesh_weak.c` must be added in their place to
+provide stubs for the missing API functions.
+
+Add the following folders to the nRF5 SDK example's project include path:
+- `mesh/core/api`
+- `mesh/core/include`
+- `mesh/bearer/api`
+- `mesh/bearer/include`
+- `mesh/prov/api`
+- `mesh/prov/include`
+- `mesh/access/api`
+- `mesh/access/include`
+- `mesh/dfu/api`
+- `mesh/dfu/include`
+- `mesh/stack/api`
+- `models/config/include`
+- `models/health/include`
+- Path to include folder of any other mesh models that are used in your application
+- `external/micro-ecc`
+- `examples/common/include`
+- Path to any other resources in the mesh examples that are used in your application
+
+Add the following preprocessor symbols to the nRF5 SDK example's project file:
+ - `NRF52_SERIES`
+ - `NRF_MESH_LOG_ENABLE=NRF_LOG_USES_RTT` (because the logging in the mesh stack relies on RTT)
+ - `CONFIG_APP_IN_CORE`
+
+**NOTE:** Examples using the `simple_hal` module in the mesh stack may need to be updated to use the
+Nordic nRF5 SDK `bsp` module if integrated with the nRF5 SDK. It is possible to use both, but in
+this case `GPIOTE_IRQHandler` must be removed from one of them, and only one of the modules may
+register callback functions.
+
+If the original Nordic nRF5 SDK example uses the SoftDevice, make sure that the mesh stack is
+initialized and enabled *after* the SoftDevice is enabled. In that case, SoftDevice events must be
+forwarded to the mesh stack. Add the following code to your application:
 ```
 #include "nrf_sdh_soc.h"
 
-#define MESH_SOC_OBSERVER_PRIO <set priority, see nRF5 SDK documentation for details>
+#define MESH_SOC_OBSERVER_PRIO 0
 
 static void mesh_soc_evt_handler(uint32_t evt_id, void * p_context)
 {
     nrf_mesh_on_sd_evt(evt_id);
 }
+
+NRF_SDH_SOC_OBSERVER(m_mesh_soc_observer, MESH_SOC_OBSERVER_PRIO, mesh_soc_evt_handler, NULL);
 ```
- Then add the following code to the mesh stack initialization in the application's main.c:
-```
-    NRF_SDH_SOC_OBSERVER(m_mesh_soc_observer, MESH_SOC_OBSERVER_PRIO, mesh_soc_evt_handler, NULL);
-```
- - Flash storage of network configuration is enabled by default in the mesh stack as well as in some of the Nordic nRF5 SDK applications. The flash areas used for this purpose may overlap and cause errors. To allow safe coexistence of the flash storage module @ref md_doc_libraries_flash_manager in the mesh stack and the flash storage module `fstorage` in the Nordic nRF5 SDK, add the following code block to `nrf_mesh_config_core.h`:
+
+Flash storage of network configuration is enabled by default in the mesh stack as well as in some of
+the Nordic nRF5 SDK applications. The flash areas used for this purpose may overlap and cause
+errors. To allow safe coexistence of the flash storage module @ref md_doc_libraries_flash_manager
+in the mesh stack and the flash storage module `fstorage` in the Nordic nRF5 SDK, add the following
+code block to `nrf_mesh_config_app.h`:
 ```
 #include "fds.h"
 #include "fds_internal_defs.h"
 
-static inline uint32_t fs_page_end_addr(void)
-{
-   uint32_t bootloader_addr = NRF_UICR->NRFFW[0];
-   return (bootloader_addr != 0xFFFFFFFFU) ?
-          bootloader_addr : (NRF_FICR->CODESIZE * NRF_FICR->CODEPAGESIZE);
-}
-
-#define FLASH_MANAGER_RECOVERY_PAGE ((uint32_t) fs_page_end_addr() - (FDS_PHY_PAGES + 1) * (FDS_PHY_PAGE_SIZE * 4))
-```
- - Copy nrf_mesh_config_app.h from mesh/app folder in mesh stack repository into your project folder. Remove `#error` message in top of file. Make other appropriate changes to file content, like adjusting ACCESS_ELEMENT_COUNT and ACCESS_MODEL_COUNT to the required number of elements and models.
- - Add NRF52_SERIES to list of preprocessor symbols passed to the compiler.
- - Add SD_BLE_API_VERSION to list of preprocessor symbols passed to the compiler, and set it to the same value as NRF_SD_BLE_API_VERSION.
-
-If there is no particular nRF5 SDK example that you want to start with, but instead you want to use some of the nRF5 SDK modules, it might be easier to move the respective nRF5 SDK modules into the mesh stack repository and create an example project using one of the methods provided by the mesh stack repository.
-
-### nRF5 SDK NVM storage modules
-Using nRF5 SDK modules such as `fstorage`, `pstorage`, or `ble_flash` for writing to flash may be problematic due to long `timeslot` events occupied by the mesh stack. Use the @ref md_doc_libraries_flash_manager module provided by the mesh stack instead.
-
-Furthermore, when writing to flash, ensure to not write or erase areas utilized by the mesh stack modules and the bootloader (if present). By default, the mesh modules utilize the last `x` number of pages before the start of the bootloader, if present, or the last `x` number of pages of the available flash on the Nordic SoC. The value of `x` depends on the configuration of the mesh stack and can be calculated by:
-```
-x = 1 + ACCESS_FLASH_PAGE_COUNT + DSM_FLASH_PAGE_COUNT + NET_FLASH_PAGE_COUNT
+#define FLASH_MANAGER_RECOVERY_PAGE_OFFSET_PAGES FDS_PHY_PAGES
 ```
 
-## SoftDevice
-### SoftDevice events
-The mesh stack relies on receiving the events generated by the SoftDevice for proper functioning. The SoftDevice may generate events relevant only to the application, only to the mesh stack, or both for application and the mesh stack. Therefore, it is important that the SoftDevice events reported via `SD_EVT_IRQHandler` and extracted via `sd_evt_get` are processed by the mesh stack as well as the relevant application handlers.
+**NOTE:** If you are adding you own mesh functionality rather than working from an existing mesh
+example, you also need to add the file nrf_mesh_config_app.h. Copy it from the examples/templates
+folder in mesh stack repository into your project folder, and remove \c \#error message at the top
+of the file. Make other appropriate changes to the file content,
+like adjusting `ACCESS_ELEMENT_COUNT` and `ACCESS_MODEL_COUNT` to the required number of elements
+and models.
 
-### Concurrent SoftDevice and mesh activity
-By design, the SoftDevice activity is prioritized over mesh activity. Therefore, you should keep the connection and advertisement intervals used by the SoftDevice as large as possible (i.e. infrequent) when using Bluetooth low energy connections. If scanning, keep the scan duty cycle as low as possible. You should also reduce mesh activity while the SoftDevice is doing fast advertising and continue normal activity after a connection is established.
+#### nRF5 SDK NVM storage modules
+Using nRF5 SDK modules such as `fstorage`, `pstorage`, or `ble_flash` for writing to flash may be
+problematic due to long `timeslot` events occupied by the mesh stack. Use the
+@ref md_doc_libraries_flash_manager module provided by the mesh stack instead.
+
+Furthermore, when writing to flash, ensure to not write or erase areas utilized by the mesh stack
+modules and the bootloader (if present). By default, the mesh modules utilize the last `x` number of
+pages before the start of the bootloader, if present, or the last `x` number of pages of the
+available flash on the Nordic SoC.
+The value of `x` depends on the configuration of the mesh stack and can be calculated by:
+
+    x = 1 + ACCESS_FLASH_PAGE_COUNT + DSM_FLASH_PAGE_COUNT + NET_FLASH_PAGE_COUNT
+
+- `ACCESS_FLASH_PAGE_COUNT` shall be equal to or greater than
+
+        (1 + ((DATA_SIZE) / (FLASH_MANAGER_DATA_PER_PAGE - LARGEST_ENTRY_SIZE)))
+
+  where:
+   - `DATA_SIZE` is
+
+         (sizeof(fm_header_t) + sizeof(access_model_state_data_t))        * ACCESS_MODEL_COUNT +
+         (sizeof(fm_header_t) + sizeof(access_flash_subscription_list_t)) * ACCESS_SUBSCRIPTION_LIST_COUNT +
+         (sizeof(fm_header_t) + sizeof(uint16_t))                         * ACCESS_ELEMENT_COUNT
+
+   - `FLASH_MANAGER_DATA_PER_PAGE` is
+
+         (PAGE_SIZE - sizeof(flash_manager_metadata_t))
+
+   - `LARGEST_ENTRY_SIZE` is `ACCESS_MODEL_STATE_FLASH_SIZE`
+
+- `DSM_FLASH_PAGE_COUNT` shall be equal to or greater than
+
+      (1 + ((DATA_SIZE) / (FLASH_MANAGER_DATA_PER_PAGE - LARGEST_ENTRY_SIZE)))
+
+ where:
+   - `DATA_SIZE` is
+
+         (sizeof(fm_header_t) + sizeof(dsm_local_unicast_address_t) +
+         (sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_nonvirtual_t))  * DSM_NONVIRTUAL_ADDR_MAX +
+         (sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_virtual_t))     * DSM_VIRTUAL_ADDR_MAX +
+         (sizeof(fm_header_t) + sizeof(dsm_flash_entry_subnet_t))           * DSM_SUBNET_MAX +
+         (sizeof(fm_header_t) + sizeof(dsm_flash_entry_devkey_t))           * DSM_DEVICE_MAX +
+         (sizeof(fm_header_t) + sizeof(dsm_flash_entry_appkey_t))           * DSM_APP_MAX)
+
+   - `FLASH_MANAGER_DATA_PER_PAGE` is
+
+         (PAGE_SIZE - sizeof(flash_manager_metadata_t))
+
+   - `LARGEST_ENTRY_SIZE` is
+
+         (sizeof(fm_header_t) + sizeof(dsm_flash_entry_t))
+
+- `NET_FLASH_PAGE_COUNT` is 1 by default
+
+#### Estimated sizes
+
+The following are estimated sizes based on the
+[Light switch server example](@ref md_examples_light_switch_README),
+built using Keil v5 with optimization level `O3` for nRF52832.
+
+**Definitions**
+|Definition                      |Value|
+|:-------------------------------|----:|
+|`ACCESS_MODEL_COUNT`            | 3   |
+|`ACCESS_SUBSCRIPTION_LIST_COUNT`| 1   |
+|`ACCESS_ELEMENT_COUNT`          | 1   |
+|`DSM_NONVIRTUAL_ADDR_MAX`       | 3   |
+|`DSM_VIRTUAL_ADDR_MAX`          | 1   |
+|`DSM_SUBNET_MAX`                | 1   |
+|`DSM_DEVICE_MAX`                | 1   |
+|`DSM_APP_MAX`                   | 1   |
+
+**Base sizes**
+| Structure/union                   | Size in bytes |
+|:--------------------------------- |--------------:|
+|`fm_header_t`                      |     4         |
+|`access_model_state_data_t`        |    20         |
+|`access_flash_subscription_list_t` |     4         |
+|`dsm_local_unicast_address_t`      |     4         |
+|`dsm_flash_entry_addr_nonvirtual_t`|     2         |
+|`dsm_flash_entry_addr_virtual_t`   |    16         |
+|`dsm_flash_entry_subnet_t`         |    36         |
+|`dsm_flash_entry_devkey_t`         |    20         |
+|`dsm_flash_entry_appkey_t`         |    36         |
+|`flash_manager_metadata_t`         |     8         |
+|`dsm_flash_entry_t`                |    36         |
+
+**Results**
+| Count name                | Value |
+|:--------------------------|------:|
+|`ACCESS_FLASH_PAGE_COUNT`  |     1 |
+|`DSM_FLASH_PAGE_COUNT`     |     1 |
+|`NET_FLASH_PAGE_COUNT`     |     1 |
+|Total page count           |     4 |
+
+## Concurrent SoftDevice and mesh activity
+By design, the SoftDevice activity is prioritized over mesh activity. Therefore, you should keep the
+connection and advertisement intervals used by the SoftDevice as large as possible when using
+Bluetooth low energy connections. If scanning, keep the scan intervals as long as possible, and the
+scan windows as short as possible. You should also reduce mesh activity while the SoftDevice is
+doing fast advertising and continue normal activity after a connection is established.

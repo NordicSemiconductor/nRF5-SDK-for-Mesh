@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -568,8 +568,6 @@ void test_broadcast_callback(void)
     m_expect_tx_cb = 1;
     mp_expected_adv_packet = p_adv_packet;
     packet_buffer_free_Expect(&m_adv.buf, p_packet_buf);
-    packet_buffer_can_pop_ExpectAndReturn(&m_adv.buf, false);
-    timer_sch_abort_Expect(&m_adv.timer);
     m_bearer_event_sequential_post_callback_cnt = 0;
     bearer_event_sequential_post_StubWithCallback(bearer_event_sequential_post_callback);
     m_adv.broadcast.params.tx_complete_cb(&m_adv.broadcast.params, m_tx_timestamp_expected);

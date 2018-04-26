@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -58,6 +58,9 @@
 #include "prov_beacon.h"
 #include "prov_pdu.h"
 #include "bearer_event.h"
+#if defined NRF_MESH_TEST_SHIM
+#include "test_instrument.h"
+#endif
 
 
 /*****************************************************************************
@@ -343,6 +346,10 @@ static void init_bearer_structure(nrf_mesh_prov_bearer_adv_t * p_pb_adv, uint32_
                              tx_complete_cb,
                              p_pb_adv->tx_buffer,
                              NRF_MESH_PROV_BEARER_ADV_TX_BUFFER_SIZE);
+#if defined NRF_MESH_TEST_SHIM
+    nrf_mesh_test_shim(EDIT_PROV_BEARER_ADV_ADDR, &p_pb_adv->advertiser.config.adv_addr);
+#endif
+
 }
 
 /**** Link list managment ****/

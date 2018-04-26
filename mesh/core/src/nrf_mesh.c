@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -76,11 +76,11 @@
 #include "core_tx_instaburst.h"
 #include "instaburst_rx.h"
 #include "heartbeat.h"
-
 #include "prov_bearer_adv.h"
 
-/** Function pointer to mesh assertion handler. */
-nrf_mesh_assertion_handler_t m_assertion_handler;
+#if GATT_PROXY
+#include "proxy.h"
+#endif  /* GATT_PROXY */
 
 static bool m_is_enabled;
 static bool m_is_initialized;
@@ -255,6 +255,16 @@ static bool instaburst_packet_process_cb(void)
 }
 #endif
 
+#if PERSISTENT_STORAGE
+static void flash_stable_cb(void)
+{
+    nrf_mesh_evt_t evt;
+    memset(&evt, 0, sizeof(nrf_mesh_evt_t));
+    evt.type = NRF_MESH_EVT_FLASH_STABLE;
+    event_handle(&evt);
+}
+#endif
+
 uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
 {
     if (m_is_initialized)
@@ -267,16 +277,21 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
         return NRF_ERROR_NULL;
     }
 
-    m_assertion_handler = p_init_params->assertion_handler;
-
     uint8_t irq_priority = p_init_params->irq_priority;
-    if ((irq_priority == 0) ||
-        ((irq_priority != NRF_MESH_IRQ_PRIORITY_THREAD) && (irq_priority > NRF_MESH_IRQ_PRIORITY_LOWEST)))
+    if ((irq_priority != NRF_MESH_IRQ_PRIORITY_THREAD) &&
+        (irq_priority != NRF_MESH_IRQ_PRIORITY_LOWEST))
     {
         return NRF_ERROR_INVALID_PARAM;
     }
 
-    nrf_mesh_configure_device_uuid_reset();
+    if (p_init_params->p_uuid != NULL)
+    {
+        nrf_mesh_configure_device_uuid_set(p_init_params->p_uuid);
+    }
+    else
+    {
+        nrf_mesh_configure_device_uuid_reset();
+    }
 
 #if !defined(HOST)
     uint8_t softdevice_enabled;
@@ -301,7 +316,7 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
     bearer_event_init(irq_priority);
 
 #if !defined(HOST)
-#if SD_BLE_API_VERSION >= 5
+#if NRF_SD_BLE_API_VERSION >= 5
     /* From SD BLE API 5 and on, both RC and XTAL should use the PPM-defines. */
     uint32_t lfclk_accuracy = hal_lfclk_ppm_get(p_init_params->lfclksrc.accuracy);
 #elif defined(S110)
@@ -322,8 +337,10 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
     advertiser_init();
 
     mesh_flash_init();
+
 #if PERSISTENT_STORAGE
     flash_manager_init();
+    flash_manager_action_queue_empty_cb_set(flash_stable_cb);
 #endif
 
 #if EXPERIMENTAL_INSTABURST_ENABLED
@@ -334,7 +351,6 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
     network_init(p_init_params);
     transport_init(p_init_params);
     heartbeat_init();
-    beacon_init(1000 * NRF_MESH_BEACON_SECURE_NET_BCAST_INTERVAL_SECONDS);
     packet_mgr_init(p_init_params);
 
 #if !defined(HOST)
@@ -411,31 +427,13 @@ uint32_t nrf_mesh_disable(void)
 uint32_t nrf_mesh_packet_send(const nrf_mesh_tx_params_t * p_params,
                               uint32_t * const p_packet_reference)
 {
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG3, "%s\n",__func__);
     return transport_tx(p_params, p_packet_reference);
 }
 
 bool nrf_mesh_process(void)
 {
     return bearer_event_handler();
-}
-
-uint32_t nrf_mesh_on_ble_evt(ble_evt_t * p_ble_evt)
-{
-    /**
-     * @todo Populate with GATT handling when the time comes.
-     */
-    return NRF_SUCCESS;
-}
-
-uint32_t nrf_mesh_on_sd_evt(uint32_t sd_evt)
-{
-    /**
-     * @todo Add handler for ECB events.
-     */
-#if !defined(HOST)
-    timeslot_sd_event_handler(sd_evt);
-#endif
-    return NRF_SUCCESS;
 }
 
 void nrf_mesh_evt_handler_add(nrf_mesh_evt_handler_t * p_handler_params)
@@ -448,6 +446,12 @@ void nrf_mesh_evt_handler_remove(nrf_mesh_evt_handler_t * p_handler_params)
     event_handler_remove(p_handler_params);
 }
 
+uint32_t nrf_mesh_on_sd_evt(uint32_t sd_evt)
+{
+    timeslot_sd_event_handler(sd_evt);
+    return NRF_SUCCESS;
+}
+
 void nrf_mesh_rx_cb_set(nrf_mesh_rx_cb_t rx_cb)
 {
     m_rx_cb = rx_cb;
@@ -456,4 +460,11 @@ void nrf_mesh_rx_cb_set(nrf_mesh_rx_cb_t rx_cb)
 void nrf_mesh_rx_cb_clear(void)
 {
     m_rx_cb = NULL;
+}
+
+void nrf_mesh_subnet_added(uint16_t net_key_index, const uint8_t * p_network_id)
+{
+#if GATT_PROXY
+    proxy_subnet_added(net_key_index, p_network_id);
+#endif
 }

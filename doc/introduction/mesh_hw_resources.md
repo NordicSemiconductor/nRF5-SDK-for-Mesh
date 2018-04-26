@@ -36,42 +36,40 @@ The mesh uses PPI channels 8, 9, 10 and 11 for various timing related tasks when
 ## RAM and flash usage
 The core mesh can be configured to achieve higher performance and functionality, or reduced footprint depending on application needs. The following tables outline the flash and minimum statically allocated RAM requirements for each module. The mesh stack shares its call stack with the application and the SoftDevice and requires a minimum call stack size of *2 KB*. The mesh stack also requires the presence of a heap (of minimum *380 bytes*), unless it is configured with a custom memory allocator to replace the need for malloc (see `transport_sar_mem_funcs_set` in the transport module).
 
-### nRF51
-The following table shows the flash and RAM requirements for the mesh stack libraries on nRF51 when built with ARMCC v5 (-O3):
-
-| Library                              | Flash use | RAM use |
-| --------                             | --------- | ------- |
-|   Core without persistent storage    |  34.4 KB  |  9.4 KB
-|   Core with persistent storage       |  40.1 KB  |  9.8 KB
-|   Access without persistent storage  |  11.0 KB  |  1.5 KB
-|   Access with persistent storage     |  14.3 KB  |  1.7 KB
-|   DFU + bootloader                   |  29.7 KB  |  1.2 KB
-|   Provisioning common                |   6.3 KB  |   13 Bytes
-|   Provisionee                        |   1.6 KB  |    0 Bytes
-|   Provisioner                        |   1.4 KB  |    0 Bytes
-|   Serial                             |   8.9 KB  |  2.4 KB
-|   RTT                                |   2.3 KB  |  1.3 KB
-|   uECC                               |   6.1 KB  |    4 Bytes
-|   **Totals with persistent storage** | 110.7 KB  | 16.4 KB
-
-
 ### nRF52
 The following table shows the flash and RAM requirements for the mesh stack libraries on nRF52 when built with ARMCC v5 (-O3):
 
-| Library                              | Flash use | RAM use |
-| --------                             | --------- | ------- |
-|   Core without persistent storage    |  33.6 KB  |  9.5 KB
-|   Core with persistent storage       |  39.1 KB  |  9.8 KB
-|   Access without persistent storage  |  11.1 KB  |  1.5 KB
-|   Access with persistent storage     |  14.4 KB  |  1.7 KB
-|   DFU + bootloader                   |  35.8 KB  |  1.2 KB
-|   Provisioning common                |   6.3 KB  |   13 Bytes
-|   Provisionee                        |   1.6 KB  |    0 Bytes
-|   Provisioner                        |   1.4 KB  |    0 Bytes
-|   Serial                             |   8.6 KB  |  2.4 KB
-|   RTT                                |   2.3 KB  |  1.3 KB
-|   uECC                               |   6.2 KB  |    4 Bytes
-|   **Totals with persistent storage** | 115.7 KB  | 16.4 KB
+**Modules with persistent storage**
+| Library                              | Flash use | RAM use    |
+|:--------                             |:--------- |:-----------|
+|   Core with persistent storage       |  35.7 KB  |  9.5 KB    |
+|   Access with persistent storage     |  15.2 KB  |  1.8 KB    |
+|   **Subtotal**                       |  50.9 KB  | 11.3 KB    |
+
+**Modules without persistent storage**
+| Library                              | Flash use | RAM use    |
+|:--------                             |:--------- |:-----------|
+|   Core without persistent storage    |  31.6 KB  |  9.2 KB    |
+|   Access without persistent storage  |  11.9 KB  |  1.6 KB    |
+|   **Subtotal**                       |  43.5 KB  | 10.8 KB    |
+
+**Other modules**
+| Library                              | Flash use | RAM use    |
+|:--------                             |:--------- |:-----------|
+|   DFU + bootloader                   |  22.7 KB  |  3.0 KB    |
+|   Provisioning common                |   6.3 KB  |   13 Bytes |
+|   Provisionee                        |   1.7 KB  |    0 Bytes |
+|   Provisioner                        |   1.5 KB  |    0 Bytes |
+|   Serial                             |   8.3 KB  |  2.4 KB    |
+|   RTT                                |   2.3 KB  |  1.3 KB    |
+|   uECC                               |   6.2 KB  |    4 Bytes |
+|   **Subtotal**                       |  49.0 KB  |  6.7 KB    |
+
+**Footprint**
+| Library                              | Flash use | RAM use    |
+|:--------                             |:--------- |:-----------|
+|   With persistent storage            |  99.9 KB  | 18.0 KB    |
+|   Without persistent storage         |  92.5 KB  | 17.5 KB    |
 
 ## Flash lifetime
 The flash hardware can withstand a limited number of write/erase cycles. As the mesh stack uses the flash to store state across power failures, the device flash will eventually start failing, resulting in unexpected behavior in the mesh stack. As explained in the [flash manager documentation](@ref md_doc_libraries_flash_manager), the flash manager will write new data to the area by allocating a new entry before invalidating the old one. Because of this, the area must be erased periodically.

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -137,11 +137,14 @@ void radio_config_config(const radio_config_t * const p_config)
 
 #ifdef NRF52_SERIES
     NRF_RADIO->PCNF0 |= ((RADIO_PCNF0_S1INCL_Include << RADIO_PCNF0_S1INCL_Pos) & RADIO_PCNF0_S1INCL_Msk);
+#if  NRF_SD_BLE_API_VERSION >= 5
     /* BLE 2Mbit requires a 16bit preamble */
     if (p_config->radio_mode == RADIO_MODE_MODE_Ble_2Mbit)
     {
         NRF_RADIO->PCNF0 |= ((RADIO_PCNF0_PLEN_16bit << RADIO_PCNF0_PLEN_Pos) & RADIO_PCNF0_PLEN_Msk);
     }
+#endif
+
 #endif
 }
 

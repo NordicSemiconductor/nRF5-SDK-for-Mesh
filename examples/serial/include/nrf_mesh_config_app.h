@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -79,21 +79,18 @@
 /**
  * The number of models in the application.
  *
- * @note This value has to be greater than one to fit the configuration model plus the number of
+ * @note This value has to be at least two to fit the configuration and health models plus the number of
  * models needed by the application.
  */
-#define ACCESS_MODEL_COUNT (1)
+#define ACCESS_MODEL_COUNT (2)
 
 /**
  * The number of elements in the application.
  *
- * @info This value has to be greater than two to fit the configuration and health models,
- * plus the number of models needed by the application.
- *
  * @warning If the application is to support multiple _instances_ of the _same_ model, they cannot
  * belong in the same element and a separate element is needed for the new instance.
  */
-#define ACCESS_ELEMENT_COUNT (2)
+#define ACCESS_ELEMENT_COUNT (1)
 
 /**
  * The number of allocated subscription lists for the application.
@@ -128,15 +125,15 @@
  * @{
  */
 /** Maximum number of subnetworks. */
-#define DSM_SUBNET_MAX                                  (4)
+#define DSM_SUBNET_MAX                                  (8)
 /** Maximum number of applications */
 #define DSM_APP_MAX                                     (8)
 /** Maximum number of device keys */
-#define DSM_DEVICE_MAX                                  (3)
+#define DSM_DEVICE_MAX                                  (10)
 /** Maximum number of virtual addresses. */
 #define DSM_VIRTUAL_ADDR_MAX                            (8)
 /** Maximum number of non-virtual addresses. */
-#define DSM_NONVIRTUAL_ADDR_MAX                         (16)
+#define DSM_NONVIRTUAL_ADDR_MAX                         (32)
 /** Number of flash pages reserved for the DSM storage */
 #define DSM_FLASH_PAGE_COUNT                            (1)
 /** @} end of DSM_CONFIG */

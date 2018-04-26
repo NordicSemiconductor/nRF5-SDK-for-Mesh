@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -78,7 +78,7 @@ uint32_t hal_lfclk_ppm_get(uint32_t lfclksrc)
     switch (lfclksrc)
     {
 
-#if (SD_BLE_API_VERSION >= 5)
+#if (NRF_SD_BLE_API_VERSION >= 5)
         case NRF_CLOCK_LF_ACCURACY_100_PPM:
             return 100;
         case NRF_CLOCK_LF_ACCURACY_150_PPM:
@@ -96,7 +96,7 @@ uint32_t hal_lfclk_ppm_get(uint32_t lfclksrc)
         case NRF_CLOCK_LF_ACCURACY_75_PPM:
             return 75;
 
-#elif (SD_BLE_API_VERSION >= 2)
+#elif (NRF_SD_BLE_API_VERSION >= 2)
         case NRF_CLOCK_LF_XTAL_ACCURACY_100_PPM:
             return 100;
         case NRF_CLOCK_LF_XTAL_ACCURACY_150_PPM:

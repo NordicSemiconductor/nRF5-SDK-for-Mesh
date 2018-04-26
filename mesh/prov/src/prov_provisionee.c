@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -115,25 +115,47 @@ static void send_capabilities(nrf_mesh_prov_ctx_t * p_ctx)
     }
 }
 
-static void handle_prov_start(nrf_mesh_prov_ctx_t * p_ctx, const uint8_t * p_buffer)
+static uint32_t handle_prov_start(nrf_mesh_prov_ctx_t * p_ctx, const uint8_t * p_buffer)
 {
     const prov_pdu_prov_start_t * p_pdu = (const prov_pdu_prov_start_t *) p_buffer;
+
+    if (p_pdu->algorithm >= NRF_MESH_PROV_ALGORITHM_RFU ||
+        p_pdu->public_key >= NRF_MESH_PROV_PUBLIC_KEY_PROHIBITED ||
+        p_pdu->auth_method >= NRF_MESH_PROV_OOB_METHOD_PROHIBITED)
+    {
+    	return NRF_ERROR_INVALID_DATA;
+    }
+
+    if ((p_pdu->auth_method == NRF_MESH_PROV_OOB_METHOD_NONE ||
+         p_pdu->auth_method == NRF_MESH_PROV_OOB_METHOD_STATIC) &&
+        (p_pdu->auth_action > 0 || p_pdu->auth_size > 0))
+    {
+        return NRF_ERROR_INVALID_DATA;
+    }
+
+    if (p_pdu->auth_method == NRF_MESH_PROV_OOB_METHOD_OUTPUT &&
+       (p_pdu->auth_action >= NRF_MESH_PROV_OUTPUT_ACTION_RFU ||
+        p_pdu->auth_size < 1 || p_pdu->auth_size > 8))
+    {
+        return NRF_ERROR_INVALID_LENGTH;
+    }
+
+    if (p_pdu->auth_method == NRF_MESH_PROV_OOB_METHOD_INPUT &&
+       (p_pdu->auth_action >= NRF_MESH_PROV_INPUT_ACTION_RFU ||
+        p_pdu->auth_size < 1 || p_pdu->auth_size > 8))
+    {
+        return NRF_ERROR_INVALID_LENGTH;
+    }
 
     /* Copy PDU contents (excluding PDU type) into the confirmation inputs: */
     memcpy(p_ctx->confirmation_inputs + PROV_CONFIRM_INPUTS_START_OFFSET, p_buffer + 1, sizeof(prov_pdu_prov_start_t) - 1);
 
-    if (p_pdu->public_key == 0)
-    {
-        p_ctx->pubkey_oob = false;
-    }
-    else
-    {
-        p_ctx->pubkey_oob = true;
-    }
-
+    p_ctx->pubkey_oob = (bool) p_pdu->public_key;
     p_ctx->oob_method = (nrf_mesh_prov_oob_method_t) p_pdu->auth_method;
     p_ctx->oob_size = p_pdu->auth_method != NRF_MESH_PROV_OOB_METHOD_STATIC ? p_pdu->auth_size : 16;
     p_ctx->oob_action = p_pdu->auth_action;
+
+    return NRF_SUCCESS;
 }
 
 /* Handles an incoming provisioning data message. */
@@ -302,7 +324,12 @@ static void prov_provisionee_pkt_in(prov_bearer_t * p_bearer, const uint8_t * p_
 #if PROV_DEBUG_MODE
                 __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisionee: provisioning start message received!\n");
 #endif
-                handle_prov_start(p_ctx, p_buffer);
+                if (NRF_SUCCESS != handle_prov_start(p_ctx, p_buffer))
+                {
+                    send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT);
+                    break;
+                }
+
                 p_ctx->state = NRF_MESH_PROV_STATE_WAIT_PUB_KEY;
                 if (p_ctx->pubkey_oob)
                 {
@@ -444,14 +471,9 @@ static void complete_provisioning(nrf_mesh_prov_ctx_t * p_ctx)
 {
     nrf_mesh_prov_evt_t app_event;
     app_event.type = NRF_MESH_PROV_EVT_COMPLETE;
-    app_event.params.complete.p_context =  p_ctx;
+    app_event.params.complete.p_context = p_ctx;
     app_event.params.complete.p_devkey = p_ctx->device_key;
-    app_event.params.complete.p_netkey = p_ctx->data.netkey;
-    app_event.params.complete.iv_index = p_ctx->data.iv_index;
-    app_event.params.complete.netkey_index = p_ctx->data.netkey_index;
-    app_event.params.complete.address = p_ctx->data.address;
-    app_event.params.complete.flags.iv_update = p_ctx->data.flags.iv_update;
-    app_event.params.complete.flags.key_refresh = p_ctx->data.flags.key_refresh;
+    app_event.params.complete.p_prov_data = &p_ctx->data;
     p_ctx->event_handler(&app_event);
 }
 
@@ -483,7 +505,9 @@ static void prov_provisionee_cb_ack_received(prov_bearer_t * p_bearer)
             complete_provisioning(p_ctx);
             p_ctx->state = NRF_MESH_PROV_STATE_COMPLETE;
             break;
-       case NRF_MESH_PROV_STATE_FAILED:
+        case NRF_MESH_PROV_STATE_FAILED:
+            p_ctx->p_active_bearer->p_interface->link_close(
+                p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
             break;
         default:
             __LOG(LOG_SRC_PROV, LOG_LEVEL_ERROR, "Provisionee: unexpected ack while in state %u\n", p_ctx->state);
@@ -493,6 +517,18 @@ static void prov_provisionee_cb_ack_received(prov_bearer_t * p_bearer)
 static void prov_provisionee_cb_link_established(prov_bearer_t * p_bearer)
 {
     nrf_mesh_prov_ctx_t * p_ctx = prov_bearer_ctx_get(p_bearer);
+    p_ctx->p_active_bearer = p_bearer;
+    /* Stop listening on all other bearers */
+    prov_bearer_t * p_tmp_bearer;
+    LIST_FOREACH(p_item, p_ctx->p_bearers)
+    {
+        p_tmp_bearer = PARENT_BY_FIELD_GET(prov_bearer_t, node, p_item);
+        if (p_tmp_bearer != p_bearer)
+        {
+            (void) p_tmp_bearer->p_interface->listen_stop(p_tmp_bearer);
+        }
+    }
+    
     p_ctx->state = NRF_MESH_PROV_STATE_INVITE;
     nrf_mesh_prov_evt_t app_event;
     app_event.type = NRF_MESH_PROV_EVT_LINK_ESTABLISHED;
@@ -515,17 +551,16 @@ static void prov_provisionee_cb_link_closed(prov_bearer_t * p_bearer, nrf_mesh_p
 }
 
 /****************** Interface functions ******************/
-uint32_t prov_provisionee_init(nrf_mesh_prov_ctx_t * p_ctx,  const char * URI, uint16_t oob_info_sources)
+
+uint32_t prov_provisionee_listen(nrf_mesh_prov_ctx_t * p_ctx, prov_bearer_t * p_bearer, const char * URI, uint16_t oob_info_sources)
 {
-    if (p_ctx->state != NRF_MESH_PROV_STATE_IDLE)
+    if (p_ctx->state != NRF_MESH_PROV_STATE_IDLE &&
+        p_ctx->state != NRF_MESH_PROV_STATE_WAIT_LINK)
     {
         return NRF_ERROR_INVALID_STATE;
     }
     else
     {
-        p_ctx->state = NRF_MESH_PROV_STATE_WAIT_LINK;
-        p_ctx->role = NRF_MESH_PROV_ROLE_PROVISIONEE;
-        prov_bearer_t * p_bearer = p_ctx->p_active_bearer;
         p_bearer->p_callbacks = &m_prov_callbacks;
         return p_bearer->p_interface->listen_start(
             p_bearer, URI, oob_info_sources, NRF_MESH_PROV_LINK_TIMEOUT_MIN_US);
@@ -555,6 +590,7 @@ uint32_t prov_provisionee_auth_data(nrf_mesh_prov_ctx_t * p_ctx, const uint8_t *
 
     if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_OOB_INPUT)
     {
+    	utils_reverse_array(p_ctx->auth_value, sizeof(p_ctx->auth_value));
         retval = prov_tx_input_complete(p_ctx->p_active_bearer);
         if (NRF_SUCCESS != retval)
         {
@@ -590,4 +626,3 @@ uint32_t prov_provisionee_shared_secret(nrf_mesh_prov_ctx_t * p_ctx, const uint8
     memcpy(p_ctx->shared_secret, p_shared, sizeof(p_ctx->shared_secret));
     return request_authentication(p_ctx);
 }
-

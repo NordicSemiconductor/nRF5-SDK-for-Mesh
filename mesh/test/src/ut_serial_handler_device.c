@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -45,16 +45,16 @@
 #include "advertiser_mock.h"
 #include "hal_mock.h"
 
-#define CMD_LENGTH_CHECK(_opcode, _intended_length)                                                   \
-    do {                                                                                              \
-        serial_packet_t _cmd;                                                                         \
-        _cmd.opcode = _opcode;                                                                        \
-        _cmd.length = _intended_length + 1;                                                           \
+#define CMD_LENGTH_CHECK(_opcode, _intended_length)                     \
+    do {                                                                \
+        serial_packet_t _cmd;                                           \
+        _cmd.opcode = _opcode;                                          \
+        _cmd.length = _intended_length + 1;                             \
         serial_cmd_rsp_send_ExpectWithArray(_opcode, SERIAL_STATUS_ERROR_INVALID_LENGTH, NULL, 0, 0); \
-        serial_handler_device_rx(&_cmd);                                                              \
-        _cmd.length = _intended_length + 1;                                                           \
+        serial_handler_device_rx(&_cmd);                                \
+        _cmd.length = _intended_length + 1;                             \
         serial_cmd_rsp_send_ExpectWithArray(_opcode, SERIAL_STATUS_ERROR_INVALID_LENGTH, NULL, 0, 0); \
-        serial_handler_device_rx(&_cmd);                                                              \
+        serial_handler_device_rx(&_cmd);                                \
     } while (0)
 
 #define EXPECT_PACKET()                                 \
@@ -66,16 +66,16 @@
 #define EXPECT_ACK(_opcode, _error_code)                                \
     do {                                                                \
         serial_translate_error_ExpectAndReturn(_error_code, 0xAA);      \
-        serial_cmd_rsp_send_Expect(_opcode, 0xAA, NULL, 0); \
+        serial_cmd_rsp_send_Expect(_opcode, 0xAA, NULL, 0);             \
     } while (0)
 
-#define EXPECT_ACK_NO_TRANSLATE(_opcode, _serial_status)                            \
+#define EXPECT_ACK_NO_TRANSLATE(_opcode, _serial_status)                \
     do {                                                                \
-        serial_cmd_rsp_send_Expect(_opcode, _serial_status, NULL, 0); \
+        serial_cmd_rsp_send_Expect(_opcode, _serial_status, NULL, 0);   \
     } while (0)
 
 #define EXPECT_ACK_WITH_PAYLOAD(_opcode, _data, _len)                   \
-    do { \
+    do {                                                                \
         serial_cmd_rsp_send_ExpectWithArray(_opcode, 0, (uint8_t *) (_data), _len, _len); \
     } while (0)
 
@@ -99,8 +99,8 @@ static void serial_tx_cb(const serial_packet_t* p_packet, int cmock_num_calls)
     TEST_ASSERT_NOT_EQUAL_MESSAGE(0, p_packet->length, "Sent packet has length 0");
     TEST_ASSERT_NOT_EQUAL_MESSAGE(0, m_expected_packet.length, "Reference packet has length 0");
     TEST_ASSERT_EQUAL_HEX8_ARRAY((uint8_t *) &m_expected_packet,
-            (uint8_t *) p_packet,
-            p_packet->length + SERIAL_PACKET_LENGTH_OVERHEAD);
+                                 (uint8_t *) p_packet,
+                                 p_packet->length + SERIAL_PACKET_LENGTH_OVERHEAD);
 }
 
 
@@ -125,8 +125,8 @@ void tearDown(void)
 }
 
 /*****************************************************************************
-* Tests
-*****************************************************************************/
+ * Tests
+ *****************************************************************************/
 void test_device_rx(void)
 {
     uint8_t packet[NRF_MESH_SERIAL_PACKET_OVERHEAD + NRF_MESH_SERIAL_PAYLOAD_MAXLEN];
@@ -287,6 +287,7 @@ void test_beacon(void)
     {
         uint32_t payload = payloads[j];
         cmd.length = 2 + payload;
+
         for (uint32_t i = 0; i < NRF_MESH_SERIAL_BEACON_SLOTS; i++)
         {
             char err_msg[128];
@@ -306,9 +307,9 @@ void test_beacon(void)
             if (payload != 0)
             {
                 TEST_ASSERT_EQUAL_HEX8_ARRAY_MESSAGE(cmd.payload.cmd.device.beacon_start.data,
-                        packet.packet.payload,
-                        payload,
-                        err_msg);
+                                                     packet.packet.payload,
+                                                     payload,
+                                                     err_msg);
             }
         }
     }

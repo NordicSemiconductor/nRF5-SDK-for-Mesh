@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -130,8 +130,8 @@ static void initialize_mesh(nrf_mesh_init_params_t * p_init_params)
     advertiser_init_Expect();
     mesh_flash_init_Expect();
     heartbeat_init_Expect();
-    beacon_init_Expect(NRF_MESH_BEACON_SECURE_NET_BCAST_INTERVAL_SECONDS * 1000);
     flash_manager_init_Expect();
+    flash_manager_action_queue_empty_cb_set_ExpectAnyArgs();
     packet_mgr_init_Expect(p_init_params);
     bearer_handler_init_Expect();
     core_tx_adv_init_Expect();
@@ -428,19 +428,6 @@ void test_scanner_packet_process_cb(void)
     scanner_packet_release_Expect(&m_test_packet);
     scanner_rx_pending_ExpectAndReturn(true);
     TEST_ASSERT_EQUAL(false, m_scanner_packet_process_cb());
-}
-
-void test_on_ble_evt(void)
-{
-    ble_evt_t event = {};
-    /* This function doesn't do anything. */
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_on_ble_evt(&event));
-}
-
-void test_on_sd_evt(void)
-{
-    /* This function doesn't do anything. */
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_on_sd_evt(0));
 }
 
 void test_evt_handler_add(void)

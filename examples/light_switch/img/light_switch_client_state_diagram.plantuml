@@ -8,9 +8,9 @@ skinparam defaultFontName Arial
   provisioning --> configuring: Provisioning successful
 
   configuring --> wait_for_unprov: Configuring failed / Delete provisioning data
-  configuring --> wait_for_unprov: Configuring successful && device_count < SERVER_COUNT
+  configuring --> wait_for_unprov: Configuring successful && device_count < SERVER_NODE_COUNT
 
-  configuring --> running: Configuring successful && device_count == SERVER_COUNT
+  configuring --> running: Configuring successful && device_count == SERVER_NODE_COUNT
 
   state configuring {
 

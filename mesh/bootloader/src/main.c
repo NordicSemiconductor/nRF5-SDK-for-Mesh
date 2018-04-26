@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -70,7 +70,7 @@ __attribute__((at(NRF_UICR_MBR_PARAM_ADDRESS))) = (uint32_t*) (((uint8_t *) &__V
 #endif
 
 #elif defined(__GNUC__)
-extern volatile uint32_t __isr_vector;
+extern uint32_t __isr_vector;
 volatile uint32_t* m_uicr_bootloader_start_address
     __attribute__((section(".uicrBootStartAddress"))) = &__isr_vector;
 

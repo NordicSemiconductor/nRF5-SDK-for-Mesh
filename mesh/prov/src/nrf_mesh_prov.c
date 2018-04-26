@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -50,6 +50,7 @@
 #include "provisioning.h"
 #include "utils.h"
 #include "list.h"
+#include "bitfield.h"
 
 uint32_t nrf_mesh_prov_init(nrf_mesh_prov_ctx_t *            p_ctx,
                             const uint8_t *                  p_public_key,
@@ -111,6 +112,7 @@ uint32_t nrf_mesh_prov_bearer_add(nrf_mesh_prov_ctx_t * p_ctx, prov_bearer_t * p
     if (status == NRF_SUCCESS)
     {
         p_prov_bearer->p_parent = p_ctx;
+        p_ctx->supported_bearers |= p_prov_bearer->bearer_type;
     }
     return status;
 }
@@ -123,27 +125,67 @@ uint32_t nrf_mesh_prov_generate_keys(uint8_t * p_public, uint8_t * p_private)
 uint32_t nrf_mesh_prov_listen(nrf_mesh_prov_ctx_t *       p_ctx,
                               const char *                URI,
                               uint16_t                    oob_info_sources,
-                              nrf_mesh_prov_bearer_type_t bearer_type)
+                              uint32_t                    bearer_types)
 {
     if (p_ctx == NULL)
     {
         return NRF_ERROR_NULL;
     }
-    else if (p_ctx->state != NRF_MESH_PROV_STATE_IDLE)
+    else if(p_ctx->state != NRF_MESH_PROV_STATE_IDLE &&
+            p_ctx->state != NRF_MESH_PROV_STATE_WAIT_LINK)
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+    else if (bearer_types == 0 ||
+             !bitfield_is_subset_of(&p_ctx->supported_bearers,
+                                    &bearer_types,
+                                    NRF_MESH_PROV_BEARER_COUNT))
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+
+    p_ctx->state = NRF_MESH_PROV_STATE_WAIT_LINK;
+    p_ctx->role = NRF_MESH_PROV_ROLE_PROVISIONEE;
+
+    for (uint32_t i = bitfield_next_get(&bearer_types, NRF_MESH_PROV_BEARER_COUNT, 0);
+         i != NRF_MESH_PROV_BEARER_COUNT;
+         i = bitfield_next_get(&bearer_types, NRF_MESH_PROV_BEARER_COUNT, i + 1))
+    {
+        prov_bearer_t * p_bearer = prov_bearer_find(p_ctx->p_bearers, (nrf_mesh_prov_bearer_type_t) (1 << i));
+
+        /* We've already tested that the bearer should be supported above. */
+        NRF_MESH_ASSERT(p_bearer != NULL);
+        uint32_t err_code = prov_provisionee_listen(p_ctx, p_bearer, URI, oob_info_sources);
+        if (err_code != NRF_SUCCESS)
+        {
+            (void) nrf_mesh_prov_listen_stop(p_ctx);
+            return err_code;
+        }
+    }
+    return NRF_SUCCESS;
+}
+
+uint32_t nrf_mesh_prov_listen_stop(nrf_mesh_prov_ctx_t * p_ctx)
+{
+    if (p_ctx == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+    else if (p_ctx->state != NRF_MESH_PROV_STATE_WAIT_LINK)
     {
         return NRF_ERROR_INVALID_STATE;
     }
 
-    p_ctx->p_active_bearer = prov_bearer_find(p_ctx->p_bearers, bearer_type);
+    prov_bearer_t * p_bearer;
+    LIST_FOREACH(p_item, p_ctx->p_bearers)
+    {
+        p_bearer = PARENT_BY_FIELD_GET(prov_bearer_t, node, p_item);
+        /* Try stopping listening on all available bearers. */
+        (void) p_bearer->p_interface->listen_stop(p_bearer);
+    }
+    p_ctx->state = NRF_MESH_PROV_STATE_IDLE;
 
-    if (p_ctx->p_active_bearer == NULL)
-    {
-        return NRF_ERROR_NOT_SUPPORTED;
-    }
-    else
-    {
-        return prov_provisionee_init(p_ctx, URI, oob_info_sources);
-    }
+    return NRF_SUCCESS;
 }
 
 uint32_t nrf_mesh_prov_provision(nrf_mesh_prov_ctx_t *                     p_ctx,

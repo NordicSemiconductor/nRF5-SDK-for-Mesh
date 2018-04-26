@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -89,6 +89,7 @@ typedef struct
 typedef enum
 {
     CONFIG_CLIENT_EVENT_TYPE_TIMEOUT,
+    CONFIG_CLIENT_EVENT_TYPE_CANCELLED,
     CONFIG_CLIENT_EVENT_TYPE_MSG
 } config_client_event_type_t;
 
@@ -180,15 +181,25 @@ uint32_t config_client_server_bind(dsm_handle_t server_devkey_handle);
 /**
  * Sends a composition data GET request.
  *
+ * @note Response: @ref CONFIG_OPCODE_COMPOSITION_DATA_STATUS
+ *
+ * @param[in] page_number          Device composition page number to be requested from the server
+ *
+ * @note Page 0x00 is the only mandatory page in Mesh 1.0.
+ *       It is possible to read all supported Composition Data Pages by reading 0xFF first,
+ *       and then reading one less than the returned page number until the page number is 0x00.
+ *
  * @retval NRF_SUCCESS             Successfully sent request.
  * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
  * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
  * @retval NRF_ERROR_INVALID_STATE Client not initialized.
  */
-uint32_t config_client_composition_data_get(void);
+uint32_t config_client_composition_data_get(uint8_t page_number);
 
 /**
  * Sends an application key add request.
+ *
+ * @note Response: @ref CONFIG_OPCODE_APPKEY_STATUS
  *
  * @param[in] netkey_index Network key index.
  * @param[in] appkey_index Application key index.
@@ -204,6 +215,8 @@ uint32_t config_client_appkey_add(uint16_t netkey_index, uint16_t appkey_index, 
 /**
  * Sends an application key delete request.
  *
+ * @note Response: @ref CONFIG_OPCODE_APPKEY_STATUS
+ *
  * @param[in] netkey_index Network key index.
  * @param[in] appkey_index Application key index.
  *
@@ -217,6 +230,8 @@ uint32_t config_client_appkey_delete(uint16_t netkey_index, uint16_t appkey_inde
 /**
  * Sends an application key(s) get request.
  *
+ * @note Response: @ref CONFIG_OPCODE_APPKEY_LIST
+ *
  * @param[in] netkey_index Network key index.
  *
  * @retval NRF_SUCCESS             Successfully sent request.
@@ -228,6 +243,8 @@ uint32_t config_client_appkey_get(uint16_t netkey_index);
 
 /**
  * Sends an application key update request.
+ *
+ * @note Response: @ref CONFIG_OPCODE_APPKEY_STATUS
  *
  * @param[in] netkey_index Network key index.
  * @param[in] appkey_index Application key index.
@@ -243,6 +260,8 @@ uint32_t config_client_appkey_update(uint16_t netkey_index, uint16_t appkey_inde
 /**
  * Sends a network key add request.
  *
+ * @note Response: @ref CONFIG_OPCODE_NETKEY_STATUS
+ *
  * @param[in] netkey_index Network key index.
  * @param[in] p_netkey     Pointer to @ref NRF_MESH_KEY_SIZE byte network key.
  *
@@ -256,6 +275,8 @@ uint32_t config_client_netkey_add(uint16_t netkey_index, const uint8_t * p_netke
 /**
  * Sends a network key delete request.
  *
+ * @note Response: @ref CONFIG_OPCODE_NETKEY_STATUS
+ *
  * @param[in] netkey_index Network key index.
  *
  * @retval NRF_SUCCESS             Successfully sent request.
@@ -268,6 +289,8 @@ uint32_t config_client_netkey_delete(uint16_t netkey_index);
 /**
  * Sends a network key(s) get request.
  *
+ * @note Response: @ref CONFIG_OPCODE_NETKEY_LIST
+ *
  * @retval NRF_SUCCESS             Successfully sent request.
  * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
  * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
@@ -277,6 +300,8 @@ uint32_t config_client_netkey_get(void);
 
 /**
  * Sends a network key update request.
+ *
+ * @note Response: @ref CONFIG_OPCODE_NETKEY_STATUS
  *
  * @param[in] netkey_index Network key index.
  * @param[in] p_netkey     Pointer to @ref NRF_MESH_KEY_SIZE byte network key.
@@ -289,7 +314,9 @@ uint32_t config_client_netkey_get(void);
 uint32_t config_client_netkey_update(uint16_t netkey_index, const uint8_t * p_netkey);
 
 /**
- * Sends a publication get request
+ * Sends a publication get request.
+ *
+ * @note Response: @ref CONFIG_OPCODE_MODEL_PUBLICATION_STATUS
  *
  * @param[in] element_address Element address of the model.
  * @param[in] model_id        Model identifier.
@@ -304,6 +331,8 @@ uint32_t config_client_model_publication_get(uint16_t element_address, access_mo
 /**
  * Sends a model publication set request.
  *
+ * @note Response: @ref CONFIG_OPCODE_MODEL_PUBLICATION_STATUS
+ *
  * @param[in] p_publication_state Publication state parameter struct pointer.
  *
  * @retval NRF_SUCCESS             Successfully sent request.
@@ -315,6 +344,8 @@ uint32_t config_client_model_publication_set(const config_publication_state_t * 
 
 /**
  * Sends a subscription add request.
+ *
+ * @note Response: @ref CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS
  *
  * @param[in] element_address Element address of the model.
  * @param[in] address         Address to add to the subscription list.
@@ -330,6 +361,8 @@ uint32_t config_client_model_subscription_add(uint16_t element_address, nrf_mesh
 /**
  * Sends a subscription delete request.
  *
+ * @note Response: @ref CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS
+ *
  * @param[in] element_address Element address of the model.
  * @param[in] address         Address to add to the subscription list.
  * @param[in] model_id        Model ID of the model.
@@ -344,6 +377,8 @@ uint32_t config_client_model_subscription_delete(uint16_t element_address, nrf_m
 /**
  * Sends a subscription delete all request.
  *
+ * @note Response: @ref CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS
+ *
  * @param[in] element_address Element address of the model.
  * @param[in] model_id        Model ID of the model.
  *
@@ -357,6 +392,9 @@ uint32_t config_client_model_subscription_delete_all(uint16_t element_address, a
 /**
  * Sends a subscription get request.
  *
+ * @note Response for SIG models: @ref CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_LIST
+ * @note Response for vendor models: @ref CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_LIST
+ *
  * @param[in] element_address Element address of the model.
  * @param[in] model_id        Model ID of the model.
  *
@@ -369,6 +407,8 @@ uint32_t config_client_model_subscription_get(uint16_t element_address, access_m
 
 /**
  * Sends a subscription overwrite request.
+ *
+ * @note Response: @ref CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS
  *
  * @warning This will clear the subscription list of the model.
  *
@@ -386,6 +426,8 @@ uint32_t config_client_model_subscription_overwrite(uint16_t element_address, nr
 /**
  * Sends a application bind request.
  *
+ * @note Response: @ref CONFIG_OPCODE_MODEL_APP_STATUS
+ *
  * @param[in] element_address Element address of the model.
  * @param[in] appkey_index    Application key index to bind/unbind.
  * @param[in] model_id        Model ID of the model.
@@ -400,6 +442,9 @@ uint32_t config_client_model_app_bind(uint16_t element_address, uint16_t appkey_
 /**
  * Sends an application get request.
  *
+ * @note Response for SIG models: @ref CONFIG_OPCODE_SIG_MODEL_APP_LIST
+ * @note Response for vendor models: @ref CONFIG_OPCODE_VENDOR_MODEL_APP_LIST
+ *
  * @param[in] element_address Element address of the model.
  * @param[in] model_id        Model ID of the model.
  *
@@ -412,6 +457,8 @@ uint32_t config_client_model_app_get(uint16_t element_address, access_model_id_t
 
 /**
  * Sends a application unbind request.
+ *
+ * @note Response: @ref CONFIG_OPCODE_MODEL_APP_STATUS
  *
  * @param[in] element_address Element address of the model.
  * @param[in] appkey_index    Application key index to bind/unbind.
@@ -427,6 +474,8 @@ uint32_t config_client_model_app_unbind(uint16_t element_address, uint16_t appke
 /**
  * Sends a default TTL get request.
  *
+ * @note Response: @ref CONFIG_OPCODE_DEFAULT_TTL_STATUS
+ *
  * @retval NRF_SUCCESS             Successfully sent request.
  * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
  * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
@@ -436,6 +485,8 @@ uint32_t config_client_default_ttl_get(void);
 
 /**
  * Sends a default TTL set request.
+ *
+ * @note Response: @ref CONFIG_OPCODE_DEFAULT_TTL_STATUS
  *
  * @param[in] ttl Default TTL value. Must be less than @ref NRF_MESH_TTL_MAX.
  *
@@ -449,6 +500,8 @@ uint32_t config_client_default_ttl_set(uint8_t ttl);
 /**
  * Sends a relay state get request.
  *
+ * @note Response: @ref CONFIG_OPCODE_RELAY_STATUS
+ *
  * @retval NRF_SUCCESS             Successfully sent request.
  * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
  * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
@@ -458,6 +511,8 @@ uint32_t config_client_relay_get(void);
 
 /**
  * Sends a relay state get request.
+ *
+ * @note Response: @ref CONFIG_OPCODE_RELAY_STATUS
  *
  * @param[in] relay_state               Relay state.
  * @param[in] retransmit_count          Number of times to re-transmit relayed packets.
@@ -475,6 +530,8 @@ uint32_t config_client_relay_set(config_relay_state_t relay_state, uint8_t retra
 /**
  * Sends a secure network beacon state get request.
  *
+ * @note Response: @ref CONFIG_OPCODE_BEACON_STATUS
+ *
  * @retval NRF_SUCCESS             Successfully sent request.
  * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
  * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
@@ -484,6 +541,8 @@ uint32_t config_client_net_beacon_get(void);
 
 /**
  * Sends a secure network beacon state set request.
+ *
+ * @note Response: @ref CONFIG_OPCODE_BEACON_STATUS
  *
  * @param[in] state New secure network beacon state.
  *
@@ -497,6 +556,8 @@ uint32_t config_client_net_beacon_set(config_net_beacon_state_t state);
 /**
  * Sends a node reset request.
  *
+ * @note Response: @ref CONFIG_OPCODE_NODE_RESET_STATUS
+ *
  * @warning This will "un-provision" the node and remove it from the network.
  *
  * @retval NRF_SUCCESS             Successfully sent request.
@@ -509,6 +570,8 @@ uint32_t config_client_node_reset(void);
 /**
  * Gets the current key refresh phase of a node.
  *
+ * @note Response: @ref CONFIG_OPCODE_KEY_REFRESH_PHASE_STATUS
+ *
  * @param[in] netkey_index Network key index.
  *
  * @retval NRF_SUCCESS             Successfully sent request.
@@ -520,6 +583,8 @@ uint32_t config_client_key_refresh_phase_get(uint16_t netkey_index);
 
 /**
  * Sets the current key refresh phase of a node.
+ *
+ * @note Response: @ref CONFIG_OPCODE_KEY_REFRESH_PHASE_STATUS
  *
  * @param[in] netkey_index Network key index.
  * @param[in] phase        Key refresh phase to set for the node.
@@ -534,6 +599,8 @@ uint32_t config_client_key_refresh_phase_set(uint16_t netkey_index, nrf_mesh_key
 /**
  * Gets the heartbeat publication state value of a node.
  *
+ * @note Response: @ref CONFIG_OPCODE_HEARTBEAT_PUBLICATION_STATUS
+ *
  * @retval NRF_SUCCESS             Successfully sent request.
  * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
  * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
@@ -543,6 +610,8 @@ uint32_t config_client_heartbeat_publication_get(void);
 
 /**
  * Sets the heartbeat publication state value of a node.
+ *
+ * @note Response: @ref CONFIG_OPCODE_HEARTBEAT_PUBLICATION_STATUS
  *
  * @param[in]  p_publication    Pointer to the @ref config_msg_heartbeat_publication_set_t structure
  *
@@ -556,6 +625,8 @@ uint32_t config_client_heartbeat_publication_set(const config_msg_heartbeat_publ
 /**
  * Gets the heartbeat subscription state value of a node.
  *
+ * @note Response: @ref CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS
+ *
  * @retval NRF_SUCCESS             Successfully sent request.
  * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
  * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
@@ -566,6 +637,8 @@ uint32_t config_client_heartbeat_subscription_get(void);
 /**
  * Sets the heartbeat subscription state value of a node.
  *
+ * @note Response: @ref CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS
+ *
  * @param[in]  p_subscription    Pointer to the @ref config_msg_heartbeat_subscription_set_t structure
  *
  * @retval NRF_SUCCESS             Successfully sent request.
@@ -574,6 +647,11 @@ uint32_t config_client_heartbeat_subscription_get(void);
  * @retval NRF_ERROR_INVALID_STATE Client not initialized.
  */
 uint32_t config_client_heartbeat_subscription_set(const config_msg_heartbeat_subscription_set_t * p_subscription);
+
+/**
+ * Cancel any ongoing reliable message transfer.
+ */
+void config_client_pending_msg_cancel(void);
 
 
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -115,11 +115,23 @@ static void reliable_status_cb(access_model_handle_t model_handle, void * p_args
         mp_packet_buffer = NULL;
     }
 
-    if (status == ACCESS_RELIABLE_TRANSFER_TIMEOUT)
-    {
-        m_client.event_cb(CONFIG_CLIENT_EVENT_TYPE_TIMEOUT, NULL, 0);
-    }
     m_client.state = CONFIG_CLIENT_STATE_IDLE;
+
+    switch (status)
+    {
+        case ACCESS_RELIABLE_TRANSFER_SUCCESS:
+            /* Ignore */
+            break;
+        case ACCESS_RELIABLE_TRANSFER_TIMEOUT:
+            m_client.event_cb(CONFIG_CLIENT_EVENT_TYPE_TIMEOUT, NULL, 0);
+            break;
+        case ACCESS_RELIABLE_TRANSFER_CANCELLED:
+            m_client.event_cb(CONFIG_CLIENT_EVENT_TYPE_CANCELLED, NULL, 0);
+            break;
+        default:
+            NRF_MESH_ASSERT(false);
+            break;
+    }
 }
 
 static uint32_t send_reliable(config_opcode_t opcode, uint16_t length, config_opcode_t reply_opcode)
@@ -130,6 +142,8 @@ static uint32_t send_reliable(config_opcode_t opcode, uint16_t length, config_op
     reliable.message.length = length;
     reliable.message.opcode.opcode = opcode;
     reliable.message.opcode.company_id = ACCESS_COMPANY_ID_NONE;
+    reliable.message.force_segmented = false;
+    reliable.message.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
     reliable.reply_opcode.opcode = reply_opcode;
     reliable.reply_opcode.company_id = ACCESS_COMPANY_ID_NONE;
     reliable.timeout = ACCESS_RELIABLE_TIMEOUT_MIN;
@@ -158,7 +172,7 @@ static const config_message_lut_t m_config_message_lut[] =
     {CONFIG_OPCODE_APPKEY_STATUS,                 sizeof(config_msg_appkey_status_t),                            sizeof(config_msg_appkey_status_t)},
     {CONFIG_OPCODE_APPKEY_LIST,                   sizeof(config_msg_appkey_list_t),                              PAYLOAD_LENGTH_MAX},
     {CONFIG_OPCODE_BEACON_STATUS,                 sizeof(config_msg_net_beacon_status_t),                        sizeof(config_msg_net_beacon_status_t)},
-    {CONFIG_OPCODE_DEFAULT_TTL_STATUS,            sizeof(config_msg_default_ttl_t),                              sizeof(config_msg_default_ttl_t)},
+    {CONFIG_OPCODE_DEFAULT_TTL_STATUS,            sizeof(config_msg_default_ttl_status_t),                       sizeof(config_msg_default_ttl_status_t)},
     {CONFIG_OPCODE_MODEL_APP_STATUS,              PACKET_LENGTH_WITH_ID(config_msg_app_status_t, true),          PACKET_LENGTH_WITH_ID(config_msg_app_status_t, false)},
     {CONFIG_OPCODE_MODEL_PUBLICATION_STATUS,      PACKET_LENGTH_WITH_ID(config_msg_publication_status_t, true),  PACKET_LENGTH_WITH_ID(config_msg_publication_status_t, false)},
     {CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS,     PACKET_LENGTH_WITH_ID(config_msg_subscription_status_t, true), PACKET_LENGTH_WITH_ID(config_msg_subscription_status_t, false)},
@@ -255,8 +269,7 @@ static uint32_t subscription_virtual_add_del_owr_send(uint16_t element_address,
     config_msg_subscription_virtual_add_del_owr_t * p_msg = (config_msg_subscription_virtual_add_del_owr_t *) mp_packet_buffer;
     p_msg->element_address = element_address;
     memcpy(p_msg->virtual_uuid, address.p_virtual_uuid, NRF_MESH_UUID_SIZE);
-    p_msg->model_id.model_id = model_id.model_id;
-    p_msg->model_id.company_id = model_id.company_id;
+    config_msg_model_id_set(&p_msg->model_id, &model_id, sig_model);
 
     return send_reliable(opcode, length, CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS);
 }
@@ -276,8 +289,7 @@ static uint32_t subscription_add_del_owr_send(uint16_t element_address, nrf_mesh
     config_msg_subscription_add_del_owr_t * p_msg = (config_msg_subscription_add_del_owr_t *) mp_packet_buffer;
     p_msg->element_address = element_address;
     p_msg->address = address.value;
-    p_msg->model_id.model_id = model_id.model_id;
-    p_msg->model_id.company_id = model_id.company_id;
+    config_msg_model_id_set(&p_msg->model_id, &model_id, sig_model);
 
     return send_reliable(opcode, length, CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS);
 }
@@ -305,8 +317,7 @@ static uint32_t publication_set(const config_publication_state_t * p_publication
                                                         p_publication_state->publish_period.step_res);
     p_msg->state.retransmit_count = p_publication_state->retransmit_count;
     p_msg->state.retransmit_interval = p_publication_state->retransmit_interval;
-    p_msg->state.model_id.model_id = p_publication_state->model_id.model_id;
-    p_msg->state.model_id.company_id = p_publication_state->model_id.company_id;
+    config_msg_model_id_set(&p_msg->state.model_id, &p_publication_state->model_id, sig_model);
 
     return send_reliable(CONFIG_OPCODE_MODEL_PUBLICATION_SET, length, CONFIG_OPCODE_MODEL_PUBLICATION_STATUS);
 }
@@ -333,8 +344,7 @@ static uint32_t publication_virtual_set(const config_publication_state_t * p_pub
                                                         p_publication_state->publish_period.step_res);
     p_msg->state.retransmit_count = p_publication_state->retransmit_count;
     p_msg->state.retransmit_interval = p_publication_state->retransmit_interval;
-    p_msg->state.model_id.model_id = p_publication_state->model_id.model_id;
-    p_msg->state.model_id.company_id = p_publication_state->model_id.company_id;
+    config_msg_model_id_set(&p_msg->state.model_id, &p_publication_state->model_id, sig_model);
 
     return send_reliable(CONFIG_OPCODE_MODEL_PUBLICATION_VIRTUAL_ADDRESS_SET, length, CONFIG_OPCODE_MODEL_PUBLICATION_STATUS);
 }
@@ -359,8 +369,7 @@ static uint32_t app_bind_unbind_send(uint16_t element_address, uint16_t appkey_i
     config_msg_app_bind_unbind_t * p_msg = (config_msg_app_bind_unbind_t *) mp_packet_buffer;
     p_msg->element_address = element_address;
     p_msg->appkey_index = appkey_index;
-    p_msg->model_id.model_id = model_id.model_id;
-    p_msg->model_id.company_id = model_id.company_id;
+    config_msg_model_id_set(&p_msg->model_id, &model_id, sig_model);
 
     return send_reliable(opcode, length, CONFIG_OPCODE_MODEL_APP_STATUS);
 }
@@ -464,7 +473,7 @@ uint32_t config_client_server_bind(dsm_handle_t server_devkey_handle)
     return status;
 }
 
-uint32_t config_client_composition_data_get(void)
+uint32_t config_client_composition_data_get(uint8_t page_number)
 {
     uint32_t status = NRF_SUCCESS;
     if (client_in_wrong_state(&status))
@@ -481,7 +490,7 @@ uint32_t config_client_composition_data_get(void)
     }
 
     config_msg_composition_data_get_t * p_msg = (config_msg_composition_data_get_t *) mp_packet_buffer;
-    p_msg->page_number = 0;
+    p_msg->page_number = page_number;
 
     return send_reliable(CONFIG_OPCODE_COMPOSITION_DATA_GET, length, CONFIG_OPCODE_COMPOSITION_DATA_STATUS);
 }
@@ -520,7 +529,7 @@ uint32_t config_client_appkey_delete(uint16_t netkey_index, uint16_t appkey_inde
     }
 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
-    uint16_t length = sizeof(config_msg_appkey_update_t);
+    uint16_t length = sizeof(config_msg_appkey_delete_t);
     status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
     if (status != NRF_SUCCESS)
     {
@@ -542,7 +551,7 @@ uint32_t config_client_appkey_get(uint16_t netkey_index)
     }
 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
-    uint16_t length = sizeof(config_msg_appkey_update_t);
+    uint16_t length = sizeof(config_msg_appkey_get_t);
     status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
     if (status != NRF_SUCCESS)
     {
@@ -597,8 +606,7 @@ uint32_t config_client_model_publication_get(uint16_t element_address, access_mo
 
     config_msg_publication_get_t * p_msg = (config_msg_publication_get_t *) mp_packet_buffer;
     p_msg->element_address = element_address;
-    p_msg->model_id.model_id = model_id.model_id;
-    p_msg->model_id.company_id = model_id.company_id;
+    config_msg_model_id_set(&p_msg->model_id, &model_id, sig_model);
 
     return send_reliable(CONFIG_OPCODE_MODEL_PUBLICATION_GET, length, CONFIG_OPCODE_MODEL_PUBLICATION_STATUS);
 }
@@ -676,14 +684,14 @@ uint32_t config_client_default_ttl_set(uint8_t ttl)
 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
 
-    uint16_t length = sizeof(config_msg_default_ttl_t);
+    uint16_t length = sizeof(config_msg_default_ttl_set_t);
     status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
     if (status != NRF_SUCCESS)
     {
         return status;
     }
 
-    config_msg_default_ttl_t * p_msg = (config_msg_default_ttl_t *) mp_packet_buffer;
+    config_msg_default_ttl_set_t * p_msg = (config_msg_default_ttl_set_t *) mp_packet_buffer;
     p_msg->ttl = ttl;
 
     return send_reliable(CONFIG_OPCODE_DEFAULT_TTL_SET, length, CONFIG_OPCODE_DEFAULT_TTL_STATUS);
@@ -742,8 +750,7 @@ uint32_t config_client_model_subscription_delete_all(uint16_t element_address, a
 
     config_msg_subscription_delete_all_t * p_msg = (config_msg_subscription_delete_all_t *) mp_packet_buffer;
     p_msg->element_address = element_address;
-    p_msg->model_id.model_id = model_id.model_id;
-    p_msg->model_id.company_id = model_id.company_id;
+    config_msg_model_id_set(&p_msg->model_id, &model_id, sig_model);
 
     return send_reliable(CONFIG_OPCODE_MODEL_SUBSCRIPTION_DELETE_ALL, length, CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS);
 }
@@ -767,8 +774,7 @@ uint32_t config_client_model_subscription_get(uint16_t element_address, access_m
 
     config_msg_model_subscription_get_t * p_msg = (config_msg_model_subscription_get_t *) mp_packet_buffer;
     p_msg->element_address = element_address;
-    p_msg->model_id.model_id = model_id.model_id;
-    p_msg->model_id.company_id = model_id.company_id;
+    config_msg_model_id_set(&p_msg->model_id, &model_id, sig_model);
 
     config_opcode_t opcode = sig_model ? CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_GET : CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_GET;
     return send_reliable(opcode, length, CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS);
@@ -850,8 +856,7 @@ uint32_t config_client_model_app_get(uint16_t element_address, access_model_id_t
 
     config_msg_model_app_get_t * p_msg = (config_msg_model_app_get_t *) mp_packet_buffer;
     p_msg->element_address = element_address;
-    p_msg->model_id.model_id = model_id.model_id;
-    p_msg->model_id.company_id = model_id.company_id;
+    config_msg_model_id_set(&p_msg->model_id, &model_id, sig_model);
 
     config_opcode_t opcode = sig_model ? CONFIG_OPCODE_SIG_MODEL_APP_GET : CONFIG_OPCODE_VENDOR_MODEL_APP_GET;
     return send_reliable(opcode, length, CONFIG_OPCODE_MODEL_APP_STATUS);
@@ -1089,6 +1094,11 @@ uint32_t config_client_heartbeat_subscription_set(const config_msg_heartbeat_sub
     *p_msg = *p_subscription;
 
     return send_reliable(CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_SET, length, CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS);
+}
+
+void config_client_pending_msg_cancel(void)
+{
+    (void)access_model_reliable_cancel(m_client.model_handle);
 }
 
 #if defined(UNIT_TEST)

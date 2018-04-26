@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -56,17 +56,19 @@
  */
 
 /**
- * Initializes the provisionee context structure.
- * @param[out] p_ctx               Pointer to the provisioning context structure.
- * @param[in]  URI                 Optional device URI string used as identifier in some other context. May be NULL.
- * @param[in]  oob_info_sources    Known OOB information sources, see @ref NRF_MESH_PROV_OOB_INFO_SOURCES.
+ * Starts listening for provisioning links on the given bearer.
+ * @param[in,out] p_ctx            Pointer to the provisioning context structure.
+ * @param[in,out] p_bearer         Generic bearer interface to start listening for provisioning
+ *                                 links on.
+ * @param[in]     URI              Optional device URI string used as identifier in some other context. May be NULL.
+ * @param[in]     oob_info_sources Known OOB information sources, see @ref NRF_MESH_PROV_OOB_INFO_SOURCES.
  *
  * @retval NRF_SUCCESS             The provisionee module was successfully initialized.
  * @retval NRF_ERROR_NOT_SUPPORTED The provisionee role is not supported in the application.
  * @retval NRF_ERROR_INVALID_STATE The given bearer was not in idle state.
  * @retval NRF_ERROR_INTERNAL      Something went wrong when initializing the substructures.
  */
-uint32_t prov_provisionee_init(nrf_mesh_prov_ctx_t * p_ctx, const char * URI, uint16_t oob_info_sources);
+uint32_t prov_provisionee_listen(nrf_mesh_prov_ctx_t * p_ctx, prov_bearer_t * p_bearer, const char * URI, uint16_t oob_info_sources);
 
 /**
  * Provides authentication data to the provisioner module.

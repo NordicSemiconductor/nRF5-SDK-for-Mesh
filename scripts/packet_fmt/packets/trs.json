@@ -4,5 +4,22 @@
     "type": "absolute",
     "packet_type": "packet_mesh_trs_packet_t",
     "max_length": 16,
+	"defines": [
+		{
+			"name": "PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE",
+			"value": "(4)",
+			"doc": "Size (in bytes) of the 32bit transport MIC."
+		},
+		{
+			"name": "PACKET_MESH_TRS_TRANSMIC_LARGE_SIZE",
+			"value": "(8)",
+			"doc": "Size (in bytes) of the 64bit transport MIC."
+		},
+		{
+			"name": "PACKET_MESH_TRS_TRANSMIC_CONTROL_SIZE",
+			"value": "(0)",
+			"doc": "Control packets do not have transport MIC. "
+		}
+	],
     "fields": []
 }

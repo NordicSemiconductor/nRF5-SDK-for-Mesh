@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -62,15 +62,6 @@
 
 /** Maximum key index allowed. */
 #define DSM_KEY_INDEX_MAX   (NRF_MESH_GLOBAL_KEY_INDEX_MAX)
-
-/** Set to indicate GATT proxy is supported. GATT proxy support is currently not implemented. */
-#ifndef GATT_PROXY
-#define GATT_PROXY 0
-#endif
-
-#if GATT_PROXY
-#error "GATT proxy is currently not supported."
-#endif
 
 /** @} */
 
@@ -384,6 +375,7 @@ uint32_t dsm_subnet_handle_to_netkey_index(dsm_handle_t subnet_handle, mesh_key_
  * @retval NRF_ERROR_NULL Unexpected NULL pointer is given.
  * @retval NRF_ERROR_INVALID_PARAM Invalid network key index is given, @see DSM_KEY_INDEX_MAX.
  * @retval NRF_ERROR_FORBIDDEN The given network key index has already been added before.
+ * @retval NRF_ERROR_INTERNAL The given network key index has already been added before and keys are the same.
  * @retval NRF_ERROR_NO_MEM The subnetwork storage is out of space, @see DSM_SUBNET_MAX.
  */
 uint32_t dsm_subnet_add(mesh_key_index_t net_key_id, const uint8_t * p_key, dsm_handle_t * p_subnet_handle);
@@ -454,6 +446,7 @@ uint32_t dsm_subnet_update_commit(dsm_handle_t subnet_handle);
  * @param[in] subnet_handle The handle for the existing subnetwork.
  *
  * @retval NRF_SUCCESS The given subnetwork has been freed successfully.
+ * @retval NRF_ERROR_FORBIDDEN The NetList shall contain a minimum of one NetKey.
  * @retval NRF_ERROR_NOT_FOUND The given subnetwork handle is not valid.
  */
 uint32_t dsm_subnet_delete(dsm_handle_t subnet_handle);
@@ -567,6 +560,20 @@ dsm_handle_t dsm_appkey_handle_get(const nrf_mesh_application_secmat_t * p_secma
 uint32_t dsm_appkey_handle_to_appkey_index(dsm_handle_t appkey_handle, mesh_key_index_t * p_index);
 
 /**
+ * Stores the network key handle to the p_netkey_handle pointer for a specified application key handle.
+ *
+ * @param[in]  appkey_handle        Application key handle.
+ * @param[out] p_netkey_handle      Pointer to a variable where the associated netkey handle can be
+ *                                  stored.
+ *
+ * @retval     NRF_SUCCESS          The index of the network key associated with the specified application
+ *                                  key was successfully retrieved.
+ * @retval     NRF_ERROR_NULL       @c p_netkey_handle was @c NULL.
+ * @retval     NRF_ERROR_NOT_FOUND  The specified application handle is invalid.
+ */
+uint32_t dsm_appkey_handle_to_subnet_handle(dsm_handle_t appkey_handle, dsm_handle_t * p_netkey_handle);
+
+/**
  * Adds an application key and its associated application key index to the device state storage.
  * The added application key will be bound with the given subnetwork.
  *
@@ -584,6 +591,7 @@ uint32_t dsm_appkey_handle_to_appkey_index(dsm_handle_t appkey_handle, mesh_key_
  * @retval NRF_ERROR_NOT_FOUND The given subnetwork handle is not valid.
  * @retval NRF_ERROR_INVALID_PARAM Invalid application key index is given, @see DSM_KEY_INDEX_MAX.
  * @retval NRF_ERROR_FORBIDDEN The given application key index has already been added before.
+ * @retval NRF_ERROR_INTERNAL The given application key index has already been added before and keys are the same.
  * @retval NRF_ERROR_NO_MEM The application key storage is out of space, @see DSM_APP_MAX.
  */
 uint32_t dsm_appkey_add(mesh_key_index_t app_key_id, dsm_handle_t subnet_handle, const uint8_t * p_key, dsm_handle_t * p_app_handle);
@@ -634,12 +642,17 @@ uint32_t dsm_appkey_delete(dsm_handle_t app_handle);
  * key indices, so only a partial list (the first @c *p_count indices) is returned.
  */
 uint32_t dsm_appkey_get_all(dsm_handle_t subnet_handle, mesh_key_index_t * p_key_list, uint32_t * p_count);
+
 /** @} end of DEVICE_STATE_MANAGER_APP_KEYS */
 /** @} end of DEVICE_STATE_MANAGER_KEYS */
 
 /**
  * Retrieves the necessary security material for sending a mesh packet.
  *
+ * It is possible to set the @c subnet_handle to @ref DSM_HANDLE_INVALID value. In this case the DSM will
+ * try to find the network key bound to the application key.
+ *
+ * @param[in] subnet_handle The subnet handle of the network key used in the transmission.
  * @param[in] app_handle The application handle of the application key used in the transmission.
  * @param[in, out] p_secmat Pointer to the structure for the security material for a mesh packet.
  *
@@ -649,19 +662,20 @@ uint32_t dsm_appkey_get_all(dsm_handle_t subnet_handle, mesh_key_index_t * p_key
  * @retval NRF_ERROR_NULL An unexpected NULL pointer is given.
  * @retval NRF_ERROR_INVALID_STATE There are no allocated subnets.
  */
-uint32_t dsm_tx_secmat_get(dsm_handle_t app_handle, nrf_mesh_secmat_t * p_secmat);
+uint32_t dsm_tx_secmat_get(dsm_handle_t subnet_handle, dsm_handle_t app_handle, nrf_mesh_secmat_t * p_secmat);
 
 /**
- * Retrieves the necessary security material for sending a mesh network beacon packet.
+ * Retrieves the necessary info for sending a mesh network beacon packet.
  *
  * @param[in] subnet_handle The handle of the subnetwork the beacon represents.
- * @param[in, out] pp_beacon Pointer to the beacon security material structure pointer.
+ * @param[in, out] pp_beacon_info Pointer to the beacon info structure pointer.
  *
- * @retval NRF_SUCCESS The @c pp_beacon has been successfully populated by the beacon security material.
+ * @retval NRF_SUCCESS The @c pp_beacon_info has been successfully populated.
  * @retval NRF_ERROR_NOT_FOUND The given subnetwork handle is not valid.
  * @retval NRF_ERROR_NULL An unexpected NULL pointer is given.
  */
-uint32_t dsm_beacon_secmat_get(dsm_handle_t subnet_handle, const nrf_mesh_beacon_secmat_t ** pp_beacon);
+uint32_t dsm_beacon_info_get(dsm_handle_t subnet_handle,
+                             const nrf_mesh_beacon_info_t ** pp_beacon_info);
 
 /**
  * Retrieves the identity key for advertising with node identity, see section 7.2.2.2.3 in Bluetooth

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -63,6 +63,7 @@ typedef enum
     HEALTH_CLIENT_EVT_TYPE_PERIOD_STATUS_RECEIVED,    /**< A Health Period Status message was received. */
     HEALTH_CLIENT_EVT_TYPE_ATTENTION_STATUS_RECEIVED, /**< A Health Attention Status message was received. */
     HEALTH_CLIENT_EVT_TYPE_TIMEOUT,                   /**< A reliable transfer timed out. */
+    HEALTH_CLIENT_EVT_TYPE_CANCELLED                  /**< A reliable transfer has been cancelled. */
 } health_client_evt_type_t;
 
 /** Fault status event. */
@@ -125,8 +126,10 @@ struct __health_client_t
 /**
  * Requests the current fault status from a server.
  *
- * @param[in] p_client   Pointer to the client instance structure.
- * @param[in] company_id Company ID of of the server.
+ * @note Response event: @ref HEALTH_CLIENT_EVT_TYPE_FAULT_STATUS_RECEIVED
+ *
+ * @param[in,out] p_client   Pointer to the client instance structure.
+ * @param[in]     company_id Company ID of of the server.
  *
  * @retval NRF_SUCCESS    The message was successfully sent to the server.
  * @retval NRF_ERROR_BUSY The client is currently waiting for a reply from a server.
@@ -136,9 +139,11 @@ uint32_t health_client_fault_get(health_client_t * p_client, uint16_t company_id
 /**
  * Clears the fault array for a specified company ID.
  *
- * @param[in] p_client   Pointer to the client instance structure.
- * @param[in] company_id Company ID of of the server.
- * @param[in] acked      Whether to send the message as an acknowledged message or an unacknowledged message.
+ * @note Response event if @p acked is @c true: @ref HEALTH_CLIENT_EVT_TYPE_FAULT_STATUS_RECEIVED
+ *
+ * @param[in,out] p_client   Pointer to the client instance structure.
+ * @param[in]     company_id Company ID of of the server.
+ * @param[in]     acked      Whether to send the message as an acknowledged message or an unacknowledged message.
  *
  * @retval NRF_SUCCESS    The message was successfully sent to the server.
  * @retval NRF_ERROR_BUSY The client is currently waiting for a reply from a server.
@@ -148,10 +153,12 @@ uint32_t health_client_fault_clear(health_client_t * p_client, uint16_t company_
 /**
  * Requests a server to run a self-test.
  *
- * @param[in] p_client   Pointer to the client instance structure.
- * @param[in] company_id Company ID of of the server.
- * @param[in] test_id    ID of the self-test to run.
- * @param[in] acked      Whether to send the message as an acknowledged message or an unacknowledged message.
+ * @note Response event if @p acked is @c true: @ref HEALTH_CLIENT_EVT_TYPE_FAULT_STATUS_RECEIVED
+ *
+ * @param[in,out] p_client   Pointer to the client instance structure.
+ * @param[in]     company_id Company ID of of the server.
+ * @param[in]     test_id    ID of the self-test to run.
+ * @param[in]     acked      Whether to send the message as an acknowledged message or an unacknowledged message.
  *
  * @retval NRF_SUCCESS    The message was successfully sent to the server.
  * @retval NRF_ERROR_BUSY The client is currently waiting for a reply from a server.
@@ -161,7 +168,9 @@ uint32_t health_client_fault_test(health_client_t * p_client, uint16_t company_i
 /**
  * Gets the current health period state of an element.
  *
- * @param[in] p_client   Pointer to the client instance structure.
+ * @note Response event: @ref HEALTH_CLIENT_EVT_TYPE_PERIOD_STATUS_RECEIVED
+ *
+ * @param[in,out] p_client   Pointer to the client instance structure.
  *
  * @retval NRF_SUCCESS    The message was successfully sent to the server.
  * @retval NRF_ERROR_BUSY The client is currently waiting for a reply from a server.
@@ -171,9 +180,11 @@ uint32_t health_client_period_get(health_client_t * p_client);
 /**
  * Sets the health period state of an element.
  *
- * @param[in] p_client            Pointer to the client instance structure.
- * @param[in] fast_period_divisor Value of the fast period divisor.
- * @param[in] acked               Whether to send the message as an acknowledged message or an unacknowledged message.
+ * @note Response event if @p acked is @c true: @ref HEALTH_CLIENT_EVT_TYPE_PERIOD_STATUS_RECEIVED
+ *
+ * @param[in,out] p_client            Pointer to the client instance structure.
+ * @param[in]     fast_period_divisor Value of the fast period divisor.
+ * @param[in]     acked               Whether to send the message as an acknowledged message or an unacknowledged message.
  *
  * @retval NRF_SUCCESS    The message was successfully sent to the server.
  * @retval NRF_ERROR_BUSY The client is currently waiting for a reply from a server.
@@ -183,7 +194,9 @@ uint32_t health_client_period_set(health_client_t * p_client, uint8_t fast_perio
 /**
  * Gets the attention timer from a server.
  *
- * @param[in] p_client    Pointer to the client instance structure.
+ * @note Response event: @ref HEALTH_CLIENT_EVT_TYPE_ATTENTION_STATUS_RECEIVED
+ *
+ * @param[in,out] p_client    Pointer to the client instance structure.
  *
  * @retval NRF_SUCCESS    The message was successfully sent to the server.
  * @retval NRF_ERROR_BUSY The client is currently waiting for a reply from a server.
@@ -193,9 +206,11 @@ uint32_t health_client_attention_get(health_client_t * p_client);
 /**
  * Sets the attention timer on a server.
  *
- * @param[in] p_client        Pointer to the client instance structure.
- * @param[in] attention_timer How long the attention state should be active in the server in seconds.
- * @param[in] acked           Whether to send the message as an acknowledged message or an unacknowledged message.
+ * @note Response event if @p acked is @c true: @ref HEALTH_CLIENT_EVT_TYPE_ATTENTION_STATUS_RECEIVED
+ *
+ * @param[in,out] p_client        Pointer to the client instance structure.
+ * @param[in]     attention_timer How long the attention state should be active in the server in seconds.
+ * @param[in]     acked           Whether to send the message as an acknowledged message or an unacknowledged message.
  *
  * @retval NRF_SUCCESS    The message was successfully sent to the server.
  * @retval NRF_ERROR_BUSY The client is currently waiting for a reply from a server.
@@ -205,9 +220,9 @@ uint32_t health_client_attention_set(health_client_t * p_client, uint8_t attenti
 /**
  * Initializes a health client instance.
  *
- * @param[in] p_client      Pointer to the client instance structure.
- * @param[in] element_index Index of the element to register the model with.
- * @param[in] evt_handler   Event handler used to process incoming messages.
+ * @param[in,out] p_client      Pointer to the client instance structure.
+ * @param[in]     element_index Index of the element to register the model with.
+ * @param[in]     evt_handler   Event handler used to process incoming messages.
  *
  * @retval NRF_SUCCESS      The health client was successfully initialized.
  * @retval NRF_ERROR_NULL   The pointer passed as the @c evt_handler argument was @c NULL.
@@ -216,6 +231,13 @@ uint32_t health_client_attention_set(health_client_t * p_client, uint8_t attenti
  * @see access_model_add()
  */
 uint32_t health_client_init(health_client_t * p_client, uint16_t element_index, health_client_evt_cb_t evt_handler);
+
+/**
+ * Cancel any ongoing reliable message transfer.
+ *
+ * @param[in,out] p_client    Pointer to the client instance structure.
+ */
+void health_client_pending_msg_cancel(health_client_t * p_client);
 
 /** @} */
 

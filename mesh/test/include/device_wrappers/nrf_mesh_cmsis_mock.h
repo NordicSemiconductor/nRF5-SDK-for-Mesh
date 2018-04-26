@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -76,6 +76,10 @@ void NVIC_SetPriority(uint32_t IRQn, uint32_t priority);
 uint32_t NVIC_GetPriority(uint32_t IRQn);
 void NVIC_SystemReset(void);
 /*@} end of CMSIS_Core_NVICFunctions */
+
+#define __ASM            __asm                                      /*!< asm keyword for GNU Compiler */
+#define __INLINE         inline                                     /*!< inline keyword for GNU Compiler */
+#define __STATIC_INLINE  static inline
 
 #endif /* __CMSIS_GENERIC */
 #endif /* NRF_MESH_CMSIS_MOCK_H */

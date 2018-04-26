@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -42,6 +42,7 @@
 #include <stdint.h>
 
 #include "nrf_mesh_assert.h"
+#include "access.h"
 
 /**
  * @defgroup CONFIG_MESSAGES Message formats
@@ -129,12 +130,38 @@ typedef uint16_t config_msg_key_index_12_t;
  * This is used in messages that can either contain a 16-bit SIG identifier or
  * a 32-bit vendor-specific model ID. For SIG identifiers the company_id is ignored.
  */
-typedef struct __attribute((packed))
+typedef union __attribute((packed))
 {
-    uint16_t model_id;     /**< Model ID. */
-    uint16_t company_id;   /**< Vendor-specific company ID. */
+    struct __attribute((packed))
+    {
+        uint16_t model_id;     /**< Model ID. */
+    } sig;
+    struct __attribute((packed))
+    {
+        uint16_t company_id;   /**< Vendor-specific company ID. */
+        uint16_t model_id;     /**< Model ID. */
+    } vendor;
 } config_model_id_t;
 NRF_MESH_STATIC_ASSERT(sizeof(config_model_id_t) == sizeof(uint32_t));
+
+/**
+ * Sets the value of the model id for different kind of models (SIG or vendor).
+ * @param[out] p_dst  Pointer to the packed payload.
+ * @param[in]  p_src  Pointer to the access model memory .
+ * @param[in]  is_sig Type of the model. True for SIG, false for vendor models.
+ */
+static inline void config_msg_model_id_set(config_model_id_t * p_dst, const access_model_id_t * p_src, bool is_sig)
+{
+    if (is_sig)
+    {
+        p_dst->sig.model_id = p_src->model_id;
+    }
+    else
+    {
+        p_dst->vendor.model_id = p_src->model_id;
+        p_dst->vendor.company_id = p_src->company_id;
+    }
+}
 
 /** Message format for the AppKey Add message. */
 typedef struct __attribute((packed))
@@ -177,17 +204,23 @@ typedef struct __attribute((packed))
     uint8_t packed_appkey_indexes[];        /**< Packed list of application key indexes. */
 } config_msg_appkey_list_t;
 
-/** Message format for the Default TTL Set and Get messages. */
+/** Message format for the Default TTL Set message. */
 typedef struct __attribute((packed))
 {
     uint8_t ttl;            /**< Default TTL value. */
-} config_msg_default_ttl_t;
+} config_msg_default_ttl_set_t;
+
+/** Message format for the Default TTL Status message. */
+typedef struct __attribute((packed))
+{
+    uint8_t ttl;            /**< Default TTL value. */
+} config_msg_default_ttl_status_t;
 
 /** Possible values for the network beacon state. */
 typedef enum
 {
-    CONFIG_NET_BEACON_STATE_ENABLED = 0, /**< The network beacon is enabled. */
-    CONFIG_NET_BEACON_STATE_DISABLED = 1 /**< The network beacon is disabled. */
+    CONFIG_NET_BEACON_STATE_DISABLED = 0,   /**< The network beacon is disabled. */
+    CONFIG_NET_BEACON_STATE_ENABLED = 1     /**< The network beacon is enabled. */
 } config_net_beacon_state_t;
 
 /** Message format for the Config Beacon Set message. */
@@ -521,8 +554,8 @@ typedef struct __attribute((packed))
 {
     uint8_t status;             /**< Status code. */
     uint16_t element_address;   /**< Unicast address of the element. */
-    uint16_t vendor_model_id;   /**< Vendor model ID. */
     uint16_t vendor_company_id; /**< Vendor company ID. */
+    uint16_t vendor_model_id;   /**< Vendor model ID. */
     uint8_t key_indexes[];      /**< List of application key indexes. */
 } config_msg_vendor_model_app_list_t;
 
@@ -547,8 +580,8 @@ typedef struct __attribute((packed))
 {
     uint8_t status;             /**< Status code. */
     uint16_t element_address;   /**< Unicast address of the element. */
-    uint16_t vendor_model_id;   /**< Vendor model ID. */
     uint16_t vendor_company_id; /**< Vendor company ID. */
+    uint16_t vendor_model_id;   /**< Vendor model ID. */
     uint16_t subscriptions[];   /**< Subscription list. */
 } config_msg_vendor_model_subscription_list_t;
 

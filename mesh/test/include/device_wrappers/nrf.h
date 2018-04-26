@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -44,16 +44,26 @@
 
 /* MDK version */
 #define MDK_MAJOR_VERSION   8
-#define MDK_MINOR_VERSION   9
+#define MDK_MINOR_VERSION   15
 #define MDK_MICRO_VERSION   0
 
 /* Override CMSIS declaration, to remove constness of registers */
 #define __CMSIS_GENERIC
 #include "nrf_mesh_cmsis_mock.h"
 
+#ifdef NRF51
 #include "nrf51.h"
 #include "nrf51_bitfields.h"
 #include "nrf51_deprecated.h"
+#elif defined(NRF52) || defined(NRF52_SERIES)
+#ifndef NRF52_SERIES
+#define NRF52_SERIES 1
+#endif
+#include "nrf52.h"
+#include "nrf52_bitfields.h"
+#include "nrf51_to_nrf52.h"
+#include "nrf52_name_change.h"
+#endif
 
 #include "compiler_abstraction.h"
 

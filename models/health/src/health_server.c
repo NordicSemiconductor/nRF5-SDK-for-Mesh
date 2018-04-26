@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -173,8 +173,10 @@ static void send_fault_status(health_server_t * p_server, uint16_t opcode, const
     {
         .opcode = ACCESS_OPCODE_SIG(opcode),
         .p_buffer = message_buffer,
-        .length = sizeof(message_buffer)
-    }; /*lint !e569 Loss of precision from the sizeof() operator */
+        .length = sizeof(message_buffer),  /*lint !e569 Loss of precision from the sizeof() operator */
+        .force_segmented = false,
+        .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT
+    };
 
     if (p_message != NULL)
     {
@@ -194,6 +196,8 @@ static void send_attention_status(const health_server_t * p_server, const access
         .opcode = ACCESS_OPCODE_SIG(HEALTH_OPCODE_ATTENTION_STATUS),
         .p_buffer = (const uint8_t *) &reply_message,
         .length = sizeof(health_msg_attention_status_t),
+        .force_segmented = false,
+        .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT
     };
 
     (void) access_model_reply(p_server->model_handle, p_message, &packet);
@@ -206,7 +210,9 @@ static void send_period_status(const health_server_t * p_server, const access_me
     {
         .opcode = ACCESS_OPCODE_SIG(HEALTH_OPCODE_PERIOD_STATUS),
         .p_buffer = (const uint8_t *) &reply_message,
-        .length = sizeof(health_msg_period_status_t)
+        .length = sizeof(health_msg_period_status_t),
+        .force_segmented = false,
+        .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT
     };
 
     (void) access_model_reply(p_server->model_handle, p_message, &packet);
@@ -489,7 +495,7 @@ uint32_t health_server_init(health_server_t * p_server, uint16_t element_index, 
     access_model_add_params_t add_params =
     {
         .element_index = element_index,
-        .model_id = ACCESS_OPCODE_SIG(HEALTH_SERVER_MODEL_ID),
+        .model_id = ACCESS_MODEL_SIG( HEALTH_SERVER_MODEL_ID), /*lint !e64 Type Mismatch */
         .p_opcode_handlers = m_opcode_handlers,
         .opcode_count = sizeof(m_opcode_handlers) / sizeof(m_opcode_handlers[0]),
         .publish_timeout_cb = health_publish_timeout_handler,

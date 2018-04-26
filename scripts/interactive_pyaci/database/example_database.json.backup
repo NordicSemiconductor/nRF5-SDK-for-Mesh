@@ -1,0 +1,63 @@
+{
+  "$schema": "",
+  "appKeys": [
+    {
+      "boundNetKey": 0,
+      "index": 0,
+      "key": "4f68ad85d9f48ac8589df665b6b49b8a",
+      "name": "lights"
+    },
+    {
+      "boundNetKey": 0,
+      "index": 1,
+      "key": "2aa2a6ded5a0798ceab5787ca3ae39fc",
+      "name": "locks"
+    }
+  ],
+  "groups": [
+    {
+      "address": 49153,
+      "name": "Room 1",
+      "parentAddress": 0
+    },
+    {
+      "address": 49154,
+      "name": "Room 2",
+      "parentAddress": 0
+    }
+  ],
+  "ivIndex": 0,
+  "ivUpdate": 0,
+  "meshName": "BT Mesh",
+  "meshUUID": "01020304050607080102030405060708",
+  "netKeys": [
+    {
+      "index": 0,
+      "key": "18eed9c2a56add85049ffc3c59ad0e12",
+      "minSecurity": "low",
+      "name": "root",
+      "phase": 0
+    }
+  ],
+  "nodes": [
+  ],
+  "provisioners": [
+    {
+      "UUID": "00000000000000000000000000000000",
+      "allocatedGroupRange": [
+        {
+          "highAddress": 65279,
+          "lowAddress": 49152
+        }
+      ],
+      "allocatedUnicastRange": [
+        {
+          "highAddress": 32767,
+          "lowAddress": 16
+        }
+      ],
+      "name": "BT Mesh Provisioner"
+    }
+  ],
+  "timestamp": "2018-03-08 21:59:17.239719"
+}

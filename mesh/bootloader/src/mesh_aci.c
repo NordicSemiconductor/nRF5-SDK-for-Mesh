@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -161,7 +161,7 @@ static void serial_command_handler(serial_cmd_t* p_serial_cmd)
                 init_params.interval_min_ms = p_serial_cmd->params.init.interval_min;
 #if defined(S110)
                 init_params.lfclksrc = NRF_CLOCK_LFCLKSRC_XTAL_500_PPM;
-#elif SD_BLE_API_VERSION >= 5
+#elif NRF_SD_BLE_API_VERSION >= 5
                 init_params.lfclksrc.source = NRF_CLOCK_LF_SRC_XTAL;
                 init_params.lfclksrc.accuracy = NRF_CLOCK_LF_ACCURACY_500_PPM;
 #else

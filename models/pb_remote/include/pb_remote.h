@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -44,7 +44,7 @@
 #include "pb_remote_msgs.h"
 
 /**
- * @defgroup PB_REMOTE Provisioning over Mesh (PB-remote)
+ * @defgroup PB_REMOTE Provisioning over Mesh (PB-remote) (experimental)
  * @ingroup NRF_MESH_PROV_BEARER
  *
  * This module defines the Remote Provisioning Models. This model consists of two submodules, the
@@ -52,6 +52,8 @@
  * @{
  *
  * @defgroup  PB_REMOTE_MSCS Provisioning over Mesh MSCs
+ * @brief Remote provisioning sequence diagrams
+ *
  * @{
  * @mscfile pb_remote_provisioning.msc  Remote Provisioning Scenario
  * @mscfile pb_remote_link_open.msc     Link Open Scenarios

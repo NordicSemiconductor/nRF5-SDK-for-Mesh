@@ -80,7 +80,7 @@ _Device Started Parameters_
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
 `uint8_t`         | Operating Mode                          | 1     | 0      | Operating mode of the device. see @ref serial_device_operating_mode_t for accepted values.
-`uint8_t`         | Hw Error                                | 1     | 1      | Hardware error code, or 0 if no error occured.
+`uint8_t`         | Hw Error                                | 1     | 1      | Hardware error code, or 0 if no error occurred.
 `uint8_t`         | Data Credit Available                   | 1     | 2      | The number of bytes available in each of the tx and rx buffers.
 
 ### Device Echo Rsp          {#device-echo-rsp}

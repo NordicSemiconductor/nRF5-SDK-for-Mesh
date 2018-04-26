@@ -1,4 +1,4 @@
-# Debian/Ubuntu
+# CMake on Debian/Ubuntu
 
 For Debian/Ubuntu, most tools are available from the system package manager `apt-get`.
 
@@ -75,7 +75,7 @@ However, if @link_ninja is preferred, it can be installed with:
 
     $ sudo apt-get install ninja-build
 
-## Building unit tests (host)
+## Additional tools for building unit tests (host) [Optional]
 
 The unit test (host) build uses the standard GCC compiler, which should be available in the
 Debian/Ubuntu distribution by default. To enable compilation for a 32-bit architecture on a 64-bit

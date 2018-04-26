@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -255,6 +255,33 @@ static inline bool bitfield_is_all_set(const uint32_t * p_bitfield, uint32_t bit
     }
     return true;
 }
+
+/**
+ * Checks whether all the bits set in p_b2 is a subset of p_b1.
+ *
+ * Example: p_b1: 0b01011, p_b2: 0b01001 => true.
+ *          p_b1: 0b01011, p_b2: 0b00111 => false.
+ *
+ * @warning This will return @c true if p_b2 is zero.
+ *
+ * @param[in] p_b1 Pointer to reference bitfield.
+ * @param[in] p_b2 Pointer to bitfield to verify.
+ * @param[in] bits Number of bits in the smallest bitfield.
+ *
+ * @returns Whether the bits set in p_b2 is a valid subset of p_b1.
+ */
+static inline bool bitfield_is_subset_of(const uint32_t * p_b1, const uint32_t * p_b2, const uint32_t bits)
+{
+    for (uint32_t i = 0; i < BITFIELD_BLOCK_COUNT(bits); ++i)
+    {
+        if ((~p_b1[i] & p_b2[i]) != 0)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 
 /** @} */
 

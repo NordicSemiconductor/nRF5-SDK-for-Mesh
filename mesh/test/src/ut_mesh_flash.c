@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -48,7 +48,7 @@
 #include "test_assert.h"
 
 #define START_TIME                      (123)
-#define FLASH_PROCESS_TIME_OVERHEAD		(500)
+#define FLASH_PROCESS_TIME_OVERHEAD     (500)
 #define FLASH_TIME_TO_ERASE_PAGE_US     (20000)
 #define FLASH_TIME_TO_WRITE_ONE_WORD_US (50)
 #define BEARER_ACTION_WRITE_MAX_WORDS   ((BEARER_ACTION_DURATION_MAX_US - FLASH_PROCESS_TIME_OVERHEAD) / FLASH_TIME_TO_WRITE_ONE_WORD_US)
@@ -282,12 +282,22 @@ void test_op_push(void)
 
 void test_execute_write(void)
 {
-    uint32_t dest[TEST_WRITE_MAX_WORDS] __attribute__((aligned(PAGE_SIZE)));
+    static uint32_t dest[TEST_WRITE_MAX_WORDS] __attribute__((aligned(PAGE_SIZE)));
+    static uint8_t data[TEST_WRITE_MAX_WORDS * 4];
+
     for (uint32_t i = 0; i < TEST_WRITE_MAX_WORDS; ++i)
     {
         dest[i] = i + 0xAB000000;
     }
-    uint8_t data[TEST_WRITE_MAX_WORDS * 4] = {0xab, 0xcd, 0xef, 0x01};
+
+    for (uint32_t i = 0; i < sizeof(data); i += 4)
+    {
+        data[i]   = 0xab;
+        data[i+1] = 0xcd;
+        data[i+2] = 0xef;
+        data[i+3] = 0x01;
+    }
+
     uint16_t token = 0xFFFF;
     uint16_t expected_token = 0;
 
@@ -627,7 +637,7 @@ void test_queue_index_rollover(void)
     flash_op.params.write.p_start_addr = dest;
     flash_op.params.write.p_data = (uint32_t *) data;
     flash_op.params.write.length = 4;
-    
+
     mesh_flash_init();
     mesh_flash_user_callback_set(MESH_FLASH_USER_TEST, mesh_flash_op_cb);
     bearer_handler_action_enqueue_StubWithCallback(bearer_handler_action_enqueue_callback);
@@ -789,7 +799,7 @@ void test_in_progress(void)
     bearer_handler_action_enqueue_expect(MESH_FLASH_USER_TEST);
     TEST_ASSERT_EQUAL_HEX32(NRF_SUCCESS, mesh_flash_op_push(MESH_FLASH_USER_TEST, &flash_op, &token));
     TEST_ASSERT_EQUAL(true, mesh_flash_in_progress());
-    
+
     /* Execute operation */
     nrf_flash_write_ExpectAndReturn(&dest, (uint32_t*)data, 4, NRF_SUCCESS);
     bearer_handler_action_end_Expect();
@@ -800,7 +810,7 @@ void test_in_progress(void)
     TEST_ASSERT_EQUAL(1, m_end_expect_users[0].cb_all_count);
     TEST_ASSERT_EQUAL(0, m_end_expect_users[0].expected_cb_count);
     TEST_ASSERT_EQUAL(false, mesh_flash_in_progress());
-    
+
     TEST_ASSERT_EQUAL_UINT32(m_bearer_handler_action_enqueue_callback_expected_cnt, m_bearer_handler_action_enqueue_callback_cnt);
     bearer_handler_action_enqueue_StubWithCallback(NULL);
 }

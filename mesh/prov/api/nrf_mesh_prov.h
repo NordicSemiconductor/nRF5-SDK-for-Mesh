@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -46,6 +46,11 @@
 #include "nrf_mesh_prov_types.h"
 #include "nrf_mesh_prov_events.h"
 #include "nrf_mesh_prov_bearer.h"
+#include "nrf_mesh_assert.h"
+#include "bitfield.h"
+
+/* Ensure that the supported bearers only fills one uint32_t. */
+NRF_MESH_STATIC_ASSERT(BITFIELD_BLOCK_COUNT(NRF_MESH_PROV_BEARER_COUNT) == 1);
 
 /**
  * @defgroup NRF_MESH_PROV Provisioning API
@@ -76,6 +81,7 @@
 struct nrf_mesh_prov_ctx
 {
     list_node_t * p_bearers;    /**< Bearer linked list head pointer. */
+    uint32_t supported_bearers; /**< Supported bearer types bitfield, @ref nrf_mesh_prov_bearer_type_t. */
     prov_bearer_t * p_active_bearer; /**< Pointer to the currently active bearer (valid when ) */
     nrf_mesh_prov_evt_handler_cb_t event_handler; /**< Application event handler callback function. */
 
@@ -151,20 +157,30 @@ uint32_t nrf_mesh_prov_bearer_add(nrf_mesh_prov_ctx_t * p_ctx,
  * Listens for an incoming provisioning link.
  *
  * @param[in, out] p_ctx       Pointer to a statically allocated provisioning context structure.
- * @param[in] bearer_type      The bearer type to listen for a provisioning link on.
  * @param[in] URI              Optional device URI string used as identifier in some other context.
  *                             May be NULL.
  * @param[in] oob_info_sources Known OOB information sources, see @ref
  *                             NRF_MESH_PROV_OOB_INFO_SOURCES.
+ * @param[in] bearer_types     Bitfield of @ref nrf_mesh_prov_bearer_type_t bearers to listen on.
  *
  * @retval NRF_SUCCESS             The provisioning bearer was successfully put into listening mode.
  * @retval NRF_ERROR_INVALID_STATE The provisioning context is not in an idle state.
- * @retval NRF_ERROR_NOT_SUPPORTED The given bearer type is not supported.
+ * @retval NRF_ERROR_INVALID_PARAM (One of) the given bearer type(s) is/are not supported.
  */
-uint32_t nrf_mesh_prov_listen(nrf_mesh_prov_ctx_t *       p_ctx,
-                              const char *                URI,
-                              uint16_t                    oob_info_sources,
-                              nrf_mesh_prov_bearer_type_t bearer_type);
+uint32_t nrf_mesh_prov_listen(nrf_mesh_prov_ctx_t * p_ctx,
+                              const char *          URI,
+                              uint16_t              oob_info_sources,
+                              uint32_t              bearer_types);
+
+/**
+ * Stops listening for an incoming provisioning link.
+ *
+ * @param[in, out] p_ctx Pointer to a statically allocated provisioning context structure.
+ *
+ * @retval NRF_SUCCESS             The provisioning bearer was successfully put into listening mode.
+ * @retval NRF_ERROR_INVALID_STATE The provisioning context is not listening.
+ */
+uint32_t nrf_mesh_prov_listen_stop(nrf_mesh_prov_ctx_t * p_ctx);
 
 /**
  * Generates a valid keypair for use with the provisioning cryptography.

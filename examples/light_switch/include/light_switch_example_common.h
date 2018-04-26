@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -47,13 +47,31 @@
  * @note Maximum three servers supported since we're using buttons 1-3 for individual control and
  * button 4 for group control.
  */
-#define SERVER_COUNT (3)
-#if SERVER_COUNT > 3
-#error Maximum 3 servers currently supported by client example.
+#define SERVER_NODE_COUNT (30)
+#if SERVER_NODE_COUNT > 30
+#error Maximum 30 servers currently supported by client example.
 #endif
+
+/** Number of active clients nodes. */
+#define CLIENT_NODE_COUNT (1)
+
+/** Number of On-Off client models on the Switch Node */
+#define CLIENT_MODEL_INSTANCE_COUNT       (4)
+
+/** Number of group address being used in this example */
+#define GROUP_ADDR_COUNT (2)
 
 /** Static authentication data */
 #define STATIC_AUTH_DATA {0x6E, 0x6F, 0x72, 0x64, 0x69, 0x63, 0x5F, 0x65, 0x78, 0x61, 0x6D, 0x70, 0x6C, 0x65, 0x5F, 0x31}
+
+/** Light switch client UUID */
+#define CLIENT_NODE_UUID {0x00, 0x59, 0xAB, 0xCD, 0xEF, 0xAB, 0xCD, 0xEF, 0xAC, 0xCD, 0xEF, 0xAB, 0xCD, 0xEF, 0xAB, 0xCD}
+
+/** UUID prefix for other nodes */
+#define SERVER_NODE_UUID_PREFIX      {0x00, 0x59, 0xFF, 0xFF}
+#define SERVER_NODE_UUID_PREFIX_SIZE (4)
+
+
 
 /** @} end of Common definitions for the Light switch example */
 

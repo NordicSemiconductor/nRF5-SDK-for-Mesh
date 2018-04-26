@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -48,6 +48,7 @@
 #include "device_state_manager_flash.h"
 #include "nrf_mesh_mock.h"
 #include "nrf_mesh_externs.h"
+#include "nrf_mesh_events_mock.h"
 #include "nrf_mesh_keygen_mock.h"
 #include "net_state_mock.h"
 #include "flash_manager_mock.h"
@@ -103,6 +104,7 @@ void setUp(void)
     nrf_mesh_keygen_mock_Init();
     flash_manager_mock_Init();
     net_state_mock_Init();
+    nrf_mesh_events_mock_Init();
     mp_flash_manager = NULL;
     m_add_manager_result_state = FM_STATE_READY;
     m_expected_flash_data.verify_contents = true;
@@ -114,7 +116,11 @@ void setUp(void)
     flash_manager_add_StubWithCallback(flash_manager_add_cb);
 
     net_state_flash_area_get_ExpectAndReturn((void *)(PAGE_SIZE + (uint32_t)m_flash_area));
+    nrf_mesh_evt_handler_add_ExpectAnyArgs();
     dsm_init();
+
+    /* Ignore the subnet added call by default, it's tested in test_net: */
+    nrf_mesh_subnet_added_Ignore();
 }
 
 void tearDown(void)
@@ -131,6 +137,8 @@ void tearDown(void)
     flash_manager_mock_Destroy();
     net_state_mock_Verify();
     net_state_mock_Destroy();
+    nrf_mesh_events_mock_Verify();
+    nrf_mesh_events_mock_Destroy();
 }
 
 static void flash_manager_mem_listener_register_cb(fm_mem_listener_t * p_listener, int calls)
@@ -767,7 +775,7 @@ void test_net(void)
         {true,  1,      0x11, {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}, 0xABCD, NRF_SUCCESS},
         {true,  2,      0x11, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, 0xABCD, NRF_SUCCESS}, /* same key as first, different index (allowed) */
         {false, 0,      0x11, {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, 0xABCD, NRF_ERROR_FORBIDDEN}, /* same index as first, different key (not allowed) */
-        {false, 0,      0x11, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, 0xABCD, NRF_ERROR_FORBIDDEN}, /* same index as first, same key (not allowed) */
+        {false, 0,      0x11, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, 0xABCD, NRF_ERROR_INTERNAL}, /* same index as first, same key (not allowed). However it is valid situation for config server */
         {false, 0xF000, 0x11, {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}, 0xABCD, NRF_ERROR_INVALID_PARAM}, /* key index out of bounds */
         {true,  3,      0x22, {3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3}, 0xABCD, NRF_SUCCESS},
         {true,  4,      0x22, {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, 0xABCD, NRF_SUCCESS},
@@ -810,6 +818,7 @@ void test_net(void)
             nrf_mesh_keygen_identitykey_ReturnMemThruPtr_p_key(identity_key, NRF_MESH_KEY_SIZE);
 #endif
             flash_expect_subnet(net[i].key, net[i].key_index);
+            nrf_mesh_subnet_added_Expect(net[i].key_index, beacon_secmat.net_id);
         }
 
         /* add the net */
@@ -823,6 +832,10 @@ void test_net(void)
         else
         {
             TEST_ASSERT_NOT_EQUAL(NRF_SUCCESS, net[i].expected_status);
+            if (net[i].expected_status == NRF_ERROR_INTERNAL)
+            {
+                TEST_ASSERT_NOT_EQUAL(0xABCD, net[i].handle);
+            }
         }
     }
 
@@ -869,6 +882,7 @@ void test_net(void)
         nrf_mesh_keygen_identitykey_IgnoreArg_p_key();
         nrf_mesh_keygen_identitykey_ReturnMemThruPtr_p_key(identity_key, NRF_MESH_KEY_SIZE);
 #endif
+        nrf_mesh_subnet_added_Expect(net[readd_indexes[i]].key_index, beacon_secmat.net_id);
 
         flash_expect_subnet(net[readd_indexes[i]].key, net[readd_indexes[i]].key_index);
         TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_add(net[readd_indexes[i]].key_index, net[readd_indexes[i]].key, &net[readd_indexes[i]].handle));
@@ -1033,7 +1047,7 @@ void test_app(void)
         {true,  1,      DSM_HANDLE_INVALID, 0x01, {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}, 0xABCD, NRF_SUCCESS},
         {true,  2,      DSM_HANDLE_INVALID, 0x01, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, 0xABCD, NRF_SUCCESS}, /* same key as first, different index (allowed) */
         {false, 0,      DSM_HANDLE_INVALID, 0x01, {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, 0xABCD, NRF_ERROR_FORBIDDEN}, /* same index as first, different key (not allowed) */
-        {false, 0,      DSM_HANDLE_INVALID, 0x01, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, 0xABCD, NRF_ERROR_FORBIDDEN}, /* same index as first, same key (not allowed) */
+        {false, 0,      DSM_HANDLE_INVALID, 0x01, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, 0xABCD, NRF_ERROR_INTERNAL}, /* same index as first, same key (not allowed). However it is valid situation for config server */
         {false, 0xF000, DSM_HANDLE_INVALID, 0x01, {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}, 0xABCD, NRF_ERROR_INVALID_PARAM}, /* key index out of bounds */
         {true,  3,      DSM_HANDLE_INVALID, 0x02, {3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3}, 0xABCD, NRF_SUCCESS},
         {true,  4,      DSM_HANDLE_INVALID, 0x02, {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4}, 0xABCD, NRF_SUCCESS},
@@ -1084,6 +1098,10 @@ void test_app(void)
         else
         {
             TEST_ASSERT_NOT_EQUAL(NRF_SUCCESS, app[i].expected_status);
+            if (app[i].expected_status == NRF_ERROR_INTERNAL)
+            {
+                TEST_ASSERT_NOT_EQUAL(0xABCD, app[i].handle);
+            }
         }
     }
     /* invalid params */
@@ -1230,7 +1248,7 @@ void test_app(void)
         {
             if (app[j].in_the_list && app[j].net_handle == net_handles[net])
             {
-                TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(app[j].handle, &secmat));
+                TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(DSM_HANDLE_INVALID, app[j].handle, &secmat));
                 TEST_ASSERT_NOT_NULL(secmat.p_net);
                 p_net_secmats[net] = secmat.p_net;
                 break;
@@ -1403,31 +1421,31 @@ void test_devkey(void)
 void test_secmat(void)
 {
     nrf_mesh_secmat_t secmat;
-    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_tx_secmat_get(0, &secmat));
-    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_tx_secmat_get(0x8888, &secmat));
-    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_tx_secmat_get(DSM_HANDLE_INVALID, &secmat));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_tx_secmat_get(DSM_HANDLE_INVALID, 0, &secmat));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_tx_secmat_get(DSM_HANDLE_INVALID, 0x8888, &secmat));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_tx_secmat_get(DSM_HANDLE_INVALID, DSM_HANDLE_INVALID, &secmat));
 
     /* Add some dummy networks */
     struct
     {
         dsm_handle_t handle;
         nrf_mesh_network_secmat_t secmat;
-        nrf_mesh_beacon_secmat_t beacon_secmat;
+        nrf_mesh_beacon_info_t beacon_info;
     } net[3];
     uint8_t key[NRF_MESH_KEY_SIZE] = {};
     for (uint32_t i = 0; i < ARRAY_SIZE(net); i++)
     {
         memset(net[i].secmat.privacy_key, i, NRF_MESH_KEY_SIZE);
         memset(net[i].secmat.encryption_key, i + 0x10, NRF_MESH_KEY_SIZE);
-        memset(net[i].beacon_secmat.key, i + 0x20, NRF_MESH_KEY_SIZE);
-        memset(net[i].beacon_secmat.net_id, i + 0x30, NRF_MESH_NETID_SIZE);
+        memset(net[i].beacon_info.secmat.key, i + 0x20, NRF_MESH_KEY_SIZE);
+        memset(net[i].beacon_info.secmat.net_id, i + 0x30, NRF_MESH_NETID_SIZE);
         net[i].secmat.nid = i;
         nrf_mesh_keygen_network_secmat_ExpectAndReturn(key, NULL, NRF_SUCCESS);
         nrf_mesh_keygen_network_secmat_IgnoreArg_p_secmat();
         nrf_mesh_keygen_network_secmat_ReturnMemThruPtr_p_secmat(&net[i].secmat, sizeof(net[i].secmat));
         nrf_mesh_keygen_beacon_secmat_ExpectAndReturn(key, NULL, NRF_SUCCESS);
         nrf_mesh_keygen_beacon_secmat_IgnoreArg_p_secmat();
-        nrf_mesh_keygen_beacon_secmat_ReturnMemThruPtr_p_secmat(&net[i].beacon_secmat, sizeof(net[i].beacon_secmat));
+        nrf_mesh_keygen_beacon_secmat_ReturnMemThruPtr_p_secmat(&net[i].beacon_info.secmat, sizeof(net[i].beacon_info.secmat));
         flash_expect_subnet(key, i);
         TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_add(i, key, &net[i].handle));
     }
@@ -1463,7 +1481,7 @@ void test_secmat(void)
     /* Get tx secmats for apps */
     for (uint32_t i = 0; i < ARRAY_SIZE(app); i++)
     {
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(app[i].handle, &secmat));
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(DSM_HANDLE_INVALID, app[i].handle, &secmat));
         TEST_ASSERT_NOT_NULL(secmat.p_net);
         TEST_ASSERT_NOT_NULL(secmat.p_app);
 
@@ -1475,7 +1493,7 @@ void test_secmat(void)
     /* Get tx secmats for devkeys */
     for (uint32_t i = 0; i < ARRAY_SIZE(dev); i++)
     {
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(dev[i].handle, &secmat));
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(DSM_HANDLE_INVALID, dev[i].handle, &secmat));
         TEST_ASSERT_NOT_NULL(secmat.p_net);
         TEST_ASSERT_NOT_NULL(secmat.p_app);
 
@@ -1487,22 +1505,22 @@ void test_secmat(void)
     /* Delete a devkey, ensure we can't get a secmat for it anymore. */
     flash_invalidate_expect(DSM_HANDLE_TO_FLASH_HANDLE(DSM_FLASH_GROUP_DEVKEYS, dev[0].handle - DSM_APP_MAX));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_devkey_delete(dev[0].handle));
-    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_tx_secmat_get(dev[0].handle, &secmat));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_tx_secmat_get(DSM_HANDLE_INVALID, dev[0].handle, &secmat));
 
     /* invalid params */
-    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_tx_secmat_get(0x8888, &secmat));
-    TEST_ASSERT_EQUAL(NRF_ERROR_NULL, dsm_tx_secmat_get(0, NULL));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_tx_secmat_get(DSM_HANDLE_INVALID, 0x8888, &secmat));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NULL, dsm_tx_secmat_get(DSM_HANDLE_INVALID, 0, NULL));
 
-    /* get beacon secmats */
-    const nrf_mesh_beacon_secmat_t * p_beacon_secmat = NULL;
+    /* get beacon info structures */
+    const nrf_mesh_beacon_info_t * p_beacon_info = NULL;
     for (uint32_t i = 0; i < ARRAY_SIZE(net); i++)
     {
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_beacon_secmat_get(net[i].handle, &p_beacon_secmat));
-        TEST_ASSERT_EQUAL_MEMORY(&net[i].beacon_secmat, p_beacon_secmat, sizeof(nrf_mesh_beacon_secmat_t));
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_beacon_info_get(net[i].handle, &p_beacon_info));
+        TEST_ASSERT_EQUAL_MEMORY(&net[i].beacon_info.secmat, &p_beacon_info->secmat, sizeof(nrf_mesh_beacon_secmat_t));
     }
-    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_beacon_secmat_get(ARRAY_SIZE(net), &p_beacon_secmat));
-    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_beacon_secmat_get(0x8888, &p_beacon_secmat));
-    TEST_ASSERT_EQUAL(NRF_ERROR_NULL, dsm_beacon_secmat_get(0, NULL));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_beacon_info_get(ARRAY_SIZE(net), &p_beacon_info));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_beacon_info_get(0x8888, &p_beacon_info));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NULL, dsm_beacon_info_get(0, NULL));
 
 }
 
@@ -1543,12 +1561,11 @@ void test_beacon_info_get(void)
     TEST_ASSERT_EQUAL_MEMORY(&net[0].beacon_secmat, &p_beacon_info->secmat, sizeof(nrf_mesh_beacon_secmat_t));
     TEST_ASSERT_TRUE(p_beacon_info->iv_update_permitted); // No primary networks!
     TEST_ASSERT_NOT_NULL(p_beacon_info->p_tx_info);
-    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->rx_count);
-    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->tx_interval_seconds);
+    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->rx_count[0]);
     TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->tx_timestamp);
     /* Manipulate the tx info, to ensure it'll remain the same across multiple gets */
-    p_beacon_info->p_tx_info->rx_count = 89;
-    p_beacon_info->p_tx_info->tx_interval_seconds = 123;
+    p_beacon_info->p_tx_info->rx_count[0] = 89;
+    p_beacon_info->p_tx_info->rx_count[1] = 43;
     p_beacon_info->p_tx_info->tx_timestamp = 456;
 
     /* Get the first one again, should yield the same thing! */
@@ -1558,8 +1575,8 @@ void test_beacon_info_get(void)
     TEST_ASSERT_EQUAL_MEMORY(&net[0].beacon_secmat, &p_beacon_info->secmat, sizeof(nrf_mesh_beacon_secmat_t));
     TEST_ASSERT_TRUE(p_beacon_info->iv_update_permitted); // No primary networks!
     TEST_ASSERT_NOT_NULL(p_beacon_info->p_tx_info);
-    TEST_ASSERT_EQUAL(89, p_beacon_info->p_tx_info->rx_count);
-    TEST_ASSERT_EQUAL(123, p_beacon_info->p_tx_info->tx_interval_seconds);
+    TEST_ASSERT_EQUAL(89, p_beacon_info->p_tx_info->rx_count[0]);
+    TEST_ASSERT_EQUAL(43, p_beacon_info->p_tx_info->rx_count[1]);
     TEST_ASSERT_EQUAL(456, p_beacon_info->p_tx_info->tx_timestamp);
 
     /* Get the next in the list */
@@ -1568,8 +1585,8 @@ void test_beacon_info_get(void)
     TEST_ASSERT_EQUAL_MEMORY(&net[1].beacon_secmat, &p_beacon_info->secmat, sizeof(nrf_mesh_beacon_secmat_t));
     TEST_ASSERT_TRUE(p_beacon_info->iv_update_permitted); // No primary networks!
     TEST_ASSERT_NOT_NULL(p_beacon_info->p_tx_info);
-    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->rx_count);
-    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->tx_interval_seconds);
+    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->rx_count[0]);
+    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->rx_count[1]);
     TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->tx_timestamp);
 
     /* No more networks, should now get NULL back. */
@@ -1752,7 +1769,7 @@ void test_getters(void)
     for (uint32_t i = 0; i < ARRAY_SIZE(app); i++)
     {
         nrf_mesh_secmat_t secmat;
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(app[i].handle, &secmat));
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(DSM_HANDLE_INVALID, app[i].handle, &secmat));
         TEST_ASSERT_NOT_NULL(secmat.p_net);
         TEST_ASSERT_EQUAL(net[i/2].handle, dsm_subnet_handle_get(secmat.p_net));
         TEST_ASSERT_NOT_NULL(secmat.p_app);
@@ -1853,7 +1870,7 @@ void test_key_refresh_all_phases(void)
     nrf_mesh_keygen_beacon_secmat_IgnoreArg_p_secmat();
     nrf_mesh_keygen_beacon_secmat_ReturnMemThruPtr_p_secmat(&new_beacon_secmat, sizeof(new_beacon_secmat));
     flash_expect_subnet_update(old_key, new_key, key_index, NRF_MESH_KEY_REFRESH_PHASE_1, network_handle);
-    net_state_key_refresh_phase_changed_Expect(key_index, NRF_MESH_KEY_REFRESH_PHASE_1);
+    net_state_key_refresh_phase_changed_Expect(key_index, new_beacon_secmat.net_id, NRF_MESH_KEY_REFRESH_PHASE_1);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_update(key_index, new_key));
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_kr_phase_get(network_handle, &current_phase));
@@ -1880,7 +1897,7 @@ void test_key_refresh_all_phases(void)
     for (uint32_t i = 0; i < ARRAY_SIZE(app); i++)
     {
         nrf_mesh_secmat_t secmat;
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(app[i].handle, &secmat));
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(DSM_HANDLE_INVALID, app[i].handle, &secmat));
 
         /* Verify application secmat: */
         TEST_ASSERT_EQUAL_HEX8_ARRAY(app[i].key, secmat.p_app->key, NRF_MESH_KEY_SIZE);
@@ -1928,7 +1945,7 @@ void test_key_refresh_all_phases(void)
 
     /* Enter key refresh phase 2, by swapping the keys used for transmission of packets: */
     flash_expect_subnet_update(old_key, new_key, key_index, NRF_MESH_KEY_REFRESH_PHASE_2, network_handle);
-    net_state_key_refresh_phase_changed_Expect(key_index, NRF_MESH_KEY_REFRESH_PHASE_2);
+    net_state_key_refresh_phase_changed_Expect(key_index, new_beacon_secmat.net_id, NRF_MESH_KEY_REFRESH_PHASE_2);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_update_swap_keys(network_handle));
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, dsm_subnet_update_swap_keys(network_handle));
 
@@ -1939,7 +1956,7 @@ void test_key_refresh_all_phases(void)
     for (uint32_t i = 0; i < ARRAY_SIZE(app); i++)
     {
         nrf_mesh_secmat_t secmat;
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(app[i].handle, &secmat));
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(DSM_HANDLE_INVALID, app[i].handle, &secmat));
 
         /* Verify application secmat: */
         if (i == 0 || i == 1) /* The first two application keys were set to 0 above */
@@ -2011,7 +2028,7 @@ void test_key_refresh_all_phases(void)
     for (uint32_t i = 0; i < ARRAY_SIZE(app); i++)
     {
         nrf_mesh_secmat_t secmat;
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(app[i].handle, &secmat));
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(DSM_HANDLE_INVALID, app[i].handle, &secmat));
 
         /* Verify application secmat: */
         if (i == 0 || i == 1)
@@ -2095,7 +2112,7 @@ void test_key_refresh_1_to_3(void)
     nrf_mesh_keygen_network_secmat_ExpectAndReturn(new_key, NULL, NRF_SUCCESS);
     nrf_mesh_keygen_network_secmat_IgnoreArg_p_secmat();
     nrf_mesh_keygen_network_secmat_ReturnMemThruPtr_p_secmat(&new_secmat, sizeof(new_secmat));
-    net_state_key_refresh_phase_changed_Expect(key_index, NRF_MESH_KEY_REFRESH_PHASE_1);
+    net_state_key_refresh_phase_changed_Expect(key_index, new_beacon_secmat.net_id, NRF_MESH_KEY_REFRESH_PHASE_1);
     nrf_mesh_keygen_beacon_secmat_ExpectAndReturn(new_key, NULL, NRF_SUCCESS);
     nrf_mesh_keygen_beacon_secmat_IgnoreArg_p_secmat();
     nrf_mesh_keygen_beacon_secmat_ReturnMemThruPtr_p_secmat(&new_beacon_secmat, sizeof(new_beacon_secmat));
@@ -2106,7 +2123,7 @@ void test_key_refresh_1_to_3(void)
     TEST_ASSERT_EQUAL(NRF_MESH_KEY_REFRESH_PHASE_1, current_phase);
 
     /* Skip phase 2 and go directly to phase 3 (which goes immediately to phase 0 again): */
-    net_state_key_refresh_phase_changed_Expect(key_index, NRF_MESH_KEY_REFRESH_PHASE_0);
+    net_state_key_refresh_phase_changed_Expect(key_index, new_beacon_secmat.net_id, NRF_MESH_KEY_REFRESH_PHASE_0);
     flash_expect_subnet(new_key, key_index);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_update_commit(network_handle));
 
@@ -2319,7 +2336,7 @@ void test_flash_load(void)
     for (uint32_t i = 0; i < ENTRY_COUNT; ++i)
     {
         nrf_mesh_secmat_t secmat;
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(i + DSM_APP_MAX, &secmat));
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_tx_secmat_get(DSM_HANDLE_INVALID, i + DSM_APP_MAX, &secmat));
         TEST_ASSERT_EQUAL(true, secmat.p_app->is_device_key);
         TEST_ASSERT_EQUAL_HEX8_ARRAY(devkeys[i].entry.devkey.key,
                                      secmat.p_app->key,
@@ -2472,6 +2489,7 @@ void test_flash_insufficient_resources(void)
         NRF_ERROR_NO_MEM);
     m_fm_mem_listener_register_expect = 1;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_appkey_delete(app[0].handle));
+    TEST_ASSERT_EQUAL(0, m_fm_mem_listener_register_expect);
 
     flash_manager_entry_invalidate_ExpectAndReturn(
         mp_flash_manager,
@@ -2479,15 +2497,10 @@ void test_flash_insufficient_resources(void)
         NRF_ERROR_NO_MEM);
     flash_manager_entry_invalidate_ExpectAndReturn(
         mp_flash_manager,
-        DSM_HANDLE_TO_FLASH_HANDLE(DSM_FLASH_GROUP_DEVKEYS, dev[1].handle - DSM_APP_MAX),
-        NRF_ERROR_NO_MEM);
-    flash_manager_entry_invalidate_ExpectAndReturn(
-        mp_flash_manager,
         DSM_HANDLE_TO_FLASH_HANDLE(DSM_FLASH_GROUP_SUBNETS, net[0].handle),
         NRF_ERROR_NO_MEM);
-    TEST_ASSERT_EQUAL(0, m_fm_mem_listener_register_expect);
-    m_fm_mem_listener_register_expect = 3;
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_delete(net[0].handle)); /* This'll also delete dev[1] and app[1], as they're bound to it */
+    m_fm_mem_listener_register_expect = 2;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_delete(net[0].handle)); /* This'll also delete app[1] not dev[1], as it's bound to application key */
     TEST_ASSERT_EQUAL(0, m_fm_mem_listener_register_expect);
 
     flash_manager_entry_invalidate_ExpectAndReturn(
@@ -2563,10 +2576,6 @@ void test_flash_insufficient_resources(void)
     flash_manager_entry_invalidate_ExpectAndReturn(
         mp_flash_manager,
         DSM_HANDLE_TO_FLASH_HANDLE(DSM_FLASH_GROUP_DEVKEYS, dev[0].handle - DSM_APP_MAX),
-        NRF_SUCCESS);
-    flash_manager_entry_invalidate_ExpectAndReturn(
-        mp_flash_manager,
-        DSM_HANDLE_TO_FLASH_HANDLE(DSM_FLASH_GROUP_DEVKEYS, dev[1].handle - DSM_APP_MAX),
         NRF_SUCCESS);
     /* Flash the last one, the listener shouldn't register this time. */
     mp_mem_listener->callback(mp_mem_listener->p_args);

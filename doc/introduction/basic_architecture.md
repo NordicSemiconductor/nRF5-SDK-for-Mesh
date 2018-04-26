@@ -6,7 +6,7 @@ The mesh stack's structure is based off the structure of the Bluetooth Mesh Spec
 
 ## Overview
 
- ![Basic Mesh architecture](img/basic_architecture.svg)
+ ![Basic architecture of the mesh stack in the nRF5 SDK for Mesh](img/basic_architecture.svg)
 
 - **Models**: The Bluetooth Mesh models present and implement device behavior.
 - **Access**: The Bluetooth Mesh access layer organizes models and communication.
@@ -15,7 +15,7 @@ The mesh stack's structure is based off the structure of the Bluetooth Mesh Spec
 - **Provisioning**: The Bluetooth Mesh provisioning protocol is used for adding devices to the network.
 - **Bearer**: The Bearer layer takes care of low-level radio operation.
 - **DFU**: The Device Firmware Upgrade module cooperates with a bootloader to enable firmware upgrades through the mesh.
-- **Node Config** (not pictured): The node configuration is a utility module that manages the configuration and setup of the device.
+- **Mesh Stack** (not pictured): Top level functionality for initializing and starting the stack.
 - **Serial** (not pictured): Application-level serialization of the Mesh API allows the mesh to be controlled by a separate host device.
 
 ## Models
@@ -24,7 +24,7 @@ The models define the behavior and communication formats of all data that is tra
 
 The Bluetooth Mesh Specification defines a set of immutable models for typical usage scenarios, but vendors are also free to implement their own models.
 
-You can read more about how to implement your own models in [Creating custom models](@ref md_doc_getting_started_how_to_models).
+You can read more about how to implement your own models in [Creating new models](@ref md_doc_getting_started_how_to_models).
 
 ## Access
 
@@ -84,11 +84,11 @@ Note that the DFU procedure is not compatible with the Bluetooth low energy secu
 
 For more information about the DFU procedure, see the [DFU quick start guide](@ref md_doc_getting_started_dfu_quick_start).
 
-## Node Config
+## Mesh Stack
 
-*API:* \ref NRF_MESH_NODE_CONFIG
+*API:* \ref MESH_STACK
 
-The Node Configuration module is a thin wrapper around the top-level mesh modules that makes it easy to get started using the mesh. It takes care of mesh initialization and starts the provisionee role, requesting to be added to a network. The Node Configuration module is the easiest way to get a new mesh device up and running, but it hides some of the more complex features and use-cases for the mesh device startup.
+The Mesh Stack module is a thin wrapper around the top-level mesh modules that makes it easy to get started using the mesh. It takes care of mesh initialization and enabling. It also contains functions for storing and erasing provisioning and state related data.
 
 ## Serial
 

@@ -32,8 +32,8 @@ if (NOT CMOCK_BIN)
     message(STATUS "CMock binary directory not set. Defaults to ${CMOCK_BIN}.")
 endif (NOT CMOCK_BIN)
 
-if (NOT EXISTS ${CMOCK_BIN})
-    make_directory(${CMOCK_BIN})
+if (NOT EXISTS ${CMOCK_BIN}/tmp)
+    make_directory(${CMOCK_BIN}/tmp)
 endif ()
 
 # Adds a base common unit test library
@@ -68,12 +68,24 @@ function (generate_mock_targets INCLUDE_GLOB_EXPRESSION EXCLUDE_REGEX)
         get_filename_component(header ${headerpath} NAME_WE)
         if (${header} MATCHES "${EXCLUDE_REGEX}")
             continue()
+        elseif (${headerpath} MATCHES "softdevice")
+            add_custom_command(OUTPUT ${CMOCK_BIN}/${header}_mock.c ${CMOCK_BIN}/${header}_mock.h
+                COMMAND ${RUBY_EXECUTABLE} ${CMOCK_ROOT}/lib/cmock.rb ${settings_arg} ${CMOCK_BIN}/tmp/${header}.h
+                DEPENDS ${CMOCK_BIN}/tmp/${header}.h
+                VERBATIM
+                COMMENT "Generating SoftDevice mock for ${header}.h...")
+
+            add_custom_command(OUTPUT ${CMOCK_BIN}/tmp/${header}.h
+                COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CONFIG_DIR}/svcall2func.py ${headerpath} ${CMOCK_BIN}/tmp/${header}.h
+                DEPENDS ${headerpath}
+                COMMENT "Preprocessing SoftDevice header")
+        else ()
+            add_custom_command(OUTPUT ${CMOCK_BIN}/${header}_mock.c ${CMOCK_BIN}/${header}_mock.h
+                COMMAND ${RUBY_EXECUTABLE} ${CMOCK_ROOT}/lib/cmock.rb ${settings_arg} ${headerpath}
+                DEPENDS ${headerpath}
+                VERBATIM
+                COMMENT "Generating mock for ${header}.h...")
         endif()
-        add_custom_command(OUTPUT ${CMOCK_BIN}/${header}_mock.c ${CMOCK_BIN}/${header}_mock.h
-            COMMAND ${RUBY_EXECUTABLE} ${CMOCK_ROOT}/lib/cmock.rb ${settings_arg} ${headerpath}
-            DEPENDS ${headerpath}
-            VERBATIM
-            COMMENT "Generating mock for ${header}.h...")
     endforeach(headerpath)
 endfunction (generate_mock_targets)
 
@@ -99,7 +111,7 @@ function (add_unit_test NAME SOURCES INCLUDE_DIRS COMPILE_OPTIONS)
                 DEPENDS ${source})
 
             target_sources(ut_${NAME} PUBLIC ${source})
-        else ()
+        elseif (source MATCHES mock)
             get_filename_component(base_name ${source} NAME_WE)
             if (NOT TARGET ${base_name})
                 # If there is no target to generate the mock object yet,
@@ -109,8 +121,10 @@ function (add_unit_test NAME SOURCES INCLUDE_DIRS COMPILE_OPTIONS)
                 target_compile_options(${base_name} PUBLIC ${COMPILE_OPTIONS})
             endif (NOT TARGET ${base_name})
 
+            target_sources(ut_${NAME} PUBLIC $<TARGET_OBJECTS:${base_name}>)
+        else ()
             target_sources(ut_${NAME} PUBLIC ${source})
-        endif (source MATCHES ut_)
+        endif ()
     endforeach (source IN ITEMS ${SOURCES})
     add_test(${NAME} ut_${NAME})
 endfunction (add_unit_test)

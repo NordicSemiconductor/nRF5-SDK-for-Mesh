@@ -98,13 +98,6 @@ The virtual addresses can be considered a special form of group addresses, and c
 virtual address is a 128-bit UUID generated from a text label. The virtual addresses do not have to be tracked by a network configuration device,
 and in this way, users can generate virtual addresses prior to deployment or addresses can be generated ad-hoc between devices in the network.
 
-## Provisioning
-
-Before a device can participate in normal mesh operation, it must be provisioned. During provisioning, a device gets added to the
-network and is assigned unicast addresses, a network key, and a device key. The provisioning is done by a _Provisioner_, which is
-a trusted device with access to the full list of devices in the network and their addresses. After the new device has been provisioned,
-the provisioner is expected to use the new device's device key to establish a secure channel to configure it.
-
 ## Models and Elements
 
 To standardize communication between devices from different vendors, the Mesh Profile Specification defines an access layer, which
@@ -129,6 +122,13 @@ address. Any model may maintain a publish address that it publishes messages to.
 
 ![Access layer structure](img/access.svg)
 
+## Provisioning
+
+Before a device can participate in normal mesh operation, it must be provisioned. During provisioning, a device gets added to the
+network and is assigned unicast addresses, a network key, and a device key. The provisioning is done by a _Provisioner_, which is
+a trusted device with access to the full list of devices in the network and their addresses. After the new device has been provisioned,
+the provisioner is expected to use the new device's device key to establish a secure channel to configure it.
+
 ## Configuring the network
 
 Bluetooth Mesh leaves the network configuration to a central network configurator. Devices are not expected to do any sort of service
@@ -140,7 +140,7 @@ As soon as provisioning is complete, the provisioner uses its instance of the Co
 of application keys and addresses. The device will use these keys and addresses for the duration of its lifetime on the network, unless
 it gets reconfigured.
 
-### Example scenario: Light switch
+### Example scenario: A light bulb and a switch
 
 After a new light switch has been provisioned, the Configuration Client model in the provisioner reads out a list of the new device's
 models and elements and presents them to the user. The user finds the light switch model in the device's model list and gives it the

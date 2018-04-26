@@ -1,4 +1,4 @@
-/* nRF5 SDK for Mesh Bootloader linker script -- Generated 2017-12-08 13:44:31 by tools/linker/linker_file_generator.py */
+/* nRF5 SDK for Mesh Bootloader linker script -- Generated 2018-04-16 14:38:46 by tools/linker/linker_file_generator.py */
 
 SEARCH_DIR(.)
 GROUP(-lgcc -lc -lnosys)
@@ -13,7 +13,7 @@ MEMORY
 
 SECTIONS
 {
-    .core_data :
+    .core_data (NOLOAD) :
     {
         __core_ram_start__ = .;
         . = ALIGN(4);
@@ -28,7 +28,7 @@ SECTIONS
         . = ALIGN(4);
         __core_ram_end__ = .;
     } > CORE_BL_RAM
-    .core_bss :
+    .core_bss (NOLOAD) :
     {
         __core_ram_start__ = .;
         . = ALIGN(4);
@@ -59,4 +59,4 @@ SECTIONS
     } > UICR_MBRPARAMADDR
 }
 
-INCLUDE "nrf5x_common.ld"
+INCLUDE "nrf_common.ld"

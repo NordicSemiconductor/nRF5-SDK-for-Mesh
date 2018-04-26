@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -52,6 +52,7 @@
 #include "serial_status.h"
 #include "packet_buffer.h"
 #include "bearer_event.h"
+#include "toolchain.h"
 
 /** Defines for SLIP encoding: see https://tools.ietf.org/html/rfc1055 */
 #define SLIP_END     0xC0
@@ -332,7 +333,8 @@ static inline void char_rx_with_slip_encoding(uint16_t * p_rx_index, uint8_t byt
     {
         end_reception(p_rx_index);
     }
-    else if (NULL != mp_current_rx_packet && *p_rx_index == ((serial_packet_t*)(mp_current_rx_packet->packet))->length + 1)
+    else if (NULL != mp_current_rx_packet &&
+             *p_rx_index == ((serial_packet_t*)(mp_current_rx_packet->packet))->length + 1)
     {
 
         send_cmd_response(SERIAL_STATUS_ERROR_INVALID_LENGTH, ((serial_packet_t *)mp_current_rx_packet)->opcode);
@@ -401,15 +403,17 @@ static bool do_transmit(void)
     if (SERIAL_STATE_IDLE == m_serial_state &&
         NRF_SUCCESS == packet_buffer_pop(&m_tx_packet_buf, &mp_current_tx_packet))
     {
-        uint8_t value = mp_current_tx_packet->packet[0];
-#ifdef SERIAL_SLIP_ENCODING
-        slip_encoding_get(&value, &m_tx_slip_byte);
-#endif
         m_serial_state = SERIAL_STATE_TRANSMIT;
 
-        serial_uart_tx_start();
+#ifdef SERIAL_SLIP_ENCODING
+        serial_uart_byte_send(SLIP_END);
+        m_cur_tx_packet_index = 0;
+#else
+        uint8_t value = mp_current_tx_packet->packet[0];
         serial_uart_byte_send(value);
         m_cur_tx_packet_index = 1;
+#endif
+        serial_uart_tx_start();
     }
     return true;
 }

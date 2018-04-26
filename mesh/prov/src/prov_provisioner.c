@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -219,6 +219,7 @@ static uint32_t start_authentication(nrf_mesh_prov_ctx_t * p_ctx)
     }
     return status;
 }
+
 /****************** Call-back functions ******************/
 static void prov_provisioner_cb_link_established(prov_bearer_t * p_bearer)
 {
@@ -270,6 +271,10 @@ static void prov_provisioner_cb_ack_received(prov_bearer_t * p_bearer)
                     p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
             }
         }
+    }
+    else if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_PUB_KEY_ACK)
+    {
+    	(void) start_authentication(p_ctx);
     }
 }
 
@@ -413,14 +418,9 @@ static void prov_provisioner_pkt_in(prov_bearer_t * p_bearer, const uint8_t * p_
 
                 nrf_mesh_prov_evt_t app_event;
                 app_event.type = NRF_MESH_PROV_EVT_COMPLETE;
-                app_event.params.complete.p_context =  p_ctx;
+                app_event.params.complete.p_context = p_ctx;
                 app_event.params.complete.p_devkey = p_ctx->device_key;
-                app_event.params.complete.p_netkey = p_ctx->data.netkey;
-                app_event.params.complete.iv_index = p_ctx->data.iv_index;
-                app_event.params.complete.netkey_index = p_ctx->data.netkey_index;
-                app_event.params.complete.address = p_ctx->data.address;
-                app_event.params.complete.flags.iv_update = p_ctx->data.flags.iv_update;
-                app_event.params.complete.flags.key_refresh = p_ctx->data.flags.key_refresh;
+                app_event.params.complete.p_prov_data = &p_ctx->data;
                 p_ctx->event_handler(&app_event);
 
                 p_ctx->p_active_bearer->p_interface->link_close(
@@ -534,6 +534,10 @@ uint32_t prov_provisioner_auth_data(nrf_mesh_prov_ctx_t * p_ctx, const uint8_t *
 
     memcpy(p_ctx->auth_value, p_data, size);
     memset(&p_ctx->auth_value[size], 0, sizeof(p_ctx->auth_value) - size); /* Add zero-padding to the authentication data. */
+    if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_OOB_INPUT)
+    {
+        utils_reverse_array(p_ctx->auth_value, sizeof(p_ctx->auth_value));
+    }
 
     return send_confirmation(p_ctx);
 }

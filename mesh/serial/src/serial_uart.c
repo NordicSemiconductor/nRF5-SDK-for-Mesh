@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -44,18 +44,9 @@
 #include "nrf.h"
 #include "nrf_mesh_serial.h"
 #include "nrf_mesh_assert.h"
+#include "nrf_mesh_defines.h"
 
-
-#if defined(NRF51)
-/** UART IRQ level defaults to correspond with `APP_IRQ_PRIORITY_LOW` */
-#define UART_IRQ_LEVEL (3)
-#elif defined(NRF52_SERIES)
-/** UART IRQ level defaults to correspond with `APP_IRQ_PRIORITY_LOW` */
-#define UART_IRQ_LEVEL (6)
-#else
-#error "Unsupported platform"
-#endif
-
+#define UART_IRQ_LEVEL NRF_MESH_IRQ_PRIORITY_LOWEST
 
 /********** Static variables **********/
 static bool m_can_receive;

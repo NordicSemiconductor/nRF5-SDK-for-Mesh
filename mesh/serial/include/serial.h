@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -57,7 +57,7 @@
  */
 
 /** Serial API version. */
-#define SERIAL_API_VERSION 5
+#define SERIAL_API_VERSION 6
 
 /**
  * Initializes the serial interface abstraction layer.

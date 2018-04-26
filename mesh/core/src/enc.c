@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -102,7 +102,7 @@ void enc_nonce_generate(const network_packet_metadata_t * p_net_metadata,
         case ENC_NONCE_NET:
         {
             enc_nonce_net_t * p_net_nonce = (enc_nonce_net_t *) p_nonce;
-            p_net_nonce->type     = ENC_NONCE_NET;
+            p_net_nonce->type     = type;
             p_net_nonce->ttl      = p_net_metadata->ttl;
             p_net_nonce->ctl      = p_net_metadata->control_packet;
             p_net_nonce->seq      = LE2BE24(p_net_metadata->internal.sequence_number);
@@ -122,6 +122,17 @@ void enc_nonce_generate(const network_packet_metadata_t * p_net_metadata,
             p_app_nonce->src      = LE2BE16(p_net_metadata->src);
             p_app_nonce->dst      = LE2BE16(p_net_metadata->dst.value);
             p_app_nonce->iv_index = LE2BE32(p_net_metadata->internal.iv_index);
+            break;
+        }
+        case ENC_NONCE_PROXY:
+        {
+            enc_nonce_proxy_t * p_proxy_nonce = (enc_nonce_proxy_t *) p_nonce;
+            p_proxy_nonce->type     = type;
+            p_proxy_nonce->pad      = 0;
+            p_proxy_nonce->seq      = LE2BE24(p_net_metadata->internal.sequence_number);
+            p_proxy_nonce->src      = LE2BE16(p_net_metadata->src);
+            p_proxy_nonce->pad2     = 0;
+            p_proxy_nonce->iv_index = LE2BE32(p_net_metadata->internal.iv_index);
             break;
         }
         default:

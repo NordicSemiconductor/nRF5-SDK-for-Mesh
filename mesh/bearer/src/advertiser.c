@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -92,10 +92,6 @@ static void broadcast_complete_cb(broadcast_params_t * p_broadcast, uint32_t tim
         packet_buffer_packet_t * p_buf_packet = get_packet_buffer_from_adv_packet(p_adv->p_packet);
         p_adv->p_packet = NULL;
         packet_buffer_free(&p_adv->buf, p_buf_packet);
-        if (!packet_buffer_can_pop(&p_adv->buf))
-        {
-            timer_sch_abort(&p_adv->timer);
-        }
     }
 }
 
@@ -282,7 +278,7 @@ static inline void set_adv_address(advertiser_t * p_adv, packet_t * p_packet)
 static void tx_complete_event_callback(void * p_context)
 {
     advertiser_t * p_adv = (advertiser_t *)p_context;
-    
+
     NRF_MESH_ASSERT(p_adv != NULL);
     NRF_MESH_ASSERT(p_adv->tx_complete_callback != NULL);
     p_adv->tx_complete_callback(p_adv, p_adv->tx_complete_params.token, p_adv->tx_complete_params.timestamp);

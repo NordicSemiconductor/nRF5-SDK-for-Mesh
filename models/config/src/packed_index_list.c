@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -36,12 +36,6 @@
  */
 
 #include "packed_index_list.h"
-
-uint32_t packed_index_list_size(uint16_t index_count)
-{
-    return (index_count / 2) * 3 /* Every pair of indexes needs 3 octets */
-        + (index_count & 1) * 2; /* If the number of octets is odd, the last octet needs 2 octets by itself. */
-}
 
 void packed_index_list_create(const uint16_t * restrict p_index_list,
         uint8_t * restrict p_packed_list, uint16_t index_count)

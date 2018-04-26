@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -38,27 +38,55 @@
 #include "nrf_mesh_assert.h"
 #include "utils.h"
 #include "nordic_common.h"
+#include "list.h"
+#include "log.h"
 
-/** Number of supported concurrent bearers. Should match the core_tx_bearer_t structure. */
-#define BEARER_COUNT (1)
-
+NRF_MESH_STATIC_ASSERT(sizeof(core_tx_bearer_bitmap_t) * 8 >= CORE_TX_BEARER_COUNT_MAX);
 /*****************************************************************************
 * Static globals
 *****************************************************************************/
 
 static core_tx_complete_cb_t m_tx_complete_callback;
 
-static const core_tx_bearer_interface_t * m_bearers[BEARER_COUNT];
+/** Linked list of all registered bearers. */
+static list_node_t * mp_bearers;
+
+/** Staging-packet state */
+struct
+{
+    uint8_t length;
+    packet_mesh_net_packet_t buffer;
+    core_tx_bearer_bitmap_t bearer_bitmap;
+} m_packet;
+
+/** Number of active bearers */
+static uint8_t m_bearer_count;
 /*****************************************************************************
 * Static functions
 *****************************************************************************/
-static inline const core_tx_bearer_interface_t * bearer_if_get(core_tx_bearer_t bearer)
+static inline void alloc_result_log(core_tx_bearer_t * p_bearer, core_tx_alloc_result_t result)
 {
-    /** Can only get a single bearer at a time. */
-    NRF_MESH_ASSERT(is_power_of_two(bearer));
-    uint32_t index = log2_get((uint32_t) bearer);
-    NRF_MESH_ASSERT(index < BEARER_COUNT);
-    return m_bearers[index];
+#ifdef CORE_TX_DEBUG
+    switch (result)
+    {
+        case CORE_TX_ALLOC_SUCCESS:
+            p_bearer->debug.alloc_count++;
+            break;
+        case CORE_TX_ALLOC_FAIL_REJECTED:
+            p_bearer->debug.reject_count++;
+            break;
+        case CORE_TX_ALLOC_FAIL_NO_MEM:
+            p_bearer->debug.no_mem_count++;
+            break;
+        default:
+            __LOG(LOG_SRC_NETWORK, LOG_LEVEL_WARN, "Unknown result %u\n", result);
+            return;
+    }
+    static const char * p_result_names[] = {[CORE_TX_ALLOC_SUCCESS]             = "Success",
+                                            [CORE_TX_ALLOC_FAIL_REJECTED]       = "Rejected",
+                                            [CORE_TX_ALLOC_FAIL_NO_MEM]         = "No memory"};
+    __LOG(LOG_SRC_NETWORK, LOG_LEVEL_INFO, "Bearer 0x%p alloc: %s\n", p_bearer, p_result_names[result]);
+#endif
 }
 /*****************************************************************************
 * Interface functions
@@ -69,65 +97,131 @@ void core_tx_complete_cb_set(core_tx_complete_cb_t tx_complete_callback)
     m_tx_complete_callback = tx_complete_callback;
 }
 
-core_tx_bearer_t core_tx_packet_alloc(uint32_t net_packet_len,
-                                      const core_tx_metadata_t * p_metadata,
-                                      uint8_t ** pp_packet,
-                                      nrf_mesh_tx_token_t token)
+core_tx_bearer_bitmap_t core_tx_packet_alloc(const core_tx_alloc_params_t * p_params, uint8_t ** pp_packet)
 {
-    NRF_MESH_ASSERT(p_metadata != NULL);
+    NRF_MESH_ASSERT(p_params != NULL);
     NRF_MESH_ASSERT(pp_packet != NULL);
-    NRF_MESH_ASSERT((uint8_t) p_metadata->bearer < (1 << BEARER_COUNT));
-    NRF_MESH_ASSERT(is_power_of_two(p_metadata->bearer));
-    NRF_MESH_ASSERT(p_metadata->role < CORE_TX_ROLE_COUNT);
-    core_tx_bearer_t bearers = (core_tx_bearer_t) 0;
+    NRF_MESH_ASSERT(p_params->role < CORE_TX_ROLE_COUNT);
+    NRF_MESH_ASSERT(m_packet.bearer_bitmap == 0);
+    NRF_MESH_ASSERT(p_params->net_packet_len <= sizeof(m_packet.buffer));
 
-    *pp_packet = bearer_if_get(p_metadata->bearer)->packet_alloc(net_packet_len, p_metadata, token);
-
-    if (*pp_packet != NULL)
+    if (p_params->role == CORE_TX_ROLE_RELAY)
     {
-        bearers = p_metadata->bearer;
+        NRF_MESH_ASSERT(p_params->token == CORE_TX_TOKEN_RELAY);
     }
-    return bearers;
+
+
+    LIST_FOREACH(p_iterator, mp_bearers)
+    {
+        core_tx_bearer_t * p_bearer = PARENT_BY_FIELD_GET(core_tx_bearer_t, list_node, p_iterator);
+
+        core_tx_alloc_result_t result = p_bearer->p_interface->packet_alloc(p_bearer, p_params);
+
+        alloc_result_log(p_bearer, result);
+
+        if (result == CORE_TX_ALLOC_SUCCESS)
+        {
+            m_packet.bearer_bitmap |= (1 << p_bearer->bearer_index);
+        }
+    }
+
+    if (m_packet.bearer_bitmap != 0)
+    {
+        m_packet.length = p_params->net_packet_len;
+        *pp_packet = m_packet.buffer.pdu;
+    }
+    return m_packet.bearer_bitmap;
 }
 
-void core_tx_packet_send(const core_tx_metadata_t * p_metadata, uint8_t * p_packet)
+void core_tx_packet_send(void)
 {
-    NRF_MESH_ASSERT(p_metadata != NULL);
-    NRF_MESH_ASSERT(p_packet != NULL);
-    NRF_MESH_ASSERT((uint8_t) p_metadata->bearer < (1 << BEARER_COUNT));
-    NRF_MESH_ASSERT(is_power_of_two(p_metadata->bearer));
-    NRF_MESH_ASSERT(p_metadata->role < CORE_TX_ROLE_COUNT);
+    NRF_MESH_ASSERT(m_packet.bearer_bitmap != 0);
 
-    bearer_if_get(p_metadata->bearer)->packet_send(p_metadata, p_packet);
+    LIST_FOREACH(p_iterator, mp_bearers)
+    {
+        core_tx_bearer_t * p_bearer = PARENT_BY_FIELD_GET(core_tx_bearer_t, list_node, p_iterator);
+
+        if (m_packet.bearer_bitmap & (1 << p_bearer->bearer_index))
+        {
+            p_bearer->p_interface->packet_send(p_bearer, m_packet.buffer.pdu, m_packet.length);
+        }
+    }
+    m_packet.bearer_bitmap = 0;
 }
 
-void core_tx_packet_discard(const core_tx_metadata_t * p_metadata, uint8_t * p_packet)
+void core_tx_packet_discard(void)
 {
-    NRF_MESH_ASSERT(p_metadata != NULL);
-    NRF_MESH_ASSERT(p_packet != NULL);
-    NRF_MESH_ASSERT((uint8_t) p_metadata->bearer < (1 << BEARER_COUNT));
-    NRF_MESH_ASSERT(is_power_of_two(p_metadata->bearer));
-    NRF_MESH_ASSERT(p_metadata->role < CORE_TX_ROLE_COUNT);
+    NRF_MESH_ASSERT(m_packet.bearer_bitmap != 0);
 
-    bearer_if_get(p_metadata->bearer)->packet_discard(p_metadata, p_packet);
+    LIST_FOREACH(p_iterator, mp_bearers)
+    {
+        core_tx_bearer_t * p_bearer = PARENT_BY_FIELD_GET(core_tx_bearer_t, list_node, p_iterator);
+
+        if (m_packet.bearer_bitmap & (1 << p_bearer->bearer_index))
+        {
+            p_bearer->p_interface->packet_discard(p_bearer);
+        }
+    }
+    m_packet.bearer_bitmap = 0;
 }
 
-void core_tx_complete(const core_tx_metadata_t * p_metadata,
+core_tx_bearer_type_t core_tx_bearer_type_get(uint32_t bearer_index)
+{
+    LIST_FOREACH(p_iterator, mp_bearers)
+    {
+        core_tx_bearer_t * p_bearer = PARENT_BY_FIELD_GET(core_tx_bearer_t, list_node, p_iterator);
+
+        if (bearer_index == p_bearer->bearer_index)
+        {
+            return p_bearer->type;
+        }
+    }
+    return CORE_TX_BEARER_TYPE_INVALID;
+}
+
+
+uint32_t core_tx_bearer_count_get(void)
+{
+    return m_bearer_count;
+}
+
+void core_tx_complete(core_tx_bearer_t * p_bearer,
+                      core_tx_role_t role,
                       uint32_t timestamp,
                       nrf_mesh_tx_token_t token)
 {
+    NRF_MESH_ASSERT(p_bearer);
+
     if (m_tx_complete_callback)
     {
-        m_tx_complete_callback(p_metadata, timestamp, token);
+        m_tx_complete_callback(role, p_bearer->bearer_index, timestamp, token);
     }
 }
 
-void core_tx_bearer_register(core_tx_bearer_t bearer, const core_tx_bearer_interface_t * p_interface)
+void core_tx_bearer_add(core_tx_bearer_t * p_bearer,
+                        const core_tx_bearer_interface_t * p_interface,
+                        core_tx_bearer_type_t type)
 {
-    NRF_MESH_ASSERT(bearer_if_get(bearer) == NULL);
+    NRF_MESH_ASSERT(p_bearer != NULL);
     NRF_MESH_ASSERT(p_interface != NULL);
+    NRF_MESH_ASSERT(type != CORE_TX_BEARER_TYPE_INVALID);
     NRF_MESH_ASSERT(p_interface->packet_alloc != NULL);
     NRF_MESH_ASSERT(p_interface->packet_send != NULL);
     NRF_MESH_ASSERT(p_interface->packet_discard != NULL);
-    m_bearers[log2_get((uint32_t) bearer)] = p_interface;
+    NRF_MESH_ASSERT(m_bearer_count < CORE_TX_BEARER_COUNT_MAX);
+
+    p_bearer->p_interface  = p_interface;
+    p_bearer->bearer_index = m_bearer_count++;
+    p_bearer->type         = type;
+
+    list_add(&mp_bearers, &p_bearer->list_node);
 }
+
+#ifdef UNIT_TEST
+void core_tx_reset(void)
+{
+    mp_bearers = NULL;
+    m_bearer_count = 0;
+    m_packet.bearer_bitmap = 0;
+}
+#endif

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -45,7 +45,7 @@
 /**
  * @defgroup SIMPLE_ON_OFF_SERVER Simple OnOff Server
  * @ingroup SIMPLE_ON_OFF_MODEL
- * This module implements a simple proprietary Simple OnOff Server.
+ * This module implements a vendor specific Simple OnOff Server.
  * @{
  */
 
@@ -97,6 +97,28 @@ struct __simple_on_off_server
  * @retval NRF_ERROR_NOT_FOUND Invalid element index.
  */
 uint32_t simple_on_off_server_init(simple_on_off_server_t * p_server, uint16_t element_index);
+
+/**
+ * Publishes unsolicited status message.
+ *
+ * This API can be used to send unsolicited status messages to report updated state value as a result
+ * of local action.
+ *
+ * @param[in]  p_server         Simple OnOff Server structure pointer
+ * @param[in]  value            Current on/off value to be published
+ *
+ * @retval NRF_SUCCESS              Successfully queued packet for transmission.
+ * @retval NRF_ERROR_NULL           NULL pointer supplied to function.
+ * @retval NRF_ERROR_NO_MEM         Not enough memory available for message.
+ * @retval NRF_ERROR_NOT_FOUND      Invalid model handle or model not bound to element.
+ * @retval NRF_ERROR_INVALID_ADDR   The element index is greater than the number of local unicast
+ *                                  addresses stored by the @ref DEVICE_STATE_MANAGER.
+ * @retval NRF_ERROR_INVALID_PARAM  Model not bound to appkey, publish address not set or wrong
+ *                                  opcode format.
+ * @retval NRF_ERROR_INVALID_LENGTH Attempted to send message larger than @ref ACCESS_MESSAGE_LENGTH_MAX.
+ *
+ */
+uint32_t simple_on_off_server_status_publish(simple_on_off_server_t * p_server, bool value);
 
 /** @} end of SIMPLE_ON_OFF_SERVER */
 

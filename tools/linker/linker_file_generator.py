@@ -1,4 +1,4 @@
-# Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+# Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -86,6 +86,8 @@ def write_app_linker_files(platforms, softdevices, timestamp, outdirs):
     d = {}
     for p in platforms:
         for sd in p["softdevices"]:
+            if "s110" in sd["name"].lower():
+                continue
             print("Writing application linker files for: {p[name]} {sd[name]}".format(p=p, sd=sd))
 
             d["application"] = get_application_limits(p, sd)
@@ -121,7 +123,10 @@ def main():
     write_app_linker_files(platforms, softdevices, timestamp,
                            ["examples/beaconing/linker",
                             "examples/dfu/linker",
+                            "examples/enocean_switch/linker",
+                            "examples/light_switch/provisioner/linker",
                             "examples/light_switch/client/linker",
+                            "examples/light_switch/proxy_server/linker",
                             "examples/light_switch/server/linker",
                             "examples/pb_remote/client/linker",
                             "examples/pb_remote/server/linker",

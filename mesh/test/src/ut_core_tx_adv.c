@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -42,12 +42,15 @@
 #include "core_tx_mock.h"
 #include "advertiser_mock.h"
 #include "nordic_common.h"
+#include "test_assert.h"
+
 
 #define TOKEN   0x12345678
 
 static advertiser_t * mp_advertisers[CORE_TX_ROLE_COUNT];
 
 static const core_tx_bearer_interface_t * mp_interface;
+static core_tx_bearer_t * mp_bearer;
 
 void setUp(void)
 {
@@ -82,13 +85,15 @@ void advertiser_instance_init_cb(advertiser_t * p_adv, advertiser_tx_complete_cb
     advertiser_enable_Expect(p_adv);
 }
 
-void core_tx_bearer_register_cb(core_tx_bearer_t bearer, const core_tx_bearer_interface_t * p_if, int count)
+void core_tx_bearer_add_cb(core_tx_bearer_t * p_bearer, const core_tx_bearer_interface_t * p_if, core_tx_bearer_type_t type, int count)
 {
-    TEST_ASSERT_EQUAL(CORE_TX_BEARER_ADV, bearer);
+    TEST_ASSERT_EQUAL(CORE_TX_BEARER_TYPE_ADV, type);
     TEST_ASSERT_NOT_NULL(p_if);
+    TEST_ASSERT_NOT_NULL(p_bearer);
     TEST_ASSERT_NOT_NULL(p_if->packet_alloc);
     TEST_ASSERT_NOT_NULL(p_if->packet_discard);
     TEST_ASSERT_NOT_NULL(p_if->packet_send);
+    mp_bearer    = p_bearer;
     mp_interface = p_if;
 }
 /*****************************************************************************
@@ -97,7 +102,7 @@ void core_tx_bearer_register_cb(core_tx_bearer_t bearer, const core_tx_bearer_in
 void test_init(void)
 {
     advertiser_instance_init_StubWithCallback(advertiser_instance_init_cb);
-    core_tx_bearer_register_StubWithCallback(core_tx_bearer_register_cb);
+    core_tx_bearer_add_StubWithCallback(core_tx_bearer_add_cb);
     core_tx_adv_init();
     TEST_ASSERT_NOT_NULL(mp_advertisers[0]);
     TEST_ASSERT_NOT_NULL(mp_advertisers[1]);
@@ -108,25 +113,30 @@ void test_init(void)
     TEST_ASSERT_NOT_EQUAL(mp_advertisers[0]->buf.buffer, mp_advertisers[1]->buf.buffer);
 }
 
-void test_alloc(void)
+void test_alloc_send_discard(void)
 {
     test_init();
 
-    core_tx_metadata_t metadata;
-    uint8_t * p_packet;
     adv_packet_t adv_packet;
     struct
     {
         core_tx_role_t role;
         uint8_t size;
         bool successful_alloc;
+        bool send;
     } vector[] = {
-        {CORE_TX_ROLE_ORIGINATOR, 12, true},
-        {CORE_TX_ROLE_ORIGINATOR, 0, true},
+        /* Send all: */
+        {CORE_TX_ROLE_ORIGINATOR, 12, true, true},
+        {CORE_TX_ROLE_ORIGINATOR, 0, true, true},
         {CORE_TX_ROLE_ORIGINATOR, 12, false},
-        {CORE_TX_ROLE_RELAY, 12, true},
-        {CORE_TX_ROLE_ORIGINATOR, 29, true},
-        {CORE_TX_ROLE_ORIGINATOR, 30, false}, /* Not up to core tx to police the length */
+        {CORE_TX_ROLE_RELAY, 12, true, true},
+        {CORE_TX_ROLE_ORIGINATOR, 29, true, true},
+        {CORE_TX_ROLE_ORIGINATOR, 30, false},
+        /* Discard all: */
+        {CORE_TX_ROLE_ORIGINATOR, 12, true, false},
+        {CORE_TX_ROLE_ORIGINATOR, 0, true, false},
+        {CORE_TX_ROLE_RELAY, 12, true, false},
+        {CORE_TX_ROLE_ORIGINATOR, 29, true, false},
     };
 
     /* Set repeat count per role, so we can verify that they're correct on the returned packet. */
@@ -138,83 +148,55 @@ void test_alloc(void)
 
     for (uint32_t i = 0; i < ARRAY_SIZE(vector); ++i)
     {
-        memset(&metadata, 0, sizeof(metadata));
         memset(&adv_packet, 0, sizeof(adv_packet));
+        network_packet_metadata_t metadata;
+        core_tx_alloc_params_t params = {.role           = vector[i].role,
+                                         .net_packet_len = vector[i].size,
+                                         .p_metadata     = &metadata,
+                                         .token          = TOKEN};
 
-        metadata.bearer = CORE_TX_BEARER_ADV;
-        metadata.role = vector[i].role;
-
-        advertiser_packet_alloc_ExpectAndReturn(mp_advertisers[metadata.role],
+        advertiser_packet_alloc_ExpectAndReturn(mp_advertisers[vector[i].role],
                                                 vector[i].size + 2,
                                                 vector[i].successful_alloc ? &adv_packet
                                                                             : NULL);
-        p_packet = mp_interface->packet_alloc(vector[i].size, &metadata, TOKEN);
+
+        core_tx_alloc_result_t result = mp_interface->packet_alloc(mp_bearer, &params);
         if (vector[i].successful_alloc)
         {
-            TEST_ASSERT_NOT_NULL(p_packet);
-            TEST_ASSERT_EQUAL_PTR(&adv_packet.packet.payload[2], p_packet);
-            TEST_ASSERT_EQUAL(repeat_counts[vector[i].role], adv_packet.config.repeats);
-            TEST_ASSERT_EQUAL(TOKEN, adv_packet.token);
+            TEST_ASSERT_EQUAL(CORE_TX_ALLOC_SUCCESS, result);
+
+            /* Duplicate alloc should result in assert */
+            TEST_NRF_MESH_ASSERT_EXPECT(mp_interface->packet_alloc(mp_bearer, &params));
+
+            /* Discard packet to allow next alloc */
+            if (vector[i].send)
+            {
+                packet_mesh_net_packet_t buffer;
+                memset(&buffer, 0xAB, sizeof(buffer));
+
+                advertiser_packet_send_Expect(mp_advertisers[vector[i].role], &adv_packet);
+                mp_interface->packet_send(mp_bearer, buffer.pdu, vector[i].size);
+
+                TEST_ASSERT_EQUAL_HEX8(vector[i].size + 1, adv_packet.packet.payload[0]);
+                TEST_ASSERT_EQUAL_HEX8(AD_TYPE_MESH, adv_packet.packet.payload[1]);
+                if (vector[i].size > 0)
+                {
+                    TEST_ASSERT_EQUAL_HEX8_ARRAY(buffer.pdu, &adv_packet.packet.payload[2], vector[i].size);
+                }
+                TEST_ASSERT_EQUAL(repeat_counts[vector[i].role], adv_packet.config.repeats);
+                TEST_ASSERT_EQUAL(TOKEN, adv_packet.token);
+            }
+            else
+            {
+                advertiser_packet_discard_Expect(mp_advertisers[vector[i].role], &adv_packet);
+                mp_interface->packet_discard(mp_bearer);
+            }
         }
         else
         {
-            TEST_ASSERT_NULL(p_packet);
+            TEST_ASSERT_EQUAL(CORE_TX_ALLOC_FAIL_NO_MEM, result);
         }
 
-    }
-}
-
-void test_discard(void)
-{
-    test_init();
-
-    core_tx_metadata_t metadata;
-    adv_packet_t adv_packet;
-    struct
-    {
-        core_tx_bearer_t bearer;
-        core_tx_role_t role;
-    } vector[] = {
-        {CORE_TX_BEARER_ADV, CORE_TX_ROLE_ORIGINATOR},
-        {CORE_TX_BEARER_ADV, CORE_TX_ROLE_RELAY},
-    };
-
-    for (uint32_t i = 0; i < ARRAY_SIZE(vector); ++i)
-    {
-        memset(&metadata, 0, sizeof(metadata));
-        memset(&adv_packet, 0, sizeof(adv_packet));
-
-        metadata.bearer = vector[i].bearer;
-        metadata.role = vector[i].role;
-        advertiser_packet_discard_Expect(mp_advertisers[metadata.role], &adv_packet);
-        mp_interface->packet_discard(&metadata, &adv_packet.packet.payload[2]);
-    }
-}
-
-void test_send(void)
-{
-    test_init();
-
-    core_tx_metadata_t metadata;
-    adv_packet_t adv_packet;
-    struct
-    {
-        core_tx_bearer_t bearer;
-        core_tx_role_t role;
-    } vector[] = {
-        {CORE_TX_BEARER_ADV, CORE_TX_ROLE_ORIGINATOR},
-        {CORE_TX_BEARER_ADV, CORE_TX_ROLE_RELAY},
-    };
-
-    for (uint32_t i = 0; i < ARRAY_SIZE(vector); ++i)
-    {
-        memset(&metadata, 0, sizeof(metadata));
-        memset(&adv_packet, 0, sizeof(adv_packet));
-
-        metadata.bearer = vector[i].bearer;
-        metadata.role = vector[i].role;
-        advertiser_packet_send_Expect(mp_advertisers[metadata.role], &adv_packet);
-        mp_interface->packet_send(&metadata, &adv_packet.packet.payload[2]);
     }
 }
 
@@ -230,9 +212,8 @@ void test_tx_complete(void)
     adv_packet_t packet;
     packet.token = TOKEN;
     packet.config.repeats = 0;
-    core_tx_metadata_t metadata = {.bearer = CORE_TX_BEARER_ADV, .role = CORE_TX_ROLE_ORIGINATOR};
 
-    core_tx_complete_Expect(&metadata, 1234, TOKEN);
+    core_tx_complete_Expect(mp_bearer, CORE_TX_ROLE_ORIGINATOR, 1234, TOKEN);
     mp_advertisers[CORE_TX_ROLE_ORIGINATOR]->tx_complete_callback(
         mp_advertisers[CORE_TX_ROLE_ORIGINATOR], packet.token, 1234);
 }

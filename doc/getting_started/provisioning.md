@@ -1,4 +1,4 @@
-# Mesh provisioning
+# Provisioning process and APIs
 
 ## Introduction
 
@@ -8,15 +8,15 @@ an address, and a device key, which is a special key only used for private commu
 between the provisioner and the provisionee (for example, when the device is being configured
 after provisioning).
 
-A device can be either a provisioner or a provisionee.
+A device can be either a provisioner (Provisioner role) or a provisionee (Node role).
 
 ## Using the provisioning API
 
-The provisioning API provides functions for setting up a provisioner and functions 
+The provisioning API provides functions for setting up a provisioner and functions
 for setting up a provisionee. You can exclude code for one of the roles if your device
 is not using it. To do so, link in only the code for the role that you want the device to support.
 
-If a function is called that is not supported, because the functionality for that role 
+If a function is called that is not supported, because the functionality for that role
 has not been compiled into the library, an `NRF_ERROR_NOT_SUPPORTED` error is returned.
 
 ## Provisioning procedure
@@ -33,7 +33,7 @@ In both cases, a provisioning context must be set up. The context maintains the
 state of the provisioning process.
 
 The provisioning state is initialized using the `nrf_mesh_prov_init()` function.
-The function needs 3 parameters in addition to the provisioning context. It is
+The function needs the provisioning context and other related parameters. It is
 used to set the initial state of the provisioning context:
 
 * *Public and private keys*: Key pair used for encryption. These keys can be
@@ -44,16 +44,14 @@ used to set the initial state of the provisioning context:
   can be used with the node. If no authentication is used, only the `algorithm` field
   must be set.
 
-Note that before using the provisioning stack, the SoftDevice and mesh stack must
-be initialized and enabled. You must also initialize the access-layer modules so that you can
-configure the devices after the provisioning procedure is complete. This can be done
-by calling the initialization functions for the device state manager (DSM) and the
-access layer:
+For example, see `prov_helper_provisioner_init()` in the static provisioner example (`\examples\light-switch\provisioner\src\provisioner_helper.c`).
 
-```C
-    dsm_init();
-    access_init();
-```
+For regular mesh devices (i.e. the devices exhibiting the Node role), the initialization of the
+provisioning stack is encapsulated by the @ref MESH_STACK.
+
+Note that before using the provisioning stack, the SoftDevice and mesh stack must
+be initialized and enabled. As a reference, see `mesh_init()` in the `main.c` file of
+the `light-switch\server` example or any other example exhibiting the node role.
 
 ## Authentication
 
@@ -73,7 +71,7 @@ input the indicated value into the input device (for example, by pushing a butto
 required number of times or entering the value via a keyboard).
 
 Which form of authentication to use is chosen by the provisioner in response
-to the `NRF_MESH_PROV_CAPS_RECEIVED` event. 
+to the `NRF_MESH_PROV_CAPS_RECEIVED` event.
 
 If static authentication is chosen,
 the application will at some point during the provisioning procedure receive
@@ -92,7 +90,7 @@ to the user.
 Provisionee behavior is normally handled by the `nrf_mesh_node_config()` API function. However,
 it is also possible to manually handle provisioning using the provisioning API if necessary.
 
-The following example assumes that static authentication is used. The steps a provisionee application 
+The following example assumes that static authentication is used. The steps a provisionee application
 must take are as follows:
 
 1. Initialize the provisioning context as described in the "Initialization" section.
@@ -127,7 +125,7 @@ as lights or air conditioners. Provisioners are often a part of gateway devices,
 which are devices that provide a bridge between a mesh network and other networking
 technologies (such as the Internet).
 
-There are two main ways of setting up a provisioner: Running it 
+There are two main ways of setting up a provisioner: Running it
 as a standalone application or controlled by a host application
 via a serial interface.
 
@@ -156,7 +154,7 @@ as follows:
    receives an `NRF_MESH_EVT_UNPROVISIONED_RECEIVED` event, which contains the UUID for the
    device from which the beacon was received.
 3. Establish a link to a device for provisioning using the `nrf_mesh_prov_provision()` function.
-4. When the link  to the unprovisioned device has been established, an 
+4. When the link  to the unprovisioned device has been established, an
    `NRF_MESH_EVT_PROV_LINK_ESTABLISHED` event is passed to the application.
 5. When the out-of-band authentication capabilities of the provisionee have been received, an
    `NRF_MESH_EVT_PROV_CAPS_RECEIVED` event is received. The application should check the
@@ -194,7 +192,7 @@ which is then used for securing the provisioning data as it is being transferred
 the provisionee.
 
 If running multiple provisioners in parallel, you should enable ECDH offloading.
-ECDH is a processor-intensive algorithm that can easily become a bottleneck. 
+ECDH is a processor-intensive algorithm that can easily become a bottleneck.
 ECDH offloading is a feature that lets the host processor calculate the ECDH shared
 secret, freeing up CPU resources in the target processor.
 

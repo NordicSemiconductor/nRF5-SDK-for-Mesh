@@ -6,16 +6,18 @@ if (NOT CMAKE_VERSION VERSION_LESS 3.9)
     cmake_policy(SET CMP0069 NEW)
 endif ()
 
-set(VERSION_MAJOR 1)
+set(VERSION_MAJOR 2)
 set(VERSION_MINOR 0)
-set(VERSION_BUGFIX 1)
+set(VERSION_BUGFIX 0)
 set(VERSION_SUFFIX "")
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUGFIX}${VERSION_SUFFIX}" CACHE STRING "" FORCE)
 
 message(STATUS "Configuring CMake for nRF5 SDK for Bluetooth Mesh ${VERSION_STRING}")
 
+set(NRF_MESH_TEST_BUILD 0 CACHE STRING "")
+
 option(BUILD_HOST "Build for host (unit test build)" OFF)
-option(BUILD_EXAMPLES "Build example applications" ON)
+option(BUILD_EXAMPLES "Build all examples with default target." ON)
 
 option(EXPERIMENTAL_INSTABURST_ENABLED "Use experimental Instaburst feature." OFF)
 
@@ -39,15 +41,35 @@ find_package(Doxygen)
 find_program(DOT_EXECUTABLE "dot" PATHS ENV PATH)
 find_program(MSCGEN_EXECUTABLE "mscgen" PATHS ENV PATH)
 
-include("${CMAKE_CONFIG_DIR}/FindDependency.cmake")
-include("${CMAKE_CONFIG_DIR}/BuildType.cmake")
 include("${CMAKE_CONFIG_DIR}/Toolchain.cmake")
-include("${CMAKE_CONFIG_DIR}/FindSDK.cmake")
 include("${CMAKE_CONFIG_DIR}/Platform.cmake")
 include("${CMAKE_CONFIG_DIR}/SoftDevice.cmake")
+include("${CMAKE_CONFIG_DIR}/FindDependency.cmake")
+include("${CMAKE_CONFIG_DIR}/FindSDK.cmake")
+
+# We have to return manually from here s.t. the CMake generation
+# doesn't stop and we have the nRF5_SDK target available.
+if (NOT SDK_ROOT)
+    return()
+endif ()
+
+include("${CMAKE_CONFIG_DIR}/BuildType.cmake")
 include("${CMAKE_CONFIG_DIR}/Board.cmake")
 include("${CMAKE_CONFIG_DIR}/PCLint.cmake")
 include("${CMAKE_CONFIG_DIR}/GenerateSESProject.cmake")
+
+include("${CMAKE_CONFIG_DIR}/sdk/${nRF5_SDK_VERSION}.cmake")
+include("${CMAKE_CONFIG_DIR}/platform/${PLATFORM}.cmake")
+include("${CMAKE_CONFIG_DIR}/softdevice/${SOFTDEVICE}.cmake")
+include("${CMAKE_CONFIG_DIR}/board/${BOARD}.cmake")
+
+message(STATUS "SDK: ${nRF5_SDK_VERSION}")
+message(STATUS "Platform: ${PLATFORM}")
+message(STATUS "Arch: ${${PLATFORM}_ARCH}")
+message(STATUS "SoftDevice: ${SOFTDEVICE}")
+message(STATUS "Board: ${BOARD}")
+
+set(ARCH ${${PLATFORM}_ARCH})
 
 enable_language(C ASM)
 
@@ -86,8 +108,12 @@ else ()
     add_subdirectory("doc")
 endif ()
 
-if (BUILD_EXAMPLES AND NOT BUILD_HOST)
+if (NOT BUILD_HOST)
     include("${CMAKE_CONFIG_DIR}/Nrfjprog.cmake")
     add_subdirectory("models")
-    add_subdirectory("examples")
+    if (BUILD_EXAMPLES)
+        add_subdirectory("examples")
+    else()
+        add_subdirectory("examples" EXCLUDE_FROM_ALL)
+    endif ()
 endif ()

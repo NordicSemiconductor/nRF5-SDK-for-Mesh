@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -135,23 +135,11 @@ static void flash_bank_entry_fw(bl_info_bank_t* p_bank_entry, bl_info_entry_t* p
             if (bootloader_is_in_application())
             {
                 __LOG("IN APP MODE. RESET!\n");
-
-                /* We need interrupts enabled for the SVC calls below to
-                 * function, but don't want to be intterupted by anything else
-                 * now. */
                 interrupts_disable();
-                __enable_irq();
 
-                /* We're in the app => assume there is a SoftDevice running. */
-                sd_power_reset_reason_clr(0x0F000F);
-
-                /* Only one register on nRF51. */
-#if NRF51
-                sd_power_gpregret_set(RBC_MESH_GPREGRET_CODE_GO_TO_APP);
-#else
-                sd_power_gpregret_set(0, RBC_MESH_GPREGRET_CODE_GO_TO_APP);
-#endif
-                sd_nvic_SystemReset();
+                NRF_POWER->RESETREAS = 0x0F000F; /* erase reset-reason to avoid wrongful state-readout on reboot */
+                NRF_POWER->GPREGRET = RBC_MESH_GPREGRET_CODE_GO_TO_APP;
+                NVIC_SystemReset();
             }
             else
             {

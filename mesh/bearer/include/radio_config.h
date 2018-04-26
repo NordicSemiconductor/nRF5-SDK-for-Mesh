@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -143,7 +143,7 @@ typedef enum
 typedef struct
 {
     radio_tx_power_t tx_power;       /*!< Transmit power of the radio */
-    uint8_t          payload_maxlen; /*!<Maximum length of radio packet payload see @ref RADIO_MAX_PACKET_LEN*/
+    uint16_t         payload_maxlen; /*!<Maximum length of radio packet payload see @ref RADIO_MAX_PACKET_LEN*/
     radio_mode_t     radio_mode;     /*!< Data rate and modulation */
 } radio_config_t;
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -272,7 +272,6 @@ static void add_reliable_message(uint16_t index, const access_reliable_t * p_mes
     bearer_event_critical_section_end();
 }
 
-
 static void remove_and_reschedule(uint16_t index)
 {
     NRF_MESH_ASSERT(m_reliable.pool[index].in_use);
@@ -330,8 +329,24 @@ void access_reliable_cancel_all(void)
         m_reliable.active_count = 0;
         timer_sch_abort(&m_reliable.timer);
     }
-    /* Add reliable status canceled to notify the potentially active models? */
-    memset(&m_reliable.pool[0], 0, sizeof(access_reliable_ctx_t) * ACCESS_RELIABLE_TRANSFER_COUNT);
+
+    /* Cancel all active transfers */
+    for (uint32_t i = 0; i < ACCESS_RELIABLE_TRANSFER_COUNT; ++i)
+    {
+        if (m_reliable.pool[i].in_use)
+        {
+            access_model_handle_t model_handle = m_reliable.pool[i].params.model_handle;
+            access_reliable_cb_t status_cb = m_reliable.pool[i].params.status_cb;
+
+            memset(&m_reliable.pool[i], 0, sizeof(access_reliable_ctx_t));
+
+            /* Notify model */
+            void * p_args;
+            NRF_MESH_ERROR_CHECK(access_model_p_args_get(model_handle, &p_args));
+            status_cb(model_handle, p_args, ACCESS_RELIABLE_TRANSFER_CANCELLED);
+        }
+    }
+
     bearer_event_critical_section_end();
 }
 
@@ -345,11 +360,16 @@ uint32_t access_model_reliable_cancel(access_model_handle_t model_handle)
     {
         uint32_t status;
         uint16_t index;
+        void * p_args;
         bearer_event_critical_section_begin();
         if (find_index(model_handle, &index))
         {
             status = NRF_SUCCESS;
             remove_and_reschedule(index);
+
+            /* Notify model */
+            NRF_MESH_ERROR_CHECK(access_model_p_args_get(model_handle, &p_args));
+            m_reliable.pool[index].params.status_cb(model_handle, p_args, ACCESS_RELIABLE_TRANSFER_CANCELLED);
         }
         else
         {
@@ -361,11 +381,12 @@ uint32_t access_model_reliable_cancel(access_model_handle_t model_handle)
     }
 }
 
-
 uint32_t access_model_reliable_publish(const access_reliable_t * p_reliable)
 {
     uint32_t status;
     uint16_t index;
+    dsm_handle_t pub_addr_handle;
+    nrf_mesh_address_t pub_addr;
 
     if (NULL == p_reliable || NULL == p_reliable->status_cb)
     {
@@ -387,12 +408,28 @@ uint32_t access_model_reliable_publish(const access_reliable_t * p_reliable)
     else
     {
         status = access_model_publish(p_reliable->model_handle, &p_reliable->message);
+
         if (NRF_SUCCESS == status || NRF_ERROR_NO_MEM == status)
         {
-            /** @todo If we get @c NRF_ERROR_NO_MEM, we could be even "smarter" and retry in @ref
-             * ACCESS_RELIABLE_RETRY_DELAY scaled based on advertising intervals or something.
-             * Ref.: MBTLE-1542. */
-            add_reliable_message(index, p_reliable);
+            status = access_model_publish_address_get(p_reliable->model_handle, &pub_addr_handle);
+            if (status != NRF_SUCCESS)
+            {
+                return status;
+            }
+
+            status = dsm_address_get(pub_addr_handle, &pub_addr);
+            if (status != NRF_SUCCESS)
+            {
+                return status;
+            }
+
+            if (pub_addr.type == NRF_MESH_ADDRESS_TYPE_UNICAST)
+            {
+                /** @todo If we get @c NRF_ERROR_NO_MEM, we could be even "smarter" and retry in @ref
+                 * ACCESS_RELIABLE_RETRY_DELAY scaled based on advertising intervals or something.
+                 * Ref.: MBTLE-1542. */
+                add_reliable_message(index, p_reliable);
+            }
             return NRF_SUCCESS;
         }
         else
@@ -400,5 +437,4 @@ uint32_t access_model_reliable_publish(const access_reliable_t * p_reliable)
             return status;
         }
     }
-
 }

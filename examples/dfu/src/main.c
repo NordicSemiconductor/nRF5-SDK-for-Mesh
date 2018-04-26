@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -35,39 +35,48 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <ble.h>
 #include <boards.h>
-
-#include "nrf_mesh.h"
 #include "nrf_mesh_events.h"
-#include <nrf_mesh_opt.h>
-
-#include "utils.h"
 #include "log.h"
-#include "SEGGER_RTT.h"
-
-#include "nrf_mesh_sdk.h"
-#include "utils.h"
-
 #include "nrf_mesh_dfu.h"
-#include "nrf_mesh_serial.h"
+#include "mesh_app_utils.h"
+#include "mesh_stack.h"
+#include "mesh_softdevice_init.h"
+#include "mesh_provisionee.h"
+#include "nrf_mesh_config_examples.h"
+#include "simple_hal.h"
+
+#define LED_BLINK_INTERVAL_MS (200)
+#define LED_BLINK_CNT_RESET   (3)
 
 #ifndef NRF_MESH_SERIAL_ENABLE
 #define NRF_MESH_SERIAL_ENABLE 1
 #endif
 
-#if defined(NRF51)
-#define FLASH_PAGE_SIZE                 ( 0x400)
-#define FLASH_PAGE_MASK             (0xFFFFFC00)
-#elif defined(NRF52_SERIES)
-#define FLASH_PAGE_SIZE                 (0x1000)
-#define FLASH_PAGE_MASK             (0xFFFFF000)
+#if NRF_MESH_SERIAL_ENABLE
+#include "nrf_mesh_serial.h"
 #endif
+
+#if defined(NRF51) && defined(NRF_MESH_STACK_DEPTH)
+#include "stack_depth.h"
+#endif
+
+
+#define STATIC_AUTH_DATA {0x6E, 0x6F, 0x72, 0x64, 0x69, 0x63, 0x5F, 0x65, 0x78, 0x61, 0x6D, 0x70, 0x6C, 0x65, 0x5F, 0x31}
+
+#if defined(NRF51)
+    #define FLASH_PAGE_SIZE                 ( 0x400)
+    #define FLASH_PAGE_MASK             (0xFFFFFC00)
+#elif defined(NRF52_SERIES)
+    #define FLASH_PAGE_SIZE                 (0x1000)
+    #define FLASH_PAGE_MASK             (0xFFFFF000)
+#endif
+
 #if defined(_lint)
-const volatile uint32_t * rom_base   = NULL;
-const volatile uint32_t * rom_length = NULL;
-uint32_t rom_end;
-uint32_t bank_addr;
+    const volatile uint32_t * rom_base   = NULL;
+    const volatile uint32_t * rom_length = NULL;
+    uint32_t rom_end;
+    uint32_t bank_addr;
 #elif defined ( __CC_ARM )
     extern uint32_t Image$$ER_IROM1$$Base;
     extern uint32_t Image$$ER_IROM1$$Length;
@@ -84,12 +93,9 @@ uint32_t bank_addr;
     uint32_t bank_addr;
 #endif
 
-#if defined(NRF51) && defined(NRF_MESH_STACK_DEPTH)
-#include "stack_depth.h"
-#endif
-
-/** Event handler structure */
 static nrf_mesh_evt_handler_t m_evt_handler;
+static bool m_device_provisioned;
+
 
 static bool fw_updated_event_is_for_me(const nrf_mesh_evt_dfu_t * p_evt)
 {
@@ -99,16 +105,18 @@ static bool fw_updated_event_is_for_me(const nrf_mesh_evt_dfu_t * p_evt)
             return (p_evt->fw_outdated.current.application.app_id == p_evt->fw_outdated.transfer.id.application.app_id &&
                     p_evt->fw_outdated.current.application.company_id == p_evt->fw_outdated.transfer.id.application.company_id &&
                     p_evt->fw_outdated.current.application.app_version < p_evt->fw_outdated.transfer.id.application.app_version);
+
         case NRF_MESH_DFU_TYPE_BOOTLOADER:
             return (p_evt->fw_outdated.current.bootloader.bl_id == p_evt->fw_outdated.transfer.id.bootloader.bl_id &&
                     p_evt->fw_outdated.current.bootloader.bl_version < p_evt->fw_outdated.transfer.id.bootloader.bl_version);
+
         case NRF_MESH_DFU_TYPE_SOFTDEVICE:
             return false;
+
         default:
             return false;
     }
 }
-/********** Event Handlers **********/
 
 static void mesh_evt_handler(const nrf_mesh_evt_t* p_evt)
 {
@@ -121,7 +129,7 @@ static void mesh_evt_handler(const nrf_mesh_evt_t* p_evt)
                 ERROR_CHECK(nrf_mesh_dfu_request(p_evt->params.dfu.fw_outdated.transfer.dfu_type,
                                                  &p_evt->params.dfu.fw_outdated.transfer.id,
                                                  (uint32_t*) bank_addr));
-                NRF_GPIO->OUTSET = LEDS_MASK; /* Turn off all LEDs */
+                hal_led_mask_set(LEDS_MASK, false); /* Turn off all LEDs */
             }
             else
             {
@@ -129,15 +137,18 @@ static void mesh_evt_handler(const nrf_mesh_evt_t* p_evt)
                                                &p_evt->params.dfu.fw_outdated.transfer.id));
             }
             break;
+
         case NRF_MESH_EVT_DFU_START:
-            NRF_GPIO->OUTCLR = BSP_LED_0_MASK | BSP_LED_2_MASK; /* purple */
+            hal_led_mask_set(BSP_LED_0_MASK | BSP_LED_2_MASK, true);
             break;
+
         case NRF_MESH_EVT_DFU_END:
-            NRF_GPIO->OUTSET = LEDS_MASK; /* Turn off all LEDs */
-            NRF_GPIO->OUTCLR = BSP_LED_0_MASK | BSP_LED_1_MASK; /* Yellow */
+            hal_led_mask_set(LEDS_MASK, false); /* Turn off all LEDs */
+            hal_led_mask_set(BSP_LED_0_MASK | BSP_LED_1_MASK, true); /* Yellow */
             break;
+
         case NRF_MESH_EVT_DFU_BANK_AVAILABLE:
-            NRF_GPIO->OUTSET = LEDS_MASK; /* Turn off all LEDs */
+            hal_led_mask_set(LEDS_MASK, false); /* Turn off all LEDs */
             ERROR_CHECK(nrf_mesh_dfu_bank_flash(p_evt->params.dfu.bank.transfer.dfu_type));
             break;
 
@@ -147,16 +158,47 @@ static void mesh_evt_handler(const nrf_mesh_evt_t* p_evt)
     }
 }
 
-/********** Application Functionality **********/
+static void node_reset(void)
+{
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset  -----\n");
+    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
+    /* This function may return if there are ongoing flash operations. */
+    mesh_stack_device_reset();
+}
 
-int main(void)
+static void config_server_evt_cb(const config_server_evt_t * p_evt)
+{
+    if (p_evt->type == CONFIG_SERVER_EVT_NODE_RESET)
+    {
+        node_reset();
+    }
+}
+
+static void mesh_init(void)
+{
+    mesh_stack_init_params_t init_params =
+    {
+        .core.irq_priority       = NRF_MESH_IRQ_PRIORITY_LOWEST,
+        .core.lfclksrc           = DEV_BOARD_LF_CLK_CFG,
+        .models.config_server_cb = config_server_evt_cb
+    };
+    ERROR_CHECK(mesh_stack_init(&init_params, &m_device_provisioned));
+
+#if NRF_MESH_SERIAL_ENABLE
+    ERROR_CHECK(nrf_mesh_serial_init(NULL));
+#endif
+
+    m_evt_handler.evt_cb = mesh_evt_handler;
+    m_evt_handler.p_next = NULL;
+    nrf_mesh_evt_handler_add(&m_evt_handler);
+}
+
+static void initialize(void)
 {
 #if defined(NRF51) && defined(NRF_MESH_STACK_DEPTH)
     stack_depth_paint_stack();
 #endif
-    nrf_gpio_range_cfg_output(LED_START, LED_STOP);
-    for (uint32_t i = LED_START; i <= LED_STOP; ++i)
-        nrf_gpio_pin_set(i);
+    hal_leds_init();
 
     __LOG_INIT(LOG_MSK_DEFAULT | LOG_SRC_DFU | LOG_SRC_APP | LOG_SRC_SERIAL, LOG_LEVEL_INFO, log_callback_rtt);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Bluetooth Mesh DFU Example -----\n");
@@ -173,23 +215,41 @@ int main(void)
     __LOG(LOG_SRC_APP, LOG_LEVEL_DBG2, "rom_length %X\n", rom_length);
     __LOG(LOG_SRC_APP, LOG_LEVEL_DBG2, "bank_addr   %X\n", bank_addr);
 
-    mesh_core_setup();
+    nrf_clock_lf_cfg_t lfc_cfg = DEV_BOARD_LF_CLK_CFG;
+    ERROR_CHECK(mesh_softdevice_init(lfc_cfg));
+    mesh_init();
 
-#if NRF_MESH_SERIAL_ENABLE
-    ERROR_CHECK(nrf_mesh_serial_init(NULL));
-#endif
-    m_evt_handler.evt_cb = mesh_evt_handler;
-    m_evt_handler.p_next = NULL;
-    nrf_mesh_evt_handler_add(&m_evt_handler);
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Initialization complete!\n");
+}
+
+static void start(void)
+{
+    ERROR_CHECK(mesh_stack_start());
+
+    if (!m_device_provisioned)
+    {
+        static const uint8_t static_auth_data[NRF_MESH_KEY_SIZE] = STATIC_AUTH_DATA;
+        mesh_provisionee_start_params_t prov_start_params =
+        {
+            .p_static_data = static_auth_data
+        };
+        ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
+    }
 
 #if NRF_MESH_SERIAL_ENABLE
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Enabling serial interface...\n");
     ERROR_CHECK(nrf_mesh_serial_enable());
 #endif
 
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Initialization complete!\n");
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "DFU example started!\n");
+}
 
-    while (true)
+int main(void)
+{
+    initialize();
+    execution_start(start);
+
+    for (;;)
     {
         (void)sd_app_evt_wait();
     }

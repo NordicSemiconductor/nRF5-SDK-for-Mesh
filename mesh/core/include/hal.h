@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -90,8 +90,13 @@
 #endif  /* HOST */
 #endif  /* NRF51 || NRF52_SERIES */
 
-/* Get the time in microseconds corresponding to the given RTC time tick count. */
-#define HAL_RTC_TICKS_TO_US(ticks)           (((uint64_t)(ticks) * 1000000ULL) >> 15ULL)
+/* Macros for converting between time units and RTC ticks. */
+#define HAL_RTC_TICKS_TO_US(ticks)      (((uint64_t)(ticks) * 1000000ULL) >> 15ULL)
+#define HAL_RTC_TICKS_TO_MS(ticks)      (((uint64_t)(ticks) * 1000ULL) >> 15ULL)
+#define HAL_RTC_TICKS_TO_SECS(ticks)    (((uint64_t)(ticks)) >> 15ULL)
+#define HAL_US_TO_RTC_TICKS(time_us)    (((uint64_t) (time_us) << 15ULL) / 1000000ULL)
+#define HAL_MS_TO_RTC_TICKS(time_ms)    (((uint64_t) (time_ms) << 15ULL) / 1000ULL)
+#define HAL_SECS_TO_RTC_TICKS(time_s)   (((uint64_t) (time_s) << 15ULL))
 
 /**
  * Clear the reset reason register, set the retention register, and reset the

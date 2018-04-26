@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -203,14 +203,17 @@ typedef struct
 
 /* @} end of PROV_BEARER_CALLBACKS */
 
+/** Number of supported bearers. */
+#define NRF_MESH_PROV_BEARER_COUNT (3)
+
 /**
  * Provisioning bearer types.
  */
 typedef enum
 {
-    NRF_MESH_PROV_BEARER_ADV,  /**< Advertising-based provisioning bearer, PB-ADV. */
-    NRF_MESH_PROV_BEARER_GATT, /**< GATT-based provisioning bearer, PB-GATT. */
-    NRF_MESH_PROV_BEARER_MESH  /**< Mesh-based provisioning bearer. */
+    NRF_MESH_PROV_BEARER_ADV  = 0x01, /**< Advertising-based provisioning bearer, PB-ADV. */
+    NRF_MESH_PROV_BEARER_GATT = 0x02, /**< GATT-based provisioning bearer, PB-GATT. */
+    NRF_MESH_PROV_BEARER_MESH = 0x04  /**< Mesh-based provisioning bearer. */
 } nrf_mesh_prov_bearer_type_t;
 
 /**

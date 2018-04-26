@@ -29,6 +29,7 @@ import argparse
 import json
 import os
 from collections import namedtuple
+from shutil import copyfile
 
 TEST_JSON_STR = """{
     "target": {
@@ -82,27 +83,42 @@ Group = namedtuple("Group", ["name", "files", "match_string"])
 
 GROUP_TEMPLATES = [
     Group(name="Application", files=[], match_string="examples"),
-    Group(name="Core", files=[], match_string="core"),
-    Group(name="Serial", files=[], match_string="serial"),
-    Group(name="DFU", files=[], match_string="dfu"),
+    Group(name="Core", files=[], match_string="mesh/core"),
+    Group(name="Serial", files=[], match_string="mesh/serial"),
+    Group(name="Mesh stack", files=[], match_string="mesh/stack"),
+    Group(name="GATT", files=[], match_string="mesh/gatt"),
+    Group(name="DFU", files=[], match_string="mesh/dfu"),
     Group(name="Toolchain", files=[File("$(StudioDir)/source/thumb_crt0.s")], match_string="toolchain"),
-    Group(name="Access", files=[], match_string="access"),
-    Group(name="Bearer", files=[], match_string="bearer"),
+    Group(name="Access", files=[], match_string="mesh/access"),
+    Group(name="Bearer", files=[], match_string="mesh/bearer"),
     Group(name="SEGGER RTT", files=[], match_string="rtt"),
     Group(name="uECC", files=[], match_string="micro-ecc"),
-    Group(name="Provisioning", files=[], match_string="prov"),
+    Group(name="nRF5 SDK", files=[], match_string="$(SDK_ROOT"),
+    Group(name="Provisioning", files=[], match_string="mesh/prov"),
     Group(name="Configuration Model", files=[], match_string="models/config"),
     Group(name="Health Model", files=[], match_string="models/health"),
     Group(name="Simple OnOff Model", files=[], match_string="models/simple_on_off"),
     Group(name="Remote provisioning Model", files=[], match_string="models/pb_remote")]
 
 def unix_relative_path_get(path1, path2):
-    return os.path.relpath(path1, path2).replace("\\", "/")
+    if not path1.startswith('$('):
+        path1 = os.path.relpath(path1, path2)
+    return path1.replace("\\", "/")
 
 def load_config(input_file):
     with open(input_file, "r") as f:
         config = json.load(f)
     return config
+
+def load_softdevice(sd_config):
+    with open(sd_config["definition_file"], "r") as f:
+        config = json.load(f)
+    return [sd for sd in config["softdevices"] if sd["name"] == sd_config["name"]][0]
+
+def load_platform(platform_config):
+    with open(platform_config["definition_file"], "r") as f:
+        config = json.load(f)
+    return [platform for platform in config["platforms"] if platform["name"] == platform_config["name"]][0]
 
 def create_file_groups(files, out_dir):
     other = Group(name="Other", files=[], match_string=None)
@@ -131,13 +147,13 @@ def create_file_groups(files, out_dir):
     return groups
 
 def calculate_flash_limits(config):
-    bl_flash_size = NRF51_BOOTLOADER_FLASH_SIZE if "nrf51" in config["platform"]["name"].lower() else NRF52_BOOTLOADER_FLASH_SIZE
-    flash_limits = application_flash_limits_get(config["softdevice"]["flash_size"], bl_flash_size, config["platform"]["flash_size"])
+    bl_flash_size = NRF51_BOOTLOADER_FLASH_SIZE if "nrf51" in config["platform"]["config"]["name"].lower() else NRF52_BOOTLOADER_FLASH_SIZE
+    flash_limits = application_flash_limits_get(config["softdevice"]["config"]["flash_size"], bl_flash_size, config["platform"]["config"]["flash_size"])
     return DataRegion(*flash_limits)
 
 def calculate_ram_limits(config):
-    bl_ram_size = NRF51_BOOTLOADER_RAM_SIZE if "nrf51" in config["platform"]["name"].lower() else NRF52_BOOTLOADER_RAM_SIZE
-    ram_limits = application_ram_limits_get(config["softdevice"]["ram_size"], bl_ram_size, config["platform"]["ram_size"])
+    bl_ram_size = NRF51_BOOTLOADER_RAM_SIZE if "nrf51" in config["platform"]["config"]["name"].lower() else NRF52_BOOTLOADER_RAM_SIZE
+    ram_limits = application_ram_limits_get(config["softdevice"]["config"]["ram_size"], bl_ram_size, config["platform"]["config"]["ram_size"])
     return DataRegion(*ram_limits)
 
 def generate_ses_project(config, out_dir="."):
@@ -148,12 +164,8 @@ def generate_ses_project(config, out_dir="."):
     config["target"]["groups"] = create_file_groups(files, out_dir)
     config["target"]["flash"] = calculate_flash_limits(config)
     config["target"]["ram"] = calculate_ram_limits(config)
-    config["platform"]["fpu"] = config["platform"]["arch"] == "cortex-m4f"
-    config["platform"]["flash"] = DataRegion(start="0x00000000",
-                                             size=config["target"]["flash"].size)
-    config["platform"]["ram"] = DataRegion(start=hex(RAM_ADDRESS_START),
-                                           size=config["target"]["ram"].size)
-    config["softdevice"]["hex_file"] = "$(ProjectDir)/" + unix_relative_path_get(config["softdevice"]["hex_file"], out_dir)
+    config["platform"]["fpu"] = config["platform"]["config"]["arch"] == "cortex-m4f"
+    config["softdevice"]["hex_file"] = unix_relative_path_get(config["softdevice"]["hex_file"], out_dir)
     s = ""
 
     with open("ses.xml", "r") as f:
@@ -163,6 +175,17 @@ def generate_ses_project(config, out_dir="."):
     s = t.render(config)
 
     return s
+
+def generate_ses_session(out_dir):
+    session_file_contents = ['<!DOCTYPE CrossStudio_Session_File>',
+                             '<session>',
+                             '\t<Files>',
+                             '\t\t<SessionOpenFile path="{}"/>',
+                             '\t</Files>',
+                             '</session>']
+    return '\n'.join(session_file_contents).format(unix_relative_path_get('../../doc/getting_started/SES.md', out_dir))
+
+
 
 def test():
     config = json.loads(TEST_JSON_STR)
@@ -178,14 +201,27 @@ def main():
     out_dir = sys.argv[2]
 
     config = load_config(input_file)
+    config["softdevice"]["config"] = load_softdevice(config["softdevice"])
+    config["platform"]["config"] = load_platform(config["platform"])
     ses_project = generate_ses_project(config, out_dir)
 
     out_dir += "/"
     # SES doesn't support "." in filenames
-    output_file = out_dir + config["target"]["name"].replace(".", "_") + ".emProject"
-    with open(output_file, "w") as f:
+    output_filename = out_dir + config["target"]["name"].replace(".", "_")
+    project_file = output_filename + ".emProject"
+    with open(project_file, "w") as f:
         f.write(ses_project)
-    print("Wrote: " +  output_file)
+
+    # Create session
+    ses_session = generate_ses_session(out_dir)
+    session_file = output_filename + ".emSession"
+    with open(session_file, "w") as f:
+        f.write(ses_session)
+
+    # Generate flash placement:
+    copyfile("flash_placement.xml", out_dir + "flash_placement.xml")
+
+    print("Wrote: " +  project_file)
 
 if __name__ == "__main__":
     main()

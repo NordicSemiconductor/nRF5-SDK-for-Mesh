@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -234,13 +234,17 @@ static void client_reliable_status_cb(access_model_handle_t model_handle, void *
             __LOG(LOG_SRC_ACCESS, LOG_LEVEL_DBG1, "Got ACK for [aop: 0x%04x]", p_self->reliable.message.opcode.opcode);
             break;
 
-
         case ACCESS_RELIABLE_TRANSFER_TIMEOUT:
         {
             __LOG(LOG_SRC_ACCESS, LOG_LEVEL_WARN, "Unable to send message [aop: 0x%04x]", p_self->reliable.message.opcode.opcode);
             pb_remote_client_event_t event = {.type = PB_REMOTE_CLIENT_EVENT_TX_FAILED};
             NRF_MESH_ASSERT(fifo_push(&m_pbr_client_event_queue, &event) == NRF_SUCCESS);
             pb_remote_client_process(p_self);
+            break;
+        }
+        case ACCESS_RELIABLE_TRANSFER_CANCELLED:
+        {
+            __LOG(LOG_SRC_ACCESS, LOG_LEVEL_WARN, "Message cancelled [aop: 0x%04x]", p_self->reliable.message.opcode.opcode);
             break;
         }
         default:
@@ -262,6 +266,8 @@ static inline void send_reliable_msg(pb_remote_client_t * p_ctx, pb_remote_opcod
     p_ctx->reliable.message.opcode.company_id = ACCESS_COMPANY_ID_NONE;
     p_ctx->reliable.message.p_buffer = m_packet.buffer;
     p_ctx->reliable.message.length = length;
+    p_ctx->reliable.message.force_segmented = true;
+    p_ctx->reliable.message.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
     p_ctx->reliable.reply_opcode.opcode = reply_opcode;
     p_ctx->reliable.reply_opcode.company_id = ACCESS_COMPANY_ID_NONE;
     NRF_MESH_ERROR_CHECK(access_model_reliable_publish(&p_ctx->reliable));
@@ -304,6 +310,9 @@ static pb_remote_client_state_t pb_remote_client_event_unprov_uuid_cb(pb_remote_
     reply.opcode.company_id = ACCESS_COMPANY_ID_NONE;
     reply.p_buffer = (const uint8_t*) &scan_report_status;
     reply.length = sizeof(scan_report_status);
+    reply.force_segmented = false;
+    reply.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
+
 
     pb_remote_msg_scan_uuid_report_t * p_scan_report =
         (pb_remote_msg_scan_uuid_report_t *) &p_evt->evt.p_message->p_data[0];
@@ -507,6 +516,8 @@ static pb_remote_client_state_t pb_remote_client_event_link_status_report_cb(pb_
             reply.opcode.company_id = ACCESS_COMPANY_ID_NONE;
             reply.p_buffer = (const uint8_t *) &link_status;
             reply.length = sizeof(link_status);
+            reply.force_segmented = false;
+            reply.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
 
             link_status.status = PB_REMOTE_REMOTE_LINK_STATUS_ACCEPTED;
             link_status.bearer_type = NRF_MESH_PROV_BEARER_ADV;
@@ -572,6 +583,8 @@ static pb_remote_client_state_t pb_remote_client_event_packet_transfer_cb(pb_rem
     reply.opcode.company_id = ACCESS_COMPANY_ID_NONE;
     reply.p_buffer = (const uint8_t *) &transfer_status;
     reply.length = sizeof(transfer_status);
+    reply.force_segmented = false;
+    reply.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
 
     switch (p_ctx->state)
     {
@@ -648,6 +661,8 @@ static pb_remote_client_state_t pb_remote_client_event_transfer_status_report_cb
                 reply.opcode.company_id = ACCESS_COMPANY_ID_NONE;
                 reply.p_buffer = (const uint8_t *) &transfer_status;
                 reply.length = sizeof(transfer_status);
+                reply.force_segmented = false;
+                reply.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
                 transfer_status.status = PB_REMOTE_PACKET_TRANSFER_STATUS_ACCEPTED;
                 send_reply(p_ctx, p_evt->evt.p_message, &reply);
 
@@ -818,6 +833,8 @@ static void nack_message(const pb_remote_client_t * p_ctx, const access_message_
             reply.opcode.opcode = PB_REMOTE_OP_PACKET_TRANSFER_STATUS;
             reply.p_buffer = (const uint8_t*) &status;
             reply.length = sizeof(status);
+            reply.force_segmented = false;
+            reply.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
             send_reply(p_ctx, p_message, &reply);
             break;
         }

@@ -26,6 +26,7 @@ set(MESH_CORE_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/bearer_event.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/enc.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/network.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/net_packet.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/msqueue.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/nrf_mesh_keygen.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/cache.c"
@@ -40,7 +41,8 @@ set(MESH_CORE_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/flash_manager_internal.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/core_tx.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/heartbeat.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/net_beacon.c")
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/net_beacon.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/fsm.c")
 
 if (EXPERIMENTAL_INSTABURST_ENABLED)
     set(MESH_CORE_SOURCE_FILES ${MESH_CORE_SOURCE_FILES}
@@ -50,45 +52,71 @@ else()
         "${CMAKE_CURRENT_SOURCE_DIR}/src/core_tx_adv.c")
 endif()
 
+
 # Can only save to cache once without using 'FORCE' modifier
 set(MESH_CORE_SOURCE_FILES ${MESH_CORE_SOURCE_FILES} CACHE INTERNAL "")
 
-add_library(mesh_core_${PLATFORM} STATIC ${MESH_CORE_SOURCE_FILES} ${MESH_BEARER_SOURCE_FILES})
+if (MESH_CORE_LIB_BUILD_ENABLED)
+    add_library(mesh_core_${PLATFORM} STATIC ${MESH_CORE_SOURCE_FILES} ${MESH_BEARER_SOURCE_FILES})
 
-target_include_directories(mesh_core_${PLATFORM} PUBLIC
+    target_include_directories(mesh_core_${PLATFORM} PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/api
+        ${${SOFTDEVICE}_INCLUDE_DIRS}
+        ${${PLATFORM}_INCLUDE_DIRS}
+        ${CMAKE_SOURCE_DIR}/external/rtt/include
+        ${SDK_ROOT}/components/libraries/util
+
+        # TODO: Better encapsulation/separation should keep headers under
+        # include private.
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+
+        # TODO: Should not need to include DFU headers in CORE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/api
+        ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/include
+
+        # TODO: Should not need to include PROV headers in CORE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../prov/api
+        ${CMAKE_CURRENT_SOURCE_DIR}/../prov/include
+
+        # TODO: Should not need to include BEARER headers in CORE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../bearer/api
+        ${CMAKE_CURRENT_SOURCE_DIR}/../bearer/include
+        )
+
+    target_compile_options(mesh_core_${PLATFORM} PUBLIC
+        ${${ARCH}_DEFINES})
+
+    target_compile_definitions(mesh_core_${PLATFORM} PUBLIC
+        ${USER_DEFINITIONS}
+        ${${PLATFORM}_DEFINES}
+        ${${SOFTDEVICE}_DEFINES})
+endif()
+
+set(MESH_CORE_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/api
-    ${${SOFTDEVICE}_INCLUDE_DIRS}
-    ${${PLATFORM}_INCLUDE_DIRS}
-    ${CMAKE_SOURCE_DIR}/external/rtt/include
-    ${SDK_ROOT}/components/libraries/util
+    ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-    # TODO: Better encapsulation/separation should keep headers under
-    # include private.
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+if (NRF_MESH_TEST_BUILD)
+    set(MESH_CORE_INCLUDE_DIRS ${MESH_CORE_INCLUDE_DIRS} "${CMAKE_SOURCE_DIR}/mesh/test/include" )
+endif()
 
-    # TODO: Should not need to include DFU headers in CORE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/api
-    ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/include
+set(MESH_CORE_INCLUDE_DIRS ${MESH_CORE_INCLUDE_DIRS} CACHE INTERNAL "")
 
-    # TODO: Should not need to include PROV headers in CORE
+set(lint_include_dirs
+    ${MESH_CORE_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/../prov/api
     ${CMAKE_CURRENT_SOURCE_DIR}/../prov/include
-
-    # TODO: Should not need to include BEARER headers in CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/../bearer/api
     ${CMAKE_CURRENT_SOURCE_DIR}/../bearer/include
-    )
+    ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/api
+    ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/include
+    ${CMAKE_SOURCE_DIR}/examples/templates
+    ${CMAKE_SOURCE_DIR}/external/rtt/include
+    ${SDK_ROOT}/components/libraries/util
+    ${${SOFTDEVICE}_INCLUDE_DIRS}
+    ${${PLATFORM}_INCLUDE_DIRS})
 
-target_compile_options(mesh_core_${PLATFORM} PUBLIC
-    ${${ARCH}_DEFINES})
-
-target_compile_definitions(mesh_core_${PLATFORM} PUBLIC
-    ${USER_DEFINITIONS}
-    ${${PLATFORM}_DEFINES}
-    ${${SOFTDEVICE}_DEFINES})
-
-get_property(core_include_dirs TARGET mesh_core_${PLATFORM} PROPERTY INCLUDE_DIRECTORIES)
 add_pc_lint(mesh_core_${PLATFORM}
     "${MESH_CORE_SOURCE_FILES}"
-    "${core_include_dirs}"
+    "${lint_include_dirs}"
     "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES}")

@@ -1,4 +1,4 @@
- /* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+ /* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -105,9 +105,6 @@ typedef struct advertiser_t advertiser_t;
  * Transmit complete callback for notifying the users after a given packet has been sent the
  * desired number of times. Packets that are repeated indefinitely will get this callback on
  * every transmission.
- *
- * @warning The TX complete callback comes in the radio IRQ level, and must finish within @ref
- * APPLICATION_TX_COMPLETE_OVERHEAD_US.
  *
  * @note The timestamp parameter is clocked the last time the packet goes on air (the last channel
  * in the configuration, on the last repeat), at the time when the first bit of the
@@ -266,6 +263,9 @@ void advertiser_interval_set(advertiser_t * p_adv, uint32_t interval_ms);
  *
  * @warning If called in the middle of a transmission, the ongoing transmission will finish, and
  * produce a TX-complete event, potentially after the call to this function returns.
+ *
+ * @warning Any packets that have been allocated, but not sent must either be sent or freed before
+ * this call.
  *
  * @param[in,out] p_adv Advertiser instance to flush and disable.
  */

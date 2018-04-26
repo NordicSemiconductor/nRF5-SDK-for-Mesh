@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -93,6 +93,7 @@
 #define LOG_SRC_ACCESS          (1 << 13) /**< Receive logs from the access layer. */
 #define LOG_SRC_APP             (1 << 14) /**< Receive logs from the application. */
 #define LOG_SRC_SERIAL          (1 << 15) /**< Receive logs from the serial module. */
+#define LOG_SRC_FSM             (1 << 16) /**< Receive logs from the FSM module. */
 
 /** Group for receiving logs from the core stack. */
 #define LOG_GROUP_STACK (LOG_SRC_BEARER | LOG_SRC_NETWORK | LOG_SRC_TRANSPORT)

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -393,21 +393,19 @@ static void free_packet_buffer(packet_buffer_packet_t * p_packet_buffer)
 
     /* Notify all memory listeners. Run until we find the last entry, in case some of the entries
      * get re-added in their callbacks. */
-    fm_mem_listener_t * p_back = (fm_mem_listener_t *) m_memory_listener_queue.p_back;
-    fm_mem_listener_t * p_listener = NULL;
-    do
+    queue_elem_t * p_back = m_memory_listener_queue.p_back;
+    if (p_back)
     {
-        p_listener = (fm_mem_listener_t *) queue_pop(&m_memory_listener_queue);
-        if (p_listener != NULL)
+        queue_elem_t * p_elem;
+        do
         {
-            p_listener->queue_elem.p_data = NULL;
+            p_elem = queue_pop(&m_memory_listener_queue);
+            NRF_MESH_ASSERT(p_elem != NULL);
+            fm_mem_listener_t * p_listener = (fm_mem_listener_t *) p_elem->p_data;
+            p_elem->p_data = NULL;
             p_listener->callback(p_listener->p_args);
-        }
-        else
-        {
-            NRF_MESH_ASSERT(p_back == NULL);
-        }
-    } while (p_listener != p_back);
+        } while (p_elem != p_back);
+    }
 }
 
 static void end_action(action_t * p_action, fm_result_t result, const fm_entry_t * p_entry)

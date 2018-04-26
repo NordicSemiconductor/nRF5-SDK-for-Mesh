@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -45,7 +45,7 @@ void serial_handler_common_cmd_rsp_nodata_on_error(uint8_t opcode, uint32_t stat
 {
     if (NRF_SUCCESS == status)
     {
-        (void) serial_cmd_rsp_send(opcode, serial_translate_error(status),p_data, length);
+        (void) serial_cmd_rsp_send(opcode, serial_translate_error(status), p_data, length);
     }
     else
     {

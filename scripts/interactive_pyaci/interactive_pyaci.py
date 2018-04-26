@@ -1,4 +1,4 @@
-# Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+# Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ import os
 import colorama
 
 from argparse import ArgumentParser
-from traitlets import config
+import traitlets.config
 
 from aci.aci_uart import Uart
 from aci.aci_utils import STATUS_CODE_LUT
@@ -43,8 +43,15 @@ from aci.aci_config import ApplicationConfig
 import aci.aci_cmd as cmd
 import aci.aci_evt as evt
 
-from provisioning import Provisioner, Provisionee  # NOQA: ignore unused import
+from mesh import access
+from mesh.provisioning import Provisioner, Provisionee  # NOQA: ignore unused import
+from mesh import types as mt                            # NOQA: ignore unused import
+from mesh.database import MeshDB                        # NOQA: ignore unused import
+from models.config import ConfigurationClient           # NOQA: ignore unused import
+from models.simple_on_off import SimpleOnOffClient      # NOQA: ignore unused import
 
+
+LOG_DIR = os.path.join(os.path.dirname(sys.argv[0]), "log")
 
 USAGE_STRING = \
     """
@@ -84,8 +91,9 @@ def configure_logger(device_name):
 
     if not options.no_logfile:
         dt = DateTime.DateTime()
-        logfile = "{}_{}-{}-{}-{}.outlog".format(
+        logfile = "{}_{}-{}-{}-{}_output.log".format(
             device_name, dt.yy(), dt.dayOfYear(), dt.hour(), dt.minute())
+        logfile = os.path.join(LOG_DIR, logfile)
         fh = logging.FileHandler(logfile)
         fh.setLevel(logging.DEBUG)
         file_formatter = logging.Formatter(FILE_LOG_FORMAT)
@@ -122,6 +130,10 @@ class Interactive(object):
             self.DEFAULT_LOCAL_UNICAST_ADRESS_START)
         Interactive.DEFAULT_LOCAL_UNICAST_ADRESS_START += (
             self.CONFIG.ACCESS_ELEMENT_COUNT)
+
+        self.access = access.Access(self, self.local_unicast_adress_start,
+                                    self.CONFIG.ACCESS_ELEMENT_COUNT)
+        self.model_add = self.access.model_add
 
     def close(self):
         self.acidev.stop()
@@ -186,6 +198,10 @@ def start_ipython(options):
 
     print(USAGE_STRING.format(**colors))
 
+    if not options.no_logfile and not os.path.exists(LOG_DIR):
+        print("Creating log directory: {}".format(os.path.abspath(LOG_DIR)))
+        os.mkdir(LOG_DIR)
+
     for dev_com in comports:
         d.append(Interactive(Uart(port=dev_com,
                                   baudrate=options.baudrate,
@@ -195,24 +211,24 @@ def start_ipython(options):
     send = device.acidev.write_aci_cmd  # NOQA: Ignore unused variable
 
     # Set iPython configuration
-    c = config.get_config()
+    ipython_config = traitlets.config.get_config()
     if options.no_logfile:
-        c.TerminalInteractiveShell.logstart = False
-        c.InteractiveShellApp.db_log_output = False
+        ipython_config.TerminalInteractiveShell.logstart = False
+        ipython_config.InteractiveShellApp.db_log_output = False
     else:
         dt = DateTime.DateTime()
-        logfile = "interactive_session_{}-{}-{}-{}.log".format(
-            dt.yy(), dt.dayOfYear(), dt.hour(), dt.minute())
+        logfile = "{}/{}-{}-{}-{}_interactive_session.log".format(
+            LOG_DIR, dt.yy(), dt.dayOfYear(), dt.hour(), dt.minute())
 
-        c.TerminalInteractiveShell.logstart = True
-        c.InteractiveShellApp.db_log_output = True
-        c.TerminalInteractiveShell.logfile = logfile
+        ipython_config.TerminalInteractiveShell.logstart = True
+        ipython_config.InteractiveShellApp.db_log_output = True
+        ipython_config.TerminalInteractiveShell.logfile = logfile
 
-    c.TerminalInteractiveShell.confirm_exit = False
-    c.InteractiveShellApp.multiline_history = True
-    c.InteractiveShellApp.log_level = logging.DEBUG
+    ipython_config.TerminalInteractiveShell.confirm_exit = False
+    ipython_config.InteractiveShellApp.multiline_history = True
+    ipython_config.InteractiveShellApp.log_level = logging.DEBUG
 
-    IPython.embed(config=c)
+    IPython.embed(config=ipython_config)
     for dev in d:
         dev.close()
     raise SystemExit(0)

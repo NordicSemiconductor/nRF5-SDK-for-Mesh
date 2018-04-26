@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -151,6 +151,32 @@
                                             line,                                                  \
                                             message);                                              \
                 break;                                                                             \
+            case NRF_MESH_EVT_NET_BEACON_RECEIVED:                                                 \
+                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.net_beacon.p_beacon_info,            \
+                                            (actual).params.net_beacon.p_beacon_info,              \
+                                            line,                                                  \
+                                            message);                                              \
+                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.net_beacon.p_beacon_secmat,          \
+                                            (actual).params.net_beacon.p_beacon_secmat,            \
+                                            line,                                                  \
+                                            message);                                              \
+                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.net_beacon.p_rx_metadata,            \
+                                            (actual).params.net_beacon.p_rx_metadata,              \
+                                            line,                                                  \
+                                            message);                                              \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.net_beacon.iv_index,                 \
+                                            (actual).params.net_beacon.iv_index,                   \
+                                            line,                                                  \
+                                            message);                                              \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.net_beacon.flags.iv_update,          \
+                                            (actual).params.net_beacon.flags.iv_update,            \
+                                            line,                                                  \
+                                            message);                                              \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.net_beacon.flags.key_refresh,        \
+                                            (actual).params.net_beacon.flags.key_refresh,          \
+                                            line,                                                  \
+                                            message);                                              \
+                break;                                                                             \
             default:                                                                               \
             {                                                                                      \
                 char error_msg[256];                                                               \
@@ -162,6 +188,15 @@
     \
 } while (0)
 #define TEST_ASSERT_EQUAL_nrf_mesh_evt_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_nrf_mesh_evt_t(expected, actual, __LINE__, "")
+
+
+#define UNITY_TEST_ASSERT_EQUAL_core_tx_alloc_params_t(expected, actual, line, message) do { \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).role, (actual).role, line, message); \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).net_packet_len, (actual).net_packet_len, line, message); \
+        UNITY_TEST_ASSERT_EQUAL_network_packet_metadata_t(*(expected).p_metadata, *(actual).p_metadata, line, message); \
+        UNITY_TEST_ASSERT_EQUAL_HEX32((expected).token, (actual).token, line, message); \
+    } while (0)
+#define TEST_ASSERT_EQUAL_core_tx_alloc_params_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_core_tx_alloc_params_t(expected, actual, __LINE__, "")
 
 /** @} */
 

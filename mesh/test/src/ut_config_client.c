@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -84,6 +84,7 @@
     {                                                                   \
         TEST_ASSERT_MESSAGE(m_buffer.free, "Buffer not free");          \
         TEST_ASSERT_MESSAGE(!m_expect_timeout, "Already waiting for a timeout"); \
+        TEST_ASSERT_MESSAGE(!m_expect_cancelled, "Already waiting for a cancel"); \
         if (LENGTH > 0)                                                 \
         {                                                               \
             memcpy(m_buffer.buffer, DATA, LENGTH);                      \
@@ -98,7 +99,18 @@
     {                                                                   \
         TEST_ASSERT_MESSAGE(m_expect_ack, "Not TX-ing a message. Did you forget EXPECT_TX()?"); \
         TEST_ASSERT_MESSAGE(!m_expect_timeout, "Already waiting for a timeout"); \
+        TEST_ASSERT_MESSAGE(!m_expect_cancelled, "Already waiting for a cancel"); \
         m_expect_timeout = true;                                        \
+        m_expect_ack = false;                                           \
+    } while (0)
+
+#define EXPECT_CANCELLED()                                              \
+    do                                                                  \
+    {                                                                   \
+        TEST_ASSERT_MESSAGE(m_expect_ack, "Not TX-ing a message. Did you forget EXPECT_TX()?"); \
+        TEST_ASSERT_MESSAGE(!m_expect_timeout, "Already waiting for a timeout"); \
+        TEST_ASSERT_MESSAGE(!m_expect_cancelled, "Already waiting for a cancel"); \
+        m_expect_cancelled = true;                                      \
         m_expect_ack = false;                                           \
     } while (0)
 
@@ -120,6 +132,7 @@ static struct
 static uint8_t m_packet_buffer[128];
 static access_reliable_cb_t m_reliable_cb;
 static bool m_expect_timeout;
+static bool m_expect_cancelled;
 static bool m_expect_ack;
 static int m_pacman_refcount;
 
@@ -190,6 +203,12 @@ static void event_cb(config_client_event_type_t event_type, const config_client_
             TEST_ASSERT(m_expect_timeout);
             TEST_ASSERT_NULL(p_evt);
             m_expect_timeout = false;
+            break;
+
+        case CONFIG_CLIENT_EVENT_TYPE_CANCELLED:
+            TEST_ASSERT(m_expect_cancelled);
+            TEST_ASSERT_NULL(p_evt);
+            m_expect_cancelled = false;
             break;
 
         case CONFIG_CLIENT_EVENT_TYPE_MSG:
@@ -263,6 +282,7 @@ void setUp(void)
     packet_mgr_alloc_StubWithCallback(pacman_alloc_cb);
     packet_mgr_free_StubWithCallback(pacman_free_cb);
     m_expect_timeout = false;
+    m_expect_cancelled = false;
     m_expect_ack = false;
     m_pacman_refcount = 0;
 }
@@ -270,7 +290,8 @@ void setUp(void)
 void tearDown(void)
 {
     /* Nothing unhandled left. */
-    TEST_ASSERT_MESSAGE(!m_expect_timeout, "Timeout event not sent");
+    TEST_ASSERT_MESSAGE(!m_expect_timeout, "TIMEOUT event not sent");
+    TEST_ASSERT_MESSAGE(!m_expect_cancelled, "CANCELLED event not sent");
     TEST_ASSERT_MESSAGE(!m_expect_ack, "ACK not sent");
     TEST_ASSERT_MESSAGE(m_buffer.free, "Buffer not freed (did we lose a TX?)");
     TEST_ASSERT_EQUAL(0, m_pacman_refcount);
@@ -293,7 +314,7 @@ void test_invalid_state(void)
 {
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, config_client_server_set(0, 0));
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, config_client_server_bind(0));
-    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, config_client_composition_data_get());
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, config_client_composition_data_get(0));
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, config_client_appkey_add(0, 0, NULL));
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, config_client_model_publication_set(NULL));
 
@@ -361,7 +382,7 @@ void test_composition_data_get(void)
     config_msg_composition_data_get_t composition_data = {0};
     EXPECT_TX(CONFIG_OPCODE_COMPOSITION_DATA_GET, &composition_data, sizeof(composition_data));
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_composition_data_get());
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_composition_data_get(0));
     EXPECT_TIMEOUT();
     m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_TIMEOUT);
 }
@@ -541,7 +562,7 @@ void test_netkey_get(void)
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_netkey_get());
 
     const uint16_t index_list[] = {1, 2, 3, 4};
-    uint8_t packed_list[packed_index_list_size(4)];
+    uint8_t packed_list[PACKED_INDEX_LIST_SIZE(4)];
 
     packed_index_list_create(index_list, packed_list, 4);
     EXPECT_ACK(CONFIG_OPCODE_NETKEY_LIST, packed_list, sizeof(packed_list)); /*lint !e419 Apparent data overrun - safe in this case*/
@@ -582,12 +603,17 @@ void test_publication_get(void)
 {
     __setup();
     const config_msg_publication_get_t msg =
-        {
-            .element_address = 3,
-            .model_id = {1,2}
-        };
+    {
+        .element_address = 3,
+        .model_id.vendor.model_id = 1,
+        .model_id.vendor.company_id = 2
+    };
 
-    const access_model_id_t model_id = {1, 2};
+    const access_model_id_t model_id =
+    {
+        .model_id = 1,
+        .company_id = 2
+    };
     EXPECT_TX(CONFIG_OPCODE_MODEL_PUBLICATION_GET, &msg, sizeof(msg));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_model_publication_get(3, model_id));
 
@@ -627,8 +653,8 @@ void test_publication_set(void)
     msg.state.publish_period = ps.publish_period.step_res << 6u | ps.publish_period.step_num;
     msg.state.retransmit_count = ps.retransmit_count;
     msg.state.retransmit_interval = ps.retransmit_interval;
-    msg.state.model_id.company_id = ps.model_id.company_id;
-    msg.state.model_id.model_id = ps.model_id.model_id;
+    msg.state.model_id.vendor.company_id = ps.model_id.company_id;
+    msg.state.model_id.vendor.model_id = ps.model_id.model_id;
 
     EXPECT_TX(CONFIG_OPCODE_MODEL_PUBLICATION_SET, &msg, sizeof(msg));
 
@@ -672,8 +698,8 @@ void test_publication_virtual_set(void)
     msg.state.publish_period = ps.publish_period.step_res << 6u | ps.publish_period.step_num;
     msg.state.retransmit_count = ps.retransmit_count;
     msg.state.retransmit_interval = ps.retransmit_interval;
-    msg.state.model_id.company_id = ps.model_id.company_id;
-    msg.state.model_id.model_id = ps.model_id.model_id;
+    msg.state.model_id.vendor.company_id = ps.model_id.company_id;
+    msg.state.model_id.vendor.model_id = ps.model_id.model_id;
 
     EXPECT_TX(CONFIG_OPCODE_MODEL_PUBLICATION_VIRTUAL_ADDRESS_SET, &msg, sizeof(msg));
 
@@ -702,7 +728,7 @@ void test_subscription_add(void)
     config_msg_subscription_add_del_owr_t msg;
     msg.address = address.value;
     msg.element_address = element_address;
-    msg.model_id.model_id = model_id.model_id;
+    msg.model_id.sig.model_id = model_id.model_id;
 
     /* Length is shortened by 2 bytes because of SIG model ID. */
     uint16_t length = (sizeof(msg) - sizeof(uint16_t));
@@ -733,7 +759,7 @@ void test_subscription_virtual_add(void)
     config_msg_subscription_virtual_add_del_owr_t msg;
     memcpy(msg.virtual_uuid, virtual_uuid, sizeof(virtual_uuid));
     msg.element_address = element_address;
-    msg.model_id.model_id = model_id.model_id;
+    msg.model_id.sig.model_id = model_id.model_id;
 
     /* Length is shortened by 2 bytes because of SIG model ID. */
     uint16_t length = (sizeof(msg) - sizeof(uint16_t));
@@ -762,8 +788,8 @@ void test_subscription_delete(void)
     config_msg_subscription_add_del_owr_t msg;
     msg.address = address.value;
     msg.element_address = element_address;
-    msg.model_id.model_id = model_id.model_id;
-    msg.model_id.company_id = model_id.company_id;
+    msg.model_id.vendor.model_id = model_id.model_id;
+    msg.model_id.vendor.company_id = model_id.company_id;
 
     EXPECT_TX(CONFIG_OPCODE_MODEL_SUBSCRIPTION_DELETE, &msg, sizeof(msg));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_model_subscription_delete(element_address, address, model_id));
@@ -792,8 +818,8 @@ void test_subscription_virtual_delete(void)
     config_msg_subscription_virtual_add_del_owr_t msg;
     memcpy(msg.virtual_uuid, virtual_uuid, sizeof(virtual_uuid));
     msg.element_address = element_address;
-    msg.model_id.model_id = model_id.model_id;
-    msg.model_id.company_id = model_id.company_id;
+    msg.model_id.vendor.model_id = model_id.model_id;
+    msg.model_id.vendor.company_id = model_id.company_id;
 
     EXPECT_TX(CONFIG_OPCODE_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_DELETE, &msg, sizeof(msg));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_model_subscription_delete(element_address, address, model_id));
@@ -820,7 +846,7 @@ void test_subscription_overwrite(void)
     config_msg_subscription_add_del_owr_t msg;
     msg.address = address.value;
     msg.element_address = element_address;
-    msg.model_id.model_id = model_id.model_id;
+    msg.model_id.sig.model_id = model_id.model_id;
 
     /* Length is shortened by 2 bytes because of SIG model ID. */
     uint16_t length = (sizeof(msg) - sizeof(uint16_t));
@@ -851,8 +877,8 @@ void test_subscription_virtual_overwrite(void)
     config_msg_subscription_virtual_add_del_owr_t msg;
     memcpy(msg.virtual_uuid, virtual_uuid, sizeof(virtual_uuid));
     msg.element_address = element_address;
-    msg.model_id.model_id = model_id.model_id;
-    msg.model_id.company_id = model_id.company_id;
+    msg.model_id.vendor.model_id = model_id.model_id;
+    msg.model_id.vendor.company_id = model_id.company_id;
 
     /* Length is shortened by 2 bytes because of SIG model ID. */
     uint16_t length = (sizeof(msg) - sizeof(uint16_t));
@@ -878,8 +904,8 @@ void test_subscription_delete_all(void)
 
     config_msg_subscription_delete_all_t msg;
     msg.element_address = element_address;
-    msg.model_id.model_id = model_id.model_id;
-    msg.model_id.company_id = model_id.company_id;
+    msg.model_id.vendor.model_id = model_id.model_id;
+    msg.model_id.vendor.company_id = model_id.company_id;
 
     EXPECT_TX(CONFIG_OPCODE_MODEL_SUBSCRIPTION_DELETE_ALL, &msg, sizeof(msg));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_model_subscription_delete_all(element_address, model_id));
@@ -904,8 +930,8 @@ void test_subscription_get(void)
 
     config_msg_model_subscription_get_t msg;
     msg.element_address = element_address;
-    msg.model_id.model_id = model_id.model_id;
-    msg.model_id.company_id = model_id.company_id;
+    msg.model_id.vendor.model_id = model_id.model_id;
+    msg.model_id.vendor.company_id = model_id.company_id;
 
     EXPECT_TX(CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_GET, &msg, sizeof(msg));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_model_subscription_get(element_address, model_id));
@@ -922,7 +948,7 @@ void test_subscription_get(void)
     model_id.model_id = 6;
 
     msg.element_address = element_address;
-    msg.model_id.model_id = model_id.model_id;
+    msg.model_id.sig.model_id = model_id.model_id;
 
     EXPECT_TX(CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_GET, &msg, (sizeof(msg) - sizeof(uint16_t)));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_model_subscription_get(element_address, model_id));
@@ -946,7 +972,7 @@ void test_app_bind_unbind(void)
     config_msg_app_bind_unbind_t msg;
     msg.appkey_index = appkey_index;
     msg.element_address = element_address;
-    msg.model_id.model_id = model_id.model_id;
+    msg.model_id.sig.model_id = model_id.model_id;
 
     /* Length is shortened by 2 bytes because of SIG model ID. */
     uint16_t length = (sizeof(msg) - sizeof(uint16_t));
@@ -962,8 +988,8 @@ void test_app_bind_unbind(void)
 
     /* Unbind */
     model_id.company_id = 42;
-    msg.model_id.model_id = model_id.model_id;
-    msg.model_id.company_id = model_id.company_id;
+    msg.model_id.vendor.model_id = model_id.model_id;
+    msg.model_id.vendor.company_id = model_id.company_id;
     EXPECT_TX(CONFIG_OPCODE_MODEL_APP_UNBIND, &msg, sizeof(msg));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_model_app_unbind(element_address, appkey_index, model_id));
 
@@ -986,8 +1012,8 @@ void test_app_get(void)
 
     config_msg_model_app_get_t msg;
     msg.element_address = element_address;
-    msg.model_id.model_id = model_id.model_id;
-    msg.model_id.company_id = model_id.company_id;
+    msg.model_id.vendor.model_id = model_id.model_id;
+    msg.model_id.vendor.company_id = model_id.company_id;
 
     EXPECT_TX(CONFIG_OPCODE_VENDOR_MODEL_APP_GET, &msg, sizeof(msg));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_model_app_get(element_address, model_id));
@@ -1004,7 +1030,7 @@ void test_app_get(void)
     model_id.model_id = 6;
 
     msg.element_address = element_address;
-    msg.model_id.model_id = model_id.model_id;
+    msg.model_id.sig.model_id = model_id.model_id;
 
     EXPECT_TX(CONFIG_OPCODE_SIG_MODEL_APP_GET, &msg, (sizeof(msg) - sizeof(uint16_t)));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_model_app_get(element_address, model_id));
@@ -1023,7 +1049,7 @@ void test_ttl_get(void)
     EXPECT_TX(CONFIG_OPCODE_DEFAULT_TTL_GET, NULL, 0);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_default_ttl_get());
 
-    const config_msg_default_ttl_t status =
+    const config_msg_default_ttl_status_t status =
         {
             .ttl = 4
         };
@@ -1036,12 +1062,12 @@ void test_ttl_set(void)
 {
     __setup();
 
-    const config_msg_default_ttl_t msg = {42};
+    const config_msg_default_ttl_set_t msg = {42};
     EXPECT_TX(CONFIG_OPCODE_DEFAULT_TTL_SET, &msg, sizeof(msg));
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, config_client_default_ttl_set(NRF_MESH_TTL_MAX + 1));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_default_ttl_set(42));
 
-    const config_msg_default_ttl_t status =
+    const config_msg_default_ttl_status_t status =
         {
             .ttl = 4
         };
@@ -1272,17 +1298,16 @@ void test_config_client_heartbeat_subscription_get(void)
     m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
 }
 
-
 void test_busy_state(void)
 {
     __setup();
     config_msg_composition_data_get_t composition_data = {0};
     EXPECT_TX(CONFIG_OPCODE_COMPOSITION_DATA_GET, &composition_data, sizeof(composition_data));
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_composition_data_get());
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_composition_data_get(0));
 
     TEST_ASSERT_EQUAL(NRF_ERROR_BUSY, config_client_server_set(0, 0));
     TEST_ASSERT_EQUAL(NRF_ERROR_BUSY, config_client_server_bind(0));
-    TEST_ASSERT_EQUAL(NRF_ERROR_BUSY, config_client_composition_data_get());
+    TEST_ASSERT_EQUAL(NRF_ERROR_BUSY, config_client_composition_data_get(0));
     TEST_ASSERT_EQUAL(NRF_ERROR_BUSY, config_client_appkey_add(0, 0, NULL));
     TEST_ASSERT_EQUAL(NRF_ERROR_BUSY, config_client_model_publication_set(NULL));
 
@@ -1297,11 +1322,25 @@ void test_busy_state(void)
     m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_TIMEOUT);
 }
 
-
 void test_alloc_fail(void)
 {
     __setup();
     access_model_reliable_publish_IgnoreAndReturn(NRF_ERROR_NO_MEM);
-    TEST_ASSERT_EQUAL(NRF_ERROR_NO_MEM, config_client_composition_data_get());
+    TEST_ASSERT_EQUAL(NRF_ERROR_NO_MEM, config_client_composition_data_get(0));
 }
 
+void test_cancelled(void)
+{
+    __setup();
+    EXPECT_TX(CONFIG_OPCODE_HEARTBEAT_PUBLICATION_GET, NULL, 0);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_heartbeat_publication_get());
+    EXPECT_CANCELLED();
+    m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_CANCELLED);
+}
+
+void test_pending_msg_cancel(void)
+{
+    __setup();
+    access_model_reliable_cancel_ExpectAndReturn(m_handle, NRF_SUCCESS);
+    config_client_pending_msg_cancel();
+}

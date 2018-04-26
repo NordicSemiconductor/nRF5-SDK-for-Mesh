@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -98,11 +98,16 @@
 #define DEBUG_ATOMIC_FUNCTION_EXIT(lock)    {}
 #endif
 
+#if HOST
+#define IS_VALID_RAM_ADDR(ADDR) (true)
+#else
 /** Check if an address is a valid RAM address. */
 #define IS_VALID_RAM_ADDR(ADDR)     (                                                              \
         (((uint32_t)(ADDR) > DATA_RAM_START) && ((uint32_t)(ADDR) < DEVICE_DATA_RAM_END_GET())) || \
         (((uint32_t)(ADDR) > CODE_RAM_START) && ((uint32_t)(ADDR) < DEVICE_CODE_RAM_END_GET()))    \
                                     )
+#endif
+
 /** Check whether the given pointer is page aligned. */
 #define IS_PAGE_ALIGNED(p) (((uint32_t)(p) & (PAGE_SIZE - 1)) == 0)
 /** Check whether the given pointer is word aligned. */

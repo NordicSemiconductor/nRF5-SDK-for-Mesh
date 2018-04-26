@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -40,28 +40,7 @@
 #include "nrf_mesh.h"
 #include "nrf_mesh_opt.h"
 #include "core_tx.h"
-
-typedef struct
-{
-    /** Packet destination address. */
-    nrf_mesh_address_t dst;
-    /** Address of the element the packet originates from (must be a unicast address). */
-    uint16_t src;
-    /** Time to live value for the packet, this is a 7 bit value. */
-    uint8_t ttl;
-    /** Flag indicating whether the packet is a control packet. */
-    bool control_packet;
-    /** Parameters generated internally. */
-    struct
-    {
-        /** Sequence number of the message. */
-        uint32_t sequence_number;
-        /** IV index of the message. */
-        uint32_t iv_index;
-    } internal;
-    /** Network security material. */
-    const nrf_mesh_network_secmat_t * p_security_material;
-} network_packet_metadata_t;
+#include "net_packet.h"
 
 typedef struct
 {
@@ -75,8 +54,9 @@ typedef struct
         /** Length of the payload. */
         uint32_t payload_len;
     } user_data;
-    /** Core TX metadata, set in the allocation. */
-    core_tx_metadata_t core_tx;
+
+    core_tx_role_t role;
+
     /** Pointer to the network data, set in the allocation. */
     uint8_t * p_payload;
 } network_tx_packet_buffer_t;
@@ -156,7 +136,7 @@ void network_packet_discard(const network_tx_packet_buffer_t * p_buffer);
  *
  * @retval NRF_SUCCESS The packet was successfully processed.
  * @retval NRF_ERROR_INVALID_ADDR The destination address is not valid.
- * @retval NRF_ERROR_NOT_FOUND    The packet could not be decrypted by the transport layer.
+ * @retval NRF_ERROR_NOT_FOUND    The packet could not be decrypted.
  */
 uint32_t network_packet_in(const uint8_t * p_packet, uint32_t net_packet_len, const nrf_mesh_rx_metadata_t * p_rx_metadata);
 

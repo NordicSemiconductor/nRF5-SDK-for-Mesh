@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -490,16 +490,20 @@ typedef struct __attribute((packed))
     uint16_t src_addr;        /**< Raw unicast address to use as source address. Must be in the range of local unicast addresses. */
     uint16_t dst_addr_handle; /**< Handle of destination address to use in packet. */
     uint8_t ttl;              /**< Time To Live value to use in packet. */
-    uint8_t reliable;         /**< Whether or not to make the transmission reliable. */
+    uint8_t force_segmented;  /**< Whether or not to force use of segmented message type for the transmission. */
+    uint8_t transmic_size;    /**< Transport MIC size used enum. SMALL=0, LARGE=1, DEFAULT=2. LARGE may only be used with segmented packets. */
     uint8_t data[NRF_MESH_SERIAL_PAYLOAD_MAXLEN - SERIAL_CMD_MESH_PACKET_SEND_OVERHEAD];    /**< Payload of the packet. */
 } serial_cmd_mesh_packet_send_t;
+
+NRF_MESH_STATIC_ASSERT(sizeof(serial_cmd_mesh_packet_send_t) == NRF_MESH_SERIAL_PAYLOAD_MAXLEN);
+
 
 /** Mesh command parameters. */
 typedef union __attribute((packed))
 {
     serial_cmd_mesh_subnet_add_t                    subnet_add;                    /**< Subnet add parameters. */
     serial_cmd_mesh_subnet_update_t                 subnet_update;                 /**< Subnet update parameters. */
-    serial_cmd_mesh_subnet_delete_t                 subnet_delete     ;            /**< Subnet delete parameters. */
+    serial_cmd_mesh_subnet_delete_t                 subnet_delete;                 /**< Subnet delete parameters. */
 
     serial_cmd_mesh_appkey_add_t                    appkey_add;                    /**< Appkey add parameters. */
     serial_cmd_mesh_appkey_update_t                 appkey_update;                 /**< Appkey update parameters. */
@@ -620,7 +624,7 @@ typedef struct __attribute((packed))
 /** Used to update the location field of an element. */
 typedef struct __attribute((packed))
 {
-    uint16_t element_index; /**< The index of the element addressed. */
+    uint16_t element_index; /**< Index of the addressed element. */
     uint16_t location; /**< Location value for the element. */
 } serial_cmd_access_element_loc_set_t;
 
@@ -628,14 +632,14 @@ typedef struct __attribute((packed))
 typedef struct __attribute((packed))
 {
     access_model_handle_t model_handle; /**< Handle of the model that the access module should operate on. */
-    uint8_t ttl;
+    uint8_t ttl;                        /**< TTL for outgoing messages. */
 } serial_cmd_access_model_pub_ttl_set_t;
 
 /** Used to get the handle value for a model instance. */
 typedef struct __attribute((packed))
 {
-    uint16_t element_index;
-    access_model_id_t model_id;
+    uint16_t element_index;             /**< Index of the addressed element which owns the model. */
+    access_model_id_t model_id;         /**< Company and model IDs. */
 } serial_cmd_access_handle_get_t;
 
 /** Used to update the publish period of a model by updating resolution and number of steps. */
@@ -649,7 +653,7 @@ typedef struct __attribute((packed))
 /** Used by access commands that only require the element index */
 typedef struct __attribute((packed))
 {
-    uint16_t element_index;
+    uint16_t element_index;               /**< Index of the addressed element. */
 } serial_cmd_access_element_index_t;
 
 /** Used for initializing one of the available models */

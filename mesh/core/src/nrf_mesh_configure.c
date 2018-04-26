@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -39,6 +39,9 @@
 #include "nrf_mesh_configure.h"
 #include "nrf_mesh_defines.h"
 #include "nrf.h"
+#if defined NRF_MESH_TEST_SHIM
+#include "test_instrument.h"
+#endif
 
 /*****************************************************************************
 * Static locals
@@ -61,6 +64,10 @@ void nrf_mesh_configure_device_uuid_reset(void)
     memcpy(m_uuid, (void*) &NRF_FICR->DEVICEID[0], 8);
     /* Advertisement address */
     memcpy(&m_uuid[8], (void*) &NRF_FICR->DEVICEADDR[0], 8);
+
+#if defined NRF_MESH_TEST_SHIM
+    nrf_mesh_test_shim(EDIT_DEVICE_UUID, m_uuid);
+#endif
 }
 
 const uint8_t* nrf_mesh_configure_device_uuid_get(void)

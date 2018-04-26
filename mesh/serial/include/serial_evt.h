@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -46,6 +46,7 @@
 #include "serial_types.h"
 #include "internal_event.h"
 #include "packet.h"
+
 /**
  * @defgroup SERIAL_EVT Serial events
  * @ingroup MESH_SERIAL
@@ -102,7 +103,7 @@
 typedef struct __attribute((packed))
 {
     uint8_t operating_mode; /**< Operating mode of the device. see @ref serial_device_operating_mode_t for accepted values. */
-    uint8_t hw_error; /**< Hardware error code, or 0 if no error occured. */
+    uint8_t hw_error; /**< Hardware error code, or 0 if no error occurred. */
     uint8_t data_credit_available; /**< The number of bytes available in each of the tx and rx buffers. */
 } serial_evt_device_started_t;
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -58,49 +58,9 @@ typedef struct
     uint8_t beacon_type;  /**< Beacon type, see @ref BEACON_TYPE */
     uint8_t payload[];    /**< Beacon payload. */
 } beacon_packet_t;
-
-/********************/
-/* Static variables */
-/********************/
-static advertiser_t m_advertiser; /**< Advertiser instance used to transmit beacon packets. */
-/** Advertiser packet buffer. */
-static uint8_t m_adv_buffer[ADVERTISER_PACKET_BUFFER_PACKET_MAXLEN * 2] __attribute__((aligned(WORD_SIZE)));
 /**************/
 /* Public API */
 /**************/
-void beacon_init(uint32_t interval_ms)
-{
-    NRF_MESH_ASSERT(interval_ms >= BEACON_INTERVAL_MS_MIN && interval_ms <= BEACON_INTERVAL_MS_MAX);
-    advertiser_instance_init(&m_advertiser, NULL, m_adv_buffer, sizeof(m_adv_buffer));
-    advertiser_interval_set(&m_advertiser, interval_ms);
-    advertiser_enable(&m_advertiser);
-}
-
-uint32_t beacon_tx(uint8_t beacon_type, const void* p_payload, uint8_t payload_len, uint8_t count)
-{
-    if (p_payload == NULL ||
-            payload_len == 0 ||
-            beacon_type == BEACON_TYPE_INVALID ||
-            payload_len > BEACON_DATA_MAXLEN ||
-            count == 0)
-    {
-        return NRF_ERROR_INVALID_PARAM;
-    }
-    uint32_t status;
-    adv_packet_t * p_packet = beacon_create(&m_advertiser, beacon_type, p_payload, payload_len);
-    if (p_packet == NULL)
-    {
-        status = NRF_ERROR_NO_MEM;
-    }
-    else
-    {
-        p_packet->config.repeats = ADVERTISER_REPEAT_INFINITE;
-        advertiser_packet_send(&m_advertiser, p_packet);
-        status = NRF_SUCCESS;
-    }
-    return status;
-}
-
 adv_packet_t * beacon_create(advertiser_t * p_adv, uint8_t beacon_type, const void* p_payload, uint8_t payload_len)
 {
     if (p_adv == NULL || p_payload == NULL || payload_len == 0 ||

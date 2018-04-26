@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -216,6 +216,8 @@ static uint32_t access_model_publish_mock(access_model_handle_t handle, const ac
     TEST_ASSERT_EQUAL(m_publish_expected_opcode, p_message->opcode.opcode);
     TEST_ASSERT_EQUAL(ACCESS_COMPANY_ID_NONE, p_message->opcode.company_id);
     TEST_ASSERT_EQUAL(m_publish_expected_data_length, p_message->length);
+    TEST_ASSERT_EQUAL(false, p_message->force_segmented);
+    TEST_ASSERT_EQUAL(NRF_MESH_TRANSMIC_SIZE_DEFAULT, p_message->transmic_size);
     TEST_ASSERT_EQUAL_HEX8_ARRAY((const uint8_t *) mp_publish_expected_data, p_message->p_buffer, p_message->length);
 
     return NRF_SUCCESS;

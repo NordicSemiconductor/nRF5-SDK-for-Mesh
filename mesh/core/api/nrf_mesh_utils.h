@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -39,6 +39,7 @@
 #define NRF_MESH_UTILS_H__
 
 #include <stdint.h>
+#include <stddef.h>
 #include "nrf_mesh_defines.h"
 #include "nrf_mesh.h"
 
@@ -81,6 +82,27 @@ nrf_mesh_address_type_t nrf_mesh_address_type_get(uint16_t address);
  * otherwise @ref BLE_GAP_ADDR_TYPE_RANDOM_INVALID.
  */
 uint8_t nrf_mesh_gap_address_type_get(const uint8_t * p_address, uint8_t txadd_bit);
+
+/**
+ * Get the beacon secmat representing the given key refresh phase from the beacon info.
+ *
+ * @param[in] p_beacon_info Beacon info the get secmat from.
+ * @param[in] kr_phase Current key refresh phase.
+ *
+ * @returns A pointer to the secmat used during the given key refresh phase.
+ */
+static inline const nrf_mesh_beacon_secmat_t * nrf_mesh_beacon_secmat_from_info(const nrf_mesh_beacon_info_t * p_beacon_info, nrf_mesh_key_refresh_phase_t kr_phase)
+{
+    if (p_beacon_info)
+    {
+        return ((kr_phase == NRF_MESH_KEY_REFRESH_PHASE_0) ? &p_beacon_info->secmat
+                                                        : &p_beacon_info->secmat_updated);
+    }
+    else
+    {
+        return NULL;
+    }
+}
 
 /** @} */
 

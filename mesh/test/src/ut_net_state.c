@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -38,12 +38,15 @@
 #include <unity.h>
 #include <cmock.h>
 
+#include <stddef.h>
+
 #include "net_state.h"
 #include "test_assert.h"
 #include "timer_scheduler.h"
 
 #include "event_mock.h"
 #include "flash_manager_mock.h"
+#include "nrf_mesh_events.h"
 
 /*****************************************************************************
 * Defines
@@ -63,9 +66,10 @@ static flash_manager_page_t m_flash_pages[2];
 static flash_manager_t * mp_manager;
 static fm_entry_t * mp_expected_seqnum_flash_buffer;
 static fm_entry_t * mp_expected_iv_data_flash_buffer;
-static uint32_t m_flash_buffer[4];
+static uint32_t m_flash_buffer[16];
 static bool m_did_dummy_seqnum_block_alloc;
 static fm_mem_listener_t * mp_listeners[MEMORY_LISTENERS_MAX];
+static nrf_mesh_evt_handler_cb_t m_evt_handler;
 /*****************************************************************************
 * Mocks
 *****************************************************************************/
@@ -151,6 +155,11 @@ void event_handle_flash_fail_callback(const nrf_mesh_evt_t * p_evt, int calls)
     TEST_ASSERT_EQUAL(mp_manager->config.p_area, p_evt->params.flash_failed.p_area);
     TEST_ASSERT_EQUAL(NRF_MESH_FLASH_USER_CORE, p_evt->params.flash_failed.user);
     TEST_ASSERT_EQUAL(NET_FLASH_PAGE_COUNT, p_evt->params.flash_failed.page_count);
+}
+
+void nrf_mesh_evt_handler_add(nrf_mesh_evt_handler_t * p_handler_params)
+{
+    m_evt_handler = p_handler_params->evt_cb;
 }
 /*****************************************************************************
 * Setup functions
@@ -248,6 +257,23 @@ static void notify_flash_write_complete(fm_entry_t * p_entry)
     mp_manager->config.write_complete_cb(mp_manager,
                                          p_entry,
                                          FM_RESULT_SUCCESS);
+}
+
+static void beacon_rx(uint32_t iv_index, bool iv_update, bool key_refresh)
+{
+    nrf_mesh_beacon_info_t beacon_info;
+    nrf_mesh_evt_t beacon_evt;
+    nrf_mesh_rx_metadata_t rx_meta = {.source = NRF_MESH_RX_SOURCE_SCANNER};
+    beacon_info.iv_update_permitted = true;
+
+    beacon_evt.type = NRF_MESH_EVT_NET_BEACON_RECEIVED;
+    beacon_evt.params.net_beacon.iv_index          = iv_index;
+    beacon_evt.params.net_beacon.p_beacon_info     = &beacon_info;
+    beacon_evt.params.net_beacon.p_beacon_secmat   = &beacon_info.secmat;
+    beacon_evt.params.net_beacon.p_rx_metadata     = &rx_meta;
+    beacon_evt.params.net_beacon.flags.iv_update   = iv_update;
+    beacon_evt.params.net_beacon.flags.key_refresh = key_refresh;
+    m_evt_handler(&beacon_evt);
 }
 /*****************************************************************************
 * Tests
@@ -417,7 +443,7 @@ void test_iv_seqnum_initiated(void)
 
     expect_flash_iv_data(current_iv_index, false);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
-    net_state_beacon_received(current_iv_index, false, false);
+    beacon_rx(current_iv_index, false, false);
     notify_flash_write_complete(mp_expected_seqnum_flash_buffer);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
     /* next allocated seqnum is reset to 0 */
@@ -504,7 +530,7 @@ void test_iv_beacons(void)
     TEST_ASSERT_EQUAL((uint32_t)(current_iv_index-1), net_state_rx_iv_index_get(1));
 
     /* The other guy is doing an iv update */
-    net_state_beacon_received(current_iv_index+1, true, false);
+    beacon_rx(current_iv_index+1, true, false);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
     TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
     TEST_ASSERT_EQUAL(1, seqnum);
@@ -529,7 +555,7 @@ void test_iv_beacons(void)
     TEST_ASSERT_EQUAL((uint32_t)(current_iv_index), net_state_rx_iv_index_get(1));
 
     /* The other guy is already in normal state */
-    net_state_beacon_received(current_iv_index, false, false);
+    beacon_rx(current_iv_index, false, false);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
     /* TX iv index has not changed yet*/
     TEST_ASSERT_EQUAL(current_iv_index-1, net_state_tx_iv_index_get());
@@ -558,7 +584,7 @@ void test_iv_beacons(void)
     TEST_ASSERT_EQUAL(0, seqnum);
 
     /* Some other node is trying to catch up with the IV update procedure */
-    net_state_beacon_received(current_iv_index, true, false);
+    beacon_rx(current_iv_index, true, false);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
 
     /* Time passes and we can do iv update again */
@@ -569,13 +595,13 @@ void test_iv_beacons(void)
     /* Some other node is behind on its updates and gets ignored */
     event_handle_Ignore();
     expect_flash_iv_data(current_iv_index + 1, true);
-    net_state_beacon_received(current_iv_index, true, false);
+    beacon_rx(current_iv_index, true, false);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
 
     /* The other guy starts before we do */
     event_handle_Ignore();
 
-    net_state_beacon_received(current_iv_index+1, true, false);
+    beacon_rx(current_iv_index+1, true, false);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
     current_iv_index++;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
@@ -598,7 +624,7 @@ void test_iv_beacons(void)
     event_handle_Ignore();
     expect_flash_iv_data(current_iv_index+10, false);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
-    net_state_beacon_received(current_iv_index+10, false, false);
+    beacon_rx(current_iv_index+10, false, false);
     notify_flash_write_complete(mp_expected_seqnum_flash_buffer);
     current_iv_index += 10;
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
@@ -611,7 +637,7 @@ void test_iv_beacons(void)
     TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
     TEST_ASSERT_EQUAL(0, seqnum);
 
-    net_state_beacon_received(current_iv_index+10, false, false);
+    beacon_rx(current_iv_index+10, false, false);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
     TEST_ASSERT_EQUAL(current_iv_index, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(current_iv_index, net_state_beacon_iv_index_get());
@@ -623,7 +649,7 @@ void test_iv_beacons(void)
     /* This time 96 hours is not sufficient since we can't have another IV Index recovery
      * within a period of 192 hours. */
     m_skip_minutes(96*60 + 4);
-    net_state_beacon_received(current_iv_index+10, false, false);
+    beacon_rx(current_iv_index+10, false, false);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
     TEST_ASSERT_EQUAL(current_iv_index, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(current_iv_index, net_state_beacon_iv_index_get());
@@ -646,7 +672,7 @@ void test_iv_beacons(void)
     event_handle_Ignore();
     expect_flash_iv_data(current_iv_index+11, false);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
-    net_state_beacon_received(current_iv_index + 11, true, false);
+    beacon_rx(current_iv_index + 11, true, false);
     notify_flash_write_complete(mp_expected_seqnum_flash_buffer);
     current_iv_index += 11;
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
@@ -660,7 +686,7 @@ void test_iv_beacons(void)
     m_skip_minutes(96 * 60 + 4);
 
     /* But we will not accept IV indices larger than NETWORK_IV_RECOVERY_LIMIT */
-    net_state_beacon_received(current_iv_index + NETWORK_IV_RECOVERY_LIMIT+1, false, false);
+    beacon_rx(current_iv_index + NETWORK_IV_RECOVERY_LIMIT+1, false, false);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
     TEST_ASSERT_EQUAL(current_iv_index, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(current_iv_index, net_state_beacon_iv_index_get());
@@ -669,7 +695,7 @@ void test_iv_beacons(void)
     event_handle_Ignore();
     expect_flash_iv_data(current_iv_index+NETWORK_IV_RECOVERY_LIMIT, false);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
-    net_state_beacon_received(current_iv_index + NETWORK_IV_RECOVERY_LIMIT, false, false);
+    beacon_rx(current_iv_index + NETWORK_IV_RECOVERY_LIMIT, false, false);
     notify_flash_write_complete(mp_expected_seqnum_flash_buffer);
     current_iv_index += NETWORK_IV_RECOVERY_LIMIT;
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
@@ -683,7 +709,6 @@ void test_iv_beacons(void)
 
 void test_iv_testmode(void)
 {
-
     /* We have to allocate sequence numbers in flash before we start transmitting */
     expect_flash_load(0, 0, false);
     net_state_recover_from_flash();
@@ -723,7 +748,7 @@ void test_iv_testmode(void)
     event_handle_Ignore();
     expect_flash_iv_data(current_iv_index, false);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
-    net_state_beacon_received(current_iv_index, false, false);
+    beacon_rx(current_iv_index, false, false);
     notify_flash_write_complete(mp_expected_seqnum_flash_buffer);
 
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
@@ -753,7 +778,7 @@ void test_iv_testmode(void)
 
     /* Test mode off and we will not change states when a beacon arrives*/
     net_state_iv_update_test_mode_set(false);
-    net_state_beacon_received(current_iv_index, false, false);
+    beacon_rx(current_iv_index, false, false);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
 }
 
@@ -908,7 +933,7 @@ void test_flash_failures(void)
     /* Do the same procedure on the IV update end, this time fail both IV index alloc and seqnum alloc */
     flash_manager_entry_alloc_ExpectAndReturn(mp_manager, HANDLE_IV_DATA, 8, NULL);
     flash_manager_entry_alloc_ExpectAndReturn(mp_manager, HANDLE_SEQNUM, 4, NULL);
-    net_state_beacon_received(1, false, false);
+    beacon_rx(1, false, false);
     /* should have registered two listeners */
     TEST_ASSERT_NOT_NULL(mp_listeners[0]);
     TEST_ASSERT_NOT_NULL(mp_listeners[1]);
@@ -1048,10 +1073,32 @@ void test_iv_index_set(void)
 {
     const uint32_t TEST_IV_INDEX = 1542;
     expect_flash_iv_data(TEST_IV_INDEX, true);
+    expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_set(TEST_IV_INDEX, true));
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, net_state_iv_index_set(0, false));
 
     /* -1 because the IV index update is in progress */
     TEST_ASSERT_EQUAL(TEST_IV_INDEX - 1 , net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
+}
+
+void test_testmode_transition_run(void)
+{
+    /* Buffer must hold the fm_entry_t itself + any IV data (8 bytes should be enough!) */
+    uint8_t fmbuf[sizeof(fm_entry_t) + 8];
+    memset(fmbuf, 0, sizeof(fmbuf));
+    fm_entry_t * p_dummy = (fm_entry_t*) fmbuf;
+
+    flash_manager_entry_alloc_IgnoreAndReturn(p_dummy);
+    flash_manager_entry_commit_Ignore();
+    event_handle_Ignore();
+
+    /* Set testmode on so we can ignore the 96 hour time limit */
+    net_state_iv_update_test_mode_set(true);
+    TEST_ASSERT_EQUAL(NRF_ERROR_FORBIDDEN, net_state_test_mode_transition_run(NET_STATE_TO_NORMAL_SIGNAL));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_test_mode_transition_run(NET_STATE_TO_IV_UPDATE_IN_PROGRESS_SIGNAL));
+    TEST_ASSERT_EQUAL(NRF_ERROR_FORBIDDEN, net_state_test_mode_transition_run(NET_STATE_TO_IV_UPDATE_IN_PROGRESS_SIGNAL));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_test_mode_transition_run(NET_STATE_TO_NORMAL_SIGNAL));
+    /* Clear testmode on so we can ignore the 96 hour time limit */
+    net_state_iv_update_test_mode_set(false);
 }

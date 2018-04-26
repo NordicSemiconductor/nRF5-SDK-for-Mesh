@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -50,28 +50,17 @@
 
 #include "core_tx_mock.h"
 #include "core_tx_adv_mock.h"
-#include "enc_mock.h"
 #include "heartbeat_mock.h"
 #include "msg_cache_mock.h"
 #include "transport_mock.h"
 #include "net_beacon_mock.h"
 #include "net_state_mock.h"
+#include "net_packet_mock.h"
 #include "nrf_mesh_externs_mock.h"
 
 #define TOKEN 0x12345678U
 #define IV_INDEX 0x87654321U
 #define SEQNUM 0xabcdefU
-
-#define ENC_NONCE_GENERATE_CALLS_MAX 2
-
-
-static struct
-{
-    network_packet_metadata_t metadata[ENC_NONCE_GENERATE_CALLS_MAX];
-    uint8_t nonce_return[CCM_NONCE_LENGTH];
-    uint32_t calls;
-    uint32_t executed;
-} m_enc_nonce_generate_params;
 
 void setUp(void)
 {
@@ -79,15 +68,13 @@ void setUp(void)
 
     core_tx_mock_Init();
     core_tx_adv_mock_Init();
-    enc_mock_Init();
     heartbeat_mock_Init();
     msg_cache_mock_Init();
     transport_mock_Init();
     net_beacon_mock_Init();
     net_state_mock_Init();
+    net_packet_mock_Init();
     nrf_mesh_externs_mock_Init();
-    m_enc_nonce_generate_params.calls = 0;
-    m_enc_nonce_generate_params.executed = 0;
 }
 
 void tearDown(void)
@@ -96,8 +83,6 @@ void tearDown(void)
     core_tx_mock_Destroy();
     core_tx_adv_mock_Verify();
     core_tx_adv_mock_Destroy();
-    enc_mock_Verify();
-    enc_mock_Destroy();
     heartbeat_mock_Verify();
     heartbeat_mock_Destroy();
     msg_cache_mock_Verify();
@@ -108,6 +93,8 @@ void tearDown(void)
     net_beacon_mock_Destroy();
     net_state_mock_Verify();
     net_state_mock_Destroy();
+    net_packet_mock_Verify();
+    net_packet_mock_Destroy();
     nrf_mesh_externs_mock_Verify();
     nrf_mesh_externs_mock_Destroy();
 }
@@ -134,185 +121,37 @@ static bool relay_callback(uint16_t src, uint16_t dst, uint8_t ttl)
     return m_relay_callback_expect.retval;
 }
 
-static ccm_soft_data_t m_expected_encrypt_ccm;
-
-static void enc_aes_ccm_encrypt_callback(ccm_soft_data_t * const p_ccm, int calls)
+static void packet_alloc_Expect(network_packet_metadata_t * p_metadata, uint32_t packet_len, uint8_t ** pp_packet, core_tx_role_t role, bool success)
 {
-    TEST_ASSERT_EQUAL_PTR(m_expected_encrypt_ccm.p_key, p_ccm->p_key);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(m_expected_encrypt_ccm.p_nonce, p_ccm->p_nonce, CCM_NONCE_LENGTH);
-    TEST_ASSERT_EQUAL_PTR(m_expected_encrypt_ccm.p_m, p_ccm->p_m);
-    TEST_ASSERT_EQUAL(m_expected_encrypt_ccm.m_len, p_ccm->m_len);
-    TEST_ASSERT_EQUAL_PTR(m_expected_encrypt_ccm.p_a, p_ccm->p_a);
-    TEST_ASSERT_EQUAL(m_expected_encrypt_ccm.a_len, p_ccm->a_len);
-    TEST_ASSERT_EQUAL_PTR(m_expected_encrypt_ccm.p_out, p_ccm->p_out);
-    TEST_ASSERT_EQUAL_PTR(m_expected_encrypt_ccm.p_mic, p_ccm->p_mic);
-    TEST_ASSERT_EQUAL(m_expected_encrypt_ccm.mic_len, p_ccm->mic_len);
+    static core_tx_alloc_params_t alloc_params;
+    alloc_params.role           = role;
+    alloc_params.net_packet_len = packet_len;
+    alloc_params.p_metadata     = p_metadata;
+    alloc_params.token          = (role == CORE_TX_ROLE_ORIGINATOR ? TOKEN : CORE_TX_TOKEN_RELAY);
+
+    core_tx_packet_alloc_ExpectAndReturn(&alloc_params, NULL, success);
+    core_tx_packet_alloc_IgnoreArg_pp_packet();
+    core_tx_packet_alloc_ReturnThruPtr_pp_packet(pp_packet);
 }
 
-static bool m_decrypt_successful;
-static ccm_soft_data_t m_expected_decrypt_ccm;
-static void enc_aes_ccm_decrypt_callback(ccm_soft_data_t * const p_ccm, bool * p_mic_passed, int calls)
+static void relay_Expect(network_packet_metadata_t * p_metadata, uint32_t packet_len, packet_mesh_net_packet_t ** pp_relay_packet)
 {
-    TEST_ASSERT_EQUAL_PTR(m_expected_decrypt_ccm.p_key, p_ccm->p_key);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(m_expected_decrypt_ccm.p_nonce, p_ccm->p_nonce, CCM_NONCE_LENGTH);
-    TEST_ASSERT_EQUAL_PTR(m_expected_decrypt_ccm.p_m, p_ccm->p_m);
-    TEST_ASSERT_EQUAL(m_expected_decrypt_ccm.m_len, p_ccm->m_len);
-    TEST_ASSERT_EQUAL_PTR(m_expected_decrypt_ccm.p_a, p_ccm->p_a);
-    TEST_ASSERT_EQUAL(m_expected_decrypt_ccm.a_len, p_ccm->a_len);
-    TEST_ASSERT_NOT_NULL(p_ccm->p_out);
-    TEST_ASSERT_EQUAL_PTR(m_expected_decrypt_ccm.p_mic, p_ccm->p_mic);
-    TEST_ASSERT_EQUAL(m_expected_decrypt_ccm.mic_len, p_ccm->mic_len);
-    *p_mic_passed = m_decrypt_successful;
-    /* Just copy the payload right over */
-    memcpy(p_ccm->p_out, p_ccm->p_m, p_ccm->m_len + p_ccm->mic_len);
-}
-
-static const nrf_mesh_network_secmat_t ** mpp_secmats;
-static uint32_t m_secmat_count;
-static uint8_t m_expected_nid;
-static uint32_t m_secmat_calls;
-void nrf_mesh_net_secmat_next_get_callback(uint8_t nid, const nrf_mesh_network_secmat_t ** pp_secmat,
-        const nrf_mesh_network_secmat_t ** pp_aux_secmat, int calls)
-{
-    TEST_ASSERT_EQUAL(m_expected_nid, nid);
-    if (m_secmat_calls == 0)
-    {
-        TEST_ASSERT_NULL(*pp_secmat);
-        TEST_ASSERT_NULL(*pp_aux_secmat);
-    }
-    TEST_ASSERT_TRUE(m_secmat_calls < m_secmat_count);
-    *pp_secmat = mpp_secmats[m_secmat_calls++];
-    *pp_aux_secmat = NULL;
-}
-
-void secmat_get_Expect(const nrf_mesh_network_secmat_t ** pp_secmats, uint32_t secmat_count, uint8_t nid)
-{
-    nrf_mesh_net_secmat_next_get_StubWithCallback(nrf_mesh_net_secmat_next_get_callback);
-    mpp_secmats = pp_secmats;
-    m_secmat_count = secmat_count;
-    m_expected_nid = nid;
-    m_secmat_calls = 0;
-}
-
-void pecb_data_build(uint8_t * p_pecb_data, network_packet_metadata_t * p_meta, void * p_payload)
-{
-    memset(p_pecb_data, 0, 5);
-    p_pecb_data[5] = (uint8_t)(p_meta->internal.iv_index >> 24);
-    p_pecb_data[6] = (uint8_t)(p_meta->internal.iv_index >> 16);
-    p_pecb_data[7] = (uint8_t)(p_meta->internal.iv_index >> 8);
-    p_pecb_data[8] = (uint8_t)(p_meta->internal.iv_index);
-    p_pecb_data[9]  = p_meta->dst.value >> 8;
-    p_pecb_data[10] = p_meta->dst.value & 0xFF;
-    memcpy(&p_pecb_data[11], p_payload, 5);
-}
-
-static void enc_nonce_generate_callback(const network_packet_metadata_t * p_net_metadata,
-                                        enc_nonce_t type,
-                                        uint8_t aszmic,
-                                        uint8_t * p_nonce,
-                                        int calls)
-{
-    network_packet_metadata_t * p_expected_metadata =
-        &m_enc_nonce_generate_params.metadata[m_enc_nonce_generate_params.executed];
-    TEST_ASSERT_EQUAL(p_expected_metadata->src, p_net_metadata->src);
-    TEST_ASSERT_EQUAL(p_expected_metadata->internal.iv_index, p_net_metadata->internal.iv_index);
-    TEST_ASSERT_EQUAL(p_expected_metadata->internal.sequence_number, p_net_metadata->internal.sequence_number);
-    TEST_ASSERT_EQUAL(p_expected_metadata->ttl, p_net_metadata->ttl);
-    TEST_ASSERT_EQUAL(p_expected_metadata->control_packet, p_net_metadata->control_packet);
-    TEST_ASSERT_EQUAL(ENC_NONCE_NET, type);
-    TEST_ASSERT_EQUAL(0, aszmic);
-    TEST_ASSERT_NOT_NULL(p_nonce);
-    m_enc_nonce_generate_params.calls--;
-    m_enc_nonce_generate_params.executed++;
-    memcpy(p_nonce, m_enc_nonce_generate_params.nonce_return, CCM_NONCE_LENGTH);
-}
-
-static void m_enc_nonce_generate_Expect(const network_packet_metadata_t * p_net_metadata)
-{
-    TEST_ASSERT_TRUE(m_enc_nonce_generate_params.calls < ENC_NONCE_GENERATE_CALLS_MAX);
-    memcpy(&m_enc_nonce_generate_params.metadata[m_enc_nonce_generate_params.calls],
-        p_net_metadata,
-        sizeof(network_packet_metadata_t));
-    m_enc_nonce_generate_params.calls++;
-}
-
-static void transfuscate_Expect(network_packet_metadata_t * p_metadata, uint8_t * p_packet, uint8_t * p_pecb, uint8_t * p_pecb_data)
-{
-    pecb_data_build(p_pecb_data, p_metadata, &p_packet[9]);
-    enc_aes_encrypt_Expect(p_metadata->p_security_material->privacy_key, p_pecb_data, NULL);
-    enc_aes_encrypt_IgnoreArg_p_result();
-    enc_aes_encrypt_ReturnMemThruPtr_p_result(p_pecb, NRF_MESH_KEY_SIZE);
-}
-
-static void packet_encrypt_Expect(network_packet_metadata_t * p_metadata, uint32_t payload_len, uint8_t * p_packet, uint8_t * p_pecb, uint8_t * p_pecb_data)
-{
-    memset(p_packet, 0xAB, 9 + payload_len);
-
-    m_expected_encrypt_ccm.a_len         = 0;
-    m_expected_encrypt_ccm.p_a           = NULL;
-    m_expected_encrypt_ccm.p_key         = p_metadata->p_security_material->encryption_key;
-    m_expected_encrypt_ccm.p_m           = &p_packet[7];
-    m_expected_encrypt_ccm.p_out         = &p_packet[7];
-    m_expected_encrypt_ccm.p_nonce       = m_enc_nonce_generate_params.nonce_return;
-    m_expected_encrypt_ccm.p_mic         = &p_packet[9 + payload_len];
-    m_expected_encrypt_ccm.m_len         = 2 + payload_len;
-    m_expected_encrypt_ccm.mic_len       = p_metadata->control_packet ? 8 : 4;
-
-    m_enc_nonce_generate_Expect(p_metadata);
-
-    enc_nonce_generate_StubWithCallback(enc_nonce_generate_callback);
-
-    enc_aes_ccm_encrypt_StubWithCallback(&enc_aes_ccm_encrypt_callback);
-
-    transfuscate_Expect(p_metadata, p_packet, p_pecb, p_pecb_data);
-}
-
-static void packet_decrypt_Expect(network_packet_metadata_t * p_metadata, uint32_t packet_len, uint8_t * p_packet, bool succeed)
-{
-    uint8_t mic_len = p_metadata->control_packet ? 8 : 4;
-    m_enc_nonce_generate_Expect(p_metadata);
-    enc_nonce_generate_Expect(NULL, ENC_NONCE_NET, 0, NULL);
-
-    m_expected_decrypt_ccm.a_len   = 0;
-    m_expected_decrypt_ccm.mic_len = mic_len;
-    m_expected_decrypt_ccm.m_len   = packet_len - 7 - mic_len;
-    m_expected_decrypt_ccm.p_a     = NULL;
-    m_expected_decrypt_ccm.p_key   = p_metadata->p_security_material->encryption_key;
-    m_expected_decrypt_ccm.p_m     = &p_packet[7];
-    m_expected_decrypt_ccm.p_mic   = &p_packet[9] + packet_len - 9 - mic_len;
-    m_expected_decrypt_ccm.p_nonce = m_enc_nonce_generate_params.nonce_return;
-    m_expected_decrypt_ccm.p_out   = NULL;
-    m_decrypt_successful           = succeed;
-    enc_aes_ccm_decrypt_StubWithCallback(enc_aes_ccm_decrypt_callback);
-}
-
-static uint8_t relay_pecb[NRF_MESH_KEY_SIZE];
-static void relay_Expect(network_packet_metadata_t * p_metadata, uint32_t packet_len, uint8_t * p_relay_packet, uint8_t * p_pecb_data)
-{
-    m_relay_callback_expect.calls = 1;
-    m_relay_callback_expect.dst   = p_metadata->dst.value;
+    m_relay_callback_expect.calls  = 1;
+    m_relay_callback_expect.dst    = p_metadata->dst.value;
     m_relay_callback_expect.retval = true;
     m_relay_callback_expect.src    = p_metadata->src;
     m_relay_callback_expect.ttl    = p_metadata->ttl;
-    static uint8_t * p_packet;
-    p_packet = p_relay_packet;
-    static core_tx_metadata_t relay_core_tx_meta;
-    relay_core_tx_meta.bearer = CORE_TX_BEARER_ADV;
-    relay_core_tx_meta.role   = CORE_TX_ROLE_RELAY;
-    core_tx_packet_alloc_ExpectAndReturn(
-        packet_len, &relay_core_tx_meta, NULL, 0, CORE_TX_BEARER_ADV);
-    core_tx_packet_alloc_IgnoreArg_pp_packet();
-    core_tx_packet_alloc_ReturnThruPtr_pp_packet(&p_packet);
+    uint8_t mic_size               = (p_metadata->control_packet ? 8 : 4);
 
-    network_packet_metadata_t relay_meta;
+    static network_packet_metadata_t relay_meta;
     memcpy(&relay_meta, p_metadata, sizeof(relay_meta));
     relay_meta.ttl--;
-    packet_encrypt_Expect(&relay_meta,
-                          packet_len - 9 - (p_metadata->control_packet ? 8 : 4),
-                          p_relay_packet,
-                          relay_pecb,
-                          p_pecb_data);
-    core_tx_packet_send_Expect(&relay_core_tx_meta, p_relay_packet);
+
+    packet_alloc_Expect(&relay_meta, packet_len, (uint8_t **) pp_relay_packet, CORE_TX_ROLE_RELAY, true);
+    net_packet_from_payload_ExpectAndReturn(&(*pp_relay_packet)->pdu[9], *pp_relay_packet);
+    net_packet_header_set_Expect(*pp_relay_packet, &relay_meta);
+    net_packet_encrypt_Expect(&relay_meta, packet_len - 9 - mic_size, *pp_relay_packet, NET_PACKET_KIND_TRANSPORT);
+    core_tx_packet_send_Expect();
 }
 
 struct
@@ -396,16 +235,12 @@ void test_alloc(void)
         uint8_t ttl;
         bool control;
         uint8_t payload_len;
-        bool valid_params;
         bool core_tx_alloc_ok;
         bool seqnum_alloc_ok;
     } vector[] = {
-        {0x0001, 0x0002, 8, false, 10, true, true, true},
-        {0x0001, 0xFFFF, 8, false, 10, true, true, true},
-        {0x0001, 0x0002, 128, false, 10, false, true, true}, /* TTL too high */
-        {0x8001, 0x0002, 8, false, 10, false, true, true}, /* non-unicast src */
-        {0x0001, 0x0002, 8, false, 10, true, false, true}, /* No packets available */
-        {0x0001, 0x0002, 8, false, 10, true, false, false}, /* No seqnum available */
+        {0x0001, 0x0002, 8, false, 10, true, true},
+        {0x0001, 0x0002, 8, false, 10, false, true}, /* No packets available */
+        {0x0001, 0x0002, 8, false, 10, true, false}, /* No seqnum available */
     };
     nrf_mesh_network_secmat_t secmat;
     network_packet_metadata_t metadata;
@@ -417,8 +252,7 @@ void test_alloc(void)
     secmat.nid                   = 0xAA;
     buffer.user_data.p_metadata  = &metadata;
     buffer.user_data.token       = TOKEN;
-    buffer.core_tx.bearer        = CORE_TX_BEARER_ADV;
-    buffer.core_tx.role          = CORE_TX_ROLE_ORIGINATOR;
+    buffer.role                  = CORE_TX_ROLE_ORIGINATOR;
     metadata.p_security_material = &secmat;
 
     for (volatile uint32_t i = 0; i < ARRAY_SIZE(vector); ++i)
@@ -431,52 +265,31 @@ void test_alloc(void)
         metadata.ttl                 = vector[i].ttl;
         buffer.user_data.payload_len = vector[i].payload_len;
 
-        core_tx_packet_alloc_ExpectAndReturn(vector[i].payload_len + 9 + (vector[i].control ? 8 : 4),
-                                             &buffer.core_tx,
-                                             NULL,
-                                             TOKEN,
-                                             vector[i].core_tx_alloc_ok ? CORE_TX_BEARER_ADV : 0);
-        core_tx_packet_alloc_IgnoreArg_pp_packet();
-        core_tx_packet_alloc_ReturnThruPtr_pp_packet(&p_packet);
+        packet_alloc_Expect(&metadata,
+                            vector[i].payload_len + 9 + (vector[i].control ? 8 : 4),
+                            &p_packet,
+                            CORE_TX_ROLE_ORIGINATOR,
+                            vector[i].core_tx_alloc_ok);
+
         if (vector[i].core_tx_alloc_ok)
         {
             uint32_t seqnum = SEQNUM;
-            net_state_iv_index_lock_Expect(true);
             net_state_tx_iv_index_get_ExpectAndReturn(IV_INDEX);
             net_state_seqnum_alloc_ExpectAndReturn(&metadata.internal.sequence_number,
-                                                vector[i].seqnum_alloc_ok ? NRF_SUCCESS
-                                                                            : NRF_ERROR_FORBIDDEN);
+                                                   vector[i].seqnum_alloc_ok ? NRF_SUCCESS
+                                                                             : NRF_ERROR_FORBIDDEN);
             net_state_seqnum_alloc_ReturnMemThruPtr_p_seqnum(&seqnum, sizeof(seqnum));
-            net_state_iv_index_lock_Expect(false);
+
 
             if (vector[i].seqnum_alloc_ok)
             {
-                if (vector[i].valid_params)
-                {
-                    TEST_ASSERT_EQUAL(NRF_SUCCESS, network_packet_alloc(&buffer));
-                    TEST_ASSERT_EQUAL_PTR(&payload[9], buffer.p_payload);
-
-                    const uint8_t expected_header[9] = {
-                        0x2A | ((IV_INDEX & 0x01) << 7),
-                        (vector[i].ttl & 0x7F) | (vector[i].control << 7),
-                        seqnum >> 16,
-                        seqnum >> 8,
-                        seqnum & 0xFF,
-                        vector[i].src >> 8,
-                        vector[i].src & 0xFF,
-                        vector[i].dst >> 8,
-                        vector[i].dst & 0xFF,
-                    };
-                    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_header, payload, sizeof(expected_header));
-                }
-                else
-                {
-                    TEST_NRF_MESH_ASSERT_EXPECT(network_packet_alloc(&buffer));
-                }
+                net_packet_header_set_Expect((packet_mesh_net_packet_t *) p_packet, &metadata);
+                TEST_ASSERT_EQUAL(NRF_SUCCESS, network_packet_alloc(&buffer));
+                TEST_ASSERT_EQUAL_PTR(&payload[9], buffer.p_payload);
             }
             else
             {
-                core_tx_packet_discard_Expect(&buffer.core_tx, payload);
+                core_tx_packet_discard_Expect();
                 TEST_ASSERT_EQUAL(NRF_ERROR_FORBIDDEN, network_packet_alloc(&buffer));
             }
         }
@@ -498,60 +311,38 @@ void test_alloc(void)
 
 void test_send(void)
 {
-    uint8_t pecb_data[NRF_MESH_KEY_SIZE];
     nrf_mesh_network_secmat_t secmat;
     network_packet_metadata_t metadata;
     network_tx_packet_buffer_t buffer;
-    uint8_t payload[PACKET_MESH_NET_MAX_SIZE];
-    uint8_t pecb[NRF_MESH_KEY_SIZE];
+    packet_mesh_net_packet_t packet;
     uint16_t dst = 0x1234;
     uint8_t len  = 10;
-    memset(secmat.encryption_key, 0xEC, NRF_MESH_KEY_SIZE);
-    memset(secmat.privacy_key, 0x93, NRF_MESH_KEY_SIZE);
 
     for (uint32_t control = 0; control < 2U; ++control)
     {
-        m_enc_nonce_generate_params.executed = 0;
-        m_enc_nonce_generate_params.calls = 0;
-
         metadata.dst.value                = dst;
         metadata.p_security_material      = &secmat;
         metadata.internal.iv_index        = IV_INDEX;
         metadata.internal.sequence_number = SEQNUM;
         metadata.control_packet           = control;
 
-        memset(payload, 0xAB, sizeof(payload));
-        for (uint32_t i = 0; i < NRF_MESH_KEY_SIZE; ++i)
-        {
-            pecb[i] = 137 * i; // arbitrary values
-        }
-        packet_encrypt_Expect(&metadata, len, payload, pecb, pecb_data);
+        net_packet_from_payload_ExpectAndReturn(&packet.pdu[9], &packet);
+        net_packet_encrypt_Expect(&metadata, len, &packet, NET_PACKET_KIND_TRANSPORT);
 
-        buffer.user_data.p_metadata       = &metadata;
-        buffer.user_data.token            = TOKEN;
-        buffer.user_data.payload_len      = len;
-        buffer.core_tx.bearer             = CORE_TX_BEARER_ADV;
-        buffer.core_tx.role               = CORE_TX_ROLE_ORIGINATOR;
-        buffer.p_payload                  = &payload[9];
-        core_tx_packet_send_Expect(&buffer.core_tx, payload);
+        buffer.user_data.p_metadata  = &metadata;
+        buffer.user_data.token       = TOKEN;
+        buffer.user_data.payload_len = len;
+        buffer.role                  = CORE_TX_ROLE_ORIGINATOR;
+        buffer.p_payload             = &packet.pdu[9];
+        core_tx_packet_send_Expect();
 
         network_packet_send(&buffer);
-        /* Obfuscation is header[0..5] XOR pecb[0..5] */
-        for (uint32_t i = 0; i < 6; ++i)
-        {
-            TEST_ASSERT_EQUAL_HEX8(0xAB ^ pecb[i], payload[i + 1]);
-        }
-        /* Network shouldn't alter the payload or destination fields */
-        for (uint32_t i = 0; i < 2U + len; ++i)
-        {
-            TEST_ASSERT_EQUAL_HEX8(0xAB, payload[7 + i]);
-        }
     }
     /* Invalid params */
     TEST_NRF_MESH_ASSERT_EXPECT(network_packet_send(NULL));
     buffer.p_payload = NULL;
     TEST_NRF_MESH_ASSERT_EXPECT(network_packet_send(&buffer));
-    buffer.p_payload = &payload[9];
+    buffer.p_payload = &packet.pdu[9];
     buffer.user_data.p_metadata->p_security_material = NULL;
     TEST_NRF_MESH_ASSERT_EXPECT(network_packet_send(&buffer));
     buffer.user_data.p_metadata = NULL;
@@ -567,14 +358,13 @@ void test_discard(void)
     buffer.user_data.p_metadata  = &metadata;
     buffer.user_data.token       = TOKEN;
     buffer.user_data.payload_len = 10;
-    buffer.core_tx.bearer        = CORE_TX_BEARER_ADV;
-    buffer.core_tx.role          = CORE_TX_ROLE_ORIGINATOR;
+    buffer.role                  = CORE_TX_ROLE_ORIGINATOR;
     buffer.p_payload             = &payload[9];
 
     for (uint32_t control = 0; control < 2U; ++control)
     {
         metadata.control_packet    = control;
-        core_tx_packet_discard_Expect(&buffer.core_tx, payload);
+        core_tx_packet_discard_Expect();
         network_packet_discard(&buffer);
     }
 }
@@ -584,15 +374,10 @@ void test_discard(void)
  * correctly, as well as discarding packets correctly.
  *
  * The packet in procedure works like this:
- * 1: get a netkey
- * 2: Deobfuscate the header
- * 3: Check that the deobfuscated fields are valid
- * 4: Check the message cache
- * 5: Check that the packet isn't from this device
- * 6: Decrypt the packet
- * 7: Send to transport
- * 8: Relay if possible
- * 9: add to message cache
+ * 1: Decrypt the packet
+ * 2: Send to transport
+ * 3: Relay if possible
+ * 4: add to message cache
  *
  * Note that steps 1-6 must pass before 7-9 can execute. Any failure in step 1-6 will result in an early return.
  */
@@ -601,9 +386,6 @@ void test_packet_in(void)
     nrf_mesh_network_secmat_t secmat;
     secmat.nid = 0xAF;
     typedef enum {
-        STEP_DEOBFUSCATION_VERIFICATION,
-        STEP_MSG_CACHE,
-        STEP_SRC_ADDRESS_IS_ME,
         STEP_DECRYPTION,
         STEP_DO_RELAY,
         STEP_SUCCESS,
@@ -614,125 +396,87 @@ void test_packet_in(void)
         uint32_t length;
         step_t fail_step; /**< The step where the packet processing stops, or STEP_SUCCESS if it goes through all the steps */
     } vector[] = {
-        {{{NRF_MESH_ADDRESS_TYPE_GROUP, 0xFFFF}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_SUCCESS},
-        {{{NRF_MESH_ADDRESS_TYPE_GROUP, 0xFFFF}, 0x0001, 5, true, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_SUCCESS},
-        {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_SUCCESS},
-        {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_MSG_CACHE}, /* in cache */
-        {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_SRC_ADDRESS_IS_ME}, /* this device sent the packet, should discard. */
-        {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0xFFFF, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_DEOBFUSCATION_VERIFICATION}, /* src is group */
-        {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 9+3, STEP_DEOBFUSCATION_VERIFICATION}, /* Packet is too short for a mic */
+        {{{NRF_MESH_ADDRESS_TYPE_GROUP, 0xFFFF}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_SUCCESS}, /* access packet */
+        {{{NRF_MESH_ADDRESS_TYPE_GROUP, 0xFFFF}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_DECRYPTION}, /* access packet */
+        {{{NRF_MESH_ADDRESS_TYPE_GROUP, 0xFFFF}, 0x0001, 5, true, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_SUCCESS}, /* Control packet */
+        {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_SUCCESS}, /* Unicast DST */
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 9+4, STEP_SUCCESS}, /* just long enough */
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 9+7, STEP_SUCCESS}, /* long enough for a data packet */
-        {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, true, {SEQNUM, IV_INDEX}, &secmat}, 9+7, STEP_DEOBFUSCATION_VERIFICATION}, /* Packet is too short for a control mic */
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, true, {SEQNUM, IV_INDEX}, &secmat}, 9+8, STEP_SUCCESS}, /* just long enough */
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_DO_RELAY}, /* Packet is for this device, shouldn't relay */
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 1, false, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_DO_RELAY}, /* TTL too low to relay */
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_SUCCESS},
     };
     nrf_mesh_rx_metadata_t rx_meta;
-    uint8_t pecb_data[NRF_MESH_KEY_SIZE];
-    uint8_t pecb[NRF_MESH_KEY_SIZE];
 
     for (uint32_t i = 0; i < ARRAY_SIZE(vector); ++i)
     {
-        m_enc_nonce_generate_params.calls = 0;
-        m_enc_nonce_generate_params.executed = 0;
-        uint8_t net_packet[PACKET_MESH_NET_MAX_SIZE] = {
-            (secmat.nid & 0x7f) | ((vector[i].meta.internal.iv_index & 0x01) << 7),
-            (vector[i].meta.control_packet << 7) | (vector[i].meta.ttl & 0x7F),
-            (vector[i].meta.internal.sequence_number >> 16),
-            (vector[i].meta.internal.sequence_number >> 8),
-            (vector[i].meta.internal.sequence_number >> 0),
-            (vector[i].meta.src >> 8),
-            (vector[i].meta.src >> 0),
-            (vector[i].meta.dst.value >> 8),
-            (vector[i].meta.dst.value >> 0)
-        };
-        uint8_t relay_packet[PACKET_MESH_NET_MAX_SIZE];
-
-        /* Obfuscate the packet header with the same pecb that we'll give back when the module
-         * requests it, will result in a clean header, because (header XOR pecb XOR pecb) = header */
-        for (uint32_t i = 0; i < 6; ++i)
-        {
-            net_packet[i + 1] ^= pecb[i];
-        }
-
-        net_state_rx_iv_index_get_ExpectAndReturn(IV_INDEX & 0x01, IV_INDEX);
-
-        /* 1: Get key */
-        const nrf_mesh_network_secmat_t * p_secmats[] = {&secmat, NULL};
-        secmat_get_Expect(p_secmats, 2, secmat.nid & 0x7f);
-
-        /* 2: Deobfuscate */
-        transfuscate_Expect(&vector[i].meta, net_packet, pecb, pecb_data);
-
+        packet_mesh_net_packet_t relay_packet;
+        packet_mesh_net_packet_t * p_relay_packet = &relay_packet;
+        packet_mesh_net_packet_t net_packet;
         uint8_t mic_len = vector[i].meta.control_packet ? 8 : 4;
+        memset(&net_packet, 0xAB, sizeof(net_packet));
 
-        /* 3: Verify deobfuscated header fields */
-        if (vector[i].fail_step >= STEP_MSG_CACHE)
-        {
-            /* 4: Check message cache */
-            msg_cache_entry_exists_ExpectAndReturn(vector[i].meta.src,
-                                                   vector[i].meta.internal.sequence_number,
-                                                   vector[i].fail_step == STEP_MSG_CACHE);
-        }
+        net_packet_obfuscation_start_get_ExpectAndReturn(&net_packet, &net_packet.pdu[1]);
 
-        if (vector[i].fail_step >= STEP_SRC_ADDRESS_IS_ME)
-        {
-            /* 5: Check that it's not from ourself */
-            nrf_mesh_rx_address_get_ExpectAndReturn(
-                vector[i].meta.src, NULL, vector[i].fail_step == STEP_SRC_ADDRESS_IS_ME);
-            nrf_mesh_rx_address_get_IgnoreArg_p_address();
-        }
+        /* 1: Decrypt */
+        net_packet_decrypt_ExpectAndReturn(NULL,
+                                           vector[i].length,
+                                           &net_packet,
+                                           NULL,
+                                           NET_PACKET_KIND_TRANSPORT,
+                                           ((vector[i].fail_step > STEP_DECRYPTION)
+                                                ? NRF_SUCCESS
+                                                : NRF_ERROR_NOT_FOUND));
 
-        if (vector[i].fail_step >= STEP_DECRYPTION)
-        {
-            /* 6: decrypt */
-            packet_decrypt_Expect(&vector[i].meta,
-                                    vector[i].length,
-                                    net_packet,
-                                    (vector[i].fail_step != STEP_DECRYPTION));
-        }
+        net_packet_decrypt_IgnoreArg_p_net_decrypted_packet();
+        net_packet_decrypt_ReturnMemThruPtr_p_net_decrypted_packet(&net_packet, vector[i].length);
+
+        net_packet_decrypt_IgnoreArg_p_net_metadata();
+        net_packet_decrypt_ReturnThruPtr_p_net_metadata(&vector[i].meta);
 
         if (vector[i].fail_step > STEP_DECRYPTION)
         {
-            /* 7: Send to transport */
+            /* 2: Send to transport */
+            net_packet_payload_len_get_ExpectAndReturn(&vector[i].meta,
+                                                       vector[i].length,
+                                                       vector[i].length - 9 - mic_len);
             transport_packet_in_StubWithCallback(transport_packet_in_callback);
-            m_transport_packet_in_expect.p_packet = (const packet_mesh_trs_packet_t *) &net_packet[9];
+
+            m_transport_packet_in_expect.p_packet = (const packet_mesh_trs_packet_t *) &net_packet.pdu[9];
             m_transport_packet_in_expect.trs_packet_len =
                 vector[i].length - 9 - mic_len;
             m_transport_packet_in_expect.p_net_metadata = &vector[i].meta;
             m_transport_packet_in_expect.p_rx_metadata  = &rx_meta;
             m_transport_packet_in_expect.calls          = 1;
 
-            /* 8: Relay if needed: */
+            /* 3: Relay if needed: */
             if (vector[i].meta.ttl >= 2)
             {
                 if (vector[i].meta.dst.type == NRF_MESH_ADDRESS_TYPE_UNICAST)
                 {
                     nrf_mesh_rx_address_get_ExpectAndReturn(vector[i].meta.dst.value,
                                                             NULL,
-                                                            (vector[i].fail_step ==
-                                                                STEP_DO_RELAY));
+                                                            (vector[i].fail_step == STEP_DO_RELAY));
                     nrf_mesh_rx_address_get_IgnoreArg_p_address();
                 }
                 if (vector[i].fail_step > STEP_DO_RELAY)
                 {
-                    relay_Expect(&vector[i].meta, vector[i].length, relay_packet, pecb_data);
+                    relay_Expect(&vector[i].meta, vector[i].length, &p_relay_packet);
                 }
             }
 
-            /* 9: Add to message cache */
+            /* 4: Add to message cache */
             msg_cache_entry_add_Expect(vector[i].meta.src, vector[i].meta.internal.sequence_number);
         }
 
-        network_packet_in(net_packet, vector[i].length, &rx_meta);
+        network_packet_in(net_packet.pdu, vector[i].length, &rx_meta);
 
         TEST_ASSERT_EQUAL(0, m_transport_packet_in_expect.calls);
         TEST_ASSERT_EQUAL(0, m_relay_callback_expect.calls);
         core_tx_mock_Verify();
         transport_mock_Verify();
         nrf_mesh_externs_mock_Verify();
-        enc_mock_Verify();
+        net_packet_mock_Verify();
     }
 }

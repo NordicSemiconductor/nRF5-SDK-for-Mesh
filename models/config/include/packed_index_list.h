@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -49,13 +49,15 @@
 
 /**
  * Calculates the size of a packed index list.
+ * Every pair of indexes needs 3 octets.
+ * If the number of octets is odd, the last octet needs 2 octets by itself.
  *
- * @param[in] index_count Number of indexes that the list will contain.
+ * @param[in] INDEX_COUNT Number of indexes that the list will contain.
  *
  * @returns The size in bytes of the packed index list with the specified
  *          number of indexes.
  */
-uint32_t packed_index_list_size(uint16_t index_count);
+#define PACKED_INDEX_LIST_SIZE(INDEX_COUNT) (((INDEX_COUNT) / 2) * 3 + ((INDEX_COUNT) & 1) * 2)
 
 /**
  * Creates a packed index list.
@@ -63,7 +65,7 @@ uint32_t packed_index_list_size(uint16_t index_count);
  * @param[in]  p_index_list  List of indexes to pack into the output list.
  * @param[out] p_packed_list Pointer to the start of a buffer where the packed index list
  *                           is written. The size that this buffer must have can be obtained
- *                           by calling @ref packed_index_list_size().
+ *                           by using @ref PACKED_INDEX_LIST_SIZE.
  * @param[in] index_count    Number of indexes to store in the packed index list.
  */
 void packed_index_list_create(const uint16_t * restrict p_index_list, uint8_t * restrict p_packed_list, uint16_t index_count);

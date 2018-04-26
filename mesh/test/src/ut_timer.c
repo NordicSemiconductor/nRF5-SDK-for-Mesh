@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -72,7 +72,9 @@ static void callback_unexpected(timestamp_t timestamp)
 static void s_timer_reset(void)
 {
     memset(NRF_TIMER0, 0, sizeof(NRF_TIMER_Type));
+#ifdef NRF51
     NRF_TIMER0->POWER = 1;
+#endif
     NRF_TIMER0->MODE = TIMER_MODE_MODE_Timer;
     NRF_TIMER0->BITMODE = TIMER_BITMODE_BITMODE_24Bit;
     NRF_TIMER0->PRESCALER = 4; /* 1MHz */

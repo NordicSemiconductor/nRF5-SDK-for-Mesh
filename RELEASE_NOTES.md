@@ -1,5 +1,55 @@
 # Release Notes
 
+## BLE Mesh v2.0.0
+- This is a major production release.
+
+### New features
+- GATT Proxy (experimental)
+- PB-GATT bearer (server) (experimental)
+- Generic GATT interface for PB-GATT and Proxy (experimental)
+- Interactive Configuration client for the Interactive PyACI
+- Concurrent provisioning link listening
+- Third party BLE device integration example: Integrating EnOcean switch with Mesh networks
+- Separate Light switch provisioner example
+
+### Other
+- Integrates with nRF5 SDK 15 (NOTE: nRF5 SDK is now a separate download from nRF5 SDK for Mesh)
+- Examples more aligned with the nRF5 SDK examples
+- Separated out provisioner role from Light switch client example
+
+### Bugfixes
+- No SLIP bytes before responses when using SLIP mode for the serial interface
+- Buffer handling does not reset head and tail when buffer is empty
+- Various asserts in Light switch example
+- Stack doesn't send Provisioning Failed PDU in certain cases
+- Transport layer sends ACK for timed-out message
+- No way to stop IV update procedure in test mode
+- Heartbeat subscription does not check destination state
+- Provisionee does not sanitize input in provisioning start message
+- `access_reliable_cancel_all()` and `access_model_reliable_cancel()` does not actually cancel pending reliable transfers
+- Access status codes does not align with Mesh Profile v1.0 values
+- Config server doesn't reply to Composition Data Get message requesting page `0xFF`
+- Config server reports error for duplicate NetKey Add command
+- Config server `send_publication_status()` always sends status code as `ACCESS_STATUS_SUCCESS` or it asserts
+- Config server resets the device before reset response goes out
+- Device key is bound to only one network key (primary)
+- Access layer does not allow user to stop periodic publication by setting Unassigned (0x0000) publish address (or any other event which disabled model publication)
+- Vendor Model IDs reversed according to the Mesh Profile specification v1.0
+- Redundant advertiser in beacon module
+- Wrong IRQ level used for button GPIO and UART
+
+### Known issues and limitations
+- Publish re-transmission settings are not supported
+- Some Config server and Health server model states are not persistent
+- Setting device in attention state during provisioning is not supported
+- Light switch provisioner example:
+  During the configuration of a node, the static provisioner example may sometimes consider a status response of a previous configuration step as the status response of the current configuration step. This may cause a node configuration to remain incomplete, without the provisioner noticing. If this happens, provisioned client or server nodes will not respond to user inputs as expected.
+  This occurs due to mesh message re-transmissions logic built into the stack causing responses to SET messages to arrive out of order. This scenario is most likely to manifest itself in situations when the mesh stack is not scanning for the majority of the time. For example, while running other BLE connections with a short connection interval.
+- `device_page_generator.py`
+  - The script will not parse the `public_key` property of `bootloader_config_default.json` when using Python 2. A workaround for the issue is to call `bytearray.fromhex()` on the `public_key` in `device_page_generator.py:99`.
+  - The script will store the new device page to `bin/device_page_nrf52832_xxAA_s132_5.0.0.hex` regardless of SoftDevice and platform setting. A workaround for the issue is to specify the path manually with the `--output-file` option, i.e., `--output-file bin/device_page.hex`.
+
+
 ## BLE Mesh v1.0.1
 This is a hotfix release with documentation/bug fixes.
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -39,10 +39,31 @@
 #define SIMPLE_ON_OFF_COMMON_H__
 
 #include <stdint.h>
+#include "access.h"
 
 /**
  * @defgroup SIMPLE_ON_OFF_MODEL Simple OnOff model
- * Example model implementing basic behavior for sending on and off messages.
+ * This example model implements the messages and corresponding behaviour required to
+ * set the 1 bit value on the server.
+ *
+ * Model Identification
+ * @par
+ * Company ID: @ref SIMPLE_ON_OFF_COMPANY_ID
+ * @par
+ * Simple OnOff Client Model ID: @ref SIMPLE_ON_OFF_CLIENT_MODEL_ID
+ * @par
+ * Simple OnOff Server Model ID: @ref SIMPLE_ON_OFF_SERVER_MODEL_ID
+ *
+ * List of supported messages:
+ * @par
+ * @copydoc SIMPLE_ON_OFF_OPCODE_SET
+ * @par
+ * @copydoc SIMPLE_ON_OFF_OPCODE_GET
+ * @par
+ * @copydoc SIMPLE_ON_OFF_OPCODE_SET_UNRELIABLE
+ * @par
+ * @copydoc SIMPLE_ON_OFF_OPCODE_STATUS
+ *
  * @ingroup MESH_API_GROUP_MODELS
  * @{
  * @defgroup SIMPLE_ON_OFF_COMMON Common Simple OnOff definitions
@@ -52,10 +73,13 @@
 
 /*lint -align_max(push) -align_max(1) */
 
+/** Vendor specific company ID for Simple OnOff model */
+#define SIMPLE_ON_OFF_COMPANY_ID    (ACCESS_COMPANY_ID_NORDIC)
+
 /** Simple OnOff opcodes. */
 typedef enum
 {
-    SIMPLE_ON_OFF_OPCODE_SET = 0xC1,            /**< Simple OnOff Set. */
+    SIMPLE_ON_OFF_OPCODE_SET = 0xC1,            /**< Simple OnOff Acknowledged Set. */
     SIMPLE_ON_OFF_OPCODE_GET = 0xC2,            /**< Simple OnOff Get. */
     SIMPLE_ON_OFF_OPCODE_SET_UNRELIABLE = 0xC3, /**< Simple OnOff Set Unreliable. */
     SIMPLE_ON_OFF_OPCODE_STATUS = 0xC4          /**< Simple OnOff Status. */

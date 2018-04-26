@@ -12,4 +12,4 @@ projects.
 
 ## RTT input
 
-The RTT input module enables the examples to poll the RTT for input characters. It uses a timer (NRF_TIMER2) to avoid busy-waiting.
+The RTT input module enables the examples to poll [the RTT](@ref segger-rtt) for input characters. It uses a timer (NRF_TIMER2) to avoid busy-waiting.

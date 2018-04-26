@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -51,9 +51,12 @@
 #include "rand_mock.h"
 #include "timer_mock.h"
 #include "net_state_mock.h"
+#include "event_mock.h"
+#include "advertiser_mock.h"
 
 #include "nordic_common.h"
 #include "test_assert.h"
+#include "nrf_mesh_events.h"
 
 typedef struct
 {
@@ -113,6 +116,8 @@ static uint32_t m_info_index;
 static timer_sch_callback_t m_timer_cb;
 static uint32_t m_rand_value;
 static uint32_t m_time_now;
+static advertiser_t * mp_adv;
+static advertiser_tx_complete_cb_t m_tx_complete_cb;
 
 void setUp(void)
 {
@@ -127,6 +132,8 @@ void setUp(void)
     timer_scheduler_mock_Init();
     timer_mock_Init();
     enc_mock_Init();
+    event_mock_Init();
+    advertiser_mock_Init();
 }
 
 void tearDown(void)
@@ -141,6 +148,10 @@ void tearDown(void)
     timer_mock_Destroy();
     enc_mock_Verify();
     enc_mock_Destroy();
+    event_mock_Verify();
+    event_mock_Destroy();
+    advertiser_mock_Verify();
+    advertiser_mock_Destroy();
 }
 
 void nrf_mesh_beacon_info_next_get(const uint8_t * p_network_id, const nrf_mesh_beacon_info_t ** pp_beacon_info,
@@ -180,10 +191,21 @@ void timer_sch_schedule_mock_cb(timer_event_t * p_event, int count)
 {
     TEST_ASSERT_NOT_NULL(p_event);
     TEST_ASSERT_NOT_NULL(p_event->cb);
-    TEST_ASSERT_EQUAL(SEC_TO_US(NRF_MESH_BEACON_SECURE_NET_BCAST_INTERVAL_SECONDS / 2), p_event->interval);
-    TEST_ASSERT_TRUE(m_time_now + SEC_TO_US(NRF_MESH_BEACON_SECURE_NET_BCAST_INTERVAL_SECONDS / 2) > p_event->timestamp);
+    TEST_ASSERT_EQUAL(SEC_TO_US(NRF_MESH_BEACON_SECURE_NET_BCAST_INTERVAL_SECONDS), p_event->interval);
+    TEST_ASSERT_TRUE(m_time_now + SEC_TO_US(NRF_MESH_BEACON_SECURE_NET_BCAST_INTERVAL_SECONDS) > p_event->timestamp);
     TEST_ASSERT_TRUE(m_time_now < p_event->timestamp);
     m_timer_cb = p_event->cb;
+}
+
+static void advertiser_instance_init_cb(advertiser_t * p_adv, advertiser_tx_complete_cb_t tx_cb, uint8_t * p_buffer, uint32_t buffer_size, int calls)
+{
+    TEST_ASSERT_NOT_NULL(p_adv);
+    TEST_ASSERT_NOT_NULL(tx_cb);
+    TEST_ASSERT_NOT_NULL(p_buffer);
+    TEST_ASSERT_EQUAL(ADVERTISER_PACKET_BUFFER_PACKET_MAXLEN, buffer_size);
+
+    mp_adv = p_adv;
+    m_tx_complete_cb = tx_cb;
 }
 
 void setup_module(void)
@@ -198,9 +220,29 @@ void setup_module(void)
     enc_s1_ReturnMemThruPtr_p_out(dummy_salt, NRF_MESH_KEY_SIZE);
     timer_now_ExpectAndReturn(1000);
     timer_sch_schedule_StubWithCallback(timer_sch_schedule_mock_cb);
+    advertiser_instance_init_StubWithCallback(advertiser_instance_init_cb);
+    advertiser_interval_set_Expect(NULL, 1000);
+    advertiser_interval_set_IgnoreArg_p_adv();
+    advertiser_enable_ExpectAnyArgs();
 
     net_beacon_init();
     TEST_ASSERT_NOT_NULL(m_timer_cb);
+    TEST_ASSERT_NOT_NULL(mp_adv);
+}
+
+static void tx_complete(void)
+{
+    timer_now_ExpectAndReturn(m_time_now);
+    m_tx_complete_cb(mp_adv, 0, m_time_now);
+}
+
+static void expect_tx(const uint8_t * p_key, const uint8_t * p_beacon_data, uint8_t * p_auth, adv_packet_t * p_adv_packet)
+{
+    enc_aes_cmac_ExpectWithArray(p_key, NRF_MESH_KEY_SIZE, p_beacon_data, 13, 13, NULL, 0);
+    enc_aes_cmac_IgnoreArg_p_result();
+    enc_aes_cmac_ReturnMemThruPtr_p_result(p_auth, 8);
+    beacon_create_ExpectWithArrayAndReturn(mp_adv, 1, BEACON_TYPE_SEC_NET_BCAST, p_beacon_data, 21, 21, p_adv_packet);
+    advertiser_packet_send_Expect(mp_adv, p_adv_packet);
 }
 /*****************************************************************************
 * Tests
@@ -216,51 +258,44 @@ void test_tx_single(void)
     {
         nrf_mesh_beacon_tx_info_t tx_info;
         net_beacon_sample_data_t sample_data = sample_datas[i];
-        tx_info.tx_interval_seconds = 0;
-        tx_info.tx_timestamp = 0;
-        tx_info.rx_count = 0;
+        memset(&tx_info, 0, sizeof(tx_info));
         sample_data.info.p_tx_info = &tx_info;
 
         nrf_mesh_beacon_info_t * p_info[] = {&sample_data.info};
         mpp_infos = p_info;
         m_info_count = 1;
+        adv_packet_t adv_packet;
 
         m_info_index = 0;
-        m_time_now = SEC_TO_US(5);
+        m_time_now = SEC_TO_US(10);
 
         /* Test packet creation */
-        enc_aes_cmac_ExpectWithArray(sample_data.info.secmat.key, NRF_MESH_KEY_SIZE, sample_data.beacon, 13, 13, NULL, 0);
-        enc_aes_cmac_IgnoreArg_p_result();
-        enc_aes_cmac_ReturnMemThruPtr_p_result(sample_data.auth, 16);
-        beacon_tx_ExpectWithArrayAndReturn(BEACON_TYPE_SEC_NET_BCAST, sample_data.beacon, 21, 21, 1, NRF_SUCCESS);
+        expect_tx(sample_data.info.secmat.key, sample_data.beacon, sample_data.auth, &adv_packet);
 
         /* Call the timeout */
         net_state_beacon_iv_index_get_ExpectAndReturn(sample_data.iv_index);
         net_state_iv_update_get_ExpectAndReturn(sample_data.iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL);
         m_timer_cb(m_time_now, NULL);
 
-        /* Run again - this time, we haven't waited long enough, and it won't send a beacon */
-        m_info_index = 0;
-        m_time_now += SEC_TO_US(5);
-        net_state_beacon_iv_index_get_ExpectAndReturn(sample_data.iv_index);
-        net_state_iv_update_get_ExpectAndReturn(sample_data.iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL);
-        m_timer_cb(m_time_now, NULL);
+        tx_complete();
 
-        beacon_mock_Verify();
+        enc_mock_Verify();
 
         /* Run again, fail bearer_tx */
         m_info_index = 0;
-        m_time_now += SEC_TO_US(5) + 1;
+        m_time_now += SEC_TO_US(10);
         enc_aes_cmac_ExpectWithArray(sample_data.info.secmat.key, NRF_MESH_KEY_SIZE, sample_data.beacon, 13, 13, NULL, 0);
         enc_aes_cmac_IgnoreArg_p_result();
         enc_aes_cmac_ReturnMemThruPtr_p_result(sample_data.auth, 16);
-        beacon_tx_ExpectWithArrayAndReturn(BEACON_TYPE_SEC_NET_BCAST, sample_data.beacon, 21, 21, 1, NRF_ERROR_NO_MEM);
+        beacon_create_ExpectWithArrayAndReturn(mp_adv, 1, BEACON_TYPE_SEC_NET_BCAST, sample_data.beacon, 21, 21, NULL);
 
         /* Call the timeout */
         net_state_beacon_iv_index_get_ExpectAndReturn(sample_data.iv_index);
         net_state_iv_update_get_ExpectAndReturn(sample_data.iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL);
         m_timer_cb(m_time_now, NULL);
+        tx_complete();
 
+        enc_mock_Verify();
         beacon_mock_Verify();
     }
 }
@@ -275,53 +310,58 @@ void test_tx_multi(void)
 #define NETWORKS    5
     /* multiple sample data */
     nrf_mesh_beacon_info_t info[NETWORKS];
-    uint8_t beacon_data[13][NETWORKS];
+    uint8_t beacon_data[NETWORKS][21];
     nrf_mesh_beacon_tx_info_t tx_info[NETWORKS];
     nrf_mesh_beacon_info_t * p_info[NETWORKS];
+    adv_packet_t adv_packet;
+    uint8_t auth[8];
 
     memset(&info, 0, sizeof(info));
     memset(&tx_info, 0, sizeof(tx_info));
+    memset(auth, 0xAB, sizeof(auth));
 
     for (uint32_t i = 0; i < NETWORKS; i++)
     {
-        tx_info[i].rx_count = 0;
-        tx_info[i].tx_timestamp = 0;
-        tx_info[i].tx_interval_seconds = 0;
+        memset(&tx_info[i], 0, sizeof(tx_info[i]));
         info[i].p_tx_info = &tx_info[i];
         p_info[i] = &info[i];
-        memset(&beacon_data[0][i], i, 13);
+
+        beacon_data[i][0] = 0x00;
+        memcpy(&beacon_data[i][1], info[i].secmat.net_id, 8);
+        beacon_data[i][9] = 0x12;
+        beacon_data[i][10] = 0x34;
+        beacon_data[i][11] = 0x56;
+        beacon_data[i][12] = 0x78;
+        memcpy(&beacon_data[i][13], auth, sizeof(auth));
     }
     mpp_infos = p_info;
     m_info_count = NETWORKS;
 
     m_info_index = 0;
-    m_time_now = SEC_TO_US(5);
+    m_time_now = SEC_TO_US(10);
+
 
     /* Test packet creation */
-    for (uint32_t j = 0; j < NETWORKS; j++)
+
+    for (uint32_t i = 0; i < NETWORKS; i++)
     {
-        enc_aes_cmac_ExpectWithArray(info[j].secmat.key, NRF_MESH_KEY_SIZE, &beacon_data[0][j], 13, 13, NULL, 0);
-        enc_aes_cmac_IgnoreArg_p_data();
-        enc_aes_cmac_IgnoreArg_p_result();
-        beacon_tx_ExpectAndReturn(BEACON_TYPE_SEC_NET_BCAST, NULL, 21, 1, NRF_SUCCESS);
-        beacon_tx_IgnoreArg_p_payload();
+        net_state_beacon_iv_index_get_ExpectAndReturn(0x12345678);
+        net_state_iv_update_get_ExpectAndReturn(NET_STATE_IV_UPDATE_NORMAL);
+        expect_tx(info[i].secmat.key, &beacon_data[i][0], auth, &adv_packet);
+
+        /* On the first run, we call the timer. The next beacons will be sent as the previous one completed its TX */
+        if (i == 0)
+        {
+            m_timer_cb(m_time_now, NULL);
+        }
+        else
+        {
+            tx_complete();
+        }
+        enc_mock_Verify();
+        beacon_mock_Verify();
     }
 
-    /* Call the timeout */
-    net_state_beacon_iv_index_get_ExpectAndReturn(0x12345678);
-    net_state_iv_update_get_ExpectAndReturn(NET_STATE_IV_UPDATE_NORMAL);
-    m_timer_cb(m_time_now, NULL);
-    enc_mock_Verify();
-    beacon_mock_Verify();
-
-    /* Run again - this time, we haven't waited long enough, and it won't send any beacons */
-    m_info_index = 0;
-    m_time_now += SEC_TO_US(5);
-    net_state_beacon_iv_index_get_ExpectAndReturn(0x12345678);
-    net_state_iv_update_get_ExpectAndReturn(NET_STATE_IV_UPDATE_NORMAL);
-    m_timer_cb(m_time_now, NULL);
-
-    beacon_mock_Verify();
 #undef NETWORKS
 }
 
@@ -334,9 +374,8 @@ void test_packet_in(void)
     {
         nrf_mesh_beacon_tx_info_t tx_info;
         net_beacon_sample_data_t sample_data = sample_datas[i];
-        tx_info.tx_interval_seconds = 0;
-        tx_info.tx_timestamp = 0;
-        tx_info.rx_count = 0;
+        memset(&tx_info, 0, sizeof(tx_info));
+
         sample_data.info.p_tx_info = &tx_info;
 
         nrf_mesh_beacon_info_t * p_info[] = {&sample_data.info};
@@ -344,54 +383,64 @@ void test_packet_in(void)
         m_info_count = 1;
         mp_expected_net_id = sample_data.info.secmat.net_id;
 
+        nrf_mesh_evt_t evt;
+        evt.type                                = NRF_MESH_EVT_NET_BEACON_RECEIVED;
+        evt.params.net_beacon.p_beacon_info     = &sample_data.info;
+        evt.params.net_beacon.p_beacon_secmat   = &sample_data.info.secmat;
+        evt.params.net_beacon.p_rx_metadata     = NULL;
+        evt.params.net_beacon.iv_index          = sample_data.iv_index;
+        evt.params.net_beacon.flags.iv_update   = sample_data.iv_update;
+        evt.params.net_beacon.flags.key_refresh = sample_data.key_refresh;
+
         m_info_index = 0;
         enc_aes_cmac_ExpectWithArray(sample_data.info.secmat.key, NRF_MESH_KEY_SIZE, sample_data.beacon, 13, 13, NULL, 0);
         enc_aes_cmac_IgnoreArg_p_result();
         enc_aes_cmac_ReturnMemThruPtr_p_result(sample_data.auth, 16);
-        net_state_beacon_received_Expect(sample_data.iv_index, sample_data.iv_update, sample_data.key_refresh);
+        event_handle_Expect(&evt);
         net_beacon_packet_in(sample_data.beacon, sizeof(sample_data.beacon), NULL);
-        TEST_ASSERT_EQUAL(1, sample_data.info.p_tx_info->rx_count);
+        TEST_ASSERT_EQUAL(1, sample_data.info.p_tx_info->rx_count[0]);
 
         /* Try again, should bump the tx count */
         m_info_index = 0;
         enc_aes_cmac_ExpectWithArray(sample_data.info.secmat.key, NRF_MESH_KEY_SIZE, sample_data.beacon, 13, 13, NULL, 0);
         enc_aes_cmac_IgnoreArg_p_result();
         enc_aes_cmac_ReturnMemThruPtr_p_result(sample_data.auth, 16);
-        net_state_beacon_received_Expect(sample_data.iv_index, sample_data.iv_update, sample_data.key_refresh);
+        event_handle_Expect(&evt);
         net_beacon_packet_in(sample_data.beacon, sizeof(sample_data.beacon), NULL);
-        TEST_ASSERT_EQUAL(2, sample_data.info.p_tx_info->rx_count);
+        TEST_ASSERT_EQUAL(2, sample_data.info.p_tx_info->rx_count[0]);
 
-        /* Try again without permitting IV update. Shouldn't forward to net state module, but should count the RX */
+        /* Try again without permitting IV update. Should still produce an event, and should count the RX */
         sample_data.info.iv_update_permitted = false;
         m_info_index = 0;
         enc_aes_cmac_ExpectWithArray(sample_data.info.secmat.key, NRF_MESH_KEY_SIZE, sample_data.beacon, 13, 13, NULL, 0);
         enc_aes_cmac_IgnoreArg_p_result();
         enc_aes_cmac_ReturnMemThruPtr_p_result(sample_data.auth, 16);
+        event_handle_Expect(&evt);
         net_beacon_packet_in(sample_data.beacon, sizeof(sample_data.beacon), NULL);
-        TEST_ASSERT_EQUAL(3, sample_data.info.p_tx_info->rx_count);
+        TEST_ASSERT_EQUAL(3, sample_data.info.p_tx_info->rx_count[0]);
 
 
         /* Don't roll over the rx count */
         m_info_index = 0;
         sample_data.info.iv_update_permitted = true;
-        sample_data.info.p_tx_info->rx_count = 0xFFFF;
+        sample_data.info.p_tx_info->rx_count[0] = 0xFFFF;
         enc_aes_cmac_ExpectWithArray(sample_data.info.secmat.key, NRF_MESH_KEY_SIZE, sample_data.beacon, 13, 13, NULL, 0);
         enc_aes_cmac_IgnoreArg_p_result();
         enc_aes_cmac_ReturnMemThruPtr_p_result(sample_data.auth, 16);
-        net_state_beacon_received_Expect(sample_data.iv_index, sample_data.iv_update, sample_data.key_refresh);
+        event_handle_Expect(&evt);
         net_beacon_packet_in(sample_data.beacon, sizeof(sample_data.beacon), NULL);
-        TEST_ASSERT_EQUAL(0xFFFF, sample_data.info.p_tx_info->rx_count);
+        TEST_ASSERT_EQUAL(0xFFFF, sample_data.info.p_tx_info->rx_count[0]);
 
         /* Invalid auth, shouldn't handle the beacon: */
         uint8_t dummy_auth[NRF_MESH_KEY_SIZE];
         memset(dummy_auth, 0xDA, NRF_MESH_KEY_SIZE);
-        sample_data.info.p_tx_info->rx_count = 0;
+        sample_data.info.p_tx_info->rx_count[0] = 0;
         m_info_index = 0;
         enc_aes_cmac_ExpectWithArray(sample_data.info.secmat.key, NRF_MESH_KEY_SIZE, sample_data.beacon, 13, 13, NULL, 0);
         enc_aes_cmac_IgnoreArg_p_result();
         enc_aes_cmac_ReturnMemThruPtr_p_result(dummy_auth, 16);
         net_beacon_packet_in(sample_data.beacon, sizeof(sample_data.beacon), NULL);
-        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count);
+        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count[0]);
     }
 }
 
@@ -430,6 +479,8 @@ void test_pkt_in_multi(void)
 
     net_beacon_sample_data_t sample_data = SEC_NET_SAMPLE_DATA_1;
 
+    nrf_mesh_evt_t evt[ARRAY_SIZE(p_info)];
+
     mp_expected_net_id = sample_data.info.secmat.net_id;
 
     m_info_index = 0;
@@ -438,13 +489,24 @@ void test_pkt_in_multi(void)
         enc_aes_cmac_ExpectWithArray(p_info[j]->secmat.key, NRF_MESH_KEY_SIZE, sample_data.beacon, 13, 13, NULL, 0);
         enc_aes_cmac_IgnoreArg_p_result();
         enc_aes_cmac_ReturnMemThruPtr_p_result(stored_beacons[j].auth, 16);
+
+        /* Only the valid auths should generate an event: */
+        if (j != 1)
+        {
+            evt[j].type                                = NRF_MESH_EVT_NET_BEACON_RECEIVED;
+            evt[j].params.net_beacon.p_rx_metadata     = NULL;
+            evt[j].params.net_beacon.iv_index          = sample_data.iv_index;
+            evt[j].params.net_beacon.flags.iv_update   = sample_data.iv_update;
+            evt[j].params.net_beacon.flags.key_refresh = sample_data.key_refresh;
+            evt[j].params.net_beacon.p_beacon_info   = p_info[j];
+            evt[j].params.net_beacon.p_beacon_secmat = &p_info[j]->secmat;
+            event_handle_Expect(&evt[j]);
+        }
     }
-    net_state_beacon_received_Expect(sample_data.iv_index, sample_data.iv_update, sample_data.key_refresh);
-    net_state_beacon_received_Expect(sample_data.iv_index, sample_data.iv_update, sample_data.key_refresh);
     net_beacon_packet_in(sample_data.beacon, sizeof(sample_data.beacon), NULL);
-    TEST_ASSERT_EQUAL(1, tx_infos[0].rx_count);
-    TEST_ASSERT_EQUAL(0, tx_infos[1].rx_count); /* Had invalid auth, didn't get a match */
-    TEST_ASSERT_EQUAL(1, tx_infos[2].rx_count);
+    TEST_ASSERT_EQUAL(1, tx_infos[0].rx_count[0]);
+    TEST_ASSERT_EQUAL(0, tx_infos[1].rx_count[0]); /* Had invalid auth, didn't get a match */
+    TEST_ASSERT_EQUAL(1, tx_infos[2].rx_count[0]);
 }
 
 void test_beacon_state_change(void)
@@ -487,106 +549,101 @@ void test_redundant_tx(void)
     {
         nrf_mesh_beacon_tx_info_t tx_info;
         net_beacon_sample_data_t sample_data = sample_datas[i];
-        tx_info.tx_interval_seconds = 0;
-        tx_info.tx_timestamp = 0;
-        tx_info.rx_count = 0;
+        memset(&tx_info, 0, sizeof(tx_info));
         sample_data.info.p_tx_info = &tx_info;
 
         nrf_mesh_beacon_info_t * p_info[] = {&sample_data.info};
         mpp_infos = p_info;
         m_info_count = 1;
+        adv_packet_t adv_packet;
 
-        /* Always transmit a beacon on the first timeout. */
-        m_time_now = SEC_TO_US(5);
-        sample_data.info.p_tx_info->rx_count = 1; // Received 1 beacon this 5 second period, should transmit after 30 seconds.
+        /* transmit a beacon on the first timeout. */
+        m_time_now = SEC_TO_US(10);
         m_info_index = 0;
-        enc_aes_cmac_ExpectWithArray(sample_data.info.secmat.key, NRF_MESH_KEY_SIZE, sample_data.beacon, 13, 13, NULL, 0);
-        enc_aes_cmac_IgnoreArg_p_result();
-        enc_aes_cmac_ReturnMemThruPtr_p_result(sample_data.auth, 16);
-        beacon_tx_ExpectWithArrayAndReturn(BEACON_TYPE_SEC_NET_BCAST, sample_data.beacon, 21, 21, 1, NRF_SUCCESS);
 
         /* Call the timeout */
         net_state_beacon_iv_index_get_ExpectAndReturn(sample_data.iv_index);
         net_state_iv_update_get_ExpectAndReturn(sample_data.iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL);
+        expect_tx(sample_data.info.secmat.key, sample_data.beacon, sample_data.auth, &adv_packet);
         m_timer_cb(m_time_now, NULL);
-        /* we saw 1 beacon in the first 5 seconds, expecting 30 second interval for the second. */
-        TEST_ASSERT_EQUAL(30, sample_data.info.p_tx_info->tx_interval_seconds);
-        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count); // should be reset on each transmit.
+        tx_complete();
         TEST_ASSERT_EQUAL(m_time_now, sample_data.info.p_tx_info->tx_timestamp); // should be reset on each transmit.
 
-        /* Nothing happens until T=5+30 */
-        m_time_now = SEC_TO_US(20);
+        /* Observe one beacon this interval, don't expect it to fire: */
+        sample_data.info.p_tx_info->rx_count[0] = 1;
+        m_time_now += SEC_TO_US(10);
+        m_info_index = 0;
+        m_timer_cb(m_time_now, NULL);
+
+        /* Don't observe any beacons this interval, dropping the number of observed beacons to 0.5/interval, triggering a TX: */
+        m_time_now += SEC_TO_US(10);
         m_info_index = 0;
         net_state_beacon_iv_index_get_ExpectAndReturn(sample_data.iv_index);
         net_state_iv_update_get_ExpectAndReturn(sample_data.iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL);
+        expect_tx(sample_data.info.secmat.key, sample_data.beacon, sample_data.auth, &adv_packet);
         m_timer_cb(m_time_now, NULL);
+        tx_complete();
+        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count[0]); // should be reset on each interval
+        TEST_ASSERT_EQUAL(m_time_now, sample_data.info.p_tx_info->tx_timestamp); // should be reset on each transmit.
 
-        m_time_now = SEC_TO_US(34);
+        /* Observe several beacons this interval, should cause it to skip the next two TX's: */
+        sample_data.info.p_tx_info->rx_count[0] = 4;
+        for (uint32_t j = 0; j < ARRAY_SIZE(sample_data.info.p_tx_info->rx_count); ++j)
+        {
+            m_time_now += SEC_TO_US(10);
+            m_info_index = 0;
+            m_timer_cb(m_time_now, NULL);
+        }
+        /* Finally, we reach < 1 beacon / interval, and should do another transmit: */
+        m_time_now += SEC_TO_US(10);
         m_info_index = 0;
         net_state_beacon_iv_index_get_ExpectAndReturn(sample_data.iv_index);
         net_state_iv_update_get_ExpectAndReturn(sample_data.iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL);
+        expect_tx(sample_data.info.secmat.key, sample_data.beacon, sample_data.auth, &adv_packet);
         m_timer_cb(m_time_now, NULL);
+        tx_complete();
+        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count[0]); // should be reset on each interval
+        TEST_ASSERT_EQUAL(m_time_now, sample_data.info.p_tx_info->tx_timestamp); // should be reset on each transmit.
 
-        /* T > 35, transmit! */
-        m_time_now = SEC_TO_US(35);
+        /* Verify that the observations move one step back for every interval */
+        sample_data.info.p_tx_info->rx_count[0] = 4;
+        m_time_now += SEC_TO_US(10);
         m_info_index = 0;
+        m_timer_cb(m_time_now, NULL);
+        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count[0]);
+        TEST_ASSERT_EQUAL(4, sample_data.info.p_tx_info->rx_count[1]);
+        m_time_now += SEC_TO_US(10);
+        m_info_index = 0;
+        m_timer_cb(m_time_now, NULL);
+        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count[0]);
+        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count[1]);
+    }
+}
+
+void test_beacon_build(void)
+{
+    setup_module();
+
+    net_beacon_sample_data_t sample_datas[] = {SEC_NET_SAMPLE_DATA_1, SEC_NET_SAMPLE_DATA_2, SEC_NET_SAMPLE_DATA_3};
+
+    /* single sample data */
+    for (uint32_t i = 0; i < ARRAY_SIZE(sample_datas); i++)
+    {
+        net_beacon_sample_data_t sample_data = sample_datas[i];
+
+        /* Test packet creation */
         enc_aes_cmac_ExpectWithArray(sample_data.info.secmat.key, NRF_MESH_KEY_SIZE, sample_data.beacon, 13, 13, NULL, 0);
         enc_aes_cmac_IgnoreArg_p_result();
         enc_aes_cmac_ReturnMemThruPtr_p_result(sample_data.auth, 16);
-        beacon_tx_ExpectWithArrayAndReturn(BEACON_TYPE_SEC_NET_BCAST, sample_data.beacon, 21, 21, 1, NRF_SUCCESS);
-        net_state_beacon_iv_index_get_ExpectAndReturn(sample_data.iv_index);
-        net_state_iv_update_get_ExpectAndReturn(sample_data.iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL);
-        m_timer_cb(m_time_now, NULL);
-        /* Didn't receive any beacons this period, bring interval down to 10 seconds: */
-        TEST_ASSERT_EQUAL(10, sample_data.info.p_tx_info->tx_interval_seconds);
-        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count); // should be reset on each transmit.
-        TEST_ASSERT_EQUAL(m_time_now, sample_data.info.p_tx_info->tx_timestamp); // should be reset on each transmit.
 
-        /* Nothing happens until T=35+10 */
-        m_time_now = SEC_TO_US(40);
-        m_info_index = 0;
-        net_state_beacon_iv_index_get_ExpectAndReturn(sample_data.iv_index);
-        net_state_iv_update_get_ExpectAndReturn(sample_data.iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL);
-        m_timer_cb(m_time_now, NULL);
-
-        /* T > 45, transmit! */
-        sample_data.info.p_tx_info->rx_count = 2;
-        m_time_now = SEC_TO_US(45);
-        m_info_index = 0;
-        enc_aes_cmac_ExpectWithArray(sample_data.info.secmat.key, NRF_MESH_KEY_SIZE, sample_data.beacon, 13, 13, NULL, 0);
-        enc_aes_cmac_IgnoreArg_p_result();
-        enc_aes_cmac_ReturnMemThruPtr_p_result(sample_data.auth, 16);
-        beacon_tx_ExpectWithArrayAndReturn(BEACON_TYPE_SEC_NET_BCAST, sample_data.beacon, 21, 21, 1, NRF_SUCCESS);
-        net_state_beacon_iv_index_get_ExpectAndReturn(sample_data.iv_index);
-        net_state_iv_update_get_ExpectAndReturn(sample_data.iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL);
-        m_timer_cb(m_time_now, NULL);
-        /* Received 2 beacons over 10 seconds, bring interval up to 30: */
-        TEST_ASSERT_EQUAL(30, sample_data.info.p_tx_info->tx_interval_seconds);
-        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count); // should be reset on each transmit.
-        TEST_ASSERT_EQUAL(m_time_now, sample_data.info.p_tx_info->tx_timestamp); // should be reset on each transmit.
-
-        /* Nothing happens until T=45+30 */
-        m_time_now = SEC_TO_US(74);
-        m_info_index = 0;
-        net_state_beacon_iv_index_get_ExpectAndReturn(sample_data.iv_index);
-        net_state_iv_update_get_ExpectAndReturn(sample_data.iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL);
-        m_timer_cb(m_time_now, NULL);
-
-        /* T > 75, transmit! */
-        sample_data.info.p_tx_info->rx_count = 3;
-        m_time_now = SEC_TO_US(75);
-        m_info_index = 0;
-        enc_aes_cmac_ExpectWithArray(sample_data.info.secmat.key, NRF_MESH_KEY_SIZE, sample_data.beacon, 13, 13, NULL, 0);
-        enc_aes_cmac_IgnoreArg_p_result();
-        enc_aes_cmac_ReturnMemThruPtr_p_result(sample_data.auth, 16);
-        beacon_tx_ExpectWithArrayAndReturn(BEACON_TYPE_SEC_NET_BCAST, sample_data.beacon, 21, 21, 1, NRF_SUCCESS);
-        net_state_beacon_iv_index_get_ExpectAndReturn(sample_data.iv_index);
-        net_state_iv_update_get_ExpectAndReturn(sample_data.iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL);
-        m_timer_cb(m_time_now, NULL);
-        /* Received 3 beacons over 30 seconds, interval is 20: */
-        TEST_ASSERT_EQUAL(20, sample_data.info.p_tx_info->tx_interval_seconds);
-        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count); // should be reset on each transmit.
-        TEST_ASSERT_EQUAL(m_time_now, sample_data.info.p_tx_info->tx_timestamp); // should be reset on each transmit.
-
+        uint8_t buffer[NET_BEACON_BUFFER_SIZE];
+        TEST_ASSERT_EQUAL(NRF_SUCCESS,
+                          net_beacon_build(&sample_data.info.secmat,
+                                           sample_data.iv_index,
+                                           sample_data.iv_update,
+                                           sample_data.key_refresh,
+                                           buffer));
+        TEST_ASSERT_EQUAL_HEX8(0x01, buffer[0]);
+        TEST_ASSERT_EQUAL_HEX8_ARRAY(sample_data.beacon, &buffer[1], sizeof(buffer) - 1);
     }
 }

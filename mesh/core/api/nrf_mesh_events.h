@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -62,6 +62,8 @@ typedef enum
     NRF_MESH_EVT_IV_UPDATE_NOTIFICATION,
     /** A key refresh event occurred. */
     NRF_MESH_EVT_KEY_REFRESH_NOTIFICATION,
+    /** An authenticated network beacon was received. */
+    NRF_MESH_EVT_NET_BEACON_RECEIVED,
     /** A heartbeat message has been received. */
     NRF_MESH_EVT_HB_MESSAGE_RECEIVED,
     /** DFU request for this node to be the relay of a transfer. */
@@ -78,6 +80,8 @@ typedef enum
     NRF_MESH_EVT_DFU_FIRMWARE_OUTDATED,
     /** The device firmware is outdated, according to an un-authenticated source. */
     NRF_MESH_EVT_DFU_FIRMWARE_OUTDATED_NO_AUTH,
+    /** Flash operations queue is empty, and flash is stable. There are no event params for this message. */
+    NRF_MESH_EVT_FLASH_STABLE,
     /** RX failed. */
     NRF_MESH_EVT_RX_FAILED,
     /** SAR session failed. */
@@ -114,6 +118,8 @@ typedef struct
 {
     /** Current IV update state. */
     net_state_iv_update_t state;
+    /** Network ID of the beacon that triggered the notification or NULL if unknown. */
+    const uint8_t * p_network_id;
     /** IV index currently used for sending messages. */
     uint32_t iv_index;
 } nrf_mesh_evt_iv_update_notification_t;
@@ -124,8 +130,26 @@ typedef struct
 typedef struct
 {
     uint16_t subnet_index;
+    const uint8_t * p_network_id;
     nrf_mesh_key_refresh_phase_t phase;
 } nrf_mesh_evt_key_refresh_notification_t;
+
+/**
+ * Network beacon received structure.
+ */
+typedef struct
+{
+    const nrf_mesh_beacon_info_t * p_beacon_info; /**< Pointer to the associated beacon info used to authenticate the incoming beacon. */
+    const nrf_mesh_beacon_secmat_t * p_beacon_secmat; /**< The secmat within the @p p_beacon_info that authenticated the incoming beacon. */
+    const nrf_mesh_rx_metadata_t * p_rx_metadata; /**< RX metadata for the packet that produced the beacon. */
+    const uint8_t * p_auth_value; /**< Authentication value in the beacon. */
+    uint32_t iv_index; /**< IV index in the beacon. */
+    struct
+    {
+        net_state_iv_update_t iv_update; /**< IV update flag in the beacon. */
+        bool key_refresh; /**< Key refresh flag in the beacon. */
+    } flags;
+} nrf_mesh_evt_net_beacon_received_t;
 
 /**
  * Heartbeat received event structure.
@@ -234,7 +258,9 @@ typedef enum
     /** The peer has cancelled the SAR session */
     NRF_MESH_SAR_CANCEL_BY_PEER,
     /** The packet was misformed. */
-    NRF_MESH_SAR_CANCEL_REASON_INVALID_FORMAT
+    NRF_MESH_SAR_CANCEL_REASON_INVALID_FORMAT,
+    /** The peer has started another SAR session. */
+    NRF_MESH_SAR_CANCEL_PEER_STARTED_ANOTHER_SESSION
 } nrf_mesh_sar_session_cancel_reason_t;
 
 /**
@@ -293,6 +319,8 @@ typedef struct
         nrf_mesh_evt_iv_update_notification_t   iv_update;
         /** Key refresh notification event. */
         nrf_mesh_evt_key_refresh_notification_t key_refresh;
+        /** A network beacon was received */
+        nrf_mesh_evt_net_beacon_received_t      net_beacon;
         /** HB message received/sent event */
         nrf_mesh_evt_hb_message_t               hb_message;
 
