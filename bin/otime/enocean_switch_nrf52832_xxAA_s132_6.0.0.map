@@ -651,23 +651,23 @@ Discarded input sections
  .bss           0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.calculate_3GPP_CRC
                 0x00000000       0x28 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
- .text          0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
- .data          0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
- .bss           0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+ .text          0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+ .data          0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+ .bss           0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
  .text.SystemCoreClockUpdate
-                0x00000000       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
- .data          0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
- .bss           0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
- .text          0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
- .data          0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
- .bss           0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+                0x00000000       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+ .data          0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+ .bss           0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+ .text          0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+ .data          0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+ .bss           0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
  .text.app_error_save_and_stop
-                0x00000000       0x64 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+                0x00000000       0x64 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
  .bss.m_error_data.7863
-                0x00000000       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
- .text          0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
- .data          0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
- .bss           0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+                0x00000000       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+ .text          0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+ .data          0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+ .bss           0x00000000        0x0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
  .text          0x00000000        0x0 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
  .data          0x00000000        0x0 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
  .bss           0x00000000        0x0 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
@@ -822,9 +822,9 @@ RAM              0x200032c8         0x0000ca38         xrw
 Linker script and memory map
 
 
-.text           0x00026000    0x1fa08
+.text           0x00026000    0x1fa18
  *(.isr_vector)
- .isr_vector    0x00026000      0x200 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+ .isr_vector    0x00026000      0x200 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
                 0x00026000                __isr_vector
  *(.text*)
  .text          0x00026200       0x6c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
@@ -1804,734 +1804,734 @@ Linker script and memory map
                 0x00032d78       0x30 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_relay_set
                 0x00032da8      0x1b0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
- .text.handle_config_gatt_proxy_set
-                0x00032f58       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_netkey_get
-                0x00032f90       0x68 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00032f58       0x68 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_model_app_bind_unbind
-                0x00032ff8      0x238 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00032fc0      0x238 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.status_error_sub_send
-                0x00033230      0x184 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x000331f8      0x184 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_overwrite
-                0x000333b4      0x1f8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x0003337c      0x1f8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.send_publication_status
-                0x000335ac      0x1a4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00033574      0x1a4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_key_refresh_phase_set
-                0x00033750       0xf0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00033718       0xf0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_default_ttl_set
-                0x00033840       0x70 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00033808       0x70 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_heartbeat_publication_set
-                0x000338b0      0x170 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00033878      0x170 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.mesh_event_cb
-                0x00033a20       0x70 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x000339e8       0x70 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_node_identity_set
-                0x00033a90       0x48 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00033a58       0x48 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_node_identity_get
-                0x00033ad8       0x44 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00033aa0       0x44 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+ .text.handle_config_gatt_proxy_set
+                0x00033ae4       0x40 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_friend_set
-                0x00033b1c       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00033b24       0x40 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.status_error_pub_send
-                0x00033b54       0xc8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00033b64       0xc8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_publication_get
-                0x00033c1c       0xb0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00033c2c       0xb0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_publication_set
-                0x00033ccc      0x32c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00033cdc      0x32c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_key_refresh_phase_get
-                0x00033ff8       0x70 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00034008       0x70 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_default_ttl_get
-                0x00034068       0x48 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00034078       0x48 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_beacon_set
-                0x000340b0       0x80 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x000340c0       0x80 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_composition_data_get
-                0x00034130       0x64 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00034140       0x64 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_appkey_delete
-                0x00034194      0x124 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x000341a4      0x124 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_model_app_get
-                0x000342b8      0x220 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x000342c8      0x220 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_vendor_model_subscription_get
-                0x000344d8      0x190 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x000344e8      0x190 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_appkey_get
-                0x00034668      0x104 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00034678      0x104 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_heartbeat_subscription_get
-                0x0003476c       0xd8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
- .text.handle_config_gatt_proxy_get
-                0x00034844       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x0003477c       0xd8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_heartbeat_subscription_set
-                0x0003487c      0x110 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00034854      0x110 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+ .text.handle_config_gatt_proxy_get
+                0x00034964       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_friend_get
-                0x0003498c       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x0003499c       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_heartbeat_publication_get
-                0x000349c4       0xcc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x000349d4       0xcc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_beacon_get
-                0x00034a90       0x40 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00034aa0       0x40 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_sig_model_subscription_get
-                0x00034ad0      0x158 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00034ae0      0x158 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_appkey_update
-                0x00034c28      0x11c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00034c38      0x11c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_appkey_add
-                0x00034d44      0x12c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00034d54      0x12c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_netkey_add_update
-                0x00034e70       0xe8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00034e80       0xe8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_netkey_delete
-                0x00034f58      0x148 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00034f68      0x148 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_network_transmit_get
-                0x000350a0       0x9c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x000350b0       0x9c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_relay_get
-                0x0003513c       0xd8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x0003514c       0xd8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_virtual_address_delete
-                0x00035214      0x184 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00035224      0x184 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_delete_all
-                0x00035398      0x1b0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x000353a8      0x1b0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_virtual_address_add
-                0x00035548      0x180 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00035558      0x180 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_delete
-                0x000356c8      0x17c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x000356d8      0x17c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_virtual_address_overwrite
-                0x00035844      0x214 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00035854      0x214 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_add
-                0x00035a58      0x174 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00035a68      0x174 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .text.config_server_init
-                0x00035bcc       0x64 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
-                0x00035bcc                config_server_init
+                0x00035bdc       0x64 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00035bdc                config_server_init
  .text.config_server_bind
-                0x00035c30       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
-                0x00035c30                config_server_bind
+                0x00035c40       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00035c40                config_server_bind
  .text.packed_index_list_create
-                0x00035c40       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/packed_index_list.c.obj
-                0x00035c40                packed_index_list_create
+                0x00035c50       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/packed_index_list.c.obj
+                0x00035c50                packed_index_list_create
  .text.attention_timer_handler
-                0x00035c78       0x6c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
+                0x00035c88       0x6c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
  .text.handle_attention_get
-                0x00035ce4       0x3c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
+                0x00035cf4       0x3c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
  .text.handle_period_get
-                0x00035d20       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
+                0x00035d30       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
  .text.handle_attention_set
-                0x00035d58       0xd8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
+                0x00035d68       0xd8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
  .text.handle_period_set
-                0x00035e30       0x50 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
+                0x00035e40       0x50 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
  .text.send_fault_status
-                0x00035e80      0x37c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
+                0x00035e90      0x37c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
  .text.health_publish_timeout_handler
-                0x000361fc        0xc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
+                0x0003620c        0xc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
  .text.handle_fault_test
-                0x00036208       0x7c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
+                0x00036218       0x7c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
  .text.handle_fault_clear
-                0x00036284       0x48 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
+                0x00036294       0x48 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
  .text.handle_fault_get
-                0x000362cc       0x34 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
+                0x000362dc       0x34 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
  .text.health_server_init
-                0x00036300       0x74 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
-                0x00036300                health_server_init
+                0x00036310       0x74 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
+                0x00036310                health_server_init
  .text.schedule_publication_timer
-                0x00036374      0x2c4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_publish.c.obj
+                0x00036384      0x2c4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_publish.c.obj
  .text.publish_timer_tick
-                0x00036638      0x134 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_publish.c.obj
+                0x00036648      0x134 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_publish.c.obj
  .text.access_publish_init
-                0x0003676c       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_publish.c.obj
-                0x0003676c                access_publish_init
+                0x0003677c       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_publish.c.obj
+                0x0003677c                access_publish_init
  .text.access_publish_period_set
-                0x000367a4      0x12c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_publish.c.obj
-                0x000367a4                access_publish_period_set
+                0x000367b4      0x12c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_publish.c.obj
+                0x000367b4                access_publish_period_set
  .text.access_publish_period_get
-                0x000368d0       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_publish.c.obj
-                0x000368d0                access_publish_period_get
+                0x000368e0       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_publish.c.obj
+                0x000368e0                access_publish_period_get
  .text.flash_manager_mem_available
-                0x000368fc        0x4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x0003690c        0x4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
  .text.flash_invalidate_complete
-                0x00036900        0x8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00036910        0x8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
  .text.access_flash_config_clear
-                0x00036908       0x28 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00036918       0x28 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
  .text.access_flash_config_store
-                0x00036930      0x154 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00036930                access_flash_config_store
+                0x00036940      0x154 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00036940                access_flash_config_store
  .text.handle_incoming
-                0x00036a84      0x194 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00036a94      0x194 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
  .text.mesh_evt_cb
-                0x00036c18      0x164 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00036c28      0x164 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
  .text.add_flash_manager
-                0x00036d7c       0x58 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00036d8c       0x58 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
  .text.flash_write_complete
-                0x00036dd4       0x4c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00036de4       0x4c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
  .text.flash_remove_complete
-                0x00036e20      0x158 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00036e30      0x158 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
  .text.access_flash_config_load
-                0x00036f78      0x328 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00036f78                access_flash_config_load
+                0x00036f88      0x328 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00036f88                access_flash_config_load
  .text.access_clear
-                0x000372a0       0x88 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x000372a0                access_clear
+                0x000372b0       0x88 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x000372b0                access_clear
  .text.access_init
-                0x00037328       0xd0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00037328                access_init
+                0x00037338       0xd0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00037338                access_init
  .text.access_model_add
-                0x000373f8      0x2d0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x000373f8                access_model_add
+                0x00037408      0x2d0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00037408                access_model_add
  .text.access_model_publish
-                0x000376c8      0x3bc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x000376c8                access_model_publish
+                0x000376d8      0x3bc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x000376d8                access_model_publish
  .text.access_model_reply
-                0x00037a84      0x3d8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00037a84                access_model_reply
+                0x00037a94      0x3d8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00037a94                access_model_reply
  .text.access_model_publish_address_set
-                0x00037e5c       0x3c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00037e5c                access_model_publish_address_set
+                0x00037e6c       0x3c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00037e6c                access_model_publish_address_set
  .text.access_model_publish_address_get
-                0x00037e98       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00037e98                access_model_publish_address_get
+                0x00037ea8       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00037ea8                access_model_publish_address_get
  .text.access_model_publish_retransmit_set
-                0x00037ec4       0x58 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00037ec4                access_model_publish_retransmit_set
+                0x00037ed4       0x58 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00037ed4                access_model_publish_retransmit_set
  .text.access_model_publish_retransmit_get
-                0x00037f1c       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00037f1c                access_model_publish_retransmit_get
+                0x00037f2c       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00037f2c                access_model_publish_retransmit_get
  .text.access_model_publish_period_set
-                0x00037f48       0x78 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00037f48                access_model_publish_period_set
+                0x00037f58       0x78 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00037f58                access_model_publish_period_set
  .text.access_model_publish_period_get
-                0x00037fc0       0x40 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00037fc0                access_model_publish_period_get
+                0x00037fd0       0x40 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00037fd0                access_model_publish_period_get
  .text.access_model_subscription_list_alloc
-                0x00038000       0x84 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00038000                access_model_subscription_list_alloc
+                0x00038010       0x84 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00038010                access_model_subscription_list_alloc
  .text.access_model_subscription_add
-                0x00038084       0x60 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00038084                access_model_subscription_add
+                0x00038094       0x60 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00038094                access_model_subscription_add
  .text.access_model_subscription_remove
-                0x000380e4       0x60 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x000380e4                access_model_subscription_remove
+                0x000380f4       0x60 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x000380f4                access_model_subscription_remove
  .text.access_model_subscriptions_get
-                0x00038144       0x78 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00038144                access_model_subscriptions_get
+                0x00038154       0x78 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00038154                access_model_subscriptions_get
  .text.access_model_application_bind
-                0x000381bc       0x58 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x000381bc                access_model_application_bind
+                0x000381cc       0x58 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x000381cc                access_model_application_bind
  .text.access_model_application_unbind
-                0x00038214       0x58 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00038214                access_model_application_unbind
+                0x00038224       0x58 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00038224                access_model_application_unbind
  .text.access_model_applications_get
-                0x0003826c      0x100 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x0003826c                access_model_applications_get
+                0x0003827c      0x100 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x0003827c                access_model_applications_get
  .text.access_model_publish_application_set
-                0x0003836c       0x3c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x0003836c                access_model_publish_application_set
+                0x0003837c       0x3c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x0003837c                access_model_publish_application_set
  .text.access_model_publish_application_get
-                0x000383a8       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x000383a8                access_model_publish_application_get
+                0x000383b8       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x000383b8                access_model_publish_application_get
  .text.access_default_ttl_set
-                0x000383d4       0x1c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x000383d4                access_default_ttl_set
+                0x000383e4       0x1c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x000383e4                access_default_ttl_set
  .text.access_default_ttl_get
-                0x000383f0        0xc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x000383f0                access_default_ttl_get
+                0x00038400        0xc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00038400                access_default_ttl_get
  .text.access_model_publish_ttl_set
-                0x000383fc       0x40 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x000383fc                access_model_publish_ttl_set
+                0x0003840c       0x40 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x0003840c                access_model_publish_ttl_set
  .text.access_model_publish_ttl_get
-                0x0003843c       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x0003843c                access_model_publish_ttl_get
+                0x0003844c       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x0003844c                access_model_publish_ttl_get
  .text.access_element_location_get
-                0x00038468       0x24 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00038468                access_element_location_get
+                0x00038478       0x24 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00038478                access_element_location_get
  .text.access_element_sig_model_count_get
-                0x0003848c       0x24 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x0003848c                access_element_sig_model_count_get
+                0x0003849c       0x24 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x0003849c                access_element_sig_model_count_get
  .text.access_element_vendor_model_count_get
-                0x000384b0       0x24 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x000384b0                access_element_vendor_model_count_get
+                0x000384c0       0x24 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x000384c0                access_element_vendor_model_count_get
  .text.access_model_id_get
-                0x000384d4       0x40 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x000384d4                access_model_id_get
+                0x000384e4       0x40 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x000384e4                access_model_id_get
  .text.access_handle_get
-                0x00038514       0xd4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00038514                access_handle_get
+                0x00038524       0xd4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00038524                access_handle_get
  .text.access_element_models_get
-                0x000385e8       0xfc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x000385e8                access_element_models_get
+                0x000385f8       0xfc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x000385f8                access_element_models_get
  .text.access_model_p_args_get
-                0x000386e4       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x000386e4                access_model_p_args_get
+                0x000386f4       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x000386f4                access_model_p_args_get
  .text.access_model_publication_stop
-                0x00038710       0x74 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00038710                access_model_publication_stop
+                0x00038720       0x74 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00038720                access_model_publication_stop
  .text.access_model_publication_by_appkey_stop
-                0x00038784      0x2a4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
-                0x00038784                access_model_publication_by_appkey_stop
+                0x00038794      0x2a4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00038794                access_model_publication_by_appkey_stop
  .text.remove_and_reschedule
-                0x00038a28      0x11c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_reliable.c.obj
+                0x00038a38      0x11c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_reliable.c.obj
  .text.reliable_timer_cb
-                0x00038b44      0x128 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_reliable.c.obj
+                0x00038b54      0x128 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_reliable.c.obj
  .text.access_reliable_message_rx_cb
-                0x00038c6c       0xb4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_reliable.c.obj
-                0x00038c6c                access_reliable_message_rx_cb
+                0x00038c7c       0xb4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_reliable.c.obj
+                0x00038c7c                access_reliable_message_rx_cb
  .text.access_reliable_init
-                0x00038d20       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_reliable.c.obj
-                0x00038d20                access_reliable_init
+                0x00038d30       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_reliable.c.obj
+                0x00038d30                access_reliable_init
  .text.access_reliable_cancel_all
-                0x00038d40      0x1b0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_reliable.c.obj
-                0x00038d40                access_reliable_cancel_all
+                0x00038d50      0x1b0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_reliable.c.obj
+                0x00038d50                access_reliable_cancel_all
  .text.access_model_reliable_cancel
-                0x00038ef0       0xbc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_reliable.c.obj
-                0x00038ef0                access_model_reliable_cancel
+                0x00038f00       0xbc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_reliable.c.obj
+                0x00038f00                access_model_reliable_cancel
  .text.access_model_reliable_publish
-                0x00038fac      0x284 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_reliable.c.obj
-                0x00038fac                access_model_reliable_publish
+                0x00038fbc      0x284 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access_reliable.c.obj
+                0x00038fbc                access_model_reliable_publish
  .text.addr_nonvirtual_to_dsm_entry
-                0x00039230       0x48 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039240       0x48 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.addr_nonvirtual_to_flash_entry
-                0x00039278       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039288       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.devkey_to_flash_entry
-                0x00039288       0x28 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039298       0x28 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.addr_virtual_to_flash_entry
-                0x000392b0       0x18 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000392c0       0x18 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.addr_unicast_to_dsm_entry
-                0x000392c8        0xc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000392d8        0xc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.addr_unicast_to_flash_entry
-                0x000392d4       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000392e4       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.flash_mem_listener_callback
-                0x000392e4       0x1c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000392f4       0x1c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.appkey_to_flash_entry
-                0x00039300       0x54 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039310       0x54 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.subnet_to_flash_entry
-                0x00039354       0x60 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039364       0x60 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.reset_flash_area
-                0x000393b4       0x28 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000393c4       0x28 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.flash_save
-                0x000393dc       0xb0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000393ec       0xb0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.build_flash_area
-                0x0003948c       0x90 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003949c       0x90 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.flash_invalidate_complete
-                0x0003951c       0x54 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003952c       0x54 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.flash_write_complete
-                0x00039570       0x50 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039580       0x50 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.devkey_to_dsm_entry
-                0x000395c0       0x70 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000395d0       0x70 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.addr_virtual_to_dsm_entry
-                0x00039630       0x60 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039640       0x60 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.appkey_to_dsm_entry
-                0x00039690       0xf4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000396a0       0xf4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.subnet_to_dsm_entry
-                0x00039784      0x11c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039794      0x11c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.flash_remove_complete
-                0x000398a0       0x90 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000398b0       0x90 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.flash_update_all
-                0x00039930      0x17c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039940      0x17c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.address_delete_if_unused
-                0x00039aac      0x100 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039abc      0x100 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.mesh_evt_handler
-                0x00039bac      0x234 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039bbc      0x234 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .text.dsm_flash_config_load
-                0x00039de0      0x1c8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039de0                dsm_flash_config_load
+                0x00039df0      0x1c8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039df0                dsm_flash_config_load
  .text.dsm_flash_area_get
-                0x00039fa8        0xc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039fa8                dsm_flash_area_get
+                0x00039fb8        0xc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039fb8                dsm_flash_area_get
  .text.dsm_clear
-                0x00039fb4      0x160 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039fb4                dsm_clear
+                0x00039fc4      0x160 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039fc4                dsm_clear
  .text.dsm_init
-                0x0003a114       0xbc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003a114                dsm_init
+                0x0003a124       0xbc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003a124                dsm_init
  .text.dsm_local_unicast_addresses_set
-                0x0003a1d0       0x78 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003a1d0                dsm_local_unicast_addresses_set
+                0x0003a1e0       0x78 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003a1e0                dsm_local_unicast_addresses_set
  .text.dsm_local_unicast_addresses_get
-                0x0003a248       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003a248                dsm_local_unicast_addresses_get
+                0x0003a258       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003a258                dsm_local_unicast_addresses_get
  .text.dsm_address_publish_add
-                0x0003a268      0x330 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003a268                dsm_address_publish_add
+                0x0003a278      0x330 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003a278                dsm_address_publish_add
  .text.dsm_address_publish_add_handle
-                0x0003a598       0x54 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003a598                dsm_address_publish_add_handle
+                0x0003a5a8       0x54 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003a5a8                dsm_address_publish_add_handle
  .text.dsm_address_publish_virtual_add
-                0x0003a5ec      0x268 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003a5ec                dsm_address_publish_virtual_add
+                0x0003a5fc      0x268 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003a5fc                dsm_address_publish_virtual_add
  .text.dsm_address_publish_remove
-                0x0003a854       0xbc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003a854                dsm_address_publish_remove
+                0x0003a864       0xbc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003a864                dsm_address_publish_remove
  .text.dsm_address_subscription_add
-                0x0003a910      0x320 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003a910                dsm_address_subscription_add
+                0x0003a920      0x320 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003a920                dsm_address_subscription_add
  .text.dsm_address_subscription_virtual_add
-                0x0003ac30      0x268 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003ac30                dsm_address_subscription_virtual_add
+                0x0003ac40      0x268 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003ac40                dsm_address_subscription_virtual_add
  .text.dsm_address_subscription_add_handle
-                0x0003ae98       0x54 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003ae98                dsm_address_subscription_add_handle
+                0x0003aea8       0x54 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003aea8                dsm_address_subscription_add_handle
  .text.dsm_address_subscription_get
-                0x0003aeec       0x5c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003aeec                dsm_address_subscription_get
+                0x0003aefc       0x5c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003aefc                dsm_address_subscription_get
  .text.dsm_address_subscription_remove
-                0x0003af48       0x94 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003af48                dsm_address_subscription_remove
+                0x0003af58       0x94 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003af58                dsm_address_subscription_remove
  .text.dsm_address_get
-                0x0003afdc       0x74 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003afdc                dsm_address_get
+                0x0003afec       0x74 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003afec                dsm_address_get
  .text.dsm_address_handle_get
-                0x0003b050      0x3cc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003b050                dsm_address_handle_get
+                0x0003b060      0x3cc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003b060                dsm_address_handle_get
  .text.dsm_net_key_index_to_subnet_handle
-                0x0003b41c       0x6c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003b41c                dsm_net_key_index_to_subnet_handle
+                0x0003b42c       0x6c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003b42c                dsm_net_key_index_to_subnet_handle
  .text.dsm_subnet_handle_get
-                0x0003b488       0xa4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003b488                dsm_subnet_handle_get
+                0x0003b498       0xa4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003b498                dsm_subnet_handle_get
  .text.dsm_appkey_index_to_appkey_handle
-                0x0003b52c       0xcc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003b52c                dsm_appkey_index_to_appkey_handle
+                0x0003b53c       0xcc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003b53c                dsm_appkey_index_to_appkey_handle
  .text.dsm_appkey_handle_get
-                0x0003b5f8       0x44 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003b5f8                dsm_appkey_handle_get
+                0x0003b608       0x44 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003b608                dsm_appkey_handle_get
  .text.dsm_appkey_handle_to_appkey_index
-                0x0003b63c       0x34 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003b63c                dsm_appkey_handle_to_appkey_index
+                0x0003b64c       0x34 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003b64c                dsm_appkey_handle_to_appkey_index
  .text.dsm_appkey_handle_to_subnet_handle
-                0x0003b670       0xb4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003b670                dsm_appkey_handle_to_subnet_handle
+                0x0003b680       0xb4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003b680                dsm_appkey_handle_to_subnet_handle
  .text.dsm_subnet_add
-                0x0003b724      0x21c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003b724                dsm_subnet_add
+                0x0003b734      0x21c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003b734                dsm_subnet_add
  .text.dsm_subnet_kr_phase_get
-                0x0003b940       0x30 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003b940                dsm_subnet_kr_phase_get
+                0x0003b950       0x30 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003b950                dsm_subnet_kr_phase_get
  .text.dsm_subnet_update
-                0x0003b970      0x11c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003b970                dsm_subnet_update
+                0x0003b980      0x11c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003b980                dsm_subnet_update
  .text.dsm_subnet_update_swap_keys
-                0x0003ba8c       0xa8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003ba8c                dsm_subnet_update_swap_keys
+                0x0003ba9c       0xa8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003ba9c                dsm_subnet_update_swap_keys
  .text.dsm_subnet_update_commit
-                0x0003bb34      0x194 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003bb34                dsm_subnet_update_commit
+                0x0003bb44      0x194 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003bb44                dsm_subnet_update_commit
  .text.dsm_subnet_delete
-                0x0003bcc8      0x358 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003bcc8                dsm_subnet_delete
+                0x0003bcd8      0x358 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003bcd8                dsm_subnet_delete
  .text.dsm_subnet_get_all
-                0x0003c020       0x90 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003c020                dsm_subnet_get_all
+                0x0003c030       0x90 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003c030                dsm_subnet_get_all
  .text.dsm_devkey_add
-                0x0003c0b0       0xb0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003c0b0                dsm_devkey_add
+                0x0003c0c0       0xb0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003c0c0                dsm_devkey_add
  .text.dsm_appkey_add
-                0x0003c160      0x298 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003c160                dsm_appkey_add
+                0x0003c170      0x298 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003c170                dsm_appkey_add
  .text.dsm_appkey_update
-                0x0003c3f8       0xfc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003c3f8                dsm_appkey_update
+                0x0003c408       0xfc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003c408                dsm_appkey_update
  .text.dsm_appkey_delete
-                0x0003c4f4       0x68 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003c4f4                dsm_appkey_delete
+                0x0003c504       0x68 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003c504                dsm_appkey_delete
  .text.dsm_appkey_get_all
-                0x0003c55c      0x158 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003c55c                dsm_appkey_get_all
+                0x0003c56c      0x158 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003c56c                dsm_appkey_get_all
  .text.dsm_tx_secmat_get
-                0x0003c6b4       0xd4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003c6b4                dsm_tx_secmat_get
+                0x0003c6c4       0xd4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003c6c4                dsm_tx_secmat_get
  .text.dsm_net_secmat_from_keyindex_get
-                0x0003c788       0x98 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003c788                dsm_net_secmat_from_keyindex_get
+                0x0003c798       0x98 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003c798                dsm_net_secmat_from_keyindex_get
  .text.nrf_mesh_net_secmat_next_get
-                0x0003c820      0x21c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003c820                nrf_mesh_net_secmat_next_get
+                0x0003c830      0x21c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003c830                nrf_mesh_net_secmat_next_get
  .text.nrf_mesh_app_secmat_next_get
-                0x0003ca3c      0x280 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003ca3c                nrf_mesh_app_secmat_next_get
+                0x0003ca4c      0x280 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003ca4c                nrf_mesh_app_secmat_next_get
  .text.nrf_mesh_devkey_secmat_get
-                0x0003ccbc       0x30 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003ccbc                nrf_mesh_devkey_secmat_get
+                0x0003cccc       0x30 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003cccc                nrf_mesh_devkey_secmat_get
  .text.nrf_mesh_beacon_info_next_get
-                0x0003ccec      0x174 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003ccec                nrf_mesh_beacon_info_next_get
+                0x0003ccfc      0x174 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003ccfc                nrf_mesh_beacon_info_next_get
  .text.nrf_mesh_rx_address_get
-                0x0003ce60      0x558 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003ce60                nrf_mesh_rx_address_get
+                0x0003ce70      0x558 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003ce70                nrf_mesh_rx_address_get
  .text.nrf_mesh_unicast_address_get
-                0x0003d3b8       0x24 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003d3b8                nrf_mesh_unicast_address_get
+                0x0003d3c8       0x24 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003d3c8                nrf_mesh_unicast_address_get
  .text.prov_provisionee_cb_link_established
-                0x0003d3dc       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x0003d3ec       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .text.prov_provisionee_cb_link_closed
-                0x0003d414       0x54 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x0003d424       0x54 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .text.request_authentication
-                0x0003d468       0x90 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x0003d478       0x90 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .text.prov_provisionee_cb_ack_received
-                0x0003d4f8      0x194 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x0003d508      0x194 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .text.prov_provisionee_pkt_in
-                0x0003d68c      0x420 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x0003d69c      0x420 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .text.prov_provisionee_listen
-                0x0003daac       0x34 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
-                0x0003daac                prov_provisionee_listen
+                0x0003dabc       0x34 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x0003dabc                prov_provisionee_listen
  .text.prov_provisionee_auth_data
-                0x0003dae0      0x104 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
-                0x0003dae0                prov_provisionee_auth_data
+                0x0003daf0      0x104 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x0003daf0                prov_provisionee_auth_data
  .text.bearer_compare_callback
-                0x0003dbe4       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x0003dbf4       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
  .text.nrf_mesh_prov_init
-                0x0003dbf4       0x3c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
-                0x0003dbf4                nrf_mesh_prov_init
+                0x0003dc04       0x3c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x0003dc04                nrf_mesh_prov_init
  .text.nrf_mesh_prov_bearer_add
-                0x0003dc30       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
-                0x0003dc30                nrf_mesh_prov_bearer_add
+                0x0003dc40       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x0003dc40                nrf_mesh_prov_bearer_add
  .text.nrf_mesh_prov_generate_keys
-                0x0003dc5c        0x4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
-                0x0003dc5c                nrf_mesh_prov_generate_keys
+                0x0003dc6c        0x4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x0003dc6c                nrf_mesh_prov_generate_keys
  .text.nrf_mesh_prov_listen
-                0x0003dc60       0xf8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
-                0x0003dc60                nrf_mesh_prov_listen
+                0x0003dc70       0xf8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x0003dc70                nrf_mesh_prov_listen
  .text.nrf_mesh_prov_auth_data_provide
-                0x0003dd58       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
-                0x0003dd58                nrf_mesh_prov_auth_data_provide
+                0x0003dd68       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x0003dd68                nrf_mesh_prov_auth_data_provide
  .text.prov_packet_length_valid
-                0x0003dd68       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003dd68                prov_packet_length_valid
+                0x0003dd78       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003dd78                prov_packet_length_valid
  .text.prov_tx_capabilities
-                0x0003dd88       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003dd88                prov_tx_capabilities
+                0x0003dd98       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003dd98                prov_tx_capabilities
  .text.prov_tx_public_key
-                0x0003ddc0       0x30 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003ddc0                prov_tx_public_key
+                0x0003ddd0       0x30 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003ddd0                prov_tx_public_key
  .text.prov_tx_input_complete
-                0x0003ddf0       0x28 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003ddf0                prov_tx_input_complete
+                0x0003de00       0x28 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003de00                prov_tx_input_complete
  .text.prov_tx_confirmation
-                0x0003de18       0x30 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003de18                prov_tx_confirmation
+                0x0003de28       0x30 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003de28                prov_tx_confirmation
  .text.prov_tx_random
-                0x0003de48       0x30 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003de48                prov_tx_random
+                0x0003de58       0x30 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003de58                prov_tx_random
  .text.prov_tx_complete
-                0x0003de78       0x28 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003de78                prov_tx_complete
+                0x0003de88       0x28 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003de88                prov_tx_complete
  .text.prov_tx_failed
-                0x0003dea0       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003dea0                prov_tx_failed
+                0x0003deb0       0x2c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003deb0                prov_tx_failed
  .text.prov_beacon_unprov_build
-                0x0003decc       0x54 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_beacon.c.obj
-                0x0003decc                prov_beacon_unprov_build
+                0x0003dedc       0x54 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_beacon.c.obj
+                0x0003dedc                prov_beacon_unprov_build
  .text.prov_beacon_unprov_packet_in
-                0x0003df20       0xd4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_beacon.c.obj
-                0x0003df20                prov_beacon_unprov_packet_in
+                0x0003df30       0xd4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_beacon.c.obj
+                0x0003df30                prov_beacon_unprov_packet_in
  .text.prov_utils_opt_set
-                0x0003dff4       0x24 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003dff4                prov_utils_opt_set
+                0x0003e004       0x24 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003e004                prov_utils_opt_set
  .text.prov_utils_opt_get
-                0x0003e018       0x1c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003e018                prov_utils_opt_get
+                0x0003e028       0x1c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003e028                prov_utils_opt_get
  .text.prov_utils_use_ecdh_offloading
-                0x0003e034        0xc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003e034                prov_utils_use_ecdh_offloading
+                0x0003e044        0xc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003e044                prov_utils_use_ecdh_offloading
  .text.prov_utils_authentication_values_derive
-                0x0003e040       0xa8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003e040                prov_utils_authentication_values_derive
+                0x0003e050       0xa8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003e050                prov_utils_authentication_values_derive
  .text.prov_utils_keys_generate
-                0x0003e0e8       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003e0e8                prov_utils_keys_generate
+                0x0003e0f8       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003e0f8                prov_utils_keys_generate
  .text.prov_utils_derive_keys
-                0x0003e108       0xb4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003e108                prov_utils_derive_keys
+                0x0003e118       0xb4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003e118                prov_utils_derive_keys
  .text.prov_utils_calculate_shared_secret
-                0x0003e1bc       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003e1bc                prov_utils_calculate_shared_secret
+                0x0003e1cc       0x38 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003e1cc                prov_utils_calculate_shared_secret
  .text.prov_utils_generate_oob_data
-                0x0003e1f4      0x1b8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003e1f4                prov_utils_generate_oob_data
+                0x0003e204      0x1b8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003e204                prov_utils_generate_oob_data
  .text.prov_utils_confirmation_check
-                0x0003e3ac       0x5c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003e3ac                prov_utils_confirmation_check
+                0x0003e3bc       0x5c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003e3bc                prov_utils_confirmation_check
  .text.link_timeout_cb
-                0x0003e408       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003e418       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.prov_bearer_adv_listen_stop
-                0x0003e418       0x8c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003e428       0x8c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.tx_complete_cb
-                0x0003e4a4       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003e4b4       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.prov_bearer_adv_listen
-                0x0003e4c4      0x160 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003e4d4      0x160 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.prov_buffer_tx
-                0x0003e624      0x1d8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003e634      0x1d8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.close_link
-                0x0003e7fc       0xc0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003e80c       0xc0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.async_process
-                0x0003e8bc       0x60 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003e8cc       0x60 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.prov_bearer_adv_tx
-                0x0003e91c       0xe4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003e92c       0xe4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.send_link_ack
-                0x0003ea00       0x80 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003ea10       0x80 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.tx_retry_cb
-                0x0003ea80      0x13c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003ea90      0x13c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.send_transaction_ack
-                0x0003ebbc       0x68 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003ebcc       0x68 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.prov_buffer_rx
-                0x0003ec24       0x9c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003ec34       0x9c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.prov_bearer_adv_link_open
-                0x0003ecc0      0x1c0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003ecd0      0x1c0 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.prov_bearer_adv_link_close
-                0x0003ee80       0xd8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003ee90       0xd8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.nrf_mesh_prov_bearer_adv_interface_get
-                0x0003ef58       0x40 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
-                0x0003ef58                nrf_mesh_prov_bearer_adv_interface_get
+                0x0003ef68       0x40 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003ef68                nrf_mesh_prov_bearer_adv_interface_get
  .text.prov_bearer_adv_packet_in
-                0x0003ef98      0x950 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
-                0x0003ef98                prov_bearer_adv_packet_in
+                0x0003efa8      0x950 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003efa8                prov_bearer_adv_packet_in
  .text.SystemInit
-                0x0003f8e8      0x3cc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
-                0x0003f8e8                SystemInit
- .text          0x0003fcb4       0x3c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
-                0x0003fcb4                Reset_Handler
-                0x0003fcdc                NMI_Handler
-                0x0003fcde                HardFault_Handler
-                0x0003fce0                MemoryManagement_Handler
-                0x0003fce2                BusFault_Handler
-                0x0003fce4                UsageFault_Handler
-                0x0003fce6                SVC_Handler
-                0x0003fce8                DebugMon_Handler
-                0x0003fcea                PendSV_Handler
-                0x0003fcec                SysTick_Handler
-                0x0003fcee                PDM_IRQHandler
-                0x0003fcee                TEMP_IRQHandler
-                0x0003fcee                TIMER3_IRQHandler
-                0x0003fcee                FPU_IRQHandler
-                0x0003fcee                SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQHandler
-                0x0003fcee                RADIO_IRQHandler
-                0x0003fcee                UARTE0_UART0_IRQHandler
-                0x0003fcee                TIMER4_IRQHandler
-                0x0003fcee                I2S_IRQHandler
-                0x0003fcee                SWI4_EGU4_IRQHandler
-                0x0003fcee                TIMER0_IRQHandler
-                0x0003fcee                RTC0_IRQHandler
-                0x0003fcee                TIMER1_IRQHandler
-                0x0003fcee                POWER_CLOCK_IRQHandler
-                0x0003fcee                ECB_IRQHandler
-                0x0003fcee                SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler
-                0x0003fcee                Default_Handler
-                0x0003fcee                SAADC_IRQHandler
-                0x0003fcee                CCM_AAR_IRQHandler
-                0x0003fcee                WDT_IRQHandler
-                0x0003fcee                SWI0_EGU0_IRQHandler
-                0x0003fcee                SWI5_EGU5_IRQHandler
-                0x0003fcee                RNG_IRQHandler
-                0x0003fcee                RTC2_IRQHandler
-                0x0003fcee                PWM0_IRQHandler
-                0x0003fcee                SWI3_EGU3_IRQHandler
-                0x0003fcee                RTC1_IRQHandler
-                0x0003fcee                SWI1_EGU1_IRQHandler
-                0x0003fcee                SPIM2_SPIS2_SPI2_IRQHandler
-                0x0003fcee                NFCT_IRQHandler
-                0x0003fcee                PWM1_IRQHandler
-                0x0003fcee                MWU_IRQHandler
-                0x0003fcee                PWM2_IRQHandler
-                0x0003fcee                COMP_LPCOMP_IRQHandler
+                0x0003f8f8      0x3cc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+                0x0003f8f8                SystemInit
+ .text          0x0003fcc4       0x3c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+                0x0003fcc4                Reset_Handler
+                0x0003fcec                NMI_Handler
+                0x0003fcee                HardFault_Handler
+                0x0003fcf0                MemoryManagement_Handler
+                0x0003fcf2                BusFault_Handler
+                0x0003fcf4                UsageFault_Handler
+                0x0003fcf6                SVC_Handler
+                0x0003fcf8                DebugMon_Handler
+                0x0003fcfa                PendSV_Handler
+                0x0003fcfc                SysTick_Handler
+                0x0003fcfe                PDM_IRQHandler
+                0x0003fcfe                TEMP_IRQHandler
+                0x0003fcfe                TIMER3_IRQHandler
+                0x0003fcfe                FPU_IRQHandler
+                0x0003fcfe                SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQHandler
+                0x0003fcfe                RADIO_IRQHandler
+                0x0003fcfe                UARTE0_UART0_IRQHandler
+                0x0003fcfe                TIMER4_IRQHandler
+                0x0003fcfe                I2S_IRQHandler
+                0x0003fcfe                SWI4_EGU4_IRQHandler
+                0x0003fcfe                TIMER0_IRQHandler
+                0x0003fcfe                RTC0_IRQHandler
+                0x0003fcfe                TIMER1_IRQHandler
+                0x0003fcfe                POWER_CLOCK_IRQHandler
+                0x0003fcfe                ECB_IRQHandler
+                0x0003fcfe                SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler
+                0x0003fcfe                Default_Handler
+                0x0003fcfe                SAADC_IRQHandler
+                0x0003fcfe                CCM_AAR_IRQHandler
+                0x0003fcfe                WDT_IRQHandler
+                0x0003fcfe                SWI0_EGU0_IRQHandler
+                0x0003fcfe                SWI5_EGU5_IRQHandler
+                0x0003fcfe                RNG_IRQHandler
+                0x0003fcfe                RTC2_IRQHandler
+                0x0003fcfe                PWM0_IRQHandler
+                0x0003fcfe                SWI3_EGU3_IRQHandler
+                0x0003fcfe                RTC1_IRQHandler
+                0x0003fcfe                SWI1_EGU1_IRQHandler
+                0x0003fcfe                SPIM2_SPIS2_SPI2_IRQHandler
+                0x0003fcfe                NFCT_IRQHandler
+                0x0003fcfe                PWM1_IRQHandler
+                0x0003fcfe                MWU_IRQHandler
+                0x0003fcfe                PWM2_IRQHandler
+                0x0003fcfe                COMP_LPCOMP_IRQHandler
  .text.app_error_handler_bare
-                0x0003fcf0       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
-                0x0003fcf0                app_error_handler_bare
+                0x0003fd00       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+                0x0003fd00                app_error_handler_bare
  .text.app_error_handler
-                0x0003fd10       0x1c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
-                0x0003fd10                app_error_handler
+                0x0003fd20       0x1c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+                0x0003fd20                app_error_handler
  .text.SEGGER_RTT_Write
-                0x0003fd2c      0x1e4 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
-                0x0003fd2c                SEGGER_RTT_Write
+                0x0003fd3c      0x1e4 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
+                0x0003fd3c                SEGGER_RTT_Write
  .text.SEGGER_RTT_GetKey
-                0x0003ff10       0xec external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
-                0x0003ff10                SEGGER_RTT_GetKey
+                0x0003ff20       0xec external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
+                0x0003ff20                SEGGER_RTT_GetKey
  .text._PrintUnsigned
-                0x0003fffc      0x194 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+                0x0004000c      0x194 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
  .text.SEGGER_RTT_vprintf
-                0x00040190      0x464 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
-                0x00040190                SEGGER_RTT_vprintf
+                0x000401a0      0x464 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+                0x000401a0                SEGGER_RTT_vprintf
  .text.SEGGER_RTT_printf
-                0x000405f4       0x20 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
-                0x000405f4                SEGGER_RTT_printf
+                0x00040604       0x20 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+                0x00040604                SEGGER_RTT_printf
  .text.default_RNG
-                0x00040614        0xc external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00040624        0xc external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.uECC_generate_random_int
-                0x00040620      0x170 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
- .text.apply_z  0x00040790      0x1a8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00040630      0x170 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+ .text.apply_z  0x000407a0      0x1a8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.uECC_vli_modAdd
-                0x00040938       0xc8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00040948       0xc8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.x_side_default
-                0x00040a00      0x254 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00040a10      0x254 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.vli_mmod_fast_secp256r1
-                0x00040c54      0x520 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00040c64      0x520 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.XYcZ_add
-                0x00041174      0x6dc external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00041184      0x6dc external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.XYcZ_addC
-                0x00041850      0xa94 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00041860      0xa94 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.uECC_vli_modInv.part.4
-                0x000422e4      0x6e8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x000422f4      0x6e8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.EccPoint_mult.constprop.5
-                0x000429cc      0x470 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x000429dc      0x470 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.double_jacobian_default
-                0x00042e3c      0x7ec external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00042e4c      0x7ec external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.uECC_secp256r1
-                0x00043628        0x8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
-                0x00043628                uECC_secp256r1
+                0x00043638        0x8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00043638                uECC_secp256r1
  .text.uECC_make_key
-                0x00043630      0x23c external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
-                0x00043630                uECC_make_key
+                0x00043640      0x23c external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00043640                uECC_make_key
  .text.uECC_shared_secret
-                0x0004386c      0x788 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
-                0x0004386c                uECC_shared_secret
+                0x0004387c      0x788 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x0004387c                uECC_shared_secret
  .text.uECC_valid_point
-                0x00043ff4      0x134 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
-                0x00043ff4                uECC_valid_point
+                0x00044004      0x134 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00044004                uECC_valid_point
  .text.uECC_valid_public_key
-                0x00044128       0xe8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
-                0x00044128                uECC_valid_public_key
- .text          0x00044210       0x30 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_aeabi_uldivmod.o)
-                0x00044210                __aeabi_uldivmod
- .text          0x00044240      0x2dc c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_udivmoddi4.o)
-                0x00044240                __udivmoddi4
- .text          0x0004451c        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_dvmd_tls.o)
-                0x0004451c                __aeabi_idiv0
-                0x0004451c                __aeabi_ldiv0
- .text.exit     0x00044520       0x28 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-exit.o)
-                0x00044520                exit
+                0x00044138       0xe8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00044138                uECC_valid_public_key
+ .text          0x00044220       0x30 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_aeabi_uldivmod.o)
+                0x00044220                __aeabi_uldivmod
+ .text          0x00044250      0x2dc c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_udivmoddi4.o)
+                0x00044250                __udivmoddi4
+ .text          0x0004452c        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_dvmd_tls.o)
+                0x0004452c                __aeabi_idiv0
+                0x0004452c                __aeabi_ldiv0
+ .text.exit     0x00044530       0x28 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-exit.o)
+                0x00044530                exit
  .text.__libc_init_array
-                0x00044548       0x48 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-init.o)
-                0x00044548                __libc_init_array
- .text.malloc   0x00044590       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-malloc.o)
-                0x00044590                malloc
- .text.free     0x000445a0       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-malloc.o)
-                0x000445a0                free
- .text.memcmp   0x000445b0       0x1e c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memcmp.o)
-                0x000445b0                memcmp
- .text.memcpy   0x000445ce       0x16 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memcpy-stub.o)
-                0x000445ce                memcpy
- .text.memset   0x000445e4       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memset.o)
-                0x000445e4                memset
- .text._free_r  0x000445f4       0x9c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-nano-freer.o)
-                0x000445f4                _free_r
+                0x00044558       0x48 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-init.o)
+                0x00044558                __libc_init_array
+ .text.malloc   0x000445a0       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-malloc.o)
+                0x000445a0                malloc
+ .text.free     0x000445b0       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-malloc.o)
+                0x000445b0                free
+ .text.memcmp   0x000445c0       0x1e c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memcmp.o)
+                0x000445c0                memcmp
+ .text.memcpy   0x000445de       0x16 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memcpy-stub.o)
+                0x000445de                memcpy
+ .text.memset   0x000445f4       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memset.o)
+                0x000445f4                memset
+ .text._free_r  0x00044604       0x9c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-nano-freer.o)
+                0x00044604                _free_r
  .text._malloc_r
-                0x00044690       0xbc c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-nano-mallocr.o)
-                0x00044690                _malloc_r
- .text._sbrk_r  0x0004474c       0x20 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-sbrkr.o)
-                0x0004474c                _sbrk_r
- .text.strcpy   0x0004476c       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strcpy.o)
-                0x0004476c                strcpy
- .text          0x0004477c       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strlen.o)
-                0x0004477c                strlen
- .text.strrchr  0x0004478c       0x26 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strrchr.o)
-                0x0004478c                strrchr
+                0x000446a0       0xbc c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-nano-mallocr.o)
+                0x000446a0                _malloc_r
+ .text._sbrk_r  0x0004475c       0x20 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-sbrkr.o)
+                0x0004475c                _sbrk_r
+ .text.strcpy   0x0004477c       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strcpy.o)
+                0x0004477c                strcpy
+ .text          0x0004478c       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strlen.o)
+                0x0004478c                strlen
+ .text.strrchr  0x0004479c       0x26 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strrchr.o)
+                0x0004479c                strrchr
  .text.__malloc_lock
-                0x000447b2        0x2 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-mlock.o)
-                0x000447b2                __malloc_lock
+                0x000447c2        0x2 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-mlock.o)
+                0x000447c2                __malloc_lock
  .text.__malloc_unlock
-                0x000447b4        0x2 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-mlock.o)
-                0x000447b4                __malloc_unlock
- .text.strchr   0x000447b6       0x1c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strchr.o)
-                0x000447b6                strchr
- *fill*         0x000447d2        0x2 
- .text._sbrk    0x000447d4       0x1c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(sbrk.o)
-                0x000447d4                _sbrk
- .text._exit    0x000447f0        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(_exit.o)
-                0x000447f0                _exit
+                0x000447c4        0x2 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-mlock.o)
+                0x000447c4                __malloc_unlock
+ .text.strchr   0x000447c6       0x1c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strchr.o)
+                0x000447c6                strchr
+ *fill*         0x000447e2        0x2 
+ .text._sbrk    0x000447e4       0x1c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(sbrk.o)
+                0x000447e4                _sbrk
+ .text._exit    0x00044800        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(_exit.o)
+                0x00044800                _exit
  *(.init)
- .init          0x000447f4        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
-                0x000447f4                _init
- .init          0x000447f8        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
+ .init          0x00044804        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
+                0x00044804                _init
+ .init          0x00044808        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
  *(.fini)
- .fini          0x00044800        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
-                0x00044800                _fini
- .fini          0x00044804        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
+ .fini          0x00044810        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
+                0x00044810                _fini
+ .fini          0x00044814        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
  *crtbegin.o(.ctors)
  *crtbegin?.o(.ctors)
  *(EXCLUDE_FILE(*crtend.o *crtend?.o) .ctors)
@@ -2543,295 +2543,295 @@ Linker script and memory map
  *(SORT(.dtors.*))
  *(.dtors)
  *(.rodata*)
- .rodata        0x0004480c       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
+ .rodata        0x0004481c       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
  .rodata.app_data_store_try.str1.4
-                0x0004481c       0x8d examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
- *fill*         0x000448a9        0x3 
+                0x0004482c       0x8d examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
+ *fill*         0x000448b9        0x3 
  .rodata.app_enocean_cb.str1.4
-                0x000448ac       0x90 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
+                0x000448bc       0x90 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
  .rodata.app_mesh_core_event_cb.str1.4
-                0x0004493c       0x5a examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
- *fill*         0x00044996        0x2 
+                0x0004494c       0x5a examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
+ *fill*         0x000449a6        0x2 
  .rodata.button_event_handler.str1.4
-                0x00044998       0x13 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
- *fill*         0x000449ab        0x1 
+                0x000449a8       0x13 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
+ *fill*         0x000449bb        0x1 
  .rodata.client_status_cb.str1.4
-                0x000449ac       0x2f examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
- *fill*         0x000449db        0x1 
+                0x000449bc       0x2f examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
+ *fill*         0x000449eb        0x1 
  .rodata.main.str1.4
-                0x000449dc       0x50 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
+                0x000449ec       0x50 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
  .rodata.models_init_cb.str1.4
-                0x00044a2c       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
+                0x00044a3c       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
  .rodata.node_reset.str1.4
-                0x00044a4c       0x19 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
- *fill*         0x00044a65        0x3 
+                0x00044a5c       0x19 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
+ *fill*         0x00044a75        0x3 
  .rodata.provisioning_complete_cb.str1.4
-                0x00044a68       0x5b examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
- *fill*         0x00044ac3        0x1 
+                0x00044a78       0x5b examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
+ *fill*         0x00044ad3        0x1 
  .rodata.static_auth_data.12615
-                0x00044ac4       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
+                0x00044ad4       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
  .rodata.enocean_packet_process.str1.4
-                0x00044ad4       0x48 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/enocean.c.obj
+                0x00044ae4       0x48 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/enocean.c.obj
  .rodata.app_flash_data_store.str1.4
-                0x00044b1c        0xe examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/flash_helper.c.obj
- *fill*         0x00044b2a        0x2 
+                0x00044b2c        0xe examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/flash_helper.c.obj
+ *fill*         0x00044b3a        0x2 
  .rodata.app_flash_init.str1.4
-                0x00044b2c       0x2a examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/flash_helper.c.obj
- *fill*         0x00044b56        0x2 
+                0x00044b3c       0x2a examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/flash_helper.c.obj
+ *fill*         0x00044b66        0x2 
  .rodata.flash_manager_mem_available.str1.4
-                0x00044b58       0x45 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/flash_helper.c.obj
- *fill*         0x00044b9d        0x3 
+                0x00044b68       0x45 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/flash_helper.c.obj
+ *fill*         0x00044bad        0x3 
  .rodata.flash_remove_complete.str1.4
-                0x00044ba0       0x17 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/flash_helper.c.obj
- *fill*         0x00044bb7        0x1 
- .rodata.flash_reset.str1.4
-                0x00044bb8        0xf examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/flash_helper.c.obj
+                0x00044bb0       0x17 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/flash_helper.c.obj
  *fill*         0x00044bc7        0x1 
+ .rodata.flash_reset.str1.4
+                0x00044bc8        0xf examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/flash_helper.c.obj
+ *fill*         0x00044bd7        0x1 
  .rodata.flash_write_complete.str1.4
-                0x00044bc8       0x16 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/flash_helper.c.obj
- *fill*         0x00044bde        0x2 
+                0x00044bd8       0x16 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/src/flash_helper.c.obj
+ *fill*         0x00044bee        0x2 
  .rodata.mesh_softdevice_init.str1.4
-                0x00044be0       0xa9 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/common/src/mesh_softdevice_init.c.obj
- *fill*         0x00044c89        0x3 
- .rodata        0x00044c8c        0xb examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/common/src/mesh_provisionee.c.obj
- *fill*         0x00044c97        0x9 
+                0x00044bf0       0xa9 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/common/src/mesh_softdevice_init.c.obj
+ *fill*         0x00044c99        0x3 
+ .rodata        0x00044c9c        0xb examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/common/src/mesh_provisionee.c.obj
+ *fill*         0x00044ca7        0x9 
  .rodata.delay_bytecode.8414
-                0x00044ca0        0x6 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/common/src/simple_hal.c.obj
- *fill*         0x00044ca6        0x2 
+                0x00044cb0        0x6 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/common/src/simple_hal.c.obj
+ *fill*         0x00044cb6        0x2 
  .rodata.app_error_fault_handler.str1.4
-                0x00044ca8       0xc5 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/common/src/app_error_weak.c.obj
+                0x00044cb8       0xc5 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/common/src/app_error_weak.c.obj
  .rodata.mesh_assertion_handler.str1.4
-                0x00044d6d       0xc5 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/common/src/assertion_handler_weak.c.obj
+                0x00044d7d       0xc5 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/common/src/assertion_handler_weak.c.obj
                                   0x1 (size before relaxing)
- *fill*         0x00044d6d        0x3 
+ *fill*         0x00044d7d        0x3 
  .rodata.sar_ctx_cancel.str1.4
-                0x00044d70       0x23 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/transport.c.obj
- *fill*         0x00044d93        0x1 
+                0x00044d80       0x23 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/transport.c.obj
+ *fill*         0x00044da3        0x1 
  .rodata.transport_packet_in.str1.4
-                0x00044d94       0x24 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/transport.c.obj
+                0x00044da4       0x24 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/transport.c.obj
  .rodata.upper_transport_access_packet_in.str1.4
-                0x00044db8       0x3d examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/transport.c.obj
- *fill*         0x00044df5        0x3 
+                0x00044dc8       0x3d examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/transport.c.obj
+ *fill*         0x00044e05        0x3 
  .rodata.upper_transport_packet_in.str1.4
-                0x00044df8       0x2e examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/transport.c.obj
- *fill*         0x00044e26        0x2 
+                0x00044e08       0x2e examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/transport.c.obj
+ *fill*         0x00044e36        0x2 
  .rodata.upper_transport_tx.part.25.str1.4
-                0x00044e28       0x2e examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/transport.c.obj
+                0x00044e38       0x2e examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/transport.c.obj
                                  0x38 (size before relaxing)
- *fill*         0x00044e56        0x2 
+ *fill*         0x00044e66        0x2 
  .rodata.m_procedure_steps
-                0x00044e58       0x28 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/flash_manager_defrag.c.obj
+                0x00044e68       0x28 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/flash_manager_defrag.c.obj
  .rodata.m_all_operations
-                0x00044e80       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/mesh_flash.c.obj
+                0x00044e90       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/mesh_flash.c.obj
  .rodata.types_lookup.9059
-                0x00044e90        0x4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/nrf_mesh_utils.c.obj
+                0x00044ea0        0x4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/nrf_mesh_utils.c.obj
  .rodata.__func__.11531
-                0x00044e94       0x15 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/nrf_mesh.c.obj
- *fill*         0x00044ea9        0x3 
+                0x00044ea4       0x15 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/nrf_mesh.c.obj
+ *fill*         0x00044eb9        0x3 
  .rodata.nrf_mesh_listen.str1.4
-                0x00044eac       0x73 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/nrf_mesh.c.obj
+                0x00044ebc       0x73 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/nrf_mesh.c.obj
  .rodata.nrf_mesh_packet_send.str1.4
-                0x00044f1f       0x73 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/nrf_mesh.c.obj
+                0x00044f2f       0x73 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/nrf_mesh.c.obj
                                   0x4 (size before relaxing)
- *fill*         0x00044f1f        0x1 
+ *fill*         0x00044f2f        0x1 
  .rodata.CSWTCH.8
-                0x00044f20       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/hal.c.obj
- .rodata        0x00044f40       0x18 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/enc.c.obj
+                0x00044f30       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/hal.c.obj
+ .rodata        0x00044f50       0x18 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/enc.c.obj
  .rodata.network_packet_in.str1.4
-                0x00044f58       0x49 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/network.c.obj
- *fill*         0x00044fa1        0x3 
+                0x00044f68       0x49 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/network.c.obj
+ *fill*         0x00044fb1        0x3 
  .rodata.net_packet_decrypt.str1.4
-                0x00044fa4       0x33 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/net_packet.c.obj
+                0x00044fb4       0x33 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/net_packet.c.obj
                                  0x3c (size before relaxing)
- *fill*         0x00044fd7        0x1 
- .rodata        0x00044fd8        0x7 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/nrf_mesh_keygen.c.obj
- *fill*         0x00044fdf        0x1 
+ *fill*         0x00044fe7        0x1 
+ .rodata        0x00044fe8        0x7 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/nrf_mesh_keygen.c.obj
+ *fill*         0x00044fef        0x1 
  .rodata.log_callback_rtt.str1.4
-                0x00044fe0       0x15 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/log.c.obj
- *fill*         0x00044ff5        0x3 
+                0x00044ff0       0x15 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/log.c.obj
+ *fill*         0x00045005        0x3 
  .rodata.str1.4
-                0x00044ff8       0x11 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/log.c.obj
- *fill*         0x00045009        0x3 
+                0x00045008       0x11 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/log.c.obj
+ *fill*         0x00045019        0x3 
  .rodata.INVALID_HEADER
-                0x0004500c        0x4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/flash_manager.c.obj
-                0x0004500c                INVALID_HEADER
+                0x0004501c        0x4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/flash_manager.c.obj
+                0x0004501c                INVALID_HEADER
  .rodata.PADDING_HEADER
-                0x00045010        0x4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/flash_manager.c.obj
-                0x00045010                PADDING_HEADER
+                0x00045020        0x4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/flash_manager.c.obj
+                0x00045020                PADDING_HEADER
  .rodata.SEAL_HEADER
-                0x00045014        0x4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/flash_manager.c.obj
-                0x00045014                SEAL_HEADER
+                0x00045024        0x4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/flash_manager.c.obj
+                0x00045024                SEAL_HEADER
  .rodata.beacon_packet_in.str1.4
-                0x00045018       0x55 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/beacon.c.obj
+                0x00045028       0x55 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/beacon.c.obj
                                  0x60 (size before relaxing)
- *fill*         0x0004506d        0x3 
+ *fill*         0x0004507d        0x3 
  .rodata.cp_handler
-                0x00045070        0x8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/heartbeat.c.obj
+                0x00045080        0x8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/heartbeat.c.obj
  .rodata.beacon_tx.str1.4
-                0x00045078       0x37 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/net_beacon.c.obj
- *fill*         0x000450af        0x1 
+                0x00045088       0x37 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/net_beacon.c.obj
+ *fill*         0x000450bf        0x1 
  .rodata.net_beacon_init.str1.4
-                0x000450b0        0x5 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/net_beacon.c.obj
- *fill*         0x000450b5        0x3 
+                0x000450c0        0x5 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/net_beacon.c.obj
+ *fill*         0x000450c5        0x3 
  .rodata.m_interface
-                0x000450b8        0xc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/core_tx_adv.c.obj
+                0x000450c8        0xc examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/core/src/core_tx_adv.c.obj
  .rodata.radio_mode_to_us_per_byte.9452
-                0x000450c4        0x6 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/bearer/src/broadcast.c.obj
- *fill*         0x000450ca        0x2 
+                0x000450d4        0x6 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/bearer/src/broadcast.c.obj
+ *fill*         0x000450da        0x2 
  .rodata.channel_rf_offsets.8693
-                0x000450cc       0x28 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/bearer/src/radio_config.c.obj
+                0x000450dc       0x28 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/bearer/src/radio_config.c.obj
  .rodata.m_opcode_handlers
-                0x000450f4        0x8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/simple_on_off/src/simple_on_off_client.c.obj
- .rodata        0x000450fc        0x8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
- .rodata.CSWTCH.122
-                0x00045104       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00045104        0x8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/simple_on_off/src/simple_on_off_client.c.obj
+ .rodata        0x0004510c        0x8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+ .rodata.CSWTCH.121
+                0x00045114       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .rodata.opcode_handlers
-                0x00045114      0x170 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
+                0x00045124      0x170 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/config/src/config_server.c.obj
  .rodata.m_opcode_handlers
-                0x00045284       0x58 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
+                0x00045294       0x58 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
  .rodata.multiply_de_bruijn_bit_position.9304
-                0x000452dc       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
+                0x000452ec       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/models/health/src/health_server.c.obj
  .rodata.access_model_publish.str1.4
-                0x000452fc       0x1c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x0004530c       0x1c examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
                                  0x24 (size before relaxing)
  .rodata.mesh_evt_cb.str1.4
-                0x00045318       0x2f examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
- *fill*         0x00045347        0x1 
+                0x00045328       0x2f examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+ *fill*         0x00045357        0x1 
  .rodata.multiply_de_bruijn_bit_position.9260
-                0x00045348       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
+                0x00045358       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/access.c.obj
  .rodata.m_flash_groups
-                0x00045368       0xa8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00045378       0xa8 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .rodata.multiply_de_bruijn_bit_position.9366
-                0x00045410       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00045420       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .rodata.m_prov_callbacks
-                0x00045430       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x00045440       0x10 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .rodata.prov_provisionee_cb_ack_received.str1.4
-                0x00045440       0x53 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
- *fill*         0x00045493        0x1 
+                0x00045450       0x53 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
+ *fill*         0x000454a3        0x1 
  .rodata.multiply_de_bruijn_bit_position.9313
-                0x00045494       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x000454a4       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
  .rodata.pdu_sizes.11238
-                0x000454b4        0xa examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
- *fill*         0x000454be        0x2 
+                0x000454c4        0xa examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/provisioning.c.obj
+ *fill*         0x000454ce        0x2 
  .rodata.alphanumeric.11343
-                0x000454c0       0x25 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
- *fill*         0x000454e5        0x3 
+                0x000454d0       0x25 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+ *fill*         0x000454f5        0x3 
  .rodata.numeric_max.11337
-                0x000454e8       0x24 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+                0x000454f8       0x24 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
  .rodata.prov_utils_authentication_values_derive.str1.4
-                0x0004550c        0x5 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
- *fill*         0x00045511        0x3 
+                0x0004551c        0x5 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+ *fill*         0x00045521        0x3 
  .rodata.prov_utils_derive_keys.str1.4
-                0x00045514       0x15 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
- *fill*         0x00045529        0x3 
+                0x00045524       0x15 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+ *fill*         0x00045539        0x3 
  .rodata.crctable.10972
-                0x0004552c      0x100 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0004553c      0x100 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .rodata.interface.11202
-                0x0004562c       0x14 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0004563c       0x14 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .rodata.prov_bearer_adv_listen.str1.4
-                0x00045640       0x50 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x00045650       0x50 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .rodata.prov_bearer_adv_packet_in.str1.4
-                0x00045690      0x283 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
- *fill*         0x00045913        0x1 
+                0x000456a0      0x283 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+ *fill*         0x00045923        0x1 
  .rodata.tx_retry_cb.str1.4
-                0x00045914       0x14 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x00045924       0x14 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .rodata.SEGGER_RTT_ReadNoLock.str1.4
-                0x00045928       0x18 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
+                0x00045938       0x18 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
                                  0x17 (size before relaxing)
  .rodata._aV2C.5497
-                0x00045940       0x10 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+                0x00045950       0x10 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
  .rodata.curve_secp256r1
-                0x00045950       0xb0 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00045960       0xb0 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .rodata._global_impure_ptr
-                0x00045a00        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-impure.o)
-                0x00045a00                _global_impure_ptr
+                0x00045a10        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-impure.o)
+                0x00045a10                _global_impure_ptr
  *(.eh_frame*)
- .eh_frame      0x00045a04        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
- .eh_frame      0x00045a04        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtend.o
+ .eh_frame      0x00045a14        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
+ .eh_frame      0x00045a14        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtend.o
 
-.glue_7         0x00045a08        0x0
- .glue_7        0x00045a08        0x0 linker stubs
+.glue_7         0x00045a18        0x0
+ .glue_7        0x00045a18        0x0 linker stubs
 
-.glue_7t        0x00045a08        0x0
- .glue_7t       0x00045a08        0x0 linker stubs
+.glue_7t        0x00045a18        0x0
+ .glue_7t       0x00045a18        0x0 linker stubs
 
-.vfp11_veneer   0x00045a08        0x0
- .vfp11_veneer  0x00045a08        0x0 linker stubs
+.vfp11_veneer   0x00045a18        0x0
+ .vfp11_veneer  0x00045a18        0x0 linker stubs
 
-.v4_bx          0x00045a08        0x0
- .v4_bx         0x00045a08        0x0 linker stubs
+.v4_bx          0x00045a18        0x0
+ .v4_bx         0x00045a18        0x0 linker stubs
 
-.iplt           0x00045a08        0x0
- .iplt          0x00045a08        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
+.iplt           0x00045a18        0x0
+ .iplt          0x00045a18        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
 
-.pwr_mgmt_data  0x00045a08        0x0
+.pwr_mgmt_data  0x00045a18        0x0
                 [!provide]                PROVIDE (__start_pwr_mgmt_data, .)
  *(SORT(.pwr_mgmt_data*))
                 [!provide]                PROVIDE (__stop_pwr_mgmt_data, .)
 
 .log_const_data
-                0x00045a08        0x0
+                0x00045a18        0x0
                 [!provide]                PROVIDE (__start_log_const_data, .)
  *(.log_const_data)
                 [!provide]                PROVIDE (__stop_log_const_data, .)
 
-.cli_command    0x00045a08        0x0
+.cli_command    0x00045a18        0x0
                 [!provide]                PROVIDE (__start_cli_command, .)
  *(.cli_command)
                 [!provide]                PROVIDE (__stop_cli_command, .)
 
 .sdh_stack_observers
-                0x00045a08        0x0
+                0x00045a18        0x0
                 [!provide]                PROVIDE (__start_sdh_stack_observers, .)
  *(SORT(.sdh_stack_observers*))
                 [!provide]                PROVIDE (__stop_sdh_stack_observers, .)
 
 .sdh_req_observers
-                0x00045a08        0x0
+                0x00045a18        0x0
                 [!provide]                PROVIDE (__start_sdh_req_observers, .)
  *(SORT(.sdh_req_observers*))
                 [!provide]                PROVIDE (__stop_sdh_req_observers, .)
 
 .sdh_state_observers
-                0x00045a08        0x0
+                0x00045a18        0x0
                 [!provide]                PROVIDE (__start_sdh_state_observers, .)
  *(SORT(.sdh_state_observers*))
                 [!provide]                PROVIDE (__stop_sdh_state_observers, .)
 
 .sdh_ant_observers
-                0x00045a08        0x0
+                0x00045a18        0x0
                 [!provide]                PROVIDE (__start_sdh_ant_observers, .)
  *(SORT(.sdh_ant_observers*))
                 [!provide]                PROVIDE (__stop_sdh_ant_observers, .)
 
 .sdh_ble_observers
-                0x00045a08        0x0
+                0x00045a18        0x0
                 [!provide]                PROVIDE (__start_sdh_ble_observers, .)
  *(SORT(.sdh_ble_observers*))
                 [!provide]                PROVIDE (__stop_sdh_ble_observers, .)
 
 .sdh_soc_observers
-                0x00045a08        0x0
+                0x00045a18        0x0
                 [!provide]                PROVIDE (__start_sdh_soc_observers, .)
  *(SORT(.sdh_soc_observers*))
                 [!provide]                PROVIDE (__stop_sdh_soc_observers, .)
 
 .ARM.extab
  *(.ARM.extab* .gnu.linkonce.armextab.*)
-                0x00045a08                __exidx_start = .
+                0x00045a18                __exidx_start = .
 
-.ARM.exidx      0x00045a08        0x8
+.ARM.exidx      0x00045a18        0x8
  *(.ARM.exidx* .gnu.linkonce.armexidx.*)
- .ARM.exidx     0x00045a08        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard/crt0.o
- .ARM.exidx     0x00045a10        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_udivmoddi4.o)
+ .ARM.exidx     0x00045a18        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard/crt0.o
+ .ARM.exidx     0x00045a20        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_udivmoddi4.o)
                                   0x8 (size before relaxing)
-                0x00045a10                __exidx_end = .
-                0x00045a10                __etext = .
+                0x00045a20                __exidx_end = .
+                0x00045a20                __etext = .
 
-.rel.dyn        0x00045a10        0x0
- .rel.iplt      0x00045a10        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
+.rel.dyn        0x00045a20        0x0
+ .rel.iplt      0x00045a20        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
 
-.data           0x200032c8      0x16c load address 0x00045a10
+.data           0x200032c8      0x16c load address 0x00045a20
                 0x200032c8                __data_start__ = .
  *(vtable)
  *(.data*)
@@ -2889,7 +2889,7 @@ Linker script and memory map
  .data.m_async_process_flag
                 0x200033b8        0x4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .data.SystemCoreClock
-                0x200033bc        0x4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+                0x200033bc        0x4 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
                 0x200033bc                SystemCoreClock
  .data.g_rng_function
                 0x200033c0        0x4 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
@@ -3005,10 +3005,10 @@ LOAD examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.
 LOAD examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_beacon.c.obj
 LOAD examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
 LOAD examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
-LOAD examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
-LOAD examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
-LOAD examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
-LOAD examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+LOAD examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+LOAD examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+LOAD examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+LOAD examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
 LOAD external/rtt/librtt_nrf52832_xxAA.a
 LOAD external/micro-ecc/libuECC_nrf52832_xxAA.a
 START GROUP
@@ -3027,7 +3027,7 @@ LOAD c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eab
 LOAD c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a
 END GROUP
 
-.igot.plt       0x20003434        0x0 load address 0x00045b7c
+.igot.plt       0x20003434        0x0 load address 0x00045b8c
  .igot.plt      0x20003434        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
                 0x20003434                . = ALIGN (0x4)
 
@@ -3053,7 +3053,7 @@ END GROUP
  *(.cli_sorted_cmd_ptrs)
                 [!provide]                PROVIDE (__stop_cli_sorted_cmd_ptrs, .)
 
-.bss            0x20003438     0x3534 load address 0x00045b80
+.bss            0x20003438     0x3534 load address 0x00045b90
                 0x20003438                . = ALIGN (0x4)
                 0x20003438                __bss_start__ = .
  *(.bss*)
@@ -3456,19 +3456,19 @@ END GROUP
                 0x20006970                __end__ = .
                 0x20006970                PROVIDE (end, .)
  *(.heap*)
- .heap          0x20006970     0x2000 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+ .heap          0x20006970     0x2000 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
                 0x20008970                __HeapLimit = .
 
 .stack_dummy    0x20006970     0x2000
  *(.stack*)
- .stack         0x20006970     0x2000 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+ .stack         0x20006970     0x2000 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
                 0x2000fd00                __StackTop = (ORIGIN (RAM) + LENGTH (RAM))
                 0x2000dd00                __StackLimit = (__StackTop - SIZEOF (.stack_dummy))
                 0x2000fd00                PROVIDE (__stack, __StackTop)
                 0x00000001                ASSERT ((__StackLimit >= __HeapLimit), region RAM overflowed with stack)
                 0x00000170                DataInitFlashUsed = (__bss_start__ - __data_start__)
-                0x0001fa10                CodeFlashUsed = (__etext - ORIGIN (FLASH))
-                0x0001fb80                TotalFlashUsed = (CodeFlashUsed + DataInitFlashUsed)
+                0x0001fa20                CodeFlashUsed = (__etext - ORIGIN (FLASH))
+                0x0001fb90                TotalFlashUsed = (CodeFlashUsed + DataInitFlashUsed)
                 0x00000001                ASSERT ((TotalFlashUsed <= LENGTH (FLASH)), region FLASH overflowed with .data and user data)
 OUTPUT(examples\enocean_switch\enocean_switch_nrf52832_xxAA_s132_6.0.0.elf elf32-littlearm)
 
@@ -3629,13 +3629,13 @@ OUTPUT(examples\enocean_switch\enocean_switch_nrf52832_xxAA_s132_6.0.0.elf elf32
  .ARM.attributes
                 0x000010b7       0x39 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .ARM.attributes
-                0x000010f0       0x39 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+                0x000010f0       0x39 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
  .ARM.attributes
-                0x00001129       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+                0x00001129       0x20 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
  .ARM.attributes
-                0x00001149       0x39 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+                0x00001149       0x39 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
  .ARM.attributes
-                0x00001182       0x39 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+                0x00001182       0x39 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
  .ARM.attributes
                 0x000011bb       0x39 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
  .ARM.attributes
@@ -3765,9 +3765,9 @@ OUTPUT(examples\enocean_switch\enocean_switch_nrf52832_xxAA_s132_6.0.0.elf elf32
  .comment       0x0000007f       0x80 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_beacon.c.obj
  .comment       0x0000007f       0x80 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
  .comment       0x0000007f       0x80 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
- .comment       0x0000007f       0x80 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
- .comment       0x0000007f       0x80 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
- .comment       0x0000007f       0x80 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+ .comment       0x0000007f       0x80 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+ .comment       0x0000007f       0x80 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+ .comment       0x0000007f       0x80 examples/enocean_switch/CMakeFiles/enocean_switch_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
  .comment       0x0000007f       0x80 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
  .comment       0x0000007f       0x80 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
  .comment       0x0000007f       0x80 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)

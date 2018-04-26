@@ -1,5 +1,11 @@
 # Release Notes
 
+## BLE Mesh v2.0.1
+- This is a minor bugfix release
+
+### Bugfixes
+- Ignore Config Proxy Set and Config Friend Set messages with invalid parameters
+
 ## BLE Mesh v2.0.0
 - This is a major production release.
 

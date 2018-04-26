@@ -634,23 +634,23 @@ Discarded input sections
                 0x00000000        0x8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.health_server_attention_set
                 0x00000000       0x98 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
- .text          0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
- .data          0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
- .bss           0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+ .text          0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+ .data          0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+ .bss           0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
  .text.SystemCoreClockUpdate
-                0x00000000       0x10 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
- .data          0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
- .bss           0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
- .text          0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
- .data          0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
- .bss           0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+                0x00000000       0x10 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+ .data          0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+ .bss           0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+ .text          0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+ .data          0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+ .bss           0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
  .text.app_error_save_and_stop
-                0x00000000       0x64 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+                0x00000000       0x64 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
  .bss.m_error_data.7863
-                0x00000000       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
- .text          0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
- .data          0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
- .bss           0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+                0x00000000       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+ .text          0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+ .data          0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+ .bss           0x00000000        0x0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
  .text          0x00000000        0x0 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
  .data          0x00000000        0x0 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
  .bss           0x00000000        0x0 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
@@ -800,9 +800,9 @@ RAM              0x200032c8         0x0000ca38         xrw
 Linker script and memory map
 
 
-.text           0x00026000    0x1d644
+.text           0x00026000    0x1d654
  *(.isr_vector)
- .isr_vector    0x00026000      0x200 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+ .isr_vector    0x00026000      0x200 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
                 0x00026000                __isr_vector
  *(.text*)
  .text          0x00026200       0x6c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
@@ -2213,275 +2213,275 @@ Linker script and memory map
                 0x0003a368       0x30 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_relay_set
                 0x0003a398      0x1b0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
- .text.handle_config_gatt_proxy_set
-                0x0003a548       0x38 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_netkey_get
-                0x0003a580       0x68 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003a548       0x68 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_model_app_bind_unbind
-                0x0003a5e8      0x22c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003a5b0      0x22c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.status_error_sub_send
-                0x0003a814      0x184 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003a7dc      0x184 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_overwrite
-                0x0003a998      0x1ec examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003a960      0x1ec examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.send_publication_status
-                0x0003ab84      0x1a4 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003ab4c      0x1a4 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_key_refresh_phase_set
-                0x0003ad28       0xf0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003acf0       0xf0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_default_ttl_set
-                0x0003ae18       0x70 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003ade0       0x70 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_heartbeat_publication_set
-                0x0003ae88      0x170 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003ae50      0x170 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.mesh_event_cb
-                0x0003aff8       0x70 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003afc0       0x70 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_node_identity_set
-                0x0003b068       0x48 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003b030       0x48 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_node_identity_get
-                0x0003b0b0       0x44 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003b078       0x44 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+ .text.handle_config_gatt_proxy_set
+                0x0003b0bc       0x40 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_friend_set
-                0x0003b0f4       0x38 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003b0fc       0x40 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.status_error_pub_send
-                0x0003b12c       0xc8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003b13c       0xc8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_publication_get
-                0x0003b1f4       0xa0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003b204       0xa0 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_publication_set
-                0x0003b294      0x324 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003b2a4      0x324 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_key_refresh_phase_get
-                0x0003b5b8       0x70 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003b5c8       0x70 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_default_ttl_get
-                0x0003b628       0x48 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003b638       0x48 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_beacon_set
-                0x0003b670       0x80 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003b680       0x80 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_composition_data_get
-                0x0003b6f0       0x64 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003b700       0x64 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_appkey_delete
-                0x0003b754      0x124 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003b764      0x124 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_model_app_get
-                0x0003b878      0x214 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003b888      0x214 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_vendor_model_subscription_get
-                0x0003ba8c      0x188 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003ba9c      0x188 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_appkey_get
-                0x0003bc14      0x104 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003bc24      0x104 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_heartbeat_subscription_get
-                0x0003bd18       0xd8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
- .text.handle_config_gatt_proxy_get
-                0x0003bdf0       0x38 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003bd28       0xd8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_heartbeat_subscription_set
-                0x0003be28      0x110 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003be00      0x110 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+ .text.handle_config_gatt_proxy_get
+                0x0003bf10       0x38 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_friend_get
-                0x0003bf38       0x38 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003bf48       0x38 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_heartbeat_publication_get
-                0x0003bf70       0xcc examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003bf80       0xcc examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_beacon_get
-                0x0003c03c       0x40 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003c04c       0x40 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_sig_model_subscription_get
-                0x0003c07c      0x148 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003c08c      0x148 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_appkey_update
-                0x0003c1c4      0x11c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003c1d4      0x11c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_appkey_add
-                0x0003c2e0      0x12c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003c2f0      0x12c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_netkey_add_update
-                0x0003c40c       0xe8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003c41c       0xe8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_netkey_delete
-                0x0003c4f4      0x11c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003c504      0x11c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_network_transmit_get
-                0x0003c610       0x9c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003c620       0x9c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_relay_get
-                0x0003c6ac       0xd8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003c6bc       0xd8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_virtual_address_delete
-                0x0003c784      0x17c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003c794      0x17c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_delete_all
-                0x0003c900      0x1a8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003c910      0x1a8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_virtual_address_add
-                0x0003caa8      0x178 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003cab8      0x178 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_delete
-                0x0003cc20      0x170 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003cc30      0x170 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_virtual_address_overwrite
-                0x0003cd90      0x210 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003cda0      0x210 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_add
-                0x0003cfa0      0x168 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003cfb0      0x168 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.config_server_init
-                0x0003d108       0x64 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
-                0x0003d108                config_server_init
+                0x0003d118       0x64 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003d118                config_server_init
  .text.config_server_bind
-                0x0003d16c       0x10 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
-                0x0003d16c                config_server_bind
+                0x0003d17c       0x10 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003d17c                config_server_bind
  .text.packed_index_list_create
-                0x0003d17c       0x38 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/packed_index_list.c.obj
-                0x0003d17c                packed_index_list_create
+                0x0003d18c       0x38 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/packed_index_list.c.obj
+                0x0003d18c                packed_index_list_create
  .text.attention_timer_handler
-                0x0003d1b4       0x6c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x0003d1c4       0x6c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.handle_attention_get
-                0x0003d220       0x3c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x0003d230       0x3c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.handle_period_get
-                0x0003d25c       0x38 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x0003d26c       0x38 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.handle_attention_set
-                0x0003d294       0xd8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x0003d2a4       0xd8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.handle_period_set
-                0x0003d36c       0x50 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x0003d37c       0x50 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.send_fault_status
-                0x0003d3bc      0x37c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x0003d3cc      0x37c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.health_publish_timeout_handler
-                0x0003d738        0xc examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x0003d748        0xc examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.handle_fault_test
-                0x0003d744       0x7c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x0003d754       0x7c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.handle_fault_clear
-                0x0003d7c0       0x48 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x0003d7d0       0x48 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.handle_fault_get
-                0x0003d808       0x34 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x0003d818       0x34 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.health_server_init
-                0x0003d83c       0x74 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
-                0x0003d83c                health_server_init
+                0x0003d84c       0x74 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x0003d84c                health_server_init
  .text.SystemInit
-                0x0003d8b0      0x3cc examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
-                0x0003d8b0                SystemInit
- .text          0x0003dc7c       0x3c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
-                0x0003dc7c                Reset_Handler
-                0x0003dca4                NMI_Handler
-                0x0003dca6                HardFault_Handler
-                0x0003dca8                MemoryManagement_Handler
-                0x0003dcaa                BusFault_Handler
-                0x0003dcac                UsageFault_Handler
-                0x0003dcae                SVC_Handler
-                0x0003dcb0                DebugMon_Handler
-                0x0003dcb2                PendSV_Handler
-                0x0003dcb4                SysTick_Handler
-                0x0003dcb6                RADIO_IRQHandler
-                0x0003dcb6                PDM_IRQHandler
-                0x0003dcb6                TEMP_IRQHandler
-                0x0003dcb6                TIMER3_IRQHandler
-                0x0003dcb6                FPU_IRQHandler
-                0x0003dcb6                RTC0_IRQHandler
-                0x0003dcb6                PWM1_IRQHandler
-                0x0003dcb6                UARTE0_UART0_IRQHandler
-                0x0003dcb6                POWER_CLOCK_IRQHandler
-                0x0003dcb6                I2S_IRQHandler
-                0x0003dcb6                SWI4_EGU4_IRQHandler
-                0x0003dcb6                TIMER0_IRQHandler
-                0x0003dcb6                SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQHandler
-                0x0003dcb6                TIMER1_IRQHandler
-                0x0003dcb6                PWM2_IRQHandler
-                0x0003dcb6                ECB_IRQHandler
-                0x0003dcb6                SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler
-                0x0003dcb6                Default_Handler
-                0x0003dcb6                SAADC_IRQHandler
-                0x0003dcb6                CCM_AAR_IRQHandler
-                0x0003dcb6                WDT_IRQHandler
-                0x0003dcb6                TIMER4_IRQHandler
-                0x0003dcb6                SWI5_EGU5_IRQHandler
-                0x0003dcb6                RNG_IRQHandler
-                0x0003dcb6                RTC2_IRQHandler
-                0x0003dcb6                PWM0_IRQHandler
-                0x0003dcb6                SWI3_EGU3_IRQHandler
-                0x0003dcb6                RTC1_IRQHandler
-                0x0003dcb6                SWI1_EGU1_IRQHandler
-                0x0003dcb6                SPIM2_SPIS2_SPI2_IRQHandler
-                0x0003dcb6                NFCT_IRQHandler
-                0x0003dcb6                SWI0_EGU0_IRQHandler
-                0x0003dcb6                MWU_IRQHandler
-                0x0003dcb6                TIMER2_IRQHandler
-                0x0003dcb6                COMP_LPCOMP_IRQHandler
+                0x0003d8c0      0x3cc examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+                0x0003d8c0                SystemInit
+ .text          0x0003dc8c       0x3c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+                0x0003dc8c                Reset_Handler
+                0x0003dcb4                NMI_Handler
+                0x0003dcb6                HardFault_Handler
+                0x0003dcb8                MemoryManagement_Handler
+                0x0003dcba                BusFault_Handler
+                0x0003dcbc                UsageFault_Handler
+                0x0003dcbe                SVC_Handler
+                0x0003dcc0                DebugMon_Handler
+                0x0003dcc2                PendSV_Handler
+                0x0003dcc4                SysTick_Handler
+                0x0003dcc6                RADIO_IRQHandler
+                0x0003dcc6                PDM_IRQHandler
+                0x0003dcc6                TEMP_IRQHandler
+                0x0003dcc6                TIMER3_IRQHandler
+                0x0003dcc6                FPU_IRQHandler
+                0x0003dcc6                RTC0_IRQHandler
+                0x0003dcc6                PWM1_IRQHandler
+                0x0003dcc6                UARTE0_UART0_IRQHandler
+                0x0003dcc6                POWER_CLOCK_IRQHandler
+                0x0003dcc6                I2S_IRQHandler
+                0x0003dcc6                SWI4_EGU4_IRQHandler
+                0x0003dcc6                TIMER0_IRQHandler
+                0x0003dcc6                SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQHandler
+                0x0003dcc6                TIMER1_IRQHandler
+                0x0003dcc6                PWM2_IRQHandler
+                0x0003dcc6                ECB_IRQHandler
+                0x0003dcc6                SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler
+                0x0003dcc6                Default_Handler
+                0x0003dcc6                SAADC_IRQHandler
+                0x0003dcc6                CCM_AAR_IRQHandler
+                0x0003dcc6                WDT_IRQHandler
+                0x0003dcc6                TIMER4_IRQHandler
+                0x0003dcc6                SWI5_EGU5_IRQHandler
+                0x0003dcc6                RNG_IRQHandler
+                0x0003dcc6                RTC2_IRQHandler
+                0x0003dcc6                PWM0_IRQHandler
+                0x0003dcc6                SWI3_EGU3_IRQHandler
+                0x0003dcc6                RTC1_IRQHandler
+                0x0003dcc6                SWI1_EGU1_IRQHandler
+                0x0003dcc6                SPIM2_SPIS2_SPI2_IRQHandler
+                0x0003dcc6                NFCT_IRQHandler
+                0x0003dcc6                SWI0_EGU0_IRQHandler
+                0x0003dcc6                MWU_IRQHandler
+                0x0003dcc6                TIMER2_IRQHandler
+                0x0003dcc6                COMP_LPCOMP_IRQHandler
  .text.app_error_handler_bare
-                0x0003dcb8       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
-                0x0003dcb8                app_error_handler_bare
+                0x0003dcc8       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+                0x0003dcc8                app_error_handler_bare
  .text.app_error_handler
-                0x0003dcd8       0x1c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
-                0x0003dcd8                app_error_handler
+                0x0003dce8       0x1c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+                0x0003dce8                app_error_handler
  .text.SEGGER_RTT_Write
-                0x0003dcf4      0x1e4 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
-                0x0003dcf4                SEGGER_RTT_Write
+                0x0003dd04      0x1e4 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
+                0x0003dd04                SEGGER_RTT_Write
  .text._PrintUnsigned
-                0x0003ded8      0x194 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+                0x0003dee8      0x194 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
  .text.SEGGER_RTT_vprintf
-                0x0003e06c      0x464 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
-                0x0003e06c                SEGGER_RTT_vprintf
+                0x0003e07c      0x464 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+                0x0003e07c                SEGGER_RTT_vprintf
  .text.SEGGER_RTT_printf
-                0x0003e4d0       0x20 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
-                0x0003e4d0                SEGGER_RTT_printf
+                0x0003e4e0       0x20 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+                0x0003e4e0                SEGGER_RTT_printf
  .text.default_RNG
-                0x0003e4f0        0xc external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x0003e500        0xc external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.uECC_generate_random_int
-                0x0003e4fc      0x170 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
- .text.apply_z  0x0003e66c      0x1a8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x0003e50c      0x170 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+ .text.apply_z  0x0003e67c      0x1a8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.uECC_vli_modAdd
-                0x0003e814       0xc8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x0003e824       0xc8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.x_side_default
-                0x0003e8dc      0x254 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x0003e8ec      0x254 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.vli_mmod_fast_secp256r1
-                0x0003eb30      0x520 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x0003eb40      0x520 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.XYcZ_add
-                0x0003f050      0x6dc external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x0003f060      0x6dc external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.XYcZ_addC
-                0x0003f72c      0xa94 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x0003f73c      0xa94 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.uECC_vli_modInv.part.4
-                0x000401c0      0x6e8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x000401d0      0x6e8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.EccPoint_mult.constprop.5
-                0x000408a8      0x470 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x000408b8      0x470 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.double_jacobian_default
-                0x00040d18      0x7ec external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00040d28      0x7ec external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .text.uECC_secp256r1
-                0x00041504        0x8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
-                0x00041504                uECC_secp256r1
+                0x00041514        0x8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00041514                uECC_secp256r1
  .text.uECC_make_key
-                0x0004150c      0x23c external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
-                0x0004150c                uECC_make_key
+                0x0004151c      0x23c external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x0004151c                uECC_make_key
  .text.uECC_shared_secret
-                0x00041748      0x788 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
-                0x00041748                uECC_shared_secret
+                0x00041758      0x788 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00041758                uECC_shared_secret
  .text.uECC_valid_point
-                0x00041ed0      0x134 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
-                0x00041ed0                uECC_valid_point
+                0x00041ee0      0x134 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00041ee0                uECC_valid_point
  .text.uECC_valid_public_key
-                0x00042004       0xe8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
-                0x00042004                uECC_valid_public_key
- .text.exit     0x000420ec       0x28 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-exit.o)
-                0x000420ec                exit
+                0x00042014       0xe8 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x00042014                uECC_valid_public_key
+ .text.exit     0x000420fc       0x28 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-exit.o)
+                0x000420fc                exit
  .text.__libc_init_array
-                0x00042114       0x48 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-init.o)
-                0x00042114                __libc_init_array
- .text.malloc   0x0004215c       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-malloc.o)
-                0x0004215c                malloc
- .text.free     0x0004216c       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-malloc.o)
-                0x0004216c                free
- .text.memcmp   0x0004217c       0x1e c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memcmp.o)
-                0x0004217c                memcmp
- .text.memcpy   0x0004219a       0x16 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memcpy-stub.o)
-                0x0004219a                memcpy
- .text.memset   0x000421b0       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memset.o)
-                0x000421b0                memset
- .text._free_r  0x000421c0       0x9c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-nano-freer.o)
-                0x000421c0                _free_r
+                0x00042124       0x48 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-init.o)
+                0x00042124                __libc_init_array
+ .text.malloc   0x0004216c       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-malloc.o)
+                0x0004216c                malloc
+ .text.free     0x0004217c       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-malloc.o)
+                0x0004217c                free
+ .text.memcmp   0x0004218c       0x1e c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memcmp.o)
+                0x0004218c                memcmp
+ .text.memcpy   0x000421aa       0x16 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memcpy-stub.o)
+                0x000421aa                memcpy
+ .text.memset   0x000421c0       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memset.o)
+                0x000421c0                memset
+ .text._free_r  0x000421d0       0x9c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-nano-freer.o)
+                0x000421d0                _free_r
  .text._malloc_r
-                0x0004225c       0xbc c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-nano-mallocr.o)
-                0x0004225c                _malloc_r
- .text._sbrk_r  0x00042318       0x20 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-sbrkr.o)
-                0x00042318                _sbrk_r
- .text.strcpy   0x00042338       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strcpy.o)
-                0x00042338                strcpy
- .text          0x00042348       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strlen.o)
-                0x00042348                strlen
- .text.strrchr  0x00042358       0x26 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strrchr.o)
-                0x00042358                strrchr
+                0x0004226c       0xbc c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-nano-mallocr.o)
+                0x0004226c                _malloc_r
+ .text._sbrk_r  0x00042328       0x20 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-sbrkr.o)
+                0x00042328                _sbrk_r
+ .text.strcpy   0x00042348       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strcpy.o)
+                0x00042348                strcpy
+ .text          0x00042358       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strlen.o)
+                0x00042358                strlen
+ .text.strrchr  0x00042368       0x26 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strrchr.o)
+                0x00042368                strrchr
  .text.__malloc_lock
-                0x0004237e        0x2 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-mlock.o)
-                0x0004237e                __malloc_lock
+                0x0004238e        0x2 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-mlock.o)
+                0x0004238e                __malloc_lock
  .text.__malloc_unlock
-                0x00042380        0x2 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-mlock.o)
-                0x00042380                __malloc_unlock
- .text.strchr   0x00042382       0x1c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strchr.o)
-                0x00042382                strchr
- *fill*         0x0004239e        0x2 
- .text._sbrk    0x000423a0       0x1c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(sbrk.o)
-                0x000423a0                _sbrk
- .text._exit    0x000423bc        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(_exit.o)
-                0x000423bc                _exit
+                0x00042390        0x2 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-mlock.o)
+                0x00042390                __malloc_unlock
+ .text.strchr   0x00042392       0x1c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strchr.o)
+                0x00042392                strchr
+ *fill*         0x000423ae        0x2 
+ .text._sbrk    0x000423b0       0x1c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(sbrk.o)
+                0x000423b0                _sbrk
+ .text._exit    0x000423cc        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(_exit.o)
+                0x000423cc                _exit
  *(.init)
- .init          0x000423c0        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
-                0x000423c0                _init
- .init          0x000423c4        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
+ .init          0x000423d0        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
+                0x000423d0                _init
+ .init          0x000423d4        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
  *(.fini)
- .fini          0x000423cc        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
-                0x000423cc                _fini
- .fini          0x000423d0        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
+ .fini          0x000423dc        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
+                0x000423dc                _fini
+ .fini          0x000423e0        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
  *crtbegin.o(.ctors)
  *crtbegin?.o(.ctors)
  *(EXCLUDE_FILE(*crtend.o *crtend?.o) .ctors)
@@ -2494,295 +2494,295 @@ Linker script and memory map
  *(.dtors)
  *(.rodata*)
  .rodata.main.str1.4
-                0x000423d8       0x44 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
+                0x000423e8       0x44 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
  .rodata.models_init_cb.str1.4
-                0x0004241c       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
+                0x0004242c       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
  .rodata.provisioning_complete_cb.str1.4
-                0x0004243c       0x42 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
- *fill*         0x0004247e        0x2 
+                0x0004244c       0x42 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
+ *fill*         0x0004248e        0x2 
  .rodata.static_auth_data.12776
-                0x00042480       0x10 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
+                0x00042490       0x10 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/src/main.c.obj
  .rodata.mesh_softdevice_init.str1.4
-                0x00042490       0xa9 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/common/src/mesh_softdevice_init.c.obj
- *fill*         0x00042539        0x3 
- .rodata        0x0004253c        0xb examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/common/src/mesh_provisionee.c.obj
- *fill*         0x00042547        0x9 
+                0x000424a0       0xa9 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/common/src/mesh_softdevice_init.c.obj
+ *fill*         0x00042549        0x3 
+ .rodata        0x0004254c        0xb examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/common/src/mesh_provisionee.c.obj
+ *fill*         0x00042557        0x9 
  .rodata.delay_bytecode.8414
-                0x00042550        0x6 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/common/src/simple_hal.c.obj
- *fill*         0x00042556        0x2 
+                0x00042560        0x6 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/common/src/simple_hal.c.obj
+ *fill*         0x00042566        0x2 
  .rodata.app_error_fault_handler.str1.4
-                0x00042558       0xc5 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/common/src/app_error_weak.c.obj
+                0x00042568       0xc5 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/common/src/app_error_weak.c.obj
  .rodata.mesh_assertion_handler.str1.4
-                0x0004261d       0xc5 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/common/src/assertion_handler_weak.c.obj
+                0x0004262d       0xc5 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/common/src/assertion_handler_weak.c.obj
                                   0x1 (size before relaxing)
- *fill*         0x0004261d        0x3 
+ *fill*         0x0004262d        0x3 
  .rodata.sar_ctx_cancel.str1.4
-                0x00042620       0x23 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
- *fill*         0x00042643        0x1 
+                0x00042630       0x23 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
+ *fill*         0x00042653        0x1 
  .rodata.transport_packet_in.str1.4
-                0x00042644       0x24 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
+                0x00042654       0x24 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
  .rodata.upper_transport_access_packet_in.str1.4
-                0x00042668       0x3d examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
- *fill*         0x000426a5        0x3 
+                0x00042678       0x3d examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
+ *fill*         0x000426b5        0x3 
  .rodata.upper_transport_packet_in.str1.4
-                0x000426a8       0x2e examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
- *fill*         0x000426d6        0x2 
+                0x000426b8       0x2e examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
+ *fill*         0x000426e6        0x2 
  .rodata.upper_transport_tx.part.25.str1.4
-                0x000426d8       0x38 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
+                0x000426e8       0x38 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
  .rodata.m_procedure_steps
-                0x00042710       0x28 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/flash_manager_defrag.c.obj
+                0x00042720       0x28 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/flash_manager_defrag.c.obj
  .rodata.m_all_operations
-                0x00042738       0x10 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/mesh_flash.c.obj
+                0x00042748       0x10 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/mesh_flash.c.obj
  .rodata.types_lookup.9059
-                0x00042748        0x4 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh_utils.c.obj
+                0x00042758        0x4 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh_utils.c.obj
  .rodata.__func__.11531
-                0x0004274c       0x15 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh.c.obj
- *fill*         0x00042761        0x3 
+                0x0004275c       0x15 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh.c.obj
+ *fill*         0x00042771        0x3 
  .rodata.nrf_mesh_listen.str1.4
-                0x00042764       0x73 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh.c.obj
+                0x00042774       0x73 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh.c.obj
  .rodata.nrf_mesh_packet_send.str1.4
-                0x000427d7       0x73 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh.c.obj
+                0x000427e7       0x73 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh.c.obj
                                   0x4 (size before relaxing)
- *fill*         0x000427d7        0x1 
+ *fill*         0x000427e7        0x1 
  .rodata.CSWTCH.8
-                0x000427d8       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/hal.c.obj
- .rodata        0x000427f8       0x18 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/enc.c.obj
+                0x000427e8       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/hal.c.obj
+ .rodata        0x00042808       0x18 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/enc.c.obj
  .rodata.network_packet_in.str1.4
-                0x00042810       0x49 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/network.c.obj
- *fill*         0x00042859        0x3 
+                0x00042820       0x49 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/network.c.obj
+ *fill*         0x00042869        0x3 
  .rodata.net_packet_decrypt.str1.4
-                0x0004285c       0x33 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/net_packet.c.obj
+                0x0004286c       0x33 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/net_packet.c.obj
                                  0x3c (size before relaxing)
- *fill*         0x0004288f        0x1 
- .rodata        0x00042890        0x7 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh_keygen.c.obj
- *fill*         0x00042897        0x1 
+ *fill*         0x0004289f        0x1 
+ .rodata        0x000428a0        0x7 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh_keygen.c.obj
+ *fill*         0x000428a7        0x1 
  .rodata.log_callback_rtt.str1.4
-                0x00042898       0x15 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/log.c.obj
- *fill*         0x000428ad        0x3 
+                0x000428a8       0x15 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/log.c.obj
+ *fill*         0x000428bd        0x3 
  .rodata.str1.4
-                0x000428b0       0x11 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/log.c.obj
- *fill*         0x000428c1        0x3 
+                0x000428c0       0x11 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/log.c.obj
+ *fill*         0x000428d1        0x3 
  .rodata.INVALID_HEADER
-                0x000428c4        0x4 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/flash_manager.c.obj
-                0x000428c4                INVALID_HEADER
+                0x000428d4        0x4 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/flash_manager.c.obj
+                0x000428d4                INVALID_HEADER
  .rodata.PADDING_HEADER
-                0x000428c8        0x4 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/flash_manager.c.obj
-                0x000428c8                PADDING_HEADER
+                0x000428d8        0x4 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/flash_manager.c.obj
+                0x000428d8                PADDING_HEADER
  .rodata.SEAL_HEADER
-                0x000428cc        0x4 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/flash_manager.c.obj
-                0x000428cc                SEAL_HEADER
+                0x000428dc        0x4 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/flash_manager.c.obj
+                0x000428dc                SEAL_HEADER
  .rodata.beacon_packet_in.str1.4
-                0x000428d0       0x55 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/beacon.c.obj
+                0x000428e0       0x55 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/beacon.c.obj
                                  0x60 (size before relaxing)
- *fill*         0x00042925        0x3 
+ *fill*         0x00042935        0x3 
  .rodata.cp_handler
-                0x00042928        0x8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/heartbeat.c.obj
+                0x00042938        0x8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/heartbeat.c.obj
  .rodata.beacon_tx.str1.4
-                0x00042930       0x37 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/net_beacon.c.obj
- *fill*         0x00042967        0x1 
+                0x00042940       0x37 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/net_beacon.c.obj
+ *fill*         0x00042977        0x1 
  .rodata.net_beacon_init.str1.4
-                0x00042968        0x5 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/net_beacon.c.obj
- *fill*         0x0004296d        0x3 
+                0x00042978        0x5 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/net_beacon.c.obj
+ *fill*         0x0004297d        0x3 
  .rodata.m_interface
-                0x00042970        0xc examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/core_tx_adv.c.obj
+                0x00042980        0xc examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/core/src/core_tx_adv.c.obj
  .rodata.radio_mode_to_us_per_byte.9452
-                0x0004297c        0x6 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/bearer/src/broadcast.c.obj
- *fill*         0x00042982        0x2 
+                0x0004298c        0x6 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/bearer/src/broadcast.c.obj
+ *fill*         0x00042992        0x2 
  .rodata.channel_rf_offsets.8693
-                0x00042984       0x28 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/bearer/src/radio_config.c.obj
+                0x00042994       0x28 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/bearer/src/radio_config.c.obj
  .rodata.m_prov_callbacks
-                0x000429ac       0x10 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x000429bc       0x10 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
  .rodata.prov_provisionee_cb_ack_received.str1.4
-                0x000429bc       0x53 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
- *fill*         0x00042a0f        0x1 
+                0x000429cc       0x53 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
+ *fill*         0x00042a1f        0x1 
  .rodata.multiply_de_bruijn_bit_position.9313
-                0x00042a10       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x00042a20       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
  .rodata.pdu_sizes.11238
-                0x00042a30        0xa examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
- *fill*         0x00042a3a        0x2 
+                0x00042a40        0xa examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
+ *fill*         0x00042a4a        0x2 
  .rodata.alphanumeric.11343
-                0x00042a3c       0x25 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
- *fill*         0x00042a61        0x3 
+                0x00042a4c       0x25 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+ *fill*         0x00042a71        0x3 
  .rodata.numeric_max.11337
-                0x00042a64       0x24 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+                0x00042a74       0x24 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
  .rodata.prov_utils_authentication_values_derive.str1.4
-                0x00042a88        0x5 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
- *fill*         0x00042a8d        0x3 
+                0x00042a98        0x5 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+ *fill*         0x00042a9d        0x3 
  .rodata.prov_utils_derive_keys.str1.4
-                0x00042a90       0x15 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
- *fill*         0x00042aa5        0x3 
+                0x00042aa0       0x15 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+ *fill*         0x00042ab5        0x3 
  .rodata.crctable.10972
-                0x00042aa8      0x100 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x00042ab8      0x100 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .rodata.interface.11202
-                0x00042ba8       0x14 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x00042bb8       0x14 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .rodata.prov_bearer_adv_listen.str1.4
-                0x00042bbc       0x50 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x00042bcc       0x50 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .rodata.prov_bearer_adv_packet_in.str1.4
-                0x00042c0c      0x283 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
- *fill*         0x00042e8f        0x1 
+                0x00042c1c      0x283 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+ *fill*         0x00042e9f        0x1 
  .rodata.tx_retry_cb.str1.4
-                0x00042e90       0x14 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
- .rodata        0x00042ea4       0x30 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+                0x00042ea0       0x14 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+ .rodata        0x00042eb4       0x30 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
  .rodata.local_link_open.isra.16.str1.4
-                0x00042ed4       0x27 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
- *fill*         0x00042efb        0x1 
+                0x00042ee4       0x27 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+ *fill*         0x00042f0b        0x1 
  .rodata.m_opcode_handlers
-                0x00042efc       0x48 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+                0x00042f0c       0x48 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
  .rodata.m_pb_remote_server_event_handler_callbacks
-                0x00042f44       0x3c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+                0x00042f54       0x3c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
  .rodata.pb_remote_server_event_link_close_cb.str1.4
-                0x00042f80       0x1d examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
- *fill*         0x00042f9d        0x3 
+                0x00042f90       0x1d examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+ *fill*         0x00042fad        0x3 
  .rodata.pb_remote_server_event_link_established_cb.str1.4
-                0x00042fa0       0x2f examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
- *fill*         0x00042fcf        0x1 
+                0x00042fb0       0x2f examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+ *fill*         0x00042fdf        0x1 
  .rodata.pb_remote_server_event_link_status_cb.str1.4
-                0x00042fd0       0x90 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+                0x00042fe0       0x90 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
  .rodata.pb_remote_server_event_local_ack_cb.str1.4
-                0x00043060       0x16 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
- *fill*         0x00043076        0x2 
+                0x00043070       0x16 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+ *fill*         0x00043086        0x2 
  .rodata.pb_remote_server_event_local_packet_cb.str1.4
-                0x00043078       0x2b examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
- *fill*         0x000430a3        0x1 
+                0x00043088       0x2b examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+ *fill*         0x000430b3        0x1 
  .rodata.pb_remote_server_event_packet_transfer_cb.str1.4
-                0x000430a4       0x2d examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
- *fill*         0x000430d1        0x3 
+                0x000430b4       0x2d examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+ *fill*         0x000430e1        0x3 
  .rodata.pb_remote_server_event_scan_report_status_cb.str1.4
-                0x000430d4       0x1e examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
- *fill*         0x000430f2        0x2 
- .rodata.pb_remote_server_event_scan_start_filter_cb.str1.4
-                0x000430f4        0xe examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
-                                 0x18 (size before relaxing)
+                0x000430e4       0x1e examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
  *fill*         0x00043102        0x2 
+ .rodata.pb_remote_server_event_scan_start_filter_cb.str1.4
+                0x00043104        0xe examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+                                 0x18 (size before relaxing)
+ *fill*         0x00043112        0x2 
  .rodata.pb_remote_server_event_transfer_status_cb.str1.4
-                0x00043104       0x6d examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
- *fill*         0x00043171        0x3 
+                0x00043114       0x6d examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+ *fill*         0x00043181        0x3 
  .rodata.pb_remote_server_event_unprov_uuid_cb.str1.4
-                0x00043174       0x19 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
- *fill*         0x0004318d        0x3 
+                0x00043184       0x19 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+ *fill*         0x0004319d        0x3 
  .rodata.pb_remote_server_process.part.4.str1.4
-                0x00043190       0x2a examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
- *fill*         0x000431ba        0x2 
+                0x000431a0       0x2a examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+ *fill*         0x000431ca        0x2 
  .rodata.prov_callbacks.12117
-                0x000431bc       0x10 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+                0x000431cc       0x10 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
  .rodata.server_reliable_status_cb.str1.4
-                0x000431cc       0x64 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
+                0x000431dc       0x64 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/pb_remote/src/pb_remote_server.c.obj
  .rodata.access_model_publish.str1.4
-                0x00043230       0x1c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00043240       0x1c examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
                                  0x24 (size before relaxing)
  .rodata.mesh_evt_cb.str1.4
-                0x0004324c       0x2f examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
- *fill*         0x0004327b        0x1 
+                0x0004325c       0x2f examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+ *fill*         0x0004328b        0x1 
  .rodata.multiply_de_bruijn_bit_position.9260
-                0x0004327c       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x0004328c       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
  .rodata.m_flash_groups
-                0x0004329c       0xa8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000432ac       0xa8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .rodata.multiply_de_bruijn_bit_position.9366
-                0x00043344       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
- .rodata        0x00043364        0x8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
- .rodata.CSWTCH.122
-                0x0004336c       0x10 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00043354       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+ .rodata        0x00043374        0x8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+ .rodata.CSWTCH.121
+                0x0004337c       0x10 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .rodata.opcode_handlers
-                0x0004337c      0x170 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0004338c      0x170 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .rodata.m_opcode_handlers
-                0x000434ec       0x58 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x000434fc       0x58 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .rodata.multiply_de_bruijn_bit_position.9304
-                0x00043544       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x00043554       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .rodata.SEGGER_RTT_ReadNoLock.str1.4
-                0x00043564       0x18 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
+                0x00043574       0x18 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
                                  0x17 (size before relaxing)
  .rodata._aV2C.5497
-                0x0004357c       0x10 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+                0x0004358c       0x10 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
  .rodata.curve_secp256r1
-                0x0004358c       0xb0 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
+                0x0004359c       0xb0 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
  .rodata._global_impure_ptr
-                0x0004363c        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-impure.o)
-                0x0004363c                _global_impure_ptr
+                0x0004364c        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-impure.o)
+                0x0004364c                _global_impure_ptr
  *(.eh_frame*)
- .eh_frame      0x00043640        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
- .eh_frame      0x00043640        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtend.o
+ .eh_frame      0x00043650        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
+ .eh_frame      0x00043650        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtend.o
 
-.glue_7         0x00043644        0x0
- .glue_7        0x00043644        0x0 linker stubs
+.glue_7         0x00043654        0x0
+ .glue_7        0x00043654        0x0 linker stubs
 
-.glue_7t        0x00043644        0x0
- .glue_7t       0x00043644        0x0 linker stubs
+.glue_7t        0x00043654        0x0
+ .glue_7t       0x00043654        0x0 linker stubs
 
-.vfp11_veneer   0x00043644        0x0
- .vfp11_veneer  0x00043644        0x0 linker stubs
+.vfp11_veneer   0x00043654        0x0
+ .vfp11_veneer  0x00043654        0x0 linker stubs
 
-.v4_bx          0x00043644        0x0
- .v4_bx         0x00043644        0x0 linker stubs
+.v4_bx          0x00043654        0x0
+ .v4_bx         0x00043654        0x0 linker stubs
 
-.iplt           0x00043644        0x0
- .iplt          0x00043644        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
+.iplt           0x00043654        0x0
+ .iplt          0x00043654        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
 
-.pwr_mgmt_data  0x00043644        0x0
+.pwr_mgmt_data  0x00043654        0x0
                 [!provide]                PROVIDE (__start_pwr_mgmt_data, .)
  *(SORT(.pwr_mgmt_data*))
                 [!provide]                PROVIDE (__stop_pwr_mgmt_data, .)
 
 .log_const_data
-                0x00043644        0x0
+                0x00043654        0x0
                 [!provide]                PROVIDE (__start_log_const_data, .)
  *(.log_const_data)
                 [!provide]                PROVIDE (__stop_log_const_data, .)
 
-.cli_command    0x00043644        0x0
+.cli_command    0x00043654        0x0
                 [!provide]                PROVIDE (__start_cli_command, .)
  *(.cli_command)
                 [!provide]                PROVIDE (__stop_cli_command, .)
 
 .sdh_stack_observers
-                0x00043644        0x0
+                0x00043654        0x0
                 [!provide]                PROVIDE (__start_sdh_stack_observers, .)
  *(SORT(.sdh_stack_observers*))
                 [!provide]                PROVIDE (__stop_sdh_stack_observers, .)
 
 .sdh_req_observers
-                0x00043644        0x0
+                0x00043654        0x0
                 [!provide]                PROVIDE (__start_sdh_req_observers, .)
  *(SORT(.sdh_req_observers*))
                 [!provide]                PROVIDE (__stop_sdh_req_observers, .)
 
 .sdh_state_observers
-                0x00043644        0x0
+                0x00043654        0x0
                 [!provide]                PROVIDE (__start_sdh_state_observers, .)
  *(SORT(.sdh_state_observers*))
                 [!provide]                PROVIDE (__stop_sdh_state_observers, .)
 
 .sdh_ant_observers
-                0x00043644        0x0
+                0x00043654        0x0
                 [!provide]                PROVIDE (__start_sdh_ant_observers, .)
  *(SORT(.sdh_ant_observers*))
                 [!provide]                PROVIDE (__stop_sdh_ant_observers, .)
 
 .sdh_ble_observers
-                0x00043644        0x0
+                0x00043654        0x0
                 [!provide]                PROVIDE (__start_sdh_ble_observers, .)
  *(SORT(.sdh_ble_observers*))
                 [!provide]                PROVIDE (__stop_sdh_ble_observers, .)
 
 .sdh_soc_observers
-                0x00043644        0x0
+                0x00043654        0x0
                 [!provide]                PROVIDE (__start_sdh_soc_observers, .)
  *(SORT(.sdh_soc_observers*))
                 [!provide]                PROVIDE (__stop_sdh_soc_observers, .)
 
 .ARM.extab
  *(.ARM.extab* .gnu.linkonce.armextab.*)
-                0x00043644                __exidx_start = .
+                0x00043654                __exidx_start = .
 
-.ARM.exidx      0x00043644        0x8
+.ARM.exidx      0x00043654        0x8
  *(.ARM.exidx* .gnu.linkonce.armexidx.*)
- .ARM.exidx     0x00043644        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard/crt0.o
-                0x0004364c                __exidx_end = .
-                0x0004364c                __etext = .
+ .ARM.exidx     0x00043654        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard/crt0.o
+                0x0004365c                __exidx_end = .
+                0x0004365c                __etext = .
 
-.rel.dyn        0x0004364c        0x0
- .rel.iplt      0x0004364c        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
+.rel.dyn        0x0004365c        0x0
+ .rel.iplt      0x0004365c        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
 
-.data           0x200032c8      0x13c load address 0x0004364c
+.data           0x200032c8      0x13c load address 0x0004365c
                 0x200032c8                __data_start__ = .
  *(vtable)
  *(.data*)
@@ -2832,7 +2832,7 @@ Linker script and memory map
  .data.m_mesh_evt_handler
                 0x20003384        0x8 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .data.SystemCoreClock
-                0x2000338c        0x4 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+                0x2000338c        0x4 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
                 0x2000338c                SystemCoreClock
  .data.g_rng_function
                 0x20003390        0x4 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)
@@ -2944,10 +2944,10 @@ LOAD examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.
 LOAD examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
 LOAD examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/packed_index_list.c.obj
 LOAD examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
-LOAD examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
-LOAD examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
-LOAD examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
-LOAD examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+LOAD examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+LOAD examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+LOAD examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+LOAD examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
 LOAD external/rtt/librtt_nrf52832_xxAA.a
 LOAD external/micro-ecc/libuECC_nrf52832_xxAA.a
 START GROUP
@@ -2966,7 +2966,7 @@ LOAD c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eab
 LOAD c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a
 END GROUP
 
-.igot.plt       0x20003404        0x0 load address 0x00043788
+.igot.plt       0x20003404        0x0 load address 0x00043798
  .igot.plt      0x20003404        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
                 0x20003404                . = ALIGN (0x4)
 
@@ -2992,7 +2992,7 @@ END GROUP
  *(.cli_sorted_cmd_ptrs)
                 [!provide]                PROVIDE (__stop_cli_sorted_cmd_ptrs, .)
 
-.bss            0x20003408     0x3308 load address 0x00043790
+.bss            0x20003408     0x3308 load address 0x000437a0
                 0x20003408                . = ALIGN (0x4)
                 0x20003408                __bss_start__ = .
  *(.bss*)
@@ -3401,19 +3401,19 @@ END GROUP
                 0x20006710                __end__ = .
                 0x20006710                PROVIDE (end, .)
  *(.heap*)
- .heap          0x20006710     0x2000 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+ .heap          0x20006710     0x2000 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
                 0x20008710                __HeapLimit = .
 
 .stack_dummy    0x20006710     0x2000
  *(.stack*)
- .stack         0x20006710     0x2000 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+ .stack         0x20006710     0x2000 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
                 0x2000fd00                __StackTop = (ORIGIN (RAM) + LENGTH (RAM))
                 0x2000dd00                __StackLimit = (__StackTop - SIZEOF (.stack_dummy))
                 0x2000fd00                PROVIDE (__stack, __StackTop)
                 0x00000001                ASSERT ((__StackLimit >= __HeapLimit), region RAM overflowed with stack)
                 0x00000140                DataInitFlashUsed = (__bss_start__ - __data_start__)
-                0x0001d64c                CodeFlashUsed = (__etext - ORIGIN (FLASH))
-                0x0001d78c                TotalFlashUsed = (CodeFlashUsed + DataInitFlashUsed)
+                0x0001d65c                CodeFlashUsed = (__etext - ORIGIN (FLASH))
+                0x0001d79c                TotalFlashUsed = (CodeFlashUsed + DataInitFlashUsed)
                 0x00000001                ASSERT ((TotalFlashUsed <= LENGTH (FLASH)), region FLASH overflowed with .data and user data)
 OUTPUT(examples\pb_remote\server\pb_remote_server_nrf52832_xxAA_s132_6.0.0.elf elf32-littlearm)
 
@@ -3568,13 +3568,13 @@ OUTPUT(examples\pb_remote\server\pb_remote_server_nrf52832_xxAA_s132_6.0.0.elf e
  .ARM.attributes
                 0x0000100c       0x39 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .ARM.attributes
-                0x00001045       0x39 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+                0x00001045       0x39 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
  .ARM.attributes
-                0x0000107e       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+                0x0000107e       0x20 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
  .ARM.attributes
-                0x0000109e       0x39 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+                0x0000109e       0x39 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
  .ARM.attributes
-                0x000010d7       0x39 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+                0x000010d7       0x39 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
  .ARM.attributes
                 0x00001110       0x39 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
  .ARM.attributes
@@ -3695,9 +3695,9 @@ OUTPUT(examples\pb_remote\server\pb_remote_server_nrf52832_xxAA_s132_6.0.0.elf e
  .comment       0x0000007f       0x80 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .comment       0x0000007f       0x80 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/config/src/packed_index_list.c.obj
  .comment       0x0000007f       0x80 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
- .comment       0x0000007f       0x80 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
- .comment       0x0000007f       0x80 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
- .comment       0x0000007f       0x80 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+ .comment       0x0000007f       0x80 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+ .comment       0x0000007f       0x80 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+ .comment       0x0000007f       0x80 examples/pb_remote/server/CMakeFiles/pb_remote_server_nrf52832_xxAA_s132_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
  .comment       0x0000007f       0x80 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
  .comment       0x0000007f       0x80 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
  .comment       0x0000007f       0x80 external/micro-ecc/libuECC_nrf52832_xxAA.a(uECC.c.obj)

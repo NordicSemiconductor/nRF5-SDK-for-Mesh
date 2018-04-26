@@ -696,7 +696,8 @@ void mesh_gatt_on_ble_evt(const ble_evt_t * p_ble_evt, void * p_context)
 
             /* Those errors can be expected when sending trying to send Service Changed indication
              * if the CCCD is not set to indicate. Thus set the returning error code to success. */
-            NRF_MESH_ASSERT((err_code == BLE_ERROR_INVALID_CONN_HANDLE) ||
+            NRF_MESH_ASSERT((err_code == NRF_SUCCESS) ||
+                            (err_code == BLE_ERROR_INVALID_CONN_HANDLE) ||
                             (err_code == NRF_ERROR_INVALID_STATE) ||
                             (err_code == NRF_ERROR_BUSY));
             NRF_MESH_ERROR_CHECK(sd_ble_gatts_sys_attr_set(p_ble_evt->evt.gatts_evt.conn_handle, NULL, 0, 0));

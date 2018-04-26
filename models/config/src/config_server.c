@@ -904,7 +904,9 @@ static void handle_config_friend_get(access_model_handle_t handle, const access_
 
 static void handle_config_friend_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
 {
-    if (p_message->length != sizeof(config_msg_friend_set_t))
+    const config_msg_friend_set_t * p_pdu = (const config_msg_friend_set_t *) p_message->p_data;
+    if (p_message->length != sizeof(config_msg_friend_set_t) ||
+        p_pdu->friend_state >= CONFIG_FRIEND_STATE_UNSUPPORTED)
     {
         return;
     }
@@ -913,36 +915,35 @@ static void handle_config_friend_set(access_model_handle_t handle, const access_
     send_reply(handle, p_message, CONFIG_OPCODE_FRIEND_STATUS, (const uint8_t *) &status_message, sizeof(status_message), 0);
 }
 
-static void proxy_status_reply(access_model_handle_t handle, const access_message_rx_t * p_message)
-{
-#if GATT_PROXY
-    const config_msg_proxy_status_t status_message = {
-        .proxy_state = (proxy_is_enabled() ? CONFIG_GATT_PROXY_STATE_RUNNING_ENABLED
-                                           : CONFIG_GATT_PROXY_STATE_RUNNING_DISABLED)};
-#else
-    const config_msg_proxy_status_t status_message = { .proxy_state = CONFIG_GATT_PROXY_STATE_UNSUPPORTED };
-#endif
-    send_reply(handle, p_message, CONFIG_OPCODE_GATT_PROXY_STATUS, (const uint8_t *) &status_message, sizeof(status_message), 0);
-}
-
 static void handle_config_gatt_proxy_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
 {
     if (p_message->length != 0)
     {
         return;
     }
-    proxy_status_reply(handle, p_message);
+
+#if GATT_PROXY
+    const config_msg_proxy_status_t status_message = {
+        .proxy_state = (proxy_is_enabled() ? CONFIG_GATT_PROXY_STATE_RUNNING_ENABLED
+                        : CONFIG_GATT_PROXY_STATE_RUNNING_DISABLED)};
+#else
+    const config_msg_proxy_status_t status_message = { .proxy_state = CONFIG_GATT_PROXY_STATE_UNSUPPORTED };
+#endif
+
+    send_reply(handle, p_message, CONFIG_OPCODE_GATT_PROXY_STATUS, (const uint8_t *) &status_message, sizeof(status_message), 0);
 }
 
 static void handle_config_gatt_proxy_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
 {
-    if (p_message->length != sizeof(config_msg_proxy_set_t))
+    const config_msg_proxy_set_t * p_pdu = (const config_msg_proxy_set_t *) p_message->p_data;
+
+    if (p_message->length != sizeof(config_msg_proxy_set_t) ||
+        p_pdu->proxy_state >= CONFIG_GATT_PROXY_STATE_UNSUPPORTED)
     {
         return;
     }
 
 #if GATT_PROXY
-    const config_msg_proxy_set_t * p_pdu = (const config_msg_proxy_set_t *) p_message->p_data;
     if (p_pdu->proxy_state == CONFIG_GATT_PROXY_STATE_RUNNING_ENABLED)
     {
         proxy_enable();
@@ -951,9 +952,15 @@ static void handle_config_gatt_proxy_set(access_model_handle_t handle, const acc
     {
         proxy_disable();
     }
+
+    const config_msg_proxy_status_t status_message = {
+        .proxy_state = (proxy_is_enabled() ? CONFIG_GATT_PROXY_STATE_RUNNING_ENABLED
+                        : CONFIG_GATT_PROXY_STATE_RUNNING_DISABLED)};
+#else
+    const config_msg_proxy_status_t status_message = { .proxy_state = CONFIG_GATT_PROXY_STATE_UNSUPPORTED };
 #endif
 
-    proxy_status_reply(handle, p_message);
+    send_reply(handle, p_message, CONFIG_OPCODE_GATT_PROXY_STATUS, (const uint8_t *) &status_message, sizeof(status_message), 0);
 }
 
 static void handle_config_key_refresh_phase_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)

@@ -638,23 +638,23 @@ Discarded input sections
  .bss           0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.calculate_3GPP_CRC
                 0x00000000       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
- .text          0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
- .data          0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
- .bss           0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
+ .text          0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
+ .data          0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
+ .bss           0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
  .text.SystemCoreClockUpdate
-                0x00000000       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
- .data          0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
- .bss           0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
- .text          0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
- .data          0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
- .bss           0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+                0x00000000       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
+ .data          0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
+ .bss           0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
+ .text          0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+ .data          0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+ .bss           0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
  .text.app_error_save_and_stop
-                0x00000000       0x64 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+                0x00000000       0x64 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
  .bss.m_error_data.8119
-                0x00000000       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
- .text          0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
- .data          0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
- .bss           0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+                0x00000000       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+ .text          0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+ .data          0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+ .bss           0x00000000        0x0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
  .text          0x00000000        0x0 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT.c.obj)
  .data          0x00000000        0x0 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT.c.obj)
  .bss           0x00000000        0x0 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT.c.obj)
@@ -809,9 +809,9 @@ RAM              0x200032c8         0x0003ca38         xrw
 Linker script and memory map
 
 
-.text           0x00026000    0x1bfb8
+.text           0x00026000    0x1bfc8
  *(.isr_vector)
- .isr_vector    0x00026000      0x200 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
+ .isr_vector    0x00026000      0x200 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
                 0x00026000                __isr_vector
  *(.text*)
  .text          0x00026200       0x6c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
@@ -1752,737 +1752,737 @@ Linker script and memory map
                 0x00031e28       0x30 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_relay_set
                 0x00031e58      0x1b0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
- .text.handle_config_gatt_proxy_set
-                0x00032008       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_netkey_get
-                0x00032040       0x68 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00032008       0x68 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_model_app_bind_unbind
-                0x000320a8      0x22c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00032070      0x22c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.status_error_sub_send
-                0x000322d4      0x184 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003229c      0x184 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_overwrite
-                0x00032458      0x1e8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00032420      0x1e8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.send_publication_status
-                0x00032640      0x1a4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00032608      0x1a4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_key_refresh_phase_set
-                0x000327e4       0xf0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x000327ac       0xf0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_default_ttl_set
-                0x000328d4       0x70 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003289c       0x70 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_heartbeat_publication_set
-                0x00032944      0x170 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003290c      0x170 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.mesh_event_cb
-                0x00032ab4       0x70 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00032a7c       0x70 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_node_identity_set
-                0x00032b24       0x48 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00032aec       0x48 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_node_identity_get
-                0x00032b6c       0x44 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00032b34       0x44 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+ .text.handle_config_gatt_proxy_set
+                0x00032b78       0x40 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_friend_set
-                0x00032bb0       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00032bb8       0x40 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.status_error_pub_send
-                0x00032be8       0xc8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00032bf8       0xc8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_publication_get
-                0x00032cb0       0xa0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00032cc0       0xa0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_publication_set
-                0x00032d50      0x324 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00032d60      0x324 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_key_refresh_phase_get
-                0x00033074       0x70 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00033084       0x70 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_default_ttl_get
-                0x000330e4       0x48 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x000330f4       0x48 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_beacon_set
-                0x0003312c       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x0003313c       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_composition_data_get
-                0x000331ac       0x64 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x000331bc       0x64 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_appkey_delete
-                0x00033210      0x124 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00033220      0x124 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_model_app_get
-                0x00033334      0x214 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00033344      0x214 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_vendor_model_subscription_get
-                0x00033548      0x184 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00033558      0x184 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_appkey_get
-                0x000336cc      0x104 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x000336dc      0x104 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_heartbeat_subscription_get
-                0x000337d0       0xd8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
- .text.handle_config_gatt_proxy_get
-                0x000338a8       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x000337e0       0xd8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_heartbeat_subscription_set
-                0x000338e0      0x110 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x000338b8      0x110 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+ .text.handle_config_gatt_proxy_get
+                0x000339c8       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_friend_get
-                0x000339f0       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00033a00       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_heartbeat_publication_get
-                0x00033a28       0xcc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00033a38       0xcc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_beacon_get
-                0x00033af4       0x40 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00033b04       0x40 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_sig_model_subscription_get
-                0x00033b34      0x14c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00033b44      0x14c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_appkey_update
-                0x00033c80      0x11c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00033c90      0x11c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_appkey_add
-                0x00033d9c      0x12c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00033dac      0x12c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_netkey_add_update
-                0x00033ec8       0xe8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00033ed8       0xe8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_netkey_delete
-                0x00033fb0      0x11c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00033fc0      0x11c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_network_transmit_get
-                0x000340cc       0x9c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x000340dc       0x9c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_relay_get
-                0x00034168       0xd8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00034178       0xd8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_virtual_address_delete
-                0x00034240      0x17c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00034250      0x17c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_delete_all
-                0x000343bc      0x1a4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x000343cc      0x1a4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_virtual_address_add
-                0x00034560      0x178 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00034570      0x178 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_delete
-                0x000346d8      0x170 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x000346e8      0x170 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_virtual_address_overwrite
-                0x00034848      0x20c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00034858      0x20c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.handle_config_model_subscription_add
-                0x00034a54      0x168 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00034a64      0x168 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .text.config_server_init
-                0x00034bbc       0x64 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
-                0x00034bbc                config_server_init
+                0x00034bcc       0x64 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00034bcc                config_server_init
  .text.config_server_bind
-                0x00034c20       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
-                0x00034c20                config_server_bind
+                0x00034c30       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x00034c30                config_server_bind
  .text.packed_index_list_create
-                0x00034c30       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/packed_index_list.c.obj
-                0x00034c30                packed_index_list_create
+                0x00034c40       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/packed_index_list.c.obj
+                0x00034c40                packed_index_list_create
  .text.attention_timer_handler
-                0x00034c68       0x6c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x00034c78       0x6c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.handle_attention_get
-                0x00034cd4       0x3c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x00034ce4       0x3c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.handle_period_get
-                0x00034d10       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x00034d20       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.handle_attention_set
-                0x00034d48       0xd8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x00034d58       0xd8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.handle_period_set
-                0x00034e20       0x50 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x00034e30       0x50 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.send_fault_status
-                0x00034e70      0x37c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x00034e80      0x37c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.health_publish_timeout_handler
-                0x000351ec        0xc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x000351fc        0xc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.handle_fault_test
-                0x000351f8       0x7c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x00035208       0x7c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.handle_fault_clear
-                0x00035274       0x48 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x00035284       0x48 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.handle_fault_get
-                0x000352bc       0x34 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x000352cc       0x34 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .text.health_server_init
-                0x000352f0       0x74 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
-                0x000352f0                health_server_init
+                0x00035300       0x74 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x00035300                health_server_init
  .text.schedule_publication_timer
-                0x00035364      0x2c4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_publish.c.obj
+                0x00035374      0x2c4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_publish.c.obj
  .text.publish_timer_tick
-                0x00035628      0x134 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_publish.c.obj
+                0x00035638      0x134 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_publish.c.obj
  .text.access_publish_init
-                0x0003575c       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_publish.c.obj
-                0x0003575c                access_publish_init
+                0x0003576c       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_publish.c.obj
+                0x0003576c                access_publish_init
  .text.access_publish_period_set
-                0x00035794      0x12c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_publish.c.obj
-                0x00035794                access_publish_period_set
+                0x000357a4      0x12c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_publish.c.obj
+                0x000357a4                access_publish_period_set
  .text.access_publish_period_get
-                0x000358c0       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_publish.c.obj
-                0x000358c0                access_publish_period_get
+                0x000358d0       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_publish.c.obj
+                0x000358d0                access_publish_period_get
  .text.flash_manager_mem_available
-                0x000358ec        0x4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x000358fc        0x4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
  .text.flash_invalidate_complete
-                0x000358f0        0x8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00035900        0x8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
  .text.access_flash_config_clear
-                0x000358f8       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00035908       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
  .text.access_flash_config_store
-                0x00035920      0x11c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00035920                access_flash_config_store
+                0x00035930      0x11c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00035930                access_flash_config_store
  .text.handle_incoming
-                0x00035a3c      0x194 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00035a4c      0x194 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
  .text.mesh_evt_cb
-                0x00035bd0      0x164 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00035be0      0x164 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
  .text.add_flash_manager
-                0x00035d34       0x58 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00035d44       0x58 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
  .text.flash_write_complete
-                0x00035d8c       0x4c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00035d9c       0x4c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
  .text.flash_remove_complete
-                0x00035dd8       0xb4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00035de8       0xb4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
  .text.access_flash_config_load
-                0x00035e8c      0x2c8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00035e8c                access_flash_config_load
+                0x00035e9c      0x2c8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00035e9c                access_flash_config_load
  .text.access_clear
-                0x00036154       0x70 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00036154                access_clear
+                0x00036164       0x70 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00036164                access_clear
  .text.access_init
-                0x000361c4       0xb8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x000361c4                access_init
+                0x000361d4       0xb8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x000361d4                access_init
  .text.access_model_add
-                0x0003627c      0x228 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x0003627c                access_model_add
+                0x0003628c      0x228 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x0003628c                access_model_add
  .text.access_model_publish
-                0x000364a4      0x3bc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x000364a4                access_model_publish
+                0x000364b4      0x3bc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x000364b4                access_model_publish
  .text.access_model_reply
-                0x00036860      0x3d4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00036860                access_model_reply
+                0x00036870      0x3d4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00036870                access_model_reply
  .text.access_model_publish_address_set
-                0x00036c34       0x3c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00036c34                access_model_publish_address_set
+                0x00036c44       0x3c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00036c44                access_model_publish_address_set
  .text.access_model_publish_address_get
-                0x00036c70       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00036c70                access_model_publish_address_get
+                0x00036c80       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00036c80                access_model_publish_address_get
  .text.access_model_publish_retransmit_set
-                0x00036c9c       0x58 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00036c9c                access_model_publish_retransmit_set
+                0x00036cac       0x58 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00036cac                access_model_publish_retransmit_set
  .text.access_model_publish_retransmit_get
-                0x00036cf4       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00036cf4                access_model_publish_retransmit_get
+                0x00036d04       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00036d04                access_model_publish_retransmit_get
  .text.access_model_publish_period_set
-                0x00036d20       0x78 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00036d20                access_model_publish_period_set
+                0x00036d30       0x78 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00036d30                access_model_publish_period_set
  .text.access_model_publish_period_get
-                0x00036d98       0x40 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00036d98                access_model_publish_period_get
+                0x00036da8       0x40 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00036da8                access_model_publish_period_get
  .text.access_model_subscription_list_alloc
-                0x00036dd8       0x44 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00036dd8                access_model_subscription_list_alloc
+                0x00036de8       0x44 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00036de8                access_model_subscription_list_alloc
  .text.access_model_subscription_add
-                0x00036e1c       0x60 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00036e1c                access_model_subscription_add
+                0x00036e2c       0x60 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00036e2c                access_model_subscription_add
  .text.access_model_subscription_remove
-                0x00036e7c       0x60 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00036e7c                access_model_subscription_remove
+                0x00036e8c       0x60 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00036e8c                access_model_subscription_remove
  .text.access_model_subscriptions_get
-                0x00036edc       0xd0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00036edc                access_model_subscriptions_get
+                0x00036eec       0xd0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00036eec                access_model_subscriptions_get
  .text.access_model_application_bind
-                0x00036fac       0x58 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00036fac                access_model_application_bind
+                0x00036fbc       0x58 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00036fbc                access_model_application_bind
  .text.access_model_application_unbind
-                0x00037004       0x58 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00037004                access_model_application_unbind
+                0x00037014       0x58 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00037014                access_model_application_unbind
  .text.access_model_applications_get
-                0x0003705c       0x50 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x0003705c                access_model_applications_get
+                0x0003706c       0x50 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x0003706c                access_model_applications_get
  .text.access_model_publish_application_set
-                0x000370ac       0x3c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x000370ac                access_model_publish_application_set
+                0x000370bc       0x3c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x000370bc                access_model_publish_application_set
  .text.access_model_publish_application_get
-                0x000370e8       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x000370e8                access_model_publish_application_get
+                0x000370f8       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x000370f8                access_model_publish_application_get
  .text.access_default_ttl_set
-                0x00037114       0x1c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00037114                access_default_ttl_set
+                0x00037124       0x1c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00037124                access_default_ttl_set
  .text.access_default_ttl_get
-                0x00037130        0xc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00037130                access_default_ttl_get
+                0x00037140        0xc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00037140                access_default_ttl_get
  .text.access_model_publish_ttl_set
-                0x0003713c       0x40 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x0003713c                access_model_publish_ttl_set
+                0x0003714c       0x40 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x0003714c                access_model_publish_ttl_set
  .text.access_model_publish_ttl_get
-                0x0003717c       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x0003717c                access_model_publish_ttl_get
+                0x0003718c       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x0003718c                access_model_publish_ttl_get
  .text.access_element_location_get
-                0x000371a8       0x18 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x000371a8                access_element_location_get
+                0x000371b8       0x18 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x000371b8                access_element_location_get
  .text.access_element_sig_model_count_get
-                0x000371c0       0x18 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x000371c0                access_element_sig_model_count_get
+                0x000371d0       0x18 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x000371d0                access_element_sig_model_count_get
  .text.access_element_vendor_model_count_get
-                0x000371d8       0x18 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x000371d8                access_element_vendor_model_count_get
+                0x000371e8       0x18 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x000371e8                access_element_vendor_model_count_get
  .text.access_model_id_get
-                0x000371f0       0x40 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x000371f0                access_model_id_get
+                0x00037200       0x40 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00037200                access_model_id_get
  .text.access_handle_get
-                0x00037230       0x78 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00037230                access_handle_get
+                0x00037240       0x78 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00037240                access_handle_get
  .text.access_element_models_get
-                0x000372a8       0x84 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x000372a8                access_element_models_get
+                0x000372b8       0x84 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x000372b8                access_element_models_get
  .text.access_model_p_args_get
-                0x0003732c       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x0003732c                access_model_p_args_get
+                0x0003733c       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x0003733c                access_model_p_args_get
  .text.access_model_publication_stop
-                0x00037358       0x74 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x00037358                access_model_publication_stop
+                0x00037368       0x74 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00037368                access_model_publication_stop
  .text.access_model_publication_by_appkey_stop
-                0x000373cc      0x14c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
-                0x000373cc                access_model_publication_by_appkey_stop
+                0x000373dc      0x14c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x000373dc                access_model_publication_by_appkey_stop
  .text.remove_and_reschedule
-                0x00037518       0xdc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_reliable.c.obj
+                0x00037528       0xdc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_reliable.c.obj
  .text.reliable_timer_cb
-                0x000375f4      0x274 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_reliable.c.obj
+                0x00037604      0x274 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_reliable.c.obj
  .text.access_reliable_message_rx_cb
-                0x00037868       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_reliable.c.obj
-                0x00037868                access_reliable_message_rx_cb
+                0x00037878       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_reliable.c.obj
+                0x00037878                access_reliable_message_rx_cb
  .text.access_reliable_init
-                0x000378e8       0x1c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_reliable.c.obj
-                0x000378e8                access_reliable_init
+                0x000378f8       0x1c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_reliable.c.obj
+                0x000378f8                access_reliable_init
  .text.access_reliable_cancel_all
-                0x00037904       0xe8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_reliable.c.obj
-                0x00037904                access_reliable_cancel_all
+                0x00037914       0xe8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_reliable.c.obj
+                0x00037914                access_reliable_cancel_all
  .text.access_model_reliable_cancel
-                0x000379ec       0x84 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_reliable.c.obj
-                0x000379ec                access_model_reliable_cancel
+                0x000379fc       0x84 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access_reliable.c.obj
+                0x000379fc                access_model_reliable_cancel
  .text.addr_nonvirtual_to_dsm_entry
-                0x00037a70       0x48 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037a80       0x48 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.addr_nonvirtual_to_flash_entry
-                0x00037ab8       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037ac8       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.devkey_to_flash_entry
-                0x00037ac8       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037ad8       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.addr_virtual_to_flash_entry
-                0x00037af0       0x18 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037b00       0x18 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.addr_unicast_to_dsm_entry
-                0x00037b08        0xc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037b18        0xc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.addr_unicast_to_flash_entry
-                0x00037b14       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037b24       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.flash_mem_listener_callback
-                0x00037b24       0x1c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037b34       0x1c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.appkey_to_flash_entry
-                0x00037b40       0x54 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037b50       0x54 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.subnet_to_flash_entry
-                0x00037b94       0x60 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037ba4       0x60 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.reset_flash_area
-                0x00037bf4       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037c04       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.flash_save
-                0x00037c1c       0xb0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037c2c       0xb0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.build_flash_area
-                0x00037ccc       0x8c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037cdc       0x8c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.flash_invalidate_complete
-                0x00037d58       0x54 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037d68       0x54 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.flash_write_complete
-                0x00037dac       0x50 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037dbc       0x50 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.devkey_to_dsm_entry
-                0x00037dfc       0x70 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037e0c       0x70 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.addr_virtual_to_dsm_entry
-                0x00037e6c       0x60 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037e7c       0x60 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.appkey_to_dsm_entry
-                0x00037ecc       0xf4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037edc       0xf4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.subnet_to_dsm_entry
-                0x00037fc0      0x11c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00037fd0      0x11c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.flash_remove_complete
-                0x000380dc       0x8c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000380ec       0x8c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.flash_update_all
-                0x00038168      0x17c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00038178      0x17c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.address_delete_if_unused
-                0x000382e4       0xe0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000382f4       0xe0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.mesh_evt_handler
-                0x000383c4      0x144 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000383d4      0x144 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .text.dsm_flash_config_load
-                0x00038508      0x1c8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00038508                dsm_flash_config_load
+                0x00038518      0x1c8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00038518                dsm_flash_config_load
  .text.dsm_flash_area_get
-                0x000386d0        0xc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x000386d0                dsm_flash_area_get
+                0x000386e0        0xc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000386e0                dsm_flash_area_get
  .text.dsm_clear
-                0x000386dc       0xd8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x000386dc                dsm_clear
+                0x000386ec       0xd8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000386ec                dsm_clear
  .text.dsm_init
-                0x000387b4       0xb8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x000387b4                dsm_init
+                0x000387c4       0xb8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000387c4                dsm_init
  .text.dsm_local_unicast_addresses_set
-                0x0003886c       0x78 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003886c                dsm_local_unicast_addresses_set
+                0x0003887c       0x78 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003887c                dsm_local_unicast_addresses_set
  .text.dsm_local_unicast_addresses_get
-                0x000388e4       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x000388e4                dsm_local_unicast_addresses_get
+                0x000388f4       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000388f4                dsm_local_unicast_addresses_get
  .text.dsm_address_publish_add
-                0x00038904      0x140 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00038904                dsm_address_publish_add
+                0x00038914      0x140 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00038914                dsm_address_publish_add
  .text.dsm_address_publish_add_handle
-                0x00038a44       0x4c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00038a44                dsm_address_publish_add_handle
+                0x00038a54       0x4c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00038a54                dsm_address_publish_add_handle
  .text.dsm_address_publish_virtual_add
-                0x00038a90       0xc8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00038a90                dsm_address_publish_virtual_add
+                0x00038aa0       0xc8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00038aa0                dsm_address_publish_virtual_add
  .text.dsm_address_publish_remove
-                0x00038b58       0xac examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00038b58                dsm_address_publish_remove
+                0x00038b68       0xac examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00038b68                dsm_address_publish_remove
  .text.dsm_address_subscription_add
-                0x00038c04      0x128 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00038c04                dsm_address_subscription_add
+                0x00038c14      0x128 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00038c14                dsm_address_subscription_add
  .text.dsm_address_subscription_virtual_add
-                0x00038d2c       0xc8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00038d2c                dsm_address_subscription_virtual_add
+                0x00038d3c       0xc8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00038d3c                dsm_address_subscription_virtual_add
  .text.dsm_address_subscription_add_handle
-                0x00038df4       0x4c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00038df4                dsm_address_subscription_add_handle
+                0x00038e04       0x4c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00038e04                dsm_address_subscription_add_handle
  .text.dsm_address_subscription_get
-                0x00038e40       0x50 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00038e40                dsm_address_subscription_get
+                0x00038e50       0x50 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00038e50                dsm_address_subscription_get
  .text.dsm_address_subscription_remove
-                0x00038e90       0x84 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00038e90                dsm_address_subscription_remove
+                0x00038ea0       0x84 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00038ea0                dsm_address_subscription_remove
  .text.dsm_address_get
-                0x00038f14       0x64 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00038f14                dsm_address_get
+                0x00038f24       0x64 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00038f24                dsm_address_get
  .text.dsm_address_handle_get
-                0x00038f78       0xc4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00038f78                dsm_address_handle_get
+                0x00038f88       0xc4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00038f88                dsm_address_handle_get
  .text.dsm_net_key_index_to_subnet_handle
-                0x0003903c       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003903c                dsm_net_key_index_to_subnet_handle
+                0x0003904c       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003904c                dsm_net_key_index_to_subnet_handle
  .text.dsm_subnet_handle_get
-                0x00039064       0x3c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039064                dsm_subnet_handle_get
+                0x00039074       0x3c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039074                dsm_subnet_handle_get
  .text.dsm_appkey_index_to_appkey_handle
-                0x000390a0       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x000390a0                dsm_appkey_index_to_appkey_handle
+                0x000390b0       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000390b0                dsm_appkey_index_to_appkey_handle
  .text.dsm_appkey_handle_get
-                0x000390c8       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x000390c8                dsm_appkey_handle_get
+                0x000390d8       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000390d8                dsm_appkey_handle_get
  .text.dsm_appkey_handle_to_appkey_index
-                0x000390f4       0x24 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x000390f4                dsm_appkey_handle_to_appkey_index
+                0x00039104       0x24 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039104                dsm_appkey_handle_to_appkey_index
  .text.dsm_appkey_handle_to_subnet_handle
-                0x00039118       0x78 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039118                dsm_appkey_handle_to_subnet_handle
+                0x00039128       0x78 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039128                dsm_appkey_handle_to_subnet_handle
  .text.dsm_subnet_add
-                0x00039190      0x154 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039190                dsm_subnet_add
+                0x000391a0      0x154 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000391a0                dsm_subnet_add
  .text.dsm_subnet_kr_phase_get
-                0x000392e4       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x000392e4                dsm_subnet_kr_phase_get
+                0x000392f4       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000392f4                dsm_subnet_kr_phase_get
  .text.dsm_subnet_update
-                0x00039304       0xe8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039304                dsm_subnet_update
+                0x00039314       0xe8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039314                dsm_subnet_update
  .text.dsm_subnet_update_swap_keys
-                0x000393ec       0x98 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x000393ec                dsm_subnet_update_swap_keys
+                0x000393fc       0x98 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000393fc                dsm_subnet_update_swap_keys
  .text.dsm_subnet_update_commit
-                0x00039484      0x104 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039484                dsm_subnet_update_commit
+                0x00039494      0x104 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039494                dsm_subnet_update_commit
  .text.dsm_subnet_delete
-                0x00039588       0xe8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039588                dsm_subnet_delete
+                0x00039598       0xe8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039598                dsm_subnet_delete
  .text.dsm_subnet_get_all
-                0x00039670       0x44 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039670                dsm_subnet_get_all
+                0x00039680       0x44 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039680                dsm_subnet_get_all
  .text.dsm_devkey_add
-                0x000396b4       0xac examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x000396b4                dsm_devkey_add
+                0x000396c4       0xac examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000396c4                dsm_devkey_add
  .text.dsm_appkey_add
-                0x00039760      0x138 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039760                dsm_appkey_add
+                0x00039770      0x138 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039770                dsm_appkey_add
  .text.dsm_appkey_update
-                0x00039898       0xd4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039898                dsm_appkey_update
+                0x000398a8       0xd4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000398a8                dsm_appkey_update
  .text.dsm_appkey_delete
-                0x0003996c       0x60 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x0003996c                dsm_appkey_delete
+                0x0003997c       0x60 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x0003997c                dsm_appkey_delete
  .text.dsm_appkey_get_all
-                0x000399cc       0x54 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x000399cc                dsm_appkey_get_all
+                0x000399dc       0x54 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000399dc                dsm_appkey_get_all
  .text.dsm_tx_secmat_get
-                0x00039a20       0xac examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039a20                dsm_tx_secmat_get
+                0x00039a30       0xac examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039a30                dsm_tx_secmat_get
  .text.dsm_net_secmat_from_keyindex_get
-                0x00039acc       0x44 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039acc                dsm_net_secmat_from_keyindex_get
+                0x00039adc       0x44 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039adc                dsm_net_secmat_from_keyindex_get
  .text.nrf_mesh_net_secmat_next_get
-                0x00039b10       0x9c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039b10                nrf_mesh_net_secmat_next_get
+                0x00039b20       0x9c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039b20                nrf_mesh_net_secmat_next_get
  .text.nrf_mesh_app_secmat_next_get
-                0x00039bac       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039bac                nrf_mesh_app_secmat_next_get
+                0x00039bbc       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039bbc                nrf_mesh_app_secmat_next_get
  .text.nrf_mesh_devkey_secmat_get
-                0x00039c2c       0x30 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039c2c                nrf_mesh_devkey_secmat_get
+                0x00039c3c       0x30 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039c3c                nrf_mesh_devkey_secmat_get
  .text.nrf_mesh_beacon_info_next_get
-                0x00039c5c       0xb0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039c5c                nrf_mesh_beacon_info_next_get
+                0x00039c6c       0xb0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039c6c                nrf_mesh_beacon_info_next_get
  .text.nrf_mesh_rx_address_get
-                0x00039d0c       0xf4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039d0c                nrf_mesh_rx_address_get
+                0x00039d1c       0xf4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039d1c                nrf_mesh_rx_address_get
  .text.nrf_mesh_unicast_address_get
-                0x00039e00       0x24 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
-                0x00039e00                nrf_mesh_unicast_address_get
+                0x00039e10       0x24 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00039e10                nrf_mesh_unicast_address_get
  .text.prov_provisionee_cb_link_established
-                0x00039e24       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x00039e34       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
  .text.prov_provisionee_cb_link_closed
-                0x00039e5c       0x54 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x00039e6c       0x54 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
  .text.request_authentication
-                0x00039eb0       0x90 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x00039ec0       0x90 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
  .text.prov_provisionee_cb_ack_received
-                0x00039f40      0x194 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x00039f50      0x194 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
  .text.prov_provisionee_pkt_in
-                0x0003a0d4      0x420 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x0003a0e4      0x420 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
  .text.prov_provisionee_listen
-                0x0003a4f4       0x34 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
-                0x0003a4f4                prov_provisionee_listen
+                0x0003a504       0x34 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x0003a504                prov_provisionee_listen
  .text.prov_provisionee_auth_data
-                0x0003a528      0x104 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
-                0x0003a528                prov_provisionee_auth_data
+                0x0003a538      0x104 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x0003a538                prov_provisionee_auth_data
  .text.bearer_compare_callback
-                0x0003a62c       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x0003a63c       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
  .text.nrf_mesh_prov_init
-                0x0003a63c       0x3c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
-                0x0003a63c                nrf_mesh_prov_init
+                0x0003a64c       0x3c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x0003a64c                nrf_mesh_prov_init
  .text.nrf_mesh_prov_bearer_add
-                0x0003a678       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
-                0x0003a678                nrf_mesh_prov_bearer_add
+                0x0003a688       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x0003a688                nrf_mesh_prov_bearer_add
  .text.nrf_mesh_prov_generate_keys
-                0x0003a6a4        0x4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
-                0x0003a6a4                nrf_mesh_prov_generate_keys
+                0x0003a6b4        0x4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x0003a6b4                nrf_mesh_prov_generate_keys
  .text.nrf_mesh_prov_listen
-                0x0003a6a8       0xf8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
-                0x0003a6a8                nrf_mesh_prov_listen
+                0x0003a6b8       0xf8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x0003a6b8                nrf_mesh_prov_listen
  .text.nrf_mesh_prov_auth_data_provide
-                0x0003a7a0       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
-                0x0003a7a0                nrf_mesh_prov_auth_data_provide
+                0x0003a7b0       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x0003a7b0                nrf_mesh_prov_auth_data_provide
  .text.prov_packet_length_valid
-                0x0003a7b0       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003a7b0                prov_packet_length_valid
+                0x0003a7c0       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003a7c0                prov_packet_length_valid
  .text.prov_tx_capabilities
-                0x0003a7d0       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003a7d0                prov_tx_capabilities
+                0x0003a7e0       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003a7e0                prov_tx_capabilities
  .text.prov_tx_public_key
-                0x0003a808       0x30 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003a808                prov_tx_public_key
+                0x0003a818       0x30 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003a818                prov_tx_public_key
  .text.prov_tx_input_complete
-                0x0003a838       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003a838                prov_tx_input_complete
+                0x0003a848       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003a848                prov_tx_input_complete
  .text.prov_tx_confirmation
-                0x0003a860       0x30 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003a860                prov_tx_confirmation
+                0x0003a870       0x30 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003a870                prov_tx_confirmation
  .text.prov_tx_random
-                0x0003a890       0x30 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003a890                prov_tx_random
+                0x0003a8a0       0x30 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003a8a0                prov_tx_random
  .text.prov_tx_complete
-                0x0003a8c0       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003a8c0                prov_tx_complete
+                0x0003a8d0       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003a8d0                prov_tx_complete
  .text.prov_tx_failed
-                0x0003a8e8       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
-                0x0003a8e8                prov_tx_failed
+                0x0003a8f8       0x2c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
+                0x0003a8f8                prov_tx_failed
  .text.prov_beacon_unprov_build
-                0x0003a914       0x54 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_beacon.c.obj
-                0x0003a914                prov_beacon_unprov_build
+                0x0003a924       0x54 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_beacon.c.obj
+                0x0003a924                prov_beacon_unprov_build
  .text.prov_beacon_unprov_packet_in
-                0x0003a968       0xd4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_beacon.c.obj
-                0x0003a968                prov_beacon_unprov_packet_in
+                0x0003a978       0xd4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_beacon.c.obj
+                0x0003a978                prov_beacon_unprov_packet_in
  .text.prov_utils_opt_set
-                0x0003aa3c       0x24 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003aa3c                prov_utils_opt_set
+                0x0003aa4c       0x24 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003aa4c                prov_utils_opt_set
  .text.prov_utils_opt_get
-                0x0003aa60       0x1c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003aa60                prov_utils_opt_get
+                0x0003aa70       0x1c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003aa70                prov_utils_opt_get
  .text.prov_utils_use_ecdh_offloading
-                0x0003aa7c        0xc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003aa7c                prov_utils_use_ecdh_offloading
+                0x0003aa8c        0xc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003aa8c                prov_utils_use_ecdh_offloading
  .text.prov_utils_authentication_values_derive
-                0x0003aa88       0xa8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003aa88                prov_utils_authentication_values_derive
+                0x0003aa98       0xa8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003aa98                prov_utils_authentication_values_derive
  .text.prov_utils_keys_generate
-                0x0003ab30       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003ab30                prov_utils_keys_generate
+                0x0003ab40       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003ab40                prov_utils_keys_generate
  .text.prov_utils_derive_keys
-                0x0003ab50       0xb4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003ab50                prov_utils_derive_keys
+                0x0003ab60       0xb4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003ab60                prov_utils_derive_keys
  .text.prov_utils_calculate_shared_secret
-                0x0003ac04       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003ac04                prov_utils_calculate_shared_secret
+                0x0003ac14       0x38 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003ac14                prov_utils_calculate_shared_secret
  .text.prov_utils_generate_oob_data
-                0x0003ac3c      0x1b8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003ac3c                prov_utils_generate_oob_data
+                0x0003ac4c      0x1b8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003ac4c                prov_utils_generate_oob_data
  .text.prov_utils_confirmation_check
-                0x0003adf4       0x5c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
-                0x0003adf4                prov_utils_confirmation_check
+                0x0003ae04       0x5c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+                0x0003ae04                prov_utils_confirmation_check
  .text.link_timeout_cb
-                0x0003ae50       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003ae60       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.prov_bearer_adv_listen_stop
-                0x0003ae60       0x8c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003ae70       0x8c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.tx_complete_cb
-                0x0003aeec       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003aefc       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.prov_bearer_adv_listen
-                0x0003af0c      0x160 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003af1c      0x160 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.prov_buffer_tx
-                0x0003b06c      0x1d8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003b07c      0x1d8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.close_link
-                0x0003b244       0xc0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003b254       0xc0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.async_process
-                0x0003b304       0x60 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003b314       0x60 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.prov_bearer_adv_tx
-                0x0003b364       0xe4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003b374       0xe4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.send_link_ack
-                0x0003b448       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003b458       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.tx_retry_cb
-                0x0003b4c8      0x13c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003b4d8      0x13c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.send_transaction_ack
-                0x0003b604       0x68 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003b614       0x68 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.prov_buffer_rx
-                0x0003b66c       0x9c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003b67c       0x9c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.prov_bearer_adv_link_open
-                0x0003b708      0x1c0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003b718      0x1c0 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.prov_bearer_adv_link_close
-                0x0003b8c8       0xd8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003b8d8       0xd8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text.nrf_mesh_prov_bearer_adv_interface_get
-                0x0003b9a0       0x40 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
-                0x0003b9a0                nrf_mesh_prov_bearer_adv_interface_get
+                0x0003b9b0       0x40 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003b9b0                nrf_mesh_prov_bearer_adv_interface_get
  .text.prov_bearer_adv_packet_in
-                0x0003b9e0      0x950 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
-                0x0003b9e0                prov_bearer_adv_packet_in
+                0x0003b9f0      0x950 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x0003b9f0                prov_bearer_adv_packet_in
  .text.SystemInit
-                0x0003c330      0x1c4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
-                0x0003c330                SystemInit
- .text          0x0003c4f4       0x3c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
-                0x0003c4f4                Reset_Handler
-                0x0003c51c                NMI_Handler
-                0x0003c51e                HardFault_Handler
-                0x0003c520                MemoryManagement_Handler
-                0x0003c522                BusFault_Handler
-                0x0003c524                UsageFault_Handler
-                0x0003c526                SVC_Handler
-                0x0003c528                DebugMon_Handler
-                0x0003c52a                PendSV_Handler
-                0x0003c52c                SysTick_Handler
-                0x0003c52e                PDM_IRQHandler
-                0x0003c52e                TEMP_IRQHandler
-                0x0003c52e                TIMER3_IRQHandler
-                0x0003c52e                PWM3_IRQHandler
-                0x0003c52e                FPU_IRQHandler
-                0x0003c52e                USBD_IRQHandler
-                0x0003c52e                SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQHandler
-                0x0003c52e                RADIO_IRQHandler
-                0x0003c52e                UARTE0_UART0_IRQHandler
-                0x0003c52e                TIMER4_IRQHandler
-                0x0003c52e                CRYPTOCELL_IRQHandler
-                0x0003c52e                I2S_IRQHandler
-                0x0003c52e                SWI4_EGU4_IRQHandler
-                0x0003c52e                TIMER0_IRQHandler
-                0x0003c52e                RTC0_IRQHandler
-                0x0003c52e                UARTE1_IRQHandler
-                0x0003c52e                POWER_CLOCK_IRQHandler
-                0x0003c52e                SPIM3_IRQHandler
-                0x0003c52e                PWM2_IRQHandler
-                0x0003c52e                ECB_IRQHandler
-                0x0003c52e                SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler
-                0x0003c52e                Default_Handler
-                0x0003c52e                SAADC_IRQHandler
-                0x0003c52e                CCM_AAR_IRQHandler
-                0x0003c52e                WDT_IRQHandler
-                0x0003c52e                SWI0_EGU0_IRQHandler
-                0x0003c52e                SWI5_EGU5_IRQHandler
-                0x0003c52e                RNG_IRQHandler
-                0x0003c52e                RTC2_IRQHandler
-                0x0003c52e                PWM0_IRQHandler
-                0x0003c52e                SWI3_EGU3_IRQHandler
-                0x0003c52e                RTC1_IRQHandler
-                0x0003c52e                SWI1_EGU1_IRQHandler
-                0x0003c52e                SPIM2_SPIS2_SPI2_IRQHandler
-                0x0003c52e                NFCT_IRQHandler
-                0x0003c52e                PWM1_IRQHandler
-                0x0003c52e                MWU_IRQHandler
-                0x0003c52e                TIMER1_IRQHandler
-                0x0003c52e                QSPI_IRQHandler
-                0x0003c52e                COMP_LPCOMP_IRQHandler
+                0x0003c340      0x1c4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
+                0x0003c340                SystemInit
+ .text          0x0003c504       0x3c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
+                0x0003c504                Reset_Handler
+                0x0003c52c                NMI_Handler
+                0x0003c52e                HardFault_Handler
+                0x0003c530                MemoryManagement_Handler
+                0x0003c532                BusFault_Handler
+                0x0003c534                UsageFault_Handler
+                0x0003c536                SVC_Handler
+                0x0003c538                DebugMon_Handler
+                0x0003c53a                PendSV_Handler
+                0x0003c53c                SysTick_Handler
+                0x0003c53e                PDM_IRQHandler
+                0x0003c53e                TEMP_IRQHandler
+                0x0003c53e                TIMER3_IRQHandler
+                0x0003c53e                PWM3_IRQHandler
+                0x0003c53e                FPU_IRQHandler
+                0x0003c53e                USBD_IRQHandler
+                0x0003c53e                SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQHandler
+                0x0003c53e                RADIO_IRQHandler
+                0x0003c53e                UARTE0_UART0_IRQHandler
+                0x0003c53e                TIMER4_IRQHandler
+                0x0003c53e                CRYPTOCELL_IRQHandler
+                0x0003c53e                I2S_IRQHandler
+                0x0003c53e                SWI4_EGU4_IRQHandler
+                0x0003c53e                TIMER0_IRQHandler
+                0x0003c53e                RTC0_IRQHandler
+                0x0003c53e                UARTE1_IRQHandler
+                0x0003c53e                POWER_CLOCK_IRQHandler
+                0x0003c53e                SPIM3_IRQHandler
+                0x0003c53e                PWM2_IRQHandler
+                0x0003c53e                ECB_IRQHandler
+                0x0003c53e                SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler
+                0x0003c53e                Default_Handler
+                0x0003c53e                SAADC_IRQHandler
+                0x0003c53e                CCM_AAR_IRQHandler
+                0x0003c53e                WDT_IRQHandler
+                0x0003c53e                SWI0_EGU0_IRQHandler
+                0x0003c53e                SWI5_EGU5_IRQHandler
+                0x0003c53e                RNG_IRQHandler
+                0x0003c53e                RTC2_IRQHandler
+                0x0003c53e                PWM0_IRQHandler
+                0x0003c53e                SWI3_EGU3_IRQHandler
+                0x0003c53e                RTC1_IRQHandler
+                0x0003c53e                SWI1_EGU1_IRQHandler
+                0x0003c53e                SPIM2_SPIS2_SPI2_IRQHandler
+                0x0003c53e                NFCT_IRQHandler
+                0x0003c53e                PWM1_IRQHandler
+                0x0003c53e                MWU_IRQHandler
+                0x0003c53e                TIMER1_IRQHandler
+                0x0003c53e                QSPI_IRQHandler
+                0x0003c53e                COMP_LPCOMP_IRQHandler
  .text.app_error_handler_bare
-                0x0003c530       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
-                0x0003c530                app_error_handler_bare
+                0x0003c540       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+                0x0003c540                app_error_handler_bare
  .text.app_error_handler
-                0x0003c550       0x1c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
-                0x0003c550                app_error_handler
+                0x0003c560       0x1c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+                0x0003c560                app_error_handler
  .text.SEGGER_RTT_Write
-                0x0003c56c      0x1e4 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT.c.obj)
-                0x0003c56c                SEGGER_RTT_Write
+                0x0003c57c      0x1e4 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT.c.obj)
+                0x0003c57c                SEGGER_RTT_Write
  .text.SEGGER_RTT_GetKey
-                0x0003c750       0xec external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT.c.obj)
-                0x0003c750                SEGGER_RTT_GetKey
+                0x0003c760       0xec external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT.c.obj)
+                0x0003c760                SEGGER_RTT_GetKey
  .text._PrintUnsigned
-                0x0003c83c      0x194 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT_printf.c.obj)
+                0x0003c84c      0x194 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT_printf.c.obj)
  .text.SEGGER_RTT_vprintf
-                0x0003c9d0      0x464 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT_printf.c.obj)
-                0x0003c9d0                SEGGER_RTT_vprintf
+                0x0003c9e0      0x464 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT_printf.c.obj)
+                0x0003c9e0                SEGGER_RTT_vprintf
  .text.SEGGER_RTT_printf
-                0x0003ce34       0x20 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT_printf.c.obj)
-                0x0003ce34                SEGGER_RTT_printf
+                0x0003ce44       0x20 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT_printf.c.obj)
+                0x0003ce44                SEGGER_RTT_printf
  .text.default_RNG
-                0x0003ce54        0xc external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x0003ce64        0xc external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
  .text.uECC_generate_random_int
-                0x0003ce60      0x170 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
- .text.apply_z  0x0003cfd0      0x1a8 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x0003ce70      0x170 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+ .text.apply_z  0x0003cfe0      0x1a8 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
  .text.uECC_vli_modAdd
-                0x0003d178       0xc8 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x0003d188       0xc8 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
  .text.x_side_default
-                0x0003d240      0x254 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x0003d250      0x254 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
  .text.vli_mmod_fast_secp256r1
-                0x0003d494      0x520 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x0003d4a4      0x520 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
  .text.XYcZ_add
-                0x0003d9b4      0x6dc external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x0003d9c4      0x6dc external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
  .text.XYcZ_addC
-                0x0003e090      0xa94 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x0003e0a0      0xa94 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
  .text.uECC_vli_modInv.part.4
-                0x0003eb24      0x6e8 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x0003eb34      0x6e8 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
  .text.EccPoint_mult.constprop.5
-                0x0003f20c      0x470 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x0003f21c      0x470 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
  .text.double_jacobian_default
-                0x0003f67c      0x7ec external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x0003f68c      0x7ec external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
  .text.uECC_secp256r1
-                0x0003fe68        0x8 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
-                0x0003fe68                uECC_secp256r1
+                0x0003fe78        0x8 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x0003fe78                uECC_secp256r1
  .text.uECC_make_key
-                0x0003fe70      0x23c external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
-                0x0003fe70                uECC_make_key
+                0x0003fe80      0x23c external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x0003fe80                uECC_make_key
  .text.uECC_shared_secret
-                0x000400ac      0x788 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
-                0x000400ac                uECC_shared_secret
+                0x000400bc      0x788 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x000400bc                uECC_shared_secret
  .text.uECC_valid_point
-                0x00040834      0x134 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
-                0x00040834                uECC_valid_point
+                0x00040844      0x134 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x00040844                uECC_valid_point
  .text.uECC_valid_public_key
-                0x00040968       0xe8 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
-                0x00040968                uECC_valid_public_key
- .text          0x00040a50       0x30 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_aeabi_uldivmod.o)
-                0x00040a50                __aeabi_uldivmod
- .text          0x00040a80      0x2dc c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_udivmoddi4.o)
-                0x00040a80                __udivmoddi4
- .text          0x00040d5c        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_dvmd_tls.o)
-                0x00040d5c                __aeabi_idiv0
-                0x00040d5c                __aeabi_ldiv0
- .text.exit     0x00040d60       0x28 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-exit.o)
-                0x00040d60                exit
+                0x00040978       0xe8 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x00040978                uECC_valid_public_key
+ .text          0x00040a60       0x30 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_aeabi_uldivmod.o)
+                0x00040a60                __aeabi_uldivmod
+ .text          0x00040a90      0x2dc c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_udivmoddi4.o)
+                0x00040a90                __udivmoddi4
+ .text          0x00040d6c        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_dvmd_tls.o)
+                0x00040d6c                __aeabi_idiv0
+                0x00040d6c                __aeabi_ldiv0
+ .text.exit     0x00040d70       0x28 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-exit.o)
+                0x00040d70                exit
  .text.__libc_init_array
-                0x00040d88       0x48 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-init.o)
-                0x00040d88                __libc_init_array
- .text.malloc   0x00040dd0       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-malloc.o)
-                0x00040dd0                malloc
- .text.free     0x00040de0       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-malloc.o)
-                0x00040de0                free
- .text.memcmp   0x00040df0       0x1e c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memcmp.o)
-                0x00040df0                memcmp
- .text.memcpy   0x00040e0e       0x16 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memcpy-stub.o)
-                0x00040e0e                memcpy
- .text.memset   0x00040e24       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memset.o)
-                0x00040e24                memset
- .text._free_r  0x00040e34       0x9c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-nano-freer.o)
-                0x00040e34                _free_r
+                0x00040d98       0x48 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-init.o)
+                0x00040d98                __libc_init_array
+ .text.malloc   0x00040de0       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-malloc.o)
+                0x00040de0                malloc
+ .text.free     0x00040df0       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-malloc.o)
+                0x00040df0                free
+ .text.memcmp   0x00040e00       0x1e c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memcmp.o)
+                0x00040e00                memcmp
+ .text.memcpy   0x00040e1e       0x16 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memcpy-stub.o)
+                0x00040e1e                memcpy
+ .text.memset   0x00040e34       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-memset.o)
+                0x00040e34                memset
+ .text._free_r  0x00040e44       0x9c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-nano-freer.o)
+                0x00040e44                _free_r
  .text._malloc_r
-                0x00040ed0       0xbc c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-nano-mallocr.o)
-                0x00040ed0                _malloc_r
- .text._sbrk_r  0x00040f8c       0x20 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-sbrkr.o)
-                0x00040f8c                _sbrk_r
- .text.strcpy   0x00040fac       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strcpy.o)
-                0x00040fac                strcpy
- .text          0x00040fbc       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strlen.o)
-                0x00040fbc                strlen
- .text.strrchr  0x00040fcc       0x26 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strrchr.o)
-                0x00040fcc                strrchr
+                0x00040ee0       0xbc c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-nano-mallocr.o)
+                0x00040ee0                _malloc_r
+ .text._sbrk_r  0x00040f9c       0x20 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-sbrkr.o)
+                0x00040f9c                _sbrk_r
+ .text.strcpy   0x00040fbc       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strcpy.o)
+                0x00040fbc                strcpy
+ .text          0x00040fcc       0x10 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strlen.o)
+                0x00040fcc                strlen
+ .text.strrchr  0x00040fdc       0x26 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strrchr.o)
+                0x00040fdc                strrchr
  .text.__malloc_lock
-                0x00040ff2        0x2 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-mlock.o)
-                0x00040ff2                __malloc_lock
+                0x00041002        0x2 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-mlock.o)
+                0x00041002                __malloc_lock
  .text.__malloc_unlock
-                0x00040ff4        0x2 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-mlock.o)
-                0x00040ff4                __malloc_unlock
- .text.strchr   0x00040ff6       0x1c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strchr.o)
-                0x00040ff6                strchr
- *fill*         0x00041012        0x2 
- .text._sbrk    0x00041014       0x1c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(sbrk.o)
-                0x00041014                _sbrk
- .text._exit    0x00041030        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(_exit.o)
-                0x00041030                _exit
+                0x00041004        0x2 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-mlock.o)
+                0x00041004                __malloc_unlock
+ .text.strchr   0x00041006       0x1c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-strchr.o)
+                0x00041006                strchr
+ *fill*         0x00041022        0x2 
+ .text._sbrk    0x00041024       0x1c c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(sbrk.o)
+                0x00041024                _sbrk
+ .text._exit    0x00041040        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(_exit.o)
+                0x00041040                _exit
  *(.init)
- .init          0x00041034        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
-                0x00041034                _init
- .init          0x00041038        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
+ .init          0x00041044        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
+                0x00041044                _init
+ .init          0x00041048        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
  *(.fini)
- .fini          0x00041040        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
-                0x00041040                _fini
- .fini          0x00041044        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
+ .fini          0x00041050        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
+                0x00041050                _fini
+ .fini          0x00041054        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
  *crtbegin.o(.ctors)
  *crtbegin?.o(.ctors)
  *(EXCLUDE_FILE(*crtend.o *crtend?.o) .ctors)
@@ -2495,265 +2495,265 @@ Linker script and memory map
  *(.dtors)
  *(.rodata*)
  .rodata.button_event_handler.str1.4
-                0x0004104c       0x22 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/src/main.c.obj
- *fill*         0x0004106e        0x2 
+                0x0004105c       0x22 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/src/main.c.obj
+ *fill*         0x0004107e        0x2 
  .rodata.main.str1.4
-                0x00041070       0x48 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/src/main.c.obj
+                0x00041080       0x48 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/src/main.c.obj
  .rodata.models_init_cb.str1.4
-                0x000410b8       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/src/main.c.obj
+                0x000410c8       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/src/main.c.obj
  .rodata.node_reset.str1.4
-                0x000410d8       0x19 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/src/main.c.obj
- *fill*         0x000410f1        0x3 
+                0x000410e8       0x19 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/src/main.c.obj
+ *fill*         0x00041101        0x3 
  .rodata.on_off_server_set_cb.str1.4
-                0x000410f4       0x17 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/src/main.c.obj
- *fill*         0x0004110b        0x1 
+                0x00041104       0x17 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/src/main.c.obj
+ *fill*         0x0004111b        0x1 
  .rodata.provisioning_complete_cb.str1.4
-                0x0004110c       0x5f examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/src/main.c.obj
- *fill*         0x0004116b        0x1 
+                0x0004111c       0x5f examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/src/main.c.obj
+ *fill*         0x0004117b        0x1 
  .rodata.static_auth_data.12531
-                0x0004116c       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/src/main.c.obj
+                0x0004117c       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/src/main.c.obj
  .rodata.mesh_softdevice_init.str1.4
-                0x0004117c       0xa9 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/common/src/mesh_softdevice_init.c.obj
- *fill*         0x00041225        0x3 
- .rodata        0x00041228        0xb examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/common/src/mesh_provisionee.c.obj
- *fill*         0x00041233        0xd 
+                0x0004118c       0xa9 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/common/src/mesh_softdevice_init.c.obj
+ *fill*         0x00041235        0x3 
+ .rodata        0x00041238        0xb examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/common/src/mesh_provisionee.c.obj
+ *fill*         0x00041243        0xd 
  .rodata.delay_bytecode.8707
-                0x00041240        0x6 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/common/src/simple_hal.c.obj
- *fill*         0x00041246        0x2 
+                0x00041250        0x6 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/common/src/simple_hal.c.obj
+ *fill*         0x00041256        0x2 
  .rodata.app_error_fault_handler.str1.4
-                0x00041248       0xc5 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/common/src/app_error_weak.c.obj
+                0x00041258       0xc5 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/common/src/app_error_weak.c.obj
  .rodata.mesh_assertion_handler.str1.4
-                0x0004130d       0xc5 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/common/src/assertion_handler_weak.c.obj
+                0x0004131d       0xc5 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/common/src/assertion_handler_weak.c.obj
                                   0x1 (size before relaxing)
- *fill*         0x0004130d        0x3 
+ *fill*         0x0004131d        0x3 
  .rodata.sar_ctx_cancel.str1.4
-                0x00041310       0x23 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
- *fill*         0x00041333        0x1 
+                0x00041320       0x23 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
+ *fill*         0x00041343        0x1 
  .rodata.transport_packet_in.str1.4
-                0x00041334       0x24 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
+                0x00041344       0x24 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
  .rodata.upper_transport_access_packet_in.str1.4
-                0x00041358       0x3d examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
- *fill*         0x00041395        0x3 
+                0x00041368       0x3d examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
+ *fill*         0x000413a5        0x3 
  .rodata.upper_transport_packet_in.str1.4
-                0x00041398       0x2e examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
- *fill*         0x000413c6        0x2 
+                0x000413a8       0x2e examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
+ *fill*         0x000413d6        0x2 
  .rodata.upper_transport_tx.part.25.str1.4
-                0x000413c8       0x2e examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
+                0x000413d8       0x2e examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/transport.c.obj
                                  0x38 (size before relaxing)
- *fill*         0x000413f6        0x2 
+ *fill*         0x00041406        0x2 
  .rodata.m_procedure_steps
-                0x000413f8       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/flash_manager_defrag.c.obj
+                0x00041408       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/flash_manager_defrag.c.obj
  .rodata.m_all_operations
-                0x00041420       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/mesh_flash.c.obj
+                0x00041430       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/mesh_flash.c.obj
  .rodata.types_lookup.9352
-                0x00041430        0x4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh_utils.c.obj
+                0x00041440        0x4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh_utils.c.obj
  .rodata.__func__.11824
-                0x00041434       0x15 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh.c.obj
- *fill*         0x00041449        0x3 
+                0x00041444       0x15 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh.c.obj
+ *fill*         0x00041459        0x3 
  .rodata.nrf_mesh_listen.str1.4
-                0x0004144c       0x73 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh.c.obj
+                0x0004145c       0x73 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh.c.obj
  .rodata.nrf_mesh_packet_send.str1.4
-                0x000414bf       0x73 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh.c.obj
+                0x000414cf       0x73 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh.c.obj
                                   0x4 (size before relaxing)
- *fill*         0x000414bf        0x1 
+ *fill*         0x000414cf        0x1 
  .rodata.CSWTCH.7
-                0x000414c0       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/hal.c.obj
- .rodata        0x000414e0       0x18 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/enc.c.obj
+                0x000414d0       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/hal.c.obj
+ .rodata        0x000414f0       0x18 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/enc.c.obj
  .rodata.network_packet_in.str1.4
-                0x000414f8       0x49 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/network.c.obj
- *fill*         0x00041541        0x3 
+                0x00041508       0x49 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/network.c.obj
+ *fill*         0x00041551        0x3 
  .rodata.net_packet_decrypt.str1.4
-                0x00041544       0x33 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/net_packet.c.obj
+                0x00041554       0x33 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/net_packet.c.obj
                                  0x3c (size before relaxing)
- *fill*         0x00041577        0x1 
- .rodata        0x00041578        0x7 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh_keygen.c.obj
- *fill*         0x0004157f        0x1 
+ *fill*         0x00041587        0x1 
+ .rodata        0x00041588        0x7 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/nrf_mesh_keygen.c.obj
+ *fill*         0x0004158f        0x1 
  .rodata.log_callback_rtt.str1.4
-                0x00041580       0x15 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/log.c.obj
- *fill*         0x00041595        0x3 
+                0x00041590       0x15 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/log.c.obj
+ *fill*         0x000415a5        0x3 
  .rodata.str1.4
-                0x00041598       0x11 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/log.c.obj
- *fill*         0x000415a9        0x3 
+                0x000415a8       0x11 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/log.c.obj
+ *fill*         0x000415b9        0x3 
  .rodata.INVALID_HEADER
-                0x000415ac        0x4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/flash_manager.c.obj
-                0x000415ac                INVALID_HEADER
+                0x000415bc        0x4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/flash_manager.c.obj
+                0x000415bc                INVALID_HEADER
  .rodata.PADDING_HEADER
-                0x000415b0        0x4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/flash_manager.c.obj
-                0x000415b0                PADDING_HEADER
+                0x000415c0        0x4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/flash_manager.c.obj
+                0x000415c0                PADDING_HEADER
  .rodata.SEAL_HEADER
-                0x000415b4        0x4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/flash_manager.c.obj
-                0x000415b4                SEAL_HEADER
+                0x000415c4        0x4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/flash_manager.c.obj
+                0x000415c4                SEAL_HEADER
  .rodata.beacon_packet_in.str1.4
-                0x000415b8       0x55 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/beacon.c.obj
+                0x000415c8       0x55 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/beacon.c.obj
                                  0x60 (size before relaxing)
- *fill*         0x0004160d        0x3 
+ *fill*         0x0004161d        0x3 
  .rodata.cp_handler
-                0x00041610        0x8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/heartbeat.c.obj
+                0x00041620        0x8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/heartbeat.c.obj
  .rodata.beacon_tx.str1.4
-                0x00041618       0x37 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/net_beacon.c.obj
- *fill*         0x0004164f        0x1 
+                0x00041628       0x37 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/net_beacon.c.obj
+ *fill*         0x0004165f        0x1 
  .rodata.net_beacon_init.str1.4
-                0x00041650        0x5 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/net_beacon.c.obj
- *fill*         0x00041655        0x3 
+                0x00041660        0x5 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/net_beacon.c.obj
+ *fill*         0x00041665        0x3 
  .rodata.m_interface
-                0x00041658        0xc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/core_tx_adv.c.obj
+                0x00041668        0xc examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/core/src/core_tx_adv.c.obj
  .rodata.radio_mode_to_us_per_byte.9745
-                0x00041664        0x6 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/bearer/src/broadcast.c.obj
- *fill*         0x0004166a        0x2 
+                0x00041674        0x6 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/bearer/src/broadcast.c.obj
+ *fill*         0x0004167a        0x2 
  .rodata.channel_rf_offsets.8986
-                0x0004166c       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/bearer/src/radio_config.c.obj
+                0x0004167c       0x28 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/bearer/src/radio_config.c.obj
  .rodata.m_opcode_handlers
-                0x00041694       0x18 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/simple_on_off/src/simple_on_off_server.c.obj
- .rodata        0x000416ac        0x8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
- .rodata.CSWTCH.122
-                0x000416b4       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x000416a4       0x18 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/simple_on_off/src/simple_on_off_server.c.obj
+ .rodata        0x000416bc        0x8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+ .rodata.CSWTCH.121
+                0x000416c4       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .rodata.opcode_handlers
-                0x000416c4      0x170 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
+                0x000416d4      0x170 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/config/src/config_server.c.obj
  .rodata.m_opcode_handlers
-                0x00041834       0x58 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x00041844       0x58 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .rodata.multiply_de_bruijn_bit_position.9597
-                0x0004188c       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
+                0x0004189c       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/models/health/src/health_server.c.obj
  .rodata.access_model_publish.str1.4
-                0x000418ac       0x1c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x000418bc       0x1c examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
                                  0x24 (size before relaxing)
  .rodata.mesh_evt_cb.str1.4
-                0x000418c8       0x2f examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
- *fill*         0x000418f7        0x1 
+                0x000418d8       0x2f examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+ *fill*         0x00041907        0x1 
  .rodata.multiply_de_bruijn_bit_position.9553
-                0x000418f8       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
+                0x00041908       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/access.c.obj
  .rodata.m_flash_groups
-                0x00041918       0xa8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x00041928       0xa8 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .rodata.multiply_de_bruijn_bit_position.9659
-                0x000419c0       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
+                0x000419d0       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/access/src/device_state_manager.c.obj
  .rodata.m_prov_callbacks
-                0x000419e0       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x000419f0       0x10 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
  .rodata.prov_provisionee_cb_ack_received.str1.4
-                0x000419f0       0x53 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
- *fill*         0x00041a43        0x1 
+                0x00041a00       0x53 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_provisionee.c.obj
+ *fill*         0x00041a53        0x1 
  .rodata.multiply_de_bruijn_bit_position.9606
-                0x00041a44       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x00041a54       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
  .rodata.pdu_sizes.11531
-                0x00041a64        0xa examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
- *fill*         0x00041a6e        0x2 
+                0x00041a74        0xa examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/provisioning.c.obj
+ *fill*         0x00041a7e        0x2 
  .rodata.alphanumeric.11636
-                0x00041a70       0x25 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
- *fill*         0x00041a95        0x3 
+                0x00041a80       0x25 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+ *fill*         0x00041aa5        0x3 
  .rodata.numeric_max.11630
-                0x00041a98       0x24 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+                0x00041aa8       0x24 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
  .rodata.prov_utils_authentication_values_derive.str1.4
-                0x00041abc        0x5 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
- *fill*         0x00041ac1        0x3 
+                0x00041acc        0x5 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+ *fill*         0x00041ad1        0x3 
  .rodata.prov_utils_derive_keys.str1.4
-                0x00041ac4       0x15 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
- *fill*         0x00041ad9        0x3 
+                0x00041ad4       0x15 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
+ *fill*         0x00041ae9        0x3 
  .rodata.crctable.11265
-                0x00041adc      0x100 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x00041aec      0x100 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .rodata.interface.11495
-                0x00041bdc       0x14 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x00041bec       0x14 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .rodata.prov_bearer_adv_listen.str1.4
-                0x00041bf0       0x50 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x00041c00       0x50 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .rodata.prov_bearer_adv_packet_in.str1.4
-                0x00041c40      0x283 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
- *fill*         0x00041ec3        0x1 
+                0x00041c50      0x283 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+ *fill*         0x00041ed3        0x1 
  .rodata.tx_retry_cb.str1.4
-                0x00041ec4       0x14 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+                0x00041ed4       0x14 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .rodata.SEGGER_RTT_ReadNoLock.str1.4
-                0x00041ed8       0x18 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT.c.obj)
+                0x00041ee8       0x18 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT.c.obj)
                                  0x17 (size before relaxing)
  .rodata._aV2C.5497
-                0x00041ef0       0x10 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT_printf.c.obj)
+                0x00041f00       0x10 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT_printf.c.obj)
  .rodata.curve_secp256r1
-                0x00041f00       0xb0 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
+                0x00041f10       0xb0 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
  .rodata._global_impure_ptr
-                0x00041fb0        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-impure.o)
-                0x00041fb0                _global_impure_ptr
+                0x00041fc0        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libc_nano.a(lib_a-impure.o)
+                0x00041fc0                _global_impure_ptr
  *(.eh_frame*)
- .eh_frame      0x00041fb4        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
- .eh_frame      0x00041fb4        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtend.o
+ .eh_frame      0x00041fc4        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
+ .eh_frame      0x00041fc4        0x4 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtend.o
 
-.glue_7         0x00041fb8        0x0
- .glue_7        0x00041fb8        0x0 linker stubs
+.glue_7         0x00041fc8        0x0
+ .glue_7        0x00041fc8        0x0 linker stubs
 
-.glue_7t        0x00041fb8        0x0
- .glue_7t       0x00041fb8        0x0 linker stubs
+.glue_7t        0x00041fc8        0x0
+ .glue_7t       0x00041fc8        0x0 linker stubs
 
-.vfp11_veneer   0x00041fb8        0x0
- .vfp11_veneer  0x00041fb8        0x0 linker stubs
+.vfp11_veneer   0x00041fc8        0x0
+ .vfp11_veneer  0x00041fc8        0x0 linker stubs
 
-.v4_bx          0x00041fb8        0x0
- .v4_bx         0x00041fb8        0x0 linker stubs
+.v4_bx          0x00041fc8        0x0
+ .v4_bx         0x00041fc8        0x0 linker stubs
 
-.iplt           0x00041fb8        0x0
- .iplt          0x00041fb8        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
+.iplt           0x00041fc8        0x0
+ .iplt          0x00041fc8        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
 
-.pwr_mgmt_data  0x00041fb8        0x0
+.pwr_mgmt_data  0x00041fc8        0x0
                 [!provide]                PROVIDE (__start_pwr_mgmt_data, .)
  *(SORT(.pwr_mgmt_data*))
                 [!provide]                PROVIDE (__stop_pwr_mgmt_data, .)
 
 .log_const_data
-                0x00041fb8        0x0
+                0x00041fc8        0x0
                 [!provide]                PROVIDE (__start_log_const_data, .)
  *(.log_const_data)
                 [!provide]                PROVIDE (__stop_log_const_data, .)
 
-.cli_command    0x00041fb8        0x0
+.cli_command    0x00041fc8        0x0
                 [!provide]                PROVIDE (__start_cli_command, .)
  *(.cli_command)
                 [!provide]                PROVIDE (__stop_cli_command, .)
 
 .sdh_stack_observers
-                0x00041fb8        0x0
+                0x00041fc8        0x0
                 [!provide]                PROVIDE (__start_sdh_stack_observers, .)
  *(SORT(.sdh_stack_observers*))
                 [!provide]                PROVIDE (__stop_sdh_stack_observers, .)
 
 .sdh_req_observers
-                0x00041fb8        0x0
+                0x00041fc8        0x0
                 [!provide]                PROVIDE (__start_sdh_req_observers, .)
  *(SORT(.sdh_req_observers*))
                 [!provide]                PROVIDE (__stop_sdh_req_observers, .)
 
 .sdh_state_observers
-                0x00041fb8        0x0
+                0x00041fc8        0x0
                 [!provide]                PROVIDE (__start_sdh_state_observers, .)
  *(SORT(.sdh_state_observers*))
                 [!provide]                PROVIDE (__stop_sdh_state_observers, .)
 
 .sdh_ant_observers
-                0x00041fb8        0x0
+                0x00041fc8        0x0
                 [!provide]                PROVIDE (__start_sdh_ant_observers, .)
  *(SORT(.sdh_ant_observers*))
                 [!provide]                PROVIDE (__stop_sdh_ant_observers, .)
 
 .sdh_ble_observers
-                0x00041fb8        0x0
+                0x00041fc8        0x0
                 [!provide]                PROVIDE (__start_sdh_ble_observers, .)
  *(SORT(.sdh_ble_observers*))
                 [!provide]                PROVIDE (__stop_sdh_ble_observers, .)
 
 .sdh_soc_observers
-                0x00041fb8        0x0
+                0x00041fc8        0x0
                 [!provide]                PROVIDE (__start_sdh_soc_observers, .)
  *(SORT(.sdh_soc_observers*))
                 [!provide]                PROVIDE (__stop_sdh_soc_observers, .)
 
 .ARM.extab
  *(.ARM.extab* .gnu.linkonce.armextab.*)
-                0x00041fb8                __exidx_start = .
+                0x00041fc8                __exidx_start = .
 
-.ARM.exidx      0x00041fb8        0x8
+.ARM.exidx      0x00041fc8        0x8
  *(.ARM.exidx* .gnu.linkonce.armexidx.*)
- .ARM.exidx     0x00041fb8        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard/crt0.o
- .ARM.exidx     0x00041fc0        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_udivmoddi4.o)
+ .ARM.exidx     0x00041fc8        0x8 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard/crt0.o
+ .ARM.exidx     0x00041fd0        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_udivmoddi4.o)
                                   0x8 (size before relaxing)
-                0x00041fc0                __exidx_end = .
-                0x00041fc0                __etext = .
+                0x00041fd0                __exidx_end = .
+                0x00041fd0                __etext = .
 
-.rel.dyn        0x00041fc0        0x0
- .rel.iplt      0x00041fc0        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
+.rel.dyn        0x00041fd0        0x0
+ .rel.iplt      0x00041fd0        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
 
-.data           0x200032c8      0x144 load address 0x00041fc0
+.data           0x200032c8      0x144 load address 0x00041fd0
                 0x200032c8                __data_start__ = .
  *(vtable)
  *(.data*)
@@ -2805,7 +2805,7 @@ Linker script and memory map
  .data.m_async_process_flag
                 0x20003390        0x4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .data.SystemCoreClock
-                0x20003394        0x4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
+                0x20003394        0x4 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
                 0x20003394                SystemCoreClock
  .data.g_rng_function
                 0x20003398        0x4 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
@@ -2919,10 +2919,10 @@ LOAD examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s
 LOAD examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_beacon.c.obj
 LOAD examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
 LOAD examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
-LOAD examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
-LOAD examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
-LOAD examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
-LOAD examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+LOAD examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
+LOAD examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
+LOAD examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+LOAD examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
 LOAD external/rtt/librtt_nrf52840_xxAA.a
 LOAD external/micro-ecc/libuECC_nrf52840_xxAA.a
 START GROUP
@@ -2941,7 +2941,7 @@ LOAD c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eab
 LOAD c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a
 END GROUP
 
-.igot.plt       0x2000340c        0x0 load address 0x00042104
+.igot.plt       0x2000340c        0x0 load address 0x00042114
  .igot.plt      0x2000340c        0x0 c:/mesh/arm_gcc/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
                 0x2000340c                . = ALIGN (0x4)
 
@@ -2967,7 +2967,7 @@ END GROUP
  *(.cli_sorted_cmd_ptrs)
                 [!provide]                PROVIDE (__stop_cli_sorted_cmd_ptrs, .)
 
-.bss            0x20003410     0x2f44 load address 0x00042108
+.bss            0x20003410     0x2f44 load address 0x00042118
                 0x20003410                . = ALIGN (0x4)
                 0x20003410                __bss_start__ = .
  *(.bss*)
@@ -3352,19 +3352,19 @@ END GROUP
                 0x20006358                __end__ = .
                 0x20006358                PROVIDE (end, .)
  *(.heap*)
- .heap          0x20006358     0x2000 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
+ .heap          0x20006358     0x2000 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
                 0x20008358                __HeapLimit = .
 
 .stack_dummy    0x20006358     0x2000
  *(.stack*)
- .stack         0x20006358     0x2000 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
+ .stack         0x20006358     0x2000 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
                 0x2003fd00                __StackTop = (ORIGIN (RAM) + LENGTH (RAM))
                 0x2003dd00                __StackLimit = (__StackTop - SIZEOF (.stack_dummy))
                 0x2003fd00                PROVIDE (__stack, __StackTop)
                 0x00000001                ASSERT ((__StackLimit >= __HeapLimit), region RAM overflowed with stack)
                 0x00000148                DataInitFlashUsed = (__bss_start__ - __data_start__)
-                0x0001bfc0                CodeFlashUsed = (__etext - ORIGIN (FLASH))
-                0x0001c108                TotalFlashUsed = (CodeFlashUsed + DataInitFlashUsed)
+                0x0001bfd0                CodeFlashUsed = (__etext - ORIGIN (FLASH))
+                0x0001c118                TotalFlashUsed = (CodeFlashUsed + DataInitFlashUsed)
                 0x00000001                ASSERT ((TotalFlashUsed <= LENGTH (FLASH)), region FLASH overflowed with .data and user data)
 OUTPUT(examples\light_switch\server\light_switch_server_nrf52840_xxAA_s140_6.0.0.elf elf32-littlearm)
 
@@ -3523,13 +3523,13 @@ OUTPUT(examples\light_switch\server\light_switch_server_nrf52840_xxAA_s140_6.0.0
  .ARM.attributes
                 0x0000107e       0x39 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .ARM.attributes
-                0x000010b7       0x39 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
+                0x000010b7       0x39 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
  .ARM.attributes
-                0x000010f0       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
+                0x000010f0       0x20 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52840.S.obj
  .ARM.attributes
-                0x00001110       0x39 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+                0x00001110       0x39 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
  .ARM.attributes
-                0x00001149       0x39 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+                0x00001149       0x39 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
  .ARM.attributes
                 0x00001182       0x39 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT.c.obj)
  .ARM.attributes
@@ -3658,9 +3658,9 @@ OUTPUT(examples\light_switch\server\light_switch_server_nrf52840_xxAA_s140_6.0.0
  .comment       0x0000007f       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_beacon.c.obj
  .comment       0x0000007f       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_utils.c.obj
  .comment       0x0000007f       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/__/__/__/mesh/prov/src/prov_bearer_adv.c.obj
- .comment       0x0000007f       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
- .comment       0x0000007f       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
- .comment       0x0000007f       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/ver/mod/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
+ .comment       0x0000007f       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52840.c.obj
+ .comment       0x0000007f       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error.c.obj
+ .comment       0x0000007f       0x80 examples/light_switch/server/CMakeFiles/light_switch_server_nrf52840_xxAA_s140_6.0.0.dir/C_/b/nRF5_SDK_15.0.0_a53641a/components/libraries/util/app_error_handler_gcc.c.obj
  .comment       0x0000007f       0x80 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT.c.obj)
  .comment       0x0000007f       0x80 external/rtt/librtt_nrf52840_xxAA.a(SEGGER_RTT_printf.c.obj)
  .comment       0x0000007f       0x80 external/micro-ecc/libuECC_nrf52840_xxAA.a(uECC.c.obj)
