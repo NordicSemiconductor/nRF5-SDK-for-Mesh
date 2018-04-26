@@ -26,7 +26,7 @@ The interactive console is written for Python 3.5. Install the requirements usin
 To follow this guide, you need at least two boards (`PCA10028`, `PCA10030`, or `PCA10040`) running
 the [serial example](@ref md_examples_serial_README).
 
-## Using the interface
+## Using the interface @anchor serial_using_the_interface
 
 To start the serial interface, simply call `python interactive_console.py -d <com port>`. The baud
 rate is set to the default value used in the mesh serial stack. To disable logging to file, append
@@ -166,7 +166,7 @@ As with the normal Python shell, you can do more complex scripting, e.g.:
 
 Here we use a simple `for`-loop to send 10 echo commands with a one second delay.
 
-## Provisioning
+## Provisioning @anchor serial_provisioning
 To illustrate how to use a more complex application, we have implemented a sample provisioner and provisionee
 class. In `provisioning.py`, you find three main classes:
 

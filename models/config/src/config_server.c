@@ -527,9 +527,9 @@ static void handle_composition_data_get(access_model_handle_t handle, const acce
     }
 
     const config_msg_composition_data_get_t * p_pdu = (const config_msg_composition_data_get_t *) p_message->p_data;
-    if (p_pdu->page_number != 0)
+    if (p_pdu->page_number != 0 && p_pdu->page_number != 0xFF)
     {
-        /* Only page 0 is supported in Mesh Profile Specification v1.0. */
+        /* Only page 0/0xFF is supported in Mesh Profile Specification v1.0. */
         return;
     }
 

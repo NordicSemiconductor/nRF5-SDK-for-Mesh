@@ -59,11 +59,6 @@ static void serial_app_rx_cb(const uint8_t * p_data, uint32_t length)
     TEST_ASSERT_EQUAL_HEX8_ARRAY(mp_app_data, p_data, length);
 }
 
-static void assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("ASSERT");
-}
-
 /*****************************************************************************
  * Test initialization and finalization
  *****************************************************************************/
@@ -71,7 +66,6 @@ static void assertion_handler(uint32_t pc)
 void setUp(void)
 {
     serial_mock_Init();
-    m_assertion_handler = assertion_handler;
 }
 
 void tearDown(void)

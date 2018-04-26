@@ -204,7 +204,7 @@ void test_control_handlers(void)
 
     packet_mesh_trs_common_seg_set(&transport_packet, false);
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_control_packet_consumer_add(handlers, sizeof(handlers) / sizeof(handlers[0])));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_control_packet_consumer_add(handlers, ARRAY_SIZE(handlers)));
 
     for (uint32_t i = 0; i < ARRAY_SIZE(handlers); ++i)
     {

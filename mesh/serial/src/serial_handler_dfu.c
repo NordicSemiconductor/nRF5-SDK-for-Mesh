@@ -45,7 +45,7 @@
 
 static nrf_mesh_evt_handler_t m_evt_handler;
 
-static void serial_handler_mesh_evt_handle(nrf_mesh_evt_t* p_evt)
+static void serial_handler_mesh_evt_handle(const nrf_mesh_evt_t* p_evt)
 {
     serial_packet_t * p_serial_evt;
     switch (p_evt->type)

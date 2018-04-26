@@ -39,7 +39,6 @@
 #include <cmock.h>
 
 #include "serial_handler_mesh.h"
-
 #include "serial_status.h"
 
 #include "serial_mock.h"
@@ -48,7 +47,9 @@
 #include "device_state_manager_mock.h"
 #include "nrf_mesh_mock.h"
 #include "nrf_mesh_events_mock.h"
-#include "nrf_mesh_assert.h"
+
+#include "nordic_common.h"
+#include "test_assert.h"
 
 #define CMD_LENGTH_CHECK(_opcode, _intended_length)                                                   \
     do {                                                                                              \
@@ -65,7 +66,7 @@
 static nrf_mesh_tx_params_t m_expected_tx_params;
 static uint32_t m_expected_packet_send;
 static uint32_t m_packet_send_return;
-static nrf_mesh_evt_handler_t * mp_evt_handler;
+static const nrf_mesh_evt_handler_t * mp_evt_handler;
 static serial_packet_t m_expected_tx_packet;
 static uint32_t m_expected_serial_tx;
 
@@ -502,7 +503,7 @@ void test_addresses(void)
         0x5435,
         0x0001 /* shouldn't care about duplicates. */
     };
-    uint32_t count = sizeof(addr_list) / sizeof(addr_list[0]);
+    uint32_t count = ARRAY_SIZE(addr_list);
     dsm_address_get_all_ExpectAndReturn(NULL, NULL, NRF_SUCCESS);
     dsm_address_get_all_IgnoreArg_p_count();
     dsm_address_get_all_IgnoreArg_p_address_handle_list();

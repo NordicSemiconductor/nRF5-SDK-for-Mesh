@@ -1,5 +1,28 @@
 # Release Notes
 
+## BLE Mesh v1.0.1
+This is a hotfix release with documentation/bug fixes.
+
+### New features
+- None
+
+### Bugfixes
+- Provisionee support added to Beacon example
+- Beacon Example: Fixed beacon enable serial command
+- Provisioner:  Fixed OOB authentication procedure
+- Device Reset: Fixed 1 dropped packet on startup
+
+### Other / Documentation
+- SDK coexistence guide updated for better explanation of coexistence with other Nordic SDKs for concurrent GATT/GAP (and other usage)
+- DFU quick start guide fixed along with device_page_generator.py script
+- SDK patch file updated
+- Serial Example documentation updated
+- Mesh Assert cleanup
+
+### Verification / Test Errata
+- nRF51 platform testing has been put on hold
+
+
 ## BLE Mesh v1.0.0
 
 This is the first production release of Nordic's nRF5 SDK for Mesh. This release implements mandatory features for the Mesh Profile 1.0 specification and also some proprietary features (PB-remote and Nordic Advertiser Extensions) in experimental state.
@@ -33,8 +56,6 @@ This is the first production release of Nordic's nRF5 SDK for Mesh. This release
 
 ### Test Errata
 - DFU : replacing Softdevice live while running app is not tested.
-
-
 
 
 ## BLE Mesh v0.10.1-Alpha

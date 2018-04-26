@@ -76,7 +76,7 @@ static uint8_t find_context_id(const nrf_mesh_prov_ctx_t * p_ctx)
     return 0xff;
 }
 
-static void serial_handler_prov_evt_in(nrf_mesh_prov_evt_t * p_evt)
+static void serial_handler_prov_evt_in(const nrf_mesh_prov_evt_t * p_evt)
 {
     serial_packet_t * p_packet;
 
@@ -298,6 +298,7 @@ void serial_handler_prov_pkt_in(const serial_packet_t * p_incoming)
             {
                 status = nrf_mesh_prov_oob_use(&m_prov_contexts[p_incoming->payload.cmd.prov.oob_use.context_id],
                                                (nrf_mesh_prov_oob_method_t) p_incoming->payload.cmd.prov.oob_use.oob_method,
+                                               p_incoming->payload.cmd.prov.oob_use.oob_action,
                                                p_incoming->payload.cmd.prov.oob_use.size);
             }
             else

@@ -436,7 +436,7 @@ static const mesh_serial_cmd_handler_t m_handlers[] =
     {SERIAL_OPCODE_CMD_MESH_STATE_CLEAR,                    0,                                                       0,  handle_cmd_clear}
 };
 
-static void serial_handler_mesh_evt_handle(nrf_mesh_evt_t* p_evt)
+static void serial_handler_mesh_evt_handle(const nrf_mesh_evt_t* p_evt)
 {
     static serial_packet_t * p_serial_evt;
     switch (p_evt->type)

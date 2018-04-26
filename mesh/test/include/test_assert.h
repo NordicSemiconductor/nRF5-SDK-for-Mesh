@@ -34,41 +34,38 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <nrf_error.h>
 
-#include "event.h"
-#include "list.h"
-#include "utils.h"
+#ifndef TEST_ASSERT_H__
+#define TEST_ASSERT_H__
 
-/** Linked list of event handlers */
-static list_node_t * mp_evt_handlers_head;
+#include <stdint.h>
+#include <setjmp.h>
+#include <stdbool.h>
 
-void event_handle(const nrf_mesh_evt_t * p_evt)
-{
-    NRF_MESH_ASSERT(p_evt != NULL);
+/**
+ * @internal
+ * @defgroup TEST_ASSERT Test assertion utilities
+ * Provides support for testing for mesh assertions in unit tests.
+ * @{
+ */
 
-    if (mp_evt_handlers_head != NULL)
-    {
-        LIST_FOREACH(p_node, mp_evt_handlers_head)
-        {
-            nrf_mesh_evt_handler_t * p_handler = PARENT_BY_FIELD_GET(nrf_mesh_evt_handler_t,
-                                                                     p_next,
-                                                                     p_node);
+/** Variable used to determine if an assertion is expected. */
+extern bool mesh_assert_expect;
+/** Jump buffer used to return from an expected assertion. */
+extern jmp_buf assert_jump_buf;
 
-            p_handler->evt_cb(p_evt);
-        }
-    }
-}
+#define TEST_NRF_MESH_ASSERT_EXPECT(func)      \
+    do {                                       \
+        mesh_assert_expect = true;             \
+        if (!setjmp(assert_jump_buf))          \
+        {                                      \
+            (void) func;                       \
+            mesh_assert_expect = false;        \
+            TEST_FAIL();                       \
+        }                                      \
+    } while (0)
 
-void event_handler_add(nrf_mesh_evt_handler_t * p_handler_params)
-{
-    NRF_MESH_ASSERT(p_handler_params != NULL);
-    list_add(&mp_evt_handlers_head, (list_node_t*) &p_handler_params->p_next);
-}
+/** @} */
 
-void event_handler_remove(nrf_mesh_evt_handler_t * p_handler_params)
-{
-    NRF_MESH_ASSERT(p_handler_params != NULL);
-    /* This function ignores attempts to remove event handlers that are not in the list. */
-    (void) list_remove(&mp_evt_handlers_head, (list_node_t*) &p_handler_params->p_next);
-}
+#endif
+

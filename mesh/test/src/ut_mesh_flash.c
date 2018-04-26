@@ -44,6 +44,8 @@
 #include "bearer_handler_mock.h"
 #include "timer_mock.h"
 #include "bl_if.h"
+#include "nordic_common.h"
+#include "test_assert.h"
 
 #define START_TIME                      (123)
 #define FLASH_PROCESS_TIME_OVERHEAD		(500)
@@ -74,13 +76,6 @@ static mesh_flash_user_t m_bearer_handler_action_enqueue_callback_expected_user;
 
 
 extern void mesh_flash_reset(void);
-
-static void mesh_assert(uint32_t pc)
-{
-    printf("ASSERT AT PC %u", pc);
-    TEST_FAIL();
-}
-nrf_mesh_assertion_handler_t m_assertion_handler = mesh_assert;
 
 void setUp(void)
 {
@@ -333,7 +328,7 @@ void test_execute_write(void)
     bearer_handler_action_enqueue_StubWithCallback(bearer_handler_action_enqueue_callback);
 
     /* Run test vectors */
-    for (uint32_t i = 0; i < sizeof(test_vector) / sizeof(test_vector[0]); ++i)
+    for (uint32_t i = 0; i < ARRAY_SIZE(test_vector); ++i)
     {
         m_bearer_handler_action_enqueue_callback_cnt = 0;
         m_bearer_handler_action_enqueue_callback_expected_cnt = 0;
@@ -444,7 +439,7 @@ void test_execute_erase(void)
     bearer_handler_action_enqueue_StubWithCallback(bearer_handler_action_enqueue_callback);
 
     /* Run test vectors */
-    for (uint32_t i = 0; i < sizeof(test_vector) / sizeof(test_vector[0]); ++i)
+    for (uint32_t i = 0; i < ARRAY_SIZE(test_vector); ++i)
     {
         m_bearer_handler_action_enqueue_callback_cnt = 0;
         m_bearer_handler_action_enqueue_callback_expected_cnt = 0;

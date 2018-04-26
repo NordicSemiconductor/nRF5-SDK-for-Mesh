@@ -41,7 +41,7 @@
 
 #include "access_config_mock.h"
 #include "composition_data.h"
-#include "nrf_mesh_assert.h"
+#include "test_assert.h"
 
 #define SIG_MODELS {0x0000, ACCESS_COMPANY_ID_NONE},    \
                    {0x8000, ACCESS_COMPANY_ID_NONE},    \

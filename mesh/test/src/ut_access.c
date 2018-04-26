@@ -39,7 +39,8 @@
 #include <cmock.h>
 #include <string.h>
 
-#include "nrf_mesh_assert.h"
+#include "nordic_common.h"
+#include "test_assert.h"
 
 #include "log.h"
 #include "fifo.h"
@@ -135,7 +136,7 @@ typedef struct
  *******************************************************************************/
 static access_opcode_handler_t m_opcode_handlers[ACCESS_MODEL_COUNT][OPCODE_COUNT];
 
-static nrf_mesh_evt_handler_t * mp_evt_handler;
+static const nrf_mesh_evt_handler_t * mp_evt_handler;
 
 static msg_evt_t m_msg_evt_buffer[MSG_EVT_MAX_COUNT];
 static fifo_t m_msg_fifo;
@@ -379,13 +380,6 @@ static uint32_t address_get_stub(dsm_handle_t handle, nrf_mesh_address_t * p_add
 
 static void publish_timeout_cb(access_model_handle_t handle, void * p_args)
 {
-}
-
-nrf_mesh_assertion_handler_t m_assertion_handler;
-void nrf_mesh_assertion_handler(uint32_t pc)
-{
-    printf("Mesh assertion at %.08x\n", pc);
-    TEST_FAIL_MESSAGE("Mesh assertion triggered");
 }
 
 static inline void expect_msg(access_opcode_t opcode, uint32_t ref, const uint8_t * p_data, uint32_t length)
@@ -654,8 +648,6 @@ void setUp(void)
     setup_addresses();
     fifo_init(&m_msg_fifo);
 
-    m_assertion_handler = nrf_mesh_assertion_handler;
-
     m_flash_manager_calls = 0;
     m_listener_register_calls = 0;
 
@@ -785,7 +777,7 @@ void test_rx_tx(void)
 
     /* Test unknowns as well. */
     const access_opcode_t u_opcodes[] = { ACCESS_OPCODE_SIG(0x8234), ACCESS_OPCODE_VENDOR((0x12 | 0xc0), 0x1336) };
-    for (uint32_t i = 0; i < sizeof(u_opcodes) / sizeof(access_opcode_t); ++i)
+    for (uint32_t i = 0; i < ARRAY_SIZE(u_opcodes); ++i)
     {
         send_msg(u_opcodes[i], data, data_length, 0, 0);
     }
@@ -977,7 +969,7 @@ void test_model_publish(void)
     access_message_tx_t message;
     const uint8_t data[] = "Hello, World";
     const access_opcode_t opcodes[] = { ACCESS_OPCODE_SIG(0x0040), ACCESS_OPCODE_SIG(0x8123), ACCESS_OPCODE_VENDOR(0x0c0, 0x1337) };
-    const unsigned num_opcodes = sizeof(opcodes) / sizeof(access_opcode_t);
+    const unsigned num_opcodes = ARRAY_SIZE(opcodes);
     message.opcode.opcode = opcodes[0].opcode;
     message.opcode.company_id =opcodes[0].company_id;
     message.p_buffer = data;

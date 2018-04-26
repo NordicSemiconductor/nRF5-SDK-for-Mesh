@@ -39,6 +39,7 @@
 
 #include "unity.h"
 #include "cmock.h"
+#include "test_assert.h"
 
 #include "ad_type_filter_mock.h"
 #include "list_mock.h"

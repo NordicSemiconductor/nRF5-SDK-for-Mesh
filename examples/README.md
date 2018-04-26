@@ -31,7 +31,7 @@ A simple [hardware abstraction layer](@ref md_examples_common_README) is shared 
 
 To build the examples, follow the instructions in [Building the Mesh Stack](@ref md_doc_getting_started_how_to_build).
 
-## How to run examples
+## How to run examples @anchor examples_how_to_run_examples
 
 To program examples onto a Development Kit, first connect it to your computer with a USB cable. When your board is detected, you can program examples as described below.
 

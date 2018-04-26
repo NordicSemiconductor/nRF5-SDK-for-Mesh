@@ -48,6 +48,8 @@
 #include "health_opcodes.h"
 #include "health_server.h"
 
+#include "nordic_common.h"
+
 #define TEST_MODEL_HANDLE   14
 #define TEST_ELEMENT_INDEX  42
 #define TEST_COMPANY_ID     0x1234
@@ -343,7 +345,7 @@ void test_faultarray(void)
 {
     health_server_t server;
     health_server_selftest_t test_array[] = {{ .test_id = 0x01, .selftest_function = selftest_test_function }};
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, health_server_init(&server, TEST_ELEMENT_INDEX, TEST_COMPANY_ID, NULL, test_array, sizeof(test_array) / sizeof(test_array[0])));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, health_server_init(&server, TEST_ELEMENT_INDEX, TEST_COMPANY_ID, NULL, test_array, ARRAY_SIZE(test_array)));
 
     TEST_ASSERT_EQUAL(0, health_server_fault_count_get(&server));
 
@@ -389,7 +391,7 @@ void test_selftest(void)
         { .test_id = 0x34, .selftest_function = selftest_test_function },
         { .test_id = 0xf1, .selftest_function = selftest_test_function },
     };
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, health_server_init(&server, TEST_ELEMENT_INDEX, TEST_COMPANY_ID, NULL, test_array, sizeof(test_array) / sizeof(test_array[0])));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, health_server_init(&server, TEST_ELEMENT_INDEX, TEST_COMPANY_ID, NULL, test_array, ARRAY_SIZE(test_array)));
 
     /* Check that no faults are returned after initialization: */
     {
@@ -573,7 +575,7 @@ void test_status_period(void)
 {
     health_server_t server;
     health_server_selftest_t test_array[] = {{ .test_id = 0x01, .selftest_function = selftest_test_function }};
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, health_server_init(&server, TEST_ELEMENT_INDEX, TEST_COMPANY_ID, NULL, test_array, sizeof(test_array) / sizeof(test_array[0])));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, health_server_init(&server, TEST_ELEMENT_INDEX, TEST_COMPANY_ID, NULL, test_array, ARRAY_SIZE(test_array)));
 
     /* Check that the default value of the fast period divisor is 0: */
     {

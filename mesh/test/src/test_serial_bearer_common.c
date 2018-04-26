@@ -104,16 +104,6 @@ void segfault_handler(int sig)
   exit(1);
 }
 
-/* Assertion handler, automatically fails the test. */
-void nrf_mesh_assertion_handler(uint32_t pc)
-{
-    char text[80];
-    sprintf(text,"Mesh assertion triggered, PC: %u", pc);
-    TEST_FAIL_MESSAGE(text);
-}
-
-nrf_mesh_assertion_handler_t m_assertion_handler = nrf_mesh_assertion_handler;
-
 void serial_buffer_get_calls(uint16_t packet_len, packet_buffer_packet_t ** pp_buf_packet)
 {
     (*pp_buf_packet)->size = packet_len + 1;

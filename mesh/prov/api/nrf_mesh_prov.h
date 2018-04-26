@@ -203,9 +203,10 @@ uint32_t nrf_mesh_prov_provision(nrf_mesh_prov_ctx_t *                     p_ctx
  * event.
  *
  * @param[in,out] p_ctx Pointer to a statically allocated provisioning context structure.
- * @param[in] method    Specifies the authentication method to use. The action that must be taken
- *                      for the specified method is dependent on the provisionee device, and can be
- *                      read from the @c NRF_MESH_EVT_PROV_CAPS_RECEIVED event.
+ * @param[in] method    Specifies the authentication method to use.
+ * @param[in] action    The action that must be taken for the specified method is dependent on
+ *                      the provisionee device, and can be read from
+ *                      the @ref NRF_MESH_PROV_EVT_CAPS_RECEIVED event.
  * @param[in] size      Size of the out-of-band authentication data. Must be between 1 and 8
  *                      inclusive or 0 when @c NRF_MESH_PROV_OOB_METHOD_NONE is used.
  *
@@ -214,6 +215,7 @@ uint32_t nrf_mesh_prov_provision(nrf_mesh_prov_ctx_t *                     p_ctx
  */
 uint32_t nrf_mesh_prov_oob_use(nrf_mesh_prov_ctx_t *      p_ctx,
                                nrf_mesh_prov_oob_method_t method,
+                               uint8_t                    action,
                                uint8_t                    size);
 
 /**

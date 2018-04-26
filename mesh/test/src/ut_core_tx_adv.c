@@ -41,7 +41,6 @@
 
 #include "core_tx_mock.h"
 #include "advertiser_mock.h"
-#include "nrf_mesh_assert.h"
 #include "nordic_common.h"
 
 #define TOKEN   0x12345678

@@ -2,16 +2,27 @@ set(target "beaconing_${PLATFORM}_${SOFTDEVICE}")
 
 add_executable(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
-    "${CMAKE_SOURCE_DIR}/examples/nrf_mesh_sdk.c"
-    ${ACCESS_SOURCE_FILES}
+    "${MBTLE_SOURCE_DIR}/examples/nrf_mesh_sdk.c"
+    "${CMAKE_SOURCE_DIR}/examples/common/src/simple_hal.c"
     ${WEAK_SOURCE_FILES}
+    ${CONFIG_SERVER_SOURCE_FILES}
+    ${HEALTH_SERVER_SOURCE_FILES}
+    ${ACCESS_SOURCE_FILES}
+    ${PROV_PROVISIONEE_SOURCE_FILES}
+    ${PROV_COMMON_SOURCE_FILES}
+    ${NODE_CONFIG_SOURCE_FILES}
     ${${PLATFORM}_SOURCE_FILES})
 
 target_include_directories(${target} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../include"
     "${CMAKE_SOURCE_DIR}/examples"
+    "${CMAKE_SOURCE_DIR}/examples/common/include"
     "${SDK_ROOT}/components/drivers_nrf/delay"
+    ${CONFIG_SERVER_INCLUDE_DIRS}
+    ${HEALTH_SERVER_INCLUDE_DIRS}
     ${ACCESS_INCLUDE_DIRS}
+    ${PROV_INCLUDE_DIRS}
     ${${BOARD}_INCLUDE_DIRS}
     ${${SOFTDEVICE}_INCLUDE_DIRS})
 
@@ -29,7 +40,8 @@ target_compile_definitions(${target} PUBLIC
 
 target_link_libraries(${target}
     mesh_core_${PLATFORM}
-    rtt_${PLATFORM})
+    rtt_${PLATFORM}
+    uECC_${PLATFORM})
 
 create_hex(${target})
 add_flash_target(${target})

@@ -174,11 +174,12 @@ uint32_t nrf_mesh_prov_provision(nrf_mesh_prov_ctx_t *                     p_ctx
 
 uint32_t nrf_mesh_prov_oob_use(nrf_mesh_prov_ctx_t *      p_ctx,
                                nrf_mesh_prov_oob_method_t method,
+                               uint8_t                    action,
                                uint8_t                    size)
 {
     if (p_ctx->role == NRF_MESH_PROV_ROLE_PROVISIONER)
     {
-        return prov_provisioner_oob_use(p_ctx, method, size);
+        return prov_provisioner_oob_use(p_ctx, method, action, size);
     }
     else
     {

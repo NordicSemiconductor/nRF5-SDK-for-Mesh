@@ -71,12 +71,18 @@ uint32_t prov_provisioner_provision(nrf_mesh_prov_ctx_t * p_ctx,
  *
  * @param[in,out] p_ctx  Pointer to the provisioning context structure.
  * @param[in]     method Which OOB authentication method to use.
+ * @param[in]     action Which action of the chosen OOB method to use.
+ *                       The appropriate action shall be chosen from @ref nrf_mesh_prov_input_action_t
+ *                       or @ref nrf_mesh_prov_output_action_t subsets.
  * @param[in]     size   Size of the OOB authentication data.
  *
  * @retval NRF_SUCCESS The OOB authentication method was successfully chosen.
  * @retval NRF_ERROR_INVALID_STATE The provisioning context was not in the correct state for this function to be used.
  */
-uint32_t prov_provisioner_oob_use(nrf_mesh_prov_ctx_t * p_ctx, nrf_mesh_prov_oob_method_t method, uint8_t size);
+uint32_t prov_provisioner_oob_use(nrf_mesh_prov_ctx_t * p_ctx,
+                                  nrf_mesh_prov_oob_method_t method,
+                                  uint8_t action,
+                                  uint8_t size);
 
 /**
  * Provides authentication data to the provisioner module.

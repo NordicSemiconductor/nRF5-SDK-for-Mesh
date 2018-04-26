@@ -39,7 +39,9 @@
 #include <cmock.h>
 
 #include "net_state.h"
+#include "test_assert.h"
 #include "timer_scheduler.h"
+
 #include "event_mock.h"
 #include "flash_manager_mock.h"
 
@@ -142,7 +144,7 @@ void fire_mem_listeners(void)
     }
 }
 
-void event_handle_flash_fail_callback(nrf_mesh_evt_t * p_evt, int calls)
+void event_handle_flash_fail_callback(const nrf_mesh_evt_t * p_evt, int calls)
 {
     TEST_ASSERT_NOT_NULL(p_evt);
     TEST_ASSERT_EQUAL(NRF_MESH_EVT_FLASH_FAILED, p_evt->type);
@@ -188,7 +190,7 @@ static void m_skip_minutes(uint32_t minutes)
 void expect_flash_seqnum(uint32_t seqnum)
 {
     static uint32_t buffer[3];
-    fm_entry_t * p_entry = (fm_entry_t *) buffer;
+    static fm_entry_t * p_entry = (fm_entry_t *) buffer;
     p_entry->header.handle = HANDLE_SEQNUM;
     p_entry->header.len_words = 2;
     buffer[2] = BUFFER_SEAL; /* Make a seal to detect out-of-bounds writing. */
@@ -225,8 +227,8 @@ void expect_flash_iv_data(uint32_t iv_index, bool in_iv_update)
 void expect_flash_load(uint32_t iv_index, uint32_t seqnum, bool in_iv_update)
 {
     static uint32_t buffer[5];
-    fm_entry_t * p_iv_entry = (fm_entry_t *) buffer;
-    fm_entry_t * p_seqnum_entry = (fm_entry_t *) &buffer[3];
+    static fm_entry_t * p_iv_entry = (fm_entry_t *) buffer;
+    static fm_entry_t * p_seqnum_entry = (fm_entry_t *) &buffer[3];
     p_iv_entry->header.handle = 2;
     p_iv_entry->header.len_words = 3;
     p_iv_entry->data[0] = iv_index;
@@ -1000,14 +1002,12 @@ void test_reset(void)
 
     flash_manager_entry_invalidate_ExpectAndReturn(mp_manager, HANDLE_SEQNUM, NRF_SUCCESS);
     flash_manager_entry_invalidate_ExpectAndReturn(mp_manager, HANDLE_IV_DATA, NRF_SUCCESS);
+    expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
     net_state_reset();
 
+    notify_flash_write_complete(mp_expected_seqnum_flash_buffer);
     TEST_ASSERT_EQUAL(0, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
-
-    expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
-    TEST_ASSERT_EQUAL(NRF_ERROR_FORBIDDEN, net_state_seqnum_alloc(&seqnum));
-    notify_flash_write_complete(mp_expected_seqnum_flash_buffer);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
     TEST_ASSERT_EQUAL(0, seqnum);
@@ -1021,6 +1021,8 @@ void test_reset(void)
 
     /* fail one */
     flash_manager_entry_invalidate_ExpectAndReturn(mp_manager, HANDLE_SEQNUM, NRF_ERROR_NO_MEM);
+    flash_manager_entry_alloc_StubWithCallback(flash_manager_entry_alloc_dummy);
+    flash_manager_entry_commit_Ignore();
     net_state_reset();
     TEST_ASSERT_NOT_NULL(mp_listeners[0]);
     /* retry, fail second */
@@ -1035,11 +1037,21 @@ void test_reset(void)
 
     TEST_ASSERT_EQUAL(0, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
-
-    expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
     TEST_ASSERT_EQUAL(NRF_ERROR_FORBIDDEN, net_state_seqnum_alloc(&seqnum));
     notify_flash_write_complete(mp_expected_seqnum_flash_buffer);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
     TEST_ASSERT_EQUAL(0, seqnum);
+}
+
+void test_iv_index_set(void)
+{
+    const uint32_t TEST_IV_INDEX = 1542;
+    expect_flash_iv_data(TEST_IV_INDEX, true);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_set(TEST_IV_INDEX, true));
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, net_state_iv_index_set(0, false));
+
+    /* -1 because the IV index update is in progress */
+    TEST_ASSERT_EQUAL(TEST_IV_INDEX - 1 , net_state_tx_iv_index_get());
+    TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
 }

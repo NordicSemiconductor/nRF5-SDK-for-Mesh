@@ -304,10 +304,13 @@ static void prov_provisionee_pkt_in(prov_bearer_t * p_bearer, const uint8_t * p_
 #endif
                 handle_prov_start(p_ctx, p_buffer);
                 p_ctx->state = NRF_MESH_PROV_STATE_WAIT_PUB_KEY;
-                // if (p_ctx->pubkey_oob)
-                // {
-                //      /*TODO: The node should be exposing its public key OOB at this point. Add event to ensure this?*/
-                // }
+                if (p_ctx->pubkey_oob)
+                {
+                    nrf_mesh_prov_evt_t event;
+                    event.type = NRF_MESH_PROV_EVT_OOB_PUBKEY_REQUEST;
+                    event.params.oob_pubkey_request.p_context = p_ctx;
+                    p_ctx->event_handler(&event);
+                }
             }
             break;
         case PROV_PDU_TYPE_PUBLIC_KEY:

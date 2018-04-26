@@ -110,7 +110,7 @@ static bool fw_updated_event_is_for_me(const nrf_mesh_evt_dfu_t * p_evt)
 }
 /********** Event Handlers **********/
 
-static void mesh_evt_handler(nrf_mesh_evt_t* p_evt)
+static void mesh_evt_handler(const nrf_mesh_evt_t* p_evt)
 {
     switch (p_evt->type)
     {

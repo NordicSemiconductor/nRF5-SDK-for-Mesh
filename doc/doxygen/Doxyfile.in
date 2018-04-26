@@ -238,6 +238,7 @@ link_BluetoothSIG="<a href=\"http://www.bluetooth.org/\" target=\"_blank\">Bluet
 link_nrfutil_github="<a href=\"https://github.com/NordicSemiconductor/pc-nrfutil/tree/mesh_dfu\" target=\"_blank\">https://github.com/NordicSemiconductor/pc-nrfutil/tree/mesh_dfu</a>" \
 link_nrfutil_github_name="<a href=\"https://github.com/NordicSemiconductor/pc-nrfutil/tree/mesh_dfu\" target=\"_blank\">nrfutil</a>" \
 link_companyID="<a href=\"https://www.bluetooth.com/specifications/assigned-numbers/company-identifiers\" target=\"_blank\">Bluetooth SIG assigned Company ID</a>" \
+link_sdFWID="<a href=\"https://devzone.nordicsemi.com/question/3629/how-do-i-access-softdevice-version-string/?answer=3693#post-id-3693\" target=\"_blank\">SoftDevice FWIDs</a>" \
 link_nordicsemi="<a href=\"http://www.nordicsemi.com/\" target=\"_blank\">nordicsemi.com</a>" \
 link_pyserial="<a href=\"https://pypi.python.org/pypi/pyserial\" target=\"_blank\">pyserial package</a>" \
 link_cmake="<a href=\"https://cmake.org/\" target=\"_blank\">CMake</a>" \

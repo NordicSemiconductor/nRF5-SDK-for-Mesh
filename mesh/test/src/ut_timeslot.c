@@ -44,7 +44,9 @@
 #include "timeslot.h"
 #include "nrf.h"
 #include "nrf_mesh.h"
-#include "nrf_mesh_assert.h"
+
+#include "nordic_common.h"
+#include "test_assert.h"
 
 #include "timer_mock.h"
 #include "bearer_handler_mock.h"
@@ -65,15 +67,7 @@ static timer_callback_t m_end_timer_callback;
 static nrf_radio_request_t m_req;
 static uint32_t m_req_len; /**< Number of bytes to compare in m_req (it has a union that can contain some garbage outside of the set fields) */
 
-nrf_mesh_assertion_handler_t m_assertion_handler;
 NRF_RTC_Type* NRF_RTC0;
-
-void assert_handler(uint32_t pc)
-{
-    char errmsg[256];
-    sprintf(errmsg, "Assert 0x%x\n", pc);
-    TEST_FAIL_MESSAGE(errmsg);
-}
 
 void setUp(void)
 {
@@ -83,7 +77,6 @@ void setUp(void)
 
     NRF_RTC0 = calloc(1, sizeof(NRF_RTC_Type));
     m_end_timer_callback = NULL;
-    m_assertion_handler = assert_handler;
     timeslot_init(250);
     m_radio_session_open_expect = 0;
     m_radio_session_close_expect = 0;
@@ -646,7 +639,7 @@ void test_forced_commands(void)
 
     NRF_RTC0->COUNTER = 0;
 
-    for (uint32_t i = 0; i < sizeof(signals) / sizeof(signals[0]); ++i)
+    for (uint32_t i = 0; i < ARRAY_SIZE(signals); ++i)
     {
         m_start_ts_with_maxlen();
 

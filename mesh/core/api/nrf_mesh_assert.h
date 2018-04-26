@@ -37,14 +37,6 @@
 #ifndef NRF_MESH_ASSERT_H__
 #define NRF_MESH_ASSERT_H__
 
-#ifdef UNIT_TEST
-#include <setjmp.h>
-#endif
-
-#ifdef _lint
-#include <stdlib.h>
-#endif
-
 #include "nrf_mesh.h"
 #include "nrf.h"
 
@@ -57,134 +49,50 @@
 
 /**
  * Pointer to the assert handler.
- *
- * This is normally defined in nrf_mesh.c, but when writing unit tests it might
- * be necessary to explicitly define this variable in your code.
+ * This is normally defined in nrf_mesh.c. If writing unit tests, this is defined
+ * in test_assert.c, which can be found in the test source directory.
  */
 extern nrf_mesh_assertion_handler_t m_assertion_handler;
 
-#if defined(HOST)
-    #if defined(_lint)
-
-        /** Produces a hardfault. */
-        #define HARD_FAULT() abort()
-
-        /**
-         * Gets the current value of the program counter.
-         * @param[out] pc Variable to assign the obtained value to.
-         */
-        #define GET_PC(pc) pc = __current_pc();
-    #elif defined(__GNUC__)
-
-        /** Produces a hardfault. */
-        #define HARD_FAULT() __builtin_trap()
-
-        /**
-         * Gets the current value of the program counter.
-         * @param[out] pc Variable to assign the obtained value to.
-         */
-        #define GET_PC(pc) do {                         \
-                __asm volatile (                        \
-                    "movl $., %0\n\t"                   \
-                    : "=r" (pc)                         \
-                    );                                  \
-            } while(0)
-    #else
-        #error "Compiler used is not supported."
-    #endif /* defined(__GNUC__) */
-#elif defined(_lint)
-
-    /** Produces a hardfault. */
-    #define HARD_FAULT() abort()
-
-    /**
-     * Gets the current value of the program counter.
-     * @param[out] pc Variable to assign the obtained value to.
-     */
-    #define GET_PC(pc)   (void) pc
-#elif defined(__CC_ARM) /* ARMCC for NRF */
-
-    /** Produces a hardfault. */
-    #define HARD_FAULT() __breakpoint(0)
-
-    /**
-     * Gets the current value of the program counter.
-     * @param[out] pc Variable to assign the obtained value to.
-     */
-    #define GET_PC(pc) do {                       \
-            pc = __current_pc();                  \
-        } while (0)
-#elif defined(__GNUC__) /* GCC for NRF */
-
-    /** Produces a hardfault. */
-    #define HARD_FAULT() __asm volatile (".inst.n 0xde00\n")
-
-    /**
-     * Gets the current value of the program counter.
-     * @param[out] pc Variable to assign the obtained value to.
-     */
-    #define GET_PC(pc) do {                       \
-            __asm volatile (                      \
-                "MOV %0, pc\n\t"                  \
-                : "=r" (pc)                       \
-                );                                \
-        } while (0)
+/* Include compiler specific definitions: */
+#if defined(_lint)
+    #include "nrf_mesh_assert_lint.h"
+#elif defined(__GNUC__)
+    #include "nrf_mesh_assert_gcc.h"
+#elif defined(__CC_ARM)
+    #include "nrf_mesh_assert_armcc.h"
 #else
-    #error "Compiler used is not supported."
-#endif /* HOST*/
+    #error "Your compiler is currently not supported."
+#endif
 
 /**
  * Run-time assertion.
  * Will trigger the assertion handler if the specified condition evaluates to false.
  * @param[in] cond Condition to evaluate.
  */
-#ifdef UNIT_TEST
-    extern bool mesh_assert_expect;
-    extern jmp_buf assert_jump_buf;
-    #define TEST_NRF_MESH_ASSERT_EXPECT(func) do { \
-            mesh_assert_expect = true;             \
-            if (!setjmp(assert_jump_buf))          \
-            {                                      \
-                (void) func;                       \
-                mesh_assert_expect = false;        \
-                TEST_FAIL();                       \
-            }                                      \
-        } while (0)
-
-    #define NRF_MESH_ASSERT(cond)   if (!(cond))   \
-     {                                             \
-        uint32_t pc;                               \
-        GET_PC(pc);                                \
-        if(mesh_assert_expect)                     \
-        {                                          \
-            mesh_assert_expect = false;            \
-            longjmp(assert_jump_buf,1);            \
-        }                                          \
-        else if (m_assertion_handler)              \
-        {                                          \
-            m_assertion_handler(pc);               \
-        }                                          \
-        else                                       \
-        {                                          \
-            HARD_FAULT();                          \
-        }                                          \
-     }
-#elif _lint
-    #define NRF_MESH_ASSERT(cond) do {if (!(cond)) {abort();}} while (0)
-#else
-    #define NRF_MESH_ASSERT(cond)   if (!(cond))                        \
-    {                                                                   \
-        uint32_t pc;                                                    \
-        GET_PC(pc);                                                     \
-        if (m_assertion_handler)                                        \
-        {                                                               \
-            m_assertion_handler(pc);                                    \
-        }                                                               \
-        else                                                            \
-        {                                                               \
-            HARD_FAULT();                                               \
-        }                                                               \
+#define NRF_MESH_ASSERT(cond)            \
+    if (!(cond))                         \
+    {                                    \
+        uint32_t pc;                     \
+        GET_PC(pc);                      \
+        if (m_assertion_handler)         \
+        {                                \
+            m_assertion_handler(pc);     \
+        }                                \
+        else                             \
+        {                                \
+            HARD_FAULT();                \
+        }                                \
     }
+
+/**
+ * Run-time assertion for debug use.
+ * Debug assertions are only run if the stack is compiled in debug mode.
+ */
+#ifdef NDEBUG /* The NDEBUG define is added automatically when compiling in release mode. */
+    #define NRF_MESH_ASSERT_DEBUG(cond) (void) cond
+#else
+    #define NRF_MESH_ASSERT_DEBUG(cond) NRF_MESH_ASSERT(cond)
 #endif
 
 /**

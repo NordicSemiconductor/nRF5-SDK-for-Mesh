@@ -38,10 +38,14 @@
 #include <unity.h>
 #include <cmock.h>
 
+#include "nordic_common.h"
 #include "prov_utils.h"
+#include "test_assert.h"
+
 #include "enc_mock.h"
 #include "uECC_mock.h"
 #include "rand_mock.h"
+#include "nordic_common.h"
 
 typedef struct
 {
@@ -50,12 +54,6 @@ typedef struct
 } oob_method_and_action_pair_t;
 
 static nrf_mesh_prov_ctx_t m_ctx;
-
-nrf_mesh_assertion_handler_t m_assertion_handler;
-void nrf_mesh_assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("Mesh assertion triggered");
-}
 
 /* Simple integer power function. Converting between integers and floats can cause rounding errors. */
 static uint32_t pow__(uint32_t num, uint8_t p)
@@ -70,7 +68,6 @@ static uint32_t pow__(uint32_t num, uint8_t p)
 
 void setUp(void)
 {
-    m_assertion_handler = nrf_mesh_assertion_handler;
     enc_mock_Init();
     uECC_mock_Init();
     rand_mock_Init();
@@ -375,7 +372,7 @@ void test_generate_oob_data(void)
             {NRF_MESH_PROV_OOB_METHOD_INPUT,  NRF_MESH_PROV_INPUT_ACTION_PUSH},
             {NRF_MESH_PROV_OOB_METHOD_INPUT,  NRF_MESH_PROV_INPUT_ACTION_TWIST}
         };
-        for (uint32_t i = 0; i < sizeof(count_pairs) / sizeof(count_pairs[0]); i++)
+        for (uint32_t i = 0; i < ARRAY_SIZE(count_pairs); i++)
         {
             m_ctx.oob_method = (nrf_mesh_prov_oob_method_t) count_pairs[i].method;
             m_ctx.oob_action = count_pairs[i].action;
@@ -398,13 +395,13 @@ void test_generate_oob_data(void)
             {NRF_MESH_PROV_OOB_METHOD_OUTPUT, NRF_MESH_PROV_OUTPUT_ACTION_DISPLAY_NUMERIC},
             {NRF_MESH_PROV_OOB_METHOD_INPUT,  NRF_MESH_PROV_INPUT_ACTION_ENTER_NUMBER},
         };
-        for (uint32_t i = 0; i < sizeof(numeric_pairs) / sizeof(numeric_pairs[0]); i++)
+        for (uint32_t i = 0; i < ARRAY_SIZE(numeric_pairs); i++)
         {
             m_ctx.oob_method = (nrf_mesh_prov_oob_method_t) numeric_pairs[i].method;
             m_ctx.oob_action = numeric_pairs[i].action;
 
             uint32_t rand_output[] = {1000, 100, 99, 999, 10000000, 3, 7, 432483922, 0xFFFFFFFF, 11, 1, 0, 255, 128};
-            for (uint32_t j = 0; j < sizeof(rand_output) / sizeof(rand_output[0]); j++)
+            for (uint32_t j = 0; j < ARRAY_SIZE(rand_output); j++)
             {
                 rand_hw_rng_get_Expect(NULL, 4);
                 rand_hw_rng_get_IgnoreArg_p_result();
@@ -426,7 +423,7 @@ void test_generate_oob_data(void)
             {NRF_MESH_PROV_OOB_METHOD_OUTPUT, NRF_MESH_PROV_OUTPUT_ACTION_ALPHANUMERIC},
             {NRF_MESH_PROV_OOB_METHOD_INPUT,  NRF_MESH_PROV_INPUT_ACTION_ENTER_STRING},
         };
-        for (uint32_t i = 0; i < sizeof(alphanumeric_pairs) / sizeof(alphanumeric_pairs[0]); i++)
+        for (uint32_t i = 0; i < ARRAY_SIZE(alphanumeric_pairs); i++)
         {
             m_ctx.oob_method = (nrf_mesh_prov_oob_method_t) alphanumeric_pairs[i].method;
             m_ctx.oob_action = alphanumeric_pairs[i].action;
@@ -438,7 +435,7 @@ void test_generate_oob_data(void)
                 {17, 24, 24, 27, 10, 34, 0, 1},
                 {27, 10, 18, 23, 11, 24, 32, 28}
             };
-            for (uint32_t j = 0; j < sizeof(rand_output) / sizeof(rand_output[0]); j++)
+            for (uint32_t j = 0; j < ARRAY_SIZE(rand_output); j++)
             {
                 memset(expected_auth_value, 0, PROV_AUTH_LEN);
                 rand_hw_rng_get_Expect(NULL, m_ctx.oob_size);
@@ -457,13 +454,13 @@ void test_generate_oob_data(void)
         /* Test invalid oob data */
         oob_method_and_action_pair_t invalid_pairs[] =
         {
-            {NRF_MESH_PROV_OOB_METHOD_OUTPUT, NRF_MESH_PROV_OUTPUT_ACTION_NONE},
-            {NRF_MESH_PROV_OOB_METHOD_INPUT,  NRF_MESH_PROV_INPUT_ACTION_NONE},
-            {NRF_MESH_PROV_OOB_METHOD_NONE,   NRF_MESH_PROV_INPUT_ACTION_NONE},
-            {NRF_MESH_PROV_OOB_METHOD_STATIC, NRF_MESH_PROV_INPUT_ACTION_NONE},
+            {NRF_MESH_PROV_OOB_METHOD_OUTPUT, 0xFF},
+            {NRF_MESH_PROV_OOB_METHOD_INPUT,  0xFF},
+            {NRF_MESH_PROV_OOB_METHOD_NONE,   0xFF},
+            {NRF_MESH_PROV_OOB_METHOD_STATIC, 0xFF},
         };
         memset(expected_auth_value, 0, PROV_AUTH_LEN);
-        for (uint32_t i = 0; i < sizeof(invalid_pairs) / sizeof(invalid_pairs[0]); i++)
+        for (uint32_t i = 0; i < ARRAY_SIZE(invalid_pairs); i++)
         {
             m_ctx.oob_method = (nrf_mesh_prov_oob_method_t) invalid_pairs[i].method;
             m_ctx.oob_action = invalid_pairs[i].action;

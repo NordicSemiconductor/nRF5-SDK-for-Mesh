@@ -80,7 +80,6 @@
     } while (0)
 
 
-nrf_mesh_assertion_handler_t                  m_assertion_handler;
 static serial_packet_t                        m_expected_packet;
 static uint32_t                               m_tx_cb_count;
 static uint32_t                               m_tx_cb_count_actual;
@@ -88,12 +87,6 @@ static uint32_t                               m_tx_cb_count_actual;
 static void callbacks_verify(void)
 {
     TEST_ASSERT_EQUAL_MESSAGE(m_tx_cb_count, m_tx_cb_count_actual, "Serial TX called too few times.");
-}
-
-
-static void assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("ASSERT");
 }
 
 static void serial_tx_cb(const serial_packet_t* p_packet, int cmock_num_calls)
@@ -117,7 +110,6 @@ void setUp(void)
     hal_mock_Init();
     advertiser_mock_Init();
 
-    m_assertion_handler = assertion_handler;
     m_tx_cb_count = 0;
     m_tx_cb_count_actual = 0;
 }
@@ -207,6 +199,7 @@ void test_beacon(void)
         advertiser_instance_init_IgnoreArg_p_adv();
         advertiser_instance_init_IgnoreArg_p_buffer();
         advertiser_instance_init_ReturnMemThruPtr_p_adv(&adv, sizeof(adv));
+        advertiser_enable_Expect(&adv);
     }
     serial_handler_device_init();
 
@@ -343,8 +336,8 @@ void test_beacon(void)
     for (uint32_t i = 0; i < NRF_MESH_SERIAL_BEACON_SLOTS; i++)
     {
         cmd.payload.cmd.device.beacon_stop.beacon_slot = i;
-        advertiser_disable_Expect(NULL);
-        advertiser_disable_IgnoreArg_p_adv();
+        advertiser_flush_Expect(NULL);
+        advertiser_flush_IgnoreArg_p_adv();
         EXPECT_ACK(cmd.opcode, NRF_SUCCESS);
         serial_handler_device_rx(&cmd);
     }

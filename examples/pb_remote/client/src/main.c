@@ -116,7 +116,7 @@ static uint8_t m_next_unprov_index = 0;
  * Static functions
  *****************************************************************************/
 
-static void prov_evt_handler(nrf_mesh_prov_evt_t * p_evt);
+static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt);
 static void remote_client_event_cb(const pb_remote_event_t * p_evt);
 
 static void provisioner_setup(void)
@@ -162,7 +162,7 @@ static void start_provisioning(const uint8_t * p_uuid, nrf_mesh_prov_bearer_type
     ERROR_CHECK(nrf_mesh_prov_provision(&m_prov_ctx, p_uuid, &prov_data, bearer_type));
 }
 
-static void prov_evt_handler(nrf_mesh_prov_evt_t * p_evt)
+static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
 {
     switch (p_evt->type)
     {
@@ -202,6 +202,7 @@ static void prov_evt_handler(nrf_mesh_prov_evt_t * p_evt)
         {
             uint32_t status = nrf_mesh_prov_oob_use(p_evt->params.oob_caps_received.p_context,
                                                     NRF_MESH_PROV_OOB_METHOD_STATIC,
+                                                    0,
                                                     NRF_MESH_KEY_SIZE);
             if (status != NRF_SUCCESS)
             {

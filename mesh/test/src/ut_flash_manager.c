@@ -46,8 +46,9 @@
 #include "bearer_event.h"
 #include "fifo.h"
 #include "flash_manager_test_util.h"
+#include "nordic_common.h"
+#include "test_assert.h"
 
-nrf_mesh_assertion_handler_t m_assertion_handler;
 static uint32_t m_expect_mem_listener;
 static bool m_recursive_listener; /**< The listener will re-add itself in the callback */
 static int m_expect_queue_empty_cb_count;
@@ -69,17 +70,10 @@ static void queue_empty_cb(void)
     m_expect_queue_empty_cb_count--;
 }
 
-void assert_handler(uint32_t pc)
-{
-    printf("Mesh assertion at %.08x\n", pc);
-    TEST_FAIL_MESSAGE("Mesh assertion triggered");
-}
-
 void setUp(void)
 {
     flash_manager_defrag_mock_Init();
     flash_manager_test_util_setup();
-    m_assertion_handler = assert_handler;
 
 }
 
@@ -223,7 +217,7 @@ void test_manager_add(void)
     memset(&manager, 0, sizeof(manager));
     config.p_area = area;
     config.page_count = 3;
-    build_test_page(area, 3, entries, sizeof(entries) / sizeof(entries[0]), true);
+    build_test_page(area, 3, entries, ARRAY_SIZE(entries), true);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, flash_manager_add(&manager, &config));
     TEST_ASSERT_EQUAL_MEMORY(&config, &manager.config, sizeof(config));
     TEST_ASSERT_TRUE(fifo_is_empty(&g_flash_operation_queue));
@@ -316,7 +310,7 @@ void test_invalidate_duplicate_of_last_entry(void)
     memset(&manager, 0, sizeof(manager));
     config.p_area     = area;
     config.page_count = 3;
-    build_test_page(area, 3, entries, sizeof(entries) / sizeof(entries[0]), true);
+    build_test_page(area, 3, entries, ARRAY_SIZE(entries), true);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, flash_manager_add(&manager, &config));
     TEST_ASSERT_EQUAL_MEMORY(&config, &manager.config, sizeof(config));
     flash_execute();
@@ -813,12 +807,12 @@ void test_getters(void)
         .invalidate_complete_cb = NULL
     };
 
-    build_test_page(area, 3, entries, sizeof(entries) / sizeof(entries[0]), true);
+    build_test_page(area, 3, entries, ARRAY_SIZE(entries), true);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, flash_manager_add(&manager, &config));
     flash_execute();
 
     /* get all the entries as individual entries */
-    for (uint32_t i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
+    for (uint32_t i = 0; i < ARRAY_SIZE(entries); i++)
     {
         const fm_entry_t * p_entry = flash_manager_entry_get(&manager, entries[i].handle);
         TEST_ASSERT_NOT_NULL(p_entry);
@@ -827,7 +821,7 @@ void test_getters(void)
     }
     /* get all the entries as filtered entries, should return in the order they're flashed */
     const fm_entry_t * p_entry = NULL;
-    for (uint32_t i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
+    for (uint32_t i = 0; i < ARRAY_SIZE(entries); i++)
     {
         fm_handle_filter_t filter = {.mask = 0xFF00, .match = entries[i].handle};
         p_entry = flash_manager_entry_next_get(&manager, &filter, p_entry);
@@ -837,7 +831,7 @@ void test_getters(void)
     }
     /* Get all entries without a filter, should match all in the order they're flashed */
     p_entry = NULL;
-    for (uint32_t i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
+    for (uint32_t i = 0; i < ARRAY_SIZE(entries); i++)
     {
         p_entry = flash_manager_entry_next_get(&manager, NULL, p_entry);
         TEST_ASSERT_NOT_NULL(p_entry);
@@ -846,7 +840,7 @@ void test_getters(void)
     }
     /* Get all entries with a match-all filter, should match all in the order they're flashed */
     p_entry = NULL;
-    for (uint32_t i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
+    for (uint32_t i = 0; i < ARRAY_SIZE(entries); i++)
     {
         fm_handle_filter_t filter = {.mask = 0x0000, .match = 0xABCD};
         p_entry = flash_manager_entry_next_get(&manager, &filter, p_entry);
@@ -856,7 +850,7 @@ void test_getters(void)
     }
     /* Get all entries with a filter only matching top 4 bits, should match all in the order they're flashed */
     p_entry = NULL;
-    for (uint32_t i = 0; i < sizeof(entries) / sizeof(entries[0]); i++)
+    for (uint32_t i = 0; i < ARRAY_SIZE(entries); i++)
     {
         fm_handle_filter_t filter = {.mask = 0xF000, .match = 0x0123};
         p_entry = flash_manager_entry_next_get(&manager, &filter, p_entry);
@@ -954,7 +948,7 @@ void test_power_failure(void)
     };
 
     /* No seal present, should mark last entry invalid, and add a seal. */
-    build_test_page(area, 3, entries, sizeof(entries) / sizeof(entries[0]), false);
+    build_test_page(area, 3, entries, ARRAY_SIZE(entries), false);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, flash_manager_add(&manager, &config));
     flash_execute();
     FLASH_EXPECT(&area[2], 0, 0x08, 0x00, 0x00, 0x00); /* invalidated last entry */
@@ -1120,8 +1114,8 @@ void test_defrag_state(void)
         }
     };
 
-    build_test_page(&area[0], 1, entries, sizeof(entries) / sizeof(entries[0]), true);
-    build_test_page(&area[1], 1, entries, sizeof(entries) / sizeof(entries[0]), true);
+    build_test_page(&area[0], 1, entries, ARRAY_SIZE(entries), true);
+    build_test_page(&area[1], 1, entries, ARRAY_SIZE(entries), true);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, flash_manager_add(&managers[0], &config[0]));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, flash_manager_add(&managers[1], &config[1]));
 
@@ -1157,7 +1151,7 @@ void test_defrag_state(void)
     /* end the defrag, should trigger both the action that made this happen, as well as the other
      * two actions. */
     memset(&area[0], 0xFF, PAGE_SIZE);
-    build_test_page(&area[0], 1, entries_no_invalid, sizeof(entries_no_invalid) / sizeof(entries_no_invalid[0]), true);
+    build_test_page(&area[0], 1, entries_no_invalid, ARRAY_SIZE(entries_no_invalid), true);
     flash_manager_on_defrag_end(&managers[0]);
     flash_execute();
     FLASH_EXPECT(&area[0], 0xA1*WORD_SIZE, 0x10, 0x00, 0x34, 0x12);
@@ -1201,7 +1195,7 @@ void test_remove(void)
                                      .invalidate_complete_cb = NULL,
                                      .remove_complete_cb     = remove_complete_callback};
 
-    build_test_page(area, 3, entries, sizeof(entries) / sizeof(entries[0]), true);
+    build_test_page(area, 3, entries, ARRAY_SIZE(entries), true);
     gp_active_manager = &manager;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, flash_manager_add(&manager, &config));
     flash_execute();

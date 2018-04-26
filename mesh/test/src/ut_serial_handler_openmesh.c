@@ -54,17 +54,9 @@
     } while (0)
 
 
-nrf_mesh_assertion_handler_t                  m_assertion_handler;
-
-static void assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("ASSERT");
-}
-
 void setUp(void)
 {
     serial_mock_Init();
-    m_assertion_handler = assertion_handler;
 }
 
 void tearDown(void)

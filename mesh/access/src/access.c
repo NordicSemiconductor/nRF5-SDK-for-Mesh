@@ -280,7 +280,7 @@ static void handle_incoming(const access_message_rx_t * p_message)
     }
 }
 
-static void mesh_msg_handle(nrf_mesh_evt_message_t * p_evt)
+static void mesh_msg_handle(const nrf_mesh_evt_message_t * p_evt)
 {
     NRF_MESH_ASSERT(p_evt != NULL);
     access_opcode_t opcode = opcode_get(p_evt->p_buffer);
@@ -313,7 +313,7 @@ static void mesh_msg_handle(nrf_mesh_evt_message_t * p_evt)
     handle_incoming(&message);
 }
 
-static void mesh_evt_cb(nrf_mesh_evt_t * p_evt)
+static void mesh_evt_cb(const nrf_mesh_evt_t * p_evt)
 {
     switch (p_evt->type)
     {

@@ -37,16 +37,16 @@
 
 #include <unity.h>
 #include <cmock.h>
-#include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "nordic_common.h"
+#include "test_assert.h"
+
 #include "bearer_event_mock.h"
 #include "device_state_manager.h"
 #include "device_state_manager_flash.h"
 #include "nrf_mesh_mock.h"
-#include "nrf_mesh_assert.h"
 #include "nrf_mesh_externs.h"
 #include "nrf_mesh_keygen_mock.h"
 #include "net_state_mock.h"
@@ -54,8 +54,8 @@
 
 /* Enable this to check that the handle ordering is as expected (0..N-1). */
 #define TEST_EXPLICIT_ORDERING 1
-#define VIRTUAL_ADDR            0x8080
-#define VIRTUAL_ADDRESS_AMOUNT  3
+#define VIRTUAL_ADDR           0x8080
+#define VIRTUAL_ADDRESS_COUNT  3
 
 /** Non-VLA version of a dsm flash entry */
 typedef struct
@@ -63,8 +63,6 @@ typedef struct
     fm_header_t       header;
     dsm_flash_entry_t entry;
 } dsm_entry_t;
-
-nrf_mesh_assertion_handler_t m_assertion_handler;
 
 static flash_manager_t * mp_flash_manager;
 static uint32_t m_flash_expect_calls;
@@ -97,14 +95,8 @@ static uint32_t flash_manager_add_cb(flash_manager_t * p_manager, const flash_ma
     return NRF_SUCCESS;
 }
 
-void nrf_mesh_assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("Mesh assert handler called!");
-}
-
 void setUp(void)
 {
-    m_assertion_handler = nrf_mesh_assertion_handler;
     m_fm_mem_listener_register_expect = 0;
     m_flash_expect_calls = 0;
     nrf_mesh_mock_Init();
@@ -2718,15 +2710,15 @@ void test_storage_ordering_appkeys(void)
 void test_walking_through_uuid(void)
 {
     uint16_t virtual_address = VIRTUAL_ADDR;
-    dsm_handle_t address_handle[VIRTUAL_ADDRESS_AMOUNT];
-    uint8_t virtual_uuid[VIRTUAL_ADDRESS_AMOUNT][NRF_MESH_UUID_SIZE] =
+    dsm_handle_t address_handle[VIRTUAL_ADDRESS_COUNT];
+    uint8_t virtual_uuid[VIRTUAL_ADDRESS_COUNT][NRF_MESH_UUID_SIZE] =
     {
         {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f},
         {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f},
         {0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f}
     };
 
-    for (uint8_t iter = 0; iter < VIRTUAL_ADDRESS_AMOUNT; iter++)
+    for (uint8_t iter = 0; iter < VIRTUAL_ADDRESS_COUNT; iter++)
     {
         nrf_mesh_keygen_virtual_address_ExpectAndReturn(&virtual_uuid[iter][0], NULL, NRF_SUCCESS);
         nrf_mesh_keygen_virtual_address_IgnoreArg_p_address();
@@ -2742,7 +2734,7 @@ void test_walking_through_uuid(void)
         .p_virtual_uuid = NULL
     };
 
-    for (uint8_t iter = 0; iter < VIRTUAL_ADDRESS_AMOUNT; iter++)
+    for (uint8_t iter = 0; iter < VIRTUAL_ADDRESS_COUNT; iter++)
     {
         TEST_ASSERT_TRUE(nrf_mesh_rx_address_get(virtual_address, &addr));
         TEST_ASSERT_EQUAL(NRF_MESH_ADDRESS_TYPE_VIRTUAL, addr.type);

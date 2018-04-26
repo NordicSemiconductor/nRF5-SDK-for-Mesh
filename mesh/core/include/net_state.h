@@ -59,6 +59,18 @@
 void net_state_init(void);
 
 /**
+ * Sets the initial IV index and IV update state.
+ *
+ * @param[in] iv_index Initial IV index value.
+ * @param[in] iv_update @c true if an IV index update is in progress.
+ *
+ * @retval NRF_SUCCESS             Successfully set the IV index and IV update state.
+ * @retval NRF_ERROR_INVALID_STATE The function was called when the IV index and update state was
+ *                                 already set.
+ */
+uint32_t net_state_iv_index_set(uint32_t iv_index, bool iv_update);
+
+/**
  * Recover network state from flash storage.
  *
  * @warning The user should not call this function while the flash manager is unstable.

@@ -65,7 +65,7 @@ void * _weak_handler_ptr()
 uint32_t __attribute__((weak, alias ("_weak_handler"))) prov_provisioner_provision(nrf_mesh_prov_ctx_t * p_ctx,
                                                                                    const uint8_t * p_uuid, const nrf_mesh_prov_provisioning_data_t * p_data);
 
-uint32_t __attribute__((weak, alias ("_weak_handler"))) prov_provisioner_oob_use(nrf_mesh_prov_ctx_t * p_ctx, nrf_mesh_prov_oob_method_t method, uint8_t size);
+uint32_t __attribute__((weak, alias ("_weak_handler"))) prov_provisioner_oob_use(nrf_mesh_prov_ctx_t * p_ctx, nrf_mesh_prov_oob_method_t method, uint8_t action, uint8_t size);
 
 uint32_t __attribute__((weak, alias ("_weak_handler"))) prov_provisioner_auth_data(nrf_mesh_prov_ctx_t * p_ctx, const uint8_t * p_data, uint8_t size);
 

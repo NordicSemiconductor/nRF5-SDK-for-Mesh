@@ -63,11 +63,14 @@ class BLInfoType(enum.IntEnum):
 
 class DevicePageEntry(object):
     def __init__(self, bl_info_type, data):
+        #print("Type: ", type(data).__name__)
         if not (isinstance(bl_info_type, BLInfoType) and
-                isinstance(data, bytearray)):
+                (isinstance(data, bytearray) or isinstance(data, str))):
             raise TypeError
 
         self.bl_info_type = bl_info_type
+        if (isinstance(data, str)):
+           data = bytearray.fromhex(data)
         self.data = self.pad(data)
 
     @property
@@ -124,6 +127,8 @@ class DevicePage(object):
                                              bootloader_config["company_id"],
                                              bootloader_config["application_id"],
                                              bootloader_config["application_version"]))
+
+        #print(version_data)
         self.entries.append(DevicePageEntry(BLInfoType.VERSION,
                                             version_data))
 
@@ -193,12 +198,21 @@ def write_all(platforms, softdevices, args):
 
 
 def main():
+    softdevices = load_softdevies("../configuration/softdevices.json")
+    platforms = load_platforms("../configuration/platforms.json")
+    sd_str = ''
+    for sd in softdevices:
+        sd_str += ''.join(sd["name"]) + "\n"
+    plt_str = ''
+    for plt in platforms:
+        plt_str += ''.join(plt["name"]) + '\n'
+
     SOFTDEVICE = "s132_5.0.0"
     DEVICE = "nrf52832_xxAA"
     parser = argparse.ArgumentParser(description="Device Page Generator")
-    parser.add_argument("-d", "--device", help="Select device",
+    parser.add_argument("-d", "--device", help="Select device: " + ''.join(plt_str),
                         default=DEVICE)
-    parser.add_argument("-sd", "--softdevice", help="Select SoftDevice",
+    parser.add_argument("-sd", "--softdevice", help="Select SoftDevice: "  + ''.join(sd_str),
                         default=SOFTDEVICE)
     parser.add_argument("-c", "--bootloader-config",
                         default="bootloader_config_default.json",
@@ -209,9 +223,6 @@ def main():
                         help=("Writes all known device page combinations to "
                               + "\'bin/\'"))
     args = parser.parse_args()
-
-    softdevices = load_softdevies("../configuration/softdevices.json")
-    platforms = load_platforms("../configuration/platforms.json")
 
     dirname = os.path.dirname(args.output_file)
     if not os.path.exists(dirname):

@@ -35,33 +35,28 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "bearer_handler.h"
+
 #include <unity.h>
 #include <cmock.h>
 #include <string.h>
+
 #include "nrf.h"
+#include "test_assert.h"
+
 #include "timeslot_mock.h"
 #include "queue_mock.h"
 #include "timer_mock.h"
 #include "scanner_mock.h"
-#include "nrf_mesh_assert.h"
 #include "nrf_mesh_cmsis_mock_mock.h"
 
 #define DEFAULT_ACTION {action_start_cb, action_radio_irq_handler, 1000, NULL, {NULL, NULL}}
 
-nrf_mesh_assertion_handler_t m_assertion_handler;
 static void* mp_expected_args;
 static timestamp_t m_time_now;
 static uint32_t m_expected_start_calls;
 static uint32_t m_expected_radio_irq_calls;
 static NRF_RADIO_Type m_radio;
 NRF_RADIO_Type * NRF_RADIO = &m_radio;
-
-static void assertion_handler(uint32_t pc)
-{
-    char failstr[256];
-    sprintf(failstr, "ASSERT at 0x%x", pc);
-    TEST_FAIL_MESSAGE(failstr);
-}
 
 void setUp(void)
 {
@@ -71,7 +66,6 @@ void setUp(void)
     scanner_mock_Init();
     nrf_mesh_cmsis_mock_mock_Init();
 
-    m_assertion_handler = assertion_handler;
     m_expected_start_calls = 0;
     m_expected_radio_irq_calls = 0;
     mp_expected_args = NULL;

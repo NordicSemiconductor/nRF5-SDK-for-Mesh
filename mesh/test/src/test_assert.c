@@ -35,12 +35,31 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdbool.h>
-#include <setjmp.h>
+#include "unity.h"
 
 #include "nrf_mesh.h"
+#include "test_assert.h"
 
-/* Externed variables used for assertion handling and testing. */
-nrf_mesh_assertion_handler_t m_assertion_handler;
+/* Storage for the variables declared in test_assert.h: */
 bool mesh_assert_expect;
 jmp_buf assert_jump_buf;
+
+/* Forward declaration of the assertion handler: */
+static void assertion_handler(uint32_t pc_value);
+
+/* Global assertion handler instance for unit tests: */
+nrf_mesh_assertion_handler_t m_assertion_handler = assertion_handler;
+
+static void assertion_handler(uint32_t pc_value)
+{
+    if(mesh_assert_expect)
+    {
+        mesh_assert_expect = false;
+        longjmp(assert_jump_buf, 1);
+    }
+    else
+    {
+        TEST_FAIL_MESSAGE("Unexpected mesh assertion");
+    }
+}
+

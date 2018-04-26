@@ -35,12 +35,10 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 #include <unity.h>
 
-#include "packet.h"
 #include "ccm_soft.h"
 
 /* Scratch buffer */

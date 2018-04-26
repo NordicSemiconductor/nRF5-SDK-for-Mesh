@@ -35,7 +35,6 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
 #include "unity.h"
 #include "timer_scheduler.h"
 #include "timer.h"
@@ -43,7 +42,7 @@
 #include "nrf_error.h"
 #include "fifo.h"
 #include "nrf_mesh.h"
-#include "nrf_mesh_assert.h"
+#include "test_assert.h"
 
 typedef struct
 {
@@ -59,16 +58,9 @@ static timestamp_t      m_time_now;
 static uint32_t         m_ret_val;
 static uint32_t         m_cb_count;
 static  bearer_event_flag_callback_t m_flag_cb;
-nrf_mesh_assertion_handler_t m_assertion_handler;
-
-void assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("Assertion handler called");
-}
 
 void setUp(void)
 {
-    m_assertion_handler = assertion_handler;
     m_time_now = 0;
     m_cb_count = 0;
     m_ret_val = NRF_SUCCESS;

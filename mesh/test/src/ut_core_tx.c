@@ -40,8 +40,8 @@
 
 #include "core_tx.h"
 
-#include "nrf_mesh_assert.h"
 #include "nordic_common.h"
+#include "test_assert.h"
 
 #define TOKEN   0x12345678
 

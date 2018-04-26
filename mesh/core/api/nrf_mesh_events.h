@@ -317,7 +317,7 @@ typedef struct
  *
  * @see nrf_mesh_evt_handler_add()
  */
-typedef void (*nrf_mesh_evt_handler_cb_t)(nrf_mesh_evt_t * p_evt);
+typedef void (*nrf_mesh_evt_handler_cb_t)(const nrf_mesh_evt_t * p_evt);
 
 /**
  * Mesh event handler context structure.
@@ -337,14 +337,14 @@ typedef struct
  *
  * @todo Allow masking out certain events.
  *
- * @param[in] p_handler_params Event handler parameters.
+ * @param[in,out] p_handler_params Event handler parameters.
  */
 void nrf_mesh_evt_handler_add(nrf_mesh_evt_handler_t * p_handler_params);
 
 /**
  * Removes an event handler.
  *
- * @param[in] p_handler_params Event handler parameters.
+ * @param[in,out] p_handler_params Event handler parameters.
  */
 void nrf_mesh_evt_handler_remove(nrf_mesh_evt_handler_t * p_handler_params);
 

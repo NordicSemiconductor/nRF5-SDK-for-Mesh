@@ -47,7 +47,7 @@
 
 #include "nrf.h"
 #include "nrf_mesh_serial.h"
-
+#include "test_assert.h"
 
 #include "bearer_event_mock.h"
 #include "serial_bearer_mock.h"

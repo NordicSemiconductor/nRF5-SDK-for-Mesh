@@ -38,8 +38,8 @@
 #include <unity.h>
 #include <cmock.h>
 
+#include "nordic_common.h"
 #include "prov_beacon.h"
-
 #include "uri.h"
 
 #include "beacon_mock.h"
@@ -108,7 +108,7 @@ void tearDown(void)
     enc_mock_Destroy();
 }
 
-void evt_handle_cb(nrf_mesh_prov_evt_t* p_evt)
+void evt_handle_cb(const nrf_mesh_prov_evt_t* p_evt)
 {
     TEST_ASSERT_NOT_EQUAL(0, m_evt_handle_calls_expected--);
     /* There's padding in the event struct, so we have to check fields manually: */
@@ -127,7 +127,7 @@ void test_tx(void)
 {
     unprov_sample_data_t sample_datas[] = {UNPROV_SAMPLE_DATA_1, UNPROV_SAMPLE_DATA_2};
 
-    for (uint32_t i = 0; i < sizeof(sample_datas) / sizeof(sample_datas[0]); i++)
+    for (uint32_t i = 0; i < ARRAY_SIZE(sample_datas); i++)
     {
         unprov_sample_data_t sample_data = sample_datas[i];
 
@@ -161,7 +161,7 @@ void test_tx(void)
 void test_rx(void)
 {
     unprov_sample_data_t sample_datas[] = {UNPROV_SAMPLE_DATA_1, UNPROV_SAMPLE_DATA_2};
-    for (uint32_t i = 0; i < sizeof(sample_datas) / sizeof(sample_datas[0]); i++)
+    for (uint32_t i = 0; i < ARRAY_SIZE(sample_datas); i++)
     {
         printf("sample data %d\n", i);
         unprov_sample_data_t sample_data = sample_datas[i];

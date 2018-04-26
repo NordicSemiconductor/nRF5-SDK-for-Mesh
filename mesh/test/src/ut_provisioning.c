@@ -87,13 +87,6 @@ static prov_bearer_callbacks_t m_callbacks =
 
 static prov_bearer_t m_bearer;
 
-/********** Mesh Assertion Handling **********/
-static void nrf_mesh_assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("Mesh assertion triggered");
-}
-nrf_mesh_assertion_handler_t m_assertion_handler = nrf_mesh_assertion_handler;
-
 /********** Test Initialization and Finalization ***********/
 
 void setUp(void)

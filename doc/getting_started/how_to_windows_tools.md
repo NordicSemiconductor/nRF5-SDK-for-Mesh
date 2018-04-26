@@ -39,3 +39,17 @@ This can be installed using `mingw-get.exe`. From the command line, simply call:
 Ruby is used by the mocking framework @link_cmock<!-- https://github.com/ThrowTheSwitch/CMock -->.
 Install it from the @link_ruby<!-- https://www.ruby-lang.org/ -->
 website.
+
+
+| Tool              | Recommended Minimum Version | Install Notes                                         | Download Link                                                                                |
+|-------------------|-----------------------------|-------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| git for windows   | 2.13                        | make sure to select "Use git in windows command line" | https://git-scm.com/download/win                                                             |
+| CMake             | 3.9.0                       | (add to Path)                                         | https://cmake.org/download/                                                                  |
+| Nrfjprog          | 9.5.0                       | (add to Path)                                         | https://www.nordicsemi.com/eng/nordic/Products/nRF52840/nRF5x-Command-Line-Tools-Win32/58850 |
+| J-Link            | 6.16a                       | (add to Path)                                         | included in nrfjprog toolset                                                                 |
+| ninja             | 1.7.2                       | (add to Path)                                         | https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip                  |
+| python3           | 3.5.1.32                    | must be 32bit for pynrfjprog dll to work!             | https://www.python.org/ftp/python/3.5.1/python-3.5.1.exe                                     |
+| python2           | 2.7                         |                                                       | https://www.python.org/ftp/python/2.7/python-2.7.msi                                         |
+| arm-none-eabi-gcc | 6.3.1                       | (add to Path)                                         | https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads                         |
+
+

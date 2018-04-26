@@ -41,6 +41,8 @@
 #include "serial_handler_access.h"
 #include "nrf_mesh_config_serial.h"
 #include "serial_status.h"
+#include "test_assert.h"
+
 #include "serial_mock.h"
 #include "access_config_mock.h"
 #include "access_mock.h"
@@ -54,12 +56,6 @@
                                                         serial_cmd_rsp_send_Expect(CMD.opcode, SERIAL_STATUS_ERROR_INVALID_LENGTH, NULL, 0);   \
                                                         serial_handler_access_rx(&cmd); \
                                                     } while (0)
-nrf_mesh_assertion_handler_t m_assertion_handler;
-static void assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("ASSERT");
-}
-
 static void test_access_model_pub_addr_set()
 {
     serial_packet_t cmd;
@@ -584,7 +580,6 @@ void setUp(void)
     serial_mock_Init();
     access_config_mock_Init();
     access_mock_Init();
-    m_assertion_handler = assertion_handler;
 }
 
 void tearDown(void)

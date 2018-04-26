@@ -39,11 +39,10 @@
 #include <stdint.h>
 #include <unity.h>
 
+#include "nordic_common.h"
 #include "nrf_mesh.h"
-#include "nrf_mesh_assert.h"
 #include "packet_buffer.h"
-
-nrf_mesh_assertion_handler_t m_assertion_handler;
+#include "test_assert.h"
 
 #define MEM_BLOCK_SIZE 2048
 #define DEFAULT_PACKET_LEN 40
@@ -93,17 +92,8 @@ static mem_expected_size_pair_t m_uniform_size_alloc_table[] =
     {NULL, DEFAULT_PACKET_LEN},  {NULL, DEFAULT_PACKET_LEN}, {NULL, DEFAULT_PACKET_LEN}
 };
 
-/* Assertion handler, automatically fails the test. */
-void nrf_mesh_assertion_handler(uint32_t pc)
-{
-    char assert_message[50];
-    sprintf(assert_message, "Mesh assertion triggered: PC:%u,", pc);
-    TEST_FAIL_MESSAGE(assert_message);
-}
-
 void setUp(void)
 {
-    m_assertion_handler = nrf_mesh_assertion_handler;
 }
 
 void tearDown(void)
@@ -483,7 +473,7 @@ void test_packet_buffer_empty_near_end(void)
          {MEM_BLOCK_SIZE - packet_header_size - remaining_size, 0, true}, /* Should fit after wrap around */
          {MEM_BLOCK_SIZE - packet_header_size, 0, false} /* Won't fit, as the end of the buffer is marked as skipped */
         };
-    for (uint32_t i = 0; i < sizeof(vectors) / sizeof(vectors[0]); i++)
+    for (uint32_t i = 0; i < ARRAY_SIZE(vectors); i++)
     {
         char fail_msg[128];
         sprintf(fail_msg, "Failed at iteration %d, size is %d", i, vectors[i].size);

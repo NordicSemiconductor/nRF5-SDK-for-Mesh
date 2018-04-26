@@ -475,7 +475,10 @@ uint32_t prov_provisioner_provision(nrf_mesh_prov_ctx_t * p_ctx,
     return status;
 }
 
-uint32_t prov_provisioner_oob_use(nrf_mesh_prov_ctx_t * p_ctx, nrf_mesh_prov_oob_method_t method, uint8_t size)
+uint32_t prov_provisioner_oob_use(nrf_mesh_prov_ctx_t * p_ctx,
+                                  nrf_mesh_prov_oob_method_t method,
+                                  uint8_t action,
+                                  uint8_t size)
 {
     if (p_ctx->state != NRF_MESH_PROV_STATE_WAIT_CAPS_CONFIRM)
     {
@@ -491,13 +494,15 @@ uint32_t prov_provisioner_oob_use(nrf_mesh_prov_ctx_t * p_ctx, nrf_mesh_prov_oob
     }
 
     p_ctx->oob_method = method;
+    p_ctx->oob_action = action;
     p_ctx->oob_size = size;
+    p_ctx->pubkey_oob = p_ctx->capabilities.pubkey_type & NRF_MESH_PROV_OOB_PUBKEY_TYPE_OOB;
 
     prov_pdu_prov_start_t pdu;
     pdu.pdu_type = PROV_PDU_TYPE_START;
 
     pdu.algorithm = PROV_PDU_START_ALGO_FIPS_P256; /* FIPS P256 EC is the only supported algorithm. */
-    pdu.public_key = p_ctx->capabilities.pubkey_type ? 0x01 : 0x00;
+    pdu.public_key = p_ctx->capabilities.pubkey_type & NRF_MESH_PROV_OOB_PUBKEY_TYPE_OOB;
     pdu.auth_method = (uint8_t) p_ctx->oob_method;
     pdu.auth_action = p_ctx->oob_method == NRF_MESH_PROV_OOB_METHOD_STATIC ? 0 : p_ctx->oob_action;
     pdu.auth_size = p_ctx->oob_method == NRF_MESH_PROV_OOB_METHOD_STATIC ? 0 : p_ctx->oob_size;

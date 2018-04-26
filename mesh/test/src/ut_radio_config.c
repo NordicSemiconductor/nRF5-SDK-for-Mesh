@@ -40,10 +40,9 @@
 
 #include "nrf_error.h"
 #include "nrf.h"
-#include "nrf_mesh_assert.h"
+#include "test_assert.h"
 #include "nrf_mesh_config_core.h"
 
-#include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 
@@ -51,18 +50,9 @@
 NRF_RADIO_Type * NRF_RADIO;
 static NRF_RADIO_Type m_radio;
 
-nrf_mesh_assertion_handler_t m_assertion_handler;
-
-/* Assertion handler, automatically fails the test. */
-void nrf_mesh_assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("Mesh assertion triggered\n");
-}
-
 void setUp(void)
 {
     NRF_RADIO = (NRF_RADIO_Type*) &m_radio;
-    m_assertion_handler = nrf_mesh_assertion_handler;
 }
 
 void tearDown(void)

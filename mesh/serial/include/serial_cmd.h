@@ -331,6 +331,7 @@ typedef struct __attribute((packed))
 {
     uint8_t context_id; /**< ID of context to set the oob method for. */
     uint8_t oob_method; /**< OOB method to use, see @ref nrf_mesh_prov_oob_method_t for accepted values. */
+    uint8_t oob_action; /**< OOB action to use, see @ref nrf_mesh_prov_input_action_t or @ref nrf_mesh_prov_output_action_t for values. */
     uint8_t size;       /**< Size of the OOB data. */
 } serial_cmd_prov_oob_use_t;
 

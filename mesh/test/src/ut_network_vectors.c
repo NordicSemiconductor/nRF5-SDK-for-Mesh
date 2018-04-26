@@ -302,14 +302,6 @@ static void get_test_vector(unsigned int vector, test_vector_t * p_vector)
     }
 }
 
-/*************** Mesh Assertion Handling  ***************/
-
-nrf_mesh_assertion_handler_t m_assertion_handler;
-void nrf_mesh_assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("Mesh assertion triggered!");
-}
-
 /*************** Static Variables and Stuff ***************/
 
 static nrf_mesh_network_secmat_t test_network;
@@ -433,11 +425,8 @@ void setUp(void)
 
     __LOG_INIT((LOG_SRC_NETWORK | LOG_SRC_ENC | LOG_SRC_TEST), 3, LOG_CALLBACK_DEFAULT);
 
-    m_assertion_handler = nrf_mesh_assertion_handler;
-    nrf_mesh_init_params_t init_params =
-    {
-        .assertion_handler = nrf_mesh_assertion_handler,
-    };
+    nrf_mesh_init_params_t init_params;
+    memset(&init_params, 0, sizeof(nrf_mesh_init_params_t));
 
     net_state_init_Expect();
     net_beacon_init_Expect();

@@ -51,7 +51,9 @@
 #include "rand_mock.h"
 #include "timer_mock.h"
 #include "net_state_mock.h"
-#include "nrf_mesh_assert.h"
+
+#include "nordic_common.h"
+#include "test_assert.h"
 
 typedef struct
 {
@@ -104,8 +106,6 @@ typedef struct
     .beacon             = {0x00, 0x3e, 0xca, 0xff, 0x67, 0x2f, 0x67, 0x33, 0x70, 0x12, 0x34, 0x56, 0x79, 0xc6, 0x2f, 0x09, 0xe4, 0xc9, 0x57, 0xf5, 0x9d} \
 }
 
-nrf_mesh_assertion_handler_t m_assertion_handler;
-
 static uint8_t * mp_expected_net_id;
 static nrf_mesh_beacon_info_t ** mpp_infos;
 static uint32_t m_info_count;
@@ -113,11 +113,6 @@ static uint32_t m_info_index;
 static timer_sch_callback_t m_timer_cb;
 static uint32_t m_rand_value;
 static uint32_t m_time_now;
-
-static void assert_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("Assert triggered");
-}
 
 void setUp(void)
 {
@@ -127,7 +122,6 @@ void setUp(void)
     mpp_infos = NULL;
     m_timer_cb = NULL;
     m_time_now = 0;
-    m_assertion_handler = assert_handler;
     beacon_mock_Init();
     net_state_mock_Init();
     timer_scheduler_mock_Init();
@@ -216,10 +210,9 @@ void test_tx_single(void)
     setup_module();
 
     net_beacon_sample_data_t sample_datas[] = {SEC_NET_SAMPLE_DATA_1, SEC_NET_SAMPLE_DATA_2, SEC_NET_SAMPLE_DATA_3};
-#define SAMPLE_COUNT (sizeof(sample_datas) / sizeof(sample_datas[0]))
 
     /* single sample data */
-    for (uint32_t i = 0; i < SAMPLE_COUNT; i++)
+    for (uint32_t i = 0; i < ARRAY_SIZE(sample_datas); i++)
     {
         nrf_mesh_beacon_tx_info_t tx_info;
         net_beacon_sample_data_t sample_data = sample_datas[i];
@@ -270,8 +263,6 @@ void test_tx_single(void)
 
         beacon_mock_Verify();
     }
-
-#undef SAMPLE_COUNT
 }
 
 /**
@@ -339,8 +330,7 @@ void test_packet_in(void)
     setup_module();
 
     net_beacon_sample_data_t sample_datas[] = {SEC_NET_SAMPLE_DATA_1, SEC_NET_SAMPLE_DATA_2, SEC_NET_SAMPLE_DATA_3};
-#define SAMPLE_COUNT (sizeof(sample_datas) / sizeof(sample_datas[0]))
-    for (uint32_t i = 0; i < SAMPLE_COUNT; i++)
+    for (uint32_t i = 0; i < ARRAY_SIZE(sample_datas); i++)
     {
         nrf_mesh_beacon_tx_info_t tx_info;
         net_beacon_sample_data_t sample_data = sample_datas[i];
@@ -403,7 +393,6 @@ void test_packet_in(void)
         net_beacon_packet_in(sample_data.beacon, sizeof(sample_data.beacon), NULL);
         TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count);
     }
-#undef SAMPLE_COUNT
 }
 
 void test_pkt_in_multi(void)
@@ -429,23 +418,22 @@ void test_pkt_in_multi(void)
         &stored_beacons[1].info,
         &stored_beacons[2].info
     };
-#define INFO_COUNT  (sizeof(p_info) / sizeof(p_info[0]))
-    nrf_mesh_beacon_tx_info_t tx_infos[INFO_COUNT];
+    nrf_mesh_beacon_tx_info_t tx_infos[ARRAY_SIZE(p_info)];
     memset(tx_infos, 0, sizeof(tx_infos));
-    for (uint32_t j = 0; j < INFO_COUNT; j++)
+    for (uint32_t j = 0; j < ARRAY_SIZE(p_info); j++)
     {
         p_info[j]->p_tx_info = &tx_infos[j];
     }
 
     mpp_infos = p_info;
-    m_info_count = INFO_COUNT;
+    m_info_count = ARRAY_SIZE(p_info);
 
     net_beacon_sample_data_t sample_data = SEC_NET_SAMPLE_DATA_1;
 
     mp_expected_net_id = sample_data.info.secmat.net_id;
 
     m_info_index = 0;
-    for (uint32_t j = 0; j < INFO_COUNT; j++)
+    for (uint32_t j = 0; j < ARRAY_SIZE(p_info); j++)
     {
         enc_aes_cmac_ExpectWithArray(p_info[j]->secmat.key, NRF_MESH_KEY_SIZE, sample_data.beacon, 13, 13, NULL, 0);
         enc_aes_cmac_IgnoreArg_p_result();
@@ -457,7 +445,6 @@ void test_pkt_in_multi(void)
     TEST_ASSERT_EQUAL(1, tx_infos[0].rx_count);
     TEST_ASSERT_EQUAL(0, tx_infos[1].rx_count); /* Had invalid auth, didn't get a match */
     TEST_ASSERT_EQUAL(1, tx_infos[2].rx_count);
-#undef INFO_COUNT
 }
 
 void test_beacon_state_change(void)
@@ -496,8 +483,7 @@ void test_redundant_tx(void)
     setup_module();
 
     net_beacon_sample_data_t sample_datas[] = {SEC_NET_SAMPLE_DATA_1, SEC_NET_SAMPLE_DATA_2, SEC_NET_SAMPLE_DATA_3};
-#define SAMPLE_COUNT (sizeof(sample_datas) / sizeof(sample_datas[0]))
-    for (uint32_t i = 0; i < SAMPLE_COUNT; i++)
+    for (uint32_t i = 0; i < ARRAY_SIZE(sample_datas); i++)
     {
         nrf_mesh_beacon_tx_info_t tx_info;
         net_beacon_sample_data_t sample_data = sample_datas[i];
@@ -603,5 +589,4 @@ void test_redundant_tx(void)
         TEST_ASSERT_EQUAL(m_time_now, sample_data.info.p_tx_info->tx_timestamp); // should be reset on each transmit.
 
     }
-#undef SAMPLE_COUNT
 }

@@ -42,7 +42,8 @@
 #include "net_beacon_mock.h"
 #include "prov_beacon_mock.h"
 #include "advertiser_mock.h"
-#include "nrf_mesh_assert.h"
+
+#include "test_assert.h"
 
 #define BEACON_PACKET_ALLOC_OVERHEAD (2 /* AD data */ + 1 /* Beacon overhead */)
 void setUp(void)

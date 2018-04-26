@@ -40,14 +40,13 @@
 #include "config_client.h"
 #include "config_messages.h"
 
-#include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
 
 #include "cmock.h"
 #include "unity.h"
 
 #include "packed_index_list.h"
+#include "test_assert.h"
 
 #include "access_mock.h"
 #include "access_reliable_mock.h"

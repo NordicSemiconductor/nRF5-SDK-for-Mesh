@@ -41,6 +41,8 @@
 
 #include "bearer_event_mock.h"
 #include "timer_scheduler_mock.h"
+
+#include "nordic_common.h"
 #include "timer.h"
 
 #include "access_config.h"
@@ -114,13 +116,6 @@ uint32_t access_model_p_args_get(access_model_handle_t handle, void ** pp_args)
     return NRF_SUCCESS;
 }
 
-nrf_mesh_assertion_handler_t m_assertion_handler;
-void nrf_mesh_assertion_handler(uint32_t pc)
-{
-    printf("Mesh assertion at %.08x\n", pc);
-    TEST_FAIL_MESSAGE("Mesh assertion triggered");
-}
-
 /*******************************************************************************
  * Test Setup
  *******************************************************************************/
@@ -129,8 +124,6 @@ void setUp(void)
 {
     timer_scheduler_mock_Init();
     bearer_event_mock_Init();
-
-    m_assertion_handler = nrf_mesh_assertion_handler;
 
     m_publish_timeout_cb_called = 0;
     m_publish_timeout_cb_handle = 0;
@@ -166,7 +159,7 @@ void test_periodic_publishing_singlemodel(void)
     const access_publish_resolution_t resolutions[] =
         { ACCESS_PUBLISH_RESOLUTION_100MS, ACCESS_PUBLISH_RESOLUTION_1S, ACCESS_PUBLISH_RESOLUTION_10S, ACCESS_PUBLISH_RESOLUTION_10MIN };
 
-    for (uint8_t res_index = 0; res_index < sizeof(resolutions) / sizeof(access_publish_resolution_t); ++res_index)
+    for (uint8_t res_index = 0; res_index < ARRAY_SIZE(resolutions); ++res_index)
     {
         for (uint8_t steps = 1; steps <= 0x3f; ++steps)
         {
@@ -219,7 +212,7 @@ void test_periodic_publishing_multimodel(void)
     /* Test scheduling two models to publish at the same time: */
     const access_publish_resolution_t resolutions[] =
         { ACCESS_PUBLISH_RESOLUTION_100MS, ACCESS_PUBLISH_RESOLUTION_1S, ACCESS_PUBLISH_RESOLUTION_10S, ACCESS_PUBLISH_RESOLUTION_10MIN };
-    for (uint8_t res_index = 0; res_index < sizeof(resolutions) / sizeof(access_publish_resolution_t); ++res_index)
+    for (uint8_t res_index = 0; res_index < ARRAY_SIZE(resolutions); ++res_index)
     {
         for (uint8_t steps = 1; steps <= 0x3f; ++steps)
         {

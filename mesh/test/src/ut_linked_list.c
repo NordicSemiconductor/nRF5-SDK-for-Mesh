@@ -38,13 +38,13 @@
 #include <unity.h>
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include <nrf_error.h>
 
 #include "utils.h"
 #include "list.h"
+#include "test_assert.h"
 
 #define TEST_ELEM_SIZE (16)
 

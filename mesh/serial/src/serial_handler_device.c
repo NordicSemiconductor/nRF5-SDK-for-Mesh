@@ -167,6 +167,7 @@ static void handle_cmd_device_beacon_start(const serial_packet_t * p_cmd)
         }
         else
         {
+            /* If there is a packet in the buffer already, it will be released when queueing the next. */
             p_packet->config.repeats = ADVERTISER_REPEAT_INFINITE;
             memcpy(p_packet->packet.payload,
                     p_cmd->payload.cmd.device.beacon_start.data,
@@ -195,7 +196,7 @@ static void handle_cmd_device_beacon_stop(const serial_packet_t * p_cmd)
     }
     else
     {
-        advertiser_disable(&m_beacons[p_cmd->payload.cmd.device.beacon_stop.beacon_slot].advertiser);
+        advertiser_flush(&m_beacons[p_cmd->payload.cmd.device.beacon_stop.beacon_slot].advertiser);
         m_beacons[p_cmd->payload.cmd.device.beacon_stop.beacon_slot].state = BEACON_STATE_UNUSED;
     }
     serial_cmd_rsp_send(p_cmd->opcode, serial_translate_error(status), NULL, 0);
@@ -278,6 +279,7 @@ void serial_handler_device_init(void)
                                  NULL,
                                  m_beacons[i].buffer,
                                  sizeof(m_beacons[i].buffer));
+        advertiser_enable(&m_beacons[i].advertiser);
     }
 }
 

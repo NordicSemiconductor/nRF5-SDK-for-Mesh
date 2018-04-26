@@ -40,7 +40,7 @@
 #include <string.h>
 
 #include "msqueue.h"
-#include "nrf_mesh_assert.h"
+#include "test_assert.h"
 
 #define INIT_MSQ(QUEUE, ELEMENTS, STAGES, ELEM_TYPE) do {  \
     static ELEM_TYPE elements[ELEMENTS];        \

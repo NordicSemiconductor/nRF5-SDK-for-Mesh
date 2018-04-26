@@ -38,10 +38,8 @@
 #include <cmock.h>
 #include <unity.h>
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <stddef.h>
 
 #include "transport.h"
 #include "ccm_soft.h"
@@ -66,8 +64,6 @@
 #define UNICAST_ADDR            0x1201
 #define VIRTUAL_ADDR            0x8080
 #define VIRTUAL_ADDRESS_AMOUNT  3
-
-nrf_mesh_assertion_handler_t m_assertion_handler;
 
 static nrf_mesh_application_secmat_t m_app_dummy;
 static nrf_mesh_network_secmat_t     m_nwk_dummy;

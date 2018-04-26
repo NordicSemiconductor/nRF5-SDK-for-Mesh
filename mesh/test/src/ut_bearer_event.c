@@ -42,8 +42,8 @@
 #include "bearer_event.h"
 #include "nrf_mesh_cmsis_mock_mock.h"
 
-#include "nrf_mesh_assert.h"
 #include "nrf_mesh_config_bearer.h"
+#include "test_assert.h"
 
 static void * mp_context;
 static uint32_t m_generic_cb_expect;

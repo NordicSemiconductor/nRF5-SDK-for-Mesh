@@ -77,12 +77,7 @@ static uint32_t m_tx_cb_count;
 static uint32_t m_tx_cb_count_actual;
 
 static serial_packet_t m_expected_packet;
-static nrf_mesh_evt_handler_t * mp_evt_handler;
-
-static void assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("ASSERT");
-}
+static const nrf_mesh_evt_handler_t * mp_evt_handler;
 
 static void serial_tx_cb(const serial_packet_t* p_packet, int cmock_num_calls)
 {
@@ -118,8 +113,6 @@ void setUp(void)
     nrf_mesh_dfu_mock_Init();
     nrf_mesh_events_mock_Init();
     serial_mock_Init();
-
-    m_assertion_handler = assertion_handler;
 
     nrf_mesh_evt_handler_add_StubWithCallback(nrf_mesh_evt_handler_add_cb);
     serial_handler_dfu_init();

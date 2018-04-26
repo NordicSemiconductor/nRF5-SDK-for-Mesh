@@ -10,7 +10,7 @@ The mesh DFU supports two modes: side-by-side DFU and bootloader DFU. The side-b
 
 ## Getting started with mesh DFU
 
-This DFU application requires a bootloader and a valid device page to function correctly. Precompiled bootloaders are included in the _bin_ directory at the project root directory, and the device page must be generated with the *device_page.py* script located in *tools/dfu/device_page.py*.
+This DFU application requires a bootloader and a valid device page to function correctly. Precompiled bootloaders are included in the `bin` directory at the project root directory, and the device page must be generated with the *device_page_generator.py* script located in *tools/dfu/device_page.py*.
 
 See the [DFU quick start guide](@ref md_doc_getting_started_dfu_quick_start) for detailed instructions on how to perform a DFU operation using this example application.
 

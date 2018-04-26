@@ -52,19 +52,19 @@
  *
  * @param[in] p_evt Pointer to the event to send.
  */
-void event_handle(nrf_mesh_evt_t * p_evt);
+void event_handle(const nrf_mesh_evt_t * p_evt);
 
 /**
  * Registers an event handler to get events from the core stack.
  *
- * @param[in] p_handler_params Event handler parameters.
+ * @param[in,out] p_handler_params Event handler parameters.
  */
 void event_handler_add(nrf_mesh_evt_handler_t * p_handler_params);
 
 /**
  * Removes an event handler.
  *
- * @param[in] p_handler_params Event handler parameters.
+ * @param[in,out] p_handler_params Event handler parameters.
  */
 void event_handler_remove(nrf_mesh_evt_handler_t * p_handler_params);
 

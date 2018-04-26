@@ -338,7 +338,7 @@ Discarded input sections
                 0x00000000       0x20 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/access.c.obj
  .rodata.packet_tx.str1.1
                 0x00000000       0x13 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/access.c.obj
- .debug_info    0x00000000     0x4474 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/access.c.obj
+ .debug_info    0x00000000     0x447e examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/access.c.obj
  .debug_abbrev  0x00000000      0x68e examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/access.c.obj
  .debug_loc     0x00000000     0x2228 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/access.c.obj
  .debug_aranges
@@ -570,9 +570,9 @@ Discarded input sections
                 0x00000000       0x10 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .bss.m_subnet_needs_flashing
                 0x00000000        0x4 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
- .data.mem_listener.10412
+ .data.mem_listener.10415
                 0x00000000       0x10 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
- .data.mem_listener.10438
+ .data.mem_listener.10441
                 0x00000000       0x10 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
  .rodata.m_flash_groups
                 0x00000000       0xa8 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
@@ -594,7 +594,7 @@ Discarded input sections
  .text.prov_provisioner_provision
                 0x00000000       0x44 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
  .text.prov_provisioner_oob_use
-                0x00000000       0x7a examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
+                0x00000000       0x7e examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
  .text.prov_provisioner_auth_data
                 0x00000000       0x44 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
  .text.prov_provisioner_shared_secret
@@ -603,14 +603,14 @@ Discarded input sections
                 0x00000000       0x30 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
  .rodata.m_prov_callbacks
                 0x00000000       0x10 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
- .debug_info    0x00000000     0x2348 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
+ .debug_info    0x00000000     0x2350 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
  .debug_abbrev  0x00000000      0x3dd examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
- .debug_loc     0x00000000      0x6a4 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
+ .debug_loc     0x00000000      0x6b1 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
  .debug_aranges
                 0x00000000       0x70 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
  .debug_ranges  0x00000000      0x128 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
- .debug_line    0x00000000      0x573 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
- .debug_str     0x00000000     0x1eb9 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
+ .debug_line    0x00000000      0x576 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
+ .debug_str     0x00000000     0x1e78 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
  .comment       0x00000000       0x80 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
  .debug_frame   0x00000000      0x170 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisioner.c.obj
  .ARM.attributes
@@ -633,7 +633,7 @@ Discarded input sections
  .text.prov_provisionee_cb_ack_received
                 0x00000000       0xb8 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .text.prov_provisionee_pkt_in
-                0x00000000      0x2a0 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
+                0x00000000      0x2b8 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .text.prov_provisionee_init
                 0x00000000       0x38 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .text.prov_provisionee_auth_data
@@ -644,14 +644,14 @@ Discarded input sections
                 0x00000000       0x10 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .rodata.prov_provisionee_cb_ack_received.str1.1
                 0x00000000       0x53 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
- .debug_info    0x00000000     0x26c7 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
+ .debug_info    0x00000000     0x26e8 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .debug_abbrev  0x00000000      0x476 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
- .debug_loc     0x00000000      0x6ad examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
+ .debug_loc     0x00000000      0x6ba examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .debug_aranges
                 0x00000000       0x70 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .debug_ranges  0x00000000      0x158 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
- .debug_line    0x00000000      0x634 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
- .debug_str     0x00000000     0x2061 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
+ .debug_line    0x00000000      0x636 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
+ .debug_str     0x00000000     0x2020 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .comment       0x00000000       0x80 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .debug_frame   0x00000000      0x180 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_provisionee.c.obj
  .ARM.attributes
@@ -672,7 +672,7 @@ Discarded input sections
  .text.nrf_mesh_prov_provision
                 0x00000000       0x4e examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
  .text.nrf_mesh_prov_oob_use
-                0x00000000        0xe examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+                0x00000000       0x18 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
  .text.nrf_mesh_prov_auth_data_provide
                 0x00000000        0xe examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
  .text.nrf_mesh_prov_shared_secret_provide
@@ -683,16 +683,16 @@ Discarded input sections
                 0x00000000       0x10 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
  .text.nrf_mesh_prov_scan_stop
                 0x00000000        0x4 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
- .debug_info    0x00000000     0x1be9 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+ .debug_info    0x00000000     0x1bf0 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
  .debug_abbrev  0x00000000      0x335 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
- .debug_loc     0x00000000      0x7c0 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+ .debug_loc     0x00000000      0x7ec examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
  .debug_aranges
                 0x00000000       0x78 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
  .debug_ranges  0x00000000       0xb0 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
- .debug_line    0x00000000      0x4e3 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
- .debug_str     0x00000000     0x1c8f examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+ .debug_line    0x00000000      0x4e6 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+ .debug_str     0x00000000     0x1c4e examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
  .comment       0x00000000       0x80 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
- .debug_frame   0x00000000      0x124 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
+ .debug_frame   0x00000000      0x134 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
  .ARM.attributes
                 0x00000000       0x39 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/nrf_mesh_prov.c.obj
  .text          0x00000000        0x0 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/provisioning.c.obj
@@ -723,7 +723,7 @@ Discarded input sections
  .text.prov_tx_data
                 0x00000000        0x6 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/provisioning.c.obj
  .text.prov_tx  0x00000000        0x4 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/provisioning.c.obj
- .rodata.pdu_sizes.10818
+ .rodata.pdu_sizes.10817
                 0x00000000        0xa examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/provisioning.c.obj
  .debug_info    0x00000000     0x1588 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/provisioning.c.obj
  .debug_abbrev  0x00000000      0x29c examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/provisioning.c.obj
@@ -766,12 +766,12 @@ Discarded input sections
  .text.prov_utils_calculate_shared_secret
                 0x00000000       0x36 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
  .text.prov_utils_generate_oob_data
-                0x00000000       0x9c examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+                0x00000000       0x98 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
  .text.prov_utils_confirmation_check
                 0x00000000       0x5c examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
- .rodata.alphanumeric.10923
+ .rodata.alphanumeric.10922
                 0x00000000       0x25 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
- .rodata.numeric_max.10917
+ .rodata.numeric_max.10916
                 0x00000000       0x24 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
  .rodata.prov_utils_authentication_values_derive.str1.1
                 0x00000000        0x5 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
@@ -806,7 +806,7 @@ Discarded input sections
                 0x00000000        0x4 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .rodata.add_active_bearer.str1.1
                 0x00000000       0x2c examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
- .rodata.interface.10906
+ .rodata.interface.10905
                 0x00000000       0x14 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .text          0x00000000        0x0 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/dfu/src/nrf_mesh_dfu.c.obj
  .data          0x00000000        0x0 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/dfu/src/nrf_mesh_dfu.c.obj
@@ -861,7 +861,11 @@ Discarded input sections
                 0x00000000        0xc mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
  .text.net_state_key_refresh_phase_changed
                 0x00000000       0x1e mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
- .data.mem_listener.9594
+ .text.net_state_iv_index_set
+                0x00000000       0x28 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
+ .bss.iv_state_set.9648
+                0x00000000        0x1 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
+ .data.mem_listener.9597
                 0x00000000       0x10 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
  .text          0x00000000        0x0 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
  .data          0x00000000        0x0 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
@@ -2605,7 +2609,7 @@ Linker script and memory map
                 0x0002a8f0       0x65 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/nrf_mesh_sdk.c.obj
  .rodata.softdevice_assert_handler.str1.1
                 0x0002a955       0x1d examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/nrf_mesh_sdk.c.obj
- .rodata.crctable.10676
+ .rodata.crctable.10675
                 0x0002a972      0x100 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
  .rodata.prov_bearer_adv_packet_in.str1.1
                 0x0002aa72      0x26e examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
@@ -2795,11 +2799,11 @@ Linker script and memory map
  .data.SystemCoreClock
                 0x200019c8        0x4 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/external/nRF5_SDK_14.2.0_17b948a/components/toolchain/system_nrf52.c.obj
                 0x200019c8                SystemCoreClock
- .data.mem_listener.9558
+ .data.mem_listener.9561
                 0x200019cc       0x10 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
- .data.mem_listener.9563
+ .data.mem_listener.9566
                 0x200019dc       0x10 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
- .data.mem_listener.9577
+ .data.mem_listener.9580
                 0x200019ec       0x10 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
  .data.m_nrf_mesh_listener
                 0x200019fc        0xc mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
@@ -2968,7 +2972,7 @@ END GROUP
  .bss.m_uuid    0x200021ec       0x10 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_configure.c.obj)
  .bss.mp_evt_handlers_head
                 0x200021fc        0x4 mesh/core/libmesh_core_nrf52832_xxAA.a(event.c.obj)
- .bss.lock_count.9617
+ .bss.lock_count.9620
                 0x20002200        0x4 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
  .bss.m_flash_manager
                 0x20002204       0x24 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
@@ -3470,66 +3474,66 @@ OUTPUT(examples\dfu\dfu_no_serial_nrf52832_xxAA_s132_3.1.0.elf elf32-littlearm)
  .comment       0x0000007f       0x80 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
  .comment       0x0000007f       0x80 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
 
-.debug_info     0x00000000    0x58fd7
- .debug_info    0x00000000     0x2195 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/src/main.c.obj
- .debug_info    0x00002195     0x33aa examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/nrf_mesh_sdk.c.obj
- .debug_info    0x0000553f     0x5f3d examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
- .debug_info    0x0000b47c     0x19a2 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_beacon.c.obj
- .debug_info    0x0000ce1e     0x2029 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
- .debug_info    0x0000ee47     0x3963 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
- .debug_info    0x000127aa     0x4dbe examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/dfu/src/nrf_mesh_dfu.c.obj
- .debug_info    0x00017568     0x10da examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/external/nRF5_SDK_14.2.0_17b948a/components/toolchain/system_nrf52.c.obj
- .debug_info    0x00018642      0xd04 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_configure.c.obj)
- .debug_info    0x00019346     0x1509 mesh/core/libmesh_core_nrf52832_xxAA.a(event.c.obj)
- .debug_info    0x0001a84f     0x23d7 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
- .debug_info    0x0001cc26     0x1887 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
- .debug_info    0x0001e4ad      0xa87 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
- .debug_info    0x0001ef34     0x33f8 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
- .debug_info    0x0002232c      0x570 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
- .debug_info    0x0002289c     0x102a mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
- .debug_info    0x000238c6      0xd79 mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
- .debug_info    0x0002463f      0x20b mesh/core/libmesh_core_nrf52832_xxAA.a(ticker.c.obj)
- .debug_info    0x0002484a      0x40f mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
- .debug_info    0x00024c59     0x19fd mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
- .debug_info    0x00026656     0x19d7 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
- .debug_info    0x0002802d     0x164f mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
- .debug_info    0x0002967c     0x2aee mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
- .debug_info    0x0002c16a      0xd08 mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
- .debug_info    0x0002ce72      0x48b mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
- .debug_info    0x0002d2fd      0xe28 mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
- .debug_info    0x0002e125     0x320c mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
- .debug_info    0x00031331     0x10a3 mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
- .debug_info    0x000323d4     0x193b mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
- .debug_info    0x00033d0f      0xb99 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
- .debug_info    0x000348a8      0xfb3 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
- .debug_info    0x0003585b     0x219a mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
- .debug_info    0x000379f5     0x1511 mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
- .debug_info    0x00038f06     0x160b mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
- .debug_info    0x0003a511     0x1118 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
- .debug_info    0x0003b629      0xfcd mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
- .debug_info    0x0003c5f6     0x2448 mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
- .debug_info    0x0003ea3e     0x18f8 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
- .debug_info    0x00040336     0x1963 mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
- .debug_info    0x00041c99      0xcf4 mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
- .debug_info    0x0004298d      0x871 mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
- .debug_info    0x000431fe     0x25aa mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
- .debug_info    0x000457a8      0xc4e mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
- .debug_info    0x000463f6      0xbcc mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
- .debug_info    0x00046fc2      0xa81 mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
- .debug_info    0x00047a43     0x54fa mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
- .debug_info    0x0004cf3d     0x1d81 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
- .debug_info    0x0004ecbe     0x234f mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
- .debug_info    0x0005100d      0xd0e mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
- .debug_info    0x00051d1b      0xb47 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
- .debug_info    0x00052862     0x115b mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
- .debug_info    0x000539bd      0xaf2 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
- .debug_info    0x000544af      0xe48 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
- .debug_info    0x000552f7      0xb1c mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
- .debug_info    0x00055e13      0xaeb mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
- .debug_info    0x000568fe     0x1818 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
- .debug_info    0x00058116      0xec1 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+.debug_info     0x00000000    0x59031
+ .debug_info    0x00000000     0x219a examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/src/main.c.obj
+ .debug_info    0x0000219a     0x33aa examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/nrf_mesh_sdk.c.obj
+ .debug_info    0x00005544     0x5f3d examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
+ .debug_info    0x0000b481     0x199b examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_beacon.c.obj
+ .debug_info    0x0000ce1c     0x2021 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+ .debug_info    0x0000ee3d     0x3963 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+ .debug_info    0x000127a0     0x4dbe examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/dfu/src/nrf_mesh_dfu.c.obj
+ .debug_info    0x0001755e     0x10da examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/external/nRF5_SDK_14.2.0_17b948a/components/toolchain/system_nrf52.c.obj
+ .debug_info    0x00018638      0xd04 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_configure.c.obj)
+ .debug_info    0x0001933c     0x150e mesh/core/libmesh_core_nrf52832_xxAA.a(event.c.obj)
+ .debug_info    0x0001a84a     0x242c mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
+ .debug_info    0x0001cc76     0x1887 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
+ .debug_info    0x0001e4fd      0xa87 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
+ .debug_info    0x0001ef84     0x33fd mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
+ .debug_info    0x00022381      0x570 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
+ .debug_info    0x000228f1     0x102a mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
+ .debug_info    0x0002391b      0xd79 mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
+ .debug_info    0x00024694      0x20b mesh/core/libmesh_core_nrf52832_xxAA.a(ticker.c.obj)
+ .debug_info    0x0002489f      0x40f mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
+ .debug_info    0x00024cae     0x19fd mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
+ .debug_info    0x000266ab     0x19d7 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
+ .debug_info    0x00028082     0x164f mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
+ .debug_info    0x000296d1     0x2aee mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
+ .debug_info    0x0002c1bf      0xd08 mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
+ .debug_info    0x0002cec7      0x48b mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
+ .debug_info    0x0002d352      0xe28 mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
+ .debug_info    0x0002e17a     0x320c mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
+ .debug_info    0x00031386     0x10a3 mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
+ .debug_info    0x00032429     0x193b mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
+ .debug_info    0x00033d64      0xb99 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
+ .debug_info    0x000348fd      0xfb3 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
+ .debug_info    0x000358b0     0x219f mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
+ .debug_info    0x00037a4f     0x1511 mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
+ .debug_info    0x00038f60     0x160b mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
+ .debug_info    0x0003a56b     0x1118 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
+ .debug_info    0x0003b683      0xfcd mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
+ .debug_info    0x0003c650     0x2448 mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
+ .debug_info    0x0003ea98     0x18f8 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
+ .debug_info    0x00040390     0x1963 mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
+ .debug_info    0x00041cf3      0xcf4 mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
+ .debug_info    0x000429e7      0x871 mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
+ .debug_info    0x00043258     0x25aa mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
+ .debug_info    0x00045802      0xc4e mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
+ .debug_info    0x00046450      0xbcc mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
+ .debug_info    0x0004701c      0xa81 mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
+ .debug_info    0x00047a9d     0x54fa mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
+ .debug_info    0x0004cf97     0x1d81 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
+ .debug_info    0x0004ed18     0x234f mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
+ .debug_info    0x00051067      0xd0e mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
+ .debug_info    0x00051d75      0xb47 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
+ .debug_info    0x000528bc     0x115b mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
+ .debug_info    0x00053a17      0xaf2 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
+ .debug_info    0x00054509      0xe48 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
+ .debug_info    0x00055351      0xb1c mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
+ .debug_info    0x00055e6d      0xaeb mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
+ .debug_info    0x00056958     0x1818 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
+ .debug_info    0x00058170      0xec1 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
 
-.debug_abbrev   0x00000000     0xc8e6
+.debug_abbrev   0x00000000     0xc8c6
  .debug_abbrev  0x00000000      0x450 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/src/main.c.obj
  .debug_abbrev  0x00000450      0x4aa examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/nrf_mesh_sdk.c.obj
  .debug_abbrev  0x000008fa      0x647 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
@@ -3540,55 +3544,55 @@ OUTPUT(examples\dfu\dfu_no_serial_nrf52832_xxAA_s132_3.1.0.elf elf32-littlearm)
  .debug_abbrev  0x00002078      0x202 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/external/nRF5_SDK_14.2.0_17b948a/components/toolchain/system_nrf52.c.obj
  .debug_abbrev  0x0000227a      0x24b mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_configure.c.obj)
  .debug_abbrev  0x000024c5      0x2a2 mesh/core/libmesh_core_nrf52832_xxAA.a(event.c.obj)
- .debug_abbrev  0x00002767      0x55b mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
- .debug_abbrev  0x00002cc2      0x478 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
- .debug_abbrev  0x0000313a      0x25a mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
- .debug_abbrev  0x00003394      0x467 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
- .debug_abbrev  0x000037fb      0x204 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
- .debug_abbrev  0x000039ff      0x3bf mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
- .debug_abbrev  0x00003dbe      0x346 mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
- .debug_abbrev  0x00004104      0x152 mesh/core/libmesh_core_nrf52832_xxAA.a(ticker.c.obj)
- .debug_abbrev  0x00004256      0x1d2 mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
- .debug_abbrev  0x00004428      0x4db mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
- .debug_abbrev  0x00004903      0x4b3 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
- .debug_abbrev  0x00004db6      0x37e mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
- .debug_abbrev  0x00005134      0x52c mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
- .debug_abbrev  0x00005660      0x29c mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
- .debug_abbrev  0x000058fc      0x18e mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
- .debug_abbrev  0x00005a8a      0x24e mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
- .debug_abbrev  0x00005cd8      0x5c2 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
- .debug_abbrev  0x0000629a      0x2b3 mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
- .debug_abbrev  0x0000654d      0x38c mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
- .debug_abbrev  0x000068d9      0x28a mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
- .debug_abbrev  0x00006b63      0x32c mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
- .debug_abbrev  0x00006e8f      0x4c9 mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
- .debug_abbrev  0x00007358      0x3cc mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
- .debug_abbrev  0x00007724      0x32c mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
- .debug_abbrev  0x00007a50      0x341 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
- .debug_abbrev  0x00007d91      0x377 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
- .debug_abbrev  0x00008108      0x4fe mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
- .debug_abbrev  0x00008606      0x40d mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
- .debug_abbrev  0x00008a13      0x3b4 mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
- .debug_abbrev  0x00008dc7      0x299 mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
- .debug_abbrev  0x00009060      0x1d9 mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
- .debug_abbrev  0x00009239      0x582 mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
- .debug_abbrev  0x000097bb      0x26d mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
- .debug_abbrev  0x00009a28      0x264 mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
- .debug_abbrev  0x00009c8c      0x25d mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
- .debug_abbrev  0x00009ee9      0x629 mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
- .debug_abbrev  0x0000a512      0x49a mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
- .debug_abbrev  0x0000a9ac      0x558 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
- .debug_abbrev  0x0000af04      0x301 mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
- .debug_abbrev  0x0000b205      0x21f mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
- .debug_abbrev  0x0000b424      0x3d1 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
- .debug_abbrev  0x0000b7f5      0x227 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
- .debug_abbrev  0x0000ba1c      0x332 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
- .debug_abbrev  0x0000bd4e      0x24a mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
- .debug_abbrev  0x0000bf98      0x277 mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
- .debug_abbrev  0x0000c20f      0x3a9 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
- .debug_abbrev  0x0000c5b8      0x32e external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+ .debug_abbrev  0x00002767      0x53b mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
+ .debug_abbrev  0x00002ca2      0x478 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
+ .debug_abbrev  0x0000311a      0x25a mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
+ .debug_abbrev  0x00003374      0x467 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
+ .debug_abbrev  0x000037db      0x204 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
+ .debug_abbrev  0x000039df      0x3bf mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
+ .debug_abbrev  0x00003d9e      0x346 mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
+ .debug_abbrev  0x000040e4      0x152 mesh/core/libmesh_core_nrf52832_xxAA.a(ticker.c.obj)
+ .debug_abbrev  0x00004236      0x1d2 mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
+ .debug_abbrev  0x00004408      0x4db mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
+ .debug_abbrev  0x000048e3      0x4b3 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
+ .debug_abbrev  0x00004d96      0x37e mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
+ .debug_abbrev  0x00005114      0x52c mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
+ .debug_abbrev  0x00005640      0x29c mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
+ .debug_abbrev  0x000058dc      0x18e mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
+ .debug_abbrev  0x00005a6a      0x24e mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
+ .debug_abbrev  0x00005cb8      0x5c2 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
+ .debug_abbrev  0x0000627a      0x2b3 mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
+ .debug_abbrev  0x0000652d      0x38c mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
+ .debug_abbrev  0x000068b9      0x28a mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
+ .debug_abbrev  0x00006b43      0x32c mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
+ .debug_abbrev  0x00006e6f      0x4c9 mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
+ .debug_abbrev  0x00007338      0x3cc mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
+ .debug_abbrev  0x00007704      0x32c mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
+ .debug_abbrev  0x00007a30      0x341 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
+ .debug_abbrev  0x00007d71      0x377 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
+ .debug_abbrev  0x000080e8      0x4fe mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
+ .debug_abbrev  0x000085e6      0x40d mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
+ .debug_abbrev  0x000089f3      0x3b4 mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
+ .debug_abbrev  0x00008da7      0x299 mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
+ .debug_abbrev  0x00009040      0x1d9 mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
+ .debug_abbrev  0x00009219      0x582 mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
+ .debug_abbrev  0x0000979b      0x26d mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
+ .debug_abbrev  0x00009a08      0x264 mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
+ .debug_abbrev  0x00009c6c      0x25d mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
+ .debug_abbrev  0x00009ec9      0x629 mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
+ .debug_abbrev  0x0000a4f2      0x49a mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
+ .debug_abbrev  0x0000a98c      0x558 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
+ .debug_abbrev  0x0000aee4      0x301 mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
+ .debug_abbrev  0x0000b1e5      0x21f mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
+ .debug_abbrev  0x0000b404      0x3d1 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
+ .debug_abbrev  0x0000b7d5      0x227 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
+ .debug_abbrev  0x0000b9fc      0x332 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
+ .debug_abbrev  0x0000bd2e      0x24a mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
+ .debug_abbrev  0x0000bf78      0x277 mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
+ .debug_abbrev  0x0000c1ef      0x3a9 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
+ .debug_abbrev  0x0000c598      0x32e external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
 
-.debug_loc      0x00000000    0x1907a
+.debug_loc      0x00000000    0x190e0
  .debug_loc     0x00000000      0x30e examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/src/main.c.obj
  .debug_loc     0x0000030e      0x351 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/nrf_mesh_sdk.c.obj
  .debug_loc     0x0000065f     0x3b5d examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
@@ -3598,54 +3602,54 @@ OUTPUT(examples\dfu\dfu_no_serial_nrf52832_xxAA_s132_3.1.0.elf elf32-littlearm)
  .debug_loc     0x00005f0f      0xc38 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/dfu/src/nrf_mesh_dfu.c.obj
  .debug_loc     0x00006b47       0x2c mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_configure.c.obj)
  .debug_loc     0x00006b73      0x136 mesh/core/libmesh_core_nrf52832_xxAA.a(event.c.obj)
- .debug_loc     0x00006ca9      0x758 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
- .debug_loc     0x00007401      0xa35 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
- .debug_loc     0x00007e36      0x11c mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
- .debug_loc     0x00007f52      0x4d3 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
- .debug_loc     0x00008425       0x84 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
- .debug_loc     0x000084a9      0x3b9 mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
- .debug_loc     0x00008862      0x60f mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
- .debug_loc     0x00008e71      0x190 mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
- .debug_loc     0x00009001      0x370 mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
- .debug_loc     0x00009371      0x647 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
- .debug_loc     0x000099b8      0x960 mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
- .debug_loc     0x0000a318     0x10e7 mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
- .debug_loc     0x0000b3ff      0x3e5 mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
- .debug_loc     0x0000b7e4      0x541 mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
- .debug_loc     0x0000bd25      0x348 mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
- .debug_loc     0x0000c06d     0x1791 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
- .debug_loc     0x0000d7fe      0x371 mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
- .debug_loc     0x0000db6f      0x527 mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
- .debug_loc     0x0000e096      0x130 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
- .debug_loc     0x0000e1c6      0x639 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
- .debug_loc     0x0000e7ff      0x644 mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
- .debug_loc     0x0000ee43      0x3fe mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
- .debug_loc     0x0000f241      0x3fa mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
- .debug_loc     0x0000f63b      0x42e mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
- .debug_loc     0x0000fa69      0x3b9 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
- .debug_loc     0x0000fe22      0xedd mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
- .debug_loc     0x00010cff      0x42d mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
- .debug_loc     0x0001112c      0x377 mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
- .debug_loc     0x000114a3      0x115 mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
- .debug_loc     0x000115b8      0x28c mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
- .debug_loc     0x00011844      0x4f6 mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
- .debug_loc     0x00011d3a       0xc9 mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
- .debug_loc     0x00011e03       0x89 mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
- .debug_loc     0x00011e8c      0x10d mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
- .debug_loc     0x00011f99     0x28ef mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
- .debug_loc     0x00014888      0xf93 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
- .debug_loc     0x0001581b      0x8ee mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
- .debug_loc     0x00016109      0x517 mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
- .debug_loc     0x00016620      0x17a mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
- .debug_loc     0x0001679a      0x6d7 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
- .debug_loc     0x00016e71      0x186 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
- .debug_loc     0x00016ff7      0x3f8 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
- .debug_loc     0x000173ef      0x194 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
- .debug_loc     0x00017583      0x1c6 mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
- .debug_loc     0x00017749     0x1222 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
- .debug_loc     0x0001896b      0x70f external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+ .debug_loc     0x00006ca9      0x7be mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
+ .debug_loc     0x00007467      0xa35 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
+ .debug_loc     0x00007e9c      0x11c mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
+ .debug_loc     0x00007fb8      0x4d3 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
+ .debug_loc     0x0000848b       0x84 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
+ .debug_loc     0x0000850f      0x3b9 mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
+ .debug_loc     0x000088c8      0x60f mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
+ .debug_loc     0x00008ed7      0x190 mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
+ .debug_loc     0x00009067      0x370 mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
+ .debug_loc     0x000093d7      0x647 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
+ .debug_loc     0x00009a1e      0x960 mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
+ .debug_loc     0x0000a37e     0x10e7 mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
+ .debug_loc     0x0000b465      0x3e5 mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
+ .debug_loc     0x0000b84a      0x541 mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
+ .debug_loc     0x0000bd8b      0x348 mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
+ .debug_loc     0x0000c0d3     0x1791 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
+ .debug_loc     0x0000d864      0x371 mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
+ .debug_loc     0x0000dbd5      0x527 mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
+ .debug_loc     0x0000e0fc      0x130 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
+ .debug_loc     0x0000e22c      0x639 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
+ .debug_loc     0x0000e865      0x644 mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
+ .debug_loc     0x0000eea9      0x3fe mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
+ .debug_loc     0x0000f2a7      0x3fa mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
+ .debug_loc     0x0000f6a1      0x42e mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
+ .debug_loc     0x0000facf      0x3b9 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
+ .debug_loc     0x0000fe88      0xedd mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
+ .debug_loc     0x00010d65      0x42d mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
+ .debug_loc     0x00011192      0x377 mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
+ .debug_loc     0x00011509      0x115 mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
+ .debug_loc     0x0001161e      0x28c mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
+ .debug_loc     0x000118aa      0x4f6 mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
+ .debug_loc     0x00011da0       0xc9 mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
+ .debug_loc     0x00011e69       0x89 mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
+ .debug_loc     0x00011ef2      0x10d mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
+ .debug_loc     0x00011fff     0x28ef mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
+ .debug_loc     0x000148ee      0xf93 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
+ .debug_loc     0x00015881      0x8ee mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
+ .debug_loc     0x0001616f      0x517 mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
+ .debug_loc     0x00016686      0x17a mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
+ .debug_loc     0x00016800      0x6d7 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
+ .debug_loc     0x00016ed7      0x186 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
+ .debug_loc     0x0001705d      0x3f8 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
+ .debug_loc     0x00017455      0x194 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
+ .debug_loc     0x000175e9      0x1c6 mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
+ .debug_loc     0x000177af     0x1222 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
+ .debug_loc     0x000189d1      0x70f external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
 
-.debug_aranges  0x00000000     0x18b8
+.debug_aranges  0x00000000     0x18c0
  .debug_aranges
                 0x00000000       0x30 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/src/main.c.obj
  .debug_aranges
@@ -3667,101 +3671,101 @@ OUTPUT(examples\dfu\dfu_no_serial_nrf52832_xxAA_s132_3.1.0.elf elf32-littlearm)
  .debug_aranges
                 0x00000638       0x30 mesh/core/libmesh_core_nrf52832_xxAA.a(event.c.obj)
  .debug_aranges
-                0x00000668       0xc0 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
+                0x00000668       0xc8 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
  .debug_aranges
-                0x00000728       0x60 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
+                0x00000730       0x60 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
  .debug_aranges
-                0x00000788       0x30 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
+                0x00000790       0x30 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
  .debug_aranges
-                0x000007b8       0x88 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
+                0x000007c0       0x88 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
  .debug_aranges
-                0x00000840       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
+                0x00000848       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
  .debug_aranges
-                0x00000878       0x68 mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
+                0x00000880       0x68 mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
  .debug_aranges
-                0x000008e0       0x60 mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
+                0x000008e8       0x60 mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
  .debug_aranges
-                0x00000940       0x30 mesh/core/libmesh_core_nrf52832_xxAA.a(ticker.c.obj)
+                0x00000948       0x30 mesh/core/libmesh_core_nrf52832_xxAA.a(ticker.c.obj)
  .debug_aranges
-                0x00000970       0x40 mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
+                0x00000978       0x40 mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
  .debug_aranges
-                0x000009b0       0xb8 mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
+                0x000009b8       0xb8 mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
  .debug_aranges
-                0x00000a68       0x98 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
+                0x00000a70       0x98 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
  .debug_aranges
-                0x00000b00       0x70 mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
+                0x00000b08       0x70 mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
  .debug_aranges
-                0x00000b70       0x60 mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
+                0x00000b78       0x60 mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
  .debug_aranges
-                0x00000bd0       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
+                0x00000bd8       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
  .debug_aranges
-                0x00000c18       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
+                0x00000c20       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
  .debug_aranges
-                0x00000c60       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
+                0x00000c68       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
  .debug_aranges
-                0x00000ca8      0x100 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
+                0x00000cb0      0x100 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
  .debug_aranges
-                0x00000da8       0x50 mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
+                0x00000db0       0x50 mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
  .debug_aranges
-                0x00000df8       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
+                0x00000e00       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
  .debug_aranges
-                0x00000e30       0x20 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
+                0x00000e38       0x20 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
  .debug_aranges
-                0x00000e50       0x58 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
+                0x00000e58       0x58 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
  .debug_aranges
-                0x00000ea8       0x70 mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
+                0x00000eb0       0x70 mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
  .debug_aranges
-                0x00000f18       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
+                0x00000f20       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
  .debug_aranges
-                0x00000f60       0x68 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
+                0x00000f68       0x68 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
  .debug_aranges
-                0x00000fc8       0x30 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
+                0x00000fd0       0x30 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
  .debug_aranges
-                0x00000ff8       0x58 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
+                0x00001000       0x58 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
  .debug_aranges
-                0x00001050       0xb0 mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
+                0x00001058       0xb0 mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
  .debug_aranges
-                0x00001100       0x70 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
+                0x00001108       0x70 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
  .debug_aranges
-                0x00001170       0x30 mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
+                0x00001178       0x30 mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
  .debug_aranges
-                0x000011a0       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
+                0x000011a8       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
  .debug_aranges
-                0x000011d8       0x40 mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
+                0x000011e0       0x40 mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
  .debug_aranges
-                0x00001218       0xe0 mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
+                0x00001220       0xe0 mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
  .debug_aranges
-                0x000012f8       0x30 mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
+                0x00001300       0x30 mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
  .debug_aranges
-                0x00001328       0x28 mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
+                0x00001330       0x28 mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
  .debug_aranges
-                0x00001350       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
+                0x00001358       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
  .debug_aranges
-                0x00001388      0x120 mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
+                0x00001390      0x120 mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
  .debug_aranges
-                0x000014a8       0x80 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
+                0x000014b0       0x80 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
  .debug_aranges
-                0x00001528       0xc8 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
+                0x00001530       0xc8 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
  .debug_aranges
-                0x000015f0       0x60 mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
+                0x000015f8       0x60 mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
  .debug_aranges
-                0x00001650       0x30 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
+                0x00001658       0x30 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
  .debug_aranges
-                0x00001680       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
+                0x00001688       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
  .debug_aranges
-                0x000016c8       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
+                0x000016d0       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
  .debug_aranges
-                0x00001700       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
+                0x00001708       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
  .debug_aranges
-                0x00001738       0x28 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
+                0x00001740       0x28 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
  .debug_aranges
-                0x00001760       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
+                0x00001768       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
  .debug_aranges
-                0x000017a8       0xd8 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
+                0x000017b0       0xd8 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
  .debug_aranges
-                0x00001880       0x38 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+                0x00001888       0x38 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
 
-.debug_ranges   0x00000000     0x66b8
+.debug_ranges   0x00000000     0x66a8
  .debug_ranges  0x00000000       0xe0 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/src/main.c.obj
  .debug_ranges  0x000000e0      0x1a8 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/nrf_mesh_sdk.c.obj
  .debug_ranges  0x00000288      0xac8 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
@@ -3772,55 +3776,55 @@ OUTPUT(examples\dfu\dfu_no_serial_nrf52832_xxAA_s132_3.1.0.elf elf32-littlearm)
  .debug_ranges  0x000019d8       0x28 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/external/nRF5_SDK_14.2.0_17b948a/components/toolchain/system_nrf52.c.obj
  .debug_ranges  0x00001a00       0x20 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_configure.c.obj)
  .debug_ranges  0x00001a20       0x68 mesh/core/libmesh_core_nrf52832_xxAA.a(event.c.obj)
- .debug_ranges  0x00001a88      0x248 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
- .debug_ranges  0x00001cd0      0x368 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
- .debug_ranges  0x00002038       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
- .debug_ranges  0x00002070       0xf0 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
- .debug_ranges  0x00002160       0x28 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
- .debug_ranges  0x00002188      0x260 mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
- .debug_ranges  0x000023e8      0x108 mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
- .debug_ranges  0x000024f0       0x20 mesh/core/libmesh_core_nrf52832_xxAA.a(ticker.c.obj)
- .debug_ranges  0x00002510       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
- .debug_ranges  0x00002558      0x188 mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
- .debug_ranges  0x000026e0      0x250 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
- .debug_ranges  0x00002930      0x120 mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
- .debug_ranges  0x00002a50      0x518 mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
- .debug_ranges  0x00002f68      0x158 mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
- .debug_ranges  0x000030c0      0x1b0 mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
- .debug_ranges  0x00003270       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
- .debug_ranges  0x000032a8      0x748 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
- .debug_ranges  0x000039f0       0x40 mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
- .debug_ranges  0x00003a30       0xd0 mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
- .debug_ranges  0x00003b00       0x68 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
- .debug_ranges  0x00003b68      0x270 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
- .debug_ranges  0x00003dd8      0x240 mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
- .debug_ranges  0x00004018       0xf0 mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
- .debug_ranges  0x00004108       0xe8 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
- .debug_ranges  0x000041f0       0xf8 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
- .debug_ranges  0x000042e8       0xe8 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
- .debug_ranges  0x000043d0      0x4a8 mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
- .debug_ranges  0x00004878      0x290 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
- .debug_ranges  0x00004b08      0x130 mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
- .debug_ranges  0x00004c38       0x90 mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
- .debug_ranges  0x00004cc8      0x100 mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
- .debug_ranges  0x00004dc8      0x2c0 mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
- .debug_ranges  0x00005088       0x20 mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
- .debug_ranges  0x000050a8       0x18 mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
- .debug_ranges  0x000050c0       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
- .debug_ranges  0x00005108      0x918 mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
- .debug_ranges  0x00005a20      0x3b8 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
- .debug_ranges  0x00005dd8      0x368 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
- .debug_ranges  0x00006140       0xb0 mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
- .debug_ranges  0x000061f0       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
- .debug_ranges  0x00006228      0x160 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
- .debug_ranges  0x00006388       0xa0 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
- .debug_ranges  0x00006428       0x98 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
- .debug_ranges  0x000064c0       0x18 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
- .debug_ranges  0x000064d8       0x68 mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
- .debug_ranges  0x00006540      0x130 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
- .debug_ranges  0x00006670       0x48 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+ .debug_ranges  0x00001a88      0x238 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
+ .debug_ranges  0x00001cc0      0x368 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
+ .debug_ranges  0x00002028       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
+ .debug_ranges  0x00002060       0xf0 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
+ .debug_ranges  0x00002150       0x28 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
+ .debug_ranges  0x00002178      0x260 mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
+ .debug_ranges  0x000023d8      0x108 mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
+ .debug_ranges  0x000024e0       0x20 mesh/core/libmesh_core_nrf52832_xxAA.a(ticker.c.obj)
+ .debug_ranges  0x00002500       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
+ .debug_ranges  0x00002548      0x188 mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
+ .debug_ranges  0x000026d0      0x250 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
+ .debug_ranges  0x00002920      0x120 mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
+ .debug_ranges  0x00002a40      0x518 mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
+ .debug_ranges  0x00002f58      0x158 mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
+ .debug_ranges  0x000030b0      0x1b0 mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
+ .debug_ranges  0x00003260       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
+ .debug_ranges  0x00003298      0x748 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
+ .debug_ranges  0x000039e0       0x40 mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
+ .debug_ranges  0x00003a20       0xd0 mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
+ .debug_ranges  0x00003af0       0x68 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
+ .debug_ranges  0x00003b58      0x270 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
+ .debug_ranges  0x00003dc8      0x240 mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
+ .debug_ranges  0x00004008       0xf0 mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
+ .debug_ranges  0x000040f8       0xe8 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
+ .debug_ranges  0x000041e0       0xf8 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
+ .debug_ranges  0x000042d8       0xe8 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
+ .debug_ranges  0x000043c0      0x4a8 mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
+ .debug_ranges  0x00004868      0x290 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
+ .debug_ranges  0x00004af8      0x130 mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
+ .debug_ranges  0x00004c28       0x90 mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
+ .debug_ranges  0x00004cb8      0x100 mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
+ .debug_ranges  0x00004db8      0x2c0 mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
+ .debug_ranges  0x00005078       0x20 mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
+ .debug_ranges  0x00005098       0x18 mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
+ .debug_ranges  0x000050b0       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
+ .debug_ranges  0x000050f8      0x918 mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
+ .debug_ranges  0x00005a10      0x3b8 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
+ .debug_ranges  0x00005dc8      0x368 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
+ .debug_ranges  0x00006130       0xb0 mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
+ .debug_ranges  0x000061e0       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
+ .debug_ranges  0x00006218      0x160 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
+ .debug_ranges  0x00006378       0xa0 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
+ .debug_ranges  0x00006418       0x98 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
+ .debug_ranges  0x000064b0       0x18 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
+ .debug_ranges  0x000064c8       0x68 mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
+ .debug_ranges  0x00006530      0x130 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
+ .debug_ranges  0x00006660       0x48 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
 
-.debug_line     0x00000000    0x126bc
+.debug_line     0x00000000    0x126d4
  .debug_line    0x00000000      0x5f6 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/src/main.c.obj
  .debug_line    0x000005f6      0x780 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/nrf_mesh_sdk.c.obj
  .debug_line    0x00000d76     0x14bb examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
@@ -3831,171 +3835,171 @@ OUTPUT(examples\dfu\dfu_no_serial_nrf52832_xxAA_s132_3.1.0.elf elf32-littlearm)
  .debug_line    0x000045b3      0x27e examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/external/nRF5_SDK_14.2.0_17b948a/components/toolchain/system_nrf52.c.obj
  .debug_line    0x00004831      0x263 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_configure.c.obj)
  .debug_line    0x00004a94      0x30b mesh/core/libmesh_core_nrf52832_xxAA.a(event.c.obj)
- .debug_line    0x00004d9f      0x6a8 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
- .debug_line    0x00005447      0x5a9 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
- .debug_line    0x000059f0      0x262 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
- .debug_line    0x00005c52      0x7b0 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
- .debug_line    0x00006402      0x250 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
- .debug_line    0x00006652      0x4a3 mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
- .debug_line    0x00006af5      0x415 mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
- .debug_line    0x00006f0a      0x122 mesh/core/libmesh_core_nrf52832_xxAA.a(ticker.c.obj)
- .debug_line    0x0000702c      0x28d mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
- .debug_line    0x000072b9      0x5b6 mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
- .debug_line    0x0000786f      0x608 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
- .debug_line    0x00007e77      0x45a mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
- .debug_line    0x000082d1      0x836 mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
- .debug_line    0x00008b07      0x388 mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
- .debug_line    0x00008e8f      0x373 mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
- .debug_line    0x00009202      0x284 mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
- .debug_line    0x00009486      0xa9a mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
- .debug_line    0x00009f20      0x34b mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
- .debug_line    0x0000a26b      0x52d mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
- .debug_line    0x0000a798      0x299 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
- .debug_line    0x0000aa31      0x471 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
- .debug_line    0x0000aea2      0x61c mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
- .debug_line    0x0000b4be      0x42b mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
- .debug_line    0x0000b8e9      0x489 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
- .debug_line    0x0000bd72      0x352 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
- .debug_line    0x0000c0c4      0x403 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
- .debug_line    0x0000c4c7      0x81c mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
- .debug_line    0x0000cce3      0x5c1 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
- .debug_line    0x0000d2a4      0x3c8 mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
- .debug_line    0x0000d66c      0x356 mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
- .debug_line    0x0000d9c2      0x320 mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
- .debug_line    0x0000dce2      0x751 mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
- .debug_line    0x0000e433      0x2a2 mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
- .debug_line    0x0000e6d5      0x254 mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
- .debug_line    0x0000e929      0x298 mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
- .debug_line    0x0000ebc1     0x1029 mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
- .debug_line    0x0000fbea      0x6ed mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
- .debug_line    0x000102d7      0x7e7 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
- .debug_line    0x00010abe      0x3a6 mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
- .debug_line    0x00010e64      0x2a9 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
- .debug_line    0x0001110d      0x445 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
- .debug_line    0x00011552      0x2d2 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
- .debug_line    0x00011824      0x2d4 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
- .debug_line    0x00011af8      0x291 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
- .debug_line    0x00011d89      0x1f1 mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
- .debug_line    0x00011f7a      0x4c0 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
- .debug_line    0x0001243a      0x282 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+ .debug_line    0x00004d9f      0x6c0 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
+ .debug_line    0x0000545f      0x5a9 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
+ .debug_line    0x00005a08      0x262 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
+ .debug_line    0x00005c6a      0x7b0 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
+ .debug_line    0x0000641a      0x250 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
+ .debug_line    0x0000666a      0x4a3 mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
+ .debug_line    0x00006b0d      0x415 mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
+ .debug_line    0x00006f22      0x122 mesh/core/libmesh_core_nrf52832_xxAA.a(ticker.c.obj)
+ .debug_line    0x00007044      0x28d mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
+ .debug_line    0x000072d1      0x5b6 mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
+ .debug_line    0x00007887      0x608 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
+ .debug_line    0x00007e8f      0x45a mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
+ .debug_line    0x000082e9      0x836 mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
+ .debug_line    0x00008b1f      0x388 mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
+ .debug_line    0x00008ea7      0x373 mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
+ .debug_line    0x0000921a      0x284 mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
+ .debug_line    0x0000949e      0xa9a mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
+ .debug_line    0x00009f38      0x34b mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
+ .debug_line    0x0000a283      0x52d mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
+ .debug_line    0x0000a7b0      0x299 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
+ .debug_line    0x0000aa49      0x471 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
+ .debug_line    0x0000aeba      0x61c mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
+ .debug_line    0x0000b4d6      0x42b mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
+ .debug_line    0x0000b901      0x489 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
+ .debug_line    0x0000bd8a      0x352 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
+ .debug_line    0x0000c0dc      0x403 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
+ .debug_line    0x0000c4df      0x81c mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
+ .debug_line    0x0000ccfb      0x5c1 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
+ .debug_line    0x0000d2bc      0x3c8 mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
+ .debug_line    0x0000d684      0x356 mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
+ .debug_line    0x0000d9da      0x320 mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
+ .debug_line    0x0000dcfa      0x751 mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
+ .debug_line    0x0000e44b      0x2a2 mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
+ .debug_line    0x0000e6ed      0x254 mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
+ .debug_line    0x0000e941      0x298 mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
+ .debug_line    0x0000ebd9     0x1029 mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
+ .debug_line    0x0000fc02      0x6ed mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
+ .debug_line    0x000102ef      0x7e7 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
+ .debug_line    0x00010ad6      0x3a6 mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
+ .debug_line    0x00010e7c      0x2a9 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
+ .debug_line    0x00011125      0x445 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
+ .debug_line    0x0001156a      0x2d2 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
+ .debug_line    0x0001183c      0x2d4 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
+ .debug_line    0x00011b10      0x291 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
+ .debug_line    0x00011da1      0x1f1 mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
+ .debug_line    0x00011f92      0x4c0 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
+ .debug_line    0x00012452      0x282 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
 
-.debug_str      0x00000000     0xf4ca
+.debug_str      0x00000000     0xf4ad
  .debug_str     0x00000000     0x1c15 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/src/main.c.obj
                                0x1e05 (size before relaxing)
  .debug_str     0x00001c15     0x14fe examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/nrf_mesh_sdk.c.obj
                                0x220e (size before relaxing)
  .debug_str     0x00003113     0x186b examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
                                0x2e6b (size before relaxing)
- .debug_str     0x0000497e      0xf14 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_beacon.c.obj
-                               0x18cc (size before relaxing)
- .debug_str     0x00005892      0xc0d examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
-                               0x1e53 (size before relaxing)
- .debug_str     0x0000649f      0x836 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
+ .debug_str     0x0000497e      0xed3 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_beacon.c.obj
+                               0x188b (size before relaxing)
+ .debug_str     0x00005851      0xc0d examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_utils.c.obj
+                               0x1e12 (size before relaxing)
+ .debug_str     0x0000645e      0x836 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/prov/src/prov_bearer_adv.c.obj
                                0x1b5a (size before relaxing)
- .debug_str     0x00006cd5     0x16c7 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/dfu/src/nrf_mesh_dfu.c.obj
+ .debug_str     0x00006c94     0x16c7 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/dfu/src/nrf_mesh_dfu.c.obj
                                0x3544 (size before relaxing)
- .debug_str     0x0000839c      0x395 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/external/nRF5_SDK_14.2.0_17b948a/components/toolchain/system_nrf52.c.obj
+ .debug_str     0x0000835b      0x395 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/external/nRF5_SDK_14.2.0_17b948a/components/toolchain/system_nrf52.c.obj
                                 0x779 (size before relaxing)
- .debug_str     0x00008731       0x75 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_configure.c.obj)
+ .debug_str     0x000086f0       0x75 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_configure.c.obj)
                                 0x77e (size before relaxing)
- .debug_str     0x000087a6       0x82 mesh/core/libmesh_core_nrf52832_xxAA.a(event.c.obj)
+ .debug_str     0x00008765       0x82 mesh/core/libmesh_core_nrf52832_xxAA.a(event.c.obj)
                                0x14d3 (size before relaxing)
- .debug_str     0x00008828      0x384 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
-                               0x1e46 (size before relaxing)
- .debug_str     0x00008bac      0x3a0 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
+ .debug_str     0x000087e7      0x3a8 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
+                               0x1e6a (size before relaxing)
+ .debug_str     0x00008b8f      0x3a0 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
                                 0xcf6 (size before relaxing)
- .debug_str     0x00008f4c       0x8b mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
+ .debug_str     0x00008f2f       0x8b mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
                                 0x76b (size before relaxing)
- .debug_str     0x00008fd7      0x4d1 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
+ .debug_str     0x00008fba      0x4d1 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
                                0x2a81 (size before relaxing)
- .debug_str     0x000094a8       0x98 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
+ .debug_str     0x0000948b       0x98 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
                                 0x752 (size before relaxing)
- .debug_str     0x00009540      0x13d mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
+ .debug_str     0x00009523      0x13d mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
                                 0x94e (size before relaxing)
- .debug_str     0x0000967d      0x22c mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
+ .debug_str     0x00009660      0x22c mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
                                 0x883 (size before relaxing)
- .debug_str     0x000098a9       0x3c mesh/core/libmesh_core_nrf52832_xxAA.a(ticker.c.obj)
+ .debug_str     0x0000988c       0x3c mesh/core/libmesh_core_nrf52832_xxAA.a(ticker.c.obj)
                                 0x34c (size before relaxing)
- .debug_str     0x000098e5       0x88 mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
+ .debug_str     0x000098c8       0x88 mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
                                 0x6cf (size before relaxing)
- .debug_str     0x0000996d      0x8ba mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
+ .debug_str     0x00009950      0x8ba mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
                                0x17e8 (size before relaxing)
- .debug_str     0x0000a227      0x2ed mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
+ .debug_str     0x0000a20a      0x2ed mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
                                 0xed3 (size before relaxing)
- .debug_str     0x0000a514      0x1ff mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
+ .debug_str     0x0000a4f7      0x1ff mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
                                 0x9d4 (size before relaxing)
- .debug_str     0x0000a713      0x9ee mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
+ .debug_str     0x0000a6f6      0x9ee mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
                                0x19c7 (size before relaxing)
- .debug_str     0x0000b101       0x53 mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
+ .debug_str     0x0000b0e4       0x53 mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
                                 0x6d9 (size before relaxing)
- .debug_str     0x0000b154       0x7d mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
+ .debug_str     0x0000b137       0x7d mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
                                 0x2d8 (size before relaxing)
- .debug_str     0x0000b1d1       0xeb mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
+ .debug_str     0x0000b1b4       0xeb mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
                                 0x7d0 (size before relaxing)
- .debug_str     0x0000b2bc      0x7aa mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
+ .debug_str     0x0000b29f      0x7aa mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
                                0x19d1 (size before relaxing)
- .debug_str     0x0000ba66       0x8f mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
+ .debug_str     0x0000ba49       0x8f mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
                                 0x75d (size before relaxing)
- .debug_str     0x0000baf5       0xb2 mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
+ .debug_str     0x0000bad8       0xb2 mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
                                0x1133 (size before relaxing)
- .debug_str     0x0000bba7       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
+ .debug_str     0x0000bb8a       0x38 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
                                 0x7be (size before relaxing)
- .debug_str     0x0000bbdf      0x132 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
+ .debug_str     0x0000bbc2      0x132 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
                                 0x8bd (size before relaxing)
- .debug_str     0x0000bd11      0x75b mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
+ .debug_str     0x0000bcf4      0x75b mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
                                0x203b (size before relaxing)
- .debug_str     0x0000c46c      0x1d1 mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
+ .debug_str     0x0000c44f      0x1d1 mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
                                 0xe84 (size before relaxing)
- .debug_str     0x0000c63d      0x102 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
+ .debug_str     0x0000c620      0x102 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
                                0x104b (size before relaxing)
- .debug_str     0x0000c73f      0x184 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
+ .debug_str     0x0000c722      0x184 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
                                 0xb7f (size before relaxing)
- .debug_str     0x0000c8c3      0x14f mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
+ .debug_str     0x0000c8a6      0x14f mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
                                 0x9b9 (size before relaxing)
- .debug_str     0x0000ca12      0x2ff mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
+ .debug_str     0x0000c9f5      0x2ff mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
                                0x150c (size before relaxing)
- .debug_str     0x0000cd11      0x306 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
+ .debug_str     0x0000ccf4      0x306 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
                                 0xf8f (size before relaxing)
- .debug_str     0x0000d017      0x1ac mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
+ .debug_str     0x0000cffa      0x1ac mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
                                 0xf32 (size before relaxing)
- .debug_str     0x0000d1c3       0x72 mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
+ .debug_str     0x0000d1a6       0x72 mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
                                 0x826 (size before relaxing)
- .debug_str     0x0000d235       0x79 mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
+ .debug_str     0x0000d218       0x79 mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
                                 0x780 (size before relaxing)
- .debug_str     0x0000d2ae      0x45d mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
+ .debug_str     0x0000d291      0x45d mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
                                0x18d8 (size before relaxing)
- .debug_str     0x0000d70b       0xc0 mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
+ .debug_str     0x0000d6ee       0xc0 mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
                                 0xa93 (size before relaxing)
- .debug_str     0x0000d7cb       0xc1 mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
+ .debug_str     0x0000d7ae       0xc1 mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
                                 0xa61 (size before relaxing)
- .debug_str     0x0000d88c       0x71 mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
+ .debug_str     0x0000d86f       0x71 mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
                                 0x6ea (size before relaxing)
- .debug_str     0x0000d8fd      0xd3f mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
+ .debug_str     0x0000d8e0      0xd3f mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
                                0x31ea (size before relaxing)
- .debug_str     0x0000e63c      0x2cd mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
+ .debug_str     0x0000e61f      0x2cd mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
                                 0xc2f (size before relaxing)
- .debug_str     0x0000e909      0x36b mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
+ .debug_str     0x0000e8ec      0x36b mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
                                0x1528 (size before relaxing)
- .debug_str     0x0000ec74       0x69 mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
+ .debug_str     0x0000ec57       0x69 mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
                                 0x6f5 (size before relaxing)
- .debug_str     0x0000ecdd       0x36 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
+ .debug_str     0x0000ecc0       0x36 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
                                 0x6ec (size before relaxing)
- .debug_str     0x0000ed13      0x266 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
+ .debug_str     0x0000ecf6      0x266 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
                                 0x9cf (size before relaxing)
- .debug_str     0x0000ef79       0x19 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
+ .debug_str     0x0000ef5c       0x19 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
                                 0x69d (size before relaxing)
- .debug_str     0x0000ef92       0xb8 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
+ .debug_str     0x0000ef75       0xb8 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
                                 0x715 (size before relaxing)
- .debug_str     0x0000f04a       0x31 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
+ .debug_str     0x0000f02d       0x31 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
                                 0x921 (size before relaxing)
- .debug_str     0x0000f07b       0x9f mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
+ .debug_str     0x0000f05e       0x9f mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
                                 0x6b0 (size before relaxing)
- .debug_str     0x0000f11a      0x2d1 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
+ .debug_str     0x0000f0fd      0x2d1 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
                                 0x922 (size before relaxing)
- .debug_str     0x0000f3eb       0xdf external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+ .debug_str     0x0000f3ce       0xdf external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
                                 0x792 (size before relaxing)
 
-.debug_frame    0x00000000     0x4bb8
+.debug_frame    0x00000000     0x4bcc
  .debug_frame   0x00000000       0x60 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/src/main.c.obj
  .debug_frame   0x00000060      0x180 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/nrf_mesh_sdk.c.obj
  .debug_frame   0x000001e0      0xac4 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/mesh/access/src/device_state_manager.c.obj
@@ -4006,66 +4010,66 @@ OUTPUT(examples\dfu\dfu_no_serial_nrf52832_xxAA_s132_3.1.0.elf elf32-littlearm)
  .debug_frame   0x00001420       0x58 examples/dfu/CMakeFiles/dfu_no_serial_nrf52832_xxAA_s132_3.1.0.dir/__/__/external/nRF5_SDK_14.2.0_17b948a/components/toolchain/system_nrf52.c.obj
  .debug_frame   0x00001478       0x4c mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_configure.c.obj)
  .debug_frame   0x000014c4       0x6c mesh/core/libmesh_core_nrf52832_xxAA.a(event.c.obj)
- .debug_frame   0x00001530      0x264 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
- .debug_frame   0x00001794      0x150 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
- .debug_frame   0x000018e4       0x50 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
- .debug_frame   0x00001934      0x15c mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
- .debug_frame   0x00001a90       0x58 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
- .debug_frame   0x00001ae8      0x13c mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
- .debug_frame   0x00001c24      0x10c mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
- .debug_frame   0x00001d30       0x4c mesh/core/libmesh_core_nrf52832_xxAA.a(ticker.c.obj)
- .debug_frame   0x00001d7c       0x84 mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
- .debug_frame   0x00001e00      0x1a0 mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
- .debug_frame   0x00001fa0      0x1c8 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
- .debug_frame   0x00002168      0x150 mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
- .debug_frame   0x000022b8      0x14c mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
- .debug_frame   0x00002404       0xb8 mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
- .debug_frame   0x000024bc       0xd4 mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
- .debug_frame   0x00002590       0xb0 mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
- .debug_frame   0x00002640      0x33c mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
- .debug_frame   0x0000297c      0x10c mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
- .debug_frame   0x00002a88       0x98 mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
- .debug_frame   0x00002b20       0x34 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
- .debug_frame   0x00002b54       0xe8 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
- .debug_frame   0x00002c3c      0x164 mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
- .debug_frame   0x00002da0       0xd0 mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
- .debug_frame   0x00002e70      0x128 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
- .debug_frame   0x00002f98       0x6c mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
- .debug_frame   0x00003004       0xa8 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
- .debug_frame   0x000030ac      0x284 mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
- .debug_frame   0x00003330      0x160 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
- .debug_frame   0x00003490       0x70 mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
- .debug_frame   0x00003500       0x7c mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
- .debug_frame   0x0000357c       0x90 mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
- .debug_frame   0x0000360c      0x2a4 mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
- .debug_frame   0x000038b0       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
- .debug_frame   0x000038f8       0x40 mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
- .debug_frame   0x00003938       0x6c mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
- .debug_frame   0x000039a4      0x44c mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
- .debug_frame   0x00003df0      0x184 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
- .debug_frame   0x00003f74      0x250 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
- .debug_frame   0x000041c4       0xd0 mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
- .debug_frame   0x00004294       0x54 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
- .debug_frame   0x000042e8       0xa0 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
- .debug_frame   0x00004388       0x74 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
- .debug_frame   0x000043fc       0xa4 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
- .debug_frame   0x000044a0       0x30 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
- .debug_frame   0x000044d0       0xa0 mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
- .debug_frame   0x00004570      0x2d8 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
- .debug_frame   0x00004848       0xac external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
- .debug_frame   0x000048f4       0x28 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-exit.o)
- .debug_frame   0x0000491c       0x2c c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-init.o)
- .debug_frame   0x00004948       0x30 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-malloc.o)
- .debug_frame   0x00004978       0x28 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-memcmp.o)
- .debug_frame   0x000049a0       0x28 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-memcpy-stub.o)
- .debug_frame   0x000049c8       0x20 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-memset.o)
- .debug_frame   0x000049e8       0x38 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-nano-freer.o)
- .debug_frame   0x00004a20       0x2c c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-nano-mallocr.o)
- .debug_frame   0x00004a4c       0x2c c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-sbrkr.o)
- .debug_frame   0x00004a78       0x20 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-strcpy.o)
- .debug_frame   0x00004a98       0x34 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-strrchr.o)
- .debug_frame   0x00004acc       0x30 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-mlock.o)
- .debug_frame   0x00004afc       0x5c c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-reent.o)
- .debug_frame   0x00004b58       0x20 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-strchr.o)
- .debug_frame   0x00004b78       0x20 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(sbrk.o)
- .debug_frame   0x00004b98       0x20 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(_exit.o)
+ .debug_frame   0x00001530      0x278 mesh/core/libmesh_core_nrf52832_xxAA.a(net_state.c.obj)
+ .debug_frame   0x000017a8      0x150 mesh/core/libmesh_core_nrf52832_xxAA.a(mesh_flash.c.obj)
+ .debug_frame   0x000018f8       0x50 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_utils.c.obj)
+ .debug_frame   0x00001948      0x15c mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh.c.obj)
+ .debug_frame   0x00001aa4       0x58 mesh/core/libmesh_core_nrf52832_xxAA.a(hal.c.obj)
+ .debug_frame   0x00001afc      0x13c mesh/core/libmesh_core_nrf52832_xxAA.a(timer_scheduler.c.obj)
+ .debug_frame   0x00001c38      0x10c mesh/core/libmesh_core_nrf52832_xxAA.a(timer.c.obj)
+ .debug_frame   0x00001d44       0x4c mesh/core/libmesh_core_nrf52832_xxAA.a(ticker.c.obj)
+ .debug_frame   0x00001d90       0x84 mesh/core/libmesh_core_nrf52832_xxAA.a(rand.c.obj)
+ .debug_frame   0x00001e14      0x1a0 mesh/core/libmesh_core_nrf52832_xxAA.a(timeslot.c.obj)
+ .debug_frame   0x00001fb4      0x1c8 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_event.c.obj)
+ .debug_frame   0x0000217c      0x150 mesh/core/libmesh_core_nrf52832_xxAA.a(enc.c.obj)
+ .debug_frame   0x000022cc      0x14c mesh/core/libmesh_core_nrf52832_xxAA.a(network.c.obj)
+ .debug_frame   0x00002418       0xb8 mesh/core/libmesh_core_nrf52832_xxAA.a(msqueue.c.obj)
+ .debug_frame   0x000024d0       0xd4 mesh/core/libmesh_core_nrf52832_xxAA.a(list.c.obj)
+ .debug_frame   0x000025a4       0xb0 mesh/core/libmesh_core_nrf52832_xxAA.a(log.c.obj)
+ .debug_frame   0x00002654      0x33c mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager.c.obj)
+ .debug_frame   0x00002990      0x10c mesh/core/libmesh_core_nrf52832_xxAA.a(ccm_soft.c.obj)
+ .debug_frame   0x00002a9c       0x98 mesh/core/libmesh_core_nrf52832_xxAA.a(beacon.c.obj)
+ .debug_frame   0x00002b34       0x34 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_internal.c.obj)
+ .debug_frame   0x00002b68       0xe8 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx.c.obj)
+ .debug_frame   0x00002c50      0x164 mesh/core/libmesh_core_nrf52832_xxAA.a(heartbeat.c.obj)
+ .debug_frame   0x00002db4       0xd0 mesh/core/libmesh_core_nrf52832_xxAA.a(net_beacon.c.obj)
+ .debug_frame   0x00002e84      0x128 mesh/core/libmesh_core_nrf52832_xxAA.a(core_tx_adv.c.obj)
+ .debug_frame   0x00002fac       0x6c mesh/core/libmesh_core_nrf52832_xxAA.a(ad_listener.c.obj)
+ .debug_frame   0x00003018       0xa8 mesh/core/libmesh_core_nrf52832_xxAA.a(ad_type_filter.c.obj)
+ .debug_frame   0x000030c0      0x284 mesh/core/libmesh_core_nrf52832_xxAA.a(advertiser.c.obj)
+ .debug_frame   0x00003344      0x160 mesh/core/libmesh_core_nrf52832_xxAA.a(bearer_handler.c.obj)
+ .debug_frame   0x000034a4       0x70 mesh/core/libmesh_core_nrf52832_xxAA.a(broadcast.c.obj)
+ .debug_frame   0x00003514       0x7c mesh/core/libmesh_core_nrf52832_xxAA.a(filter_engine.c.obj)
+ .debug_frame   0x00003590       0x90 mesh/core/libmesh_core_nrf52832_xxAA.a(radio_config.c.obj)
+ .debug_frame   0x00003620      0x2a4 mesh/core/libmesh_core_nrf52832_xxAA.a(scanner.c.obj)
+ .debug_frame   0x000038c4       0x48 mesh/core/libmesh_core_nrf52832_xxAA.a(internal_event.c.obj)
+ .debug_frame   0x0000390c       0x40 mesh/core/libmesh_core_nrf52832_xxAA.a(aes.c.obj)
+ .debug_frame   0x0000394c       0x6c mesh/core/libmesh_core_nrf52832_xxAA.a(msg_cache.c.obj)
+ .debug_frame   0x000039b8      0x44c mesh/core/libmesh_core_nrf52832_xxAA.a(transport.c.obj)
+ .debug_frame   0x00003e04      0x184 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_buffer.c.obj)
+ .debug_frame   0x00003f88      0x250 mesh/core/libmesh_core_nrf52832_xxAA.a(flash_manager_defrag.c.obj)
+ .debug_frame   0x000041d8       0xd0 mesh/core/libmesh_core_nrf52832_xxAA.a(fifo.c.obj)
+ .debug_frame   0x000042a8       0x54 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_flash.c.obj)
+ .debug_frame   0x000042fc       0xa0 mesh/core/libmesh_core_nrf52832_xxAA.a(packet_mgr.c.obj)
+ .debug_frame   0x0000439c       0x74 mesh/core/libmesh_core_nrf52832_xxAA.a(queue.c.obj)
+ .debug_frame   0x00004410       0xa4 mesh/core/libmesh_core_nrf52832_xxAA.a(aes_cmac.c.obj)
+ .debug_frame   0x000044b4       0x30 mesh/core/libmesh_core_nrf52832_xxAA.a(nrf_mesh_opt.c.obj)
+ .debug_frame   0x000044e4       0xa0 mesh/core/libmesh_core_nrf52832_xxAA.a(replay_cache.c.obj)
+ .debug_frame   0x00004584      0x2d8 external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT.c.obj)
+ .debug_frame   0x0000485c       0xac external/rtt/librtt_nrf52832_xxAA.a(SEGGER_RTT_printf.c.obj)
+ .debug_frame   0x00004908       0x28 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-exit.o)
+ .debug_frame   0x00004930       0x2c c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-init.o)
+ .debug_frame   0x0000495c       0x30 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-malloc.o)
+ .debug_frame   0x0000498c       0x28 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-memcmp.o)
+ .debug_frame   0x000049b4       0x28 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-memcpy-stub.o)
+ .debug_frame   0x000049dc       0x20 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-memset.o)
+ .debug_frame   0x000049fc       0x38 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-nano-freer.o)
+ .debug_frame   0x00004a34       0x2c c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-nano-mallocr.o)
+ .debug_frame   0x00004a60       0x2c c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-sbrkr.o)
+ .debug_frame   0x00004a8c       0x20 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-strcpy.o)
+ .debug_frame   0x00004aac       0x34 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-strrchr.o)
+ .debug_frame   0x00004ae0       0x30 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-mlock.o)
+ .debug_frame   0x00004b10       0x5c c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-reent.o)
+ .debug_frame   0x00004b6c       0x20 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-strchr.o)
+ .debug_frame   0x00004b8c       0x20 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(sbrk.o)
+ .debug_frame   0x00004bac       0x20 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(_exit.o)

@@ -53,11 +53,12 @@
 #include "bearer_event_mock.h"
 #include "utils.h"
 
+#include "test_assert.h"
+#include "utils.h"
+
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include <stdlib.h>
 
 /* Transaction start values for each role (from Mesh Profile Specification v1.0, section 5.2.1) */
 #define PROVISIONER_TRANSACTION_START_VALUE 0
@@ -147,13 +148,6 @@ static prov_bearer_callbacks_t m_callbacks =
     .opened = opened_cb,
     .closed = closed_cb
 };
-
-nrf_mesh_assertion_handler_t m_assertion_handler;
-
-void nrf_mesh_assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("Mesh assertion triggered");
-}
 
 /********** Local Mock Functions **********/
 static void advertiser_instance_init_cb(advertiser_t * p_adv, advertiser_tx_complete_cb_t tx_cb, uint8_t * p_buffer, uint32_t buffer_size, int calls)
@@ -298,7 +292,6 @@ void setUp(void)
     {
         data[i] = i;
     }
-    m_assertion_handler = nrf_mesh_assertion_handler;
 }
 
 void tearDown(void)

@@ -173,7 +173,7 @@ static pb_remote_server_state_t pb_remote_server_event_local_packet_cb(pb_remote
 static pb_remote_server_state_t pb_remote_server_event_transfer_status_cb(pb_remote_server_t * p_ctx, pb_remote_server_event_t * p_evt);
 static pb_remote_server_state_t pb_remote_server_event_tx_failed_cb(pb_remote_server_t * p_ctx, pb_remote_server_event_t * p_evt);
 
-static void prov_evt_handler(nrf_mesh_prov_evt_t * p_evt);
+static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt);
 static void pb_adv_rx_cb(prov_bearer_t * p_bearer, const uint8_t * p_data, uint16_t length);
 static void pb_adv_ack_cb(prov_bearer_t * p_bearer);
 static void pb_adv_link_opened_cb(prov_bearer_t * p_bearer);
@@ -1131,7 +1131,7 @@ static void remote_server_access_rx_cb(access_model_handle_t handle, const acces
     }
 }
 
-static void prov_evt_handler(nrf_mesh_prov_evt_t * p_evt)
+static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
 {
     switch (p_evt->type)
     {

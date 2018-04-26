@@ -35,7 +35,6 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
 #include <string.h>
 #include <unity.h>
 
@@ -52,6 +51,7 @@ static const uint8_t m_nonce[]       = { 0x07, 0x01, 0x02, 0x03, 0x04, 0x05, 0x2
 
 NRF_MESH_STATIC_ASSERT(sizeof(m_unencrypted) == sizeof(m_encrypted));
 NRF_MESH_STATIC_ASSERT(sizeof(m_key) == NRF_MESH_KEY_SIZE);
+NRF_MESH_STATIC_ASSERT(sizeof(m_nonce) == CCM_NONCE_LENGTH);
 
 void setUp(void)
 {

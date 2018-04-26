@@ -41,6 +41,8 @@
 #include "serial_handler_models.h"
 #include "nrf_mesh_config_serial.h"
 #include "serial_status.h"
+#include "test_assert.h"
+
 #include "serial_mock.h"
 #include "access_config_mock.h"
 
@@ -66,17 +68,10 @@ static const access_model_handle_t m_model2_handle = 0xD0FF;
 /* Reset for serial_handler_models is not exposed via the header, since it's for unit testing only */
 void serial_handler_models_reset(void);
 
-nrf_mesh_assertion_handler_t m_assertion_handler;
-static void assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("ASSERT");
-}
-
 void setUp(void)
 {
     serial_mock_Init();
     access_config_mock_Init();
-    m_assertion_handler = assertion_handler;
     m_init1_calls_count = 0;
     m_cmd1_calls_count  = 0;
     m_init2_calls_count = 0;

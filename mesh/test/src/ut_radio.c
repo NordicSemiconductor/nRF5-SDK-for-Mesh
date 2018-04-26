@@ -35,7 +35,6 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include "unity.h"
@@ -120,7 +119,6 @@ typedef struct
 } radio_dummy_t;
 
 
-nrf_mesh_assertion_handler_t m_assertion_handler;
 radio_dummy_t m_dummy_radio;
 
 NRF_RADIO_Type * NRF_RADIO;
@@ -130,7 +128,6 @@ static uint8_t mp_packet_buf_rx[40];
 static uint32_t m_rx_cb_count;
 static uint32_t m_tx_cb_count;
 static uint32_t m_idle_cb_count;
-void assertion_handler(uint32_t pc);
 void rx_cb(uint8_t* p_data, bool succes, uint32_t crc, int8_t rssi);
 void tx_cb(uint8_t* p_data, bool free_on_end);
 void idle_cb(void);
@@ -151,7 +148,6 @@ void setUp(void)
     m_rx_cb_count = 0;
     m_tx_cb_count = 0;
     m_idle_cb_count = 0;
-    m_assertion_handler = assertion_handler;
 }
 
 void tearDown(void)
@@ -159,13 +155,6 @@ void tearDown(void)
 
 }
 
-
-void assertion_handler(uint32_t pc)
-{
-    char failmsg[256];
-    sprintf(failmsg, "ASSERT AT PC %u", pc);
-    TEST_FAIL_MESSAGE(failmsg);
-}
 void rx_cb(uint8_t* p_data, bool success, uint32_t crc, int8_t rssi)
 {
     TEST_ASSERT_EQUAL_PTR(RXPTR, p_data);

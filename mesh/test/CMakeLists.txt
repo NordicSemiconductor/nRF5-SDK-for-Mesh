@@ -291,9 +291,16 @@ set(prov_bearer_adv_test_srcs
     )
 add_unit_test(prov_bearer_adv "${prov_bearer_adv_test_srcs}" "${include_directories}" "${compile_options}")
 
-# The Great Provisioning Test - Provisioner vs Provisionee - two in one!
+# Provisioning procedure:
 set(prov_provisioning_test_srcs
     src/ut_prov_provisioning.c
+    ../prov/src/prov_provisioner.c
+    ../prov/src/prov_provisionee.c
+    ../core/src/log.c
+    ${CMOCK_BIN}/provisioning_mock.c
+    ${CMOCK_BIN}/prov_utils_mock.c
+    ${CMOCK_BIN}/enc_mock.c
+    ${CMOCK_BIN}/nrf_mesh_utils_mock.c
     )
 add_unit_test(prov_provisioning "${prov_provisioning_test_srcs}" "${include_directories}" "${compile_options}")
 target_link_libraries(ut_prov_provisioning)

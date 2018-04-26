@@ -42,8 +42,9 @@
 #include "flash_manager_defrag.h"
 #include "flash_manager_mock.h"
 #include "flash_manager_internal.h"
-#include "fifo.h"
 #include "flash_manager_test_util.h"
+
+#include "nordic_common.h"
 
 #define DEFAULT_MANAGER(AREA, PAGE_COUNT)       \
     {                                           \
@@ -59,7 +60,6 @@
 /* Initialize the UICR and FICR peripherals, it will be externed by the headers. */
 NRF_UICR_Type * NRF_UICR;
 NRF_FICR_Type * NRF_FICR;
-nrf_mesh_assertion_handler_t m_assertion_handler;
 static NRF_UICR_Type m_uicr;
 static NRF_FICR_Type m_ficr;
 static flash_manager_recovery_area_t * mp_recovery_area;
@@ -204,9 +204,9 @@ void test_single_page(void)
 
 
     /* Build a table of the same entries, but without all the invalid ones: */
-    test_entry_t resulting_entries[sizeof(entries) / sizeof(test_entry_t)];
+    test_entry_t resulting_entries[ARRAY_SIZE(entries)];
     uint32_t     result_index = 0;
-    for (uint32_t i = 0; i < sizeof(entries) / sizeof(test_entry_t); ++i)
+    for (uint32_t i = 0; i < ARRAY_SIZE(entries); ++i)
     {
         if (entries[i].handle != FLASH_MANAGER_HANDLE_INVALID)
         {
@@ -220,7 +220,7 @@ void test_single_page(void)
 
     flash_manager_page_t area[1] __attribute__((aligned(PAGE_SIZE)));
     memset(area, 0xFF, sizeof(area));
-    build_test_page(area, 1, entries, sizeof(entries) / sizeof(entries[0]), true);
+    build_test_page(area, 1, entries, ARRAY_SIZE(entries), true);
 
     flash_manager_t manager = DEFAULT_MANAGER(area, 1);
 
@@ -268,7 +268,7 @@ void test_three_pages_to_single_page(void)
        invalid, so we can get below 1 page after defrag: */
     test_entry_t final_entries[] = {{.handle = FLASH_MANAGER_HANDLE_INVALID, .len = 8, .data_value = 0xabababab},
                                     {.handle = 0x1234, .len = 4, .data_value = 0xabababab}};
-    for (uint32_t i = 0; i < sizeof(final_entries) / sizeof(final_entries[0]); ++i)
+    for (uint32_t i = 0; i < ARRAY_SIZE(final_entries); ++i)
     {
         test_page_add_entry(area, &final_entries[i], true);
         if (final_entries[i].handle != FLASH_MANAGER_HANDLE_INVALID)

@@ -101,7 +101,7 @@
 #define NRF_MESH_PROV_OOB_OUTPUT_ACTION_BEEP         (1u << 1)
 /** Capabilities bit indicating that the device supports vibrating as output OOB action. */
 #define NRF_MESH_PROV_OOB_OUTPUT_ACTION_VIBRATE      (1u << 2)
-/** Capabiliities bit indicating that the device supports displaying numberic data as output OOB action. */
+/** Capabilities bit indicating that the device supports displaying numeric data as output OOB action. */
 #define NRF_MESH_PROV_OOB_OUTPUT_ACTION_NUMERIC      (1u << 3)
 /** Capabilities bit indicating that the device supports displaying alphanumeric data as output OOB action. */
 #define NRF_MESH_PROV_OOB_OUTPUT_ACTION_ALPHANUMERIC (1u << 4)
@@ -161,11 +161,10 @@
   */
  typedef enum
  {
-     NRF_MESH_PROV_INPUT_ACTION_NONE         = 0x00, /**< No input action specified. */
-     NRF_MESH_PROV_INPUT_ACTION_PUSH         = 0x01, /**< The user should do a push action as input action. */
-     NRF_MESH_PROV_INPUT_ACTION_TWIST        = 0x02, /**< The user should do a twist action as input action. */
-     NRF_MESH_PROV_INPUT_ACTION_ENTER_NUMBER = 0x03, /**< The user should enter a number into the device as input action. */
-     NRF_MESH_PROV_INPUT_ACTION_ENTER_STRING = 0x04, /**< The user should enter a string into the device as input action. */
+     NRF_MESH_PROV_INPUT_ACTION_PUSH         = 0x00, /**< The user should do a push action as input action. */
+     NRF_MESH_PROV_INPUT_ACTION_TWIST        = 0x01, /**< The user should do a twist action as input action. */
+     NRF_MESH_PROV_INPUT_ACTION_ENTER_NUMBER = 0x02, /**< The user should enter a number into the device as input action. */
+     NRF_MESH_PROV_INPUT_ACTION_ENTER_STRING = 0x03, /**< The user should enter a string into the device as input action. */
  } nrf_mesh_prov_input_action_t;
 
  /**
@@ -173,12 +172,11 @@
   */
  typedef enum
  {
-     NRF_MESH_PROV_OUTPUT_ACTION_NONE            = 0x00, /**< No output action specified. */
-     NRF_MESH_PROV_OUTPUT_ACTION_BLINK           = 0x01, /**< The device should use blinking as output action. */
-     NRF_MESH_PROV_OUTPUT_ACTION_BEEP            = 0x02, /**< The device should use beeping as output action. */
-     NRF_MESH_PROV_OUTPUT_ACTION_VIBRATE         = 0x03, /**< The device should vibrate as output action. */
-     NRF_MESH_PROV_OUTPUT_ACTION_DISPLAY_NUMERIC = 0x04, /**< The device should display a number as output action. */
-     NRF_MESH_PROV_OUTPUT_ACTION_ALPHANUMERIC    = 0x05, /**< The device should display an alpha-numberic value as output action. */
+     NRF_MESH_PROV_OUTPUT_ACTION_BLINK           = 0x00, /**< The device should use blinking as output action. */
+     NRF_MESH_PROV_OUTPUT_ACTION_BEEP            = 0x01, /**< The device should use beeping as output action. */
+     NRF_MESH_PROV_OUTPUT_ACTION_VIBRATE         = 0x02, /**< The device should vibrate as output action. */
+     NRF_MESH_PROV_OUTPUT_ACTION_DISPLAY_NUMERIC = 0x03, /**< The device should display a number as output action. */
+     NRF_MESH_PROV_OUTPUT_ACTION_ALPHANUMERIC    = 0x04, /**< The device should display an alpha-numberic value as output action. */
  } nrf_mesh_prov_output_action_t;
 
  /**

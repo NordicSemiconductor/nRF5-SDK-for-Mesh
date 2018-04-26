@@ -1,9 +1,3 @@
-diff --git a/CMake b/CMake
---- a/CMake
-+++ b/CMake
-@@ -1 +1 @@
--Subproject commit d347ea0a7b8ffd3999656a770e674c93c37361b6
-+Subproject commit d347ea0a7b8ffd3999656a770e674c93c37361b6-dirty
 diff --git a/external/nRF5_SDK_14.2.0_17b948a/components/boards/pca10056.h b/external/nRF5_SDK_14.2.0_17b948a/components/boards/pca10056.h
 index 53640dd56..6f1ca228a 100644
 --- a/external/nRF5_SDK_14.2.0_17b948a/components/boards/pca10056.h

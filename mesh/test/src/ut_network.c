@@ -42,6 +42,9 @@
 #include "unity.h"
 #include "cmock.h"
 
+#include "nordic_common.h"
+#include "test_assert.h"
+
 #include "log.h"
 #include "packet_mesh.h"
 
@@ -54,7 +57,6 @@
 #include "net_beacon_mock.h"
 #include "net_state_mock.h"
 #include "nrf_mesh_externs_mock.h"
-#include "nrf_mesh_assert.h"
 
 #define TOKEN 0x12345678U
 #define IV_INDEX 0x87654321U
@@ -418,7 +420,8 @@ void test_alloc(void)
     buffer.core_tx.bearer        = CORE_TX_BEARER_ADV;
     buffer.core_tx.role          = CORE_TX_ROLE_ORIGINATOR;
     metadata.p_security_material = &secmat;
-    for (uint32_t i = 0; i < sizeof(vector) / sizeof(vector[0]); ++i)
+
+    for (volatile uint32_t i = 0; i < ARRAY_SIZE(vector); ++i)
     {
         metadata.control_packet      = vector[i].control;
         metadata.dst.value           = vector[i].dst;
@@ -630,7 +633,7 @@ void test_packet_in(void)
     uint8_t pecb_data[NRF_MESH_KEY_SIZE];
     uint8_t pecb[NRF_MESH_KEY_SIZE];
 
-    for (uint32_t i = 0; i < sizeof(vector) / sizeof(vector[0]); ++i)
+    for (uint32_t i = 0; i < ARRAY_SIZE(vector); ++i)
     {
         m_enc_nonce_generate_params.calls = 0;
         m_enc_nonce_generate_params.executed = 0;

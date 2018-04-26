@@ -36,9 +36,12 @@
 #include <unity.h>
 #include <cmock.h>
 
-#include "advertiser.h"
-
 #include "nrf.h"
+
+#include "advertiser.h"
+#include "nordic_common.h"
+#include "test_assert.h"
+
 #include "radio_config_mock.h"
 #include "packet_buffer_mock.h"
 #include "bearer_handler_mock.h"
@@ -48,15 +51,12 @@
 #include "rand_mock.h"
 #include "bearer_event_mock.h"
 
-#include "nrf_mesh_assert.h"
 #define BUF_SIZE    (512)
 
 #define EXPECTED_ADV_BUFFER_OVERHEAD (4 /* token */ + 4 /* config+pad */ + 3 /* ble header */ + 6 /* gap addr */)
 
 static NRF_FICR_Type m_FICR;
 NRF_FICR_Type * NRF_FICR = &m_FICR;
-
-nrf_mesh_assertion_handler_t m_assertion_handler;
 
 static const adv_packet_t * mp_expected_adv_packet;
 static uint32_t m_tx_timestamp_expected;
@@ -67,14 +67,8 @@ static const uint8_t m_dummy_ad_data[] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
 static uint32_t m_bearer_event_sequential_add_callback_cnt;
 static uint32_t m_bearer_event_sequential_post_callback_cnt;
 
-static void assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("ASSERT");
-}
-
 void setUp(void)
 {
-    m_assertion_handler = assertion_handler;
     radio_config_mock_Init();
     packet_buffer_mock_Init();
     bearer_handler_mock_Init();
@@ -527,7 +521,7 @@ void test_advertising(void)
         {1, {38, 39, 37}}, /* should swap 1<->0, 1<->1, 1<->2 */
         {2, {39, 37, 38}}, /* should swap 2<->0, 2<->1, 2<->2 */
     };
-    for (uint32_t i = 0; i < sizeof(channel_swap) / sizeof(channel_swap[0]); i++)
+    for (uint32_t i = 0; i < ARRAY_SIZE(channel_swap); i++)
     {
         /* reset channels */
         m_adv.config.channels.channel_map[0] = 37;

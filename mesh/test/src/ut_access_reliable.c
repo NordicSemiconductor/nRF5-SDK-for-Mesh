@@ -40,14 +40,13 @@
 #include <string.h>
 
 #include "access_reliable.h"
+#include "test_assert.h"
 
 #include "access_mock.h"
 #include "access_config_mock.h"
 #include "bearer_event_mock.h"
 #include "timer_scheduler_mock.h"
 #include "timer_mock.h"
-
-#include "nrf_mesh_assert.h"
 
 /* ******************* Various definitions ******************* */
 
@@ -93,13 +92,6 @@ static struct
 access_reliable_t m_reliables[ACCESS_RELIABLE_TRANSFER_COUNT];
 
 /* ******************* Callback functions ******************* */
-
-nrf_mesh_assertion_handler_t m_assertion_handler;
-void nrf_mesh_assertion_handler(uint32_t pc)
-{
-    printf("Mesh assertion at %.08x\n", pc);
-    TEST_FAIL_MESSAGE("Mesh assertion triggered");
-}
 
 void timer_sch_reschedule_cb(timer_event_t * p_evt, timestamp_t next_timeout, int num_calls)
 {

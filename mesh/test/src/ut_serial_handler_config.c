@@ -63,13 +63,6 @@
         serial_cmd_rsp_send_ExpectWithArray(_opcode, 0, (uint8_t *) (_data), _len, _len); \
     } while (0)
 
-nrf_mesh_assertion_handler_t                  m_assertion_handler;
-
-static void assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("ASSERT");
-}
-
 
 /*****************************************************************************
  * Test initialization and finalization
@@ -80,8 +73,6 @@ void setUp(void)
     advertiser_mock_Init();
     nrf_mesh_configure_mock_Init();
     serial_mock_Init();
-
-    m_assertion_handler = assertion_handler;
 }
 
 void tearDown(void)

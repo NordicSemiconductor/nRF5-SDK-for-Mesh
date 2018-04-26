@@ -41,7 +41,6 @@
 #include "timer.h"
 #include "nrf.h"
 #include "nrf_error.h"
-#include "nrf_mesh_assert.h"
 
 static uint32_t         m_callbacks_called;
 static uint32_t         m_async_callbacks_called;
@@ -104,12 +103,6 @@ static void s_ts_begin(timestamp_t timestamp)
     m_is_in_ts = true;
 }
 
-void assert_handler(uint32_t pc)
-{
-    printf("ASSERT AT PC %u", pc);
-    TEST_FAIL_MESSAGE("ASSERT HANDLER CALLED\n");
-}
-nrf_mesh_assertion_handler_t m_assertion_handler = assert_handler;
 /****** STUB FOR BEARER EVENT HANDLER ******/
 uint32_t bearer_event_timer_post(timer_callback_t callback, timestamp_t timestamp)
 {

@@ -34,18 +34,23 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 #include "scanner.h"
+
 #include <unity.h>
 #include <cmock.h>
+
+#include "nordic_common.h"
+#include "test_assert.h"
+
+#include "bearer_event_mock.h"
+#include "filter_engine_mock.h"
+#include "nrf_mesh_cmsis_mock_mock.h"
 #include "packet_buffer_mock.h"
+#include "radio_config_mock.h"
 #include "timer_mock.h"
 #include "timer_scheduler_mock.h"
-#include "radio_config_mock.h"
 #include "timeslot_mock.h"
-#include "nrf_mesh_assert.h"
-#include "nrf_mesh_cmsis_mock_mock.h"
-#include "filter_engine_mock.h"
-#include "bearer_event_mock.h"
 
 /* Include module to be tested (to get access to internal state) */
 #include "../../bearer/src/scanner.c"
@@ -65,8 +70,6 @@ static NRF_TIMER_Type m_timer0;
 #define TIME_UNTIL_END_EVENT    (100)
 #define BEARER_EVENT_FLAG       (7)
 
-nrf_mesh_assertion_handler_t m_assertion_handler;
-
 static int packet_buffer_free_callback_cnt = 0;
 
 void test_init(void);
@@ -76,12 +79,6 @@ void test_radio_start_IN_WINDOW(void);
 void test_timer_scan_window_start_callback_NO_CHANNEL_INDEX_WRAP(void);
 void test_radio_irq_handler_AFTER_WINDOW_START(void);
 void test_timer_scan_window_end_callback(void);
-
-/* Assertion handler, automatically fails the test. */
-void nrf_mesh_assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("Mesh assertion triggered\n");
-}
 
 /******** Helper functions ********/
 static void scanner_init_helper(void)
@@ -155,7 +152,6 @@ void setUp(void)
     NRF_RADIO           = (NRF_RADIO_Type*) &m_radio;
     NRF_PPI             = (NRF_PPI_Type*) &m_ppi;
     NRF_TIMER0          = (NRF_TIMER_Type*) &m_timer0;
-    m_assertion_handler = nrf_mesh_assertion_handler;
 
     packet_buffer_free_callback_cnt = 0;
 }
@@ -352,18 +348,18 @@ void test_config_channels_set(void)
     uint8_t invalid_channels[] = {36, 38, 39};
     uint8_t too_many_channels[] = {37, 38, 39, 39};
 
-    scanner_config_channels_set(valid_channels, sizeof(valid_channels) / sizeof(valid_channels[0]));
+    scanner_config_channels_set(valid_channels, ARRAY_SIZE(valid_channels));
 
     /* Verify resulting state */
     TEST_ASSERT_EQUAL_UINT8_ARRAY(valid_channels,
                                   m_scanner.config.channels,
-                                  sizeof(valid_channels) / sizeof(valid_channels[0]));
-    TEST_ASSERT_EQUAL_UINT8(sizeof(valid_channels) / sizeof(valid_channels[0]), m_scanner.config.channel_count);
+                                  ARRAY_SIZE(valid_channels));
+    TEST_ASSERT_EQUAL_UINT8(ARRAY_SIZE(valid_channels), m_scanner.config.channel_count);
     TEST_ASSERT_EQUAL_UINT8(0, m_scanner.channel_index);
 
     /* Test invalid values */
-    TEST_NRF_MESH_ASSERT_EXPECT(scanner_config_channels_set(invalid_channels, sizeof(invalid_channels) / sizeof(invalid_channels[0])));
-    TEST_NRF_MESH_ASSERT_EXPECT(scanner_config_channels_set(too_many_channels, sizeof(too_many_channels) / sizeof(too_many_channels[0])));
+    TEST_NRF_MESH_ASSERT_EXPECT(scanner_config_channels_set(invalid_channels, ARRAY_SIZE(invalid_channels)));
+    TEST_NRF_MESH_ASSERT_EXPECT(scanner_config_channels_set(too_many_channels, ARRAY_SIZE(too_many_channels)));
     TEST_NRF_MESH_ASSERT_EXPECT(scanner_config_channels_set(valid_channels, 0));
 }
 
@@ -371,18 +367,16 @@ void test_config_access_addresses_set(void)
 {
     uint32_t access_addresses[] = {1, 2, 3, 4, 5, 6, 7, 8};
 
-    scanner_config_access_addresses_set(access_addresses,
-                                        sizeof(access_addresses) / sizeof(access_addresses[0]));
+    scanner_config_access_addresses_set(access_addresses, ARRAY_SIZE(access_addresses));
 
     /* Verify resulting state */
     TEST_ASSERT_EQUAL_UINT32_ARRAY(access_addresses,
                                    m_scanner.config.access_addresses,
-                                   sizeof(access_addresses) / sizeof(access_addresses[0]));
+                                   ARRAY_SIZE(access_addresses));
 
     /* Test invalid values */
     TEST_NRF_MESH_ASSERT_EXPECT(
-        scanner_config_access_addresses_set(access_addresses,
-                                            sizeof(access_addresses) / sizeof(access_addresses[0]) + 1));
+        scanner_config_access_addresses_set(access_addresses, ARRAY_SIZE(access_addresses) + 1));
     TEST_NRF_MESH_ASSERT_EXPECT(scanner_config_access_addresses_set(access_addresses, 0));
 }
 
@@ -412,13 +406,13 @@ void test_config_reset(void)
     /* Verify resulting state */
     TEST_ASSERT_EQUAL_UINT8_ARRAY(channels,
                                   m_scanner.config.channels,
-                                  sizeof(channels) / sizeof(channels[0]));
-    TEST_ASSERT_EQUAL_UINT8(sizeof(channels) / sizeof(channels[0]),
+                                  ARRAY_SIZE(channels));
+    TEST_ASSERT_EQUAL_UINT8(ARRAY_SIZE(channels),
                             m_scanner.config.channel_count);
     TEST_ASSERT_EQUAL_UINT8(0, m_scanner.channel_index);
     TEST_ASSERT_EQUAL_UINT32_ARRAY(access_addresses,
                                    m_scanner.config.access_addresses,
-                                   sizeof(access_addresses) / sizeof(access_addresses[0]));
+                                   ARRAY_SIZE(access_addresses));
     TEST_ASSERT_EQUAL(RADIO_MODE_BLE_1MBIT, m_scanner.config.radio_config.radio_mode);
     TEST_ASSERT_EQUAL_UINT8(RADIO_CONFIG_ADV_MAX_PAYLOAD_SIZE,
                             m_scanner.config.radio_config.payload_maxlen);

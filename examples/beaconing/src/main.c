@@ -38,16 +38,16 @@
 
 #include <stdio.h>
 
-#include "nrf_delay.h"
-#include "nrf_gpio.h"
+#include "nrf.h"
 #include "ble.h"
 #include "boards.h"
 
 #include "nrf_mesh.h"
-
 #include "log.h"
+#include "nrf_mesh_node_config.h"
 
 #include "nrf_mesh_sdk.h"
+#include "simple_hal.h"
 
 /* For beaconing advertiser */
 #include "advertiser.h"
@@ -58,6 +58,11 @@
 #endif
 
 #define ADVERTISER_BUFFER_SIZE  (128)
+
+#define LED_PIN_NUMBER (BSP_LED_0)
+#define LED_PIN_MASK   (1u << LED_PIN_NUMBER)
+
+#define STATIC_AUTH_DATA { 0xc7, 0xf7, 0x9b, 0xec, 0x9c, 0xf9, 0x74, 0xdd, 0xb9, 0x62, 0xbd, 0x9f, 0xd1, 0x72, 0xdd, 0x73 }
 
 /** Single advertiser instance. May periodically transmit one packet at a time. */
 static advertiser_t m_advertiser;
@@ -125,6 +130,22 @@ static void start_advertiser(void)
 
 }
 
+static void configuration_setup(void * p_unused)
+{
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Initializing and adding models\n");
+    /*
+    Add model initialization here, if you wish to support a mesh model on this node.
+    */
+    hal_led_mask_set(LEDS_MASK, true);
+}
+
+static void provisioning_complete(void * p_unused)
+{
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
+    hal_led_mask_set(LEDS_MASK, false);
+    hal_led_blink_ms(LED_PIN_MASK, 200, 4);
+}
+
 int main(void)
 {
 #if defined(NRF51) && defined(NRF_MESH_STACK_DEPTH)
@@ -139,7 +160,25 @@ int main(void)
     __LOG_INIT(LOG_SRC_APP, LOG_LEVEL_INFO, log_callback_rtt);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Bluetooth Mesh Beacon Example -----\n");
 
-    mesh_core_setup();
+    static const uint8_t static_auth_data[NRF_MESH_KEY_SIZE] = STATIC_AUTH_DATA;
+    static nrf_mesh_node_config_params_t config_params =
+        {.prov_caps = NRF_MESH_PROV_OOB_CAPS_DEFAULT(ACCESS_ELEMENT_COUNT)};
+    config_params.p_static_data = static_auth_data;
+    config_params.complete_callback = provisioning_complete;
+    config_params.setup_callback = configuration_setup;
+    config_params.irq_priority = NRF_MESH_IRQ_PRIORITY_LOWEST;
+
+#if defined(S110)
+    config_params.lf_clk_cfg = NRF_CLOCK_LFCLKSRC_XTAL_20_PPM;
+#elif SD_BLE_API_VERSION >= 5
+    config_params.lf_clk_cfg.source = NRF_CLOCK_LF_SRC_XTAL;
+    config_params.lf_clk_cfg.accuracy = NRF_CLOCK_LF_ACCURACY_20_PPM;
+#else
+    config_params.lf_clk_cfg.source = NRF_CLOCK_LF_SRC_XTAL;
+    config_params.lf_clk_cfg.xtal_accuracy = NRF_CLOCK_LF_XTAL_ACCURACY_20_PPM;
+#endif
+
+    ERROR_CHECK(nrf_mesh_node_config(&config_params));
 
     /* Start listening for incoming packets */
     nrf_mesh_rx_cb_set(rx_callback);

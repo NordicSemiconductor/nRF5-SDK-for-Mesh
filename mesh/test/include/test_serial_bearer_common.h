@@ -43,9 +43,11 @@
 #include <unity.h>
 #include <cmock.h>
 #include <stdlib.h>
+
 #include "nrf_mesh_serial.h"
-#include "nrf_mesh_assert.h"
 #include "serial_bearer.h"
+#include "test_assert.h"
+
 #include "serial_uart_mock.h"
 #include "packet_buffer_mock.h"
 #include "bearer_event_mock.h"

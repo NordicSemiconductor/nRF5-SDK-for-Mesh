@@ -40,7 +40,7 @@
 
 #include "heartbeat.h"
 #include "nrf_mesh_utils.h"
-#include "nrf_mesh_assert.h"
+#include "test_assert.h"
 
 #include "timer_scheduler_mock.h"
 #include "event_mock.h"
@@ -178,7 +178,7 @@ static void event_handler_add_stub(nrf_mesh_evt_handler_t * p_handler_params, in
 }
 
 /** Trigger the callback from local structure */
-static void event_handle_stub(nrf_mesh_evt_t * p_evt)
+static void event_handle_stub(const nrf_mesh_evt_t * p_evt)
 {
     m_event_handler.evt_cb(p_evt);
 }

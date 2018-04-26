@@ -268,9 +268,9 @@ typedef struct
 /**
  * Provisioning event handler callback type.
  *
- * @param[in,out] p_evt Provisioning event pointer.
+ * @param[in] p_evt Provisioning event pointer.
  */
-typedef void (*nrf_mesh_prov_evt_handler_cb_t)(nrf_mesh_prov_evt_t * p_evt);
+typedef void (*nrf_mesh_prov_evt_handler_cb_t)(const nrf_mesh_prov_evt_t * p_evt);
 
 /** @} end of NRF_MESH_PROV_EVENTS */
 

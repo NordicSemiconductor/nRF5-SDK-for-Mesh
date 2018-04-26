@@ -36,13 +36,12 @@
  */
 
 #include "queue.h"
+
 #include <stdint.h>
 #include <string.h>
+
 #include <unity.h>
 #include <cmock.h>
-#include "nrf_mesh_assert.h"
-
-nrf_mesh_assertion_handler_t m_assertion_handler;
 
 typedef struct
 {

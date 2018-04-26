@@ -127,7 +127,7 @@ static uint32_t start_provisionee(void)
         &m_prov_ctx, mp_init_params->p_device_uri, mp_init_params->oob_info_sources, NRF_MESH_PROV_BEARER_ADV);
 }
 
-static void prov_evt_handler(nrf_mesh_prov_evt_t * p_evt)
+static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
 {
     switch (p_evt->type)
     {
@@ -166,10 +166,15 @@ static void prov_evt_handler(nrf_mesh_prov_evt_t * p_evt)
                                        p_evt->params.complete.p_devkey,
                                        &devkey_handle) == NRF_SUCCESS);
 
-            /* The IV index is set in the network state module for now: */
-            net_state_beacon_received(p_evt->params.complete.iv_index,
-                    p_evt->params.complete.flags.iv_update,
-                    p_evt->params.complete.flags.key_refresh);
+            NRF_MESH_ERROR_CHECK(net_state_iv_index_set(p_evt->params.complete.iv_index,
+                                                        p_evt->params.complete.flags.iv_update));
+
+            /* If there is an ongoing key refresh we have to "update" the key to the correct state. */
+            if (p_evt->params.complete.flags.key_refresh)
+            {
+                NRF_MESH_ERROR_CHECK(dsm_subnet_update(netkey_handle, p_evt->params.complete.p_netkey));
+                NRF_MESH_ERROR_CHECK(dsm_subnet_update_swap_keys(netkey_handle));
+            }
 
             /* The config server should be bound to the device key: */
             NRF_MESH_ERROR_CHECK(config_server_bind(devkey_handle));

@@ -319,7 +319,7 @@ static void heartbeat_publication_timer_cb(timestamp_t timestamp, void * p_conte
 }
 
 /** Event handler callback sends the pending triggered message on the TX complete */
-static void heartbeat_core_evt_cb(nrf_mesh_evt_t * p_evt)
+static void heartbeat_core_evt_cb(const nrf_mesh_evt_t * p_evt)
 {
     if (p_evt->type == NRF_MESH_EVT_TX_COMPLETE)
     {

@@ -211,7 +211,7 @@ static void do_config_step(void)
     }
 }
 
-static void prov_evt_handler(nrf_mesh_prov_evt_t * p_evt)
+static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
 {
     switch (p_evt->type)
     {
@@ -245,6 +245,7 @@ static void prov_evt_handler(nrf_mesh_prov_evt_t * p_evt)
         {
             uint32_t status = nrf_mesh_prov_oob_use(p_evt->params.oob_caps_received.p_context,
                                                     NRF_MESH_PROV_OOB_METHOD_STATIC,
+                                                    0,
                                                     NRF_MESH_KEY_SIZE);
             if (status != NRF_SUCCESS)
             {

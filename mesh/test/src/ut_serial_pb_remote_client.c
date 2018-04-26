@@ -69,12 +69,6 @@ struct
 /* Reset for serial_pb_remote_client is not exposed via the header, since it's for unit testing only */
 void serial_pb_remote_client_reset(void);
 
-nrf_mesh_assertion_handler_t m_assertion_handler;
-static void assertion_handler(uint32_t pc)
-{
-    TEST_FAIL_MESSAGE("ASSERT");
-}
-
 static uint32_t m_serial_model_register_cb(const serial_handler_models_info_t * p_model_info, int cmock_num_calls)
 {
     m_model_initialize = p_model_info->model_initialize;
@@ -109,7 +103,6 @@ void setUp(void)
     m_pbr_client_init_return_val = NRF_SUCCESS;
     serial_handler_models_register_StubWithCallback(m_serial_model_register_cb);
     pb_remote_client_init_StubWithCallback(m_pbr_client_init_cb);
-    m_assertion_handler = assertion_handler;
 }
 
 void tearDown(void)

@@ -34,41 +34,49 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <nrf_error.h>
 
-#include "event.h"
-#include "list.h"
-#include "utils.h"
+#ifndef NRF_MESH_ASSERT_GCC_H__
+#define NRF_MESH_ASSERT_GCC_H__
 
-/** Linked list of event handlers */
-static list_node_t * mp_evt_handlers_head;
+/**
+ * @ingroup MESH_ASSERT
+ * @{
+ */
 
-void event_handle(const nrf_mesh_evt_t * p_evt)
-{
-    NRF_MESH_ASSERT(p_evt != NULL);
+/* Sanity checks: */
+#ifndef NRF_MESH_ASSERT_H__
+    #error "This file should only be included by nrf_mesh_assert.h, not directly."
+#endif
 
-    if (mp_evt_handlers_head != NULL)
-    {
-        LIST_FOREACH(p_node, mp_evt_handlers_head)
-        {
-            nrf_mesh_evt_handler_t * p_handler = PARENT_BY_FIELD_GET(nrf_mesh_evt_handler_t,
-                                                                     p_next,
-                                                                     p_node);
+#ifndef __GNUC__
+    #error "This file should only be included when compiling with GCC."
+#endif
 
-            p_handler->evt_cb(p_evt);
-        }
-    }
-}
+#ifdef HOST
 
-void event_handler_add(nrf_mesh_evt_handler_t * p_handler_params)
-{
-    NRF_MESH_ASSERT(p_handler_params != NULL);
-    list_add(&mp_evt_handlers_head, (list_node_t*) &p_handler_params->p_next);
-}
+    /** Produces a hardfault. */
+    #define HARD_FAULT() __builtin_trap()
 
-void event_handler_remove(nrf_mesh_evt_handler_t * p_handler_params)
-{
-    NRF_MESH_ASSERT(p_handler_params != NULL);
-    /* This function ignores attempts to remove event handlers that are not in the list. */
-    (void) list_remove(&mp_evt_handlers_head, (list_node_t*) &p_handler_params->p_next);
-}
+    /**
+     * Gets the current value of the program counter.
+     * @param[out] pc Variable to assign the obtained value to.
+     */
+    #define GET_PC(pc) pc = 0xffffffff /* This value is not useful on host, use a debugger. */
+
+#else
+
+    /** Produces a hardfault. */
+    #define HARD_FAULT()  asm volatile(".inst.n 0xde00\n")
+
+    /**
+     * Gets the current value of the program counter.
+     * @param[out] pc Variable to assign the obtained value to.
+     */
+    #define GET_PC(pc)    asm volatile("mov %0, pc\n\t" : "=r" (pc))
+
+#endif
+
+/** @} */
+
+#endif
+

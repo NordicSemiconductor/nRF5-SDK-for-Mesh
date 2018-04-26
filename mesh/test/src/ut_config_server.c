@@ -54,6 +54,7 @@
 #include "config_messages.h"
 #include "config_opcodes.h"
 #include "config_server.h"
+#include "nordic_common.h"
 #include "packed_index_list.h"
 
 #define CONFIG_SERVER_MODEL_ID  0x0000
@@ -133,13 +134,6 @@ static uint16_t m_access_model_applications_get_appkey_count;
 static uint32_t m_access_model_applications_get_retval;
 
 /*********** Helper functions ***********/
-
-nrf_mesh_assertion_handler_t m_assertion_handler;
-void nrf_mesh_assertion_handler(uint32_t pc)
-{
-    printf("Mesh assertion at 0x%.08x\n", pc);
-    TEST_FAIL_MESSAGE("Mesh assertion triggered");
-}
 
 static void send_message(uint16_t opcode, const uint8_t * p_data, uint16_t length)
 {
@@ -260,7 +254,6 @@ void setUp(void)
     nrf_mesh_keygen_mock_Init();
     rand_mock_Init();
 
-    m_assertion_handler = nrf_mesh_assertion_handler;
     m_previous_reply_received = false;
     mp_previous_reply_buffer = NULL;
 
@@ -844,7 +837,7 @@ void test_netkey_get(void)
             0x1a, 0x00
         };
 
-    uint32_t netkey_index_count = sizeof(netkey_indexes) / sizeof(netkey_indexes[0]);
+    uint32_t netkey_index_count = ARRAY_SIZE(netkey_indexes);
 
     DSM_SUBNET_GET_ALL_MOCK_SETUP(netkey_indexes, netkey_index_count, NRF_SUCCESS);
     dsm_subnet_get_all_StubWithCallback(dsm_subnet_get_all_mock);
@@ -962,7 +955,7 @@ void test_appkey_get(void)
     dsm_handle_t subnet_handle = 1021;
     dsm_net_key_index_to_subnet_handle_ExpectAndReturn(netkey_index, subnet_handle);
 
-    int appkey_count = sizeof(appkey_indexes) / sizeof(appkey_indexes[0]);
+    int appkey_count = ARRAY_SIZE(appkey_indexes);
     DSM_APPKEY_GET_ALL_MOCK_SETUP(subnet_handle, appkey_indexes, appkey_count, NRF_SUCCESS);
     dsm_appkey_get_all_StubWithCallback(dsm_appkey_get_all_mock);
 
@@ -1372,7 +1365,7 @@ void test_subscription_overwrite(void)
         access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
         dsm_handle_t subscriptions[] = { 2, 98, 14 };
-        uint16_t subscription_count = sizeof(subscriptions) / sizeof(subscriptions[0]);
+        uint16_t subscription_count = ARRAY_SIZE(subscriptions);
         access_model_subscriptions_get_StubWithCallback(access_model_subscriptions_get_mock);
         ACCESS_MODEL_SUBSCRIPTIONS_GET_MOCK_SETUP(model_handle, subscriptions,
                                                   subscription_count, NRF_SUCCESS);
@@ -1440,7 +1433,7 @@ void test_subscription_delete_all(void)
         access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
         dsm_handle_t subscriptions[] = { 2, 98, 14 };
-        uint16_t subscription_count = sizeof(subscriptions) / sizeof(subscriptions[0]);
+        uint16_t subscription_count = ARRAY_SIZE(subscriptions);
         access_model_subscriptions_get_StubWithCallback(access_model_subscriptions_get_mock);
         ACCESS_MODEL_SUBSCRIPTIONS_GET_MOCK_SETUP(model_handle, subscriptions,
                                                   subscription_count, NRF_SUCCESS);
@@ -1568,7 +1561,7 @@ void test_subscription_virtual_overwrite(void)
         access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
         dsm_handle_t subscriptions[] = { 2, 98, 14 };
-        uint16_t subscription_count = sizeof(subscriptions) / sizeof(subscriptions[0]);
+        uint16_t subscription_count = ARRAY_SIZE(subscriptions);
         access_model_subscriptions_get_StubWithCallback(access_model_subscriptions_get_mock);
         ACCESS_MODEL_SUBSCRIPTIONS_GET_MOCK_SETUP(model_handle, subscriptions,
                                                   subscription_count, NRF_SUCCESS);
@@ -1695,7 +1688,7 @@ void test_sig_model_subscription_get(void)
     access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
     dsm_handle_t subscriptions[] = { 1, 22, 882, 31771 };
-    uint16_t subscription_count = sizeof(subscriptions) / sizeof(subscriptions[0]);
+    uint16_t subscription_count = ARRAY_SIZE(subscriptions);
     access_model_subscriptions_get_StubWithCallback(access_model_subscriptions_get_mock);
     ACCESS_MODEL_SUBSCRIPTIONS_GET_MOCK_SETUP(model_handle, subscriptions,
                                               subscription_count, NRF_SUCCESS);
@@ -1739,7 +1732,7 @@ void test_vendor_model_subscription_get(void)
     access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
     dsm_handle_t subscriptions[] = { 1, 22, 882, 31771 };
-    uint16_t subscription_count = sizeof(subscriptions) / sizeof(subscriptions[0]);
+    uint16_t subscription_count = ARRAY_SIZE(subscriptions);
     access_model_subscriptions_get_StubWithCallback(access_model_subscriptions_get_mock);
     ACCESS_MODEL_SUBSCRIPTIONS_GET_MOCK_SETUP(model_handle, subscriptions,
                                               subscription_count, NRF_SUCCESS);
@@ -1784,7 +1777,7 @@ void test_sig_model_app_get(void)
     access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
     dsm_handle_t appkey_handles[] = { 1, 2, 3, 4, 5 };
-    uint16_t appkey_handle_count = sizeof(appkey_handles) / sizeof(appkey_handles[0]);
+    uint16_t appkey_handle_count = ARRAY_SIZE(appkey_handles);
     access_model_applications_get_StubWithCallback(access_model_applications_get_mock);
     ACCESS_MODEL_APPLICATIONS_GET_MOCK_SETUP(model_handle, appkey_handles, appkey_handle_count, NRF_SUCCESS);
 
@@ -1839,7 +1832,7 @@ void test_vendor_model_app_get(void)
     access_handle_get_ReturnThruPtr_p_handle(&model_handle);
 
     dsm_handle_t appkey_handles[] = { 1, 2, 3, 4, 5 };
-    uint16_t appkey_handle_count = sizeof(appkey_handles) / sizeof(appkey_handles[0]);
+    uint16_t appkey_handle_count = ARRAY_SIZE(appkey_handles);
     access_model_applications_get_StubWithCallback(access_model_applications_get_mock);
     ACCESS_MODEL_APPLICATIONS_GET_MOCK_SETUP(model_handle, appkey_handles, appkey_handle_count, NRF_SUCCESS);
 

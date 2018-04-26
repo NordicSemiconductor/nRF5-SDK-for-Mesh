@@ -126,13 +126,6 @@ void hal_device_reset(uint8_t reset_reason)
 {
 }
 
-nrf_mesh_assertion_handler_t m_assertion_handler;
-void nrf_mesh_assertion_handler(uint32_t pc)
-{
-    printf("Mesh assertion at 0x%.08x\n", pc);
-    TEST_FAIL_MESSAGE("Mesh assertion triggered");
-}
-
 static void dummy_attention_cb(const health_server_t * p_server, bool enable)
 {
 
@@ -196,7 +189,6 @@ void setUp(void)
 
     mp_expected_caps = NULL;
     m_event_handler = NULL;
-    m_assertion_handler = nrf_mesh_assertion_handler;
     mp_config_server_evt_callback = NULL;
 }
 
@@ -238,7 +230,7 @@ void test_basic_configuration(void)
     config_params.prov_caps.oob_static_types = NRF_MESH_PROV_OOB_STATIC_TYPE_SUPPORTED;
     config_params.prov_caps.num_elements = 1;
     config_params.p_data = test_data;
-    config_params.mesh_assertion_handler = nrf_mesh_assertion_handler;
+    config_params.mesh_assertion_handler = m_assertion_handler;
     config_params.complete_callback = complete_callback;
     config_params.attention_cb = dummy_attention_cb;
 
@@ -306,6 +298,8 @@ void test_basic_configuration(void)
     event.params.complete.iv_index = 0x10ffebad;
     event.params.complete.netkey_index = 0xada;
     event.params.complete.address = 0x10ff;
+    event.params.complete.flags.iv_update = 1;
+    event.params.complete.flags.key_refresh = 1;
 
     dsm_local_unicast_address_t expected_address;
     expected_address.address_start = event.params.complete.address;
@@ -318,7 +312,13 @@ void test_basic_configuration(void)
         NULL, 0, NRF_SUCCESS);
     dsm_devkey_add_IgnoreArg_p_devkey_handle();
     dsm_devkey_add_ReturnThruPtr_p_devkey_handle(&mock_devkey_handle);
-    net_state_beacon_received_Expect(event.params.complete.iv_index, 0, 0);
+    net_state_iv_index_set_ExpectAndReturn(event.params.complete.iv_index, event.params.complete.flags.iv_update, NRF_SUCCESS);
+    if (event.params.complete.flags.key_refresh)
+    {
+        dsm_subnet_update_ExpectAndReturn(mock_netkey_handle, mock_netkey, NRF_SUCCESS);
+        dsm_subnet_update_swap_keys_ExpectAndReturn(mock_netkey_handle, NRF_SUCCESS);
+    }
+
     config_server_bind_ExpectAndReturn(mock_devkey_handle, NRF_SUCCESS);
 
     m_event_handler(&event);

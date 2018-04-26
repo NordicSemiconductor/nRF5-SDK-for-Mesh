@@ -39,9 +39,10 @@
 #include <string.h>
 #include <unity.h>
 
-#include "utils.h"
-#include "packet.h"
 #include "enc.h"
+#include "nordic_common.h"
+#include "packet.h"
+#include "utils.h"
 
 #define ENC_TEST_S1_INPUT_DATA  { 't', 'e', 's', 't' }
 #define ENC_TEST_S1_RESULT_DATA { 0xb7, 0x3c, 0xef, 0xbd, 0x64, 0x1e, 0xf2, 0xea, 0x59, 0x8c, 0x2b, 0x6e, 0xfb, 0x62, 0xf7, 0x9c }
@@ -129,7 +130,7 @@ void tearDown()
 
 void test_enc_nonce_generate(void)
 {
-    const unsigned int num_vectors = sizeof(nonce_test_vectors) / sizeof(nonce_test_vectors[0]);
+    const unsigned int num_vectors = ARRAY_SIZE(nonce_test_vectors);
     for (unsigned int i = 0; i < num_vectors; ++i)
     {
         uint8_t output_buf[CCM_NONCE_LENGTH];

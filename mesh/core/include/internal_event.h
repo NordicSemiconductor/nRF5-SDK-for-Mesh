@@ -130,7 +130,7 @@ void internal_event_init(internal_event_report_cb_t report_cb);
 /**
  * Pushes an internal event.
  *
- * @param[out] p_event Pointer to internal event structure.
+ * @param[in] p_event Pointer to internal event structure.
  *
  * @retval NRF_SUCCESS         Successfully pushed event to FIFO.
  * @retval NRF_ERROR_NO_MEM    FIFO is full.

@@ -40,6 +40,8 @@
 #include <unity.h>
 #include <cmock.h>
 
+#include "nordic_common.h"
+
 #include "access_mock.h"
 #include "access_config_mock.h"
 #include "access_reliable_mock.h"
@@ -293,7 +295,7 @@ void test_events(void)
         HEALTH_OPCODE_PERIOD_STATUS, HEALTH_OPCODE_ATTENTION_STATUS,
     };
 
-    TEST_ASSERT_EQUAL(sizeof(test_opcodes) / sizeof(test_opcodes[0]), m_num_opcodes);
+    TEST_ASSERT_EQUAL(ARRAY_SIZE(test_opcodes), m_num_opcodes);
     for(uint16_t i = 0; i < m_num_opcodes; ++i)
     {
         bool opcode_tested = false;

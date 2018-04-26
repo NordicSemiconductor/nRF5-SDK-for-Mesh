@@ -409,6 +409,7 @@ void net_state_reset(void)
                                                  .p_args = net_state_reset};
         flash_manager_mem_listener_register(&mem_listener);
     }
+    seqnum_block_allocate();
 }
 
 const void * net_state_flash_area_get(void)
@@ -641,4 +642,22 @@ uint32_t net_state_rx_iv_index_get(uint8_t ivi)
 net_state_iv_update_t net_state_iv_update_get(void)
 {
     return m_net_state.iv_update.state;
+}
+
+uint32_t net_state_iv_index_set(uint32_t iv_index, bool iv_update)
+{
+    static bool iv_state_set = false;
+    if (iv_state_set)
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+    else
+    {
+        iv_state_set = true;
+        m_net_state.iv_index = iv_index;
+        m_net_state.iv_update.state =
+            iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL;
+        flash_store_iv_index();
+        return NRF_SUCCESS;
+    }
 }

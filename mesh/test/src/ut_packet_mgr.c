@@ -44,27 +44,11 @@
 #define TEST_PACKET_1_SIZE  24
 #define TEST_PACKET_2_SIZE  68
 
-nrf_mesh_assertion_handler_t m_assertion_handler;
-static nrf_mesh_init_params_t * mp_mesh_init_params;
-static uint32_t m_mesh_assert_expect = 0;
-
-/* Assertion handler, automatically fails the test. */
-void nrf_mesh_assertion_handler(uint32_t pc)
-{
-    if (m_mesh_assert_expect)
-    {
-        --m_mesh_assert_expect;
-    }
-    else
-    {
-        TEST_FAIL_MESSAGE("Mesh assertion triggered");
-    }
-}
-
 void setUp(void)
 {
-    m_assertion_handler = nrf_mesh_assertion_handler;
-    packet_mgr_init(mp_mesh_init_params);
+    nrf_mesh_init_params_t init_params;
+    memset(&init_params, 0, sizeof(nrf_mesh_init_params_t));
+    packet_mgr_init(&init_params);
 }
 
 void tearDown(void)

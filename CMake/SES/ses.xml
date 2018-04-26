@@ -45,6 +45,7 @@
                  gcc_debugging_level="Level 3"
                  gcc_omit_frame_pointer="No"
                  gcc_optimization_level="Debug"
+                 gcc_entry_point="Reset_Handler"
                  build_intermediate_directory="build/$(ProjectName)_$(Configuration)/obj"
                  build_output_directory="build/$(ProjectName)_$(Configuration)">
   </configuration>
@@ -53,6 +54,7 @@
                  gcc_debugging_level="Level 3"
                  gcc_omit_frame_pointer="Yes"
                  gcc_optimization_level="Optimize For Size"
+                 gcc_entry_point="Reset_Handler"
                  build_intermediate_directory="build/$(ProjectName)_$(Configuration)/obj"
                  build_output_directory="build/$(ProjectName)_$(Configuration)">
   </configuration>
@@ -61,6 +63,7 @@
                  gcc_debugging_level="None"
                  gcc_omit_frame_pointer="Yes"
                  gcc_optimization_level="Optimize For Size"
+                 gcc_entry_point="Reset_Handler"
                  build_intermediate_directory="build/$(ProjectName)_$(Configuration)/obj"
                  build_output_directory="build/$(ProjectName)_$(Configuration)">
   </configuration>
