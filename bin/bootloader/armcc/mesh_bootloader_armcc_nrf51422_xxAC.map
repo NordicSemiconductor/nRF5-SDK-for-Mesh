@@ -1,0 +1,1928 @@
+Component: ARM Compiler 5.06 update 4 (build 422) Tool: armlink [4d35d2]
+
+==============================================================================
+
+Section Cross References
+
+    bootloader.o(.text) refers to aeabi_memset.o(.text) for __aeabi_memset
+    bootloader.o(.text) refers to main.o(.text) for app_error_handler_bare
+    bootloader.o(.text) refers to nrf_flash.o(.text) for nrf_flash_store
+    bootloader.o(.text) refers to bootloader_app_bridge.o(.text) for bl_cmd_handler
+    bootloader.o(.text) refers to fifo.o(.text) for fifo_pop
+    bootloader.o(.text) refers to bootloader_info.o(.text) for bootloader_info_entry_get
+    bootloader.o(.text) refers to bootloader_util.o(.text) for bootloader_util_app_start
+    bootloader.o(.text) refers to mesh_packet.o(.text) for mesh_packet_adv_data_get
+    bootloader.o(.text) refers to dfu_mesh.o(.text) for dfu_mesh_app_is_valid
+    bootloader.o(.text) refers to dfu_util.o(.text) for interrupts_disable
+    bootloader.o(.text) refers to rt_memcpy.o(.text) for __aeabi_memcpy
+    bootloader.o(.text) refers to transport.o(.text) for transport_tx
+    bootloader.o(.text) refers to lludiv.o(.text) for __aeabi_uldivmod
+    bootloader.o(.text) refers to dfu_bank.o(.text) for dfu_bank_flash
+    bootloader.o(.text) refers to bootloader_rtc.o(.text) for rtc_init
+    bootloader.o(.text) refers to rt_memclr.o(.text) for __aeabi_memclr4
+    bootloader.o(.text) refers to bootloader.o(.bss) for .bss
+    bootloader.o(.text) refers to bootloader.o(.data) for .data
+    bootloader.o(.text) refers to bootloader.o(.constdata) for .constdata
+    bootloader_app_bridge.o(.text) refers to main.o(.text) for app_error_handler_bare
+    bootloader_app_bridge.o(.text) refers to bootloader_info.o(.text) for bootloader_info_init
+    bootloader_app_bridge.o(.text) refers to dfu_mesh.o(.text) for dfu_mesh_init
+    bootloader_app_bridge.o(.text) refers to dfu_bank.o(.text) for dfu_bank_flash
+    bootloader_app_bridge.o(.text) refers to dfu_transfer_mesh.o(.text) for dfu_transfer_flash_write_complete
+    bootloader_app_bridge.o(.text) refers to rt_memcpy.o(.emb_text) for __aeabi_memcpy4
+    bootloader_app_bridge.o(.text) refers to bootloader_app_bridge.o(.data) for .data
+    bootloader_app_bridge.o(.text) refers to bootloader_app_bridge.o(.constdata) for .constdata
+    bootloader_app_bridge.o(.text) refers to bootloader_app_bridge.o(.text) for bootloader_evt_send
+    bootloader_app_bridge.o(.text) refers to bootloader_app_bridge.o(.text) for bootloader_evt_send
+    bootloader_app_bridge.o(.text) refers to bootloader_app_bridge.o(.text) for bootloader_evt_send
+    bootloader_info.o(.text) refers to main.o(.text) for app_error_handler_bare
+    bootloader_info.o(.text) refers to bootloader_app_bridge.o(.text) for flash_write
+    bootloader_info.o(.text) refers to aeabi_memset.o(.text) for __aeabi_memset
+    bootloader_info.o(.text) refers to rt_memcpy.o(.emb_text) for __aeabi_memcpy4
+    bootloader_info.o(.text) refers to rt_memclr.o(.text) for __aeabi_memclr4
+    bootloader_info.o(.text) refers to bootloader_info.o(.data) for .data
+    bootloader_info.o(.text) refers to bootloader_info.o(.bss) for .bss
+    bootloader_info.o(.text) refers to bootloader_info.o(.constdata) for .constdata
+    bootloader_info.o(.text) refers to bootloader_info.o(.data) for .data
+    bootloader_info.o(.text) refers to bootloader_info.o(.data) for .data
+    bootloader_rtc.o(.text) refers to transport.o(.text) for transport_rtc_irq_handler
+    bootloader_rtc.o(.text) refers to bootloader.o(.text) for bootloader_timeout
+    bootloader_util.o(.text) refers to bootloader_util.o(.emb_text) for __asm___17_bootloader_util_c_c13d365c__bootloader_util_reset
+    dfu_bank.o(.text) refers to bootloader_info.o(.text) for bootloader_info_entry_overwrite
+    dfu_bank.o(.text) refers to main.o(.text) for app_error_handler_bare
+    dfu_bank.o(.text) refers to memcmp.o(.text) for memcmp
+    dfu_bank.o(.text) refers to dfu_util.o(.text) for interrupts_disable
+    dfu_bank.o(.text) refers to bootloader_app_bridge.o(.text) for bootloader_is_in_application
+    dfu_bank.o(.text) refers to rt_memcpy.o(.emb_text) for __aeabi_memcpy4
+    dfu_bank.o(.text) refers to aeabi_memset.o(.text) for __aeabi_memset
+    dfu_bank.o(.text) refers to uread4.o(.text) for __aeabi_uread4
+    dfu_bank.o(.text) refers to uwrite4.o(.text) for __aeabi_uwrite4
+    dfu_bank.o(.text) refers to dfu_bank.o(.data) for .data
+    dfu_bank.o(.text) refers to bootloader_info.o(.text) for bootloader_info_entry_get
+    dfu_mesh.o(.text) refers to bootloader_info.o(.text) for bootloader_info_entry_get
+    dfu_mesh.o(.text) refers to bootloader_app_bridge.o(.text) for send_end_evt
+    dfu_mesh.o(.text) refers to uread4.o(.text) for __aeabi_uread4
+    dfu_mesh.o(.text) refers to sha256.o(.text) for sha256_init
+    dfu_mesh.o(.text) refers to dfu_transfer_mesh.o(.text) for dfu_transfer_sha256
+    dfu_mesh.o(.text) refers to uECC.o(.text) for uECC_verify
+    dfu_mesh.o(.text) refers to rt_memclr.o(.text) for __aeabi_memclr4
+    dfu_mesh.o(.text) refers to rt_memcpy.o(.text) for __aeabi_memcpy
+    dfu_mesh.o(.text) refers to dfu_util.o(.text) for packet_cache_put
+    dfu_mesh.o(.text) refers to aeabi_memset.o(.text) for __aeabi_memset
+    dfu_mesh.o(.text) refers to main.o(.text) for app_error_handler_bare
+    dfu_mesh.o(.text) refers to dfu_mesh.o(.bss) for .bss
+    dfu_mesh.o(.text) refers to dfu_mesh.o(.data) for .data
+    dfu_mesh.o(.text) refers to dfu_bank.o(.text) for dfu_bank_transfer_in_progress
+    dfu_mesh.o(.text) refers to dfu_mesh.o(i.__ARM_common_switch8) for __ARM_common_switch8
+    dfu_mesh.o(.text) refers to rt_memcpy.o(.emb_text) for __aeabi_memcpy4
+    dfu_mesh.o(.text) refers to dfu_mesh.o(.constdata) for .constdata
+    dfu_transfer_mesh.o(.text) refers to llshl.o(.text) for __aeabi_llsl
+    dfu_transfer_mesh.o(.text) refers to rt_memclr.o(.text) for __aeabi_memclr4
+    dfu_transfer_mesh.o(.text) refers to bootloader_app_bridge.o(.text) for flash_erase
+    dfu_transfer_mesh.o(.text) refers to rt_memcpy.o(.text) for __aeabi_memcpy
+    dfu_transfer_mesh.o(.text) refers to sha256.o(.text) for sha256_update
+    dfu_transfer_mesh.o(.text) refers to dfu_transfer_mesh.o(.bss) for .bss
+    dfu_util.o(.text) refers to rt_memcpy.o(.text) for __aeabi_memcpy
+    dfu_util.o(.text) refers to memcmp.o(.text) for memcmp
+    dfu_util.o(.text) refers to uread4.o(.text) for __aeabi_uread4
+    dfu_util.o(.text) refers to bootloader_info.o(.text) for bootloader_info_entry_get
+    dfu_util.o(.text) refers to rt_memclr.o(.text) for __aeabi_memclr
+    dfu_util.o(.text) refers to dfu_util.o(.bss) for .bss
+    dfu_util.o(.text) refers to dfu_util.o(.data) for .data
+    fifo.o(.text) refers to rt_memcpy.o(.text) for __aeabi_memcpy
+    main.o(.text) refers to bootloader.o(.text) for bootloader_init
+    main.o(.text) refers to dfu_bank.o(.text) for dfu_bank_transfer_in_progress
+    main.o(.ARM.__AT_0x10001014) refers to arm_startup_nrf51.o(RESET) for __Vectors
+    mesh_packet.o(.text) refers to aeabi_sdiv.o(.text) for __aeabi_uidivmod
+    mesh_packet.o(.text) refers to main.o(.text) for app_error_handler_bare
+    mesh_packet.o(.text) refers to rt_memcpy.o(.text) for __aeabi_memcpy
+    mesh_packet.o(.text) refers to mesh_packet.o(.bss) for .bss
+    mesh_packet.o(.text) refers to aeabi_sdiv.o(.text) for __aeabi_uidivmod
+    mesh_packet.o(.text) refers to mesh_packet.o(.bss) for .bss
+    mesh_packet.o(.text) refers to mesh_packet.o(.text) for mesh_packet_set_local_addr
+    mesh_packet.o(.text) refers to rt_memcpy.o(.text) for __aeabi_memcpy
+    mesh_packet.o(.text) refers to mesh_packet.o(.text) for mesh_packet_adv_data_get
+    mesh_packet.o(.text) refers to mesh_packet.o(.text) for mesh_packet_adv_data_get
+    mesh_packet.o(.text) refers to mesh_packet.o(.text) for mesh_packet_has_additional_data
+    mesh_packet.o(.text) refers to mesh_packet.o(.text) for mesh_packet_adv_data_sanitize
+    mesh_packet.o(.text) refers to mesh_packet.o(.text) for mesh_packet_set_local_addr
+    mesh_packet.o(.text) refers to aeabi_sdiv.o(.text) for __aeabi_uidivmod
+    mesh_packet.o(.text) refers to mesh_packet.o(.bss) for .bss
+    nrf_flash.o(.text) refers to aeabi_sdiv.o(.text) for __aeabi_uidivmod
+    nrf_flash.o(.text) refers to nrf_flash.o(.data) for .data
+    radio_control.o(.text) refers to fifo.o(.text) for fifo_init
+    radio_control.o(.text) refers to transport.o(.text) for timeslot_is_in_ts
+    radio_control.o(.text) refers to main.o(.text) for app_error_handler_bare
+    radio_control.o(.text) refers to radio_control.o(.data) for .data
+    radio_control.o(.text) refers to radio_control.o(.constdata) for .constdata
+    radio_control.o(.text) refers to radio_control.o(.bss) for .bss
+    radio_control.o(.text) refers to radio_control.o(.data) for .data
+    transport.o(.text) refers to rand.o(.text) for rand_prng_get
+    transport.o(.text) refers to aeabi_sdiv.o(.text) for __aeabi_uidivmod
+    transport.o(.text) refers to mesh_packet.o(.text) for mesh_packet_acquire
+    transport.o(.text) refers to radio_control.o(.text) for radio_order
+    transport.o(.text) refers to fifo.o(.text) for fifo_push
+    transport.o(.text) refers to main.o(.text) for app_error_handler_bare
+    transport.o(.text) refers to rt_memclr.o(.text) for __aeabi_memclr4
+    transport.o(.text) refers to transport.o(.bss) for .bss
+    transport.o(.text) refers to transport.o(.data) for .data
+    transport.o(.text) refers to transport.o(.text) for set_next_tx
+    transport.o(.text) refers to transport.o(.bss) for .bss
+    transport.o(.text) refers to transport.o(.bss) for .bss
+    uECC.o(.text) refers to uECC.o(i.__ARM_common_ll_muluu) for __ARM_common_ll_muluu
+    uECC.o(.text) refers to uECC.o(.constdata) for .constdata
+    uECC.o(.text) refers to uread4.o(.text) for __aeabi_uread4
+    sha256.o(.text) refers to uread4.o(.text) for __aeabi_uread4
+    sha256.o(.text) refers to rt_memclr.o(.text) for __aeabi_memclr4
+    sha256.o(.text) refers to sha256.o(.constdata) for .constdata
+    system_nrf51.o(.text) refers to system_nrf51.o(.data) for .data
+    arm_startup_nrf51.o(STACK) refers (Special) to heapauxi.o(.text) for __use_two_region_memory
+    arm_startup_nrf51.o(HEAP) refers (Special) to heapauxi.o(.text) for __use_two_region_memory
+    arm_startup_nrf51.o(RESET) refers (Special) to heapauxi.o(.text) for __use_two_region_memory
+    arm_startup_nrf51.o(RESET) refers to arm_startup_nrf51.o(STACK) for __initial_sp
+    arm_startup_nrf51.o(RESET) refers to arm_startup_nrf51.o(.text) for Reset_Handler
+    arm_startup_nrf51.o(RESET) refers to main.o(.text) for HardFault_Handler
+    arm_startup_nrf51.o(RESET) refers to transport.o(.text) for RADIO_IRQHandler
+    arm_startup_nrf51.o(RESET) refers to bootloader_rtc.o(.text) for RTC0_IRQHandler
+    arm_startup_nrf51.o(RESET) refers to bootloader.o(.text) for SWI3_IRQHandler
+    arm_startup_nrf51.o(.text) refers (Special) to heapauxi.o(.text) for __use_two_region_memory
+    arm_startup_nrf51.o(.text) refers to system_nrf51.o(.text) for SystemInit
+    arm_startup_nrf51.o(.text) refers to __main.o(!!!main) for __main
+    arm_startup_nrf51.o(.text) refers to arm_startup_nrf51.o(HEAP) for Heap_Mem
+    arm_startup_nrf51.o(.text) refers to arm_startup_nrf51.o(STACK) for Stack_Mem
+    rt_memcpy.o(.text) refers to rt_memcpy.o(.emb_text) for __aeabi_memcpy4
+    aeabi_memset.o(.text) refers to rt_memclr.o(.text) for _memset
+    __main.o(!!!main) refers to __rtentry.o(.ARM.Collect$$rtentry$$00000000) for __rt_entry
+    __rtentry.o(.ARM.Collect$$rtentry$$00000000) refers (Special) to __rtentry2.o(.ARM.Collect$$rtentry$$0000000A) for __rt_entry_li
+    __rtentry.o(.ARM.Collect$$rtentry$$00000000) refers (Special) to __rtentry2.o(.ARM.Collect$$rtentry$$0000000D) for __rt_entry_main
+    __rtentry.o(.ARM.Collect$$rtentry$$00000000) refers (Special) to __rtentry2.o(.ARM.Collect$$rtentry$$0000000C) for __rt_entry_postli_1
+    __rtentry.o(.ARM.Collect$$rtentry$$00000000) refers (Special) to __rtentry2.o(.ARM.Collect$$rtentry$$00000009) for __rt_entry_postsh_1
+    __rtentry.o(.ARM.Collect$$rtentry$$00000000) refers (Special) to __rtentry2.o(.ARM.Collect$$rtentry$$00000002) for __rt_entry_presh_1
+    __rtentry.o(.ARM.Collect$$rtentry$$00000000) refers (Special) to __rtentry4.o(.ARM.Collect$$rtentry$$00000004) for __rt_entry_sh
+    aeabi_idiv0_sigfpe.o(.text) refers to rt_div0.o(.text) for __rt_div0
+    aeabi_ldiv0_sigfpe.o(.text) refers to rt_div0.o(.text) for __rt_div0
+    __rtentry2.o(.ARM.Collect$$rtentry$$00000008) refers to boardinit2.o(.text) for _platform_post_stackheap_init
+    __rtentry2.o(.ARM.Collect$$rtentry$$0000000A) refers to libinit.o(.ARM.Collect$$libinit$$00000000) for __rt_lib_init
+    __rtentry2.o(.ARM.Collect$$rtentry$$0000000B) refers to boardinit3.o(.text) for _platform_post_lib_init
+    __rtentry2.o(.ARM.Collect$$rtentry$$0000000D) refers to main.o(.text) for main
+    __rtentry2.o(.ARM.Collect$$rtentry$$0000000D) refers to exit.o(.text) for exit
+    __rtentry2.o(.ARM.exidx) refers to __rtentry2.o(.ARM.Collect$$rtentry$$00000001) for .ARM.Collect$$rtentry$$00000001
+    __rtentry2.o(.ARM.exidx) refers to __rtentry2.o(.ARM.Collect$$rtentry$$00000008) for .ARM.Collect$$rtentry$$00000008
+    __rtentry2.o(.ARM.exidx) refers to __rtentry2.o(.ARM.Collect$$rtentry$$0000000A) for .ARM.Collect$$rtentry$$0000000A
+    __rtentry2.o(.ARM.exidx) refers to __rtentry2.o(.ARM.Collect$$rtentry$$0000000B) for .ARM.Collect$$rtentry$$0000000B
+    __rtentry2.o(.ARM.exidx) refers to __rtentry2.o(.ARM.Collect$$rtentry$$0000000D) for .ARM.Collect$$rtentry$$0000000D
+    __rtentry4.o(.ARM.Collect$$rtentry$$00000004) refers to sys_stackheap_outer.o(.text) for __user_setup_stackheap
+    __rtentry4.o(.ARM.exidx) refers to __rtentry4.o(.ARM.Collect$$rtentry$$00000004) for .ARM.Collect$$rtentry$$00000004
+    rt_div0.o(.text) refers to defsig_fpe_outer.o(.text) for __rt_SIGFPE
+    sys_stackheap_outer.o(.text) refers to libspace.o(.text) for __user_perproc_libspace
+    sys_stackheap_outer.o(.text) refers to arm_startup_nrf51.o(.text) for __user_initial_stackheap
+    sys_stackheap_outer.o(__vectab_stack_and_reset_area) refers to tempstk.o(.text) for __temporary_stack_top
+    sys_stackheap_outer.o(__vectab_stack_and_reset_area) refers to __main.o(!!!main) for __main
+    exit.o(.text) refers to rtexit.o(.ARM.Collect$$rtexit$$00000000) for __rt_exit
+    defsig_fpe_outer.o(.text) refers to defsig_fpe_inner.o(.text) for __rt_SIGFPE_inner
+    defsig_fpe_outer.o(.text) refers to defsig_exit.o(.text) for __sig_exit
+    defsig_fpe_formal.o(.text) refers to rt_raise.o(.text) for __rt_raise
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$0000002E) for __rt_lib_init_alloca_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$0000002C) for __rt_lib_init_argv_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$0000001B) for __rt_lib_init_atexit_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$00000021) for __rt_lib_init_clock_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$00000032) for __rt_lib_init_cpp_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$00000030) for __rt_lib_init_exceptions_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$00000002) for __rt_lib_init_fp_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$0000001F) for __rt_lib_init_fp_trap_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$00000023) for __rt_lib_init_getenv_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$0000000A) for __rt_lib_init_heap_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$00000011) for __rt_lib_init_lc_collate_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$00000013) for __rt_lib_init_lc_ctype_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$00000015) for __rt_lib_init_lc_monetary_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$00000017) for __rt_lib_init_lc_numeric_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$00000019) for __rt_lib_init_lc_time_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$00000004) for __rt_lib_init_preinit_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$0000000E) for __rt_lib_init_rand_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$00000033) for __rt_lib_init_return
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$0000001D) for __rt_lib_init_signal_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$00000025) for __rt_lib_init_stdio_1
+    libinit.o(.ARM.Collect$$libinit$$00000000) refers (Special) to libinit2.o(.ARM.Collect$$libinit$$0000000C) for __rt_lib_init_user_alloc_1
+    libspace.o(.text) refers to libspace.o(.bss) for __libspace_start
+    rtexit.o(.ARM.Collect$$rtexit$$00000000) refers (Special) to rtexit2.o(.ARM.Collect$$rtexit$$00000004) for __rt_exit_exit
+    rtexit.o(.ARM.Collect$$rtexit$$00000000) refers (Special) to rtexit2.o(.ARM.Collect$$rtexit$$00000003) for __rt_exit_ls
+    rtexit.o(.ARM.Collect$$rtexit$$00000000) refers (Special) to rtexit2.o(.ARM.Collect$$rtexit$$00000002) for __rt_exit_prels_1
+    rtexit.o(.ARM.exidx) refers (Special) to rtexit2.o(.ARM.Collect$$rtexit$$00000004) for __rt_exit_exit
+    rtexit.o(.ARM.exidx) refers (Special) to rtexit2.o(.ARM.Collect$$rtexit$$00000003) for __rt_exit_ls
+    rtexit.o(.ARM.exidx) refers (Special) to rtexit2.o(.ARM.Collect$$rtexit$$00000002) for __rt_exit_prels_1
+    rtexit.o(.ARM.exidx) refers to rtexit.o(.ARM.Collect$$rtexit$$00000000) for .ARM.Collect$$rtexit$$00000000
+    rt_raise.o(.text) refers to __raise.o(.text) for __raise
+    rt_raise.o(.text) refers to sys_exit.o(.text) for _sys_exit
+    defsig_exit.o(.text) refers to sys_exit.o(.text) for _sys_exit
+    defsig_fpe_inner.o(.text) refers to defsig_general.o(.text) for __default_signal_display
+    libinit2.o(.ARM.Collect$$libinit$$00000010) refers to libinit2.o(.ARM.Collect$$libinit$$0000000F) for .ARM.Collect$$libinit$$0000000F
+    libinit2.o(.ARM.Collect$$libinit$$00000012) refers to libinit2.o(.ARM.Collect$$libinit$$0000000F) for .ARM.Collect$$libinit$$0000000F
+    libinit2.o(.ARM.Collect$$libinit$$00000014) refers to libinit2.o(.ARM.Collect$$libinit$$0000000F) for .ARM.Collect$$libinit$$0000000F
+    libinit2.o(.ARM.Collect$$libinit$$00000016) refers to libinit2.o(.ARM.Collect$$libinit$$0000000F) for .ARM.Collect$$libinit$$0000000F
+    libinit2.o(.ARM.Collect$$libinit$$00000018) refers to libinit2.o(.ARM.Collect$$libinit$$0000000F) for .ARM.Collect$$libinit$$0000000F
+    libinit2.o(.ARM.Collect$$libinit$$00000026) refers to argv_veneer.o(.text) for __ARM_argv_veneer
+    libinit2.o(.ARM.Collect$$libinit$$00000027) refers to argv_veneer.o(.text) for __ARM_argv_veneer
+    sys_exit.o(.text) refers (Special) to use_no_semi.o(.text) for __I$use$semihosting
+    sys_exit.o(.text) refers (Special) to indicate_semi.o(.text) for __semihosting_library_function
+    rtexit2.o(.ARM.Collect$$rtexit$$00000003) refers to libshutdown.o(.ARM.Collect$$libshutdown$$00000000) for __rt_lib_shutdown
+    rtexit2.o(.ARM.Collect$$rtexit$$00000004) refers to sys_exit.o(.text) for _sys_exit
+    rtexit2.o(.ARM.exidx) refers to rtexit2.o(.ARM.Collect$$rtexit$$00000001) for .ARM.Collect$$rtexit$$00000001
+    rtexit2.o(.ARM.exidx) refers to rtexit2.o(.ARM.Collect$$rtexit$$00000003) for .ARM.Collect$$rtexit$$00000003
+    rtexit2.o(.ARM.exidx) refers to rtexit2.o(.ARM.Collect$$rtexit$$00000004) for .ARM.Collect$$rtexit$$00000004
+    __raise.o(.text) refers to defsig.o(CL$$defsig) for __default_signal_handler
+    defsig_general.o(.text) refers to sys_wrch.o(.text) for _ttywrch
+    sys_wrch.o(.text) refers (Special) to use_no_semi.o(.text) for __I$use$semihosting
+    sys_wrch.o(.text) refers (Special) to indicate_semi.o(.text) for __semihosting_library_function
+    defsig.o(CL$$defsig) refers to defsig_fpe_inner.o(.text) for __rt_SIGFPE_inner
+    defsig.o(CL$$defsig) refers to defsig_rtmem_inner.o(.text) for __rt_SIGRTMEM_inner
+    _get_argv_nomalloc.o(.text) refers (Special) to hrguard.o(.text) for __heap_region$guard
+    _get_argv_nomalloc.o(.text) refers to defsig_rtmem_outer.o(.text) for __rt_SIGRTMEM
+    _get_argv_nomalloc.o(.text) refers to sys_command.o(.text) for _sys_command_string
+    libshutdown.o(.ARM.Collect$$libshutdown$$00000000) refers (Special) to libshutdown2.o(.ARM.Collect$$libshutdown$$00000002) for __rt_lib_shutdown_cpp_1
+    libshutdown.o(.ARM.Collect$$libshutdown$$00000000) refers (Special) to libshutdown2.o(.ARM.Collect$$libshutdown$$00000007) for __rt_lib_shutdown_fp_trap_1
+    libshutdown.o(.ARM.Collect$$libshutdown$$00000000) refers (Special) to libshutdown2.o(.ARM.Collect$$libshutdown$$0000000F) for __rt_lib_shutdown_heap_1
+    libshutdown.o(.ARM.Collect$$libshutdown$$00000000) refers (Special) to libshutdown2.o(.ARM.Collect$$libshutdown$$00000010) for __rt_lib_shutdown_return
+    libshutdown.o(.ARM.Collect$$libshutdown$$00000000) refers (Special) to libshutdown2.o(.ARM.Collect$$libshutdown$$0000000A) for __rt_lib_shutdown_signal_1
+    libshutdown.o(.ARM.Collect$$libshutdown$$00000000) refers (Special) to libshutdown2.o(.ARM.Collect$$libshutdown$$00000004) for __rt_lib_shutdown_stdio_1
+    libshutdown.o(.ARM.Collect$$libshutdown$$00000000) refers (Special) to libshutdown2.o(.ARM.Collect$$libshutdown$$0000000C) for __rt_lib_shutdown_user_alloc_1
+    sys_command.o(.text) refers (Special) to use_no_semi.o(.text) for __I$use$semihosting
+    sys_command.o(.text) refers (Special) to indicate_semi.o(.text) for __semihosting_library_function
+    defsig_abrt_inner.o(.text) refers to defsig_general.o(.text) for __default_signal_display
+    defsig_rtred_inner.o(.text) refers to defsig_general.o(.text) for __default_signal_display
+    defsig_rtmem_inner.o(.text) refers to defsig_general.o(.text) for __default_signal_display
+    defsig_rtmem_outer.o(.text) refers to defsig_rtmem_inner.o(.text) for __rt_SIGRTMEM_inner
+    defsig_rtmem_outer.o(.text) refers to defsig_exit.o(.text) for __sig_exit
+    defsig_rtmem_formal.o(.text) refers to rt_raise.o(.text) for __rt_raise
+    defsig_stak_inner.o(.text) refers to defsig_general.o(.text) for __default_signal_display
+    defsig_pvfn_inner.o(.text) refers to defsig_general.o(.text) for __default_signal_display
+    defsig_cppl_inner.o(.text) refers to defsig_general.o(.text) for __default_signal_display
+    defsig_segv_inner.o(.text) refers to defsig_general.o(.text) for __default_signal_display
+    defsig_other.o(.text) refers to defsig_general.o(.text) for __default_signal_display
+
+
+==============================================================================
+
+Removing Unused input sections from the image.
+
+    Removing bootloader.o(.rev16_text), (4 bytes).
+    Removing bootloader.o(.revsh_text), (4 bytes).
+    Removing bootloader_app_bridge.o(.rev16_text), (4 bytes).
+    Removing bootloader_app_bridge.o(.revsh_text), (4 bytes).
+    Removing bootloader_app_bridge.o(.text), (26 bytes).
+    Removing bootloader_app_bridge.o(.text), (24 bytes).
+    Removing bootloader_app_bridge.o(.text), (22 bytes).
+    Removing bootloader_info.o(.rev16_text), (4 bytes).
+    Removing bootloader_info.o(.revsh_text), (4 bytes).
+    Removing bootloader_info.o(.text), (12 bytes).
+    Removing bootloader_info.o(.text), (16 bytes).
+    Removing bootloader_rtc.o(.rev16_text), (4 bytes).
+    Removing bootloader_rtc.o(.revsh_text), (4 bytes).
+    Removing dfu_bank.o(.rev16_text), (4 bytes).
+    Removing dfu_bank.o(.revsh_text), (4 bytes).
+    Removing dfu_bank.o(.text), (26 bytes).
+    Removing dfu_mesh.o(.rev16_text), (4 bytes).
+    Removing dfu_mesh.o(.revsh_text), (4 bytes).
+    Removing dfu_transfer_mesh.o(.rev16_text), (4 bytes).
+    Removing dfu_transfer_mesh.o(.revsh_text), (4 bytes).
+    Removing dfu_util.o(.rev16_text), (4 bytes).
+    Removing dfu_util.o(.revsh_text), (4 bytes).
+    Removing fifo.o(.rev16_text), (4 bytes).
+    Removing fifo.o(.revsh_text), (4 bytes).
+    Removing fifo.o(.text), (6 bytes).
+    Removing main.o(.rev16_text), (4 bytes).
+    Removing main.o(.revsh_text), (4 bytes).
+    Removing main.o(.text), (6 bytes).
+    Removing mesh_packet.o(.rev16_text), (4 bytes).
+    Removing mesh_packet.o(.revsh_text), (4 bytes).
+    Removing mesh_packet.o(.text), (32 bytes).
+    Removing mesh_packet.o(.text), (112 bytes).
+    Removing mesh_packet.o(.text), (58 bytes).
+    Removing mesh_packet.o(.text), (28 bytes).
+    Removing mesh_packet.o(.text), (60 bytes).
+    Removing mesh_packet.o(.text), (26 bytes).
+    Removing mesh_packet.o(.text), (32 bytes).
+    Removing nrf_flash.o(.rev16_text), (4 bytes).
+    Removing nrf_flash.o(.revsh_text), (4 bytes).
+    Removing radio_control.o(.rev16_text), (4 bytes).
+    Removing radio_control.o(.revsh_text), (4 bytes).
+    Removing radio_control.o(.text), (12 bytes).
+    Removing rand.o(.rev16_text), (4 bytes).
+    Removing rand.o(.revsh_text), (4 bytes).
+    Removing transport.o(.rev16_text), (4 bytes).
+    Removing transport.o(.revsh_text), (4 bytes).
+    Removing transport.o(.text), (40 bytes).
+    Removing transport.o(.text), (40 bytes).
+    Removing sha256.o(.rev16_text), (4 bytes).
+    Removing sha256.o(.revsh_text), (4 bytes).
+    Removing system_nrf51.o(.rev16_text), (4 bytes).
+    Removing system_nrf51.o(.revsh_text), (4 bytes).
+    Removing fifo.o(i.fifo_is_full), (20 bytes).
+
+53 unused section(s) (total 734 bytes) removed from the image.
+
+==============================================================================
+
+Image Stack Usage Information.
+
+Maximum stack usage for Image.
+
+Maximum Stack Usage for __rt_entry_main 0x458 bytes.
+Call chain for maximum stack usage:
+__rt_entry_main => main => bootloader_enable => bl_cmd_handler => dfu_mesh_timeout => signature_check => uECC_verify => vli_modMult_n => vli_mult => muladd => __ARM_common_ll_muluu
+
+Maximum stack usage per global function.
+
+Maximum Stack Usage for SWI3_IRQHandler 0x450 bytes.
+Call chain for maximum stack usage:
+SWI3_IRQHandler => bl_cmd_handler => dfu_mesh_timeout => signature_check => uECC_verify => vli_modMult_n => vli_mult => muladd => __ARM_common_ll_muluu
+
+Maximum Stack Usage for bootloader_abort 0x40 bytes.
+Call chain for maximum stack usage:
+bootloader_abort => dfu_mesh_app_is_valid => fw_is_verified => bootloader_info_entry_get => info_entry_get
+
+Maximum Stack Usage for bootloader_init 0x448 bytes.
+Call chain for maximum stack usage:
+bootloader_init => bl_cmd_handler => dfu_mesh_timeout => signature_check => uECC_verify => vli_modMult_n => vli_mult => muladd => __ARM_common_ll_muluu
+
+Maximum Stack Usage for bootloader_enable 0x458 bytes.
+Call chain for maximum stack usage:
+bootloader_enable => bl_cmd_handler => dfu_mesh_timeout => signature_check => uECC_verify => vli_modMult_n => vli_mult => muladd => __ARM_common_ll_muluu
+
+Maximum Stack Usage for bootloader_timeout 0x440 bytes.
+Call chain for maximum stack usage:
+bootloader_timeout => bl_cmd_handler => dfu_mesh_timeout => signature_check => uECC_verify => vli_modMult_n => vli_mult => muladd => __ARM_common_ll_muluu
+
+Maximum Stack Usage for bl_cmd_handler 0x418 bytes.
+Call chain for maximum stack usage:
+bl_cmd_handler => dfu_mesh_timeout => signature_check => uECC_verify => vli_modMult_n => vli_mult => muladd => __ARM_common_ll_muluu
+
+Maximum Stack Usage for send_end_evt 0x28 bytes.
+Call chain for maximum stack usage:
+send_end_evt
+
+Maximum Stack Usage for flash_write 0x38 bytes.
+Call chain for maximum stack usage:
+flash_write
+
+Maximum Stack Usage for flash_erase 0x30 bytes.
+Call chain for maximum stack usage:
+flash_erase
+
+Maximum Stack Usage for tx_abort 0x28 bytes.
+Call chain for maximum stack usage:
+tx_abort
+
+Maximum Stack Usage for entry_invalidate 0x50 bytes.
+Call chain for maximum stack usage:
+entry_invalidate => entry_header_invalidate => flash_write
+
+Maximum Stack Usage for entry_write 0x60 bytes.
+Call chain for maximum stack usage:
+entry_write => flash_write
+
+Maximum Stack Usage for bootloader_info_init 0x48 bytes.
+Call chain for maximum stack usage:
+bootloader_info_init => flash_write
+
+Maximum Stack Usage for bootloader_info_entry_get 0x10 bytes.
+Call chain for maximum stack usage:
+bootloader_info_entry_get => info_entry_get
+
+Maximum Stack Usage for bootloader_info_reset 0x48 bytes.
+Call chain for maximum stack usage:
+bootloader_info_reset => copy_page => flash_erase
+
+Maximum Stack Usage for bootloader_info_entry_put 0x88 bytes.
+Call chain for maximum stack usage:
+bootloader_info_entry_put => entry_write => flash_write
+
+Maximum Stack Usage for bootloader_info_entry_overwrite 0x70 bytes.
+Call chain for maximum stack usage:
+bootloader_info_entry_overwrite => entry_write => flash_write
+
+Maximum Stack Usage for bootloader_info_entry_invalidate 0x50 bytes.
+Call chain for maximum stack usage:
+bootloader_info_entry_invalidate => entry_invalidate => entry_header_invalidate => flash_write
+
+Maximum Stack Usage for bootloader_info_on_flash_op_end 0x60 bytes.
+Call chain for maximum stack usage:
+bootloader_info_on_flash_op_end => copy_page_on_flash_op_end => copy_page_write_next_data => flash_write
+
+Maximum Stack Usage for bootloader_info_on_flash_idle 0x48 bytes.
+Call chain for maximum stack usage:
+bootloader_info_on_flash_idle => copy_page_write_meta => flash_write
+
+Maximum Stack Usage for RTC0_IRQHandler 0x450 bytes.
+Call chain for maximum stack usage:
+RTC0_IRQHandler => bootloader_timeout => bl_cmd_handler => dfu_mesh_timeout => signature_check => uECC_verify => vli_modMult_n => vli_mult => muladd => __ARM_common_ll_muluu
+
+Maximum Stack Usage for bootloader_util_app_start 0x8 bytes.
+Call chain for maximum stack usage:
+bootloader_util_app_start
+
+Maximum Stack Usage for dfu_bank_scan 0x1e0 bytes.
+Call chain for maximum stack usage:
+dfu_bank_scan => flash_bank_entry => flash_bank_entry_fw => bootloader_info_entry_overwrite => entry_write => flash_write
+
+Maximum Stack Usage for dfu_bank_flash 0x1e0 bytes.
+Call chain for maximum stack usage:
+dfu_bank_flash => flash_bank_entry => flash_bank_entry_fw => bootloader_info_entry_overwrite => entry_write => flash_write
+
+Maximum Stack Usage for dfu_bank_on_flash_idle 0x1d0 bytes.
+Call chain for maximum stack usage:
+dfu_bank_on_flash_idle => flash_bank_entry => flash_bank_entry_fw => bootloader_info_entry_overwrite => entry_write => flash_write
+
+Maximum Stack Usage for dfu_mesh_init 0x40 bytes.
+Call chain for maximum stack usage:
+dfu_mesh_init => get_info_pointers => send_end_evt
+
+Maximum Stack Usage for dfu_mesh_start 0x78 bytes.
+Call chain for maximum stack usage:
+dfu_mesh_start => start_find_fwid => beacon_set => __aeabi_memcpy
+
+Maximum Stack Usage for dfu_mesh_req 0x80 bytes.
+Call chain for maximum stack usage:
+dfu_mesh_req => start_req => beacon_set => __aeabi_memcpy
+
+Maximum Stack Usage for dfu_mesh_relay 0x78 bytes.
+Call chain for maximum stack usage:
+dfu_mesh_relay => beacon_set => __aeabi_memcpy
+
+Maximum Stack Usage for dfu_mesh_rx 0x1b0 bytes.
+Call chain for maximum stack usage:
+dfu_mesh_rx => handle_data_packet => target_rx_start => start_target => bootloader_info_entry_put => entry_write => flash_write
+
+Maximum Stack Usage for dfu_mesh_finalize 0x148 bytes.
+Call chain for maximum stack usage:
+dfu_mesh_finalize => bootloader_info_entry_put => entry_write => flash_write
+
+Maximum Stack Usage for dfu_mesh_timeout 0x3e8 bytes.
+Call chain for maximum stack usage:
+dfu_mesh_timeout => signature_check => uECC_verify => vli_modMult_n => vli_mult => muladd => __ARM_common_ll_muluu
+
+Maximum Stack Usage for dfu_mesh_missing_type_get 0x20 bytes.
+Call chain for maximum stack usage:
+dfu_mesh_missing_type_get => bootloader_info_entry_get => info_entry_get
+
+Maximum Stack Usage for dfu_mesh_app_is_valid 0x20 bytes.
+Call chain for maximum stack usage:
+dfu_mesh_app_is_valid => fw_is_verified => bootloader_info_entry_get => info_entry_get
+
+Maximum Stack Usage for dfu_mesh_restart 0x78 bytes.
+Call chain for maximum stack usage:
+dfu_mesh_restart => start_find_fwid => beacon_set => __aeabi_memcpy
+
+Maximum Stack Usage for dfu_mesh_on_flash_idle 0xa0 bytes.
+Call chain for maximum stack usage:
+dfu_mesh_on_flash_idle => dfu_mesh_start => start_find_fwid => beacon_set => __aeabi_memcpy
+
+Maximum Stack Usage for dfu_transfer_init 0x8 bytes.
+Call chain for maximum stack usage:
+dfu_transfer_init
+
+Maximum Stack Usage for dfu_transfer_start 0x58 bytes.
+Call chain for maximum stack usage:
+dfu_transfer_start => flash_erase
+
+Maximum Stack Usage for dfu_transfer_data 0x68 bytes.
+Call chain for maximum stack usage:
+dfu_transfer_data => flash_write
+
+Maximum Stack Usage for dfu_transfer_has_entry 0x30 bytes.
+Call chain for maximum stack usage:
+dfu_transfer_has_entry => __aeabi_memcpy
+
+Maximum Stack Usage for dfu_transfer_get_oldest_missing_entry 0x30 bytes.
+Call chain for maximum stack usage:
+dfu_transfer_get_oldest_missing_entry => __aeabi_llsl
+
+Maximum Stack Usage for dfu_transfer_sha256 0x170 bytes.
+Call chain for maximum stack usage:
+dfu_transfer_sha256 => sha256_update => sha256_transform
+
+Maximum Stack Usage for dfu_transfer_end 0x8 bytes.
+Call chain for maximum stack usage:
+dfu_transfer_end => dfu_transfer_init
+
+Maximum Stack Usage for fwid_union_cpy 0x20 bytes.
+Call chain for maximum stack usage:
+fwid_union_cpy => __aeabi_memcpy
+
+Maximum Stack Usage for fwid_union_cmp 0x10 bytes.
+Call chain for maximum stack usage:
+fwid_union_cmp => memcmp
+
+Maximum Stack Usage for fwid_union_id_cmp 0x10 bytes.
+Call chain for maximum stack usage:
+fwid_union_id_cmp
+
+Maximum Stack Usage for fwid_union_version_cmp 0x10 bytes.
+Call chain for maximum stack usage:
+fwid_union_version_cmp
+
+Maximum Stack Usage for ready_packet_matches_our_req 0x20 bytes.
+Call chain for maximum stack usage:
+ready_packet_matches_our_req => fwid_union_version_cmp
+
+Maximum Stack Usage for is_upgrade 0x28 bytes.
+Call chain for maximum stack usage:
+is_upgrade => bootloader_info_entry_get => info_entry_get
+
+Maximum Stack Usage for app_is_newer 0x20 bytes.
+Call chain for maximum stack usage:
+app_is_newer => bootloader_info_entry_get => info_entry_get
+
+Maximum Stack Usage for bootloader_is_newer 0x18 bytes.
+Call chain for maximum stack usage:
+bootloader_is_newer => bootloader_info_entry_get => info_entry_get
+
+Maximum Stack Usage for fw_is_verified 0x18 bytes.
+Call chain for maximum stack usage:
+fw_is_verified => bootloader_info_entry_get => info_entry_get
+
+Maximum Stack Usage for tid_cache_entry_put 0x8 bytes.
+Call chain for maximum stack usage:
+tid_cache_entry_put
+
+Maximum Stack Usage for packet_in_cache 0x10 bytes.
+Call chain for maximum stack usage:
+packet_in_cache
+
+Maximum Stack Usage for packet_cache_put 0x10 bytes.
+Call chain for maximum stack usage:
+packet_cache_put
+
+Maximum Stack Usage for packet_cache_flush 0x8 bytes.
+Call chain for maximum stack usage:
+packet_cache_flush
+
+Maximum Stack Usage for interrupts_disable 0xc bytes.
+Call chain for maximum stack usage:
+interrupts_disable
+
+Maximum Stack Usage for fifo_push 0x28 bytes.
+Call chain for maximum stack usage:
+fifo_push => __aeabi_memcpy
+
+Maximum Stack Usage for fifo_pop 0x28 bytes.
+Call chain for maximum stack usage:
+fifo_pop => __aeabi_memcpy
+
+Maximum Stack Usage for fifo_peek_at 0x28 bytes.
+Call chain for maximum stack usage:
+fifo_peek_at => __aeabi_memcpy
+
+Maximum Stack Usage for fifo_peek 0x28 bytes.
+Call chain for maximum stack usage:
+fifo_peek => fifo_peek_at => __aeabi_memcpy
+
+Maximum Stack Usage for main 0x458 bytes.
+Call chain for maximum stack usage:
+main => bootloader_enable => bl_cmd_handler => dfu_mesh_timeout => signature_check => uECC_verify => vli_modMult_n => vli_mult => muladd => __ARM_common_ll_muluu
+
+Maximum Stack Usage for mesh_packet_acquire 0x8 bytes.
+Call chain for maximum stack usage:
+mesh_packet_acquire
+
+Maximum Stack Usage for mesh_packet_ref_count_inc 0x10 bytes.
+Call chain for maximum stack usage:
+mesh_packet_ref_count_inc
+
+Maximum Stack Usage for mesh_packet_ref_count_dec 0x8 bytes.
+Call chain for maximum stack usage:
+mesh_packet_ref_count_dec
+
+Maximum Stack Usage for mesh_packet_ref_count_get 0x8 bytes.
+Call chain for maximum stack usage:
+mesh_packet_ref_count_get
+
+Maximum Stack Usage for mesh_packet_set_local_addr 0x20 bytes.
+Call chain for maximum stack usage:
+mesh_packet_set_local_addr => __aeabi_memcpy
+
+Maximum Stack Usage for mesh_packet_adv_data_get 0x14 bytes.
+Call chain for maximum stack usage:
+mesh_packet_adv_data_get
+
+Maximum Stack Usage for nrf_flash_erase 0x18 bytes.
+Call chain for maximum stack usage:
+nrf_flash_erase
+
+Maximum Stack Usage for nrf_flash_store 0x14 bytes.
+Call chain for maximum stack usage:
+nrf_flash_store
+
+Maximum Stack Usage for radio_init 0x20 bytes.
+Call chain for maximum stack usage:
+radio_init
+
+Maximum Stack Usage for radio_order 0x30 bytes.
+Call chain for maximum stack usage:
+radio_order => fifo_push => __aeabi_memcpy
+
+Maximum Stack Usage for radio_event_handler 0x50 bytes.
+Call chain for maximum stack usage:
+radio_event_handler => fifo_peek => fifo_peek_at => __aeabi_memcpy
+
+Maximum Stack Usage for rand_prng_get 0xc bytes.
+Call chain for maximum stack usage:
+rand_prng_get
+
+Maximum Stack Usage for rand_hw_rng_get 0x14 bytes.
+Call chain for maximum stack usage:
+rand_hw_rng_get
+
+Maximum Stack Usage for rand_prng_seed 0x24 bytes.
+Call chain for maximum stack usage:
+rand_prng_seed => rand_hw_rng_get
+
+Maximum Stack Usage for transport_start 0x40 bytes.
+Call chain for maximum stack usage:
+transport_start => order_scan => radio_order => fifo_push => __aeabi_memcpy
+
+Maximum Stack Usage for SWI0_IRQHandler 0x50 bytes.
+Call chain for maximum stack usage:
+SWI0_IRQHandler => transport_start => order_scan => radio_order => fifo_push => __aeabi_memcpy
+
+Maximum Stack Usage for RADIO_IRQHandler 0x58 bytes.
+Call chain for maximum stack usage:
+RADIO_IRQHandler => radio_event_handler => fifo_peek => fifo_peek_at => __aeabi_memcpy
+
+Maximum Stack Usage for transport_init 0x2c bytes.
+Call chain for maximum stack usage:
+transport_init => rand_prng_seed => rand_hw_rng_get
+
+Maximum Stack Usage for transport_tx 0x34 bytes.
+Call chain for maximum stack usage:
+transport_tx => set_next_tx => rand_prng_get
+
+Maximum Stack Usage for transport_tx_abort 0x24 bytes.
+Call chain for maximum stack usage:
+transport_tx_abort => order_next_rtc
+
+Maximum Stack Usage for transport_rtc_irq_handler 0x50 bytes.
+Call chain for maximum stack usage:
+transport_rtc_irq_handler => radio_order => fifo_push => __aeabi_memcpy
+
+Maximum Stack Usage for uECC_verify 0x338 bytes.
+Call chain for maximum stack usage:
+uECC_verify => vli_modMult_n => vli_mult => muladd => __ARM_common_ll_muluu
+
+Maximum Stack Usage for sha256_transform 0x150 bytes.
+Call chain for maximum stack usage:
+sha256_transform
+
+Maximum Stack Usage for sha256_update 0x168 bytes.
+Call chain for maximum stack usage:
+sha256_update => sha256_transform
+
+Maximum Stack Usage for sha256_final 0x168 bytes.
+Call chain for maximum stack usage:
+sha256_final => sha256_transform
+
+Maximum Stack Usage for SystemInit 0x8 bytes.
+Call chain for maximum stack usage:
+SystemInit
+
+Maximum Stack Usage for __ARM_common_ll_muluu 0x18 bytes.
+Call chain for maximum stack usage:
+__ARM_common_ll_muluu
+
+Maximum Stack Usage for __ARM_common_switch8 0x8 bytes.
+Call chain for maximum stack usage:
+__ARM_common_switch8
+
+Stack Usage for functions.
+
+Stack Usage for __main 0x0 bytes.
+Stack Usage for __scatterload unknown bytes.
+Stack Usage for __scatterload_rt2 unknown bytes.
+Stack Usage for __scatterload_rt2_thumb_only unknown bytes.
+Stack Usage for __scatterload_null unknown bytes.
+Stack Usage for __scatterload_copy unknown bytes.
+Stack Usage for __scatterload_zeroinit unknown bytes.
+Stack Usage for __rt_lib_init unknown bytes.
+Stack Usage for __rt_lib_init_alloca_1 unknown bytes.
+Stack Usage for __rt_lib_init_argv_1 unknown bytes.
+Stack Usage for __rt_lib_init_atexit_1 unknown bytes.
+Stack Usage for __rt_lib_init_clock_1 unknown bytes.
+Stack Usage for __rt_lib_init_cpp_1 unknown bytes.
+Stack Usage for __rt_lib_init_exceptions_1 unknown bytes.
+Stack Usage for __rt_lib_init_fp_1 unknown bytes.
+Stack Usage for __rt_lib_init_fp_trap_1 unknown bytes.
+Stack Usage for __rt_lib_init_getenv_1 unknown bytes.
+Stack Usage for __rt_lib_init_heap_1 unknown bytes.
+Stack Usage for __rt_lib_init_lc_collate_1 unknown bytes.
+Stack Usage for __rt_lib_init_lc_ctype_1 unknown bytes.
+Stack Usage for __rt_lib_init_lc_monetary_1 unknown bytes.
+Stack Usage for __rt_lib_init_lc_numeric_1 unknown bytes.
+Stack Usage for __rt_lib_init_lc_time_1 unknown bytes.
+Stack Usage for __rt_lib_init_preinit_1 unknown bytes.
+Stack Usage for __rt_lib_init_rand_1 unknown bytes.
+Stack Usage for __rt_lib_init_return unknown bytes.
+Stack Usage for __rt_lib_init_signal_1 unknown bytes.
+Stack Usage for __rt_lib_init_stdio_1 unknown bytes.
+Stack Usage for __rt_lib_init_user_alloc_1 unknown bytes.
+Stack Usage for __rt_lib_shutdown unknown bytes.
+Stack Usage for __rt_lib_shutdown_cpp_1 unknown bytes.
+Stack Usage for __rt_lib_shutdown_fp_trap_1 unknown bytes.
+Stack Usage for __rt_lib_shutdown_heap_1 unknown bytes.
+Stack Usage for __rt_lib_shutdown_return unknown bytes.
+Stack Usage for __rt_lib_shutdown_signal_1 unknown bytes.
+Stack Usage for __rt_lib_shutdown_stdio_1 unknown bytes.
+Stack Usage for __rt_lib_shutdown_user_alloc_1 unknown bytes.
+Stack Usage for __rt_entry unknown bytes.
+Stack Usage for __rt_entry_presh_1 unknown bytes.
+Stack Usage for __rt_entry_sh unknown bytes.
+Stack Usage for __rt_entry_li unknown bytes.
+Stack Usage for __rt_entry_postsh_1 unknown bytes.
+Stack Usage for __rt_entry_main unknown bytes.
+Stack Usage for __rt_entry_postli_1 unknown bytes.
+Stack Usage for __rt_exit unknown bytes.
+Stack Usage for __rt_exit_ls unknown bytes.
+Stack Usage for __rt_exit_prels_1 unknown bytes.
+Stack Usage for __rt_exit_exit unknown bytes.
+Stack Usage for __asm___17_bootloader_util_c_c13d365c__bootloader_util_reset 0x0 bytes.
+Stack Usage for __aeabi_memcpy4 0x0 bytes.
+Stack Usage for __aeabi_memcpy8 0x0 bytes.
+Stack Usage for SWI3_IRQHandler 0x38 bytes.
+Stack Usage for bootloader_abort 0x20 bytes.
+Stack Usage for bootloader_cmd_send 0x8 bytes.
+Stack Usage for bootloader_init 0x30 bytes.
+Stack Usage for bootloader_enable 0x40 bytes.
+Stack Usage for bootloader_timeout 0x28 bytes.
+Stack Usage for bl_cmd_handler 0x30 bytes.
+Stack Usage for bootloader_app_bridge_init 0x0 bytes.
+Stack Usage for bootloader_evt_send 0x0 bytes.
+Stack Usage for send_end_evt 0x28 bytes.
+Stack Usage for flash_write 0x38 bytes.
+Stack Usage for flash_erase 0x30 bytes.
+Stack Usage for tx_abort 0x28 bytes.
+Stack Usage for bootloader_is_in_application 0x0 bytes.
+Stack Usage for entry_invalidate 0x10 bytes.
+Stack Usage for entry_write 0x28 bytes.
+Stack Usage for bootloader_info_init 0x10 bytes.
+Stack Usage for bootloader_info_entry_get 0x0 bytes.
+Stack Usage for bootloader_info_reset 0x8 bytes.
+Stack Usage for bootloader_info_entry_put 0x28 bytes.
+Stack Usage for bootloader_info_entry_overwrite 0x10 bytes.
+Stack Usage for bootloader_info_entry_invalidate 0x0 bytes.
+Stack Usage for bootloader_info_stable 0x0 bytes.
+Stack Usage for bootloader_info_on_flash_op_end 0x10 bytes.
+Stack Usage for bootloader_info_on_flash_idle 0x8 bytes.
+Stack Usage for RTC0_IRQHandler 0x10 bytes.
+Stack Usage for rtc_init 0x0 bytes.
+Stack Usage for bootloader_util_app_start 0x8 bytes.
+Stack Usage for dfu_bank_scan 0x10 bytes.
+Stack Usage for dfu_bank_flash 0x10 bytes.
+Stack Usage for dfu_bank_on_flash_idle 0x0 bytes.
+Stack Usage for dfu_bank_transfer_in_progress 0x0 bytes.
+Stack Usage for dfu_mesh_init 0x10 bytes.
+Stack Usage for dfu_mesh_start 0x8 bytes.
+Stack Usage for dfu_mesh_req 0x8 bytes.
+Stack Usage for dfu_mesh_relay 0x10 bytes.
+Stack Usage for dfu_mesh_rx 0x10 bytes.
+Stack Usage for dfu_mesh_finalize 0xc0 bytes.
+Stack Usage for dfu_mesh_timeout 0x8 bytes.
+Stack Usage for dfu_mesh_missing_type_get 0x10 bytes.
+Stack Usage for dfu_mesh_app_is_valid 0x8 bytes.
+Stack Usage for dfu_mesh_restart 0x8 bytes.
+Stack Usage for dfu_mesh_on_flash_idle 0x28 bytes.
+Stack Usage for dfu_transfer_init 0x8 bytes.
+Stack Usage for dfu_transfer_start 0x28 bytes.
+Stack Usage for dfu_transfer_data 0x30 bytes.
+Stack Usage for dfu_transfer_has_entry 0x18 bytes.
+Stack Usage for dfu_transfer_get_oldest_missing_entry 0x28 bytes.
+Stack Usage for dfu_transfer_sha256 0x8 bytes.
+Stack Usage for dfu_transfer_end 0x0 bytes.
+Stack Usage for dfu_transfer_flash_write_complete 0x0 bytes.
+Stack Usage for fwid_union_cpy 0x8 bytes.
+Stack Usage for fwid_union_cmp 0x8 bytes.
+Stack Usage for fwid_union_id_cmp 0x10 bytes.
+Stack Usage for fwid_union_version_cmp 0x10 bytes.
+Stack Usage for tid_cache_has_entry 0x0 bytes.
+Stack Usage for ready_packet_matches_our_req 0x10 bytes.
+Stack Usage for addr_from_seg 0x0 bytes.
+Stack Usage for is_upgrade 0x18 bytes.
+Stack Usage for app_is_newer 0x10 bytes.
+Stack Usage for bootloader_is_newer 0x8 bytes.
+Stack Usage for fw_is_verified 0x8 bytes.
+Stack Usage for tid_cache_entry_put 0x8 bytes.
+Stack Usage for packet_in_cache 0x10 bytes.
+Stack Usage for packet_cache_put 0x10 bytes.
+Stack Usage for packet_cache_flush 0x8 bytes.
+Stack Usage for section_overlap 0x0 bytes.
+Stack Usage for interrupts_disable 0xc bytes.
+Stack Usage for fifo_init 0x0 bytes.
+Stack Usage for fifo_push 0x10 bytes.
+Stack Usage for fifo_pop 0x10 bytes.
+Stack Usage for fifo_get_len 0x0 bytes.
+Stack Usage for fifo_peek_at 0x10 bytes.
+Stack Usage for fifo_peek 0x0 bytes.
+Stack Usage for fifo_is_empty 0x0 bytes.
+Stack Usage for app_error_handler_bare 0x0 bytes.
+Stack Usage for HardFault_Handler 0x0 bytes.
+Stack Usage for main 0x0 bytes.
+Stack Usage for mesh_packet_init 0x0 bytes.
+Stack Usage for mesh_packet_acquire 0x8 bytes.
+Stack Usage for mesh_packet_ref_count_inc 0x10 bytes.
+Stack Usage for mesh_packet_ref_count_dec 0x8 bytes.
+Stack Usage for mesh_packet_ref_count_get 0x8 bytes.
+Stack Usage for mesh_packet_set_local_addr 0x8 bytes.
+Stack Usage for mesh_packet_adv_data_get 0x14 bytes.
+Stack Usage for nrf_flash_erase 0x18 bytes.
+Stack Usage for nrf_flash_store 0x14 bytes.
+Stack Usage for radio_disable 0x0 bytes.
+Stack Usage for radio_init 0x20 bytes.
+Stack Usage for radio_order 0x8 bytes.
+Stack Usage for radio_event_handler 0x28 bytes.
+Stack Usage for rand_prng_get 0xc bytes.
+Stack Usage for rand_hw_rng_get 0x14 bytes.
+Stack Usage for rand_prng_seed 0x10 bytes.
+Stack Usage for transport_start 0x0 bytes.
+Stack Usage for SWI0_IRQHandler 0x10 bytes.
+Stack Usage for RADIO_IRQHandler 0x8 bytes.
+Stack Usage for timeslot_is_in_ts 0x0 bytes.
+Stack Usage for transport_init 0x8 bytes.
+Stack Usage for transport_tx 0x18 bytes.
+Stack Usage for transport_tx_abort 0x10 bytes.
+Stack Usage for transport_rtc_irq_handler 0x20 bytes.
+Stack Usage for transport_tx_evt_set 0x0 bytes.
+Stack Usage for transport_tx_evt_get 0x0 bytes.
+Stack Usage for uECC_verify 0x1e8 bytes.
+Stack Usage for sha256_transform 0x150 bytes.
+Stack Usage for sha256_init 0x0 bytes.
+Stack Usage for sha256_update 0x18 bytes.
+Stack Usage for sha256_final 0x18 bytes.
+Stack Usage for SystemCoreClockUpdate 0x0 bytes.
+Stack Usage for SystemInit 0x8 bytes.
+Stack Usage for Reset_Handler 0x0 bytes.
+Stack Usage for NMI_Handler 0x0 bytes.
+Stack Usage for SVC_Handler 0x0 bytes.
+Stack Usage for PendSV_Handler 0x0 bytes.
+Stack Usage for SysTick_Handler 0x0 bytes.
+Stack Usage for ADC_IRQHandler 0x0 bytes.
+Stack Usage for CCM_AAR_IRQHandler 0x0 bytes.
+Stack Usage for ECB_IRQHandler 0x0 bytes.
+Stack Usage for GPIOTE_IRQHandler 0x0 bytes.
+Stack Usage for LPCOMP_IRQHandler 0x0 bytes.
+Stack Usage for POWER_CLOCK_IRQHandler 0x0 bytes.
+Stack Usage for QDEC_IRQHandler 0x0 bytes.
+Stack Usage for RNG_IRQHandler 0x0 bytes.
+Stack Usage for RTC1_IRQHandler 0x0 bytes.
+Stack Usage for SPI0_TWI0_IRQHandler 0x0 bytes.
+Stack Usage for SPI1_TWI1_IRQHandler 0x0 bytes.
+Stack Usage for SWI1_IRQHandler 0x0 bytes.
+Stack Usage for SWI2_IRQHandler 0x0 bytes.
+Stack Usage for SWI4_IRQHandler 0x0 bytes.
+Stack Usage for SWI5_IRQHandler 0x0 bytes.
+Stack Usage for TEMP_IRQHandler 0x0 bytes.
+Stack Usage for TIMER0_IRQHandler 0x0 bytes.
+Stack Usage for TIMER1_IRQHandler 0x0 bytes.
+Stack Usage for TIMER2_IRQHandler 0x0 bytes.
+Stack Usage for UART0_IRQHandler 0x0 bytes.
+Stack Usage for WDT_IRQHandler 0x0 bytes.
+Stack Usage for __user_initial_stackheap 0x0 bytes.
+Stack Usage for __aeabi_llsl 0x8 bytes.
+Stack Usage for _ll_shift_l 0x8 bytes.
+Stack Usage for __aeabi_uldivmod 0x20 bytes.
+Stack Usage for _ll_udiv 0x20 bytes.
+Stack Usage for memcmp 0x8 bytes.
+Stack Usage for __aeabi_memcpy 0x18 bytes.
+Stack Usage for __rt_memcpy 0x18 bytes.
+Stack Usage for __aeabi_memset 0x8 bytes.
+Stack Usage for _memset_w 0x0 bytes.
+Stack Usage for _memset 0x0 bytes.
+Stack Usage for __aeabi_memclr 0x0 bytes.
+Stack Usage for __rt_memclr 0x0 bytes.
+Stack Usage for __aeabi_memclr4 0x0 bytes.
+Stack Usage for __aeabi_memclr8 0x0 bytes.
+Stack Usage for __rt_memclr_w 0x0 bytes.
+Stack Usage for __aeabi_uread4 0x0 bytes.
+Stack Usage for __rt_uread4 0x0 bytes.
+Stack Usage for __aeabi_uwrite4 0x0 bytes.
+Stack Usage for __rt_uwrite4 0x0 bytes.
+Stack Usage for __aeabi_uidiv 0x0 bytes.
+Stack Usage for __aeabi_uidivmod 0x0 bytes.
+Stack Usage for __aeabi_idiv 0x8 bytes.
+Stack Usage for __aeabi_idivmod 0x8 bytes.
+Stack Usage for __use_two_region_memory 0x0 bytes.
+Stack Usage for __rt_heap_escrow$2region 0x0 bytes.
+Stack Usage for __rt_heap_expand$2region 0x0 bytes.
+Stack Usage for __user_setup_stackheap 0x8 bytes.
+Stack Usage for exit 0x8 bytes.
+Stack Usage for __user_libspace 0x0 bytes.
+Stack Usage for __user_perproc_libspace 0x0 bytes.
+Stack Usage for __user_perthread_libspace 0x0 bytes.
+Stack Usage for _sys_exit 0x0 bytes.
+Stack Usage for __I$use$semihosting 0x0 bytes.
+Stack Usage for __use_no_semihosting_swi 0x0 bytes.
+Stack Usage for __ARM_common_ll_muluu 0x18 bytes.
+Stack Usage for __semihosting_library_function 0x18 bytes.
+Stack Usage for __ARM_common_switch8 0x8 bytes.
+Stack Usage for rx_cb 0x20 bytes.
+Stack Usage for bl_evt_handler 0x30 bytes.
+Stack Usage for set_timeout 0x0 bytes.
+Stack Usage for stop_timeout 0x0 bytes.
+Stack Usage for info_entry_get 0x10 bytes.
+Stack Usage for free_write_buffer 0x18 bytes.
+Stack Usage for place_head_after_entry 0x0 bytes.
+Stack Usage for get_write_buffer 0x18 bytes.
+Stack Usage for copy_page_write_meta 0x8 bytes.
+Stack Usage for copy_page_write_next_data 0x10 bytes.
+Stack Usage for copy_page 0x10 bytes.
+Stack Usage for entry_header_invalidate 0x8 bytes.
+Stack Usage for bootloader_info_header_get 0x0 bytes.
+Stack Usage for bootloader_info_first_unused_get 0x8 bytes.
+Stack Usage for copy_page_on_flash_op_end 0x8 bytes.
+Stack Usage for flash_bank_entry_fw 0x48 bytes.
+Stack Usage for flash_bank_entry 0x118 bytes.
+Stack Usage for get_info_pointers 0x8 bytes.
+Stack Usage for segment_count_from_start_packet 0x10 bytes.
+Stack Usage for packet_tx_dynamic 0x38 bytes.
+Stack Usage for signature_check 0xa8 bytes.
+Stack Usage for beacon_set 0x50 bytes.
+Stack Usage for relay_packet 0x10 bytes.
+Stack Usage for start_req 0x10 bytes.
+Stack Usage for start_target 0xb0 bytes.
+Stack Usage for notify_state_packet 0x28 bytes.
+Stack Usage for target_rx_start 0x20 bytes.
+Stack Usage for target_rx_data 0x48 bytes.
+Stack Usage for handle_data_packet 0x48 bytes.
+Stack Usage for handle_state_packet 0x18 bytes.
+Stack Usage for handle_data_req_packet 0x30 bytes.
+Stack Usage for state_beacon_type 0x0 bytes.
+Stack Usage for send_progress_event 0x28 bytes.
+Stack Usage for send_bank_notifications 0x50 bytes.
+Stack Usage for start_find_fwid 0x8 bytes.
+Stack Usage for start_ready 0x10 bytes.
+Stack Usage for request_missing_data 0x58 bytes.
+Stack Usage for handle_fwid_packet 0x38 bytes.
+Stack Usage for segment_is_missing 0x8 bytes.
+Stack Usage for transfer_abort 0x8 bytes.
+Stack Usage for setup_event 0x20 bytes.
+Stack Usage for NVIC_SetPriority 0x0 bytes.
+Stack Usage for set_next_tx 0x10 bytes.
+Stack Usage for order_scan 0x10 bytes.
+Stack Usage for radio_tx_cb 0x8 bytes.
+Stack Usage for radio_rx_cb 0x18 bytes.
+Stack Usage for radio_idle_cb 0x0 bytes.
+Stack Usage for order_next_rtc 0x14 bytes.
+Stack Usage for vli_numBits 0x0 bytes.
+Stack Usage for vli_cmp 0x8 bytes.
+Stack Usage for vli_add 0x14 bytes.
+Stack Usage for vli_sub 0x14 bytes.
+Stack Usage for muladd 0x18 bytes.
+Stack Usage for vli_mult 0x30 bytes.
+Stack Usage for vli_mmod_fast 0x38 bytes.
+Stack Usage for vli_modInv 0x98 bytes.
+Stack Usage for EccPoint_double_jacobian 0x58 bytes.
+Stack Usage for apply_z 0x30 bytes.
+Stack Usage for XYcZ_add 0x38 bytes.
+Stack Usage for vli_modMult_n 0xf0 bytes.
+Stack Usage for vli_clear 0x0 bytes.
+Stack Usage for vli_isZero 0x0 bytes.
+Stack Usage for vli_testBit 0x0 bytes.
+Stack Usage for vli_set 0x8 bytes.
+Stack Usage for vli_rshift1 0x8 bytes.
+Stack Usage for vli_modAdd 0x10 bytes.
+Stack Usage for vli_modSub 0x10 bytes.
+Stack Usage for vli_modMult_fast 0x48 bytes.
+Stack Usage for vli_bytesToNative 0x18 bytes.
+Stack Usage for is_manual_peripheral_setup_needed 0x0 bytes.
+
+Potential Stack Usage Inaccuracies.
+
+Mutually recursive functions.
+
+ * NMI_Handler => NMI_Handler
+ * SVC_Handler => SVC_Handler
+ * PendSV_Handler => PendSV_Handler
+
+Untraceable function pointers.
+
+ * ADC_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * CCM_AAR_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * ECB_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * GPIOTE_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * HardFault_Handler from main.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * LPCOMP_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * NMI_Handler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * POWER_CLOCK_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * PendSV_Handler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * QDEC_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * RADIO_IRQHandler from transport.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * RNG_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * RTC0_IRQHandler from bootloader_rtc.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * RTC1_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * Reset_Handler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * SPI0_TWI0_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * SPI1_TWI1_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * SVC_Handler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * SWI0_IRQHandler from transport.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * SWI1_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * SWI2_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * SWI3_IRQHandler from bootloader.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * SWI4_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * SWI5_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * SysTick_Handler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * SystemInit from system_nrf51.o(.text) referenced from arm_startup_nrf51.o(.text)
+ * TEMP_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * TIMER0_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * TIMER1_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * TIMER2_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * UART0_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * WDT_IRQHandler from arm_startup_nrf51.o(.text) referenced from arm_startup_nrf51.o(RESET)
+ * __main from __main.o(!!!main) referenced from arm_startup_nrf51.o(.text)
+ * bl_cmd_handler from bootloader_app_bridge.o(.text) referenced from bootloader_app_bridge.o(.text)
+ * bl_evt_handler from bootloader.o(.text) referenced from bootloader.o(.text)
+ * radio_idle_cb from transport.o(.text) referenced from transport.o(.text)
+ * radio_rx_cb from transport.o(.text) referenced from transport.o(.text)
+ * radio_tx_cb from transport.o(.text) referenced from transport.o(.text)
+ * rx_cb from bootloader.o(.text) referenced from bootloader.o(.text)
+
+==============================================================================
+
+Image Symbol Table
+
+    Local Symbols
+
+    Symbol Name                              Value     Ov Type        Size  Object(Section)
+
+    ../clib/angel/boardlib.s                 0x00000000   Number         0  boardshut.o ABSOLUTE
+    ../clib/angel/boardlib.s                 0x00000000   Number         0  boardinit1.o ABSOLUTE
+    ../clib/angel/boardlib.s                 0x00000000   Number         0  boardinit2.o ABSOLUTE
+    ../clib/angel/boardlib.s                 0x00000000   Number         0  boardinit3.o ABSOLUTE
+    ../clib/angel/handlers.s                 0x00000000   Number         0  __scatter_copy.o ABSOLUTE
+    ../clib/angel/handlers.s                 0x00000000   Number         0  __scatter_zi.o ABSOLUTE
+    ../clib/angel/kernel.s                   0x00000000   Number         0  rtexit.o ABSOLUTE
+    ../clib/angel/kernel.s                   0x00000000   Number         0  __rtentry.o ABSOLUTE
+    ../clib/angel/kernel.s                   0x00000000   Number         0  rtexit2.o ABSOLUTE
+    ../clib/angel/kernel.s                   0x00000000   Number         0  __rtentry2.o ABSOLUTE
+    ../clib/angel/kernel.s                   0x00000000   Number         0  __rtentry4.o ABSOLUTE
+    ../clib/angel/rt.s                       0x00000000   Number         0  aeabi_ldiv0_sigfpe.o ABSOLUTE
+    ../clib/angel/rt.s                       0x00000000   Number         0  rt_raise.o ABSOLUTE
+    ../clib/angel/rt.s                       0x00000000   Number         0  aeabi_ldiv0.o ABSOLUTE
+    ../clib/angel/rt.s                       0x00000000   Number         0  aeabi_idiv0_sigfpe.o ABSOLUTE
+    ../clib/angel/rt.s                       0x00000000   Number         0  aeabi_idiv0.o ABSOLUTE
+    ../clib/angel/rt.s                       0x00000000   Number         0  rt_div0.o ABSOLUTE
+    ../clib/angel/scatterp.s                 0x00000000   Number         0  __scatter.o ABSOLUTE
+    ../clib/angel/startup.s                  0x00000000   Number         0  __main.o ABSOLUTE
+    ../clib/angel/sys.s                      0x00000000   Number         0  indicate_semi.o ABSOLUTE
+    ../clib/angel/sys.s                      0x00000000   Number         0  libspace.o ABSOLUTE
+    ../clib/angel/sys.s                      0x00000000   Number         0  tempstk.o ABSOLUTE
+    ../clib/angel/sys.s                      0x00000000   Number         0  use_no_semi.o ABSOLUTE
+    ../clib/angel/sys.s                      0x00000000   Number         0  sys_stackheap_outer.o ABSOLUTE
+    ../clib/angel/sysapp.c                   0x00000000   Number         0  sys_wrch.o ABSOLUTE
+    ../clib/angel/sysapp.c                   0x00000000   Number         0  sys_command.o ABSOLUTE
+    ../clib/angel/sysapp.c                   0x00000000   Number         0  sys_exit.o ABSOLUTE
+    ../clib/armsys.c                         0x00000000   Number         0  argv_veneer.o ABSOLUTE
+    ../clib/armsys.c                         0x00000000   Number         0  _get_argv_nomalloc.o ABSOLUTE
+    ../clib/armsys.c                         0x00000000   Number         0  no_argv.o ABSOLUTE
+    ../clib/division.c                       0x00000000   Number         0  lludiv.o ABSOLUTE
+    ../clib/division.s                       0x00000000   Number         0  aeabi_sdiv_div0.o ABSOLUTE
+    ../clib/division.s                       0x00000000   Number         0  aeabi_sdiv.o ABSOLUTE
+    ../clib/heapalloc.c                      0x00000000   Number         0  hrguard.o ABSOLUTE
+    ../clib/heapaux.c                        0x00000000   Number         0  heapauxi.o ABSOLUTE
+    ../clib/libinit.s                        0x00000000   Number         0  libinit.o ABSOLUTE
+    ../clib/libinit.s                        0x00000000   Number         0  libinit2.o ABSOLUTE
+    ../clib/libinit.s                        0x00000000   Number         0  libshutdown2.o ABSOLUTE
+    ../clib/libinit.s                        0x00000000   Number         0  libshutdown.o ABSOLUTE
+    ../clib/longlong.c                       0x00000000   Number         0  llshl.o ABSOLUTE
+    ../clib/memcpset.c                       0x00000000   Number         0  rt_memclr.o ABSOLUTE
+    ../clib/memcpset.c                       0x00000000   Number         0  aeabi_memset.o ABSOLUTE
+    ../clib/memcpset.c                       0x00000000   Number         0  rt_memcpy.o ABSOLUTE
+    ../clib/memcpset.c                       0x00000000   Number         0  rt_memcpy.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_stak_inner.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_rtmem_formal.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_rtmem_outer.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_rtred_inner.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_abrt_inner.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_general.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_exit.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_fpe_inner.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_rtmem_inner.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  __raise.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_pvfn_inner.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_cppl_inner.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_segv_inner.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_other.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_fpe_formal.o ABSOLUTE
+    ../clib/signal.c                         0x00000000   Number         0  defsig_fpe_outer.o ABSOLUTE
+    ../clib/signal.s                         0x00000000   Number         0  defsig.o ABSOLUTE
+    ../clib/stdlib.c                         0x00000000   Number         0  exit.o ABSOLUTE
+    ../clib/string.c                         0x00000000   Number         0  memcmp.o ABSOLUTE
+    ../clib/unhosted.c                       0x00000000   Number         0  uread4.o ABSOLUTE
+    ../clib/unhosted.c                       0x00000000   Number         0  uwrite4.o ABSOLUTE
+    ../fplib/cfplib/fpinit.c                 0x00000000   Number         0  fpinit.o ABSOLUTE
+    ..\\external\\nRF5_SDK_14.0.0_3bcc1f7\\components\\libraries\\sha256\\sha256.c 0x00000000   Number         0  sha256.o ABSOLUTE
+    ..\\external\\nRF5_SDK_14.0.0_3bcc1f7\\components\\toolchain\\arm\\arm_startup_nrf51.s 0x00000000   Number         0  arm_startup_nrf51.o ABSOLUTE
+    ..\\external\\nRF5_SDK_14.0.0_3bcc1f7\\components\\toolchain\\system_nrf51.c 0x00000000   Number         0  system_nrf51.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\bootloader.c  0x00000000   Number         0  bootloader.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\bootloader_app_bridge.c 0x00000000   Number         0  bootloader_app_bridge.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\bootloader_info.c 0x00000000   Number         0  bootloader_info.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\bootloader_rtc.c 0x00000000   Number         0  bootloader_rtc.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\bootloader_util.c 0x00000000   Number         0  bootloader_util.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\dfu_bank.c    0x00000000   Number         0  dfu_bank.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\dfu_mesh.c    0x00000000   Number         0  dfu_mesh.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\dfu_transfer_mesh.c 0x00000000   Number         0  dfu_transfer_mesh.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\dfu_util.c    0x00000000   Number         0  dfu_util.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\fifo.c        0x00000000   Number         0  fifo.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\main.c        0x00000000   Number         0  main.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\mesh_packet.c 0x00000000   Number         0  mesh_packet.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\nrf_flash.c   0x00000000   Number         0  nrf_flash.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\radio_control.c 0x00000000   Number         0  radio_control.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\rand.c        0x00000000   Number         0  rand.o ABSOLUTE
+    ..\\mesh\\bootloader\\src\\transport.c   0x00000000   Number         0  transport.o ABSOLUTE
+    ..\external\nRF5_SDK_14.0.0_3bcc1f7\components\libraries\sha256\sha256.c 0x00000000   Number         0  sha256.o ABSOLUTE
+    ..\external\nRF5_SDK_14.0.0_3bcc1f7\components\toolchain\system_nrf51.c 0x00000000   Number         0  system_nrf51.o ABSOLUTE
+    ..\mesh\bootloader\src\bootloader.c      0x00000000   Number         0  bootloader.o ABSOLUTE
+    ..\mesh\bootloader\src\bootloader_app_bridge.c 0x00000000   Number         0  bootloader_app_bridge.o ABSOLUTE
+    ..\mesh\bootloader\src\bootloader_info.c 0x00000000   Number         0  bootloader_info.o ABSOLUTE
+    ..\mesh\bootloader\src\bootloader_rtc.c  0x00000000   Number         0  bootloader_rtc.o ABSOLUTE
+    ..\mesh\bootloader\src\bootloader_util.c 0x00000000   Number         0  bootloader_util.o ABSOLUTE
+    ..\mesh\bootloader\src\dfu_bank.c        0x00000000   Number         0  dfu_bank.o ABSOLUTE
+    ..\mesh\bootloader\src\dfu_mesh.c        0x00000000   Number         0  dfu_mesh.o ABSOLUTE
+    ..\mesh\bootloader\src\dfu_transfer_mesh.c 0x00000000   Number         0  dfu_transfer_mesh.o ABSOLUTE
+    ..\mesh\bootloader\src\dfu_util.c        0x00000000   Number         0  dfu_util.o ABSOLUTE
+    ..\mesh\bootloader\src\fifo.c            0x00000000   Number         0  fifo.o ABSOLUTE
+    ..\mesh\bootloader\src\main.c            0x00000000   Number         0  main.o ABSOLUTE
+    ..\mesh\bootloader\src\mesh_packet.c     0x00000000   Number         0  mesh_packet.o ABSOLUTE
+    ..\mesh\bootloader\src\nrf_flash.c       0x00000000   Number         0  nrf_flash.o ABSOLUTE
+    ..\mesh\bootloader\src\radio_control.c   0x00000000   Number         0  radio_control.o ABSOLUTE
+    ..\mesh\bootloader\src\rand.c            0x00000000   Number         0  rand.o ABSOLUTE
+    ..\mesh\bootloader\src\transport.c       0x00000000   Number         0  transport.o ABSOLUTE
+    ..\mesh\bootloader\src\uECC.c            0x00000000   Number         0  uECC.o ABSOLUTE
+    dc.s                                     0x00000000   Number         0  dc.o ABSOLUTE
+    RESET                                    0x0003a000   Section      192  arm_startup_nrf51.o(RESET)
+    !!!main                                  0x0003a0c0   Section        8  __main.o(!!!main)
+    !!!scatter                               0x0003a0c8   Section       60  __scatter.o(!!!scatter)
+    !!handler_copy                           0x0003a104   Section       26  __scatter_copy.o(!!handler_copy)
+    !!handler_zi                             0x0003a120   Section       28  __scatter_zi.o(!!handler_zi)
+    .ARM.Collect$$libinit$$00000000          0x0003a13c   Section        2  libinit.o(.ARM.Collect$$libinit$$00000000)
+    .ARM.Collect$$libinit$$00000002          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$00000002)
+    .ARM.Collect$$libinit$$00000004          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$00000004)
+    .ARM.Collect$$libinit$$0000000A          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$0000000A)
+    .ARM.Collect$$libinit$$0000000C          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$0000000C)
+    .ARM.Collect$$libinit$$0000000E          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$0000000E)
+    .ARM.Collect$$libinit$$00000011          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$00000011)
+    .ARM.Collect$$libinit$$00000013          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$00000013)
+    .ARM.Collect$$libinit$$00000015          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$00000015)
+    .ARM.Collect$$libinit$$00000017          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$00000017)
+    .ARM.Collect$$libinit$$00000019          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$00000019)
+    .ARM.Collect$$libinit$$0000001B          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$0000001B)
+    .ARM.Collect$$libinit$$0000001D          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$0000001D)
+    .ARM.Collect$$libinit$$0000001F          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$0000001F)
+    .ARM.Collect$$libinit$$00000021          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$00000021)
+    .ARM.Collect$$libinit$$00000023          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$00000023)
+    .ARM.Collect$$libinit$$00000025          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$00000025)
+    .ARM.Collect$$libinit$$0000002C          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$0000002C)
+    .ARM.Collect$$libinit$$0000002E          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$0000002E)
+    .ARM.Collect$$libinit$$00000030          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$00000030)
+    .ARM.Collect$$libinit$$00000032          0x0003a13e   Section        0  libinit2.o(.ARM.Collect$$libinit$$00000032)
+    .ARM.Collect$$libinit$$00000033          0x0003a13e   Section        2  libinit2.o(.ARM.Collect$$libinit$$00000033)
+    .ARM.Collect$$libshutdown$$00000000      0x0003a140   Section        2  libshutdown.o(.ARM.Collect$$libshutdown$$00000000)
+    .ARM.Collect$$libshutdown$$00000002      0x0003a142   Section        0  libshutdown2.o(.ARM.Collect$$libshutdown$$00000002)
+    .ARM.Collect$$libshutdown$$00000004      0x0003a142   Section        0  libshutdown2.o(.ARM.Collect$$libshutdown$$00000004)
+    .ARM.Collect$$libshutdown$$00000007      0x0003a142   Section        0  libshutdown2.o(.ARM.Collect$$libshutdown$$00000007)
+    .ARM.Collect$$libshutdown$$0000000A      0x0003a142   Section        0  libshutdown2.o(.ARM.Collect$$libshutdown$$0000000A)
+    .ARM.Collect$$libshutdown$$0000000C      0x0003a142   Section        0  libshutdown2.o(.ARM.Collect$$libshutdown$$0000000C)
+    .ARM.Collect$$libshutdown$$0000000F      0x0003a142   Section        0  libshutdown2.o(.ARM.Collect$$libshutdown$$0000000F)
+    .ARM.Collect$$libshutdown$$00000010      0x0003a142   Section        2  libshutdown2.o(.ARM.Collect$$libshutdown$$00000010)
+    .ARM.Collect$$rtentry$$00000000          0x0003a144   Section        0  __rtentry.o(.ARM.Collect$$rtentry$$00000000)
+    .ARM.Collect$$rtentry$$00000002          0x0003a144   Section        0  __rtentry2.o(.ARM.Collect$$rtentry$$00000002)
+    .ARM.Collect$$rtentry$$00000004          0x0003a144   Section        6  __rtentry4.o(.ARM.Collect$$rtentry$$00000004)
+    .ARM.Collect$$rtentry$$00000009          0x0003a14a   Section        0  __rtentry2.o(.ARM.Collect$$rtentry$$00000009)
+    .ARM.Collect$$rtentry$$0000000A          0x0003a14a   Section        4  __rtentry2.o(.ARM.Collect$$rtentry$$0000000A)
+    .ARM.Collect$$rtentry$$0000000C          0x0003a14e   Section        0  __rtentry2.o(.ARM.Collect$$rtentry$$0000000C)
+    .ARM.Collect$$rtentry$$0000000D          0x0003a14e   Section        8  __rtentry2.o(.ARM.Collect$$rtentry$$0000000D)
+    .ARM.Collect$$rtexit$$00000000           0x0003a156   Section        2  rtexit.o(.ARM.Collect$$rtexit$$00000000)
+    .ARM.Collect$$rtexit$$00000002           0x0003a158   Section        0  rtexit2.o(.ARM.Collect$$rtexit$$00000002)
+    .ARM.Collect$$rtexit$$00000003           0x0003a158   Section        4  rtexit2.o(.ARM.Collect$$rtexit$$00000003)
+    .ARM.Collect$$rtexit$$00000004           0x0003a15c   Section        6  rtexit2.o(.ARM.Collect$$rtexit$$00000004)
+    .emb_text                                0x0003a164   Section       52  bootloader_util.o(.emb_text)
+    .emb_text                                0x0003a198   Section       56  rt_memcpy.o(.emb_text)
+    .text                                    0x0003a1d0   Section        0  bootloader.o(.text)
+    rx_cb                                    0x0003a2c1   Thumb Code    52  bootloader.o(.text)
+    bl_evt_handler                           0x0003a375   Thumb Code   506  bootloader.o(.text)
+    set_timeout                              0x0003a745   Thumb Code    36  bootloader.o(.text)
+    stop_timeout                             0x0003a769   Thumb Code    16  bootloader.o(.text)
+    .text                                    0x0003a788   Section        0  bootloader_app_bridge.o(.text)
+    .text                                    0x0003a980   Section        0  bootloader_info.o(.text)
+    info_entry_get                           0x0003a981   Thumb Code    68  bootloader_info.o(.text)
+    free_write_buffer                        0x0003a9c5   Thumb Code   106  bootloader_info.o(.text)
+    place_head_after_entry                   0x0003aa2f   Thumb Code    50  bootloader_info.o(.text)
+    get_write_buffer                         0x0003aa61   Thumb Code   130  bootloader_info.o(.text)
+    copy_page_write_meta                     0x0003aae3   Thumb Code    28  bootloader_info.o(.text)
+    copy_page_write_next_data                0x0003aaff   Thumb Code   106  bootloader_info.o(.text)
+    copy_page                                0x0003ab69   Thumb Code    48  bootloader_info.o(.text)
+    entry_header_invalidate                  0x0003aeb7   Thumb Code    26  bootloader_info.o(.text)
+    bootloader_info_header_get               0x0003aed1   Thumb Code    28  bootloader_info.o(.text)
+    bootloader_info_first_unused_get         0x0003aeed   Thumb Code    18  bootloader_info.o(.text)
+    copy_page_on_flash_op_end                0x0003aeff   Thumb Code    86  bootloader_info.o(.text)
+    .text                                    0x0003af64   Section        0  bootloader_rtc.o(.text)
+    .text                                    0x0003afe0   Section        0  bootloader_util.o(.text)
+    .text                                    0x0003afe8   Section        0  dfu_bank.o(.text)
+    flash_bank_entry_fw                      0x0003afe9   Thumb Code   314  dfu_bank.o(.text)
+    flash_bank_entry                         0x0003b123   Thumb Code   336  dfu_bank.o(.text)
+    .text                                    0x0003b32c   Section        0  dfu_mesh.o(.text)
+    get_info_pointers                        0x0003b32d   Thumb Code    94  dfu_mesh.o(.text)
+    segment_count_from_start_packet          0x0003b38b   Thumb Code    64  dfu_mesh.o(.text)
+    packet_tx_dynamic                        0x0003b3cb   Thumb Code    60  dfu_mesh.o(.text)
+    signature_check                          0x0003b407   Thumb Code   144  dfu_mesh.o(.text)
+    beacon_set                               0x0003b497   Thumb Code   222  dfu_mesh.o(.text)
+    relay_packet                             0x0003b575   Thumb Code    56  dfu_mesh.o(.text)
+    start_req                                0x0003b5ad   Thumb Code    64  dfu_mesh.o(.text)
+    start_target                             0x0003b5ed   Thumb Code   420  dfu_mesh.o(.text)
+    notify_state_packet                      0x0003b791   Thumb Code    52  dfu_mesh.o(.text)
+    target_rx_start                          0x0003b7c5   Thumb Code   298  dfu_mesh.o(.text)
+    target_rx_data                           0x0003b8ef   Thumb Code   204  dfu_mesh.o(.text)
+    handle_data_packet                       0x0003b9bb   Thumb Code   322  dfu_mesh.o(.text)
+    handle_state_packet                      0x0003bafd   Thumb Code   246  dfu_mesh.o(.text)
+    handle_data_req_packet                   0x0003bbf3   Thumb Code   222  dfu_mesh.o(.text)
+    state_beacon_type                        0x0003c05f   Thumb Code    28  dfu_mesh.o(.text)
+    send_progress_event                      0x0003c07b   Thumb Code    22  dfu_mesh.o(.text)
+    send_bank_notifications                  0x0003c091   Thumb Code   118  dfu_mesh.o(.text)
+    start_find_fwid                          0x0003c107   Thumb Code    24  dfu_mesh.o(.text)
+    start_ready                              0x0003c11f   Thumb Code    90  dfu_mesh.o(.text)
+    request_missing_data                     0x0003c179   Thumb Code   128  dfu_mesh.o(.text)
+    handle_fwid_packet                       0x0003c1f9   Thumb Code   168  dfu_mesh.o(.text)
+    .text                                    0x0003c2b4   Section        0  dfu_transfer_mesh.o(.text)
+    segment_is_missing                       0x0003c2b5   Thumb Code    52  dfu_transfer_mesh.o(.text)
+    transfer_abort                           0x0003c56b   Thumb Code    16  dfu_transfer_mesh.o(.text)
+    .text                                    0x0003c588   Section        0  dfu_util.o(.text)
+    .text                                    0x0003c8f8   Section        0  fifo.o(.text)
+    .text                                    0x0003ca2c   Section        0  main.o(.text)
+    .text                                    0x0003cac0   Section        0  mesh_packet.o(.text)
+    .text                                    0x0003cc3c   Section        0  nrf_flash.o(.text)
+    .text                                    0x0003ccf8   Section        0  radio_control.o(.text)
+    setup_event                              0x0003cd13   Thumb Code   142  radio_control.o(.text)
+    .text                                    0x0003cfc0   Section        0  rand.o(.text)
+    .text                                    0x0003d058   Section        0  transport.o(.text)
+    NVIC_SetPriority                         0x0003d059   Thumb Code    60  transport.o(.text)
+    set_next_tx                              0x0003d095   Thumb Code   116  transport.o(.text)
+    order_scan                               0x0003d109   Thumb Code    52  transport.o(.text)
+    radio_tx_cb                              0x0003d13d   Thumb Code     8  transport.o(.text)
+    radio_rx_cb                              0x0003d145   Thumb Code    38  transport.o(.text)
+    radio_idle_cb                            0x0003d16b   Thumb Code    12  transport.o(.text)
+    order_next_rtc                           0x0003d177   Thumb Code    90  transport.o(.text)
+    .text                                    0x0003d450   Section        0  uECC.o(.text)
+    vli_numBits                              0x0003d451   Thumb Code    50  uECC.o(.text)
+    vli_cmp                                  0x0003d483   Thumb Code    36  uECC.o(.text)
+    vli_add                                  0x0003d4a7   Thumb Code    42  uECC.o(.text)
+    vli_sub                                  0x0003d4d1   Thumb Code    42  uECC.o(.text)
+    muladd                                   0x0003d4fb   Thumb Code    48  uECC.o(.text)
+    vli_mult                                 0x0003d52b   Thumb Code   146  uECC.o(.text)
+    vli_mmod_fast                            0x0003d5bd   Thumb Code   398  uECC.o(.text)
+    vli_modInv                               0x0003d74b   Thumb Code   292  uECC.o(.text)
+    EccPoint_double_jacobian                 0x0003d86f   Thumb Code   286  uECC.o(.text)
+    apply_z                                  0x0003d98d   Thumb Code    52  uECC.o(.text)
+    XYcZ_add                                 0x0003d9c1   Thumb Code   166  uECC.o(.text)
+    vli_modMult_n                            0x0003da67   Thumb Code   162  uECC.o(.text)
+    vli_clear                                0x0003dd2d   Thumb Code    16  uECC.o(.text)
+    vli_isZero                               0x0003dd3d   Thumb Code    24  uECC.o(.text)
+    vli_testBit                              0x0003dd55   Thumb Code    18  uECC.o(.text)
+    vli_set                                  0x0003dd67   Thumb Code    18  uECC.o(.text)
+    vli_rshift1                              0x0003dd79   Thumb Code    30  uECC.o(.text)
+    vli_modAdd                               0x0003dd97   Thumb Code    38  uECC.o(.text)
+    vli_modSub                               0x0003ddbd   Thumb Code    26  uECC.o(.text)
+    vli_modMult_fast                         0x0003ddd7   Thumb Code    24  uECC.o(.text)
+    vli_bytesToNative                        0x0003ddef   Thumb Code    44  uECC.o(.text)
+    .text                                    0x0003de20   Section        0  sha256.o(.text)
+    .text                                    0x0003e138   Section        0  system_nrf51.o(.text)
+    is_manual_peripheral_setup_needed        0x0003e1c3   Thumb Code    66  system_nrf51.o(.text)
+    .text                                    0x0003e228   Section       84  arm_startup_nrf51.o(.text)
+    .text                                    0x0003e27c   Section        0  llshl.o(.text)
+    .text                                    0x0003e29c   Section        0  lludiv.o(.text)
+    .text                                    0x0003e39e   Section        0  memcmp.o(.text)
+    .text                                    0x0003e3f8   Section        0  rt_memcpy.o(.text)
+    .text                                    0x0003e47a   Section        0  aeabi_memset.o(.text)
+    .text                                    0x0003e48c   Section        0  rt_memclr.o(.text)
+    .text                                    0x0003e4cc   Section        0  uread4.o(.text)
+    .text                                    0x0003e4ee   Section        0  uwrite4.o(.text)
+    .text                                    0x0003e4fe   Section      346  aeabi_sdiv.o(.text)
+    .text                                    0x0003e658   Section        0  heapauxi.o(.text)
+    .text                                    0x0003e65e   Section       62  sys_stackheap_outer.o(.text)
+    .text                                    0x0003e69c   Section        0  exit.o(.text)
+    .text                                    0x0003e6ac   Section        8  libspace.o(.text)
+    .text                                    0x0003e6b4   Section        0  sys_exit.o(.text)
+    .text                                    0x0003e6c0   Section        2  use_no_semi.o(.text)
+    .text                                    0x0003e6c2   Section        0  indicate_semi.o(.text)
+    i.__ARM_common_ll_muluu                  0x0003e6c2   Section        0  uECC.o(i.__ARM_common_ll_muluu)
+    i.__ARM_common_switch8                   0x0003e6f2   Section        0  dfu_mesh.o(i.__ARM_common_switch8)
+    .constdata                               0x0003e70c   Section       16  bootloader.o(.constdata)
+    .constdata                               0x0003e71c   Section       72  bootloader_app_bridge.o(.constdata)
+    .constdata                               0x0003e764   Section        4  bootloader_info.o(.constdata)
+    m_invalid_header                         0x0003e764   Data           4  bootloader_info.o(.constdata)
+    .constdata                               0x0003e768   Section        6  dfu_mesh.o(.constdata)
+    .constdata                               0x0003e770   Section       12  radio_control.o(.constdata)
+    .constdata                               0x0003e77c   Section      144  uECC.o(.constdata)
+    curve_p                                  0x0003e77c   Data          32  uECC.o(.constdata)
+    curve_G                                  0x0003e79c   Data          64  uECC.o(.constdata)
+    curve_n                                  0x0003e7dc   Data          32  uECC.o(.constdata)
+    .constdata                               0x0003e80c   Section      256  sha256.o(.constdata)
+    k                                        0x0003e80c   Data         256  sha256.o(.constdata)
+    .ARM.__AT_0x10001014                     0x10001014   Section        4  main.o(.ARM.__AT_0x10001014)
+    .data                                    0x20000004   Section        2  bootloader.o(.data)
+    m_go_to_app                              0x20000004   Data           1  bootloader.o(.data)
+    m_timeout_action                         0x20000005   Data           1  bootloader.o(.data)
+    .data                                    0x20000008   Section        4  nrf_flash.o(.data)
+    buffer                                   0x20000008   Data           4  nrf_flash.o(.data)
+    .data                                    0x2000000c   Section       20  radio_control.o(.data)
+    m_radio_state                            0x2000000c   Data           1  radio_control.o(.data)
+    m_alt_aa                                 0x20000010   Data           4  radio_control.o(.data)
+    m_idle_cb                                0x20000014   Data           4  radio_control.o(.data)
+    m_rx_cb                                  0x20000018   Data           4  radio_control.o(.data)
+    m_tx_cb                                  0x2000001c   Data           4  radio_control.o(.data)
+    .data                                    0x20000020   Section       12  transport.o(.data)
+    m_running                                0x20000020   Data           1  transport.o(.data)
+    m_rx_cb                                  0x20000024   Data           4  transport.o(.data)
+    m_ticks_at_order_time                    0x20000028   Data           4  transport.o(.data)
+    .data                                    0x2000002c   Section        4  system_nrf51.o(.data)
+    __tagsym$$used                           0x2000002c   Number         0  system_nrf51.o(.data)
+    .bss                                     0x20000030   Section      176  bootloader.o(.bss)
+    rsp_cmd                                  0x20000030   Data          24  bootloader.o(.bss)
+    m_flash_fifo                             0x20000048   Data          24  bootloader.o(.bss)
+    m_flash_fifo_buf                         0x20000060   Data         128  bootloader.o(.bss)
+    .bss                                     0x200000e0   Section     1312  mesh_packet.o(.bss)
+    g_packet_pool                            0x200000e0   Data        1280  mesh_packet.o(.bss)
+    g_packet_refs                            0x200005e0   Data          32  mesh_packet.o(.bss)
+    .bss                                     0x20000600   Section       88  radio_control.o(.bss)
+    m_radio_fifo                             0x20000600   Data          24  radio_control.o(.bss)
+    m_radio_fifo_queue                       0x20000618   Data          64  radio_control.o(.bss)
+    .bss                                     0x20000658   Section      296  transport.o(.bss)
+    m_tx                                     0x20000658   Data         128  transport.o(.bss)
+    m_rx_fifo                                0x200006d8   Data          24  transport.o(.bss)
+    m_rx_fifo_buf                            0x200006f0   Data         128  transport.o(.bss)
+    m_prng                                   0x20000770   Data          16  transport.o(.bss)
+    .bss                                     0x20000780   Section       96  libspace.o(.bss)
+    HEAP                                     0x200007e0   Section     1024  arm_startup_nrf51.o(HEAP)
+    Heap_Mem                                 0x200007e0   Data        1024  arm_startup_nrf51.o(HEAP)
+    STACK                                    0x20000be0   Section     2048  arm_startup_nrf51.o(STACK)
+    Stack_Mem                                0x20000be0   Data        2048  arm_startup_nrf51.o(STACK)
+    __initial_sp                             0x200013e0   Data           0  arm_startup_nrf51.o(STACK)
+    .data                                    0x20007d00   Section        8  bootloader_app_bridge.o(.data)
+    m_in_bl                                  0x20007d00   Data           1  bootloader_app_bridge.o(.data)
+    m_evt_handler                            0x20007d04   Data           4  bootloader_app_bridge.o(.data)
+    .data                                    0x20007d08   Section       24  bootloader_info.o(.data)
+    m_state                                  0x20007d08   Data           1  bootloader_info.o(.data)
+    m_write_in_progress                      0x20007d09   Data           1  bootloader_info.o(.data)
+    mp_bl_info_page                          0x20007d0c   Data           4  bootloader_info.o(.data)
+    mp_bl_info_bank_page                     0x20007d10   Data           4  bootloader_info.o(.data)
+    mp_info_entry_head                       0x20007d14   Data           4  bootloader_info.o(.data)
+    mp_info_entry_tail                       0x20007d18   Data           4  bootloader_info.o(.data)
+    mp_write_pos                             0x20007d1c   Data           4  bootloader_info.o(.data)
+    .data                                    0x20007d20   Section        8  dfu_bank.o(.data)
+    m_dfu_type                               0x20007d20   Data           1  dfu_bank.o(.data)
+    m_waiting_for_idle                       0x20007d21   Data           1  dfu_bank.o(.data)
+    mp_bank_entry                            0x20007d24   Data           4  dfu_bank.o(.data)
+    .data                                    0x20007d28   Section        6  dfu_mesh.o(.data)
+    m_state                                  0x20007d28   Data           1  dfu_mesh.o(.data)
+    tx_slot                                  0x20007d29   Data           1  dfu_mesh.o(.data)
+    m_req_index                              0x20007d2a   Data           1  dfu_mesh.o(.data)
+    m_tx_slots                               0x20007d2b   Data           1  dfu_mesh.o(.data)
+    m_data_req_segment                       0x20007d2c   Data           2  dfu_mesh.o(.data)
+    .data                                    0x20007d30   Section        8  dfu_util.o(.data)
+    m_tid_index                              0x20007d30   Data           1  dfu_util.o(.data)
+    m_packet_cache_index                     0x20007d34   Data           4  dfu_util.o(.data)
+    .bss                                     0x20007d38   Section      156  bootloader_info.o(.bss)
+    mp_info_entry_buffer                     0x20007d38   Data         128  bootloader_info.o(.bss)
+    m_info_copy                              0x20007db8   Data          28  bootloader_info.o(.bss)
+    .bss                                     0x20007dd4   Section      172  dfu_mesh.o(.bss)
+    m_transaction                            0x20007dd4   Data         116  dfu_mesh.o(.bss)
+    m_bl_info_pointers                       0x20007e48   Data          40  dfu_mesh.o(.bss)
+    m_req_cache                              0x20007e70   Data          16  dfu_mesh.o(.bss)
+    .bss                                     0x20007e80   Section       48  dfu_transfer_mesh.o(.bss)
+    m_transfer                               0x20007e80   Data          48  dfu_transfer_mesh.o(.bss)
+    .bss                                     0x20007eb0   Section       96  dfu_util.o(.bss)
+    m_tid_cache                              0x20007eb0   Data          32  dfu_util.o(.bss)
+    m_packet_cache                           0x20007ed0   Data          64  dfu_util.o(.bss)
+
+    Global Symbols
+
+    Symbol Name                              Value     Ov Type        Size  Object(Section)
+
+    BuildAttributes$$THM_ISAv3M$S$PE$A:L22$X:L11$S22$IEEE1$IW$USESV6$~STKCKD$USESV7$~SHL$OSPACE$ROPI$EBA8$UX$STANDARDLIB$REQ8$PRES8$EABIv2 0x00000000   Number         0  anon$$obj.o ABSOLUTE
+    __ARM_use_no_argv                        0x00000000   Number         0  main.o ABSOLUTE
+    __ARM_exceptions_init                     - Undefined Weak Reference
+    __alloca_initialize                       - Undefined Weak Reference
+    __arm_preinit_                            - Undefined Weak Reference
+    __cpp_initialize__aeabi_                  - Undefined Weak Reference
+    __cxa_finalize                            - Undefined Weak Reference
+    __rt_locale                               - Undefined Weak Reference
+    __sigvec_lookup                           - Undefined Weak Reference
+    _atexit_init                              - Undefined Weak Reference
+    _call_atexit_fns                          - Undefined Weak Reference
+    _clock_init                               - Undefined Weak Reference
+    _fp_trap_init                             - Undefined Weak Reference
+    _fp_trap_shutdown                         - Undefined Weak Reference
+    _get_lc_collate                           - Undefined Weak Reference
+    _get_lc_ctype                             - Undefined Weak Reference
+    _get_lc_monetary                          - Undefined Weak Reference
+    _get_lc_numeric                           - Undefined Weak Reference
+    _get_lc_time                              - Undefined Weak Reference
+    _getenv_init                              - Undefined Weak Reference
+    _handle_redirection                       - Undefined Weak Reference
+    _init_alloc                               - Undefined Weak Reference
+    _init_user_alloc                          - Undefined Weak Reference
+    _initio                                   - Undefined Weak Reference
+    _rand_init                                - Undefined Weak Reference
+    _signal_finish                            - Undefined Weak Reference
+    _signal_init                              - Undefined Weak Reference
+    _terminate_alloc                          - Undefined Weak Reference
+    _terminate_user_alloc                     - Undefined Weak Reference
+    _terminateio                              - Undefined Weak Reference
+    __Vectors_Size                           0x000000c0   Number         0  arm_startup_nrf51.o ABSOLUTE
+    __Vectors                                0x0003a000   Data           4  arm_startup_nrf51.o(RESET)
+    __Vectors_End                            0x0003a0c0   Data           0  arm_startup_nrf51.o(RESET)
+    __main                                   0x0003a0c1   Thumb Code     8  __main.o(!!!main)
+    __scatterload                            0x0003a0c9   Thumb Code     0  __scatter.o(!!!scatter)
+    __scatterload_rt2                        0x0003a0c9   Thumb Code    52  __scatter.o(!!!scatter)
+    __scatterload_rt2_thumb_only             0x0003a0c9   Thumb Code     0  __scatter.o(!!!scatter)
+    __scatterload_null                       0x0003a0d9   Thumb Code     0  __scatter.o(!!!scatter)
+    __scatterload_copy                       0x0003a105   Thumb Code    26  __scatter_copy.o(!!handler_copy)
+    __scatterload_zeroinit                   0x0003a121   Thumb Code    28  __scatter_zi.o(!!handler_zi)
+    __rt_lib_init                            0x0003a13d   Thumb Code     0  libinit.o(.ARM.Collect$$libinit$$00000000)
+    __rt_lib_init_alloca_1                   0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$0000002E)
+    __rt_lib_init_argv_1                     0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$0000002C)
+    __rt_lib_init_atexit_1                   0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$0000001B)
+    __rt_lib_init_clock_1                    0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$00000021)
+    __rt_lib_init_cpp_1                      0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$00000032)
+    __rt_lib_init_exceptions_1               0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$00000030)
+    __rt_lib_init_fp_1                       0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$00000002)
+    __rt_lib_init_fp_trap_1                  0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$0000001F)
+    __rt_lib_init_getenv_1                   0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$00000023)
+    __rt_lib_init_heap_1                     0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$0000000A)
+    __rt_lib_init_lc_collate_1               0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$00000011)
+    __rt_lib_init_lc_ctype_1                 0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$00000013)
+    __rt_lib_init_lc_monetary_1              0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$00000015)
+    __rt_lib_init_lc_numeric_1               0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$00000017)
+    __rt_lib_init_lc_time_1                  0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$00000019)
+    __rt_lib_init_preinit_1                  0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$00000004)
+    __rt_lib_init_rand_1                     0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$0000000E)
+    __rt_lib_init_return                     0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$00000033)
+    __rt_lib_init_signal_1                   0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$0000001D)
+    __rt_lib_init_stdio_1                    0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$00000025)
+    __rt_lib_init_user_alloc_1               0x0003a13f   Thumb Code     0  libinit2.o(.ARM.Collect$$libinit$$0000000C)
+    __rt_lib_shutdown                        0x0003a141   Thumb Code     0  libshutdown.o(.ARM.Collect$$libshutdown$$00000000)
+    __rt_lib_shutdown_cpp_1                  0x0003a143   Thumb Code     0  libshutdown2.o(.ARM.Collect$$libshutdown$$00000002)
+    __rt_lib_shutdown_fp_trap_1              0x0003a143   Thumb Code     0  libshutdown2.o(.ARM.Collect$$libshutdown$$00000007)
+    __rt_lib_shutdown_heap_1                 0x0003a143   Thumb Code     0  libshutdown2.o(.ARM.Collect$$libshutdown$$0000000F)
+    __rt_lib_shutdown_return                 0x0003a143   Thumb Code     0  libshutdown2.o(.ARM.Collect$$libshutdown$$00000010)
+    __rt_lib_shutdown_signal_1               0x0003a143   Thumb Code     0  libshutdown2.o(.ARM.Collect$$libshutdown$$0000000A)
+    __rt_lib_shutdown_stdio_1                0x0003a143   Thumb Code     0  libshutdown2.o(.ARM.Collect$$libshutdown$$00000004)
+    __rt_lib_shutdown_user_alloc_1           0x0003a143   Thumb Code     0  libshutdown2.o(.ARM.Collect$$libshutdown$$0000000C)
+    __rt_entry                               0x0003a145   Thumb Code     0  __rtentry.o(.ARM.Collect$$rtentry$$00000000)
+    __rt_entry_presh_1                       0x0003a145   Thumb Code     0  __rtentry2.o(.ARM.Collect$$rtentry$$00000002)
+    __rt_entry_sh                            0x0003a145   Thumb Code     0  __rtentry4.o(.ARM.Collect$$rtentry$$00000004)
+    __rt_entry_li                            0x0003a14b   Thumb Code     0  __rtentry2.o(.ARM.Collect$$rtentry$$0000000A)
+    __rt_entry_postsh_1                      0x0003a14b   Thumb Code     0  __rtentry2.o(.ARM.Collect$$rtentry$$00000009)
+    __rt_entry_main                          0x0003a14f   Thumb Code     0  __rtentry2.o(.ARM.Collect$$rtentry$$0000000D)
+    __rt_entry_postli_1                      0x0003a14f   Thumb Code     0  __rtentry2.o(.ARM.Collect$$rtentry$$0000000C)
+    __rt_exit                                0x0003a157   Thumb Code     0  rtexit.o(.ARM.Collect$$rtexit$$00000000)
+    __rt_exit_ls                             0x0003a159   Thumb Code     0  rtexit2.o(.ARM.Collect$$rtexit$$00000003)
+    __rt_exit_prels_1                        0x0003a159   Thumb Code     0  rtexit2.o(.ARM.Collect$$rtexit$$00000002)
+    __rt_exit_exit                           0x0003a15d   Thumb Code     0  rtexit2.o(.ARM.Collect$$rtexit$$00000004)
+    __asm___17_bootloader_util_c_c13d365c__bootloader_util_reset 0x0003a165   Thumb Code    52  bootloader_util.o(.emb_text)
+    __aeabi_memcpy4                          0x0003a199   Thumb Code    56  rt_memcpy.o(.emb_text)
+    __aeabi_memcpy8                          0x0003a199   Thumb Code     0  rt_memcpy.o(.emb_text)
+    SWI3_IRQHandler                          0x0003a1d1   Thumb Code   240  bootloader.o(.text)
+    bootloader_abort                         0x0003a2f5   Thumb Code   120  bootloader.o(.text)
+    bootloader_cmd_send                      0x0003a36d   Thumb Code     8  bootloader.o(.text)
+    bootloader_init                          0x0003a56f   Thumb Code   128  bootloader.o(.text)
+    bootloader_enable                        0x0003a5ef   Thumb Code   276  bootloader.o(.text)
+    bootloader_timeout                       0x0003a703   Thumb Code    66  bootloader.o(.text)
+    bl_cmd_handler                           0x0003a789   Thumb Code   328  bootloader_app_bridge.o(.text)
+    bootloader_app_bridge_init               0x0003a8d1   Thumb Code    28  bootloader_app_bridge.o(.text)
+    bootloader_evt_send                      0x0003a8ed   Thumb Code    14  bootloader_app_bridge.o(.text)
+    send_end_evt                             0x0003a8fb   Thumb Code    22  bootloader_app_bridge.o(.text)
+    flash_write                              0x0003a911   Thumb Code    34  bootloader_app_bridge.o(.text)
+    flash_erase                              0x0003a933   Thumb Code    32  bootloader_app_bridge.o(.text)
+    tx_abort                                 0x0003a953   Thumb Code    20  bootloader_app_bridge.o(.text)
+    bootloader_is_in_application             0x0003a967   Thumb Code    10  bootloader_app_bridge.o(.text)
+    entry_invalidate                         0x0003ab99   Thumb Code    58  bootloader_info.o(.text)
+    entry_write                              0x0003abd3   Thumb Code   106  bootloader_info.o(.text)
+    bootloader_info_init                     0x0003ac3d   Thumb Code   132  bootloader_info.o(.text)
+    bootloader_info_entry_get                0x0003acc1   Thumb Code     8  bootloader_info.o(.text)
+    bootloader_info_reset                    0x0003acc9   Thumb Code    46  bootloader_info.o(.text)
+    bootloader_info_entry_put                0x0003acf7   Thumb Code   232  bootloader_info.o(.text)
+    bootloader_info_entry_overwrite          0x0003addf   Thumb Code    42  bootloader_info.o(.text)
+    bootloader_info_entry_invalidate         0x0003ae09   Thumb Code     8  bootloader_info.o(.text)
+    bootloader_info_stable                   0x0003ae11   Thumb Code    22  bootloader_info.o(.text)
+    bootloader_info_on_flash_op_end          0x0003ae27   Thumb Code    88  bootloader_info.o(.text)
+    bootloader_info_on_flash_idle            0x0003ae7f   Thumb Code    56  bootloader_info.o(.text)
+    RTC0_IRQHandler                          0x0003af65   Thumb Code    52  bootloader_rtc.o(.text)
+    rtc_init                                 0x0003af99   Thumb Code    46  bootloader_rtc.o(.text)
+    bootloader_util_app_start                0x0003afe1   Thumb Code     8  bootloader_util.o(.text)
+    dfu_bank_scan                            0x0003b273   Thumb Code    62  dfu_bank.o(.text)
+    dfu_bank_flash                           0x0003b2b1   Thumb Code    68  dfu_bank.o(.text)
+    dfu_bank_on_flash_idle                   0x0003b2f5   Thumb Code    22  dfu_bank.o(.text)
+    dfu_bank_transfer_in_progress            0x0003b30b   Thumb Code    12  dfu_bank.o(.text)
+    dfu_mesh_init                            0x0003bcd1   Thumb Code    40  dfu_mesh.o(.text)
+    dfu_mesh_start                           0x0003bcf9   Thumb Code    60  dfu_mesh.o(.text)
+    dfu_mesh_req                             0x0003bd35   Thumb Code    42  dfu_mesh.o(.text)
+    dfu_mesh_relay                           0x0003bd5f   Thumb Code    54  dfu_mesh.o(.text)
+    dfu_mesh_rx                              0x0003bd95   Thumb Code   110  dfu_mesh.o(.text)
+    dfu_mesh_finalize                        0x0003be03   Thumb Code   294  dfu_mesh.o(.text)
+    dfu_mesh_timeout                         0x0003bf29   Thumb Code    72  dfu_mesh.o(.text)
+    dfu_mesh_missing_type_get                0x0003bf71   Thumb Code    78  dfu_mesh.o(.text)
+    dfu_mesh_app_is_valid                    0x0003bfbf   Thumb Code    82  dfu_mesh.o(.text)
+    dfu_mesh_restart                         0x0003c011   Thumb Code     8  dfu_mesh.o(.text)
+    dfu_mesh_on_flash_idle                   0x0003c019   Thumb Code    70  dfu_mesh.o(.text)
+    dfu_transfer_init                        0x0003c2e9   Thumb Code    20  dfu_transfer_mesh.o(.text)
+    dfu_transfer_start                       0x0003c2fd   Thumb Code   102  dfu_transfer_mesh.o(.text)
+    dfu_transfer_data                        0x0003c363   Thumb Code   276  dfu_transfer_mesh.o(.text)
+    dfu_transfer_has_entry                   0x0003c477   Thumb Code   100  dfu_transfer_mesh.o(.text)
+    dfu_transfer_get_oldest_missing_entry    0x0003c4db   Thumb Code    98  dfu_transfer_mesh.o(.text)
+    dfu_transfer_sha256                      0x0003c53d   Thumb Code    26  dfu_transfer_mesh.o(.text)
+    dfu_transfer_end                         0x0003c557   Thumb Code     2  dfu_transfer_mesh.o(.text)
+    dfu_transfer_flash_write_complete        0x0003c559   Thumb Code    18  dfu_transfer_mesh.o(.text)
+    fwid_union_cpy                           0x0003c589   Thumb Code    46  dfu_util.o(.text)
+    fwid_union_cmp                           0x0003c5b7   Thumb Code    54  dfu_util.o(.text)
+    fwid_union_id_cmp                        0x0003c5ed   Thumb Code    88  dfu_util.o(.text)
+    fwid_union_version_cmp                   0x0003c645   Thumb Code    64  dfu_util.o(.text)
+    tid_cache_has_entry                      0x0003c685   Thumb Code    26  dfu_util.o(.text)
+    ready_packet_matches_our_req             0x0003c69f   Thumb Code    76  dfu_util.o(.text)
+    addr_from_seg                            0x0003c6eb   Thumb Code    20  dfu_util.o(.text)
+    is_upgrade                               0x0003c6ff   Thumb Code   152  dfu_util.o(.text)
+    app_is_newer                             0x0003c797   Thumb Code    66  dfu_util.o(.text)
+    bootloader_is_newer                      0x0003c7d9   Thumb Code    36  dfu_util.o(.text)
+    fw_is_verified                           0x0003c7fd   Thumb Code    34  dfu_util.o(.text)
+    tid_cache_entry_put                      0x0003c81f   Thumb Code    20  dfu_util.o(.text)
+    packet_in_cache                          0x0003c833   Thumb Code    54  dfu_util.o(.text)
+    packet_cache_put                         0x0003c869   Thumb Code    42  dfu_util.o(.text)
+    packet_cache_flush                       0x0003c893   Thumb Code    20  dfu_util.o(.text)
+    section_overlap                          0x0003c8a7   Thumb Code    28  dfu_util.o(.text)
+    interrupts_disable                       0x0003c8c3   Thumb Code    40  dfu_util.o(.text)
+    fifo_init                                0x0003c8f9   Thumb Code    28  fifo.o(.text)
+    fifo_push                                0x0003c915   Thumb Code    88  fifo.o(.text)
+    fifo_pop                                 0x0003c96d   Thumb Code    84  fifo.o(.text)
+    fifo_get_len                             0x0003c9c1   Thumb Code     8  fifo.o(.text)
+    fifo_peek_at                             0x0003c9c9   Thumb Code    78  fifo.o(.text)
+    fifo_peek                                0x0003ca17   Thumb Code     4  fifo.o(.text)
+    fifo_is_empty                            0x0003ca1b   Thumb Code    16  fifo.o(.text)
+    app_error_handler_bare                   0x0003ca2d   Thumb Code     6  main.o(.text)
+    HardFault_Handler                        0x0003ca33   Thumb Code     6  main.o(.text)
+    main                                     0x0003ca39   Thumb Code   116  main.o(.text)
+    mesh_packet_init                         0x0003cac1   Thumb Code    16  mesh_packet.o(.text)
+    mesh_packet_acquire                      0x0003cad1   Thumb Code    64  mesh_packet.o(.text)
+    mesh_packet_ref_count_inc                0x0003cb11   Thumb Code    66  mesh_packet.o(.text)
+    mesh_packet_ref_count_dec                0x0003cb53   Thumb Code    74  mesh_packet.o(.text)
+    mesh_packet_ref_count_get                0x0003cb9d   Thumb Code    26  mesh_packet.o(.text)
+    mesh_packet_set_local_addr               0x0003cbb7   Thumb Code    38  mesh_packet.o(.text)
+    mesh_packet_adv_data_get                 0x0003cbdd   Thumb Code    80  mesh_packet.o(.text)
+    nrf_flash_erase                          0x0003cc3d   Thumb Code    84  nrf_flash.o(.text)
+    nrf_flash_store                          0x0003cc91   Thumb Code    92  nrf_flash.o(.text)
+    radio_disable                            0x0003ccf9   Thumb Code    26  radio_control.o(.text)
+    radio_init                               0x0003cda1   Thumb Code   174  radio_control.o(.text)
+    radio_order                              0x0003ce4f   Thumb Code    80  radio_control.o(.text)
+    radio_event_handler                      0x0003ce9f   Thumb Code   216  radio_control.o(.text)
+    rand_prng_get                            0x0003cfc1   Thumb Code    44  rand.o(.text)
+    rand_hw_rng_get                          0x0003cfed   Thumb Code    42  rand.o(.text)
+    rand_prng_seed                           0x0003d017   Thumb Code    50  rand.o(.text)
+    transport_start                          0x0003d1d1   Thumb Code    16  transport.o(.text)
+    SWI0_IRQHandler                          0x0003d1e1   Thumb Code    64  transport.o(.text)
+    RADIO_IRQHandler                         0x0003d221   Thumb Code     8  transport.o(.text)
+    timeslot_is_in_ts                        0x0003d229   Thumb Code     4  transport.o(.text)
+    transport_init                           0x0003d22d   Thumb Code    98  transport.o(.text)
+    transport_tx                             0x0003d28f   Thumb Code    98  transport.o(.text)
+    transport_tx_abort                       0x0003d2f1   Thumb Code    48  transport.o(.text)
+    transport_rtc_irq_handler                0x0003d321   Thumb Code   176  transport.o(.text)
+    transport_tx_evt_set                     0x0003d3d1   Thumb Code    28  transport.o(.text)
+    transport_tx_evt_get                     0x0003d3ed   Thumb Code    32  transport.o(.text)
+    uECC_verify                              0x0003db09   Thumb Code   548  uECC.o(.text)
+    sha256_transform                         0x0003de21   Thumb Code   352  sha256.o(.text)
+    sha256_init                              0x0003df81   Thumb Code    52  sha256.o(.text)
+    sha256_update                            0x0003dfb5   Thumb Code    80  sha256.o(.text)
+    sha256_final                             0x0003e005   Thumb Code   272  sha256.o(.text)
+    SystemCoreClockUpdate                    0x0003e139   Thumb Code     8  system_nrf51.o(.text)
+    SystemInit                               0x0003e141   Thumb Code   130  system_nrf51.o(.text)
+    Reset_Handler                            0x0003e229   Thumb Code    26  arm_startup_nrf51.o(.text)
+    NMI_Handler                              0x0003e243   Thumb Code     2  arm_startup_nrf51.o(.text)
+    SVC_Handler                              0x0003e247   Thumb Code     2  arm_startup_nrf51.o(.text)
+    PendSV_Handler                           0x0003e249   Thumb Code     2  arm_startup_nrf51.o(.text)
+    SysTick_Handler                          0x0003e24b   Thumb Code     2  arm_startup_nrf51.o(.text)
+    ADC_IRQHandler                           0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    CCM_AAR_IRQHandler                       0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    ECB_IRQHandler                           0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    GPIOTE_IRQHandler                        0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    LPCOMP_IRQHandler                        0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    POWER_CLOCK_IRQHandler                   0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    QDEC_IRQHandler                          0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    RNG_IRQHandler                           0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    RTC1_IRQHandler                          0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    SPI0_TWI0_IRQHandler                     0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    SPI1_TWI1_IRQHandler                     0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    SWI1_IRQHandler                          0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    SWI2_IRQHandler                          0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    SWI4_IRQHandler                          0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    SWI5_IRQHandler                          0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    TEMP_IRQHandler                          0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    TIMER0_IRQHandler                        0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    TIMER1_IRQHandler                        0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    TIMER2_IRQHandler                        0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    UART0_IRQHandler                         0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    WDT_IRQHandler                           0x0003e24d   Thumb Code     0  arm_startup_nrf51.o(.text)
+    __user_initial_stackheap                 0x0003e251   Thumb Code    10  arm_startup_nrf51.o(.text)
+    __aeabi_llsl                             0x0003e27d   Thumb Code    32  llshl.o(.text)
+    _ll_shift_l                              0x0003e27d   Thumb Code     0  llshl.o(.text)
+    __aeabi_uldivmod                         0x0003e29d   Thumb Code   258  lludiv.o(.text)
+    _ll_udiv                                 0x0003e29d   Thumb Code     0  lludiv.o(.text)
+    memcmp                                   0x0003e39f   Thumb Code    90  memcmp.o(.text)
+    __aeabi_memcpy                           0x0003e3f9   Thumb Code   130  rt_memcpy.o(.text)
+    __rt_memcpy                              0x0003e3f9   Thumb Code     0  rt_memcpy.o(.text)
+    __aeabi_memset                           0x0003e47b   Thumb Code    18  aeabi_memset.o(.text)
+    _memset_w                                0x0003e48d   Thumb Code    26  rt_memclr.o(.text)
+    _memset                                  0x0003e4a7   Thumb Code    30  rt_memclr.o(.text)
+    __aeabi_memclr                           0x0003e4c5   Thumb Code     4  rt_memclr.o(.text)
+    __rt_memclr                              0x0003e4c5   Thumb Code     0  rt_memclr.o(.text)
+    __aeabi_memclr4                          0x0003e4c9   Thumb Code     0  rt_memclr.o(.text)
+    __aeabi_memclr8                          0x0003e4c9   Thumb Code     0  rt_memclr.o(.text)
+    __rt_memclr_w                            0x0003e4c9   Thumb Code     4  rt_memclr.o(.text)
+    __aeabi_uread4                           0x0003e4cd   Thumb Code    34  uread4.o(.text)
+    __rt_uread4                              0x0003e4cd   Thumb Code     0  uread4.o(.text)
+    __aeabi_uwrite4                          0x0003e4ef   Thumb Code    16  uwrite4.o(.text)
+    __rt_uwrite4                             0x0003e4ef   Thumb Code     0  uwrite4.o(.text)
+    __aeabi_uidiv                            0x0003e4ff   Thumb Code     0  aeabi_sdiv.o(.text)
+    __aeabi_uidivmod                         0x0003e4ff   Thumb Code    20  aeabi_sdiv.o(.text)
+    __aeabi_idiv                             0x0003e513   Thumb Code     0  aeabi_sdiv.o(.text)
+    __aeabi_idivmod                          0x0003e513   Thumb Code   326  aeabi_sdiv.o(.text)
+    __use_two_region_memory                  0x0003e659   Thumb Code     2  heapauxi.o(.text)
+    __rt_heap_escrow$2region                 0x0003e65b   Thumb Code     2  heapauxi.o(.text)
+    __rt_heap_expand$2region                 0x0003e65d   Thumb Code     2  heapauxi.o(.text)
+    __user_setup_stackheap                   0x0003e65f   Thumb Code    62  sys_stackheap_outer.o(.text)
+    exit                                     0x0003e69d   Thumb Code    16  exit.o(.text)
+    __user_libspace                          0x0003e6ad   Thumb Code     8  libspace.o(.text)
+    __user_perproc_libspace                  0x0003e6ad   Thumb Code     0  libspace.o(.text)
+    __user_perthread_libspace                0x0003e6ad   Thumb Code     0  libspace.o(.text)
+    _sys_exit                                0x0003e6b5   Thumb Code     8  sys_exit.o(.text)
+    __I$use$semihosting                      0x0003e6c1   Thumb Code     0  use_no_semi.o(.text)
+    __use_no_semihosting_swi                 0x0003e6c1   Thumb Code     2  use_no_semi.o(.text)
+    __ARM_common_ll_muluu                    0x0003e6c3   Thumb Code    48  uECC.o(i.__ARM_common_ll_muluu)
+    __semihosting_library_function           0x0003e6c3   Thumb Code     0  indicate_semi.o(.text)
+    __ARM_common_switch8                     0x0003e6f3   Thumb Code    26  dfu_mesh.o(i.__ARM_common_switch8)
+    Region$$Table$$Base                      0x0003e90c   Number         0  anon$$obj.o(Region$$Table)
+    Region$$Table$$Limit                     0x0003e94c   Number         0  anon$$obj.o(Region$$Table)
+    m_uicr_bootloader_start_address          0x10001014   Data           4  main.o(.ARM.__AT_0x10001014)
+    m_tx_evt_bitfield                        0x20000022   Data           2  transport.o(.data)
+    SystemCoreClock                          0x2000002c   Data           4  system_nrf51.o(.data)
+    __libspace_start                         0x20000780   Data          96  libspace.o(.bss)
+    __temporary_stack_top$libspace           0x200007e0   Data           0  libspace.o(.bss)
+
+
+
+==============================================================================
+
+Memory Map of the image
+
+  Image Entry point : 0x0003a0c1
+
+  Load Region LR_IROM1 (Base: 0x0003a000, Size: 0x000049b0, Max: 0x00005800, ABSOLUTE)
+
+    Execution Region ER_IROM1 (Base: 0x0003a000, Size: 0x0000494c, Max: 0x00005800, ABSOLUTE)
+
+    Base Addr    Size         Type   Attr      Idx    E Section Name        Object
+
+    0x0003a000   0x000000c0   Data   RO          846    RESET               arm_startup_nrf51.o
+    0x0003a0c0   0x00000008   Code   RO          875  * !!!main             c_p.l(__main.o)
+    0x0003a0c8   0x0000003c   Code   RO         1048    !!!scatter          c_p.l(__scatter.o)
+    0x0003a104   0x0000001a   Code   RO         1050    !!handler_copy      c_p.l(__scatter_copy.o)
+    0x0003a11e   0x00000002   PAD
+    0x0003a120   0x0000001c   Code   RO         1052    !!handler_zi        c_p.l(__scatter_zi.o)
+    0x0003a13c   0x00000002   Code   RO          917    .ARM.Collect$$libinit$$00000000  c_p.l(libinit.o)
+    0x0003a13e   0x00000000   Code   RO          931    .ARM.Collect$$libinit$$00000002  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          933    .ARM.Collect$$libinit$$00000004  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          936    .ARM.Collect$$libinit$$0000000A  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          938    .ARM.Collect$$libinit$$0000000C  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          940    .ARM.Collect$$libinit$$0000000E  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          943    .ARM.Collect$$libinit$$00000011  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          945    .ARM.Collect$$libinit$$00000013  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          947    .ARM.Collect$$libinit$$00000015  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          949    .ARM.Collect$$libinit$$00000017  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          951    .ARM.Collect$$libinit$$00000019  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          953    .ARM.Collect$$libinit$$0000001B  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          955    .ARM.Collect$$libinit$$0000001D  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          957    .ARM.Collect$$libinit$$0000001F  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          959    .ARM.Collect$$libinit$$00000021  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          961    .ARM.Collect$$libinit$$00000023  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          963    .ARM.Collect$$libinit$$00000025  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          967    .ARM.Collect$$libinit$$0000002C  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          969    .ARM.Collect$$libinit$$0000002E  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          971    .ARM.Collect$$libinit$$00000030  c_p.l(libinit2.o)
+    0x0003a13e   0x00000000   Code   RO          973    .ARM.Collect$$libinit$$00000032  c_p.l(libinit2.o)
+    0x0003a13e   0x00000002   Code   RO          974    .ARM.Collect$$libinit$$00000033  c_p.l(libinit2.o)
+    0x0003a140   0x00000002   Code   RO         1005    .ARM.Collect$$libshutdown$$00000000  c_p.l(libshutdown.o)
+    0x0003a142   0x00000000   Code   RO         1031    .ARM.Collect$$libshutdown$$00000002  c_p.l(libshutdown2.o)
+    0x0003a142   0x00000000   Code   RO         1033    .ARM.Collect$$libshutdown$$00000004  c_p.l(libshutdown2.o)
+    0x0003a142   0x00000000   Code   RO         1036    .ARM.Collect$$libshutdown$$00000007  c_p.l(libshutdown2.o)
+    0x0003a142   0x00000000   Code   RO         1039    .ARM.Collect$$libshutdown$$0000000A  c_p.l(libshutdown2.o)
+    0x0003a142   0x00000000   Code   RO         1041    .ARM.Collect$$libshutdown$$0000000C  c_p.l(libshutdown2.o)
+    0x0003a142   0x00000000   Code   RO         1044    .ARM.Collect$$libshutdown$$0000000F  c_p.l(libshutdown2.o)
+    0x0003a142   0x00000002   Code   RO         1045    .ARM.Collect$$libshutdown$$00000010  c_p.l(libshutdown2.o)
+    0x0003a144   0x00000000   Code   RO          877    .ARM.Collect$$rtentry$$00000000  c_p.l(__rtentry.o)
+    0x0003a144   0x00000000   Code   RO          887    .ARM.Collect$$rtentry$$00000002  c_p.l(__rtentry2.o)
+    0x0003a144   0x00000006   Code   RO          899    .ARM.Collect$$rtentry$$00000004  c_p.l(__rtentry4.o)
+    0x0003a14a   0x00000000   Code   RO          889    .ARM.Collect$$rtentry$$00000009  c_p.l(__rtentry2.o)
+    0x0003a14a   0x00000004   Code   RO          890    .ARM.Collect$$rtentry$$0000000A  c_p.l(__rtentry2.o)
+    0x0003a14e   0x00000000   Code   RO          892    .ARM.Collect$$rtentry$$0000000C  c_p.l(__rtentry2.o)
+    0x0003a14e   0x00000008   Code   RO          893    .ARM.Collect$$rtentry$$0000000D  c_p.l(__rtentry2.o)
+    0x0003a156   0x00000002   Code   RO          922    .ARM.Collect$$rtexit$$00000000  c_p.l(rtexit.o)
+    0x0003a158   0x00000000   Code   RO          978    .ARM.Collect$$rtexit$$00000002  c_p.l(rtexit2.o)
+    0x0003a158   0x00000004   Code   RO          979    .ARM.Collect$$rtexit$$00000003  c_p.l(rtexit2.o)
+    0x0003a15c   0x00000006   Code   RO          980    .ARM.Collect$$rtexit$$00000004  c_p.l(rtexit2.o)
+    0x0003a162   0x00000002   PAD
+    0x0003a164   0x00000034   Code   RO          350    .emb_text           bootloader_util.o
+    0x0003a198   0x00000038   Code   RO          857    .emb_text           c_p.l(rt_memcpy.o)
+    0x0003a1d0   0x000005b8   Code   RO            3    .text               bootloader.o
+    0x0003a788   0x000001f8   Code   RO          231    .text               bootloader_app_bridge.o
+    0x0003a980   0x000005e4   Code   RO          285    .text               bootloader_info.o
+    0x0003af64   0x0000007c   Code   RO          329    .text               bootloader_rtc.o
+    0x0003afe0   0x00000008   Code   RO          351    .text               bootloader_util.o
+    0x0003afe8   0x00000344   Code   RO          368    .text               dfu_bank.o
+    0x0003b32c   0x00000f88   Code   RO          403    .text               dfu_mesh.o
+    0x0003c2b4   0x000002d4   Code   RO          429    .text               dfu_transfer_mesh.o
+    0x0003c588   0x00000370   Code   RO          452    .text               dfu_util.o
+    0x0003c8f8   0x00000132   Code   RO          479    .text               fifo.o
+    0x0003ca2a   0x00000002   PAD
+    0x0003ca2c   0x00000094   Code   RO          519    .text               main.o
+    0x0003cac0   0x0000017c   Code   RO          549    .text               mesh_packet.o
+    0x0003cc3c   0x000000bc   Code   RO          614    .text               nrf_flash.o
+    0x0003ccf8   0x000002c8   Code   RO          635    .text               radio_control.o
+    0x0003cfc0   0x00000098   Code   RO          681    .text               rand.o
+    0x0003d058   0x000003f8   Code   RO          704    .text               transport.o
+    0x0003d450   0x000009d0   Code   RO          755    .text               uECC.o
+    0x0003de20   0x00000318   Code   RO          773    .text               sha256.o
+    0x0003e138   0x000000f0   Code   RO          820    .text               system_nrf51.o
+    0x0003e228   0x00000054   Code   RO          847    .text               arm_startup_nrf51.o
+    0x0003e27c   0x00000020   Code   RO          851    .text               c_p.l(llshl.o)
+    0x0003e29c   0x00000102   Code   RO          853    .text               c_p.l(lludiv.o)
+    0x0003e39e   0x0000005a   Code   RO          855    .text               c_p.l(memcmp.o)
+    0x0003e3f8   0x00000082   Code   RO          858    .text               c_p.l(rt_memcpy.o)
+    0x0003e47a   0x00000012   Code   RO          861    .text               c_p.l(aeabi_memset.o)
+    0x0003e48c   0x00000040   Code   RO          863    .text               c_p.l(rt_memclr.o)
+    0x0003e4cc   0x00000022   Code   RO          865    .text               c_p.l(uread4.o)
+    0x0003e4ee   0x00000010   Code   RO          867    .text               c_p.l(uwrite4.o)
+    0x0003e4fe   0x0000015a   Code   RO          869    .text               c_p.l(aeabi_sdiv.o)
+    0x0003e658   0x00000006   Code   RO          873    .text               c_p.l(heapauxi.o)
+    0x0003e65e   0x0000003e   Code   RO          903    .text               c_p.l(sys_stackheap_outer.o)
+    0x0003e69c   0x00000010   Code   RO          906    .text               c_p.l(exit.o)
+    0x0003e6ac   0x00000008   Code   RO          918    .text               c_p.l(libspace.o)
+    0x0003e6b4   0x0000000c   Code   RO          975    .text               c_p.l(sys_exit.o)
+    0x0003e6c0   0x00000002   Code   RO          994    .text               c_p.l(use_no_semi.o)
+    0x0003e6c2   0x00000000   Code   RO          996    .text               c_p.l(indicate_semi.o)
+    0x0003e6c2   0x00000030   Code   RO          766    i.__ARM_common_ll_muluu  uECC.o
+    0x0003e6f2   0x0000001a   Code   RO          422    i.__ARM_common_switch8  dfu_mesh.o
+    0x0003e70c   0x00000010   Data   RO            5    .constdata          bootloader.o
+    0x0003e71c   0x00000048   Data   RO          235    .constdata          bootloader_app_bridge.o
+    0x0003e764   0x00000004   Data   RO          289    .constdata          bootloader_info.o
+    0x0003e768   0x00000006   Data   RO          405    .constdata          dfu_mesh.o
+    0x0003e76e   0x00000002   PAD
+    0x0003e770   0x0000000c   Data   RO          638    .constdata          radio_control.o
+    0x0003e77c   0x00000090   Data   RO          756    .constdata          uECC.o
+    0x0003e80c   0x00000100   Data   RO          774    .constdata          sha256.o
+    0x0003e90c   0x00000040   Data   RO         1046    Region$$Table       anon$$obj.o
+
+
+    Execution Region RW_IRAM1 (Base: 0x20000004, Size: 0x000013dc, Max: 0x00007cfc, ABSOLUTE)
+
+    Base Addr    Size         Type   Attr      Idx    E Section Name        Object
+
+    0x20000004   0x00000002   Data   RW            6    .data               bootloader.o
+    0x20000006   0x00000002   PAD
+    0x20000008   0x00000004   Data   RW          615    .data               nrf_flash.o
+    0x2000000c   0x00000014   Data   RW          639    .data               radio_control.o
+    0x20000020   0x0000000c   Data   RW          708    .data               transport.o
+    0x2000002c   0x00000004   Data   RW          821    .data               system_nrf51.o
+    0x20000030   0x000000b0   Zero   RW            4    .bss                bootloader.o
+    0x200000e0   0x00000520   Zero   RW          557    .bss                mesh_packet.o
+    0x20000600   0x00000058   Zero   RW          637    .bss                radio_control.o
+    0x20000658   0x00000128   Zero   RW          707    .bss                transport.o
+    0x20000780   0x00000060   Zero   RW          919    .bss                c_p.l(libspace.o)
+    0x200007e0   0x00000400   Zero   RW          845    HEAP                arm_startup_nrf51.o
+    0x20000be0   0x00000800   Zero   RW          844    STACK               arm_startup_nrf51.o
+
+
+    Execution Region RW_IRAM2 (Base: 0x20007d00, Size: 0x00000210, Max: 0x00000300, ABSOLUTE)
+
+    Base Addr    Size         Type   Attr      Idx    E Section Name        Object
+
+    0x20007d00   0x00000008   Data   RW          236    .data               bootloader_app_bridge.o
+    0x20007d08   0x00000018   Data   RW          290    .data               bootloader_info.o
+    0x20007d20   0x00000008   Data   RW          370    .data               dfu_bank.o
+    0x20007d28   0x00000006   Data   RW          406    .data               dfu_mesh.o
+    0x20007d2e   0x00000002   PAD
+    0x20007d30   0x00000008   Data   RW          454    .data               dfu_util.o
+    0x20007d38   0x0000009c   Zero   RW          288    .bss                bootloader_info.o
+    0x20007dd4   0x000000ac   Zero   RW          404    .bss                dfu_mesh.o
+    0x20007e80   0x00000030   Zero   RW          430    .bss                dfu_transfer_mesh.o
+    0x20007eb0   0x00000060   Zero   RW          453    .bss                dfu_util.o
+
+
+
+  Load Region LR$$.ARM.__AT_0x10001014 (Base: 0x10001014, Size: 0x00000004, Max: 0x00000004, ABSOLUTE)
+
+    Execution Region ER$$.ARM.__AT_0x10001014 (Base: 0x10001014, Size: 0x00000004, Max: 0x00000004, ABSOLUTE, UNINIT)
+
+    Base Addr    Size         Type   Attr      Idx    E Section Name        Object
+
+    0x10001014   0x00000004   Data   RW          521    .ARM.__AT_0x10001014  main.o
+
+
+==============================================================================
+
+Image component sizes
+
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Object Name
+
+        84         36        192          0       3072        180   arm_startup_nrf51.o
+      1464         68         16          2        176      68314   bootloader.o
+       504         16         72          8          0       8901   bootloader_app_bridge.o
+      1508         34          4         24        156      10666   bootloader_info.o
+       124         26          0          0          0       7359   bootloader_rtc.o
+        60          2          0          0          0        940   bootloader_util.o
+       836         22          0          8          0       6441   dfu_bank.o
+      4002         88          6          6        172      17194   dfu_mesh.o
+       724         14          0          0         48       5275   dfu_transfer_mesh.o
+       880         14          0          8         96      13008   dfu_util.o
+       306          0          0          0          0       3119   fifo.o
+       148         20          0          4          0       2222   main.o
+       380         16          0          0       1312       3555   mesh_packet.o
+       188         12          0          4          0       1702   nrf_flash.o
+       712         74         12         20         88      11597   radio_control.o
+       152         16          0          0          0       1967   rand.o
+       792         36        256          0          0       5138   sha256.o
+       240         36          0          4          0       2009   system_nrf51.o
+      1016         68          0         12        296      12534   transport.o
+      2560         12        144          0          0      13790   uECC.o
+
+    ----------------------------------------------------------------------
+     16682        610        768        104       5416     195911   Object Totals
+         0          0         64          0          0          0   (incl. Generated)
+         2          0          2          4          0          0   (incl. Padding)
+
+    ----------------------------------------------------------------------
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Library Member Name
+
+         8          0          0          0          0         68   __main.o
+         0          0          0          0          0          0   __rtentry.o
+        12          0          0          0          0          0   __rtentry2.o
+         6          0          0          0          0          0   __rtentry4.o
+        60          8          0          0          0          0   __scatter.o
+        26          0          0          0          0          0   __scatter_copy.o
+        28          0          0          0          0          0   __scatter_zi.o
+        18          0          0          0          0         68   aeabi_memset.o
+       346          0          0          0          0         92   aeabi_sdiv.o
+        16          0          0          0          0         68   exit.o
+         6          0          0          0          0        136   heapauxi.o
+         0          0          0          0          0          0   indicate_semi.o
+         2          0          0          0          0          0   libinit.o
+         2          0          0          0          0          0   libinit2.o
+         2          0          0          0          0          0   libshutdown.o
+         2          0          0          0          0          0   libshutdown2.o
+         8          4          0          0         96         68   libspace.o
+        32          0          0          0          0         68   llshl.o
+       258          0          0          0          0         88   lludiv.o
+        90          0          0          0          0         68   memcmp.o
+        64          0          0          0          0        108   rt_memclr.o
+       186          0          0          0          0        144   rt_memcpy.o
+         2          0          0          0          0          0   rtexit.o
+        10          0          0          0          0          0   rtexit2.o
+        12          4          0          0          0         60   sys_exit.o
+        62          0          0          0          0         80   sys_stackheap_outer.o
+        34          0          0          0          0         60   uread4.o
+         2          0          0          0          0         68   use_no_semi.o
+        16          0          0          0          0         60   uwrite4.o
+
+    ----------------------------------------------------------------------
+      1314         16          0          0         96       1304   Library Totals
+         4          0          0          0          0          0   (incl. Padding)
+
+    ----------------------------------------------------------------------
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   Library Name
+
+      1310         16          0          0         96       1304   c_p.l
+
+    ----------------------------------------------------------------------
+      1314         16          0          0         96       1304   Library Totals
+
+    ----------------------------------------------------------------------
+
+==============================================================================
+
+
+      Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
+
+     17996        626        768        104       5512     195031   Grand Totals
+     17996        626        768        104       5512     195031   ELF Image Totals
+     17996        626        768        104          0          0   ROM Totals
+
+==============================================================================
+
+    Total RO  Size (Code + RO Data)                18764 (  18.32kB)
+    Total RW  Size (RW Data + ZI Data)              5616 (   5.48kB)
+    Total ROM Size (Code + RO Data + RW Data)      18868 (  18.43kB)
+
+==============================================================================
+

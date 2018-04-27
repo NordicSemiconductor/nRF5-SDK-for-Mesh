@@ -1,0 +1,35 @@
+digraph provisioner_application
+{
+    splines = line;
+    ENTRY           [label = "", style = filled, fillcolor = black, shape = circle, height = 0.5, width = 0.5, fixedsize = true];
+
+    node [shape=box];
+    INITIALIZE      [label = "nrf_mesh_prov_init()", xlabel = "Initialize provisioning context"];
+    PROVISION       [label = "nrf_mesh_prov_provision()", xlabel = "Start provisioning"];
+    CAPS_SELECT     [label = <<i>Choose OOB method to use:</i><br />nrf_mesh_prov_oob_use()>];
+    STATIC_AUTH     [label = <<i>Provide OOB auth data:</i><br />nrf_mesh_prov_auth_provide()>];
+    SETUP_NETWORK   [label = "Configure device using\nthe configuration model", shape = box];
+    COMPLETE        [label = "Provisioning\ncomplete", style = rounded];
+
+    node [shape = circle, height = 1.4];
+    WAIT_FOR_EVENTS  [label = <<b>Wait for events</b>>, xlabel = "Wait for unprovisioned beacons", fillcolor = "lightskyblue2", style = "filled"];
+    WAIT_FOR_PROV_EVENTS [label = <<b>Wait for events</b>>, xlabel = "Wait for provisioning events", fillcolor = "lightskyblue2", style = "filled"];
+
+
+    ENTRY -> INITIALIZE;
+    INITIALIZE -> WAIT_FOR_EVENTS;
+
+    WAIT_FOR_EVENTS -> PROVISION [label = "UNPROVISIONED_RECEIVED", color="midnightblue"];
+
+    PROVISION -> WAIT_FOR_PROV_EVENTS;
+    WAIT_FOR_PROV_EVENTS -> WAIT_FOR_PROV_EVENTS [label = "LINK_ESTABLISHED", color = "midnightblue"];
+
+    WAIT_FOR_PROV_EVENTS -> CAPS_SELECT [label = "PROV_CAPS_RECEIVED", color = "midnightblue"];
+    CAPS_SELECT -> WAIT_FOR_PROV_EVENTS;
+
+    WAIT_FOR_PROV_EVENTS -> STATIC_AUTH [label = "STATIC_REQUEST", color = "midnightblue"];
+    STATIC_AUTH -> WAIT_FOR_PROV_EVENTS;
+
+    WAIT_FOR_PROV_EVENTS -> SETUP_NETWORK [label = "COMPLETE", color = "midnightblue"];
+    SETUP_NETWORK -> COMPLETE;
+}

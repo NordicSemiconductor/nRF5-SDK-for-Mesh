@@ -1,0 +1,28 @@
+{
+    "__packet__": true,
+    "name": "access",
+    "type": "partial",
+    "module": "trs",
+    "packet_type": "packet_mesh_trs_packet_t",
+    "max_length": 1,
+    "fields": [
+        {
+            "name": "seg",
+            "width":  1,
+            "doc": "segmentation bit (covered by trs common)",
+            "visible": false
+        },
+        {
+            "name": "akf",
+            "width":  1,
+            "doc": "application key flag",
+            "visible": true
+        },
+        {
+            "name": "aid",
+            "width":  6,
+            "doc": "application key identifier",
+            "visible": true
+        }
+    ]
+}

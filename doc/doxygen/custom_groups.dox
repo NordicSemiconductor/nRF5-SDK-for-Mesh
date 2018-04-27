@@ -1,0 +1,103 @@
+/**
+ *
+ * @defgroup MESH_API_GROUP_APP_SUPPORT Application support modules
+ * Application support modules designed to abstract complexity of common tasks in the user code.
+ *
+ * @defgroup MESH_API_GROUP_APP_CONFIG Application configuration
+ * Application specific configuration file for mesh resource requirements and parameters.
+ *
+ * The application configuration file provides a set of defines that controls the application
+ * specific parameters of the mesh framework, like company ID, element count and mesh flash area
+ * sizes.
+ *
+ *
+ * @defgroup MESH_API_GROUP_MODELS Mesh Models
+ * Mesh models implemented by Nordic Semiconductor.
+ *
+ * @defgroup MESH_API_GROUP_ACCESS Access
+ * The Access layer provides access to the Core Mesh for Mesh models.
+ *
+ * @defgroup DEVICE_STATE_MANAGER Device State Manager
+ *
+ * The Device State Manager provides a means for storing and retrieving Bluetooth Mesh state during operation.
+ * It handles:
+ * - Address storage - both for subscription and publishing.
+ * - Network key management - Generate and store network security material for mesh rx and tx, as
+ *   well as beacon and connectable advertisements.
+ * - Application key management - Generate and store application security material for mesh rx and
+ *   tx.
+ *
+ * @defgroup MESH_API_GROUP_CORE   Core
+ * Core mesh modules, implementing mesh message passing.
+ *
+ * @defgroup MESH_API_GROUP_BEARER Bearer
+ * Bearer-layer module, providing a Bluetooth communication medium for the mesh.
+ *
+ * The bearer layer is used by the core mesh, provisioning and DFU to communicate with other
+ * devices in the mesh network. It contains a generic implementation of the Bluetooth advertiser
+ * and scanner roles, with an extended HCI-based interface. Advertisers may be instantiated by the
+ * user to implement non-mesh related features like beaconing, but direct interaction with the
+ * bearer layer is not necessary to operate the mesh.
+ *
+ * @defgroup MESH_API_GROUP_DFU    DFU
+ * Device firmware upgrade module for the mesh
+ *
+ * @defgroup MESH_API_GROUP_PROV   Provisioning
+ * Device provisioning module for the mesh.
+ *
+ * @defgroup MESH_API_GROUP_SERIAL Serial
+ * Serialization of the mesh API.
+ * For a full reference of the available mesh serial commands and events, see the @ref md_doc_libraries_serial documentation.
+ *
+ * @defgroup MESH_API_GROUP_EXPERIMENTAL Experimental features
+ * Experimental Mesh features.
+ *
+ *
+ *
+ *
+ *
+ * @defgroup CORE_CONFIG             Core configuration
+ * Configuration of the core mesh modules.
+ * @{
+ * @ingroup MESH_API_GROUP_CORE
+ * @}
+ *
+ * @internal
+ * @defgroup MESH_CORE             Core components
+ * Internal components of the Core Mesh subsystem.
+ * @{
+ * @ingroup MESH_API_GROUP_CORE
+ * @}
+ *
+ * @defgroup MESH_BEARER           Bearer components
+ * Internal components of the Bearer subsystem.
+ * @{
+ * @ingroup MESH_API_GROUP_BEARER
+ * @}
+ *
+ * @endinternal
+ *
+ * @defgroup MESH_API_GROUP_BEARER_FILTER Packet filtering
+ * @brief Filtering support for scanners.
+ *
+ * Defines a set of packet filters to reduce processing requirements.
+ * @{
+ * @ingroup MESH_API_GROUP_BEARER
+ * @}
+ *
+ * @defgroup CONFIG_MODEL Configuration Model
+ * The configuration model provides functionality that allows nodes to be configured
+ * or configure other nodes.
+ * @{
+ * @ingroup MESH_API_GROUP_MODELS
+ * @}
+ *
+ * @page LIBRARIES Libraries
+ * @{
+ * - @subpage md_doc_libraries_flash_manager
+ * - @subpage md_doc_libraries_serial
+ * - @subpage md_doc_libraries_instaburst
+ * - @subpage md_mesh_bootloader_README
+ * @}
+ *
+ */

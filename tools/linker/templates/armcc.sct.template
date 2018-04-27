@@ -1,0 +1,17 @@
+; nRF5 SDK for Mesh Application scatter file -- Generated {{timestamp}} by {{scriptname}}.
+; {{to_kb(platform.bootloader.flash_size)}} kB FLASH and {{ platform.bootloader.ram_size }} B RAM reserved for bootloader.
+;
+; This file is intended for {{platform.name}} with the {{softdevice.name}} SoftDevice.
+
+LR_IROM1 {{hex(application.flash_start)}} {{hex(application.flash_size)}} {
+  ER_IROM1 {{hex(application.flash_start)}} {{hex(application.flash_size)}} {
+   *.o (RESET, +First)
+   *(InRoot$$Sections)
+   .ANY (+RO)
+  }
+
+  RW_IRAM1 {{hex(application.ram_start)}} {{hex(application.ram_size)}} {
+   .ANY (+RW +ZI)
+  }
+}
+

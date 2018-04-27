@@ -1,0 +1,18 @@
+:cmock:
+    :plugins:
+        - :ignore
+        - :ignore_arg
+        - :array
+        - :callback
+        - :return_thru_ptr
+        - :expect_any_args
+    :mock_prefix: ""
+    :mock_suffix: "_mock"
+    :mock_path: "${CMOCK_BIN}"
+    :verbosity: 0
+    :treat_externs: :include
+    :unity_helper_path:
+        - "${CMAKE_CURRENT_SOURCE_DIR}/include/test_helper.h"
+    :includes_c_post_header:
+        - "test_helper.h"
+colour: true

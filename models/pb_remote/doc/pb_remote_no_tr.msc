@@ -1,0 +1,109 @@
+msc {
+    hscale="1.5";
+    a[label="Application"], pba [label="Provisioner"], Client, Server, c[label="Unprovisioned Device"];
+
+    |||;
+    a note c [label=" Client and Server initialized and ready "];
+    |||;
+
+    Client rbox Client [label="IDLE"],
+    Server rbox Server [label="IDLE"];
+    |||;
+
+    a => Client [label="pb_remote_client_scan_start()"];
+
+    Client => Server [label="Scan Start"];
+
+    a rbox c [label="Scanning"];
+
+    Server rbox Server [label="SCANNING"];
+    ...;
+    c -> Server [label="UUID"];
+    Server =>> Server [label="Store(UUID, SlotID)"];
+    Client <= Server [label="Scan report: UUID, SlotID"];
+    a <<= Client [label="Remote UUID"];
+    a rbox c [label="Starting..."];
+    a =>> Client [label="pb_remote_client_remote_provision()"];
+    pba <= Client [label="nrf_mesh_prov_provision()"];
+
+    Client => Server [label="Link open: SlotID"];
+    Client rbox Client [label="LINK_OPENING"],
+    Server rbox Server [label="LINK_OPENING"];
+
+    Server => c      [label="Link open"];
+    Client <= Server [label="Link report: Opened"];
+    pba <<= Client [label="Link established"];
+    a <- pba [label="Link established"];
+    Client rbox Client [label="LINK_ESTABLISHED"],
+    Server rbox Server [label="LINK_ESTABLISHED"];
+    a rbox c [label="Do provisioning"];
+    pba rbox pba [label="WAIT CAPS"];
+    pba => Client    [label="TX [invite]"];
+    Client => Server [label="TX [invite]"];
+    Server => c      [label="TX [invite]"];
+    Server <= c      [label="TX [OOB caps]"];
+    Client <= Server [label="TX [OOB caps]"];
+    pba <<= Client   [label="RX [OOB caps]"];
+    pba rbox pba [label="WAIT CAPS CONFIRM"];
+    a <- pba         [label="PROV CAPS RECEIVED"];
+    a => pba         [label="nrf_mesh_prov_oob_use()"];
+    pba rbox pba     [label="WAIT START ACK"];
+    pba =>> Client   [label="TX [Prov start]"];
+    Client => Server [label="TX [Prov start]"];
+    Server => c      [label="TX [Prov start]"];
+    Client <= Server [label="TX [Prov start OK]"];
+    pba <- Client    [label="Message delivered"];
+    pba rbox pba [label="WAIT PUB KEY"];
+    pba =>> Client   [label="TX [public key]"];
+    Client -> Server [label="TX [public key]"];
+    Server => c      [label="TX [public key]"];
+
+    ...;
+    Server <= c      [label="TX [public key]"];
+    Client <= Server [label="TX [public key]"];
+    Client <= Client [label="access_reliable_tx_cancel()"];
+    pba <- Client    [label="public key"];
+    pba rbox pba     [label="WAIT OOB STATIC"];
+    a <- pba         [label="STATIC REQ"];
+    a => pba         [label="nrf_mesh_prov_auth_data_provide()"];
+    pba rbox pba     [label="WAIT CONFIRMATION"];
+    |||;
+
+    pba =>> Client   [label="TX [confirmation]"];
+    Client => Server [label="TX [confirmation]"];
+    Server => c      [label="TX [confirmation]"];
+
+    Server <= c      [label="TX [confirmation]"];
+    Client <= Server [label="TX [confirmation]"];
+    pba <- Client    [label="confirmation"];
+
+    pba rbox pba [label="WAIT RANDOM"];
+    pba =>> Client   [label="TX [random]"];
+    Client => Server [label="TX [random]"];
+    Server => c      [label="TX [random]"];
+
+    Server <= c      [label="TX [random]"];
+    Client <= Server [label="TX [random]"];
+    pba <- Client    [label="random"];
+    pba rbox pba [label="WAIT COMPLETE"];
+    pba =>> Client   [label="data"];
+
+    Client => Server [label="TX [data]"];
+    Server => c      [label="TX [data]"];
+
+    Server <= c [label="TX \"Complete\""];
+    Server => Client [label="TX \"Complete\""];
+    pba <- Client    [label="Complete"];
+    pba rbox pba [label="COMPLETE"];
+    pba =>> Client   [label="Link close"];
+    Client => Server [label="Link close"],
+    Server -> c [label="Link close"];
+    pba <<= Client   [label="Link closed"];
+
+    a <- pba [label="Provisioning Complete"];
+    a <- pba [label="Link closed: Reason <success>"];
+
+    pba rbox pba [label="IDLE"],
+    Server rbox Server [label="IDLE"],
+    Client rbox Client [label="IDLE"];
+}

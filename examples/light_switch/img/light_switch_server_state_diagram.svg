@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="293px" preserveAspectRatio="none" style="width:311px;height:293px;" version="1.1" viewBox="0 0 311 293" width="311px" zoomAndPan="magnify"><defs><filter height="300%" id="f11bhd4mtbtz9p" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><ellipse cx="66.5" cy="18" fill="#000000" filter="url(#f11bhd4mtbtz9p)" rx="10" ry="10" style="stroke: none; stroke-width: 1.0;"/><rect fill="#FEFECE" filter="url(#f11bhd4mtbtz9p)" height="50" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="121" x="6" y="105"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="6" x2="127" y1="131.2969" y2="131.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="101" x="16" y="122.9951">unprovisioned</text><rect fill="#FEFECE" filter="url(#f11bhd4mtbtz9p)" height="50" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="103" x="15" y="232"/><line style="stroke: #A80036; stroke-width: 1.5;" x1="15" x2="118" y1="258.2969" y2="258.2969"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="83" x="25" y="249.9951">provisioned</text><!--link *start to unprovisioned--><path d="M66.5,28.3359 C66.5,44.3459 66.5,75.7634 66.5,99.4571 " fill="none" id="*start-unprovisioned" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="66.5,104.6904,70.5,95.6904,66.5,99.6904,62.5,95.6904,66.5,104.6904" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="232" x="67.5" y="71.0669">Start listening for provisioning links</text><!--link unprovisioned to unprovisioned--><path d="M127.1172,118.3778 C146.5768,118.497 162,122.3711 162,130 C162,136.9137 149.3331,140.7436 132.4744,141.4896 " fill="none" id="unprovisioned-unprovisioned" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="127.1172,141.6222,136.2134,145.3983,132.1157,141.4985,136.0155,137.4007,127.1172,141.6222" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="121" x="168" y="134.5669">Provisioning failed</text><!--link unprovisioned to provisioned--><path d="M66.5,155.0911 C66.5,175.7035 66.5,204.9647 66.5,226.8484 " fill="none" id="unprovisioned-provisioned" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="66.5,231.961,70.5,222.961,66.5,226.961,62.5,222.961,66.5,231.961" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="145" x="67.5" y="198.0669">Provisioning complete</text><!--
+@startuml
+[*] - -> unprovisioned: Start listening for provisioning links
+unprovisioned - -> unprovisioned: Provisioning failed
+unprovisioned - -> provisioned: Provisioning complete
+@enduml
+
+PlantUML version 1.2017.20(Mon Dec 11 17:57:05 CET 2017)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 1.8.0_151-b12
+Operating System: Linux
+OS Version: 4.14.3-300.fc27.x86_64
+Default Encoding: UTF-8
+Language: nb
+Country: NO
+--></g></svg>

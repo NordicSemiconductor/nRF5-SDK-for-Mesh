@@ -1,0 +1,71 @@
+digraph provisionee_state_control
+{
+    node [shape=box, height=0.3,width=1.7];
+    //BLACK_LINES[label="Black arrows are internal transitions",fillcolor="black", style="filled", fontcolor= "white"];
+    //GREEN_LINES[label="Green arrows are transitions due to data from provisioner",fillcolor="olivedrab4", style="filled", fontcolor= "white"];
+    //GREY_LINES[label="Grey arrows are transitions due to data from application",fillcolor="grey57", style="filled", fontcolor= "white"];
+
+    node [shape=circle,fontsize="10",height=0.6,width=1.2, fixedsize=true];
+    INACTIVE[label="INACTIVE",fillcolor="burlywood1", style="filled"];
+    WAIT_LINK[label="WAIT_LINK",fillcolor="magenta", style="filled"];
+    WAIT_INVITE[label="WAIT_INVITE",fillcolor="lightblue1", style="filled"];
+    WAIT_START[label="WAIT_START",fillcolor="maroon1", style="filled"];
+    WAIT_PUB_KEY[label="WAIT_PUB_KEY",fillcolor="mediumpurple3", style="filled"];
+    WAIT_OOB_INPUT[label="WAIT_OOB_\nINPUT",fillcolor="plum", style="filled"];
+    WAIT_CONFIRM[label="WAIT_CONFIRM",fillcolor="maroon3", style="filled"];
+    WAIT_RANDOM[label="WAIT_RANDOM",fillcolor="mediumpurple1", style="filled"];
+    WAIT_DATA[label="WAIT_DATA",fillcolor="purple", style="filled"];
+    WAIT_CLOSE[label="WAIT_CLOSE", fillcolor="plum3", style="filled"];
+    PROVISIONED[label="PROVISONED",fillcolor="green", style="filled"];
+
+    node [shape=diamond, height=0.4,width=0.6, fontsize=4];
+    PUB_KEY_OOB[label="PUB_KEY\nOOB Exchange\nin use",fillcolor="", style="filled"];
+    PUB_KEY_OOB2[label="PUB_KEY\nOOB Exchange\nin use",fillcolor="", style="filled"];
+    OUTPUT_OOB[label="OUTPUT OOB\nin use",fillcolor="", style="filled"];
+    INPUT_OOB[label="INPUT OOB\nin use",fillcolor="", style="filled"];
+    CHECK_CONFIRMATION[label="CONFIRMATION\nCHECK",fillcolor="", style="filled"];
+
+    INACTIVE -> WAIT_LINK [label="LISTEN",fontsize="10", color="grey57"];
+    WAIT_LINK -> WAIT_INVITE [label="LINK_OPENED", fontsize="10", color="olivedrab4"];
+    node [shape=record, height=0.3,width=.5, fontsize=5];
+    SEND_CAPABILITIES[label="SEND\nCAPABILITIES"];
+    WAIT_INVITE -> SEND_CAPABILITIES [label="INVITE", fontsize="10", color="olivedrab4"];
+    SEND_CAPABILITIES -> WAIT_START [label="ACK\nCAPABILITIES", fontsize="5", color="olivedrab4"];
+    WAIT_START -> PUB_KEY_OOB [label="START", fontsize="10", color="olivedrab4"];
+    node [shape=parallelogram, height=0.3,width=.5, fontsize=5];
+    EXPOSE_PUB_KEY[label="EXPOSE\nPUB_KEY"];
+    PUB_KEY_OOB -> EXPOSE_PUB_KEY [label="TRUE", fontsize="5", color="black"];
+    PUB_KEY_OOB -> WAIT_PUB_KEY [label="FALSE", fontsize="5", color="black"];
+    EXPOSE_PUB_KEY -> WAIT_PUB_KEY [label="", fontsize="10", color="black"];
+    WAIT_PUB_KEY -> PUB_KEY_OOB2 [label="PUBLIC_KEY", fontsize="10", color="olivedrab4"];
+    node [shape=record, height=0.3,width=.5, fontsize=5];
+    SEND_PUBLIC_KEY[label="SEND\nPUB_KEY"];
+    PUB_KEY_OOB2 -> AUTHENTICATE [label="TRUE", fontsize="5", color="black"];
+    PUB_KEY_OOB2 -> SEND_PUBLIC_KEY [label="FALSE", fontsize="5", color="black"];
+    SEND_PUBLIC_KEY -> AUTHENTICATE [label="ACK\nPUB_KEY", fontsize="5", color="olivedrab4"];
+    AUTHENTICATE -> OUTPUT_OOB [label="", fontsize="10", color="black"];
+    node [shape=parallelogram, height=0.3,width=.5, fontsize=5];
+    DISPLAY_RANDOM_NO[label="DISPLAY\nRANDOM_NO"];
+    OUTPUT_OOB -> DISPLAY_RANDOM_NO[label="TRUE", fontsize="5", color="black"];
+    DISPLAY_RANDOM_NO -> WAIT_CONFIRM [label="", fontsize="10", color="black"];
+    OUTPUT_OOB -> INPUT_OOB[label="FALSE", fontsize="5", color="black"];
+    INPUT_OOB -> WAIT_OOB_INPUT[label="TRUE", fontsize="5", color="black"];
+    node [shape=record, height=0.3,width=.5, fontsize=5];
+    SEND_INPUT_COMPLETE[label="SEND\nINPUT_COMPLETE"];
+    SEND_CONFIRMATION[label="SEND\nCONFIRMATION"];
+    SEND_RANDOM[label="SEND\nRANDOM"];
+    SEND_FAILED[label="SEND\nFAILED"];
+    WAIT_OOB_INPUT -> SEND_INPUT_COMPLETE [label="INPUT", fontsize="10", color="grey57"];
+    SEND_INPUT_COMPLETE -> WAIT_CONFIRM [label="ACK\nINPUT_COMPLETE", fontsize="5", color="olivedrab4"];
+    INPUT_OOB -> WAIT_CONFIRM [label="FALSE", fontsize="5", color="black"];
+    WAIT_CONFIRM -> SEND_CONFIRMATION [label="CONFIRMATION", fontsize="10", color="olivedrab4"];
+    SEND_CONFIRMATION -> WAIT_RANDOM [label="ACK\nCONFIRMATION", fontsize="5", color="olivedrab4"];
+    WAIT_RANDOM -> CHECK_CONFIRMATION [label="RANDOM", fontsize="10", color="olivedrab4"];
+    CHECK_CONFIRMATION -> SEND_FAILED [label="FAIL", fontsize="5", color="black"];
+    SEND_FAILED -> WAIT_CLOSE [label="", fontsize="10", color="black"];
+    CHECK_CONFIRMATION -> SEND_RANDOM [label="SUCCESS", fontsize="5", color="black"];
+    SEND_RANDOM -> WAIT_DATA [label="", fontsize="10", color="black"];
+    WAIT_DATA -> SEND_COMPLETE [label="PROVISIONING\nDATA", fontsize="10", color="olivedrab4"];
+    SEND_COMPLETE -> WAIT_CLOSE [label="ACK\nCOMPLETE", fontsize="5", color="olivedrab4"];
+    WAIT_CLOSE -> PROVISIONED [label="SUCCESS", fontsize="5", color="olivedrab4"];
+}

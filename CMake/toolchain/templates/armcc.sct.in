@@ -1,0 +1,18 @@
+; ****************************************
+; *** Scatter-Loading Description File ***
+; ****************************************
+
+; Scatter/linker file to configure memory regions
+; This file was generated for ${PLATFORM} with the ${SOFTDEVICE} softdevice
+
+LR_IROM1 ${application_flash_start} ${application_flash_size} {
+  ER_IROM1 ${application_flash_start} ${application_flash_size} {
+   *.o (RESET, +First)
+   *(InRoot$$Sections)
+   .ANY (+RO)
+  }
+
+  RW_IRAM1 ${application_ram_start} ${application_ram_size} {
+   .ANY (+RW +ZI)
+  }
+}

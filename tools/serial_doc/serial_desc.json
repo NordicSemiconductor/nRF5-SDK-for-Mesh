@@ -1,0 +1,1241 @@
+{
+    "command_groups": [
+        {
+            "name": "Device",
+            "shorthand": "DEVICE",
+            "description": "HW commands for device operation",
+            "commands": [
+                {
+                    "name": "Echo",
+                    "description": "A simple loopback test command, to verify that the serial transport layer is working as intended.",
+                    "response": {
+                        "status": [],
+                        "params": "device_echo"
+                    }
+                },
+                {
+                    "name": "Internal Events Report",
+                    "description": "Start reporting internal events, if supported.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Serial Version Get",
+                    "description": "Request the implemented version of the serial interface.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": "cmd_rsp_data_serial_version"
+                    }
+                },
+                {
+                    "name": "FW Info Get",
+                    "description": "Request the firmware version info structure for the firmware.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": "cmd_rsp_data_firmware_info"
+                    }
+                },
+                {
+                    "name": "Radio Reset",
+                    "description": "Restart the device."
+                },
+                {
+                    "name": "Beacon start",
+                    "description": "Start an application controlled beacon with the given payload. Will hotswap the payload if the beacon is already running.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_PARAMETER", "ERROR_BUSY"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Beacon stop",
+                    "description": "Stop transmitting the current beacon.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Beacon params get",
+                    "description": "Set parameters for application controlled beacon.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_PARAMETER"
+                        ],
+                        "params": "cmd_rsp_data_beacon_params"
+                    }
+                },
+                {
+                    "name": "Beacon params set",
+                    "description": "Set parameters for application controlled beacon.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_PARAMETER"
+                        ],
+                        "params": ""
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Application",
+            "shorthand": "APP",
+            "description": "Single opcode made available to the application",
+            "commands": [
+                {
+                    "name": "Application",
+                    "description": "Application specific command, has no functionality in the framework, but is forwarded to the application.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": ""
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Segmentation And Reassembly",
+            "shorthand": "SAR",
+            "description": "Segmentation and reassembly of serial packets, to allow packets larger than the largest serial packet size",
+            "commands": [
+                {
+                    "name": "Start",
+                    "description": "Opening message of a Segmentation and Reassembly message.",
+                    "response": {
+                        "status": [
+                            "TRANSACTION_CONTINUE", "TRANSACTION_COMPLETE", "ERROR_DATA_SIZE"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Continue",
+                    "description": "Continuation of a Segmentation and Reassembly message.",
+                    "response": {
+                        "status": [
+                            "TRANSACTION_CONTINUE", "TRANSACTION_COMPLETE"
+                        ],
+                        "params": ""
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Configuration",
+            "shorthand": "CONFIG",
+            "description": "Configuration of various device parameter, like addresses and radio properties",
+            "commands": [
+                {
+                    "name": "Adv Addr Set",
+                    "description": "Set the device's BLE advertisement address used for all BLE advertisment messages sent by the device.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_PARAMETER"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Adv Addr Get",
+                    "description": "Get the device's BLE advertisement address.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": "cmd_rsp_data_adv_addr"
+                    }
+                },
+                {
+                    "name": "Channel Map Set",
+                    "description": "Set the channel map for advertisement packets. The device will send the advertisement packets on all enabled channels in increasing order. The channel map parameter is a bitmap, where the first bit represents channel 37, the second bit channel 38 and the third bit channel 39. The rest of the byte is ignored. Set to `0x07` to enable all channels, `0x01` to only enable channel 37, and so on.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_PARAMETER"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Channel Map Get",
+                    "description": "Get the channel map used for advertisement packets.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": "cmd_rsp_data_channel_map"
+                    }
+                },
+                {
+                    "name": "TX Power Set",
+                    "description": "Set the transmission power of the radio. Must be a valid enumeration in `serial_cmd_config_tx_power_value`.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_PARAMETER"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "TX Power Get",
+                    "description": "Get the transmission power of the radio.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": "cmd_rsp_data_tx_power"
+                    }
+                },
+                {
+                    "name": "UUID Set",
+                    "description": "Set the device UUID used for identifying the device during provisioning. If the UUID isn't set, the device will use a preprogrammed UUID.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "UUID Get",
+                    "description": "Get the device UUID used for identifying the device during provisioning.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": "cmd_rsp_data_device_uuid"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Provisioning",
+            "shorthand": "PROV",
+            "description": "Provisioning-specific commands and operations",
+            "commands": [
+                {
+                    "name": "Scan Start",
+                    "description": "Start reporting of incoming unprovisioned beacons.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Scan Stop",
+                    "description": "Stop reporting of incoming unprovisioned beacons.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Provision",
+                    "description": "Start provisioning of a device. When a provisioning link has been successfully established, a _Provisioning Link Established_ event is received. If an error occurs, a _Provisioning Link Closed_ event is received. After a link has been established, a _Provisioning Capabilities Received_ event will be emitted upon receiving the peer node's OOB capabilities. To continue the provisioning process, a _Provisioning OOB Use_ command must be sent to select which kind of OOB authentication to use.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE", "ERROR_REJECTED", "ERROR_INVALID_DATA"
+                        ],
+                        "params": "cmd_rsp_data_prov_ctx"
+                    }
+                },
+                {
+                    "name": "Listen",
+                    "description": "As an uprovisioned device, listen for incoming provisioning requests.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "OOB Use",
+                    "description": "Used to respond to the _Provisioning Capabilities Received_ event. It is used to select which kind of OOB authentication method to use. The values can be found in nrf_mesh_prov.h.  If authentication is enabled, the application will receive a _Provisioning Auth Request_ event requesting authentication data.  A _Provisioning ECDH Request_ will be received when the provisioner needs to calculate the ECDH shared secret for the nodes.  The _Provisioning Complete_ event is received when the provisioning procedure has completed successfully. At this point, a provisioner must wait for the _Provisioning Link Closed_ event before re-using the provisioning context.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_prov_ctx"
+                    }
+                },
+                {
+                    "name": "Auth Data",
+                    "description": "Used to respond to a _Provisioning Auth Request_ event. It passes OOB authentication data back to the mesh stack.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_prov_ctx"
+                    }
+                },
+                {
+                    "name": "ECDH Secret",
+                    "description": "Used to respond to a _Provisioning ECDH Request_ event. It passes the calculated ECDH shared secret back to the mesh stack.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_prov_ctx"
+                    }
+                },
+                {
+                    "name": "Keypair Set",
+                    "description": "Send a public/private keypair to the device. These keys are used for some of the encryption involved in provisioning.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Capabilities Set",
+                    "description": "Used to set the out-of-band authentication capabilities of a device. The values for the parameters can be found in the various defines in the nrf_mesh_prov.h header file.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": ""
+                    }
+                }
+            ]
+        },
+        {
+            "name": "nRF Open Mesh",
+            "shorthand": "OPENMESH",
+            "description": "Set of commands used by the nRF Open Mesh",
+            "commands": [
+                {
+                    "name": "Init",
+                    "description": "Not implemented.",
+                    "response": {
+                        "status": [
+                            "ERROR_CMD_UNKNOWN"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Value Set",
+                    "description": "Not implemented.",
+                    "response": {
+                        "status": [
+                            "ERROR_CMD_UNKNOWN"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Value Enable",
+                    "description": "Not implemented.",
+                    "response": {
+                        "status": [
+                            "ERROR_CMD_UNKNOWN"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Value Disable",
+                    "description": "Not implemented.",
+                    "response": {
+                        "status": [
+                            "ERROR_CMD_UNKNOWN"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Start",
+                    "description": "Not implemented.",
+                    "response": {
+                        "status": [
+                            "ERROR_CMD_UNKNOWN"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Stop",
+                    "description": "Not implemented.",
+                    "response": {
+                        "status": [
+                            "ERROR_CMD_UNKNOWN"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Flag Set",
+                    "description": "Not implemented.",
+                    "response": {
+                        "status": [
+                            "ERROR_CMD_UNKNOWN"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Flag Get",
+                    "description": "Not implemented.",
+                    "response": {
+                        "status": [
+                            "ERROR_CMD_UNKNOWN"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "DFU Data",
+                    "description": "Send DFU data to the device.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE", "ERROR_REJECTED"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Value Get",
+                    "description": "Not implemented.",
+                    "response": {
+                        "status": [
+                            "ERROR_CMD_UNKNOWN"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Build Version Get",
+                    "description": "Not implemented.",
+                    "response": {
+                        "status": [
+                            "ERROR_CMD_UNKNOWN"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Access Addr Get",
+                    "description": "Not implemented.",
+                    "response": {
+                        "status": [
+                            "ERROR_CMD_UNKNOWN"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Channel Get",
+                    "description": "Not implemented.",
+                    "response": {
+                        "status": [
+                            "ERROR_CMD_UNKNOWN"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Interval Min ms Get",
+                    "description": "Not implemented.",
+                    "response": {
+                        "status": [
+                            "ERROR_CMD_UNKNOWN"
+                        ],
+                        "params": ""
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Bluetooth Mesh",
+            "shorthand": "MESH",
+            "description": "Bluetooth Mesh commands for controlling a device's behavior on the mesh",
+            "commands": [
+                {
+                    "name": "Enable",
+                    "description": "Enable mesh operation. Starts radio scanning and transmissions.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Disable",
+                    "description": "Disable mesh operation. Stops radio scanning and transmissions.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Subnet Add",
+                    "description": "Add a mesh subnetwork to the device.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_PARAMETER", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_subnet"
+                    }
+                },
+                {
+                    "name": "Subnet Update",
+                    "description": "Update a mesh subnetwork's root key.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_subnet"
+                    }
+                },
+                {
+                    "name": "Subnet Delete",
+                    "description": "Delete a subnetwork from the device.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_subnet"
+                    }
+                },
+                {
+                    "name": "Subnet Get All",
+                    "description": "Get all known subnetwork key indexes.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_subnet_list"
+                    }
+                },
+                {
+                    "name": "Subnet Count Max Get",
+                    "description": "Get the maximum number of subnetworks the device can fit.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": "cmd_rsp_data_list_size"
+                    }
+                },
+                {
+                    "name": "Appkey Add",
+                    "description": "Add a mesh application key to the device.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_PARAMETER", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_appkey"
+                    }
+                },
+                {
+                    "name": "Appkey Update",
+                    "description": "Update a mesh application key.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_appkey"
+                    }
+                },
+                {
+                    "name": "Appkey Delete",
+                    "description": "Delete a application key from the device.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_appkey"
+                    }
+                },
+                {
+                    "name": "Appkey Get All",
+                    "description": "Get all the application key indices of the stored application keys associated with a specific subnetwork.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_appkey_list"
+                    }
+                },
+                {
+                    "name": "Appkey Count Max Get",
+                    "description": "Get the maximum number of application keys the device can fit.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": "cmd_rsp_data_list_size"
+                    }
+                },
+                {
+                    "name": "Devkey Add",
+                    "description": "Add a mesh device key to the device.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_PARAMETER", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_devkey"
+                    }
+                },
+                {
+                    "name": "Devkey Delete",
+                    "description": "Delete a device key from the device.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_devkey"
+                    }
+                },
+                {
+                    "name": "Devkey Count Max Get",
+                    "description": "Get the maximum number of device keys the device can fit.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": "cmd_rsp_data_list_size"
+                    }
+                },
+                {
+                    "name": "Addr Local Unicast Set",
+                    "description": "Set the start and count of the device's local unicast address.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Addr Local Unicast Get",
+                    "description": "Get the start and count of the device's local unicast addresses.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": "cmd_rsp_data_addr_local_unicast"
+                    }
+                },
+                {
+                    "name": "Addr Get",
+                    "description": "Get the raw representation of the address with the given handle. If the given address is a virtual address, the virtual UUID will be included in the response.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_raw_addr"
+                    }
+                },
+                {
+                    "name": "Addr Get All",
+                    "description": "Get a list of all address handles in the address pool, not including local unicast addresses.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": "cmd_rsp_data_addr_list"
+                    }
+                },
+                {
+                    "name": "Addr Nonvirtual Count Max Get",
+                    "description": "Get the maximum number of nonvirtual addresses the device can fit.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": "cmd_rsp_data_list_size"
+                    }
+                },
+                {
+                    "name": "Addr Virtual Count Max Get",
+                    "description": "Get the maximum number of virtual addresses the device can fit.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": "cmd_rsp_data_list_size"
+                    }
+                },
+                {
+                    "name": "Addr Subscription Add",
+                    "description": "Add the specified address to the set of active address subscriptions.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_addr"
+                    }
+                },
+                {
+                    "name": "Addr Subscription Add Virtual",
+                    "description": "Add the virtual address with the specified UUID to the set of active address subscriptions.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_addr"
+                    }
+                },
+                {
+                    "name": "Addr Subscription Remove",
+                    "description": "Remove the address with the given handle from the set of active address subscriptions.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_addr"
+                    }
+                },
+                {
+                    "name": "Addr Publication Add",
+                    "description": "Add the specified address to the set of active publish addresses.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_addr"
+                    }
+                },
+                {
+                    "name": "Addr Publication Add Virtual",
+                    "description": "Add the virtual address with the specified UUID to the set of active publish addresses.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_addr"
+                    }
+                },
+                {
+                    "name": "Addr Publication Remove",
+                    "description": "Remove the address with the specified handle from the set of active publish addresses.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_addr"
+                    }
+                },
+                {
+                    "name": "Packet Send",
+                    "description": "Send a mesh packet. The source address handle must represent a local unicast address.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_DATA_SIZE", "ERROR_REJECTED", "ERROR_INVALID_PARAMETER"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "State Clear",
+                    "description": "Reset the device and network state and erase the flash copies.",
+                    "response": {
+                        "status": [ "SUCCESS"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Direct Firmware Upgrade",
+            "shorthand": "DFU",
+            "description": "Commands controlling the behavior of the Device Firmware Update part of the mesh stack",
+            "commands": [
+                {
+                    "name": "Jump To Bootloader",
+                    "description": "Immediately jump to bootloader mode. If successful, this call will not yield a command response. It will however yield a _Device Started_ event if the current bootloader supports serial communication.",
+                    "response": {
+                        "status": [
+                            "ERROR_REJECTED"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Request",
+                    "description": "Request a DFU transfer.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE", "ERROR_REJECTED"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Relay",
+                    "description": "Relay a DFU transfer.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE", "ERROR_REJECTED"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Abort",
+                    "description": "Abort the ongoing DFU transfer. Will fail if there's no ongoing transfer.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE", "ERROR_REJECTED"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Bank Info Get",
+                    "description": "Get information about the firmware bank of the given type, if it exists.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_PARAMETER", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_dfu_bank_info"
+                    }
+                },
+                {
+                    "name": "Bank Flash",
+                    "description": "Flash the bank with the given firmware type. If successful, this serial call does not produce a command response. Note that all volatile memory will be lost, as the device will restart. If the new firmware supports serial communication, the device issues a device started event when it's ready to receive new commands.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE", "ERROR_REJECTED"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "State Get",
+                    "description": "Get the current state of the DFU module. Only works if the DFU module has been initialized.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_STATE"
+                        ],
+                        "params": "cmd_rsp_data_dfu_state"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Access Layer",
+            "shorthand": "ACCESS",
+            "description": "Commands to interface the access layer on mesh",
+            "commands": [
+                {
+                    "name": "Model Pub Addr Set",
+                    "description": "Set the publish address for a model instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Model Pub Addr Get",
+                    "description": "Get the publish address for a model instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE"
+                        ],
+                        "params": "cmd_rsp_data_model_pub_addr_get"
+                    }
+                },
+                {
+                    "name": "Model Pub Period Set",
+                    "description": "Set the publish address for a model instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Model Pub Period Get",
+                    "description": "Get the publish period for a model instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE"
+                        ],
+                        "params": "cmd_rsp_data_model_pub_period_get"
+                    }
+                },
+                {
+                    "name": "Model Subs Add",
+                    "description": "Add a subscription address to a model instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Model Subs Remove",
+                    "description": "Remove a subscription address from a model instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Model Subs Get",
+                    "description": "Get the list of subscription addresses from a model instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE", "ERROR_INVALID_LENGTH"
+                        ],
+                        "params": "cmd_rsp_data_model_subs_get"
+                    }
+                },
+                {
+                    "name": "Model App Bind",
+                    "description": "Bind an application key to a model instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Model App Unbind",
+                    "description": "Unbind an application key from a model instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Model App Get",
+                    "description": "Get all the application keys bound to a model instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER", "ERROR_INVALID_LENGTH"
+                        ],
+                        "params": "cmd_rsp_data_model_apps_get"
+                    }
+                },
+                {
+                    "name": "Model Pub App Set",
+                    "description": "Set the application key to be used when publishing for a model instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Model Pub App Get",
+                    "description": "Get the application key used when publishing for a model instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE"
+                        ],
+                        "params": "cmd_rsp_data_model_pub_app_get"
+                    }
+                },
+                {
+                    "name": "Model Pub TTL Set",
+                    "description": "Set the default ttl value used when publishing for a model instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Model Pub Ttl Get",
+                    "description": "Get the default ttl value used when publishing for a model instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE"
+                        ],
+                        "params": "cmd_rsp_data_model_pub_ttl_get"
+                    }
+                },
+                {
+                    "name": "Elem Loc Set",
+                    "description": "Set the location descriptor for an element.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": ""
+                    }
+                },
+                {
+                    "name": "Elem Loc Get",
+                    "description": "Get the location descriptor for an element.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_elem_loc_get"
+                    }
+                },
+                {
+                    "name": "Elem Sig Model Count Get",
+                    "description": "Get the number of Bluetooth SIG models for an element.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_elem_model_count_get"
+                    }
+                },
+                {
+                    "name": "Elem Vendor Model Count Get",
+                    "description": "Get the number of vendor specific models for an element.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_elem_model_count_get"
+                    }
+                },
+                {
+                    "name": "Model Id Get",
+                    "description": "Get the model ID of a model instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE"
+                        ],
+                        "params": "cmd_rsp_data_model_id_get"
+                    }
+                },
+                {
+                    "name": "Handle Get",
+                    "description": "Get the handle assigned to the model instance of a model based on the element index and model ID.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_model_handle_get"
+                    }
+                },
+                {
+                    "name": "Elem Models Get",
+                    "description": "Get the array of handles corresponding to an element.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_LENGTH"
+                        ],
+                        "params": "cmd_rsp_data_elem_models_get"
+                    }
+                },
+                {
+                    "name": "Access Flash Store",
+                    "description": "Store the access layer information to flash.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Model Specific",
+            "shorthand": "MODEL_SPECIFIC",
+            "description": "Commands for initializing and commanding specific models",
+            "commands": [
+                {
+                    "name": "Models Get",
+                    "description": "Get a list of all the models available on the device.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_INVALID_LENGTH"
+                        ],
+                        "params": "cmd_rsp_data_models_get"
+                    }
+                },
+                {
+                    "name": "Init",
+                    "description": "Calls the initializer of the addressed model in order to create a new instance.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED"
+                        ],
+                        "params": "cmd_rsp_data_model_init"
+                    }
+                },
+                {
+                    "name": "Command",
+                    "description": "Forwards a model specific command to a model instance. See the serial handler for the specific model being commanded for more information.",
+                    "response": {
+                        "status": [
+                            "SUCCESS", "ERROR_REJECTED", "INVALID_STATE"
+                        ],
+                        "params": "cmd_rsp_data_model_cmd"
+                    }
+                }
+            ]
+        }
+    ],
+    "events": [
+        {
+            "name": "Cmd Rsp",
+            "description": "Command response. Each command (except the Echo command) immediately gets a command response. See the individual commands for their responses."
+        },
+        {
+            "name": "Device Started",
+            "description": "The device has started, and is ready for commands. No commands will be accepted before this event, and it is guaranteed to be the first event to cross the serial."
+        },
+        {
+            "name": "Device Echo Rsp",
+            "description": "Response to the Echo command. Contains the exact same data as received in the echo command."
+        },
+        {
+            "name": "Device Internal Event",
+            "description": "Internal stack event occurred."
+        },
+        {
+            "name": "Application",
+            "description": "Application event, only sent by the device application."
+        },
+        {
+            "name": "SAR Start",
+            "description": "Start of a Segmentation and Reassembly message from the device."
+        },
+        {
+            "name": "SAR Continue",
+            "description": "Continuation of a Segmentation and Reassembly message from the device."
+        },
+        {
+            "name": "DFU Req Relay",
+            "description": "Received a request from another device to act as a relay in a DFU transaction."
+        },
+        {
+            "name": "DFU Req Source",
+            "description": "Recevied a request from another device to act as a source in a DFU transaction."
+        },
+        {
+            "name": "DFU Start",
+            "description": "The current DFU operation started its data transfer stage."
+        },
+        {
+            "name": "DFU End",
+            "description": "The current DFU operation ended its data transfer stage."
+        },
+        {
+            "name": "DFU Bank Available",
+            "description": "A DFU firmware bank is available for flashing."
+        },
+        {
+            "name": "DFU Firmware Outdated",
+            "description": "The mesh has received a secure notification indicating that the framework is out of date. Call _DFU Request_ to initiate a request to receive the firmware upgrade."
+        },
+        {
+            "name": "DFU Firmware Outdated No Auth",
+            "description": "The mesh has received an insecure notification indicating that the framework is out of date. Call _Direct Firmware Upgrade Request_ to initiate a request to receive the firmware upgrade."
+        },
+        {
+            "name": "Openmesh New",
+            "description": "Not implemented."
+        },
+        {
+            "name": "Openmesh Update",
+            "description": "Not implemented."
+        },
+        {
+            "name": "Openmesh Conflicting",
+            "description": "Not implemented."
+        },
+        {
+            "name": "Openmesh TX",
+            "description": "Not implemented."
+        },
+        {
+            "name": "Prov Unprovisioned Received",
+            "description": "The node received an unprovisioned beacon. Requires scanning to be enabled with the _Provisioning Scan Enable_ command."
+        },
+        {
+            "name": "Prov Link Established",
+            "description": "The given provisioning link has been established."
+        },
+        {
+            "name": "Prov Link Closed",
+            "description": "The given provisioning link has been closed. If received before a _Provisioning Complete_ event, the link was closed because of an error."
+        },
+        {
+            "name": "Prov Caps Received",
+            "description": "The device received provisioning capabilities on the provisioning link with the given context ID."
+        },
+        {
+            "name": "Prov Complete",
+            "description": "The provisioning process was successfully completed."
+        },
+        {
+            "name": "Prov Auth Request",
+            "description": "Static authentication data is required to continue. Use the _Provisioning AuthData_ command to respond to this event."
+        },
+        {
+            "name": "Prov ECDH Request",
+            "description": "An ECDH shared secret must be calculated. Use the _Provisioning ECDH Secret_ command to respond to this event."
+        },
+        {
+            "name": "Prov Output Request",
+            "description": "The device is required to do an action the user can recognize and use for authentication."
+        },
+        {
+            "name": "Prov Failed",
+            "description": "The provisioning procedure failed."
+        },
+        {
+            "name": "Mesh Message Received Unicast",
+            "description": "The mesh framework received a message matching a registered local unicast address, with the given parameters and data."
+        },
+        {
+            "name": "Mesh Message Received Subscription",
+            "description": "The mesh framework received a message matching one of the registered subscription addresses, with the given parameters and data."
+        },
+        {
+            "name": "Mesh TX Complete",
+            "description": "A radio packet TX has completed."
+        },
+        {
+            "name": "Mesh IV Update Notification",
+            "description": "The IV update procedure has been triggered for the network with the given index."
+        },
+        {
+            "name": "Mesh Key Refresh Notification",
+            "description": "A network has entered a new phase in the key refresh procedure."
+        },
+        {
+            "name": "Mesh SAR Failed",
+            "description": "A Mesh transmission of a SAR packet failed."
+        },
+        {
+            "name": "Model Specific",
+            "description": "An event generated by one of the initialized models. Model id and event type is provided by each event, further model specific information is provided as part of the data field."
+        }
+    ]
+}

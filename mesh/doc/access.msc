@@ -1,0 +1,24 @@
+# Access layer: Initializing a device with one element and two models.
+msc {
+        hscale = "2";
+        
+        app, modelX, access;
+        |||;
+        app box access [label="Application has statically allocated a device, an element and a model context structure."];
+        
+        app=>access [label="access_enable(&m_device)"];
+        app<<access [label="NRF_SUCCESS"];
+
+        |||;
+        app=>access [label="access_element_add(&m_element)"];
+        app<<access [label="NRF_SUCCESS"];
+        
+        app=>modelX [label="modelX_init(&m_modelX)"];
+        app<<modelX [label="NRF_SUCCESS"];
+        
+        app=>modelX [label="modelX_element_model_bind(&m_element, &m_modelX)"];
+        modelX=>access [label="access_element_model_bind(p_element, &p_modelX->model)"];
+        modelX<<access [label="NRF_SUCCESS"];
+        app<<modelX [label="NRF_SUCCESS"];
+}
+        

@@ -1,0 +1,37 @@
+{
+    "__packet__": true,
+    "name": "unseg",
+    "type": "variable",
+    "module": "trs",
+    "packet_type": "packet_mesh_trs_packet_t",
+    "defines": [
+        {
+            "name": "PACKET_MESH_TRS_UNSEG_ACCESS_PDU_MAX_SIZE",
+            "value": "(15)",
+            "doc": "Max PDU size of an unsegmented transport access message."
+        },
+        {
+            "name": "PACKET_MESH_TRS_UNSEG_ACCESS_MAX_SIZE",
+            "value": "(16)",
+            "doc": "Max size of an unsegmented transport access message."
+        },
+        {
+            "name": "PACKET_MESH_TRS_UNSEG_CONTROL_PDU_MAX_SIZE",
+            "value": "(11)",
+            "doc": "Max PDU size of an unsegmented transport control message."
+        },
+        {
+            "name": "PACKET_MESH_TRS_UNSEG_CONTROL_MAX_SIZE",
+            "value": "(12)",
+            "doc": "Max size of an unsegmented transport control message."
+        }
+    ],
+    "fields": [
+        {
+            "name": "other",
+            "width":  8,
+            "doc": "common header fields (covered by other formats)",
+            "visible": false
+        }
+    ]
+}

@@ -1,0 +1,25 @@
+; nRF5 SDK for Mesh Bootloader scatter file -- Generated {{timestamp}} by {{scriptname}}.
+
+LR_IROM1 {{hex(platform.bootloader.flash_start)}} {{hex(platform.bootloader.flash_size)}} {
+  ER_IROM1 {{hex(platform.bootloader.flash_start)}} {{hex(platform.bootloader.flash_size)}} {
+   *.o (RESET, +First)
+   *(InRoot$$Sections)
+   .ANY (+RO)
+  }
+
+  RW_IRAM1 0x20000004 {{hex(platform.bootloader.ram_start - platform.ram_start - 4)}} {
+   .ANY (+RW +ZI)
+  }
+
+  RW_IRAM2 {{hex(platform.bootloader.ram_start)}} {{hex(platform.bootloader.ram_size)}} {
+    bootloader_app_bridge.o (+ZI +RW)
+    bootloader_info.o (+ZI +RW)
+    dfu_mesh.o (+ZI +RW)
+    dfu_transfer_mesh.o (+ZI +RW)
+    dfu_bank.o (+ZI +RW)
+    dfu_util.o (+ZI +RW)
+    ; sha256.o (+ZI +RW)   ; Does not contain any zero-initilized data.
+    ; uECC.o (+ZI +RW)     ; Does not contain any zero-initilized data.
+   .ANY (+RW +ZI)
+  }
+}

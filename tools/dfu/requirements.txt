@@ -1,0 +1,4 @@
+# Required Python packages for the DFU utility scripts
+pyserial
+intelhex
+

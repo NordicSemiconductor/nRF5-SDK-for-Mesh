@@ -1,0 +1,39 @@
+msc {
+    hscale="1.5";
+    pba [label="Provisioner"], Client, pbl [label="PBR link"], access [label="ACCESS"], mesh [label="Mesh"];
+
+    |||;
+    pba rbox mesh [label ="TX"];
+    pba => Client [label ="pbr_tx(data)"],
+    Client => pbl [label ="pbr_link_tx(data)"],
+    pbl => access   [label ="access_reliable_tx(data)"],
+    access => mesh  [label ="nrf_mesh_tx(data)"];
+    ...;
+    access => mesh  [label ="nrf_mesh_tx(data)"];
+    ...;
+    pba -x Client [label ="pbr_tx(data2)"];
+    access <- mesh  [label ="RX [ack]"],
+    pbl <- access   [label ="RX [ack]"],
+    Client <- pbl [label ="TX COMPLETE"];
+
+    |||;
+    ...;
+    |||;
+    pba -x Client [label ="pbr_tx(data2)"],
+
+    pbl rbox mesh [label ="RX"];
+    access <- mesh  [label ="RX [Transfer report: OK]"],
+    pbl <- access   [label ="RX [Transfer report: OK]"];
+    pbl => access   [label ="access_tx(ACK)"];
+    Client <- pbl [label ="RX [Transfer report: OK]"],
+    pba <- Client [label ="Transmission complete"];
+
+    |||;
+    pba rbox mesh [label ="RX"];
+    access <- mesh  [label ="RX [data]"],
+    pbl <- access   [label ="RX [data]"];
+    pbl => access   [label ="access_tx(ACK)"];
+    Client <- pbl [label ="RX [data]"],
+    pba <- Client [label ="RX [data]"];
+
+}

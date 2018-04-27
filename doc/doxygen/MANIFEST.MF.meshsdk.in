@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.9.3
+Created-By: 1.7.0_55-b13 (Oracle Corporation)
+Bundle-Version: 1.0.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: nRF5 SDK for Mesh
+Bundle-Vendor: Nordic Semiconductor ASA
+Eclipse-LazyStart: true
+Bundle-SymbolicName: com.nordic.infocenter.meshsdk.v@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_BUGFIX@; singleton:=true

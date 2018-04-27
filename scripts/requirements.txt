@@ -1,0 +1,8 @@
+# install with cmd: "pip install -r requirements.txt"
+####### MESH requirements.txt #######
+###### Requirements with Version Specifiers ######
+#   See https://www.python.org/dev/peps/pep-0440/#version-specifiers
+pynrfjprog >= 8.2
+argparse >= 1.4.0
+pyserial
+pyelliptic

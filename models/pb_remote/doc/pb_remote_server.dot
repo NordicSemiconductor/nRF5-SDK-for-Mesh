@@ -1,0 +1,39 @@
+digraph PBRemoteClient {
+        rankdir=TB
+
+        a[style=filled, fillcolor=black, shape=circle];
+
+        idle[label="IDLE"];
+        scanning[label="SCANNING"];
+        link_opening[label="LINK_OPENING"]
+        link_established[label="LINK_ESTABLISHED"];
+        wait_for_remote_ack[label="WAIT_FOR_REMOTE_ACK"];
+        wait_for_local_ack[label="WAIT_FOR_LOCAL_ACK"];
+
+        a -> idle [label=" init()"];
+        idle -> scanning [label=" Scan Start"];
+        scanning -> idle [label=" Scan Cancel"]
+
+        scanning -> link_opening [label=" Link Open"];
+        link_opening -> link_established [label = "Link Established"];
+        link_opening -> idle[label=" Link Failed"];
+        link_opening -> idle[label=" Link Timeout"];
+
+
+        idle -> link_opening [label=" Link Open"];
+
+
+        //link_established -> wait_for_ack [label=" Provisioning\n complete"];
+        link_established -> idle [label=" Timeout"];
+        link_established -> idle [label=" Link closed"];
+
+        link_established -> wait_for_remote_ack[label = " Local packet transfer"];
+        wait_for_remote_ack -> link_established[label = " ACK"];
+        wait_for_remote_ack -> wait_for_remote_ack[label = " Timeout"];
+
+        link_established -> wait_for_local_ack[label = " Remote packet transfer"];
+        wait_for_local_ack -> wait_for_remote_ack[label = " ACK"];
+        wait_for_local_ack -> wait_for_local_ack[label = " Timeout"];
+        wait_for_remote_ack -> idle[label= " ACK"];
+        wait_for_remote_ack -> idle[label= " Timeout"];
+}

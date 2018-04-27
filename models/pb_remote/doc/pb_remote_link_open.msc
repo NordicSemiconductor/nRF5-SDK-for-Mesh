@@ -1,0 +1,46 @@
+msc {
+    hscale="1.5";
+    a[label="Application"], Client, Server, c[label="Unprovisioned Device"];
+
+    |||;
+    a note c [label=" UUID present in Server's SlotID "];
+    |||;
+
+    a => Client [label="pb_remote_client_remote_provision()"];
+    a << Client [label="NRF_SUCCESS"];
+
+    Client -> Server [label="Link open: SlotID"];
+    Client rbox Client [label="WAIT_FOR_ACK"],
+    Server rbox Server [label="LINK_OPENING"];
+    Client <- Server [label="Link status: Opening"];
+    Client rbox Client [label="IDLE"];
+
+    Server -> c      [label="Link open"];
+    Server <- c      [label="Link confirm"];
+    Client <- Server [label="Link report: Opened"];
+    Server rbox Server [label="WAIT_FOR_REMOTE_ACK"];
+    Client -> Server [label="Link status: Accepted"];
+    Client rbox Client [label="LINK_ESTABLISHED"],
+    Server rbox Server [label="LINK_ESTABLISHED"];
+
+    |||;
+    a box c [label="Link open times out"];
+    |||;
+    a => Client [label="pb_remote_client_remote_provision()"];
+    a << Client [label="NRF_SUCCESS"];
+
+    Client -> Server [label="Link open: SlotID"];
+    Client rbox Client [label="WAIT_FOR_ACK"],
+    Server rbox Server [label="LINK_OPENING"];
+    Client <- Server [label="Link status: Opening"];
+    Client rbox Client [label="IDLE"];
+
+    Server -> c      [label="Link open"];
+    ...;
+    Server =>> Server [label="timeout()"];
+    Client <- Server [label="Link report: Link closed, reason: timeout"];
+    Server rbox Server [label="WAIT_FOR_REMOTE_ACK"];
+    Client -> Server [label="Link status: Accepted"];
+    Client rbox Client [label="IDLE"],
+    Server rbox Server [label="IDLE"];
+}

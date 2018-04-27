@@ -1,0 +1,33 @@
+digraph PBRemoteClient {
+        rankdir=TB
+
+        a[style=filled, fillcolor=black, shape=circle];
+
+        idle[label="IDLE"];
+        scanning[label="SCANNING"];
+        link_opening[label="LINK_OPENING"]
+        link_established[label="LINK_ESTABLISHED"];
+        wait_for_ack[label="WAIT_FOR_ACK"];
+
+        a -> idle [label=" init()"];
+        idle -> scanning [label=" Scan Start"];
+        scanning -> idle [label=" Scan Cancel"]
+
+        scanning -> link_opening [label=" Link Open"];
+        link_opening -> link_established [label = "Link Confirmed"];
+        link_opening -> idle[label=" Link Failed"];
+
+        idle -> link_opening [label=" Link Open"];
+
+
+        //link_established -> wait_for_ack [label=" Provisioning\n complete"];
+        link_established -> idle [label=" Timeout"];
+        link_established -> idle [label=" Link closed"];
+
+        link_established -> wait_for_ack [label=" Link Close"];
+
+        link_established -> wait_for_ack [label = " Remote packet transfer"];
+        wait_for_ack -> link_established [label = " ACK"];
+        wait_for_ack -> idle[label = " ACK"];
+        wait_for_ack -> idle[label = " Timeout"];
+}

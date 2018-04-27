@@ -1,0 +1,14 @@
+msc {
+    hscale="1.5";
+    a[label="Application"], access[label="Access"], server[label="Remote Server"];
+    |||;
+    a note server [label="Initializing the remote server (locally)"];
+
+    a => access[label="access_init()"];
+    a => server[label="pb_remote_server_init(&server, ...)"];
+    ...;
+    a => access[label="access_model_publish_application_set(server.model_handle, ...)"];
+    a => access[label="access_model_application_bind(server.model_handle, ...)"];
+    a => access[label="access_model_publish_ttl_set(server.model_handle, ...)"];
+    a => access[label="access_model_publish_address_set(server.model_handle, client_address_handle)"];
+}

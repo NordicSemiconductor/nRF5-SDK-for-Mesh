@@ -1,0 +1,47 @@
+# MSC for the provisioning process showing both devices
+
+msc {
+    hscale="2.5";
+
+    a [label="Application"], b[label="Provisioner"], c[label="Provisionee"], d[label="Application"];
+
+    ---  [label="Unprovisioned node advertising"];
+    c->b [label="Unprovisioned node beacon (UUID)", linecolor="#ff9900"];
+    b->a [label="NRF_MESH_EVT_UNPROVISIONED_RECEIVED"];
+    ...;
+    c->b [label="Unprovisioned node beacon (UUID)", linecolor="#ff9900"];
+    b->a [label="NRF_MESH_EVT_UNPROVISIONED_RECEIVED"];
+
+    ---  [label="PB-ADV link establishment"]; 
+    a=>b [label="nrf_mesh_prov_provision()"];
+    b->c [label="Link establishment request", linecolor="#0099ff"];
+    c->b [label="Link establishment confirmation", linecolor="#0099ff"];
+    b->a [label="NRF_MESH_EVT_PROV_LINK_ESTABLISHED"], c->d [label="NRF_MESH_EVT_PROV_LINK_ESTABLISHED"];
+
+    ---  [label="Start of Provisioning"];
+    b->c [label="Provisioning invite"];
+    c->b [label="Provisioning capabilities(OOB methods)"];
+    b->a [label="NRF_MESH_EVT_PROV_CAPS_RECEIVED"];
+    a=>b [label="nrf_mesh_prov_oob_use()"];
+    b->c [label="Provisioning start(OOB method)"];
+
+    ---  [label="Key Exchange and Authentication (static)"];
+    b->c [label="Public key"];
+    c->d [label="NRF_MESH_EVT_STATIC_REQUEST"];
+    d=>c [label="nrf_mesh_prov_auth_data_provide()"];
+    c->b [label="Public key"];
+    b->a [label="NRF_MESH_EVT_STATIC_REQUEST"];
+    a=>b [label="nrf_mesh_prov_auth_data_provide()"];
+    b->c [label="Provisioning confirmation"];
+    c->b [label="Provisioning confirmation"];
+    b->c [label="Provisioning random"];
+    c->b [label="Provisioning random"];
+
+    ---  [label="Exchange of Provisioning Data"];
+    b->c [label="Provisioning data"];
+    c->b [label="Provisioning complete"];
+    b->a [label="NRF_MESH_EVT_PROV_COMPLETE"], c->d [label="NRF_MESH_EVT_PROV_COMPLETE"];
+    b->c [label="PB-ADV close link", linecolor="#0099ff"];
+    b->a [label="NRF_MESH_EVT_PROV_LINK_CLOSED"], c->d [label="NRF_MESH_EVT_PROV_LINK_CLOSED"];
+}
+

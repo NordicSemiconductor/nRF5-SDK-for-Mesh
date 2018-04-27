@@ -1,0 +1,54 @@
+msc {
+    hscale="1.5";
+    model[label="Model"],
+    access[label="Access reliable module"],
+    core[label="Access + Mesh core"];
+
+    |||;
+    model note core[label="Reliable send to unicast address", textbgcolor="#FFB000"];
+    |||;
+    model => access[label="access_model_reliable_publish(&reliable_config)"];
+    access => core[label="timer_sch_scehdule(...)"];
+    access =>> access[label="add_to_list(...)"];
+    access => core[label="nrf_mesh_packet_send(...)"];
+    model << access[label="NRF_SUCCESS"];
+
+    ...;
+    access <<= core[label="timer_sch_cb()"];
+    access => core[label="nrf_mesh_packet_send(...)"];
+    access => core[label="timer_sch_reschedule(...)"];
+    ...;
+    access <<= core[label="access_reliable_rx_cb()"];
+    access =>> model[label="opcode_cb()"];
+    access =>> access[label="remove_from_list(...)"];
+    access =>> model[label="success_cb()"];
+    |||;
+
+    model note core[label="Reliable send to a group or virtual address", textbgcolor="#FFB000"];
+    |||;
+    model => access[label="access_model_reliable_publish(&reliable_config)"];
+    access => core[label="timer_sch_scehdule(...)"];
+    access =>> access[label="add_to_list(...)"];
+    access => core[label="nrf_mesh_packet_send(...)"];
+    model << access[label="NRF_SUCCESS"];
+
+    ...;
+    access <<= core[label="timer_sch_cb()"];
+    access => core[label="nrf_mesh_packet_send(...)"];
+    access => core[label="timer_sch_reschedule(...)"];
+    ...;
+    access <<= core[label="access_reliable_rx_cb()"];
+    access =>> model[label="opcode_cb()"];
+    ...;
+    access <<= core[label="timer_sch_cb()"];
+    access => core[label="nrf_mesh_packet_send(...)"];
+    access => core[label="timer_sch_reschedule(...)"];
+    ...;
+    access <<= core[label="access_reliable_rx_cb()"];
+    access =>> model[label="opcode_cb()"];
+    ...;
+    ---[label=" Final timeout "];
+    access <<= core[label="timer_sch_cb()"];
+    access =>> access[label="remove_from_list(...)"];
+    access =>> model[label="timeout_cb()"];
+}

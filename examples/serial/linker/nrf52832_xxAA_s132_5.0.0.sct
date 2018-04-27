@@ -1,0 +1,16 @@
+; nRF5 SDK for Mesh Application scatter file -- Generated 2017-12-08 13:44:31 by tools/linker/linker_file_generator.py.
+; 24 kB FLASH and 768 B RAM reserved for bootloader.
+;
+; This file is intended for nrf52832_xxAA with the s132_5.0.0 SoftDevice.
+
+LR_IROM1 0x23000 0x55000 {
+  ER_IROM1 0x23000 0x55000 {
+   *.o (RESET, +First)
+   *(InRoot$$Sections)
+   .ANY (+RO)
+  }
+
+  RW_IRAM1 0x200031b0 0xcb50 {
+   .ANY (+RW +ZI)
+  }
+}

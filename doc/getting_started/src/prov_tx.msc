@@ -1,0 +1,37 @@
+msc {
+    hscale="2.0";
+    pr [label="Provisioner"], ps [label="Provisioning"], pa [label="Prov Bearer Adv"], cm [label="Bearer Adv"];
+
+    pa note pa [label="BUFFER STATE=UNUSED"];
+    pr => ps [label="prov_tx_public_key(key)"],
+    ps => pa [label="prov_bearer_adv_tx(payload)"];
+    pa => pa [label="timer_sch_schedule(retry_timer)"];
+    pa -> pa [label="STORE PAYLOAD AND PARAMS"];
+    pa note pa [label="BUFFER STATE=TX"];
+    pa => pa [label="prov_buffer_tx()"];
+    pa => cm [label="bearer_adv_tx(START, &payload[0])"];
+    pa => cm [label="bearer_adv_tx(CONT, &payload[20])"];
+    cm rbox cm [label="Bearer queue full"];
+    pa -x cm [label="bearer_adv_tx(CONT, &payload[43])"];
+    ...;
+    |||;
+    cm rbox cm [label="Bearer queue empty"];
+    pa <- cm [label="bearer_queue_empty()"];
+    pa => pa [label="prov_buffer_tx()"];
+    pa => cm [label="bearer_adv_tx(CONT, &payload[43])"];
+    ...;
+    |||;
+    pa rbox pa [label="Retry timer fires"];
+    pa <- pa [label="tx_retry_cb"];
+    pa => pa [label="prov_buffer_tx()"];
+    pa => cm [label="bearer_adv_tx(START, &payload[0])"];
+    pa => cm [label="bearer_adv_tx(CONT, &payload[20])"];
+    pa => cm [label="bearer_adv_tx(CONT, &payload[43])"];
+    ...;
+    pa <= cm [label="prov_pkt_in(ACK)"];
+    pa => pa [label="timer_sch_abort(retry_timer)"];
+    pa note pa [label="BUFFER STATE=UNUSED"];
+    ps <= pa [label="prov_cb_ack_in()"],
+    pr <= ps [label="prov_cb_ack_in()"];
+
+}

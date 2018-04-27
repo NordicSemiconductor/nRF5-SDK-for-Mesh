@@ -1,0 +1,16 @@
+/* Linker script to configure memory regions */
+/* This file was generated for ${PLATFORM} with the ${SOFTDEVICE} softdevice */
+
+SEARCH_DIR(.)
+GROUP(-lgcc -lc -lnosys)
+
+MEMORY
+{
+    FLASH (rx) : ORIGIN = ${application_flash_start}, LENGTH = ${application_flash_size}
+    RAM (rwx)  : ORIGIN = ${application_ram_start}, LENGTH = ${application_ram_size}
+
+    /* ${${${PLATFORM}_FAMILY}_BOOTLOADER_FLASH_SIZE} bytes reserved for bootloader flash */
+    /* ${${${PLATFORM}_FAMILY}_BOOTLOADER_RAM_SIZE} bytes reserved for bootloader RAM */
+}
+
+INCLUDE "nrf5x_common.ld"

@@ -1,0 +1,28 @@
+{
+    "__packet__": true,
+    "name": "heartbeat",
+    "type": "absolute",
+    "module": "trs_control",
+    "packet_type": "packet_mesh_trs_control_packet_t",
+    "max_length": 3,
+    "fields": [
+        {
+            "name": "rfu",
+            "width":  1,
+            "doc": "reserved for future use",
+            "visible": false
+        },
+        {
+            "name": "init_ttl",
+            "width":  7,
+            "doc": "initial TTL used when sending the message",
+            "visible": true
+        },
+        {
+            "name": "features",
+            "width":  16,
+            "doc": "bit field of currently active features of the node",
+            "visible": true
+        }
+    ]
+}

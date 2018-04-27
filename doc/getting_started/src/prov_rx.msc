@@ -1,0 +1,27 @@
+msc {
+    hscale="2.0";
+    pr [label="Provisioner"],
+    ps [label="Provisioning"],
+    pa [label="Prov Bearer Adv"],
+    cm [label="Bearer Adv"];
+
+    pa note pa [label="BUFFER STATE=UNUSED"];
+    pa <= cm [label="prov_bearer_adv_pkt_in(START, &payload[0])"];
+    pa <= pa [label="handle_transaction_start_packet()"];
+    pa <- pa [label="STORE PAYLOAD AND PARAMS"];
+    pa note pa [label="BUFFER STATE=RX"];
+    ...;
+    pa <= cm [label="prov_bearer_adv_pkt_in(CONT, &payload[20])"];
+    pa <= pa [label="handle_transaction_continuation_packet()"];
+    pa <- pa [label="STORE PAYLOAD"];
+    ...;
+    pa <= cm [label="prov_bearer_adv_pkt_in(CONT, &payload[43])"];
+    pa <= pa [label="handle_transaction_continuation_packet()"];
+    pa <- pa [label="STORE PAYLOAD"];
+    pa => cm [label="bearer_adv_tx(ACK)"];
+    pa note pa [label="BUFFER STATE=UNUSED"];
+    ps <= pa [label="prov_pkt_in(payload)"];
+    ps <= ps [label="reset_timeout_timer()"];
+    pr <= ps [label="prov_provisioner_pkt_in(payload)"];
+
+}

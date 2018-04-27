@@ -1,0 +1,15 @@
+digraph pbr_tunnel
+{
+    rankdir = LR;
+
+    node [shape = box];
+    PROVISIONER [label = "PBR Client\n(Provisioner)"];
+    RELAY       [label = "PBR Server"];
+    PROVISIONEE [label = "Provisionee", style = filled, fillcolor = darkseagreen];
+
+    node [shape = ellipse];
+    NETWORK     [label = "Mesh network", fillcolor = "azure2", style = filled];
+
+    PROVISIONER -> NETWORK -> RELAY -> PROVISIONEE;
+}
+

@@ -1,0 +1,61 @@
+{
+    "__packet__": true,
+    "name": "seg",
+    "type": "variable",
+    "module": "trs",
+    "packet_type": "packet_mesh_trs_packet_t",
+    "defines": [
+        {
+            "name": "PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE",
+            "value": "(12)",
+            "doc": "Max PDU size of a segmented transport access message."
+        },
+        {
+            "name": "PACKET_MESH_TRS_SEG_ACCESS_MAX_SIZE",
+            "value": "(16)",
+            "doc": "Max size of a segmented transport access message."
+        },
+        {
+            "name": "PACKET_MESH_TRS_SEG_CONTROL_PDU_MAX_SIZE",
+            "value": "(8)",
+            "doc": "Max PDU size of a segmented transport control message."
+        },
+        {
+            "name": "PACKET_MESH_TRS_SEG_CONTROL_MAX_SIZE",
+            "value": "(12)",
+            "doc": "Max size of a segmented transport control message."
+        }
+    ],
+    "fields": [
+        {
+            "name": "other",
+            "width":  8,
+            "doc": "common header fields (covered by other formats)",
+            "visible": false
+        },
+        {
+            "name": "szmic",
+            "width":  1,
+            "doc": "size of MIC flag",
+            "visible": true
+        },
+        {
+            "name": "seqzero",
+            "width":  13,
+            "doc": "least significant bits of SeqAuth",
+            "visible": true
+        },
+        {
+            "name": "sego",
+            "width":  5,
+            "doc": "segment offset number",
+            "visible": true
+        },
+        {
+            "name": "segn",
+            "width":  5,
+            "doc": "last segment number",
+            "visible": true
+        }
+    ]
+}

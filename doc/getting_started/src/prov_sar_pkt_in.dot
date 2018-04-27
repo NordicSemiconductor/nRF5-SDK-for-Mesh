@@ -1,0 +1,58 @@
+digraph prov_sar_pkt_in
+{
+    node [shape=diamond, height=1.2,width=1.2,fontsize="10", fillcolor="gold1", style="filled"];
+    GPCF_CHECK[label="GENERIC PROVISIONING\nCONTROL FIELD TYPE"];
+    SAR_LENGTH_VALID[label="IS SAR PACKET\n LENGTH VALID?"];
+    EXISTING_SAR[label="IS THERE AN\n EXISTING TRANSACTION?"];
+    EXISTING_SAR2[label="IS THERE AN\n EXISTING TRANSACTION?"];
+    EXISTING_SAR3[label="IS THERE AN\n EXISTING TRANSACTION?"];
+    MALLOC_FAIL[label="DID MALLOC FAIL?"]
+    LAST_FRAGMENT_RECEIVED[label="IS THIS\nTHE LAST FRAGMENT?"]
+    CB_ACK_SUCCESS[label="Did prov_bearer_cb_ack_received\n return success?"]
+    NEW_FRAGMENT[label="IS THIS A\nNEW FRAGMENT?"]
+    node [shape=record, height=1,width=1.7, fontsize="10", fillcolor="white"];
+    LINK_CLOSE[label="|prov_bearer:link_close|"];
+    ACK_RECEIVED[label="|prov_bearer:cb_ack_received|"];
+    DISCARD_PREVIOUS[label="DISCARD PREVIOUS SESSION\nFREE RX BUFFER"];
+    DISCARD_OUTPUT[label="FREE TX BUFFER"];
+    DISCARD_INPUT[label="FREE RX BUFFER"];
+    MALLOC[label="MALLOC NEW\nPACKET BUFFER"];
+    LINK_CLOSE[label="|prov_bearer:link_close|"];
+    PROCESS[label="PROCESS INCOMING PACKET"];
+    COPY[label="COPY INCOMING\nPACKET TO BUFFER"];
+    STOP_TIMEOUT[label="STOP TIMEOUT"];
+    node [shape=circle,fontsize="11"];
+    ENTRY[label="",style=filled, fillcolor=black, height=0.3,width=0.5,fixedsize=true];
+    node [shape=doublecircle,fontsize="11"];
+    EXIT[label="",style=filled, fillcolor=black, height=0.3,width=0.5,fixedsize=true];
+
+    ENTRY -> GPCF_CHECK;
+    GPCF_CHECK -> EXIT[label="TRANSPORT/\nUNKNOWN",fontsize="10", color="midnightblue"];
+    GPCF_CHECK -> EXISTING_SAR[label="ACKNOWLEDGE",fontsize="10", color="midnightblue"];
+    EXISTING_SAR -> STOP_TIMEOUT[label="Yes",fontsize="10", color="midnightblue"];
+    STOP_TIMEOUT -> DISCARD_OUTPUT;
+    DISCARD_OUTPUT -> ACK_RECEIVED;
+    ACK_RECEIVED -> CB_ACK_SUCCESS;
+    CB_ACK_SUCCESS -> LINK_CLOSE[label="No",fontsize="10", color="midnightblue"];
+    CB_ACK_SUCCESS -> EXIT[label="Yes",fontsize="10", color="midnightblue"];
+    EXISTING_SAR -> EXIT[label="No",fontsize="10", color="midnightblue"];
+    GPCF_CHECK -> EXISTING_SAR2[label="CONTINUE",fontsize="10", color="midnightblue"];
+    EXISTING_SAR2 -> NEW_FRAGMENT[label="Yes",fontsize="10", color="midnightblue"];
+    EXISTING_SAR2 -> EXIT[label="No",fontsize="10", color="midnightblue"];
+    NEW_FRAGMENT -> COPY[label="Yes",fontsize="10", color="midnightblue"];
+    NEW_FRAGMENT -> EXIT[label="No",fontsize="10", color="midnightblue"];
+    COPY -> LAST_FRAGMENT_RECEIVED;
+    LAST_FRAGMENT_RECEIVED -> EXIT[label="No",fontsize="10", color="midnightblue"];
+    LAST_FRAGMENT_RECEIVED -> PROCESS[label="Yes",fontsize="10", color="midnightblue"];
+    PROCESS -> DISCARD_INPUT;
+    DISCARD_INPUT -> EXIT;
+    GPCF_CHECK -> SAR_LENGTH_VALID[label="START",fontsize="10", color="midnightblue"];
+    SAR_LENGTH_VALID -> LINK_CLOSE[label="No",fontsize="10", color="midnightblue"];
+    SAR_LENGTH_VALID -> EXISTING_SAR3[label="Yes",fontsize="10", color="midnightblue"];
+    EXISTING_SAR3 -> DISCARD_PREVIOUS[label="Yes",fontsize="10", color="midnightblue"];
+    EXISTING_SAR3 -> MALLOC[label="No",fontsize="10", color="midnightblue"];
+    DISCARD_PREVIOUS -> MALLOC;
+    MALLOC -> MALLOC_FAIL;
+    MALLOC_FAIL -> LINK_CLOSE[label="Yes",fontsize="10", color="midnightblue"];
+    MALLOC_FAIL -> COPY[label="No",fontsize="10", color="midnightblue"];
+}

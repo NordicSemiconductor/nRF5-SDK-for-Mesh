@@ -1,0 +1,16 @@
+{
+    "__packet__": true,
+    "name": "common",
+    "type": "partial",
+    "module": "trs",
+    "packet_type": "packet_mesh_trs_packet_t",
+    "max_length": 1,
+    "fields": [
+        {
+            "name": "seg",
+            "width":  1,
+            "doc": "segmentation bit",
+            "visible": true
+        }
+    ]
+}

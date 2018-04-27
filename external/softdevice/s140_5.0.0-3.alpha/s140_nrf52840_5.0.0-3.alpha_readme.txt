@@ -1,0 +1,12 @@
+s140_nrf52840_5.0.0-3.alpha
+
+This release consists of the following:
+
+- This readme file
+- The s140_nrf52840_5.0.0-3.alpha API (SoftDevice header files)
+- The s140_nrf52840_5.0.0-3.alpha license agreement
+- The s140_nrf52840_5.0.0-3.alpha release notes
+- The s140_nrf52840_5.0.0-3.alpha SoftDevice (binary hex file)
+- The s140_nrf52840_5.0.0-3.alpha Migration Document
+- Modified SDK code and example (see readme.md inside zip)
+  ble_app_att_mtu_throughput_example_connecting_on_long_range.zip

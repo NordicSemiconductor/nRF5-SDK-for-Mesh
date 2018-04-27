@@ -1,0 +1,8 @@
+{
+    "__packet__": true,
+    "name": "trs",
+    "type": "absolute",
+    "packet_type": "packet_mesh_trs_packet_t",
+    "max_length": 16,
+    "fields": []
+}

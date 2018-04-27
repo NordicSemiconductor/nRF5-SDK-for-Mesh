@@ -1,0 +1,18 @@
+# Access layer message received
+msc {
+    hscale = "1.8";
+
+    app [ label = "Application" ], access [ label = "Access layer" ], network [ label = "Mesh network" ];
+    app note network [label="Model configured and ready."];
+    app => access [ label = "access_model_subscription_add()" ], network note network [ label = "This function can also be called\nby the configuration model", textbgcolor="orange" ];
+    |||;
+    ---[ label = "Incoming unreliable message" ];
+    network -> access [ label = "Incoming unreliable message" ];
+    access =>> app [ label = "opcode_handler_cb(handle, message)" ];
+    |||;
+    ---[label = "Incoming reliable message"];
+    network -> access [ label = "Incoming reliable message" ];
+    access =>> app [ label = "opcode_handler_cb(handle, message)" ];
+    app => access [ label = "access_model_reply(handle, message, reply)" ];
+    access -> network [ label = "Message reply" ];
+}

@@ -1,0 +1,64 @@
+{
+    "platforms": [
+        {
+            "name": "nrf51422_xxAA",
+            "flash_start": 0,
+            "flash_size": 262144,
+            "ram_start": 536870912,
+            "ram_size": 16384,
+            "page_size": 1024,
+            "arch": "cortex-m0",
+            "softdevices": ["s110_8.0.0", "s130_2.0.1"]
+        },
+        {
+            "name": "nrf51422_xxAB",
+            "flash_start": 0,
+            "flash_size": 131072,
+            "ram_start": 536870912,
+            "ram_size": 16384,
+            "page_size": 1024,
+            "arch": "cortex-m0",
+            "softdevices": ["s110_8.0.0", "s130_2.0.1"]
+        },
+        {
+            "name": "nrf51422_xxAC",
+            "flash_start": 0,
+            "flash_size": 262144,
+            "ram_start": 536870912,
+            "ram_size": 32768,
+            "page_size": 1024,
+            "arch": "cortex-m0",
+            "softdevices": ["s110_8.0.0", "s130_2.0.1"]
+        },
+        {
+            "name": "nrf52810_xxAA",
+            "flash_start": 0,
+            "flash_size": 196608,
+            "ram_start": 536870912,
+            "ram_size": 24576,
+            "page_size": 4096,
+            "arch": "cortex-m4f",
+            "softdevices": []
+        },
+        {
+            "name": "nrf52832_xxAA",
+            "flash_start": 0,
+            "flash_size": 524288,
+            "ram_start": 536870912,
+            "ram_size": 65536,
+            "page_size": 4096,
+            "arch": "cortex-m4f",
+            "softdevices": ["s132_3.1.0", "s132_4.0.4", "s132_5.0.0"]
+        },
+        {
+            "name": "nrf52840_xxAA",
+            "flash_start": 0,
+            "flash_size": 1048576,
+            "ram_start": 536870912,
+            "ram_size": 262144,
+            "page_size": 4096,
+            "arch": "cortex-m4f",
+            "softdevices": ["s140_5.0.0-3.alpha"]
+        }
+    ]
+}

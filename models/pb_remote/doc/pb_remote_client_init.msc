@@ -1,0 +1,20 @@
+msc {
+    hscale="1.5";
+    a[label="Application"], access[label="Access"], client[label="Remote Client"];
+    |||;
+    a note client [label="Initializing the remote client"];
+
+    a => access[label="access_init()"];
+    a => client[label="pb_remote_client_init(&client, ...)"];
+    ...;
+    a => access[label="access_model_publish_application_set(client.model_handle, ...)"];
+    a => access[label="access_model_application_bind(client.model_handle, ...)"];
+    a => access[label="access_model_publish_ttl_set(client.model_handle, ...)"];
+    a => access[label="access_model_publish_address_set(client.model_handle, server_address_handle)"];
+    ...;
+    a => client[label="pb_remote_client_remote_scan_start(&client)"];
+    ...;
+    a => client[label="pb_remote_client_remote_provision(&client, ...)"];
+
+
+}

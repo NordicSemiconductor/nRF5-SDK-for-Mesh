@@ -1,0 +1,67 @@
+<!DOCTYPE CrossStudio_Project_File>
+<solution Name="{{ target["name"] }}" target="8" version="2">
+  <project Name="{{ target["name"] }}">
+    <configuration
+      Name="Common"
+      arm_architecture="{% if platform["arch"]=="cortex-m0" %}v6M{% elif platform["arch"]=="cortex-m4f" %}v7EM{% else %}{% endif %}"
+      arm_core_type="{% if platform["arch"]=="cortex-m0" %}Cortex-M0{% elif platform["arch"]=="cortex-m4f" %}Cortex-M4{% else %}{% endif %}"
+      arm_endian="Little"
+      arm_fp_abi="{% if platform["fpu"] %}Hard{% else %}Soft{% endif %}"
+      arm_fpu_type="{% if platform["arch"] %}FPv4-SP-D16{% else %}Soft{% endif %}"
+      arm_linker_heap_size="{{ target["heap_size"] }}"
+      arm_linker_process_stack_size="0"
+      arm_linker_stack_size="{{ target["stack_size"] }}"
+      arm_linker_treat_warnings_as_errors="No"
+      arm_simulator_memory_simulation_parameter="RWX 00000000,00100000,FFFFFFFF;RWX 20000000,00010000,CDCDCDCD"
+      arm_target_device_name="{{platform["name"]}}"
+      arm_target_interface_type="SWD"
+      c_user_include_directories="{% for item in target["includes"] %}{{ item }};{% endfor %}"
+      c_preprocessor_definitions="{{ target["defines"] }}"
+      debug_target_connection="J-Link"
+      {% if softdevice["hex_file"] %}
+      debug_additional_load_file="{{ softdevice["hex_file"] }}"
+      {% endif %}
+      debug_start_from_entry_point_symbol="No"
+      linker_output_format="hex"
+      linker_printf_width_precision_supported="No"
+      linker_section_placement_file="$(StudioDir)/targets/Cortex_M/flash_placement.xml"
+      linker_section_placement_macros="FLASH_START={{ target["flash"]["start"] }};FLASH_SIZE={{ target["flash"]["size"] }};RAM_START={{ target["ram"]["start"] }};RAM_SIZE={{ target["ram"]["size"] }}"
+      linker_section_placements_segments="FLASH RX {{ platform["flash"]["start"] }} {{platform["flash"]["size"] }};RAM RWX {{ platform["ram"]["start"] }} {{ platform["ram"]["size"] }}"
+      project_directory=""
+      project_type="Executable" />
+
+    {% for group in target["groups"] %}<folder Name="{{ group.name }}">{% for file in group.files %}
+      <file file_name="{{ file.path }}" {% if "uECC" in file.path %}>
+        <configuration
+          Name="Common"
+          c_preprocessor_definitions="uECC_OPTIMIZATION_LEVEL=2;uECC_SUPPORTS_secp160r1=0;uECC_SUPPORTS_secp192r1=0;uECC_SUPPORTS_secp224r1=0;uECC_SUPPORTS_secp256r1=1;uECC_SUPPORTS_secp256k1=0;uECC_SUPPORT_COMPRESSED_POINT=0"
+          gcc_omit_frame_pointer="Yes" />
+      </file>{% else %}/>{% endif %}{% endfor %}
+    </folder>
+    {% endfor %}
+  </project>
+  <configuration Name="Debug"
+                 arm_use_builtins="Yes"
+                 gcc_debugging_level="Level 3"
+                 gcc_omit_frame_pointer="No"
+                 gcc_optimization_level="Debug"
+                 build_intermediate_directory="build/$(ProjectName)_$(Configuration)/obj"
+                 build_output_directory="build/$(ProjectName)_$(Configuration)">
+  </configuration>
+  <configuration Name="ReleaseWithDebugInformation"
+                 arm_use_builtins="Yes"
+                 gcc_debugging_level="Level 3"
+                 gcc_omit_frame_pointer="Yes"
+                 gcc_optimization_level="Optimize For Size"
+                 build_intermediate_directory="build/$(ProjectName)_$(Configuration)/obj"
+                 build_output_directory="build/$(ProjectName)_$(Configuration)">
+  </configuration>
+  <configuration Name="Release"
+                 arm_use_builtins="Yes"
+                 gcc_debugging_level="None"
+                 gcc_omit_frame_pointer="Yes"
+                 gcc_optimization_level="Optimize For Size"
+                 build_intermediate_directory="build/$(ProjectName)_$(Configuration)/obj"
+                 build_output_directory="build/$(ProjectName)_$(Configuration)">
+  </configuration>
+</solution>

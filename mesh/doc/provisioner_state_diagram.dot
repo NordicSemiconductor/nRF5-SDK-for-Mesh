@@ -1,0 +1,67 @@
+digraph provisionee_state_control
+{
+    node [shape=box, height=0.3,width=1.7];
+    //BLACK_LINES[label="Black arrows are internal transitions",fillcolor="black", style="filled", fontcolor= "white"];
+    //GREEN_LINES[label="Green arrows are transitions due to data from provisioner",fillcolor="olivedrab4", style="filled", fontcolor= "white"];
+    //GREY_LINES[label="Grey arrows are transitions due to data from application",fillcolor="grey57", style="filled", fontcolor= "white"];
+
+    node [shape=circle,fontsize="10",height=0.6,width=1.2, fixedsize=true];
+    IDLE[label="IDLE",fillcolor="burlywood1", style="filled"];
+    WAIT_LINK[label="WAIT_LINK",fillcolor="magenta", style="filled"];
+    WAIT_CAPS[label="WAIT_CAPS",fillcolor="lightblue1", style="filled"];
+
+    WAIT_PUB_KEY[label="WAIT_PUB_KEY",fillcolor="mediumpurple3", style="filled"];
+    WAIT_OOB_OUTPUT[label="WAIT_OOB_\nOUTPUT",fillcolor="plum", style="filled"];
+    WAIT_CONFIRM[label="WAIT_CONFIRM",fillcolor="maroon3", style="filled"];
+    WAIT_RANDOM[label="WAIT_RANDOM",fillcolor="mediumpurple1", style="filled"];
+    WAIT_INPUT_COMPLETE[label="WAIT_INPUT_\nCOMPLETE",fillcolor="purple", style="filled"];
+    WAIT_PROV_COMPLETE[label="WAIT_PROV_\nCOMPLETE",fillcolor="green", style="filled"];
+
+    node [shape=diamond, height=0.4,width=0.6, fontsize=4];
+    PUB_KEY_OOB[label="PUB_KEY\nOOB Exchange\nin use",fillcolor="", style="filled"];
+    PUB_KEY_OOB2[label="PUB_KEY\nOOB Exchange\nin use",fillcolor="", style="filled"];
+    OUTPUT_OOB[label="OUTPUT OOB\nin use",fillcolor="", style="filled"];
+    INPUT_OOB[label="INPUT OOB\nin use",fillcolor="", style="filled"];
+    CHECK_CONFIRMATION[label="CONFIRMATION\nCHECK",fillcolor="", style="filled"];
+
+    node [shape=parallelogram, height=0.4,width=.6, fontsize=5];
+    INPUT_RANDOM_NO[label="INPUT\nRAND NO"];
+    DISPLAY_RANDOM_NO[label="DISPLAY\nRAND NO"];
+    READ_PUB_KEY_FROM_DEVICE[label="READ PUB_KEY\nFROM DEVICE"];
+
+    node [shape=record, height=0.3,width=.5, fontsize=5];
+    SEND_CONFIRMATION[label="SEND\nCOONFIRMATION"];
+    SEND_PROV_START[label="SEND\nPROV_START"];
+    SEND_PROV_PUBLIC_KEY [label="SEND\nPUB_KEY"];
+
+    IDLE -> WAIT_LINK [label="PROVISION",fontsize="10", color="grey57"];
+    WAIT_LINK -> SEND_INVITE [label="LINK_ESTABLISHED", fontsize="10", color="olivedrab4"];
+    SEND_INVITE -> WAIT_CAPS [label="ACK\nINVITE", fontsize="5", color="olivedrab4"];
+    WAIT_CAPS -> SEND_PROV_START [label="CAPABILITIES", fontsize="10", color="olivedrab4"];
+    SEND_PROV_START -> PUB_KEY_OOB [label="ACK\nPROV_START", fontsize="5", color="olivedrab4"];
+    PUB_KEY_OOB -> READ_PUB_KEY_FROM_DEVICE [label="TRUE", fontsize="5", color="black"];
+
+    PUB_KEY_OOB -> SEND_PROV_PUBLIC_KEY [label="FALSE", fontsize="5", color="black"];
+    READ_PUB_KEY_FROM_DEVICE -> SEND_PROV_PUBLIC_KEY [label="", fontsize="10", color="black"];
+    SEND_PROV_PUBLIC_KEY -> PUB_KEY_OOB2 [label="", fontsize="10", color="black"];
+    PUB_KEY_OOB2 -> WAIT_PUB_KEY [label="FALSE", fontsize="5", color="black"];
+    PUB_KEY_OOB2 -> OUTPUT_OOB [label="TRUE", fontsize="5", color="black"];
+    WAIT_PUB_KEY -> OUTPUT_OOB [label="", fontsize="10", color="black"];
+    OUTPUT_OOB -> INPUT_RANDOM_NO [label="TRUE", fontsize="5", color="black"];
+    OUTPUT_OOB -> INPUT_OOB[label="FALSE", fontsize="5", color="black"];
+    INPUT_OOB -> DISPLAY_RANDOM_NO [label="TRUE", fontsize="5", color="black"];
+    INPUT_OOB -> SEND_CONFIRMATION [label="FALSE", fontsize="5", color="grey57"];
+    DISPLAY_RANDOM_NO -> WAIT_INPUT_COMPLETE [label="", fontsize="10", color="black"];
+    WAIT_INPUT_COMPLETE -> SEND_CONFIRMATION [label="INPUT_COMPLETE", fontsize="10", color="olivedrab4"];
+    INPUT_RANDOM_NO -> WAIT_OOB_OUTPUT [label="", fontsize="5", color="black"];
+    WAIT_OOB_OUTPUT -> SEND_CONFIRMATION [label="INPUT", fontsize="10", color="grey57"];
+    SEND_CONFIRMATION -> WAIT_CONFIRM [label="ACK\nCONFIRMATION", fontsize="5", color="olivedrab4"];
+    WAIT_CONFIRM -> SEND_RANDOM [label="CONFIRMATION", fontsize="10", color="olivedrab4"];
+    SEND_RANDOM -> WAIT_RANDOM [label="ACK\nRANDOM", fontsize="5", color="olivedrab4"];
+    WAIT_RANDOM -> CHECK_CONFIRMATION [label="RANDOM", fontsize="10", color="olivedrab4"];
+    CHECK_CONFIRMATION -> SEND_CLOSE [label="FAIL", fontsize="5", color="black"];
+    CHECK_CONFIRMATION -> SEND_DATA [label="SUCCESS", fontsize="5", color="black"];
+    SEND_DATA -> WAIT_PROV_COMPLETE [label="ACK\nDATA", fontsize="5", color="black"];
+    WAIT_PROV_COMPLETE -> SEND_CLOSE [label="PROVISIONING\nCOMPLETE", fontsize="10", color="olivedrab4"];
+    SEND_CLOSE -> IDLE [label="", fontsize="10", color="black"];
+}

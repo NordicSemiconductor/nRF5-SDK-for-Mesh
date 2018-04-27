@@ -1,0 +1,9 @@
+{
+    "bootloader_config": {
+        "bootloader_id": 1,
+        "bootloader_version": 1,
+        "company_id": 89,
+        "application_id": 1,
+        "application_version": 1
+    }
+}

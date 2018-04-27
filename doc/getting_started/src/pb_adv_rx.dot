@@ -1,0 +1,45 @@
+digraph {
+
+    subgraph start {
+        node [shape=plaintext, fontsize="11"];
+        edge [fontsize="11"];
+        s_RX_start [label="RX[START]"];
+        s_IGNORE [label="IGNORE"];
+
+        node [shape=box, style="filled"];
+        s_Set_params [label="Set params"];
+        s_ACK [label="ACK"];
+
+        node [shape=diamond, style="filled"];
+        s_STATE [label="BUFFER\nSTATE?"];
+        s_TRX [label="TRANSACTION\nNUMBER?"];
+
+        s_RX_start -> s_TRX;
+        s_TRX -> s_STATE [label=">= current"];
+        s_TRX -> s_ACK [label="< current"];
+        s_STATE -> s_IGNORE [label="(TX || RX)"];
+        s_STATE -> s_Set_params [label="UNUSED"];
+    }
+    subgraph cont {
+        node [shape=plaintext, fontsize="11"];
+        edge [fontsize="11"];
+        RX_cont [label="RX[CONTINUATION]"];
+        IGNORE [label="IGNORE"];
+
+        node [shape=box, style="filled"];
+        store [label="Store\ndata"];
+        ACK [label="ACK"];
+
+        node [shape=diamond, style="filled"];
+        STATE [label="BUFFER\nSTATE?"];
+        TRX [label="TRANSACTION\nNUMBER?"];
+
+        RX_cont -> TRX;
+        TRX -> STATE [label=">= current"];
+        TRX -> ACK [label="< current"];
+        STATE -> IGNORE [label="(TX || UNUSED)"];
+        STATE -> store [label="RX"];
+    }
+
+
+}

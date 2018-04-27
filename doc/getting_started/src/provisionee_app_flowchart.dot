@@ -1,0 +1,27 @@
+digraph provisionee_application
+{
+    splines = line;
+
+    node [shape = box];
+    ENTRY           [label = "", style = filled, fillcolor = black, shape = circle, height = 0.5, width = 0.5, fixedsize = true];
+    INITIALIZE      [label = "nrf_mesh_prov_init()", xlabel = "Initialize provisioning context", shape = box];
+    LISTEN          [label = "nrf_mesh_prov_listen()", xlabel = "Listen for incoming links", shape = box];
+    PROVIDE_AUTH    [label = <<i>Provide authentication data:</i><br />nrf_mesh_prov_auth_provide()>, shape = box];
+    SETUP_NETWORK   [label = "Configure device using\nthe configuration model", shape = box];
+    COMPLETE        [label = "Provisioning\ncomplete", style = rounded];
+
+    node [shape = circle, height = 1.0, width = 1.0];
+    WAIT_FOR_EVENTS [label = <<B>Wait for mesh events</B>>, xlabel = "Process incoming events", fillcolor = "lightskyblue2", style = "filled"];
+
+    ENTRY -> INITIALIZE;
+    INITIALIZE -> LISTEN;
+    LISTEN -> WAIT_FOR_EVENTS;
+
+    WAIT_FOR_EVENTS -> WAIT_FOR_EVENTS [label = "LINK_ESTABLISHED", color = "midnightblue"];
+    WAIT_FOR_EVENTS -> SETUP_NETWORK [label = "PROV_COMPLETE", color = "midnightblue"];
+
+    WAIT_FOR_EVENTS -> PROVIDE_AUTH [label = "STATIC_REQUEST", color = "midnightblue"];
+    PROVIDE_AUTH -> WAIT_FOR_EVENTS [color = "midnightblue"];
+
+    SETUP_NETWORK -> COMPLETE;
+}

@@ -1,0 +1,217 @@
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1"
+ width="1200px" height="504px"
+ viewBox="0 0 1200 504"
+ xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges"
+ stroke-width="1" text-rendering="geometricPrecision">
+<polygon fill="white" points="118,7 180,7 180,16 118,16"/>
+<text x="150" y="16" textLength="60" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+Provisioner
+</text>
+<polygon fill="white" points="416,7 482,7 482,16 416,16"/>
+<text x="450" y="16" textLength="65" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+Provisioning
+</text>
+<polygon fill="white" points="704,7 794,7 794,16 704,16"/>
+<text x="750" y="16" textLength="88" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+Prov Bearer Adv
+</text>
+<polygon fill="white" points="1018,7 1080,7 1080,16 1018,16"/>
+<text x="1050" y="16" textLength="60" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+Bearer Adv
+</text>
+<line x1="150" y1="22" x2="150" y2="50" stroke="black"/>
+<line x1="450" y1="22" x2="450" y2="50" stroke="black"/>
+<line x1="750" y1="22" x2="750" y2="50" stroke="black"/>
+<line x1="1050" y1="22" x2="1050" y2="50" stroke="black"/>
+<polygon fill="white" points="608,22 880,22 880,44 608,44"/>
+<polygon fill="white" points="608,34 892,34 892,44 608,44"/>
+<polygon fill="white" points="880,22 892,34 880,34"/>
+<line x1="608" y1="22" x2="880" y2="22" stroke="black"/>
+<line x1="608" y1="44" x2="892" y2="44" stroke="black"/>
+<line x1="608" y1="22" x2="608" y2="44" stroke="black"/>
+<line x1="892" y1="34" x2="892" y2="44" stroke="black"/>
+<line x1="880" y1="22" x2="892" y2="34" stroke="black"/>
+<line x1="880" y1="22" x2="880" y2="34" stroke="black"/>
+<line x1="892" y1="34" x2="880" y2="34" stroke="black"/>
+<polygon fill="white" points="674,29 824,29 824,38 674,38"/>
+<text x="675" y="38" textLength="148" font-family="Helvetica" font-size="12" fill="black">
+BUFFER STATE=UNUSED
+</text>
+<line x1="150" y1="50" x2="150" y2="78" stroke="black"/>
+<line x1="450" y1="50" x2="450" y2="78" stroke="black"/>
+<line x1="750" y1="50" x2="750" y2="78" stroke="black"/>
+<line x1="1050" y1="50" x2="1050" y2="78" stroke="black"/>
+<line x1="1050" y1="61" x2="750" y2="61" stroke="black"/>
+<polygon fill="black" points="750,61 760,67 760,55"/>
+<polygon fill="white" points="775,51 1024,51 1024,60 775,60"/>
+<text x="776" y="60" textLength="247" font-family="Helvetica" font-size="12" fill="black">
+prov_bearer_adv_pkt_in(START, &amp;payload[0])
+</text>
+<line x1="150" y1="78" x2="150" y2="106" stroke="black"/>
+<line x1="450" y1="78" x2="450" y2="106" stroke="black"/>
+<line x1="750" y1="78" x2="750" y2="106" stroke="black"/>
+<line x1="1050" y1="78" x2="1050" y2="106" stroke="black"/>
+<path d="M 750 83 A150,6 0 0,1 750,95" stroke="black" fill="none"/><polygon fill="black" points="750,95 760,101 760,89"/>
+<polygon fill="white" points="565,79 748,79 748,88 565,88"/>
+<text x="566" y="88" textLength="181" font-family="Helvetica" font-size="12" fill="black">
+handle_transaction_start_packet()
+</text>
+<line x1="150" y1="106" x2="150" y2="134" stroke="black"/>
+<line x1="450" y1="106" x2="450" y2="134" stroke="black"/>
+<line x1="750" y1="106" x2="750" y2="134" stroke="black"/>
+<line x1="1050" y1="106" x2="1050" y2="134" stroke="black"/>
+<path d="M 750 111 A150,6 0 0,1 750,123" stroke="black" fill="none"/><line x1="750" y1="123" x2="760" y2="129" stroke="black"/>
+<polygon fill="white" points="562,107 748,107 748,116 562,116"/>
+<text x="563" y="116" textLength="184" font-family="Helvetica" font-size="12" fill="black">
+STORE PAYLOAD AND PARAMS
+</text>
+<line x1="150" y1="134" x2="150" y2="162" stroke="black"/>
+<line x1="450" y1="134" x2="450" y2="162" stroke="black"/>
+<line x1="750" y1="134" x2="750" y2="162" stroke="black"/>
+<line x1="1050" y1="134" x2="1050" y2="162" stroke="black"/>
+<polygon fill="white" points="608,134 880,134 880,156 608,156"/>
+<polygon fill="white" points="608,146 892,146 892,156 608,156"/>
+<polygon fill="white" points="880,134 892,146 880,146"/>
+<line x1="608" y1="134" x2="880" y2="134" stroke="black"/>
+<line x1="608" y1="156" x2="892" y2="156" stroke="black"/>
+<line x1="608" y1="134" x2="608" y2="156" stroke="black"/>
+<line x1="892" y1="146" x2="892" y2="156" stroke="black"/>
+<line x1="880" y1="134" x2="892" y2="146" stroke="black"/>
+<line x1="880" y1="134" x2="880" y2="146" stroke="black"/>
+<line x1="892" y1="146" x2="880" y2="146" stroke="black"/>
+<polygon fill="white" points="691,141 807,141 807,150 691,150"/>
+<text x="692" y="150" textLength="114" font-family="Helvetica" font-size="12" fill="black">
+BUFFER STATE=RX
+</text>
+<line x1="150" y1="162" x2="150" y2="179" stroke="black" stroke-dasharray="2,2"/>
+<line x1="450" y1="162" x2="450" y2="179" stroke="black" stroke-dasharray="2,2"/>
+<line x1="750" y1="162" x2="750" y2="179" stroke="black" stroke-dasharray="2,2"/>
+<line x1="1050" y1="162" x2="1050" y2="179" stroke="black" stroke-dasharray="2,2"/>
+<line x1="150" y1="179" x2="150" y2="207" stroke="black"/>
+<line x1="450" y1="179" x2="450" y2="207" stroke="black"/>
+<line x1="750" y1="179" x2="750" y2="207" stroke="black"/>
+<line x1="1050" y1="179" x2="1050" y2="207" stroke="black"/>
+<line x1="1050" y1="190" x2="750" y2="190" stroke="black"/>
+<polygon fill="black" points="750,190 760,196 760,184"/>
+<polygon fill="white" points="774,180 1024,180 1024,189 774,189"/>
+<text x="775" y="189" textLength="248" font-family="Helvetica" font-size="12" fill="black">
+prov_bearer_adv_pkt_in(CONT, &amp;payload[20])
+</text>
+<line x1="150" y1="207" x2="150" y2="235" stroke="black"/>
+<line x1="450" y1="207" x2="450" y2="235" stroke="black"/>
+<line x1="750" y1="207" x2="750" y2="235" stroke="black"/>
+<line x1="1050" y1="207" x2="1050" y2="235" stroke="black"/>
+<path d="M 750 212 A150,6 0 0,1 750,224" stroke="black" fill="none"/><polygon fill="black" points="750,224 760,230 760,218"/>
+<polygon fill="white" points="523,208 748,208 748,217 523,217"/>
+<text x="524" y="217" textLength="223" font-family="Helvetica" font-size="12" fill="black">
+handle_transaction_continuation_packet()
+</text>
+<line x1="150" y1="235" x2="150" y2="263" stroke="black"/>
+<line x1="450" y1="235" x2="450" y2="263" stroke="black"/>
+<line x1="750" y1="235" x2="750" y2="263" stroke="black"/>
+<line x1="1050" y1="235" x2="1050" y2="263" stroke="black"/>
+<path d="M 750 240 A150,6 0 0,1 750,252" stroke="black" fill="none"/><line x1="750" y1="252" x2="760" y2="258" stroke="black"/>
+<polygon fill="white" points="645,236 748,236 748,245 645,245"/>
+<text x="646" y="245" textLength="101" font-family="Helvetica" font-size="12" fill="black">
+STORE PAYLOAD
+</text>
+<line x1="150" y1="263" x2="150" y2="280" stroke="black" stroke-dasharray="2,2"/>
+<line x1="450" y1="263" x2="450" y2="280" stroke="black" stroke-dasharray="2,2"/>
+<line x1="750" y1="263" x2="750" y2="280" stroke="black" stroke-dasharray="2,2"/>
+<line x1="1050" y1="263" x2="1050" y2="280" stroke="black" stroke-dasharray="2,2"/>
+<line x1="150" y1="280" x2="150" y2="308" stroke="black"/>
+<line x1="450" y1="280" x2="450" y2="308" stroke="black"/>
+<line x1="750" y1="280" x2="750" y2="308" stroke="black"/>
+<line x1="1050" y1="280" x2="1050" y2="308" stroke="black"/>
+<line x1="1050" y1="291" x2="750" y2="291" stroke="black"/>
+<polygon fill="black" points="750,291 760,297 760,285"/>
+<polygon fill="white" points="774,281 1024,281 1024,290 774,290"/>
+<text x="775" y="290" textLength="248" font-family="Helvetica" font-size="12" fill="black">
+prov_bearer_adv_pkt_in(CONT, &amp;payload[43])
+</text>
+<line x1="150" y1="308" x2="150" y2="336" stroke="black"/>
+<line x1="450" y1="308" x2="450" y2="336" stroke="black"/>
+<line x1="750" y1="308" x2="750" y2="336" stroke="black"/>
+<line x1="1050" y1="308" x2="1050" y2="336" stroke="black"/>
+<path d="M 750 313 A150,6 0 0,1 750,325" stroke="black" fill="none"/><polygon fill="black" points="750,325 760,331 760,319"/>
+<polygon fill="white" points="523,309 748,309 748,318 523,318"/>
+<text x="524" y="318" textLength="223" font-family="Helvetica" font-size="12" fill="black">
+handle_transaction_continuation_packet()
+</text>
+<line x1="150" y1="336" x2="150" y2="364" stroke="black"/>
+<line x1="450" y1="336" x2="450" y2="364" stroke="black"/>
+<line x1="750" y1="336" x2="750" y2="364" stroke="black"/>
+<line x1="1050" y1="336" x2="1050" y2="364" stroke="black"/>
+<path d="M 750 341 A150,6 0 0,1 750,353" stroke="black" fill="none"/><line x1="750" y1="353" x2="760" y2="359" stroke="black"/>
+<polygon fill="white" points="645,337 748,337 748,346 645,346"/>
+<text x="646" y="346" textLength="101" font-family="Helvetica" font-size="12" fill="black">
+STORE PAYLOAD
+</text>
+<line x1="150" y1="364" x2="150" y2="392" stroke="black"/>
+<line x1="450" y1="364" x2="450" y2="392" stroke="black"/>
+<line x1="750" y1="364" x2="750" y2="392" stroke="black"/>
+<line x1="1050" y1="364" x2="1050" y2="392" stroke="black"/>
+<line x1="750" y1="375" x2="1050" y2="375" stroke="black"/>
+<polygon fill="black" points="1050,375 1040,381 1040,369"/>
+<polygon fill="white" points="844,365 955,365 955,374 844,374"/>
+<text x="845" y="374" textLength="109" font-family="Helvetica" font-size="12" fill="black">
+bearer_adv_tx(ACK)
+</text>
+<line x1="150" y1="392" x2="150" y2="420" stroke="black"/>
+<line x1="450" y1="392" x2="450" y2="420" stroke="black"/>
+<line x1="750" y1="392" x2="750" y2="420" stroke="black"/>
+<line x1="1050" y1="392" x2="1050" y2="420" stroke="black"/>
+<polygon fill="white" points="608,392 880,392 880,414 608,414"/>
+<polygon fill="white" points="608,404 892,404 892,414 608,414"/>
+<polygon fill="white" points="880,392 892,404 880,404"/>
+<line x1="608" y1="392" x2="880" y2="392" stroke="black"/>
+<line x1="608" y1="414" x2="892" y2="414" stroke="black"/>
+<line x1="608" y1="392" x2="608" y2="414" stroke="black"/>
+<line x1="892" y1="404" x2="892" y2="414" stroke="black"/>
+<line x1="880" y1="392" x2="892" y2="404" stroke="black"/>
+<line x1="880" y1="392" x2="880" y2="404" stroke="black"/>
+<line x1="892" y1="404" x2="880" y2="404" stroke="black"/>
+<polygon fill="white" points="674,399 824,399 824,408 674,408"/>
+<text x="675" y="408" textLength="148" font-family="Helvetica" font-size="12" fill="black">
+BUFFER STATE=UNUSED
+</text>
+<line x1="150" y1="420" x2="150" y2="448" stroke="black"/>
+<line x1="450" y1="420" x2="450" y2="448" stroke="black"/>
+<line x1="750" y1="420" x2="750" y2="448" stroke="black"/>
+<line x1="1050" y1="420" x2="1050" y2="448" stroke="black"/>
+<line x1="750" y1="431" x2="450" y2="431" stroke="black"/>
+<polygon fill="black" points="450,431 460,437 460,425"/>
+<polygon fill="white" points="542,421 656,421 656,430 542,430"/>
+<text x="543" y="430" textLength="112" font-family="Helvetica" font-size="12" fill="black">
+prov_pkt_in(payload)
+</text>
+<line x1="150" y1="448" x2="150" y2="476" stroke="black"/>
+<line x1="450" y1="448" x2="450" y2="476" stroke="black"/>
+<line x1="750" y1="448" x2="750" y2="476" stroke="black"/>
+<line x1="1050" y1="448" x2="1050" y2="476" stroke="black"/>
+<path d="M 450 465 A148,6 0 0,1 450,453" stroke="black" fill="none"/><polygon fill="black" points="450,465 440,471 440,459"/>
+<polygon fill="white" points="450,449 566,449 566,458 450,458"/>
+<text x="451" y="458" textLength="114" font-family="Helvetica" font-size="12" fill="black">
+reset_timeout_timer()
+</text>
+<line x1="150" y1="476" x2="150" y2="504" stroke="black"/>
+<line x1="450" y1="476" x2="450" y2="504" stroke="black"/>
+<line x1="750" y1="476" x2="750" y2="504" stroke="black"/>
+<line x1="1050" y1="476" x2="1050" y2="504" stroke="black"/>
+<line x1="450" y1="487" x2="150" y2="487" stroke="black"/>
+<polygon fill="black" points="150,487 160,493 160,481"/>
+<polygon fill="white" points="210,477 389,477 389,486 210,486"/>
+<text x="211" y="486" textLength="177" font-family="Helvetica" font-size="12" fill="black">
+prov_provisioner_pkt_in(payload)
+</text>
+<line x1="150" y1="498" x2="150" y2="504" stroke="black"/>
+<line x1="450" y1="498" x2="450" y2="504" stroke="black"/>
+<line x1="750" y1="498" x2="750" y2="504" stroke="black"/>
+<line x1="1050" y1="498" x2="1050" y2="504" stroke="black"/>
+</svg>

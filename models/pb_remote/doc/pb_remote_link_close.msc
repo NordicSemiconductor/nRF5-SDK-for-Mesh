@@ -1,0 +1,39 @@
+msc {
+        hscale="1.5";
+
+        client[label="Client"],server[label="Server"],device[label="Unprovisioned Device"];
+        |||;
+        client note device[label="Provisioning complete: Client closing link."];
+        |||;
+
+        client->server[label="Link Close"];
+        client rbox client[label="WAIT_FOR_ACK"];
+
+        client<-server[label="LINK_STATUS: Accepted"];
+        client rbox client[label="LINK_ESTABLISHED"];
+
+        server->device[label="Link Close"];
+        server rbox server[label="WAIT_FOR_LOCAL_ACK"];
+        server<-device[label="ACK"];
+
+        client<-server[label="LINK_STATUS_REPORT: Link closed"];
+        server rbox server[label="WAIT_FOR_REMOTE_ACK"];
+
+        client->server[label="LINK_STATUS: Accepted"];
+        client rbox client[label="IDLE"],
+        server rbox server[label="IDLE"];
+
+
+        |||;
+        client note device[label="Link timeout: server closing link."];
+        |||;
+
+        server<-device[label="Link Timeout"];
+        server->device[label="ACK"];
+
+        client<-server[label="LINK_STATUS_REPORT: Link closed"];
+        server rbox server[label="WAIT_FOR_REMOTE_ACK"];
+        client->server[label="LINK_STATUS: Accepted"];
+        server rbox server[label="IDLE"],
+        client rbox client[label="IDLE"];
+}

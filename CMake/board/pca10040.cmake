@@ -1,0 +1,7 @@
+set(pca10040_DEFINES
+    -DBOARD_PCA10040
+    -DCONFIG_GPIO_AS_PINRESET)
+set(pca10040_INCLUDE_DIRS
+    "${SDK_ROOT}/components/boards"
+    "${SDK_ROOT}/components/drivers_nrf/hal"
+    "${SDK_ROOT}/components/libraries/util")

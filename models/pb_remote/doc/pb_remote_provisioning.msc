@@ -1,0 +1,95 @@
+msc {
+    hscale="1.5";
+    a[label="Application"], Client, Server, c[label="Unprovisioned Device"];
+
+    |||;
+    a note c [label=" Client and Server initialized and ready "];
+    |||;
+
+    Client rbox Client [label="STATE: IDLE"],
+    Server rbox Server [label="STATE: IDLE"];
+    |||;
+
+    a => Client [label="pb_remote_client_remote_scan_start()"];
+    a << Client [label="NRF_SUCCESS"];
+
+    Client -> Server [label="Scan Start"];
+    Client <- Server [label="Status: Scan Started"];
+    Client rbox Client [label="IDLE"],
+    Server rbox Server [label="SCANNING"];
+    ...;
+    c -> Server [label="UUID"];
+    Server =>> Server [label="Store(UUID, SlotID)"];
+    Client <- Server [label="Scan report: UUID, SlotID"];
+    Server rbox Server [label="WAIT_FOR_REMOTE_ACK"];
+    Client -> Server [label="Scan report status: accepted"];
+    Server rbox Server [label="SCANNING"];
+
+    a => Client [label="pb_remote_client_remote_provision()"];
+    a << Client [label="NRF_SUCCESS"];
+
+    Client -> Server [label="Link open: SlotID"];
+    Client rbox Client [label="WAIT_FOR_ACK"],
+    Server rbox Server [label="LINK_OPENING"];
+    Client <- Server [label="Link status: Opening"];
+    Client rbox Client [label="IDLE"];
+
+    Server -> c      [label="Link open"];
+    Server <- c      [label="Link confirm"];
+    Client <- Server [label="Link report: Opened"];
+    Server rbox Server [label="WAIT_FOR_REMOTE_ACK"];
+    Client -> Server [label="Link status: Accepted"];
+    Client rbox Client [label="LINK_ESTABLISHED"],
+    Server rbox Server [label="LINK_ESTABLISHED"];
+
+    Client -> Server [label="Packet transfer: [data]"];
+    Client rbox Client [label="WAIT_FOR_ACK"];
+    Client <- Server [label="Packet transfer status: Buffer accepted"];
+    Client rbox Client [label="LINK_ESTABLISHED"];
+
+    Server -> c      [label="Packet transfer: [data]"];
+    Server rbox Server [label="WAIT_FOR_LOCAL_ACK"];
+    Server <- c      [label="ACK"];
+    Server <- c      [label="Packet transfer: [data]"];
+    Server =>> Server [label="Queue([data])"];
+
+    Client <- Server [label="Packet transfer report: Delivered"];
+    Server rbox Server [label="WAIT_FOR_REMOTE_ACK"];
+    Client -> Server [label="Packet transfer status: Accpeted"];
+    Server rbox Server [label="LINK_ESTABLISHED"];
+
+    Server =>> Server [label="Pop([data])"];
+    Server -> Client [label="Packet transfer: [data]"];
+    Server rbox Server [label="WAIT_FOR_REMOTE_ACK"];
+    Server <- Client [label="Packet transfer status: Buffer accepted"];
+    Server rbox Server [label="LINK_ESTABLISHED"];
+
+    |||;
+    ---[label=" Some time later "];
+    Server -> c [label="Packet transfer: [data]"];
+    Server <- c [label="ACK"];
+
+    Server -> Client [label="Packet transfer report: Success"];
+    Server <- c [label="Packet transfer: \"Provisioning Complete\""];
+    Server -> c [label="ACK"];
+    Server -> c [label="Link close"];
+    Server =>> Server [label="Queue([data])"];
+    Server =>> Server [label="Queue(\"Link Closed\")"];
+    Server <- Client [label="Packet transfer status: Buffer accepted"];
+
+    Server rbox Server [label="LINK_ESTABLISHED"];
+    Server =>> Server [label="Pop([data])"];
+    Server -> Client [label="Packet transfer: [data]"];
+    Server rbox Server [label="WAIT_FOR_REMOTE_ACK"];
+    Client =>> a[label="Provisioning Complete"];
+    Server <- Client [label="Packet transfer status: Buffer accepted"];
+    Server rbox Server [label="LINK_ESTABLISHED"];
+
+    Server =>> Server [label="Pop(\"Link Closed\")"];
+    Server -> Client [label="Link report: Link Closed, reason \"success\""];
+    Server rbox Server [label="WAIT_FOR_REMOTE_ACK"];
+    Client =>> a [label="Link closed: Reason <success>"];
+    Server <- Client [label="Link report status: Accepted"];
+    Server rbox Server [label="IDLE"],
+    Client rbox Client [label="IDLE"];
+}

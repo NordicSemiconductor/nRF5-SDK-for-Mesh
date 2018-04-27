@@ -1,0 +1,34 @@
+{
+    "__packet__": true,
+    "name": "segack",
+    "type": "absolute",
+    "module": "trs_control",
+    "packet_type": "packet_mesh_trs_control_packet_t",
+    "max_length": 6,
+    "fields": [
+        {
+            "name": "obo",
+            "width":  1,
+            "doc": "'on behalf of' flag",
+            "visible": true
+        },
+        {
+            "name": "seqzero",
+            "width":  13,
+            "doc": "least significant bits of SeqAuth",
+            "visible": true
+        },
+        {
+            "name": "rfu",
+            "width":  2,
+            "doc": "reserved for future use",
+            "visible": false
+        },
+        {
+            "name": "block_ack",
+            "width":  32,
+            "doc": "block acknowledgement field",
+            "visible": true
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+msc {
+     SC [label="Simple OnOff Client"], SS [label="Simple OnOff Server"], N [label="Network"];
+     SC -x SS [label="set: ON"];
+     SC -> SS [label="set: ON"];
+     SS -> SC [label="status: ON"];
+     SS -> N [label="status: ON"];
+     SC -> SS [label="set unreliable: OFF"];
+     SS -> SC [label="status: OFF"];
+     SS -> N [label="status: OFF"];
+     SC -> SS [label="get"];
+     SS -x SC [label="status: OFF"];
+     SC -> SS [label="get"];
+     SS -> SC [label="status: OFF"];
+ }

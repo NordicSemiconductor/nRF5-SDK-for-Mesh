@@ -1,0 +1,40 @@
+msc {
+    hscale="1.5";
+    mesh [label="Mesh"], access [label="ACCESS"], pbl [label="PBR link"], Client, pba [label="Provisionee"];
+
+    |||;
+
+    mesh rbox pba [label="To unprov"];
+
+    mesh -> access [label="RX [data]"],
+    access -> pbl [label="RX [data]"],
+    pbl =>> Client [label="RX [data]"],
+    Client =>> pba [label="prov_tx(data)"];
+    pbl << Client [label="NRF_SUCCESS"],
+    Client << pba [label="NRF_SUCCESS"],
+    access <= pbl [label="access_tx(ACK)"];
+    ...;
+    Client x- pba [label="pbr_rx(data)"];
+    Client <- pba [label="DELIVERED"],
+    pbl <= Client [label="pbr_link_tx(DELIVERED)"],
+    access <= pbl   [label="access_reliable_tx(DELIVERED)"],
+    mesh <= access  [label="nrf_mesh_tx(DELIVERED)"];
+    ...;
+    mesh <= access  [label="nrf_mesh_tx(DELIVERED)"];
+    mesh -> access  [label="RX [ACK]"],
+    access -> pbl   [label="RX [ACK]"],
+    pbl -> Client [label="TX_COMPLETE"];
+
+    mesh rbox pba [label="To client"];
+    Client <= pba [label="pbr_rx(data)"],
+    pbl <= Client [label="pbr_link_tx(data)"],
+    access <= pbl   [label="access_reliable_tx(data)"],
+    mesh <= access  [label="nrf_mesh_tx(data)"];
+    ...;
+    mesh <= access  [label="nrf_mesh_tx(data)"];
+    mesh -> access  [label="RX [ACK]"],
+    access -> pbl   [label="RX [ACK]"],
+    pbl -> Client [label="TX_COMPLETE"],
+    Client -> pba [label="Transmission complete"];
+    ...;
+}

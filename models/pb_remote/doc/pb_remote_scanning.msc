@@ -1,0 +1,30 @@
+msc {
+    hscale="1.5";
+    a[label="Application"], Client, Server, c[label="Unprovisioned Device"];
+
+    |||;
+    a note c [label=" Client and Server initialized and ready "];
+    |||;
+
+    Client rbox Client [label="STATE: IDLE"],
+    Server rbox Server [label="STATE: IDLE"];
+    |||;
+
+    a => Client [label="pb_remote_client_remote_scan_start()"];
+    a << Client [label="NRF_SUCCESS"];
+
+    Client -x Server [label="Scan Start"];
+    Client rbox Client [label="WAIT_FOR_ACK"];
+    ...;
+    Client -> Server [label="Scan Start"];
+    Client <- Server [label="Status: Scan Started"];
+    Client rbox Client [label="IDLE"],
+    Server rbox Server [label="SCANNING"];
+    ...;
+    c -> Server [label="UUID"];
+    Server =>> Server [label="Store(UUID, SlotID)"];
+    Client <- Server [label="Scan report: UUID, SlotID"];
+    Server rbox Server [label="WAIT_FOR_REMOTE_ACK"];
+    Client -> Server [label="Scan report status: accepted"];
+    Server rbox Server [label="SCANNING"];
+}

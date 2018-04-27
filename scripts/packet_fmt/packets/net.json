@@ -1,0 +1,51 @@
+{
+    "__packet__": true,
+    "name": "net",
+    "type": "variable",
+    "packet_type": "packet_mesh_net_packet_t",
+    "max_length": 29,
+    "fields": [
+        {
+            "name": "ivi",
+            "width":  1,
+            "doc": "least significant bit of IV index",
+            "visible": true
+        },
+        {
+            "name": "nid",
+            "width":  7,
+            "doc": "network key identifier",
+            "visible": true
+        },
+        {
+            "name": "ctl",
+            "width":  1,
+            "doc": "network control",
+            "visible": true
+        },
+        {
+            "name": "ttl",
+            "width":  7,
+            "doc": "time to live",
+            "visible": true
+        },
+        {
+            "name": "seq",
+            "width":  24,
+            "doc": "sequence number",
+            "visible": true
+        },
+        {
+            "name": "src",
+            "width":  16,
+            "doc": "source address",
+            "visible": true
+        },
+        {
+            "name": "dst",
+            "width":  16,
+            "doc": "destination address",
+            "visible": true
+        }
+    ]
+}

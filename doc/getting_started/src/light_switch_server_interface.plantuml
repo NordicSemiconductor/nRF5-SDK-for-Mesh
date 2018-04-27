@@ -1,0 +1,28 @@
+@startuml
+skinparam defaultFontName Arial
+participant a as "Application"
+participant c as "Configuration module"
+participant s as "Simple OnOff server"
+box
+participant core as "Mesh core modules"
+end box
+
+note over a: config_params defines OOB information\n and event callbacks
+a -> c: nrf_mesh_node_config(&config_params)
+
+note over c: Initializes core mesh and softdevice
+c -> core: dsm_init()
+c -> core: access_init()
+c -> core: config_server_init()
+c -> a: setup_callback()
+a -> s: simple_on_off_server_init(...)
+
+alt Configuration stored in flash
+    c -> a: complete_callback()
+else
+    c -> core: Start provisioning
+    ... Wait for provisioning to complete ...
+    c -> a: complete_callback()
+end
+
+@enduml

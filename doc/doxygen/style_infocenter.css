@@ -1,0 +1,137 @@
+.appliesto {background-color:#3D578C;color:#fff}
+
+div.header
+{
+        background-image:none;
+	background-color: #FFF;
+	border-bottom: 0px;
+}
+
+body, table, div, p, dl, table.directory, p.reference, p.definition {
+    font-size: 16px;
+    font-family: Open Sans, Calibri, Arial, Sans-Serif;
+}
+
+a.code {
+ color: #1c99c7;
+}
+
+a.el {
+ font-weight: normal;
+}
+
+.contents a:visited, a:visited.code {
+	color: #16779a;
+}
+
+.title {
+    font-size: 1.34em
+    font-family: Open Sans, Calibri, Arial, Sans-Serif;
+}
+
+h1 {
+    font-size: 1.25em
+}
+
+h2 {
+    font-size: 1.15em
+}
+
+h3 {
+    font-size: 1.05em
+}
+
+h4 {
+    font-size: 1em
+}
+
+table.memberdecls, table.directory, table.memname {
+ margin:0px;
+ border:0px;
+ -moz-box-shadow: 0 0px 0px #d1d1d1;
+ -webkit-box-shadow: 0 0px 0px #d1d1d1;
+ box-shadow: 0 0px 0px #d1d1d1;
+}
+
+table.memberdecls tr {
+ padding-left:0px;
+}
+
+table.memberdecls tr:hover td, table.memname tr:hover td {
+ background: inherit;
+}
+
+table.directory tr.even, table.directory tr.odd {
+ background: inherit;
+}
+
+table.memberdecls td, table.directory td, table.directory td.desc {
+ border:0px;
+ padding: 2px 0px 0px;
+}
+
+table.memberdecls td.memSeparator {
+ background-color:#inherit;
+ padding:2px;
+ border-bottom: 1px dotted #DEE4F0;
+}
+
+.mdescLeft, .mdescRight,
+.memItemLeft, .memItemRight,
+.memTemplItemLeft, .memTemplItemRight, .memTemplParams {
+	background-color: inherit;
+}
+
+div.levels {
+ display:none;
+}
+
+table.retval {
+border:#ccc 1px solid;
+}
+
+
+table.memname td, table.params td, table.retval td {
+padding:5px;
+border:0px;
+}
+
+code {
+    font-size: 14px;
+    font-family: monospace, fixed;
+    background-color: #FBFCFD;
+}
+
+pre.fragment {
+    line-height: 18px;
+    font-size: 14px;
+    font-family: monospace, fixed;
+}
+
+div.fragment div.line {
+font-size: 14px;
+line-height:18px;
+}
+
+table.fieldtable, table.params, table.retval {
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+table.fieldtable th {
+        border:none;
+	border-bottom:1px solid #A8B8D9;
+}
+
+hr {
+    margin-top:20px;
+    border-top:1px solid #8EA7B0;
+}
+
+
+.directory td.entry {
+        white-space: normal;
+        width:50%;
+}
+

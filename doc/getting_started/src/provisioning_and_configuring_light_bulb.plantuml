@@ -1,0 +1,25 @@
+@startuml
+skinparam defaultFontName Arial
+actor Provisioner as p
+participant "Light Bulb" as lb
+
+group Provisioning
+p <- lb : Unprovisioned beacon: [UUID, OOB information, (optional) URI hash]
+p -> lb : Provisioning invite
+p <- lb : Capabilities: [Num. elements, OOB methods, ...]
+p -> lb : Start: OOB Method
+... Key exchange and authentication ...
+p -> lb : Provisioning data: [Network key, device key, root element address, ...]
+p <- lb : Provisioning complete
+end
+note over p,lb: The configuration server is always the first model of the root element (0)
+group Configuring
+p -> lb : Get composition data
+lb -> p : Composition data: [Configuration server, OnOff Server, ...]
+
+p -> lb : Add application key "0"
+p -> lb : Bind application key "0" to OnOff Server
+p -> lb : Set publication state: \n[publish application key, publish address, ttl, ...]
+p -> lb : Add subscription: Light Group
+end
+@enduml

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<project name="buildjars" default="help" basedir=".">
+	<description>Build jar files</description>
+  <property environment="env"/>
+
+  <target name="buildjar">
+
+    <jar destfile="_jar/com.nordic.infocenter.meshsdk.@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_BUGFIX@.jar"
+      basedir="html" 
+      manifest="MANIFEST.MF.meshsdk"
+      excludes="*.jar">
+    </jar>
+  </target>
+  
+</project>
