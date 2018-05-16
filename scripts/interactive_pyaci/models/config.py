@@ -387,7 +387,7 @@ class ConfigurationClient(Model):
                                   feature_bitfield=0, netkey_index=0):
         message = bytearray()
         message += struct.pack(
-            "<HBBBHH", dst, log2b(count), log2b(count), ttl, feature_bitfield, netkey_index)
+            "<HBBBHH", dst, log2b(count), log2b(period), ttl, feature_bitfield, netkey_index)
         self.send(self._HEARTBEAT_PUBLICATION_SET, message)
 
     def heartbeat_subscription_get(self):
