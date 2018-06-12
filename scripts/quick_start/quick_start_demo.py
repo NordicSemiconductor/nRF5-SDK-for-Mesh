@@ -161,10 +161,10 @@ ec = 0
 eList = errorList()
 server_devices = []
 
-soft_dev_hex52    =  cwd + "./bin/softdevice/s132_nrf52_6.0.0_softdevice.hex"
-provisioner_hex52 =  cwd + "./bin/otime/light_switch_provisioner_nrf52832_xxAA_s132_6.0.0.hex"
-client_hex52      =  cwd + "./bin/otime/light_switch_client_nrf52832_xxAA_s132_6.0.0.hex"
-server_hex52      =  cwd + "./bin/otime/light_switch_server_nrf52832_xxAA_s132_6.0.0.hex"
+soft_dev_hex52    =  cwd + "/bin/softdevice/s132_nrf52_6.0.0_softdevice.hex"
+provisioner_hex52 =  cwd + "/bin/otime/light_switch_provisioner_nrf52832_xxAA_s132_6.0.0.hex"
+client_hex52      =  cwd + "/bin/otime/light_switch_client_nrf52832_xxAA_s132_6.0.0.hex"
+server_hex52      =  cwd + "/bin/otime/light_switch_server_nrf52832_xxAA_s132_6.0.0.hex"
 
 # All files must be valid
 for f in [soft_dev_hex52, provisioner_hex52, client_hex52, server_hex52]:
