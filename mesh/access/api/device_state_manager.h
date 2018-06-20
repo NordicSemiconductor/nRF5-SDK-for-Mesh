@@ -476,7 +476,7 @@ uint32_t dsm_subnet_get_all(mesh_key_index_t * p_key_list, uint32_t * p_count);
  * Adds a device key.
  *
  * @note           "A device key is implicitly bound to all network keys." see Mesh Profile Bluetooth
- *                 Specification v1.0, section 3.8.5. An exception to this is the provisioner who stores all the device
+ *                 Specification v1.0, section 3.8.6. An exception to this is the provisioner who stores all the device
  *                 keys of the other nodes, see section 5.
  *
  * @param[in]      raw_unicast_addr          Unicast address associated with this device key.
