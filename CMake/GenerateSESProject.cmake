@@ -38,6 +38,8 @@ function (add_ses_project TARGET_NAME)
             set(target_sources_with_macro ${target_sources_with_macro} ${target_source_with_macro})
         endforeach ()
 
+        list(REMOVE_DUPLICATES target_sources_with_macro)
+
         set(target_include_dirs_with_macro "")
         foreach (target_source IN ITEMS ${target_include_dirs})
             string(REPLACE "${SDK_ROOT}" "$(SDK_ROOT:${default_sdk_path})" target_source_with_macro ${target_source})

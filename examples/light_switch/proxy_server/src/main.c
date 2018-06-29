@@ -53,21 +53,19 @@
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
 #include "nrf_sdh_soc.h"
+#include "ble_conn_params.h"
 #include "sdk_config.h"
 #include "proxy.h"
+#include "app_timer.h"
 
-#define DEVICE_NAME "nRF5x Mesh Light"
-#define MIN_CONN_INTERVAL MSEC_TO_UNITS(250, UNIT_1_25_MS)
-#define MAX_CONN_INTERVAL MSEC_TO_UNITS(1000, UNIT_1_25_MS)
-#define SLAVE_LATENCY     0
-#define CONN_SUP_TIMEOUT  MSEC_TO_UNITS(4000, UNIT_10_MS)
-
-static void on_sd_evt(uint32_t sd_evt, void * p_context)
-{
-    (void) nrf_mesh_on_sd_evt(sd_evt);
-}
-
-NRF_SDH_SOC_OBSERVER(mesh_observer, NRF_SDH_BLE_STACK_OBSERVER_PRIO, on_sd_evt, NULL);
+#define DEVICE_NAME                     "nRF5x Mesh Light"
+#define MIN_CONN_INTERVAL               MSEC_TO_UNITS(150,  UNIT_1_25_MS)           /**< Minimum acceptable connection interval. */
+#define MAX_CONN_INTERVAL               MSEC_TO_UNITS(250,  UNIT_1_25_MS)           /**< Maximum acceptable connection interval. */
+#define SLAVE_LATENCY                   0                                           /**< Slave latency. */
+#define CONN_SUP_TIMEOUT                MSEC_TO_UNITS(4000, UNIT_10_MS)             /**< Connection supervisory timeout (4 seconds). */
+#define FIRST_CONN_PARAMS_UPDATE_DELAY  APP_TIMER_TICKS(100)                        /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called. */
+#define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(2000)                       /**< Time between each call to sd_ble_gap_conn_param_update after the first call. */
+#define MAX_CONN_PARAMS_UPDATE_COUNT    3                                           /**< Number of attempts before giving up the connection parameter negotiation. */
 
 #define RTT_INPUT_POLL_PERIOD_MS (100)
 #define LED_PIN_NUMBER (BSP_LED_0)
@@ -77,14 +75,29 @@ NRF_SDH_SOC_OBSERVER(mesh_observer, NRF_SDH_BLE_STACK_OBSERVER_PRIO, on_sd_evt, 
 #define LED_BLINK_CNT_RESET      (3)
 #define LED_BLINK_CNT_PROV       (4)
 
+static void gap_params_init(void);
+static void conn_params_init(void);
+
+static void on_sd_evt(uint32_t sd_evt, void * p_context)
+{
+    (void) nrf_mesh_on_sd_evt(sd_evt);
+}
+
+NRF_SDH_SOC_OBSERVER(mesh_observer, NRF_SDH_BLE_STACK_OBSERVER_PRIO, on_sd_evt, NULL);
+
 static simple_on_off_server_t m_server;
 static bool                   m_device_provisioned;
 
 
 static void provisioning_complete_cb(void)
 {
-    dsm_local_unicast_address_t node_address;
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
+
+    /* Restores the application parameters after switching from the Provisioning service to the Proxy  */
+    gap_params_init();
+    conn_params_init();
+
+    dsm_local_unicast_address_t node_address;
     dsm_local_unicast_addresses_get(&node_address);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
 
@@ -161,6 +174,26 @@ static void app_rtt_input_handler(int key)
     }
 }
 
+static void on_conn_params_evt(ble_conn_params_evt_t * p_evt)
+{
+    uint32_t err_code;
+
+    if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED)
+    {
+        err_code = sd_ble_gap_disconnect(p_evt->conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
+        APP_ERROR_CHECK(err_code);
+    }
+    else if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_SUCCEEDED)
+    {
+        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully updated connection parameters\n");
+    }
+}
+
+static void conn_params_error_handler(uint32_t nrf_error)
+{
+    APP_ERROR_HANDLER(nrf_error);
+}
+
 static void models_init_cb(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Initializing and adding models\n");
@@ -192,7 +225,6 @@ static void mesh_init(void)
 static void gap_params_init(void)
 {
     uint32_t                err_code;
-    ble_gap_conn_params_t   gap_conn_params;
     ble_gap_conn_sec_mode_t sec_mode;
 
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
@@ -201,9 +233,15 @@ static void gap_params_init(void)
                                           (const uint8_t *) DEVICE_NAME,
                                           strlen(DEVICE_NAME));
     APP_ERROR_CHECK(err_code);
+}
+
+static void conn_params_init(void)
+{
+    uint32_t               err_code;
+    ble_conn_params_init_t cp_init;
+    ble_gap_conn_params_t  gap_conn_params;
 
     memset(&gap_conn_params, 0, sizeof(gap_conn_params));
-
     gap_conn_params.min_conn_interval = MIN_CONN_INTERVAL;
     gap_conn_params.max_conn_interval = MAX_CONN_INTERVAL;
     gap_conn_params.slave_latency     = SLAVE_LATENCY;
@@ -211,14 +249,29 @@ static void gap_params_init(void)
 
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
     APP_ERROR_CHECK(err_code);
+
+    memset(&cp_init, 0, sizeof(cp_init));
+    cp_init.p_conn_params                  = &gap_conn_params;
+    cp_init.first_conn_params_update_delay = FIRST_CONN_PARAMS_UPDATE_DELAY;
+    cp_init.next_conn_params_update_delay  = NEXT_CONN_PARAMS_UPDATE_DELAY;
+    cp_init.max_conn_params_update_count   = MAX_CONN_PARAMS_UPDATE_COUNT;
+    cp_init.start_on_notify_cccd_handle    = BLE_GATT_HANDLE_INVALID;
+    cp_init.disconnect_on_fail             = false;
+    cp_init.evt_handler                    = on_conn_params_evt;
+    cp_init.error_handler                  = conn_params_error_handler;
+
+    err_code = ble_conn_params_init(&cp_init);
+    APP_ERROR_CHECK(err_code);
 }
 
 static void initialize(void)
 {
-    __LOG_INIT(LOG_SRC_APP | LOG_SRC_ACCESS, LOG_LEVEL_DBG3, LOG_CALLBACK_DEFAULT);
+    __LOG_INIT(LOG_SRC_APP | LOG_SRC_ACCESS | LOG_SRC_BEARER, LOG_LEVEL_INFO, LOG_CALLBACK_DEFAULT);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- BLE Mesh Light Switch Proxy Server Demo -----\n");
 
+    ERROR_CHECK(app_timer_init());
     hal_leds_init();
+
 #if BUTTON_BOARD
     ERROR_CHECK(hal_buttons_init(button_event_handler));
 #endif
@@ -234,6 +287,7 @@ static void initialize(void)
     APP_ERROR_CHECK(err_code);
 
     gap_params_init();
+    conn_params_init();
 
     mesh_init();
 }
@@ -249,7 +303,8 @@ static void start(void)
         mesh_provisionee_start_params_t prov_start_params =
         {
             .p_static_data    = static_auth_data,
-            .prov_complete_cb = provisioning_complete_cb
+            .prov_complete_cb = provisioning_complete_cb,
+            .p_device_uri = NULL
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }

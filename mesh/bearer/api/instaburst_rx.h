@@ -85,6 +85,8 @@ typedef struct
     uint32_t crc_fail; /**< Number of CRC failures detected. */
     uint32_t too_late; /**< Number of times the module failed to start RX on time. */
     uint32_t no_rx; /**< Number of times the module started RX on time, but failed detecting any incoming packets. */
+    uint32_t invalid_offset; /**< Number of packets dropped due to unsupported offset times. */
+    uint32_t busy; /**< Number of packets dropped because the scanner was busy. */
 } instaburst_rx_stats_t;
 
 /**

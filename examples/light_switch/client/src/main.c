@@ -52,6 +52,7 @@
 #include "mesh_provisionee.h"
 #include "nrf_mesh_config_examples.h"
 #include "nrf_mesh_configure.h"
+#include "app_timer.h"
 
 
 #define RTT_INPUT_POLL_PERIOD_MS (100)
@@ -69,29 +70,6 @@ static simple_on_off_client_t m_clients[CLIENT_MODEL_INSTANCE_COUNT];
 static const uint8_t          m_client_node_uuid[NRF_MESH_UUID_SIZE] = CLIENT_NODE_UUID;
 static bool                   m_device_provisioned;
 
-static void client_status_cb(const simple_on_off_client_t * p_self, simple_on_off_status_t status, uint16_t src);
-
-
-static bool client_publication_configured(void)
-{
-    dsm_handle_t pub_addr_handle;
-    for (uint8_t i = 0; i < CLIENT_MODEL_INSTANCE_COUNT; i++)
-    {
-        if (access_model_publish_address_get(m_clients[i].model_handle, &pub_addr_handle) == NRF_SUCCESS)
-        {
-            if (pub_addr_handle == DSM_HANDLE_INVALID)
-            {
-                return false;
-            }
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
 
 static void provisioning_complete_cb(void)
 {
@@ -121,28 +99,31 @@ static void client_status_cb(const simple_on_off_client_t * p_self, simple_on_of
 {
     uint32_t server_index = server_index_get(p_self);
 
-    __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "server status received \n");
     switch (status)
     {
         case SIMPLE_ON_OFF_STATUS_ON:
             hal_led_pin_set(BSP_LED_0 + server_index, true);
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "OnOff server %u status ON\n", server_index);
             break;
 
         case SIMPLE_ON_OFF_STATUS_OFF:
             hal_led_pin_set(BSP_LED_0 + server_index, false);
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "OnOff server %u status OFF\n", server_index);
             break;
 
         case SIMPLE_ON_OFF_STATUS_ERROR_NO_REPLY:
             hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "No reply from OnOff server %u\n", server_index);
             break;
 
         case SIMPLE_ON_OFF_STATUS_CANCELLED:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_WARN, "Message to server %u cancelled\n", server_index);
+            break;
         default:
             __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Unknown status \n");
             break;
     }
 }
-
 static void node_reset(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset  -----\n");
@@ -163,46 +144,57 @@ static void button_event_handler(uint32_t button_number)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Button %u pressed\n", button_number);
 
-    if (client_publication_configured())
+    uint32_t status = NRF_SUCCESS;
+    switch (button_number)
     {
-        uint32_t status = NRF_SUCCESS;
-        switch (button_number)
-        {
-            case 0:
-            case 1:
-                /* send unicast message, with inverted GPIO pin value */
-                status = simple_on_off_client_set(&m_clients[button_number],
-                                                !hal_led_pin_get(BSP_LED_0 + button_number));
-                break;
+        case 0:
+        case 1:
+            /* send unicast message, with inverted GPIO pin value */
+            status = simple_on_off_client_set(&m_clients[button_number],
+                                              !hal_led_pin_get(BSP_LED_0 + button_number));
+            break;
 
-            case 2:
-            case 3:
-                /* send a group message to the ODD group, with inverted GPIO pin value */
-                status = simple_on_off_client_set_unreliable(&m_clients[button_number],
-                                                            !hal_led_pin_get(BSP_LED_0 + button_number),
-                                                            GROUP_MSG_REPEAT_COUNT);
+        case 2:
+        case 3:
+            /* send a group message to the ODD group, with inverted GPIO pin value */
+            status = simple_on_off_client_set_unreliable(&m_clients[button_number],
+                                                         !hal_led_pin_get(BSP_LED_0 + button_number),
+                                                         GROUP_MSG_REPEAT_COUNT);
+            if (status == NRF_SUCCESS)
+            {
                 hal_led_pin_set(BSP_LED_0 + button_number, !hal_led_pin_get(BSP_LED_0 + button_number));
-                break;
-            default:
-                break;
-
-        }
-
-        if (status == NRF_ERROR_INVALID_STATE ||
-            status == NRF_ERROR_NO_MEM ||
-            status == NRF_ERROR_BUSY)
-        {
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Cannot send. Device is busy.\n");
-            hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
-        }
-        else
-        {
-            ERROR_CHECK(status);
-        }
+            }
+            break;
+        default:
+            break;
     }
-    else
+
+    switch (status)
     {
-        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Ignored. Node is not configured.\n");
+        case NRF_SUCCESS:
+            break;
+
+        case NRF_ERROR_NO_MEM:
+        case NRF_ERROR_BUSY:
+        case NRF_ERROR_INVALID_STATE:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Cannot send - client %u is busy\n", button_number);
+            hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
+            break;
+
+        case NRF_ERROR_INVALID_PARAM:
+            /* Publication not enabled for this client. One (or more) of the following is wrong:
+             * - An application key is missing, or there is no application key bound to the model
+             * - The client does not have its publication state set
+             *
+             * It is the provisioner that adds an application key, binds it to the model and sets
+             * the model's publication state.
+             */
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Publication not configured for client %u\n", button_number);
+            break;
+
+        default:
+            ERROR_CHECK(status);
+            break;
     }
 }
 
@@ -246,10 +238,13 @@ static void initialize(void)
     __LOG_INIT(LOG_SRC_APP | LOG_SRC_ACCESS, LOG_LEVEL_INFO, LOG_CALLBACK_DEFAULT);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- BLE Mesh Light Switch Client Demo -----\n");
 
+    ERROR_CHECK(app_timer_init());
     hal_leds_init();
+
 #if BUTTON_BOARD
     ERROR_CHECK(hal_buttons_init(button_event_handler));
 #endif
+
     nrf_clock_lf_cfg_t lfc_cfg = DEV_BOARD_LF_CLK_CFG;
     ERROR_CHECK(mesh_softdevice_init(lfc_cfg));
     mesh_init();
@@ -266,7 +261,8 @@ static void start(void)
         mesh_provisionee_start_params_t prov_start_params =
         {
             .p_static_data    = static_auth_data,
-            .prov_complete_cb = provisioning_complete_cb
+            .prov_complete_cb = provisioning_complete_cb,
+            .p_device_uri = NULL
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }

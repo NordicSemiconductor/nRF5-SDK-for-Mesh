@@ -49,7 +49,6 @@
 #include "proxy.h"
 #endif
 
-static mesh_stack_init_params_t m_init_params;
 static health_server_t m_health_server;
 
 static void device_reset(void)
@@ -66,10 +65,9 @@ uint32_t mesh_stack_init(const mesh_stack_init_params_t * p_init_params,
     {
         return NRF_ERROR_NULL;
     }
-    m_init_params = *p_init_params;
 
     /* Initialize the mesh stack */
-    status = nrf_mesh_init(&m_init_params.core);
+    status = nrf_mesh_init(&p_init_params->core);
     if (status != NRF_SUCCESS)
     {
         return status;
@@ -80,7 +78,7 @@ uint32_t mesh_stack_init(const mesh_stack_init_params_t * p_init_params,
     access_init();
 
     /* Initialize the configuration server */
-    status = config_server_init(m_init_params.models.config_server_cb);
+    status = config_server_init(p_init_params->models.config_server_cb);
     if (status != NRF_SUCCESS)
     {
         return status;
@@ -88,18 +86,18 @@ uint32_t mesh_stack_init(const mesh_stack_init_params_t * p_init_params,
 
     /* Initialize the health server for the primary element */
     status = health_server_init(&m_health_server, 0, DEVICE_COMPANY_ID,
-                                m_init_params.models.health_server_attention_cb,
-                                m_init_params.models.p_health_server_selftest_array,
-                                m_init_params.models.health_server_num_selftests);
+                                p_init_params->models.health_server_attention_cb,
+                                p_init_params->models.p_health_server_selftest_array,
+                                p_init_params->models.health_server_num_selftests);
     if (status != NRF_SUCCESS)
     {
         return status;
     }
 
     /* Give application opportunity to initialize application specific models */
-    if (m_init_params.models.models_init_cb != NULL)
+    if (p_init_params->models.models_init_cb != NULL)
     {
-        m_init_params.models.models_init_cb();
+        p_init_params->models.models_init_cb();
     }
 
     /* Load configuration, and check if the device has already been provisioned */

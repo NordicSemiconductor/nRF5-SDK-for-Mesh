@@ -41,6 +41,7 @@
 #include "boards.h"
 #include "nrf_delay.h"
 #include "simple_hal.h"
+#include "app_timer.h"
 
 /* Core */
 #include "nrf_mesh.h"
@@ -395,10 +396,13 @@ static void initialize(void)
     __LOG_INIT(LOG_SRC_APP | LOG_SRC_ACCESS , LOG_LEVEL_DBG3, LOG_CALLBACK_DEFAULT);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- BLE Mesh Enocean Switch Translator Demo -----\n");
 
+    ERROR_CHECK(app_timer_init());
     hal_leds_init();
+
 #if BUTTON_BOARD
     ERROR_CHECK(hal_buttons_init(button_event_handler));
 #endif
+
     nrf_clock_lf_cfg_t lfc_cfg = DEV_BOARD_LF_CLK_CFG;
     ERROR_CHECK(mesh_softdevice_init(lfc_cfg));
     mesh_init();
@@ -418,6 +422,7 @@ static void app_start(void)
         {
             m_app_secmat[i].p_ble_gap_addr = &m_app_secmat_flash[i].ble_gap_addr[0];
             m_app_secmat[i].p_key = &m_app_secmat_flash[i].key[0];
+            m_app_secmat[i].p_seq = &m_app_secmat_flash[i].seq;
             m_enocean_dev_cnt++;
             enocean_secmat_add(&m_app_secmat[i]);
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Restored: Enocean security materials\n");
@@ -444,7 +449,8 @@ static void start(void)
         mesh_provisionee_start_params_t prov_start_params =
         {
             .p_static_data    = static_auth_data,
-            .prov_complete_cb = provisioning_complete_cb
+            .prov_complete_cb = provisioning_complete_cb,
+            .p_device_uri = NULL
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }

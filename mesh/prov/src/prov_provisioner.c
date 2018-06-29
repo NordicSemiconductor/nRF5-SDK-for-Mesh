@@ -319,7 +319,7 @@ static void prov_provisioner_pkt_in(prov_bearer_t * p_bearer, const uint8_t * p_
                 nrf_mesh_prov_evt_t event;
                 event.type = NRF_MESH_PROV_EVT_CAPS_RECEIVED;
                 event.params.oob_caps_received.p_context =  p_ctx;
-                event.params.oob_caps_received.oob_caps.num_elements = p_pdu->num_components;
+                event.params.oob_caps_received.oob_caps.num_elements = p_pdu->num_elements;
                 event.params.oob_caps_received.oob_caps.algorithms = BE2LE16(p_pdu->algorithms);
                 event.params.oob_caps_received.oob_caps.pubkey_type = p_pdu->pubkey_type;
                 event.params.oob_caps_received.oob_caps.oob_static_types = p_pdu->oob_static_types;

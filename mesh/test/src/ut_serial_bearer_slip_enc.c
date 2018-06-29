@@ -36,7 +36,7 @@
  */
 
 #include "test_serial_bearer_common.h"
-
+#include <limits.h>
 
 /*********************************************************************
  * Tests                                                             *
@@ -50,7 +50,7 @@ void test_uart_tx(void)
 
     p_packet = (serial_packet_t*)test_data;
     /* serial packet must be allocated via serial_bearer not locally. */
-    p_packet->length = sizeof(test_data);
+    p_packet->length = sizeof(test_data) - 1;
     p_packet->opcode = SERIAL_OPCODE_EVT_DEVICE_ECHO_RSP;
     TEST_NRF_MESH_ASSERT_EXPECT(serial_bearer_tx(p_packet));
     /* If the requested length is too long, nothing will be reserved */
@@ -294,6 +294,7 @@ void test_uart_rx(void)
 
 void test_too_long(void)
 {
+#if NRF_MESH_SERIAL_PAYLOAD_MAXLEN < (UINT8_MAX - 1)
     uint8_t packet_buffer[255] = { 0 };
     packet_buffer[254] = SLIP_END;
 
@@ -335,5 +336,6 @@ void test_too_long(void)
     packet_buffer_commit_IgnoreArg_p_buffer();
     serial_process_Expect();
     receive_char(NULL, SLIP_END, false, false);
+#endif  /* NRF_MESH_SERIAL_PAYLOAD_MAXLEN < (UINT8_MAX - 1) */
 }
 

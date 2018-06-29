@@ -38,6 +38,8 @@
 #define DEBUG_PINS_H__
 
 #include <stdint.h>
+#include <stdbool.h>
+#include "nrf.h"
 
 /* Define debug pins that fit the standard development kits for the two chips. Placed to avoid
  * overlapping functionality. */
@@ -184,6 +186,7 @@ DEBUG_PIN_MODULE(BEARER_HANDLER, false)
 #define DEBUG_PIN_BEARER_HANDLER_ACTION         DEBUG_PIN0
 #define DEBUG_PIN_BEARER_HANDLER_SCANNER        DEBUG_PIN1
 #define DEBUG_PIN_BEARER_HANDLER_SCANNER_STOP   DEBUG_PIN2
+#define DEBUG_PIN_BEARER_HANDLER_TIMER_SETUP    DEBUG_PIN3
 
 DEBUG_PIN_MODULE(SCANNER, false)
 #define DEBUG_PIN_SCANNER_RADIO_IN_RX       DEBUG_PIN0

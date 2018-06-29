@@ -43,6 +43,7 @@
 #include "nrf_mesh.h"
 
 #include "nrf_mesh_config_app.h"
+#include "toolchain.h"
 
 /**
  * @addtogroup DEVICE_STATE_MANAGER
@@ -244,11 +245,23 @@ uint32_t dsm_address_subscription_add_handle(dsm_handle_t address_handle);
 /**
  * Returns whether the given address_handle is in the global subscription list.
  *
+ * @deprecated This function is deprecated, and the more general @ref dsm_address_is_rx
+ * should be used instead.
+ *
  * @param[in] address_handle The reserved handle of the address.
  *
  * @returns Whether the given address handle is present in the global subscription list.
  */
-bool dsm_address_subscription_get(dsm_handle_t address_handle);
+_DEPRECATED bool dsm_address_subscription_get(dsm_handle_t address_handle);
+
+/**
+ * Returns whether the device will process packets received on the given destination address.
+ *
+ * @param[in] p_addr The raw address to check for.
+ *
+ * @returns Whether the device will process packets received on the given destination address.
+ */
+bool dsm_address_is_rx(const nrf_mesh_address_t * p_addr);
 
 /**
  * Returns the number of subscriptions registered for an address in the global subscription list.
@@ -464,6 +477,19 @@ uint32_t dsm_subnet_delete(dsm_handle_t subnet_handle);
  * so only a partial list (the first @c *p_count indices) is returned.
  */
 uint32_t dsm_subnet_get_all(mesh_key_index_t * p_key_list, uint32_t * p_count);
+
+/**
+ * Gets the (root) network key for a given subnet handle.
+ *
+ * @note In NRF_MESH_KEY_REFRESH_PHASE_2 and NRF_MESH_KEY_REFRESH_PHASE_3 this will return the updated key.
+ *
+ * @param[in]  subnet_handle Subnet handle.
+ * @param[out] p_root_key    Pointer to NRF_MESH_KEY_SIZE array to store the key.
+ *
+ * @retval NRF_SUCCESS         Successfully copied the key.
+ * @retval NRF_ERROR_NOT_FOUND Invalid subnet handle.
+ */
+uint32_t dsm_subnet_key_get(dsm_handle_t subnet_handle, uint8_t * p_key);
 /** @} end of DEVICE_STATE_MANAGER_NET_KEYS */
 
 /**

@@ -144,6 +144,7 @@ static uint32_t send_reliable(config_opcode_t opcode, uint16_t length, config_op
     reliable.message.opcode.company_id = ACCESS_COMPANY_ID_NONE;
     reliable.message.force_segmented = false;
     reliable.message.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
+    reliable.message.access_token = nrf_mesh_unique_token_get();
     reliable.reply_opcode.opcode = reply_opcode;
     reliable.reply_opcode.company_id = ACCESS_COMPANY_ID_NONE;
     reliable.timeout = ACCESS_RELIABLE_TIMEOUT_MIN;

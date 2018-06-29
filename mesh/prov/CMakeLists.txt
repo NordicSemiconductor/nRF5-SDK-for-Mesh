@@ -23,6 +23,7 @@ set(lint_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/api
     ${${SOFTDEVICE}_INCLUDE_DIRS}
     ${${PLATFORM}_INCLUDE_DIRS}
+    ${${nRF5_SDK_VERSION}_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../bearer/api
     ${CMAKE_CURRENT_SOURCE_DIR}/../bearer/include

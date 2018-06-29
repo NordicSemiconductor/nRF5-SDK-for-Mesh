@@ -127,7 +127,7 @@ static void packet_alloc_Expect(network_packet_metadata_t * p_metadata, uint32_t
     alloc_params.role           = role;
     alloc_params.net_packet_len = packet_len;
     alloc_params.p_metadata     = p_metadata;
-    alloc_params.token          = (role == CORE_TX_ROLE_ORIGINATOR ? TOKEN : CORE_TX_TOKEN_RELAY);
+    alloc_params.token          = (role == CORE_TX_ROLE_ORIGINATOR ? TOKEN : NRF_MESH_RELAY_TOKEN);
 
     core_tx_packet_alloc_ExpectAndReturn(&alloc_params, NULL, success);
     core_tx_packet_alloc_IgnoreArg_pp_packet();

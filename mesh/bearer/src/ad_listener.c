@@ -127,7 +127,7 @@ static uint32_t input_param_check(ad_listener_t * p_adl)
     }
 
     if (p_adl->adv_packet_type > BLE_PACKET_TYPE_ADV_DISCOVER_IND &&
-        p_adl->adv_packet_type != ADL_WILDCARD_ADV_TYPE)
+        p_adl->adv_packet_type != ADL_WILDCARD_ADV_TYPE)    /*lint !e650 Constant '255' out of range for operator '!=' */
     {
         return NRF_ERROR_INVALID_PARAM;
     }
@@ -137,11 +137,10 @@ static uint32_t input_param_check(ad_listener_t * p_adl)
 
 uint32_t ad_listener_subscribe(ad_listener_t * p_adl)
 {
-    uint32_t checker = input_param_check(p_adl);
-
-    if (checker != NRF_SUCCESS)
+    uint32_t status = input_param_check(p_adl);
+    if (status != NRF_SUCCESS)
     {
-        return checker;
+        return status;
     }
 
     bool empty = m_subscribers.p_list_head == NULL;
@@ -159,14 +158,18 @@ uint32_t ad_listener_subscribe(ad_listener_t * p_adl)
 
 uint32_t ad_listener_unsubscribe(ad_listener_t * p_adl)
 {
-    uint32_t checker = input_param_check(p_adl);
-
-    if (checker != NRF_SUCCESS)
+    uint32_t status = input_param_check(p_adl);
+    if (status != NRF_SUCCESS)
     {
-        return checker;
+        return status;
     }
 
-    list_remove(&m_subscribers.p_list_head, &p_adl->node);
+    status = list_remove(&m_subscribers.p_list_head, &p_adl->node);
+    if (status != NRF_SUCCESS)
+    {
+        return status;
+    }
+
     ad_from_filter_remove(p_adl);
 
     if (m_subscribers.p_list_head == NULL)
@@ -201,7 +204,7 @@ void ad_listener_process(ble_packet_type_t adv_type, const uint8_t * p_payload, 
             p_list = p_listener->node.p_next;
 
             if (adv_type != p_listener->adv_packet_type &&
-                p_listener->adv_packet_type != ADL_WILDCARD_ADV_TYPE)
+                p_listener->adv_packet_type != ADL_WILDCARD_ADV_TYPE)   /*lint !e650 Constant '255' out of range for operator '!=' */
             {
                 continue;
             }

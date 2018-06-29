@@ -37,8 +37,8 @@
             "ram_start": 536870912,
             "ram_size": 24576,
             "page_size": 4096,
-            "arch": "cortex-m4f",
-            "softdevices": []
+            "arch": "cortex-m4",
+            "softdevices": ["s112_6.0.0"]
         },
         {
             "name": "nrf52832_xxAA",

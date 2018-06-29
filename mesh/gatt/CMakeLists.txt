@@ -25,7 +25,8 @@ set(lint_include_dirs
     ${SDK_ROOT}/components/libraries/experimental_section_vars
     ${SDK_ROOT}/components/softdevice/common
     ${${SOFTDEVICE}_INCLUDE_DIRS}
-    ${${PLATFORM}_INCLUDE_DIRS})
+    ${${PLATFORM}_INCLUDE_DIRS}
+    ${${nRF5_SDK_VERSION}_INCLUDE_DIRS})
 
 add_pc_lint(gatt_${PLATFORM}
     "${MESH_GATT_SOURCE_FILES}"

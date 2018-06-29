@@ -36,6 +36,7 @@
  */
 
 #include "test_serial_bearer_common.h"
+#include <limits.h>
 
 /*********************************************************************
  * Tests                                                             *
@@ -205,6 +206,7 @@ void test_uart_rx(void)
 
 void test_too_long(void)
 {
+#if NRF_MESH_SERIAL_PAYLOAD_MAXLEN < (UINT8_MAX - 1)
     uint8_t packet_buffer[255] = { 0 };
     serial_packet_t * p_packet = (serial_packet_t *) packet_buffer;
     p_packet->length = sizeof(packet_buffer) - 1; /* subtract length field */
@@ -244,5 +246,6 @@ void test_too_long(void)
     packet_buffer_commit_IgnoreArg_p_buffer();
     serial_process_Expect();
     receive_char(NULL, packet_buffer[p_packet->length], false, false);
+#endif  /* NRF_MESH_SERIAL_PAYLOAD_MAXLEN < (UINT8_MAX - 1) */
 }
 

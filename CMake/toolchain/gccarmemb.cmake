@@ -15,6 +15,12 @@ set(cortex-m0_DEFINES
     -mabi=aapcs
     -mfloat-abi=soft)
 
+set(cortex-m4_DEFINES
+    -mcpu=cortex-m4
+    -mthumb
+    -mabi=aapcs
+    -mfloat-abi=soft)
+
 set(cortex-m4f_DEFINES
     -mcpu=cortex-m4
     -mthumb
@@ -39,5 +45,19 @@ function (create_hex executable)
         POST_BUILD
         COMMAND arm-none-eabi-objcopy -O ihex ${CMAKE_CURRENT_BINARY_DIR}/${executable}.elf ${CMAKE_CURRENT_BINARY_DIR}/${executable}.hex
         BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/${executable}.hex)
+
+    add_custom_command(
+        TARGET ${executable}
+        POST_BUILD
+        COMMAND arm-none-eabi-size ${CMAKE_CURRENT_BINARY_DIR}/${executable}.elf)
 endfunction(create_hex)
 
+
+if (CMAKE_INTERPROCEDURAL_OPTIMIZATION)
+    message(WARNING
+        "CMAKE_INTERPROCEDURAL_OPTIMIZATION enables -flto with GCC which can lead to unexpected behavior. "
+        "One particular problem is that the interrupt vector table can be messed up if the startup file "
+        "isn't the first source file of the target. In general weak symbols tend to cause problems.\n"
+        "More information https://gcc.gnu.org/bugzilla/show_bug.cgi?id=83967. "
+        )
+endif (CMAKE_INTERPROCEDURAL_OPTIMIZATION)

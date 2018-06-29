@@ -44,6 +44,7 @@
 #include "boards.h"
 #include "SEGGER_RTT.h"
 #include "simple_hal.h"
+#include "app_timer.h"
 
 /* Core */
 #include "nrf_mesh.h"
@@ -350,10 +351,11 @@ static void mesh_init(void)
 
 static void initialize(void)
 {
-    LEDS_CONFIGURE(LEDS_MASK);
-
     __LOG_INIT(LOG_SRC_APP | LOG_SRC_ACCESS, LOG_LEVEL_INFO, LOG_CALLBACK_DEFAULT);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- BLE Mesh Provisioner + Remote Provisioning Client Demo -----\n");
+
+    ERROR_CHECK(app_timer_init());
+    hal_leds_init();
 
     nrf_clock_lf_cfg_t lfc_cfg = DEV_BOARD_LF_CLK_CFG;
     ERROR_CHECK(mesh_softdevice_init(lfc_cfg));

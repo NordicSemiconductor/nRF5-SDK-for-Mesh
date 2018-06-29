@@ -50,6 +50,7 @@
 #include "mesh_softdevice_init.h"
 #include "mesh_provisionee.h"
 #include "nrf_mesh_config_examples.h"
+#include "app_timer.h"
 
 #if defined(NRF51) && defined(NRF_MESH_STACK_DEPTH)
 #include "stack_depth.h"
@@ -57,7 +58,7 @@
 
 
 #define STATIC_AUTH_DATA        {0x6E, 0x6F, 0x72, 0x64, 0x69, 0x63, 0x5F, 0x65, 0x78, 0x61, 0x6D, 0x70, 0x6C, 0x65, 0x5F, 0x31}
-#define ADVERTISER_BUFFER_SIZE  (128)
+#define ADVERTISER_BUFFER_SIZE  (64)
 
 #define LED_BLINK_INTERVAL_MS   (200)
 #define LED_BLINK_CNT_START     (2)
@@ -74,7 +75,7 @@ static bool         m_device_provisioned;
 static void rx_cb(const nrf_mesh_adv_packet_rx_data_t * p_rx_data)
 {
     LEDS_OFF(BSP_LED_0_MASK);  /* @c LED_RGB_RED_MASK on pca10031 */
-    char msg[128];
+    char msg[64];
     (void) sprintf(msg, "RX [@%u]: RSSI: %3d ADV TYPE: %x ADDR: [%02x:%02x:%02x:%02x:%02x:%02x]",
                    p_rx_data->p_metadata->params.scanner.timestamp,
                    p_rx_data->p_metadata->params.scanner.rssi,
@@ -184,10 +185,12 @@ static void initialize(void)
 #if defined(NRF51) && defined(NRF_MESH_STACK_DEPTH)
     stack_depth_paint_stack();
 #endif
+
+    ERROR_CHECK(app_timer_init());
+    hal_leds_init();
+
     __LOG_INIT(LOG_SRC_APP, LOG_LEVEL_INFO, log_callback_rtt);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Bluetooth Mesh Beacon Example -----\n");
-
-    hal_leds_init();
 
     nrf_clock_lf_cfg_t lfc_cfg = DEV_BOARD_LF_CLK_CFG;
     ERROR_CHECK(mesh_softdevice_init(lfc_cfg));
@@ -206,7 +209,8 @@ static void start(void)
         mesh_provisionee_start_params_t prov_start_params =
         {
             .p_static_data    = static_auth_data,
-            .prov_complete_cb = provisioning_complete_cb
+            .prov_complete_cb = provisioning_complete_cb,
+            .p_device_uri = NULL
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }

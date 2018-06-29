@@ -58,31 +58,22 @@
 #include "nrf_mesh_opt.h"
 #include "nrf_mesh_externs.h"
 
-//@todo:  How frequently should we store heartbeat states in the flash? Need algorithm,
-//        or hardware solution, as discussed.
-//@todo:  Load heartbeat states on powerup from flash, if already stored.
-
 /*****************************************************************************
-* Local defines
-*****************************************************************************/
+ * Local defines
+ *****************************************************************************/
 #define HEARTBEAT_MIN_HOPS_INIT  (0x7F)
 #define HEARTBEAT_MAX_HOPS_INIT  (0x00)
 
 #define HEARTBEAT_PUBLISH_SUB_INTERVAL_S (1800)
 #define HEARTBEAT_SUBSCRIPTION_TIMER_GRANULARITY_S (1)
 
-/** Initialization flag to prevent multiple initializations of the module */
-static bool m_heartbeat_init_done;
 
-/** Instantiation of Heartbeat subscription state */
+static bool m_heartbeat_init_done;
 static heartbeat_subscription_state_t m_heartbeat_subscription;
 
-/** flag to schedule one off message trigger */
 static bool m_hb_pending_pub_msg;
 static bool m_hb_pending_feat_msg;
 
-
-/** Internal timer */
 static struct
 {
     uint32_t remaining_time_s;
@@ -91,8 +82,11 @@ static struct
 
 static timer_event_t m_subscription_timer;
 
-/** Handle core events here */
+/* Static callback functions*/
 static nrf_mesh_evt_handler_t m_hb_core_evt_handler;
+static heartbeat_publication_params_get_cb_t m_publication_get_cb;
+static heartbeat_publication_count_decrement_cb_t m_publication_count_decrement_cb;
+
 
 /** Forward declarations */
 static uint32_t heartbeat_send(heartbeat_publication_information_t * p_hb_pub_info);
@@ -106,14 +100,9 @@ static const transport_control_packet_handler_t cp_handler = {
     .opcode = TRANSPORT_CONTROL_OPCODE_HEARTBEAT, .callback = heartbeat_opcode_handle
 };
 
-/** Holds the pointer to callbacks defined in config_server */
-static heartbeat_publication_params_get_cb_t   m_publication_get_cb;
-static heartbeat_publication_count_decrement_cb_t m_publication_count_decrement_cb;
-
 /*****************************************************************************
  * Static internal functions
  *****************************************************************************/
-
 
 static inline bool is_publication_running(heartbeat_publication_information_t * p_pub_info)
 {
@@ -139,9 +128,6 @@ static void heartbeat_restart_publication(heartbeat_publication_information_t * 
 /*****************************************************************************/
 /* << RX path functions >> */
 
-/** Sends the heartbeat packet to heartbeat module for processing. This function is called by the
- * @ref transport_control_packet_in
- */
 static void heartbeat_opcode_handle(const transport_control_packet_t * p_control_packet,
                                     const nrf_mesh_rx_metadata_t *     p_rx_metadata)
 {
@@ -191,7 +177,6 @@ static void heartbeat_opcode_handle(const transport_control_packet_t * p_control
 /*****************************************************************************/
 /* << TX path functions >> */
 
-/** Prepares the transport control packet metadata to send the heartbeat message */
 static void heartbeat_meta_prepare(transport_control_packet_t *             p_tx,
                                    const packet_mesh_trs_control_packet_t * p_pdu,
                                    uint8_t                                  pdu_len,
@@ -211,7 +196,6 @@ static void heartbeat_meta_prepare(transport_control_packet_t *             p_tx
     p_tx->ttl          = p_pub_info->p_publication->ttl;
 }
 
-/** Sends a heartbeat message when timer expires or when triggered */
 static uint32_t heartbeat_send(heartbeat_publication_information_t * p_hb_pub_info)
 {
     transport_control_packet_t       tx_params;
@@ -219,7 +203,6 @@ static uint32_t heartbeat_send(heartbeat_publication_information_t * p_hb_pub_in
     uint8_t                          active_features = 0;
     nrf_mesh_opt_t                   param_value;
 
-    // This function should not be called if count have reached to zero, or no feature based publishing is enabled
     NRF_MESH_ASSERT(p_hb_pub_info->p_publication->count != 0 || p_hb_pub_info->p_publication->features);
 
     if (p_hb_pub_info->p_publication->features & HEARTBEAT_TRIGGER_TYPE_LPN)
@@ -239,7 +222,6 @@ static uint32_t heartbeat_send(heartbeat_publication_information_t * p_hb_pub_in
         /* TODO: check the state of the proxy feature. */
     }
 
-    // Relay query
     active_features <<= 1;
     if (p_hb_pub_info->p_publication->features & HEARTBEAT_TRIGGER_TYPE_RELAY)
     {
@@ -254,11 +236,11 @@ static uint32_t heartbeat_send(heartbeat_publication_information_t * p_hb_pub_in
 
     heartbeat_meta_prepare(&tx_params, &hb_pdu, PACKET_MESH_TRS_CONTROL_HEARTBEAT_SIZE, p_hb_pub_info);
 
-    return (transport_control_tx(&tx_params, (nrf_mesh_tx_token_t) p_hb_pub_info->p_publication->count));
+    return (transport_control_tx(&tx_params, NRF_MESH_HEARTBEAT_TOKEN));
 }
 
 /** Callback for the subscription timer. this callback triggers every second. As per
- * Mesh Profile Specification v1.0, section 4.2.18.4, node shall report the remaining time
+ * Mesh Profile Specification v1.0, section 4.2.18.4, node shall report the remaining time.
  *
  * For this call, p_context must be &m_heartbeat_subscription.period
  * */
@@ -277,9 +259,11 @@ static void heartbeat_subscription_timer_cb(timestamp_t timestamp, void * p_cont
     }
 }
 
-/** Callback for publication timer. If publication period is greater than 3600 seconds, this
- * callback triggers every 3600 seconds, else it triggers after publication period. The callback
- * parameter p_context points to the m_heartbeat_publication.period.
+/** Callback for publication timer. If publication period is greater than
+ * HEARTBEAT_PUBLISH_SUB_INTERVAL_S seconds, this callback triggers every
+ * HEARTBEAT_PUBLISH_SUB_INTERVAL_S seconds, else it triggers after publication period.
+ *
+ * The callback parameter p_context points to the m_heartbeat_publication.period.
  */
 static void heartbeat_publication_timer_cb(timestamp_t timestamp, void * p_context)
 {
@@ -326,10 +310,11 @@ static void heartbeat_core_evt_cb(const nrf_mesh_evt_t * p_evt)
     if (p_evt->type == NRF_MESH_EVT_TX_COMPLETE)
     {
         heartbeat_publication_information_t     hb_pub_info;
-
-        /* Get the latest value of the heartbeat publication information */
         NRF_MESH_ASSERT(m_publication_get_cb != NULL);
-        if ((m_publication_get_cb (&hb_pub_info) == NRF_SUCCESS))  // dst and count may get modified, re-check for validity
+
+        /* Get the latest value of the heartbeat publication information.
+         * dst and count may get modified, re-check for validity */
+        if ((m_publication_get_cb(&hb_pub_info) == NRF_SUCCESS))
         {
             if (m_hb_pending_pub_msg &&
                 is_publication_running(&hb_pub_info))
@@ -356,7 +341,10 @@ static void heartbeat_core_evt_cb(const nrf_mesh_evt_t * p_evt)
     }
 }
 
-/** Heartbeat feature change triggers heartbeat message */
+/*****************************************************************************
+ * Public API
+ *****************************************************************************/
+
 void heartbeat_on_feature_change_trigger(uint16_t hb_trigger)
 {
     heartbeat_publication_information_t     hb_pub_info;
@@ -375,7 +363,6 @@ void heartbeat_on_feature_change_trigger(uint16_t hb_trigger)
     }
 }
 
-/** Initializes the heartbeat module */
 void heartbeat_init(void)
 {
     // Note: Initialization of subscription state and publication state is not required. They are
@@ -396,6 +383,7 @@ void heartbeat_init(void)
     memset(&m_subscription_timer, 0, sizeof(m_subscription_timer));
     m_subscription_timer.cb        = heartbeat_subscription_timer_cb;
     m_subscription_timer.p_context = &m_heartbeat_subscription.period;
+
     // Remaining subscription period needs to be reported by heartbeat module as a part of
     // HEARTBEAT SUBSCRIPTION GET message. Also, incoming heartbeat messages should not be accepted
     // once this period runs out. Since the period is specified in seconds, the timer interval
@@ -407,8 +395,6 @@ void heartbeat_init(void)
     m_heartbeat_init_done = true;
 }
 
-
-/** Sets the value of internal heartbeat subscription state */
 uint32_t heartbeat_subscription_set(const heartbeat_subscription_state_t * p_hb_sub)
 {
     NRF_MESH_ASSERT(p_hb_sub != NULL);
@@ -467,7 +453,6 @@ uint32_t heartbeat_subscription_set(const heartbeat_subscription_state_t * p_hb_
     return NRF_SUCCESS;
 }
 
-/** Gets the value of internal heartbeat subscription state */
 const heartbeat_subscription_state_t * heartbeat_subscription_get(void)
 {
     return &m_heartbeat_subscription;

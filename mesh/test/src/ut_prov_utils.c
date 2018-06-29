@@ -384,7 +384,7 @@ void test_generate_oob_data(void)
                 rand_hw_rng_get_IgnoreArg_p_result();
                 rand_hw_rng_get_ReturnMemThruPtr_p_result(&rand_output[j], 1);
                 prov_utils_generate_oob_data(&m_ctx, auth_value);
-                expected_auth_value[15] = (rand_output[j] % (m_ctx.oob_size + 1));
+                expected_auth_value[15] = (rand_output[j] % m_ctx.oob_size) + 1;
                 TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_auth_value, auth_value, PROV_AUTH_LEN);
             }
         }

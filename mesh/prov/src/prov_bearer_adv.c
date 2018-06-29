@@ -332,7 +332,7 @@ static void init_bearer_structure(nrf_mesh_prov_bearer_adv_t * p_pb_adv, uint32_
     p_pb_adv->transaction_in = 0;
     p_pb_adv->instance_state = PROV_BEARER_ADV_INSTANCE_INITIALIZED;
     p_pb_adv->state = PROV_BEARER_ADV_STATE_IDLE;
-    p_pb_adv->last_token = 0;
+    p_pb_adv->last_token = NRF_MESH_INITIAL_TOKEN;
 
     p_pb_adv->timeout_event.cb = tx_retry_cb;
     p_pb_adv->timeout_event.p_context = p_pb_adv;
@@ -428,7 +428,7 @@ static inline nrf_mesh_tx_token_t tx_token_alloc(nrf_mesh_prov_bearer_adv_t * p_
     uint32_t was_masked;
     _DISABLE_IRQS(was_masked);
 
-    uint32_t token = ++p_pb_adv->last_token;
+    nrf_mesh_tx_token_t token = ++p_pb_adv->last_token;
     NRF_MESH_ASSERT(token != TX_TOKEN_UNPROV_BEACON);
 
     _ENABLE_IRQS(was_masked);

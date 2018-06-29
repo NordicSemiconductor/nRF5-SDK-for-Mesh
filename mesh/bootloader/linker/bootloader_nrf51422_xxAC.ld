@@ -1,4 +1,4 @@
-/* nRF5 SDK for Mesh Bootloader linker script -- Generated 2018-04-16 14:38:46 by tools/linker/linker_file_generator.py */
+/* nRF5 SDK for Mesh Bootloader linker script. */
 
 SEARCH_DIR(.)
 GROUP(-lgcc -lc -lnosys)

@@ -15,6 +15,10 @@ add_executable(${target}
     "${SDK_ROOT}/components/softdevice/common/nrf_sdh.c"
     "${SDK_ROOT}/components/softdevice/common/nrf_sdh_soc.c"
     "${SDK_ROOT}/components/softdevice/common/nrf_sdh_ble.c"
+    "${SDK_ROOT}/components/ble/common/ble_conn_params.c"
+    "${SDK_ROOT}/components/libraries/timer/app_timer.c"
+    "${SDK_ROOT}/components/libraries/atomic/nrf_atomic.c"
+    "${SDK_ROOT}/components/ble/common/ble_srv_common.c"
     ${WEAK_SOURCE_FILES}
     ${MESH_CORE_SOURCE_FILES}
     ${MESH_BEARER_SOURCE_FILES}
@@ -40,6 +44,7 @@ target_include_directories(${target} PUBLIC
     "${SDK_ROOT}/components/libraries/experimental_log"
     "${SDK_ROOT}/components/libraries/experimental_log/src"
     "${SDK_ROOT}/components/libraries/strerror"
+    "${SDK_ROOT}/components/libraries/atomic"
     ${SIMPLE_ON_OFF_CLIENT_INCLUDE_DIRS}
     ${CONFIG_SERVER_INCLUDE_DIRS}
     ${HEALTH_SERVER_INCLUDE_DIRS}
@@ -57,7 +62,6 @@ target_compile_options(${target} PUBLIC
 
 target_compile_definitions(${target} PUBLIC
     ${USER_DEFINITIONS}
-    -DPERSISTENT_STORAGE=0
     -DUSE_APP_CONFIG=1
     -DMESH_FEATURE_GATT=1
     -DGATT_PROXY=1

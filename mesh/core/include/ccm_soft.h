@@ -66,15 +66,12 @@ typedef struct
 {
     const uint8_t * p_key;                  /**< Block cipher key. */
     const uint8_t * p_nonce;                /**< Nonce. */
-    const uint8_t * p_m;                    /**< Message to authenticate and encrypt/decrypt. */
-
+    const uint8_t * p_m;                    /**< Message to authenticate and encrypt/decrypt. Set
+                                             *   to NULL to skip decryption stage. */
     uint16_t  m_len;                        /**< Message size (in octets). */
-
     const uint8_t * p_a;                    /**< Additional authenticated data. */
     uint16_t a_len;                         /**< Additional data size (in octets). */
-
     uint8_t * p_out;                        /**< (Out) Encrypted/decrypted output. */
-
     uint8_t * p_mic;                        /**< (Out) Message Integrety Check value */
     uint8_t   mic_len;                      /**< Length of the message integrity check value. */
 } ccm_soft_data_t;

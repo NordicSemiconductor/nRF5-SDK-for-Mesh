@@ -34,6 +34,7 @@ import sys
 import os
 import os.path
 import functools
+import fnmatch
 
 #---------------------------------------------------------------------------------------------------
 class CmdExecutor(object):
@@ -63,11 +64,8 @@ class ProgramDevice(object):
     def __init__(self, verbose=False):
         self.verbose = verbose
 
-    def program(self, soft_dev_hex, app_hex, device_id, type="NRF52"):
+    def program(self, app_hex, device_id, type="NRF52"):
         error_count = []
-        print ('\n# Programming the SoftDevice on: ', device_id)
-        (log, ec) = cmd.run(['nrfjprog', '--program', soft_dev_hex, "-s", device_id, "-f", type,], self.verbose)
-        error_count.append(ec)
 
         print ('# Programming hex ')
         (log, ec) = cmd.run(['nrfjprog', '--program', app_hex, "-s", device_id, "-f", type,], self.verbose)
@@ -88,8 +86,12 @@ class ProgramDevice(object):
 def device_type_get(device_id):
     if (len(device_id) < 9):
         return "00"
-    elif (device_id[2] == "2" or device_id[2] == "3" or device_id[2] == "4"):
-        return "52"
+    elif (device_id[2] == "2"):
+        return "52832"
+    elif (device_id[2] == "3"):
+        return "52840"
+    elif (device_id[2] == "4"):
+        return "52810"
     elif (device_id[2] == "0" or device_id[2] == "1"):
         return "51"
     else:
@@ -127,8 +129,16 @@ def get_board_index(msg, devs):
         return(devs[num])
 
 #---------------------------------------------------------------------------------------------------
+def find_file(path, filename_filter):
+    flist = []
+    for base, dirs, files in os.walk(path):
+        for filename in fnmatch.filter(files, filename_filter):
+            flist.append(os.path.join(base, filename))
+
+    return flist
+#---------------------------------------------------------------------------------------------------
 def printBoards(devices):
-    print ("\nBoards with nRF52 devices: \n(Board index : Segger ID)")
+    print ("\nBoards with nRF52832 or nRF52840 devices: \n(Board index : Segger ID)")
     for i in range(len(devices)):
         print(str(i) + ' : ' + devices[i])
 
@@ -161,14 +171,17 @@ ec = 0
 eList = errorList()
 server_devices = []
 
-soft_dev_hex52    =  cwd + "./bin/softdevice/s132_nrf52_6.0.0_softdevice.hex"
-provisioner_hex52 =  cwd + "./bin/otime/light_switch_provisioner_nrf52832_xxAA_s132_6.0.0.hex"
-client_hex52      =  cwd + "./bin/otime/light_switch_client_nrf52832_xxAA_s132_6.0.0.hex"
-server_hex52      =  cwd + "./bin/otime/light_switch_server_nrf52832_xxAA_s132_6.0.0.hex"
+provisioner_hex52832 = find_file(os.path.join(cwd, "bin"), 'light_switch_provisioner_nrf52832_xxAA_s132_6.0.0_merged_sd.hex')[0]
+client_hex52832 = find_file(os.path.join(cwd, "bin"), "light_switch_client_nrf52832_xxAA_s132_6.0.0_merged_sd.hex")[0]
+server_hex52832 = find_file(os.path.join(cwd, "bin"), "light_switch_server_nrf52832_xxAA_s132_6.0.0_merged_sd.hex")[0]
+
+provisioner_hex52840 = find_file(cwd, 'light_switch_provisioner_nrf52840_xxAA_s140_6.0.0_merged_sd.hex')[0]
+client_hex52840 = find_file(cwd, "light_switch_client_nrf52840_xxAA_s140_6.0.0_merged_sd.hex")[0]
+server_hex52840 = find_file(cwd, "light_switch_server_nrf52840_xxAA_s140_6.0.0_merged_sd.hex")[0]
 
 # All files must be valid
-for f in [soft_dev_hex52, provisioner_hex52, client_hex52, server_hex52]:
-    if (not os.path.isfile(soft_dev_hex52)):
+for f in [provisioner_hex52832, client_hex52832, server_hex52832, provisioner_hex52840, client_hex52840, server_hex52840]:
+    if (not os.path.isfile(f)):
         print("Error: File ", f, " does not exist")
         quit()
 
@@ -176,7 +189,7 @@ for f in [soft_dev_hex52, provisioner_hex52, client_hex52, server_hex52]:
 cmd = CmdExecutor()
 (log, ec) = cmd.run(['nrfjprog', '-i'])
 devices = log.splitlines()
-devices = [d for d in devices if device_type_get(d) == "52"]
+devices = [d for d in devices if (device_type_get(d) in ["52832", "52840"])]
 
 
 # Ask user input if required.
@@ -220,33 +233,45 @@ if (sum(err > 0 for err in eList.getErrors()) > 0):
 for d in devices:
     # PROVISIONER - 52xx
     if (d == str(args.provisioner)):
-            ec = programmer.program(soft_dev_hex52, provisioner_hex52, d)
-            eList.addErrors(ec)
-            if (all(e == 0 for e in ec)):
-                prov_loaded = True
-            else:
-                print ("Error: Provisioner could not be programmed on: %s, please retry." % args.provisioner)
-                quit()
+        if (device_type_get(d) == "52832"):
+            ec = programmer.program(provisioner_hex52832, d)
+        else:
+            ec = programmer.program(provisioner_hex52840, d)
+
+        eList.addErrors(ec)
+        if (all(e == 0 for e in ec)):
+            prov_loaded = True
+        else:
+            print ("Error: Provisioner could not be programmed on: %s, please retry." % args.provisioner)
+            quit()
 
     # CLIENT - 52xx
     elif (d == str(args.client)):
-            ec =  programmer.program(soft_dev_hex52, client_hex52, d)
-            eList.addErrors(ec)
-            if (all(e == 0 for e in ec)):
-                client_loaded = True
-            else:
-                print ("Error: Client could not be programmed on: %s, please retry." % args.client)
-                quit()
+        if (device_type_get(d) == "52832"):
+            ec =  programmer.program(client_hex52832, d)
+        else:
+            ec =  programmer.program(client_hex52840, d)
+
+        eList.addErrors(ec)
+        if (all(e == 0 for e in ec)):
+            client_loaded = True
+        else:
+            print ("Error: Client could not be programmed on: %s, please retry." % args.client)
+            quit()
 
     # SERVERs - 52xx
     else:
-            ec =  programmer.program(soft_dev_hex52, server_hex52, d)
-            if (all(e == 0 for e in ec)):
-                server_loaded = True
-                server_devices.append(d)
-            else:
-                print ("Warning: Server could not be programmed on: %s" % d)
-                eList.addErrors(ec)
+        if (device_type_get(d) == "52832"):
+            ec =  programmer.program(server_hex52832, d)
+        else:
+            ec =  programmer.program(server_hex52840, d)
+
+        if (all(e == 0 for e in ec)):
+            server_loaded = True
+            server_devices.append(d)
+        else:
+            print ("Warning: Server could not be programmed on: %s" % d)
+            eList.addErrors(ec)
 
 # Action: Reset all devices
 for d in devices:

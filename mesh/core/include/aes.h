@@ -37,12 +37,19 @@
 #ifndef MESH_AES_H__
 #define MESH_AES_H__
 
+#include "nrf_soc.h"
 #include "nrf_mesh_config_core.h"
 
-#if AES_USE_HARDWARE
-    #include "aes_hard.h"
+typedef nrf_ecb_hal_data_t aes_data_t;
+
+#ifndef AES_USE_SOFTDEVICE_ECB_WRAPPER
+#define AES_USE_SOFTDEVICE_ECB_WRAPPER SOFTDEVICE_PRESENT
+#endif
+
+#if AES_USE_SOFTDEVICE_ECB_WRAPPER
+#define aes_encrypt(data) (void) sd_ecb_block_encrypt((nrf_ecb_hal_data_t *) (data))
 #else
-    #include "aes_soft.h"
+void aes_encrypt(aes_data_t * p_aes_data);
 #endif
 
 #endif

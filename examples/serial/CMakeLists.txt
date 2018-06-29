@@ -40,6 +40,7 @@ target_compile_options(${target} PUBLIC
 
 target_compile_definitions(${target} PUBLIC -DPERSISTENT_STORAGE=0
     ${USER_DEFINITIONS}
+    -DUSE_APP_CONFIG=1
     ${${PLATFORM}_DEFINES}
     ${${SOFTDEVICE}_DEFINES}
     ${${BOARD}_DEFINES})

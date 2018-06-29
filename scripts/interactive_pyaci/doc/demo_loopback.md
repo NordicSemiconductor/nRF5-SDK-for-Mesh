@@ -31,7 +31,7 @@ about the command:
     
     Parameters
     ----------
-        data : uint8_t[97]
+        data : uint8_t[254]
             Data to echo back.
     File:           nrf5_sdk_for_mesh/scripts/interactive_pyaci/aci/aci_cmd.py
     Type:           type

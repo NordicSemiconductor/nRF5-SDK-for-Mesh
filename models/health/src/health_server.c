@@ -40,6 +40,7 @@
 #include "health_server.h"
 
 #include "nrf_mesh_config_app.h"
+#include "nrf_mesh.h"
 
 #include "bearer_event.h"
 #include "nrf_mesh_assert.h"
@@ -175,8 +176,9 @@ static void send_fault_status(health_server_t * p_server, uint16_t opcode, const
         .p_buffer = message_buffer,
         .length = sizeof(message_buffer),  /*lint !e569 Loss of precision from the sizeof() operator */
         .force_segmented = false,
-        .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT
-    };
+        .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT,
+        .access_token = nrf_mesh_unique_token_get()
+    }; /*lint !e446: side effect in initializer */
 
     if (p_message != NULL)
     {
@@ -197,8 +199,9 @@ static void send_attention_status(const health_server_t * p_server, const access
         .p_buffer = (const uint8_t *) &reply_message,
         .length = sizeof(health_msg_attention_status_t),
         .force_segmented = false,
-        .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT
-    };
+        .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT,
+        .access_token = nrf_mesh_unique_token_get()
+    }; /*lint !e446: side effect in initializer */
 
     (void) access_model_reply(p_server->model_handle, p_message, &packet);
 }
@@ -212,8 +215,9 @@ static void send_period_status(const health_server_t * p_server, const access_me
         .p_buffer = (const uint8_t *) &reply_message,
         .length = sizeof(health_msg_period_status_t),
         .force_segmented = false,
-        .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT
-    };
+        .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT,
+        .access_token = nrf_mesh_unique_token_get()
+    }; /*lint !e446: side effect in initializer */
 
     (void) access_model_reply(p_server->model_handle, p_message, &packet);
 }

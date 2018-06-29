@@ -84,10 +84,14 @@ typedef enum
     NRF_MESH_OPT_NET_RELAY_RETRANSMIT_COUNT,
     /** Relay retransmit interval in milliseconds. */
     NRF_MESH_OPT_NET_RELAY_RETRANSMIT_INTERVAL_MS,
+    /** Relay TX power. */
+    NRF_MESH_OPT_NET_RELAY_TX_POWER,
     /** Number of retransmits per network packet originating from this device. */
     NRF_MESH_OPT_NET_NETWORK_TRANSMIT_COUNT,
     /** Interval between retransmitted packets originating from this device in milliseconds. */
     NRF_MESH_OPT_NET_NETWORK_TRANSMIT_INTERVAL_MS,
+    /** TX power for packets originating from this device. */
+    NRF_MESH_OPT_NET_NETWORK_TX_POWER
 } nrf_mesh_opt_id_t;
 
 

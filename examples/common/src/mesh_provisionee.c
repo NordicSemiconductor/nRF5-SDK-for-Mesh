@@ -91,8 +91,7 @@ static void sd_state_evt_handler(nrf_sdh_state_evt_t state, void * p_context)
             err_code = nrf_sdh_ble_enable(&ram_start);
             APP_ERROR_CHECK(err_code);
 
-            err_code = nrf_mesh_enable();
-            APP_ERROR_CHECK(err_code);
+
 #if GATT_PROXY
             mesh_key_index_t key_index;
             uint32_t count = 1;
@@ -104,7 +103,17 @@ static void sd_state_evt_handler(nrf_sdh_state_evt_t state, void * p_context)
             proxy_node_id_enable(NULL, kr_phase);
 #endif  /* GATT_PROXY */
 
+            /* We deliberately start the mesh _after_ the proxy to ensure that the
+             * softdevice gets a timeslot ASAP to advertise. */
+            err_code = nrf_mesh_enable();
+            APP_ERROR_CHECK(err_code);
+
             m_doing_gatt_reset = false;
+
+            if (m_params.prov_complete_cb != NULL)
+            {
+                m_params.prov_complete_cb();
+            }
             break;
         }
         case NRF_SDH_EVT_STATE_DISABLED:
@@ -152,13 +161,15 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
             }
             else
             {
+#if MESH_FEATURE_GATT
+                /* it requires switching GATT service before provisioning complete */
+                gatt_database_reset();
+#else
                 if (m_params.prov_complete_cb != NULL)
                 {
                     m_params.prov_complete_cb();
-#if MESH_FEATURE_GATT
-                    gatt_database_reset();
-#endif  /* MESH_FEATURE_GATT */
                 }
+#endif  /* MESH_FEATURE_GATT */
             }
             break;
 

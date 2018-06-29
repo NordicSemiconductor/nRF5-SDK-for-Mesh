@@ -198,6 +198,21 @@
     } while (0)
 #define TEST_ASSERT_EQUAL_core_tx_alloc_params_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_core_tx_alloc_params_t(expected, actual, __LINE__, "")
 
+#define UNITY_TEST_ASSERT_EQUAL_nrf_mesh_address_t(expected, actual, line, message)                \
+    do                                                                                             \
+    {                                                                                              \
+        UNITY_TEST_ASSERT_EQUAL_HEX8((expected).type, (actual).type, line, message);               \
+        UNITY_TEST_ASSERT_EQUAL_HEX16((expected).value, (actual).value, line, message);            \
+        if ((expected).type == NRF_MESH_ADDRESS_TYPE_VIRTUAL)                                      \
+        {                                                                                          \
+            UNITY_TEST_ASSERT_EQUAL_HEX8_ARRAY((expected).p_virtual_uuid,                          \
+                                               (actual).p_virtual_uuid,                            \
+                                               16,                                                 \
+                                               line,                                               \
+                                               message);                                           \
+        }                                                                                          \
+    } while (0)
+#define TEST_ASSERT_EQUAL_nrf_mesh_address_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_nrf_mesh_address_t(expected, actual, __LINE__, "")
 /** @} */
 
 #endif /* TEST_HELPER_H__ */

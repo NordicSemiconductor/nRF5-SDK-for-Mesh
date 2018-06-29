@@ -42,7 +42,7 @@
 #include "ble_gap.h"
 
 /**
- * @defgroup MESH_ADV Mesh application advertisment interface
+ * @defgroup MESH_ADV Mesh application advertisement interface
  * @ingroup MESH_API_GROUP_APP_SUPPORT
  *
  * This interface is required to support GATT proxy and PB-GATT.

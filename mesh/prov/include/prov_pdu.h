@@ -101,7 +101,7 @@ typedef struct __attribute((packed))
 typedef struct __attribute((packed))
 {
     uint8_t  pdu_type;           /**< Packet PDU type can be one of type @ref prov_pdu_type_t. */
-    uint8_t  num_components;     /**< Number of components */
+    uint8_t  num_elements;       /**< Number of elements */
     uint16_t algorithms;         /**< Supported authentication algorithms. */
     uint8_t  pubkey_type;        /**< Supported public key types. */
     uint8_t  oob_static_types;   /**< Supported static OOB types. */

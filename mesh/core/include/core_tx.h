@@ -47,9 +47,6 @@
  * core_tx_bearer_bitmap_t type. */
 #define CORE_TX_BEARER_COUNT_MAX 32
 
-/** TX token that shall be used when sending relay packets. */
-#define CORE_TX_TOKEN_RELAY (0xFFFFFFFF)
-
 /**
  * @defgroup CORE_TX Core Transmission Handler
  * @ingroup MESH_CORE

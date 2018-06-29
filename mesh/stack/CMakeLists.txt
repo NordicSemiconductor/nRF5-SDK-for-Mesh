@@ -19,7 +19,8 @@ set(lint_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../../models/config/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../../models/health/include
     ${${SOFTDEVICE}_INCLUDE_DIRS}
-    ${${PLATFORM}_INCLUDE_DIRS})
+    ${${PLATFORM}_INCLUDE_DIRS}
+    ${${nRF5_SDK_VERSION}_INCLUDE_DIRS})
 
 add_pc_lint(mesh_stack_${PLATFORM}
     "${MESH_STACK_SOURCE_FILES}"

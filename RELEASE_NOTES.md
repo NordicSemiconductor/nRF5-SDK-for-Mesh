@@ -1,10 +1,66 @@
 # Release Notes
 
+## BLE Mesh v2.1.0
+- This is a minor production release.
+
+### New features
+- Add PA/LNA support for timeslot projects
+
+### Bugfixes
+- Access loopback needs context switch
+- Config server: send_publication_status() always sends status code as ACCESS_STATUS_SUCCESS or it Asserts
+- Sending a reliable message via internal loop causes to double sending with opposite results
+- Don't allow provisioner to use OOB public key if we don't support it
+- Fix static assertions for flash size
+- Config server replies to feature set when it shouldn't
+- light_switch_proxy_client SES project imports app_error.c twice, leads to compile error
+- Light switch client requires all buttons to be configured
+- Heartbeat Publication Set message duplicates count value
+- Mesh GATT asserts on MTU requests
+- In-place modification of event list during event handling
+- Device page generator outputs file for nrf52832 no matter platform chosen
+- Mesh timeslot extension is prohibiting softdevice advertising (GATT)
+- Mesh proxy sets advertising timing in wrong order
+- Invalid handling of service changed attribute
+- Application defined softdevice settings are lost during GATT dabase reset
+- Core TX alloc rejected by GATT proxy bearer
+- Provisioner stops provisioning new nodes prematurely
+- No support for reserved groups (all-nodes, all-proxies, ...)
+- Heartbeat does not include all active features in published message
+- Segger Embedded Studio projects have invalid memory configurations
+- Connecting and disconnecting from PB-GATT leaves provisioning bearers in undefined state
+- Persistent storage is turned off for proxy client
+- Mesh GATT module does not propagate ADV timeout event
+- hal_led_blink_ms call is blocking and used in IRQs
+- `device_page_generator.py` key parsing errors
+- `device_page_generator.py` wrong output filename
+
+
+### Known issues and limitations
+
+- Publish re-transmission settings are not supported
+- Some Config server and Health server model states are not persistent
+- Setting device in attention state during provisioning is not supported
+- Light switch provisioner example:
+  During the configuration of a node, the static provisioner example may sometimes consider a status response of a previous configuration step as the status response of the current configuration step. This may cause a node configuration to remain incomplete, without the provisioner noticing. If this happens, provisioned client or server nodes will not respond to user inputs as expected.
+  This occurs due to mesh message re-transmissions logic built into the stack causing responses to SET messages to arrive out of order. This scenario is most likely to manifest itself in situations when the mesh stack is not scanning for the majority of the time. For example, while running other BLE connections with a short connection interval.
+
+
+### Verification Notices / Test Errata
+- Test Configurations:
+-- nrf52832   ||   s132_6.0.0   ||   pca10040
+-- nrf52840   ||   s140_6.0.0   ||   pca10056
+
+
+
+
 ## BLE Mesh v2.0.1
 - This is a minor bugfix release
 
 ### Bugfixes
 - Ignore Config Proxy Set and Config Friend Set messages with invalid parameters
+
+
 
 ## BLE Mesh v2.0.0
 - This is a major production release.

@@ -49,6 +49,7 @@
 #include "mesh_provisionee.h"
 #include "nrf_mesh_config_examples.h"
 #include "nrf_mesh_configure.h"
+#include "app_timer.h"
 
 #include "nrf_mesh_events.h"
 #include "nrf_nvic.h"
@@ -176,10 +177,13 @@ static void initialize(void)
     __LOG_INIT(LOG_SRC_APP | LOG_SRC_ACCESS, LOG_LEVEL_INFO, LOG_CALLBACK_DEFAULT);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- BLE Mesh Light Switch Server Demo -----\n");
 
+    ERROR_CHECK(app_timer_init());
     hal_leds_init();
+
 #if BUTTON_BOARD
     ERROR_CHECK(hal_buttons_init(button_event_handler));
 #endif
+
     nrf_clock_lf_cfg_t lfc_cfg = DEV_BOARD_LF_CLK_CFG;
     ERROR_CHECK(mesh_softdevice_init(lfc_cfg));
     mesh_init();
@@ -196,7 +200,8 @@ static void start(void)
         mesh_provisionee_start_params_t prov_start_params =
         {
             .p_static_data    = static_auth_data,
-            .prov_complete_cb = provisioning_complete_cb
+            .prov_complete_cb = provisioning_complete_cb,
+            .p_device_uri = NULL
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }

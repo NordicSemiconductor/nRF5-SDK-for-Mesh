@@ -294,7 +294,7 @@ void test_prov_tx(void)
     prov_pdu_caps_t capabilities_pdu;
     capabilities_pdu.pdu_type = PROV_PDU_TYPE_CAPABILITIES;
     capabilities_pdu.algorithms = 0x1234;
-    capabilities_pdu.num_components = 99;
+    capabilities_pdu.num_elements = 99;
     capabilities_pdu.oob_input_actions = 0x5678;
     capabilities_pdu.oob_input_size = 88;
     capabilities_pdu.oob_output_actions = 0x9ABC;

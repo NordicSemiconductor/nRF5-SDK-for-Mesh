@@ -197,7 +197,7 @@ void setUp(void)
     /* Init test data*/
     for (uint32_t i = 0; i < sizeof(test_data); ++i)
     {
-        test_data[i] = i;
+        test_data[i] = i % 80;  /* Modulo with a number lower than the slip bytes. */
     }
 
     packet_buffer_init_Expect(NULL, NULL, 2 * ALIGN_VAL(sizeof(serial_packet_t) + sizeof(packet_buffer_packet_t), WORD_SIZE));
@@ -213,8 +213,6 @@ void setUp(void)
 void tearDown(void)
 {
     TEST_ASSERT_EQUAL(0, m_critical_section);
-    packet_buffer_mock_Verify();
-    bearer_event_mock_Verify();
     serial_mock_Verify();
     serial_uart_mock_Verify();
     serial_uart_mock_Destroy();

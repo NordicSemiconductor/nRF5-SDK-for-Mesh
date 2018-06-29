@@ -22,14 +22,15 @@ Refer to @subpage md_COPYING for the Copyright Notice.
 
 The mesh stack is compatible with the following configurations:
 
-| SoC                        | Board(s)  | SoftDevice(s)       |
-| -------------------------- | --------- | ------------------- |
-| nRF51422_xxAC (deprecated) | PCA10028  | S130 v2.0.1         |
-| nRF52832_xxAA              | PCA10040  | S132 v5.0.0/v6.0.0  |
-| nRF52840_xxAA              | PCA10056  | S140 v6             |
+| SoC                                            | Board(s)  | SoftDevice(s)       |
+| ---------------------------------------------- | --------- | ------------------- |
+| nRF51422_xxAC (deprecated)                     | PCA10028  | S130 v2.0.1         |
+| nRF52810_xxAA<sup><a href="#fn:1">1</a></sup>  | PCA10040e | S112 v6.0.0         |
+| nRF52832_xxAA                                  | PCA10040  | S132 v5.0.0/v6.0.0  |
+| nRF52840_xxAA                                  | PCA10056  | S140 v6.0.0         |
 
 The mesh stack is also compatible with the nRF52810 platform, but not supported by this version of the nRF5 SDK for Mesh.
-Support for the nRF51-series platform is being dropped, but building the examples<sup><a href="#fn:1">1</a></sup>
+Support for the nRF51 Series platform is being dropped, but building the examples<sup><a href="#fn:2">2</a></sup>
 is still supported using
 the CMake build system.
 
@@ -69,6 +70,19 @@ The nRF5 SDK for Mesh repository is organized as follows:
   - `tools` contains tools useful for development.
 
 
+## Reporting issues
+
+We appreciate all bug reports and fixes. We kindly ask you to report all issues through
+<a href="https://devzone.nordicsemi.com" target="_blank">DevZone</a> and someone from
+technical support will ensure it is tracked internally. Unfortunately we currently do
+not have a good system in place for integrating fixes through the public GitHub mirror.
+That is why we cannot accept any pull request at the moment.
+
 ---
 
-<sup id="fn:1">1</sup> The Ligth switch proxy example is nRF52-series only.
+<sup id="fn:1">1</sup> nRF52810 support is limited. It is very limited in both Flash and RAM, therefore it does
+not currently support DFU and logging is disabled to save flash. Furthermore, it should be compiled with
+optimization for size, i.e., `-DCMAKE_BUILD_TYPE=MinSizeRel` for CMake or the 'ReleaseWithDebugInformation'
+setting in SEGGER Embededd Studio.
+
+<sup id="fn:2">2</sup> The Light switch proxy example is for the nRF52 Series only.

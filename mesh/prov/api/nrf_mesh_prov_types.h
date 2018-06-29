@@ -88,12 +88,17 @@
 /** Capabilities bit indicating that the FIPS P256EC algorithm is supported. */
 #define NRF_MESH_PROV_ALGORITHM_FIPS_P256EC          (1u << 0)
 
+/**
+ * Capabilities bit indicating that the public key is available in-band.
+ * If no public key type is set, this is the default
+ */
+#define NRF_MESH_PROV_OOB_PUBKEY_TYPE_INBAND         (0)
 /** Capabilities bit indicating that the public key is available OOB. */
 #define NRF_MESH_PROV_OOB_PUBKEY_TYPE_OOB            (1u << 0)
+
+
 /** Capabilities bit indicating that static OOB authentication is supported. */
 #define NRF_MESH_PROV_OOB_STATIC_TYPE_SUPPORTED      (1u << 0)
-/** Capabilities bit indicating that the public key is available in-band. If no public key type is set, this is the default */
-#define NRF_MESH_PROV_OOB_PUBKEY_TYPE_INBAND         (0)
 
 /** Capabilities bit indicating that the device supports blinking as output OOB action. */
 #define NRF_MESH_PROV_OOB_OUTPUT_ACTION_BLINK        (1u << 0)
@@ -105,6 +110,7 @@
 #define NRF_MESH_PROV_OOB_OUTPUT_ACTION_NUMERIC      (1u << 3)
 /** Capabilities bit indicating that the device supports displaying alphanumeric data as output OOB action. */
 #define NRF_MESH_PROV_OOB_OUTPUT_ACTION_ALPHANUMERIC (1u << 4)
+
 /** Capabilities bit indicating that the device supports pushing something as input OOB action. */
 #define NRF_MESH_PROV_OOB_INPUT_ACTION_PUSH          (1u << 0)
 /** Capabilities bit indicating that the device supports twisting something as input OOB action. */

@@ -52,6 +52,9 @@
 /** Acceptable button press frequency in RTC ticks. */
 #define HAL_BUTTON_PRESS_FREQUENCY  HAL_MS_TO_RTC_TICKS(400)
 
+/** Lowest possible blinking period in milliseconds. */
+#define HAL_LED_BLINK_PERIOD_MIN_MS (20)
+
 /** Set LED Mask state to Off. */
 #define LED_MASK_STATE_OFF    (false)
 /** Set LED Mask state to On. */
@@ -108,6 +111,11 @@ bool hal_led_pin_get(uint32_t pin);
 
 /**
  * Blinks (one toggle cycle) pin_mask a specified number of times.
+ *
+ * @note If the API is called twice, the blink sequence is reset.
+ * @note If @p delay_ms is less than @ref HAL_LED_BLINK_PERIOD_MIN_MS or @p blink_count is zero, the
+ * call will be ignored.
+ * @note If the APP_TIMER queue is full, this call may fail silently.
  *
  * @param[in] pin_mask      Mask of LED pins.
  * @param[in] delay_ms      Delay in milliseconds between each state change.

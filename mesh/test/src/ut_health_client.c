@@ -45,6 +45,7 @@
 #include "access_mock.h"
 #include "access_config_mock.h"
 #include "access_reliable_mock.h"
+#include "nrf_mesh_mock.h"
 
 #include "health_client.h"
 #include "health_messages.h"
@@ -174,6 +175,9 @@ void setUp(void)
     access_mock_Init();
     access_config_mock_Init();
     access_reliable_mock_Init();
+    nrf_mesh_mock_Init();
+
+    nrf_mesh_unique_token_get_IgnoreAndReturn((nrf_mesh_tx_token_t)0x55AA55AAul);
 
     access_model_add_StubWithCallback(access_model_add_mock);
     access_model_publish_StubWithCallback(access_model_publish_mock);
@@ -192,6 +196,8 @@ void tearDown(void)
     access_config_mock_Destroy();
     access_reliable_mock_Verify();
     access_reliable_mock_Destroy();
+    nrf_mesh_mock_Verify();
+    nrf_mesh_mock_Destroy();
 }
 
 /********** Health client event handler **********/

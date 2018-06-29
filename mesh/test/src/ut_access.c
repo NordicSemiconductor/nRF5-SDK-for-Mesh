@@ -60,6 +60,7 @@
 #include "nrf_mesh_utils_mock.h"
 #include "event_mock.h"
 #include "bearer_event_mock.h"
+#include "proxy_mock.h"
 
 #define TEST_REFERENCE ((void*) 0xB00BB00B)
 #define TEST_MODEL_ID (0xB00B)
@@ -69,6 +70,7 @@
 #define GROUP_ADDRESS_START   (0xC001)
 #define PUBLISH_ADDRESS_START (0x0101)
 #define OPCODE_COUNT (5)
+#define ACCESS_LOOPBACK_FLAG  (0x11223344ul)
 
 #define MSG_EVT_MAX_COUNT (ACCESS_ELEMENT_COUNT)
 #define TX_EVT_MAX_COUNT (ACCESS_ELEMENT_COUNT)
@@ -156,6 +158,8 @@ static fm_mem_listener_t * mp_mem_listener;
 static uint32_t m_flash_manager_calls;
 static uint32_t m_listener_register_calls;
 
+static bearer_event_flag_callback_t m_bearer_cb;
+
 /*******************************************************************************
  * Helper Functions // Mocks // Callbacks
  *******************************************************************************/
@@ -187,7 +191,7 @@ static void print_configuration(void)
     }
 }
 
-timestamp_t timer_now()
+timestamp_t timer_now(void)
 {
     return 0;
 }
@@ -351,6 +355,15 @@ static uint32_t flash_manager_add_stub(flash_manager_t * p_manager, const flash_
 
 }
 
+bearer_event_flag_t bearer_event_flag_add_cb(bearer_event_flag_callback_t cb, int num_calls)
+{
+    (void)num_calls;
+    TEST_ASSERT_NOT_NULL(cb);
+    m_bearer_cb = cb;
+
+    return ACCESS_LOOPBACK_FLAG;
+}
+
 static uint32_t packet_tx_stub(const nrf_mesh_tx_params_t * p_tx_params, uint32_t * const p_ref, int num_calls)
 {
     tx_evt_t tx_evt;
@@ -370,13 +383,11 @@ static uint32_t address_get_stub(dsm_handle_t handle, nrf_mesh_address_t * p_add
         p_address->type = m_addresses[handle].type;
         p_address->value = m_addresses[handle].value;
         p_address->p_virtual_uuid = m_addresses[handle].p_virtual_uuid;
-        nrf_mesh_address_type_get_ExpectAndReturn(m_addresses[handle].value, m_addresses[handle].type);
         return NRF_SUCCESS;
     }
     else
     {
-        TEST_FAIL_MESSAGE("Invalid address handle");
-        return NRF_SUCCESS; /*lint !e527 Unreachable code */
+        return NRF_ERROR_NOT_FOUND;
     }
 }
 
@@ -404,6 +415,9 @@ static inline void expect_tx(const uint8_t * p_data, uint32_t length, uint16_t s
     tx_evt.src = src;
     tx_evt.dst = dst;
 
+#if GATT_PROXY
+    proxy_is_enabled_ExpectAndReturn(true);
+#endif
     nrf_mesh_packet_send_StubWithCallback(packet_tx_stub);
     dsm_address_get_StubWithCallback(address_get_stub);
 
@@ -461,6 +475,8 @@ static void send_msg(access_opcode_t opcode, const uint8_t * p_data, uint16_t le
     mesh_evt.params.message.secmat.p_net = NULL;
     mesh_evt.params.message.secmat.p_app = NULL;
 
+    dsm_address_is_rx_ExpectAndReturn(&mesh_evt.params.message.dst, true);
+
     if (dst < ACCESS_ELEMENT_COUNT)
     {
         mesh_evt.params.message.dst.type = NRF_MESH_ADDRESS_TYPE_UNICAST;
@@ -477,7 +493,6 @@ static void send_msg(access_opcode_t opcode, const uint8_t * p_data, uint16_t le
         dsm_address_handle_get_IgnoreArg_p_address();
         dsm_address_handle_get_IgnoreArg_p_address_handle();
         dsm_address_handle_get_ReturnThruPtr_p_address_handle(&dst);
-        dsm_address_subscription_get_ExpectAndReturn(dst, true);
     }
     else
     {
@@ -514,30 +529,14 @@ static void opcode_handler(access_model_handle_t handle, const access_message_rx
     memcpy(&expected_data[length], data, sizeof(data));
     length += sizeof(data);
 
-    dsm_address_handle_get_ExpectAnyArgsAndReturn(NRF_ERROR_NOT_FOUND);
-
-    /* If the received packet is a loopbacked packet, the reply will not be sent on the air: */
-    if (p_message->length == strlen("loopback") && memcmp(p_message->p_data, "loopback", strlen("loopback")) == 0)
-    {
-        /* First call is for the transmission of the reply: */
-        dsm_local_unicast_addresses_get_Expect(NULL);
-        dsm_local_unicast_addresses_get_IgnoreArg_p_address();
-        dsm_local_unicast_addresses_get_ReturnThruPtr_p_address(&local_addresses);
-
-        /* Second call is for the reception of the reply: */
-        dsm_local_unicast_addresses_get_Expect(NULL);
-        dsm_local_unicast_addresses_get_IgnoreArg_p_address();
-        dsm_local_unicast_addresses_get_ReturnThruPtr_p_address(&local_addresses);
-    }
-    else
-    {
-        expect_tx(expected_data,
-                  length,
-                  ELEMENT_ADDRESS_START + handle * ACCESS_ELEMENT_COUNT / ACCESS_MODEL_COUNT,
-                  p_message->meta_data.src.value,
-                  p_message->meta_data.appkey_handle,
-                  p_message->meta_data.subnet_handle);
-    }
+    /* Never loop back the response: */
+    dsm_address_is_rx_ExpectAndReturn(&p_message->meta_data.src, false);
+    expect_tx(expected_data,
+                length,
+                ELEMENT_ADDRESS_START + handle * ACCESS_ELEMENT_COUNT / ACCESS_MODEL_COUNT,
+                p_message->meta_data.src.value,
+                p_message->meta_data.appkey_handle,
+                p_message->meta_data.subnet_handle);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_reply(handle, p_message, &reply));
 }
@@ -639,6 +638,7 @@ void setUp(void)
     event_mock_Init();
     bearer_event_mock_Init();
     access_publish_mock_Init();
+    proxy_mock_Init();
 
     __LOG_INIT(0xFFFFFFFF, LOG_LEVEL_REPORT, LOG_CALLBACK_DEFAULT);
     memset(&m_msg_fifo, 0, sizeof(m_msg_fifo));
@@ -662,6 +662,7 @@ void setUp(void)
     dsm_flash_area_get_StubWithCallback(dsm_flash_area_get_stub);
     flash_manager_mem_listener_register_StubWithCallback(flash_manager_mem_listener_register_stub);
     flash_manager_add_StubWithCallback(flash_manager_add_stub);
+    bearer_event_flag_add_StubWithCallback(bearer_event_flag_add_cb);
     access_reliable_init_Expect();
     access_publish_init_Expect();
     access_init();
@@ -693,6 +694,8 @@ void tearDown(void)
     bearer_event_mock_Destroy();
     access_publish_mock_Verify();
     access_publish_mock_Destroy();
+    proxy_mock_Verify();
+    proxy_mock_Destroy();
 }
 
 
@@ -779,6 +782,7 @@ void test_rx_tx(void)
                 access_reliable_message_rx_cb_IgnoreArg_p_message();
                 /* TODO: CMock tries to compare the location where p_args points to :( */
                 access_reliable_message_rx_cb_IgnoreArg_p_args();
+
                 send_msg(opcode, data, data_length, i, 0);
             }
         }
@@ -830,14 +834,17 @@ void test_unicast_loopback(void)
 
     /* Set publish address to the element's own address: */
     nrf_mesh_address_t destination = { NRF_MESH_ADDRESS_TYPE_UNICAST, ELEMENT_ADDRESS_START, NULL };
-    dsm_address_get_ExpectAndReturn(0, NULL, NRF_SUCCESS);
-    dsm_address_get_IgnoreArg_p_address();
-    dsm_address_get_ReturnThruPtr_p_address(&destination);
-    nrf_mesh_address_type_get_ExpectAndReturn(destination.value, NRF_MESH_ADDRESS_TYPE_UNICAST);
+    dsm_address_get_StubWithCallback(address_get_stub);
     access_reliable_message_rx_cb_ExpectAnyArgs();
-    expect_msg(opcode, (uint32_t) TEST_REFERENCE, data, data_length);
+
+    bearer_event_flag_set_Expect(ACCESS_LOOPBACK_FLAG);
+    dsm_address_is_rx_ExpectAndReturn(&destination, true); // accept loopback
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish(0, &message));
+
+    dsm_address_is_rx_ExpectAndReturn(&destination, true); // called again in the bearer cb, as we created a loopback context.
+    expect_msg(opcode, (uint32_t) TEST_REFERENCE, data, data_length);
+    m_bearer_cb();
 }
 
 void test_group_loopback(void)
@@ -860,18 +867,23 @@ void test_group_loopback(void)
         .length = data_length
     };
 
-    dsm_address_subscription_get_ExpectAndReturn(address_handle, true);
+    dsm_address_get_StubWithCallback(address_get_stub);
 
     dsm_address_handle_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
     dsm_address_handle_get_ReturnThruPtr_p_address_handle(&address_handle);
-    dsm_address_subscription_get_ExpectAndReturn(address_handle, true);
 
-    expect_msg(opcode, (uint32_t) TEST_REFERENCE, data, data_length);
+    bearer_event_flag_set_Expect(ACCESS_LOOPBACK_FLAG);
+    dsm_address_is_rx_ExpectAndReturn(&m_addresses[address_handle], true); // accept loopback
 
+    // still expect a TX, as the loopback doesn't prevent it when sending to a group address:
     const uint8_t raw_packet_data[] = "\x00loopback";
     expect_tx(raw_packet_data, data_length + 1 /* opcode */, ELEMENT_ADDRESS_START, m_addresses[address_handle].value, 0, DSM_HANDLE_INVALID);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish(0, &message));
+
+    dsm_address_is_rx_ExpectAndReturn(&m_addresses[address_handle], true); // called again in the bearer cb, as we created a loopback context.
+    expect_msg(opcode, (uint32_t) TEST_REFERENCE, data, data_length);
+    m_bearer_cb();
 }
 
 void test_virtual_loopback(void)
@@ -884,7 +896,6 @@ void test_virtual_loopback(void)
     dsm_handle_t address_handle = ACCESS_ELEMENT_COUNT + ACCESS_MODEL_COUNT + 1;
 
     /* Replace the current address in the address array with a virtual address: */
-    nrf_mesh_address_t temp = m_addresses[address_handle];
     const uint8_t label_uuid[] = { 0xf4, 0xa0, 0x02, 0xc7, 0xfb, 0x1e, 0x4c, 0xa0, 0xa4, 0x69, 0xa0, 0x21, 0xde, 0x0d, 0xb8, 0x75 };
     m_addresses[address_handle].type = NRF_MESH_ADDRESS_TYPE_VIRTUAL;
     m_addresses[address_handle].value = 0x9736;
@@ -901,21 +912,23 @@ void test_virtual_loopback(void)
         .length = data_length
     };
 
-    dsm_address_subscription_get_ExpectAndReturn(address_handle, true);
+    dsm_address_get_StubWithCallback(address_get_stub);
 
     dsm_address_handle_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
     dsm_address_handle_get_ReturnThruPtr_p_address_handle(&address_handle);
-    dsm_address_subscription_get_ExpectAndReturn(address_handle, true);
 
-    expect_msg(opcode, (uint32_t) TEST_REFERENCE, data, data_length);
+    bearer_event_flag_set_Expect(ACCESS_LOOPBACK_FLAG);
+    dsm_address_is_rx_ExpectAndReturn(&m_addresses[address_handle], true); // accept loopback
 
+    // still expect a TX, as the loopback doesn't prevent it when sending to a group address:
     const uint8_t raw_packet_data[] = "\x00loopback";
     expect_tx(raw_packet_data, data_length + 1 /* opcode */, ELEMENT_ADDRESS_START, m_addresses[address_handle].value, 0, DSM_HANDLE_INVALID);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish(0, &message));
 
-    /* Restore the previous address to the address array: */
-    m_addresses[address_handle] = temp;
+    dsm_address_is_rx_ExpectAndReturn(&m_addresses[address_handle], true); // called again in the bearer cb, as we created a loopback context.
+    expect_msg(opcode, (uint32_t) TEST_REFERENCE, data, data_length);
+    m_bearer_cb();
 }
 
 void test_key_access(void)
@@ -1013,6 +1026,8 @@ void test_model_publish(void)
         uint32_t length = opcode_raw_write(message.opcode, expected_data);
         memcpy(&expected_data[length], data, message.length);
         length += message.length;
+        nrf_mesh_address_t dst_addr = {NRF_MESH_ADDRESS_TYPE_UNICAST, dst};
+        dsm_address_is_rx_ExpectAndReturn(&dst_addr, false); // don't want loopback
         expect_tx(expected_data, length, src, dst, 0, DSM_HANDLE_INVALID);
 
         TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish(i, &message));

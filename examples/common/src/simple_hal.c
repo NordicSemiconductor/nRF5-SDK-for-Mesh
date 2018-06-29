@@ -48,7 +48,8 @@
 
 #include "nrf_mesh_defines.h"
 #include "timer.h"
-
+#include "app_timer.h"
+#include "app_error.h"
 
 /*****************************************************************************
  * Definitions
@@ -79,9 +80,25 @@ static uint32_t m_last_button_press;
 static hal_button_handler_cb_t m_button_handler_cb;
 #endif
 
+APP_TIMER_DEF(m_blink_timer);
+static uint32_t m_blink_count;
+static uint32_t m_blink_mask;
+
 /*****************************************************************************
  * Public API
  *****************************************************************************/
+
+static void led_timeout_handler(void * p_context)
+{
+    APP_ERROR_CHECK_BOOL(m_blink_count > 0);
+    NRF_GPIO->OUT ^= m_blink_mask;
+
+    m_blink_count--;
+    if (m_blink_count == 0)
+    {
+        (void) app_timer_stop(m_blink_timer);
+    }
+}
 
 /** Returns @c true if the led at pin_no is on. */
 bool hal_led_pin_get(uint32_t pin)
@@ -116,10 +133,19 @@ void hal_led_mask_set(uint32_t led_mask, bool value)
 
 void hal_led_blink_ms(uint32_t led_mask, uint32_t delay_ms, uint32_t blink_count)
 {
-    for (uint32_t i = 0; i < blink_count*2; ++i)
+    if (blink_count == 0 || delay_ms < HAL_LED_BLINK_PERIOD_MIN_MS)
     {
-        NRF_GPIO->OUT ^= led_mask;
-        nrf_delay_ms(delay_ms);
+        return;
+    }
+
+    m_blink_mask  = led_mask;
+    m_blink_count = blink_count * 2 - 1;
+
+    if (app_timer_start(m_blink_timer, APP_TIMER_TICKS(delay_ms), NULL) == NRF_SUCCESS)
+    {
+        /* Start by "clearing" the mask, i.e., turn the LEDs on -- in case a user calls the
+         * function twice. */
+        NRF_GPIO->OUT &= ~m_blink_mask;
     }
 }
 
@@ -130,6 +156,8 @@ void hal_leds_init(void)
         NRF_GPIO->PIN_CNF[i] = LED_PIN_CONFIG;
         NRF_GPIO->OUTSET = 1UL << i;
     }
+
+    APP_ERROR_CHECK(app_timer_create(&m_blink_timer, APP_TIMER_MODE_REPEATED, led_timeout_handler));
 }
 
 uint32_t hal_buttons_init(hal_button_handler_cb_t cb)

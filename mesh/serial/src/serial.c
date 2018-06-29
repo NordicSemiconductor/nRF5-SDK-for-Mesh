@@ -181,7 +181,7 @@ uint32_t serial_start(void)
         p_start_packet->opcode = SERIAL_OPCODE_EVT_DEVICE_STARTED;
         p_start_packet->payload.evt.device.started.operating_mode = SERIAL_DEVICE_OPERATING_MODE_APPLICATION;
         p_start_packet->payload.evt.device.started.hw_error = NRF_POWER->RESETREAS & RESET_REASONS_HW_ERROR;
-        p_start_packet->payload.evt.device.started.data_credit_available = sizeof(serial_packet_t);
+        p_start_packet->payload.evt.device.started.data_credit_available = NRF_MESH_SERIAL_PAYLOAD_MAXLEN;
         serial_tx(p_start_packet);
     }
     return err_code;

@@ -240,4 +240,11 @@ void test_config(void)
         mp_advertisers[i]->config.advertisement_interval_us = 25000 * i;
         TEST_ASSERT_EQUAL(mp_advertisers[i]->config.advertisement_interval_us / 1000, core_tx_adv_interval_get(i));
     }
+
+    for (uint32_t i = 0; i < CORE_TX_ROLE_COUNT; ++i)
+    {
+        advertiser_tx_power_set_Expect(mp_advertisers[i], RADIO_POWER_NRF_POS4DBM);
+        core_tx_adv_tx_power_set(i, RADIO_POWER_NRF_POS4DBM);
+    }
+    TEST_NRF_MESH_ASSERT_EXPECT(core_tx_adv_tx_power_set(CORE_TX_ROLE_COUNT, RADIO_POWER_NRF_0DBM));
 }

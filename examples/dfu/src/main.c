@@ -45,6 +45,7 @@
 #include "mesh_provisionee.h"
 #include "nrf_mesh_config_examples.h"
 #include "simple_hal.h"
+#include "app_timer.h"
 
 #define LED_BLINK_INTERVAL_MS (200)
 #define LED_BLINK_CNT_RESET   (3)
@@ -189,7 +190,6 @@ static void mesh_init(void)
 #endif
 
     m_evt_handler.evt_cb = mesh_evt_handler;
-    m_evt_handler.p_next = NULL;
     nrf_mesh_evt_handler_add(&m_evt_handler);
 }
 
@@ -198,6 +198,8 @@ static void initialize(void)
 #if defined(NRF51) && defined(NRF_MESH_STACK_DEPTH)
     stack_depth_paint_stack();
 #endif
+
+    ERROR_CHECK(app_timer_init());
     hal_leds_init();
 
     __LOG_INIT(LOG_MSK_DEFAULT | LOG_SRC_DFU | LOG_SRC_APP | LOG_SRC_SERIAL, LOG_LEVEL_INFO, log_callback_rtt);
@@ -231,7 +233,9 @@ static void start(void)
         static const uint8_t static_auth_data[NRF_MESH_KEY_SIZE] = STATIC_AUTH_DATA;
         mesh_provisionee_start_params_t prov_start_params =
         {
-            .p_static_data = static_auth_data
+            .p_static_data = static_auth_data,
+            .prov_complete_cb = NULL,
+            .p_device_uri = NULL
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }

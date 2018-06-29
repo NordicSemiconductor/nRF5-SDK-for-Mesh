@@ -69,7 +69,11 @@ void enc_key_generate(uint8_t * p_key)
 
 void enc_aes_encrypt(const uint8_t * p_key, const uint8_t * p_plaintext, uint8_t * p_result)
 {
-    aes_encrypt(p_key, p_plaintext, p_result);
+    aes_data_t aes_data;
+    memcpy(aes_data.key, p_key, NRF_MESH_KEY_SIZE);
+    memcpy(aes_data.cleartext, p_plaintext, NRF_MESH_KEY_SIZE);
+    aes_encrypt(&aes_data);
+    memcpy(p_result, aes_data.ciphertext, NRF_MESH_KEY_SIZE);
 }
 
 void enc_aes_cmac(const uint8_t * p_key, const uint8_t * p_data, uint16_t data_len, uint8_t * p_result)

@@ -71,8 +71,6 @@
 #define TRANSPORT_SAR_PACKET_MAX_SIZE(control) (TRANSPORT_SAR_SEGMENT_COUNT_MAX * TRANSPORT_SAR_PDU_LEN(control))
 #define TRANSPORT_UNSEG_PDU_LEN(control) ((control) ? PACKET_MESH_TRS_UNSEG_CONTROL_PDU_MAX_SIZE : PACKET_MESH_TRS_UNSEG_ACCESS_PDU_MAX_SIZE)
 
-#define SAR_TOKEN ((nrf_mesh_tx_token_t) 0x5E65E65E)
-
 NRF_MESH_STATIC_ASSERT(IS_POWER_OF_2(TRANSPORT_SAR_RX_CACHE_LEN));
 /* The SEQZERO mask must be (power of two - 1) to work as a mask (ie if a bit in the mask is set to
  * 1, all lower bits must also be 1). */
@@ -377,13 +375,13 @@ static bool sar_ctx_alloc(trs_sar_ctx_t * p_sar_ctx,
          * This way we'll know that we got a TX complete on a SAR packet, so we can forward the TX
          * complete when the entire SAR packet is done. */
         p_sar_ctx->session.params.tx.token = p_metadata->token;
-        p_sar_ctx->metadata.token = SAR_TOKEN;
+        p_sar_ctx->metadata.token = NRF_MESH_SAR_TOKEN;
         p_sar_ctx->timer_event.cb = retry_timeout;
         p_sar_ctx->timer_event.p_context = p_sar_ctx;
     }
     else
     {
-        p_sar_ctx->metadata.token = SAR_TOKEN;
+        p_sar_ctx->metadata.token = NRF_MESH_SAR_TOKEN;
         p_sar_ctx->session.params.rx.ack_state = SAR_ACK_STATE_IDLE;
         p_sar_ctx->session.params.rx.ack_timer.cb = ack_timeout;
         p_sar_ctx->session.params.rx.ack_timer.p_context = p_sar_ctx;
@@ -557,7 +555,7 @@ static uint32_t sar_ack_send(const transport_packet_metadata_t * p_metadata, uin
             control_packet.ttl = m_trs_config.segack_ttl;
         }
 
-        status = transport_control_tx(&control_packet, SAR_TOKEN);
+        status = transport_control_tx(&control_packet, NRF_MESH_SAR_TOKEN);
 
         if (status == NRF_SUCCESS)
         {
@@ -666,7 +664,7 @@ static void trs_sar_seg_packet_in(const uint8_t * p_segment_payload,
         {
             /* Send block ack=0 to indicate failure to receive. Transport is out of resources. */
             (void) sar_ack_send(p_metadata, 0);
-            m_send_sar_cancel_event(0, NRF_MESH_SAR_CANCEL_REASON_NO_MEM);
+            m_send_sar_cancel_event(NRF_MESH_INITIAL_TOKEN, NRF_MESH_SAR_CANCEL_REASON_NO_MEM);
             return;
         }
     }
@@ -1385,7 +1383,7 @@ static void abort_timeout(timestamp_t timestamp, void * p_context)
 
 static void tx_complete(core_tx_role_t role, uint32_t bearer_index, uint32_t timestamp, nrf_mesh_tx_token_t token)
 {
-    if (role == CORE_TX_ROLE_ORIGINATOR && token != SAR_TOKEN)
+    if (role == CORE_TX_ROLE_ORIGINATOR && token != NRF_MESH_SAR_TOKEN)
     {
         /* This tx complete came from the application. */
         nrf_mesh_evt_t evt;

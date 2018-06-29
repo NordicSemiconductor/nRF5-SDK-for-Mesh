@@ -6,7 +6,6 @@ set(nrf52840_xxAA_INCLUDE_DIRS
     "${SDK_ROOT}/modules/nrfx"
     "${SDK_ROOT}/modules/nrfx/mdk"
     "${SDK_ROOT}/modules/nrfx/hal"
-    "${SDK_ROOT}/modules/nrfx/templates/nRF52840"
     "${SDK_ROOT}/components/toolchain/cmsis/include")
 
 if (TOOLCHAIN MATCHES "gcc" OR TOOLCHAIN STREQUAL "clang")

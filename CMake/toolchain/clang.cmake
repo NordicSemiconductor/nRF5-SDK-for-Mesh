@@ -16,6 +16,13 @@ set(cortex-m0_DEFINES
     -mabi=aapcs
     -mfloat-abi=soft)
 
+set(cortex-m4_DEFINES
+    -target arm-none-eabi
+    -mcpu=cortex-m4
+    -mthumb
+    -mabi=aapcs
+    -mfloat-abi=soft)
+
 set(cortex-m4f_DEFINES
     -target arm-none-eabi
     -mcpu=cortex-m4

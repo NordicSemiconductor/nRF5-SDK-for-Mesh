@@ -258,7 +258,7 @@ static uint32_t beacon_packet_send(proxy_connection_t * p_connection,
                                    net_state_iv_update_t iv_update,
                                    bool key_refresh)
 {
-    if (packet_alloc(p_connection, MESH_GATT_PDU_TYPE_MESH_BEACON, NET_BEACON_BUFFER_SIZE, 0) ==
+    if (packet_alloc(p_connection, MESH_GATT_PDU_TYPE_MESH_BEACON, NET_BEACON_BUFFER_SIZE, NRF_MESH_INITIAL_TOKEN) ==
         NRF_SUCCESS)
     {
         NRF_MESH_ERROR_CHECK(net_beacon_build(p_beacon_secmat,
@@ -351,7 +351,7 @@ static proxy_config_msg_t * config_packet_alloc(proxy_connection_t * p_connectio
     if (packet_alloc(p_connection,
                      MESH_GATT_PDU_TYPE_PROXY_CONFIG,
                      config_packet_buffer_len(msg_len),
-                     0) == NRF_SUCCESS)
+                     NRF_MESH_INITIAL_TOKEN) == NRF_SUCCESS)
     {
         return (proxy_config_msg_t *) net_packet_payload_get(
             (packet_mesh_net_packet_t *) p_connection->p_alloc_packet);
@@ -611,7 +611,7 @@ static void gatt_evt_handler(const mesh_gatt_evt_t * p_evt, void * p_context)
             __LOG(LOG_SRC_BEARER, LOG_LEVEL_INFO, "TX complete\n");
             if (p_evt->params.tx_complete.pdu_type == MESH_GATT_PDU_TYPE_NETWORK_PDU)
             {
-                core_tx_role_t role = (p_evt->params.tx_complete.token == CORE_TX_TOKEN_RELAY)
+                core_tx_role_t role = (p_evt->params.tx_complete.token == NRF_MESH_RELAY_TOKEN)
                                           ? CORE_TX_ROLE_RELAY
                                           : CORE_TX_ROLE_ORIGINATOR;
 
@@ -625,6 +625,7 @@ static void gatt_evt_handler(const mesh_gatt_evt_t * p_evt, void * p_context)
         case MESH_GATT_EVT_TYPE_ADV_TIMEOUT:
             __LOG(LOG_SRC_BEARER, LOG_LEVEL_INFO, "Adv timeout\n");
             /* The node identity state timed out, go back to network ID advertisements */
+            m_advertising.running = false;
             if (m_enabled)
             {
                 adv_start(PROXY_ADV_TYPE_NETWORK_ID, true);
@@ -715,8 +716,8 @@ static void adv_start(proxy_adv_type_t proxy_adv_type, bool interleave_networks)
         timer_sch_abort(&m_advertising.timer);
     }
 
-    adv_data_set();
     mesh_adv_params_set(timeout, (MESH_GATT_PROXY_ADV_INT_MS * 1000) / 625);
+    adv_data_set();
     mesh_adv_start();
     m_advertising.running = true;
 }

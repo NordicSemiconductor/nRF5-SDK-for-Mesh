@@ -10,6 +10,7 @@ set(MESH_BEARER_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/radio_config.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rssi_filter.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/scanner.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_pa_lna.c"
     CACHE INTERNAL "")
 
 if (EXPERIMENTAL_INSTABURST_ENABLED)
@@ -25,3 +26,16 @@ endif()
 set(MESH_BEARER_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/api"
     "${CMAKE_CURRENT_SOURCE_DIR}/include" CACHE INTERNAL "")
+
+set(lint_include_dirs
+    ${MESH_BEARER_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/api
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/include
+    ${${SOFTDEVICE}_INCLUDE_DIRS}
+    ${${PLATFORM}_INCLUDE_DIRS}
+    ${${nRF5_SDK_VERSION}_INCLUDE_DIRS})
+
+add_pc_lint(bearer_${PLATFORM}
+    "${MESH_BEARER_SOURCE_FILES}"
+    "${lint_include_dirs}"
+    "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES}")

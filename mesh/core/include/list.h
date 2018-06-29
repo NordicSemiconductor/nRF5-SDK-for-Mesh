@@ -52,7 +52,7 @@
  */
 
 /**
- * Declears a for-loop for iterating linked lists.
+ * Declares a for-loop for iterating linked lists.
  *
  * @param[in] ITEM Item pointer variable name.
  * @param[in] LIST Pointer to the head of the linked list.

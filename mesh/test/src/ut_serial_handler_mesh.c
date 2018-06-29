@@ -455,7 +455,7 @@ void test_addresses(void)
     dsm_address_get_ExpectAndReturn(0x1234, NULL, NRF_SUCCESS);
     dsm_address_get_IgnoreArg_p_address();
     dsm_address_get_ReturnThruPtr_p_address(&addr);
-    dsm_address_subscription_get_ExpectAndReturn(0x1234, true);
+    dsm_address_is_rx_ExpectAndReturn(&addr, true);
     serial_evt_cmd_rsp_data_raw_addr_t raw_addr_rsp;
     raw_addr_rsp.addr_type = addr.type;
     raw_addr_rsp.subscribed = true;
@@ -483,7 +483,7 @@ void test_addresses(void)
     dsm_address_get_ExpectAndReturn(0x1234, NULL, NRF_SUCCESS);
     dsm_address_get_IgnoreArg_p_address();
     dsm_address_get_ReturnThruPtr_p_address(&addr);
-    dsm_address_subscription_get_ExpectAndReturn(0x1234, false);
+    dsm_address_is_rx_ExpectAndReturn(&addr, false);
     raw_addr_rsp.addr_type = addr.type;
     raw_addr_rsp.subscribed = false;
     raw_addr_rsp.raw_short_addr = addr.value;
@@ -724,12 +724,8 @@ void test_packet_send(void)
     serial_handler_mesh_rx(&cmd);
     TEST_ASSERT_EQUAL(0, m_expected_packet_send);
 
-    cmd.length = 99; // one too long
-    serial_cmd_rsp_send_Expect(cmd.opcode, SERIAL_STATUS_ERROR_INVALID_LENGTH, NULL, 0);
-    serial_handler_mesh_rx(&cmd);
-
     /* give a source address that isn't a local unicast address */
-    cmd.length = 98; //maxlen
+    cmd.length = NRF_MESH_SERIAL_PAYLOAD_MAXLEN + 1;
     local_addr.address_start = 0x0103;
     dsm_address_get_ExpectAndReturn(0x0102, NULL, NRF_SUCCESS);
     dsm_address_get_IgnoreArg_p_address();
@@ -894,7 +890,7 @@ void test_events(void)
             long_data,
             SERIAL_EVT_MESH_MESSAGE_RECEIVED_DATA_MAXLEN);
     m_expected_serial_tx = 1;
-    m_expected_tx_packet.length = 98; //TODO: MBTLE-1525: Don't cut this short here...
+    m_expected_tx_packet.length = NRF_MESH_SERIAL_PAYLOAD_MAXLEN + 1; //TODO: MBTLE-1525: Don't cut this short here...
     m_expected_tx_packet.payload.evt.mesh.message_received.actual_length = NRF_MESH_SEG_PAYLOAD_SIZE_MAX;
     evt.params.message.length = NRF_MESH_SEG_PAYLOAD_SIZE_MAX;
     evt.params.message.p_buffer = long_data;

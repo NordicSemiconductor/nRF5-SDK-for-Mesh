@@ -259,6 +259,14 @@ void advertiser_address_set(advertiser_t * p_adv, const ble_gap_addr_t * p_addr)
 void advertiser_interval_set(advertiser_t * p_adv, uint32_t interval_ms);
 
 /**
+ * Set the TX power for the given advertiser.
+ *
+ * @param[in,out] p_adv Advertiser to configure.
+ * @param[in] tx_power New TX power.
+ */
+void advertiser_tx_power_set(advertiser_t * p_adv, radio_tx_power_t tx_power);
+
+/**
  * Flush the given advertiser's packet queue.
  *
  * @warning If called in the middle of a transmission, the ongoing transmission will finish, and

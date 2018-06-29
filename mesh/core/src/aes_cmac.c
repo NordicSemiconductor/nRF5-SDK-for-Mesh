@@ -36,58 +36,51 @@
  */
 #include <stddef.h>
 #include <string.h>
-#include <nrf_error.h>
-
-#include "utils.h"
-#include "log.h"
-#include "aes.h"
-
 #include "aes_cmac.h"
 
-static uint8_t m_subkey1[16];
-static uint8_t m_subkey2[16];
+#include "aes.h"
+#include "utils.h"
+#include "nrf_mesh_assert.h"
 
-/* 128-bit scratch buffer */
-static uint8_t m_128buf[16];
-
-static void my_xor(uint8_t * p_dst, const uint8_t * p_src1, const uint8_t * p_src2, uint16_t size)
+typedef enum
 {
-    while (0 != size)
-    {
-        size--;
-        p_dst[size] = p_src1[size] ^ p_src2[size];
-    }
+    CMAC_SUBKEY_INDEX_K1 = 1,
+    CMAC_SUBKEY_INDEX_K2 = 2,
+} cmac_subkey_index_t;
+
+static inline void xor_Rb(uint8_t * p_key)
+{
+    /* Rb is all zeros except the last byte, which is 0x87. */
+    p_key[NRF_MESH_KEY_SIZE - 1] ^= 0x87;
 }
 
 
-void aes_cmac_subkey_generate(const uint8_t * const p_key, uint8_t * p_subkey1_out, uint8_t * p_subkey2_out)
+/**
+ * Generates AES-CMAC Subkey K1 or K2.
+ *
+ * @param[in,out] p_aes_data An AES data structure with the correct key set.
+ * Returns the correct subkey in its ciphertext.
+ * @param[in] subkey_index Index of the subkey to generate.
+ */
+static void aes_cmac_subkey_generate(aes_data_t * p_aes_data, cmac_subkey_index_t subkey_index)
 {
-    static const uint8_t Rb[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x87};
+    NRF_MESH_ASSERT(subkey_index == CMAC_SUBKEY_INDEX_K1 ||
+                    subkey_index == CMAC_SUBKEY_INDEX_K2);
+    memset(p_aes_data->cleartext, 0x00, sizeof(p_aes_data->cleartext));
 
-    memset(m_128buf, 0x00, sizeof(m_128buf));
+    /* Step 1: L = AES(K, zero) */
+    aes_encrypt(p_aes_data);
 
-    aes_encrypt(p_key, m_128buf, m_128buf);
-
-    /* Calculate K1 */
-    if ((m_128buf[0] & 0x80) == 0)
+    /* Calculate K1 or K2 */
+    for (cmac_subkey_index_t i = CMAC_SUBKEY_INDEX_K1; i <= subkey_index; ++i)
     {
-        utils_lshift(p_subkey1_out, m_128buf, sizeof(m_128buf));
-    }
-    else
-    {
-        utils_lshift(p_subkey1_out, m_128buf, sizeof(m_128buf));
-        utils_xor(p_subkey1_out, p_subkey1_out, Rb, sizeof(m_128buf));
-    }
-
-    /* Calculate K2 */
-    if ((p_subkey1_out[0] & 0x80) == 0)
-    {
-        utils_lshift(p_subkey2_out, p_subkey1_out, sizeof(m_128buf));
-    }
-    else
-    {
-        utils_lshift(p_subkey2_out, p_subkey1_out, sizeof(m_128buf));
-        utils_xor(p_subkey2_out, p_subkey2_out, Rb, sizeof(m_128buf));
+        /* K_i+1 = (K_i << 1) xor (Rb && msb); */
+        uint8_t msb = !!(p_aes_data->ciphertext[0] & 0x80);
+        utils_lshift(p_aes_data->ciphertext, p_aes_data->ciphertext, NRF_MESH_KEY_SIZE);
+        if (msb)
+        {
+            xor_Rb(p_aes_data->ciphertext);
+        }
     }
 }
 
@@ -96,42 +89,43 @@ void aes_cmac(const uint8_t * const p_key, const uint8_t * const p_msg, uint16_t
 {
     uint16_t num_blocks = (msg_len + 15)/16;
 
-    //__LOG_XB(LOG_SRC_ENC, LOG_LEVEL_INFO, "CMAC Key", p_key, 16);
-
-    aes_cmac_subkey_generate(p_key, m_subkey1, m_subkey2);
-
-    /* First X is zero */
-    memset(m_128buf, 0x00, sizeof(m_128buf));
+    aes_data_t aes_data;
+    memcpy(aes_data.key, p_key, NRF_MESH_KEY_SIZE);
 
     /* Last block */
-    uint8_t last[16];
+    uint8_t last[NRF_MESH_KEY_SIZE];
     uint8_t remainder = (msg_len % 16);
+    bool flag = (num_blocks > 0 && remainder == 0);
+    cmac_subkey_index_t subkey_index = (flag ?
+                                        CMAC_SUBKEY_INDEX_K1 :
+                                        CMAC_SUBKEY_INDEX_K2);
 
-    if ( num_blocks > 0 && remainder == 0)
+    /* Generate the subkey we need */
+    aes_cmac_subkey_generate(&aes_data, subkey_index);
+
+    if (flag)
     {
-        utils_xor(last, &p_msg[(num_blocks-1)*16], m_subkey1, sizeof(m_128buf));
+        utils_xor(last, &p_msg[(num_blocks-1)*NRF_MESH_KEY_SIZE], aes_data.ciphertext, NRF_MESH_KEY_SIZE);
     }
     else
     {
-        /* Note: this covers the case num_blocks == 0. */
-        /**
-         * @todo cleanup!
-         */
-
-        utils_pad(last, &p_msg[16*(num_blocks - 1)], remainder);
-        utils_xor(last, last, m_subkey2, sizeof(m_128buf));
+        utils_pad(last, &p_msg[(num_blocks-1)*NRF_MESH_KEY_SIZE], remainder);
+        utils_xor(last, last, aes_data.ciphertext, NRF_MESH_KEY_SIZE);
     }
+
+    /* First X is zero */
+    memset(aes_data.ciphertext, 0x00, sizeof(aes_data.ciphertext));
 
     /* num_blocks may be zero! */
     for (int i = 0; i < num_blocks - 1; ++i)
     {
         /* Y := X XOR M_i     */
         /* X := AES-128(K, Y) */
-        utils_xor(m_128buf, m_128buf, &p_msg[i*16], sizeof(m_128buf));
-        aes_encrypt(p_key, m_128buf, m_128buf);
+        utils_xor(aes_data.cleartext, aes_data.ciphertext, &p_msg[i*NRF_MESH_KEY_SIZE], NRF_MESH_KEY_SIZE);
+        aes_encrypt(&aes_data);
     }
 
-
-    my_xor(m_128buf, last, m_128buf, 16);
-    aes_encrypt(p_key, m_128buf, p_out);
+    utils_xor(aes_data.cleartext, last, aes_data.ciphertext, NRF_MESH_KEY_SIZE);
+    aes_encrypt(&aes_data);
+    memcpy(p_out, aes_data.ciphertext, NRF_MESH_KEY_SIZE);
 }

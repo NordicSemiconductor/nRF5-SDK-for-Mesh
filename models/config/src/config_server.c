@@ -55,6 +55,7 @@
 #include "flash_manager.h"
 #include "net_state.h"
 #include "net_beacon.h"
+#include "nrf_mesh.h"
 #include "nrf_mesh_assert.h"
 #include "nrf_mesh_keygen.h"
 #include "nrf_mesh_opt.h"
@@ -97,6 +98,13 @@
 #define KEY_REFRESH_TRANSITION_TO_PHASE_2      2
 #define KEY_REFRESH_TRANSITION_TO_PHASE_3      3
 
+typedef enum
+{
+    NODE_RESET_IDLE,
+    NODE_RESET_PENDING,
+    NODE_RESET_FLASHING,
+} node_reset_state_t;
+
 static access_model_handle_t m_config_server_handle = ACCESS_HANDLE_INVALID;
 static config_server_evt_cb_t m_evt_cb;
 static heartbeat_publication_state_t m_heartbeat_publication;
@@ -105,8 +113,8 @@ static heartbeat_publication_state_t m_heartbeat_publication;
 static void mesh_event_cb(const nrf_mesh_evt_t * p_evt);
 static nrf_mesh_evt_handler_t m_mesh_evt_handler = { .evt_cb = mesh_event_cb };
 
-#define NODE_RESET_TX_TOKEN 0xFEE1DEAD
-static bool m_node_reset_pending;
+static nrf_mesh_tx_token_t m_reset_token;
+static node_reset_state_t m_node_reset_pending = NODE_RESET_IDLE;
 
 /********** Helper functions **********/
 
@@ -144,7 +152,7 @@ static bool model_id_extract(access_model_id_t * p_dest,
  * Sends a message as a reply to an incoming message.
  */
 static void send_reply(access_model_handle_t handle, const access_message_rx_t * p_message, uint16_t opcode,
-        const uint8_t * p_reply, uint16_t reply_length, nrf_mesh_tx_token_t tx_token)
+        const uint8_t * p_reply, uint16_t reply_length, uint32_t tx_token)
 {
     const access_message_tx_t reply =
     {
@@ -155,7 +163,7 @@ static void send_reply(access_model_handle_t handle, const access_message_rx_t *
         },
         .p_buffer = p_reply,
         .length = reply_length,
-        .access_token = tx_token,
+        .access_token = (nrf_mesh_tx_token_t)tx_token,
         .force_segmented = false,
         .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT
     };
@@ -174,7 +182,7 @@ static void send_generic_error_reply(access_model_handle_t handle, const access_
     memset(buffer, 0, msg_size);
 
     buffer[0] = status;
-    send_reply(handle, p_message, status_opcode, buffer, msg_size, 0);
+    send_reply(handle, p_message, status_opcode, buffer, msg_size, nrf_mesh_unique_token_get());
 }
 
 /* Sends the network beacon state in response to a network beacon state set/get message: */
@@ -184,7 +192,8 @@ static void send_net_beacon_state(access_model_handle_t handle, const access_mes
     {
         .beacon_state = net_beacon_state_get() ? CONFIG_NET_BEACON_STATE_ENABLED : CONFIG_NET_BEACON_STATE_DISABLED
     };
-    send_reply(handle, p_incoming, CONFIG_OPCODE_BEACON_STATUS, (const uint8_t *) &beacon_status, sizeof(beacon_status), 0);
+    send_reply(handle, p_incoming, CONFIG_OPCODE_BEACON_STATUS,
+               (const uint8_t *) &beacon_status, sizeof(beacon_status), nrf_mesh_unique_token_get());
 }
 
 /* Sends the appkey status in response to appkey manipulation functions: */
@@ -198,7 +207,8 @@ static void send_appkey_status(access_model_handle_t handle,
         .status = status,
         .key_indexes = key_indexes
     }; /*lint !e64 Lint incorrectly complains about a type mismach in this initializer. */
-    send_reply(handle, p_message, CONFIG_OPCODE_APPKEY_STATUS, (const uint8_t *) &response, sizeof(response), 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_APPKEY_STATUS,
+               (const uint8_t *) &response, sizeof(response), nrf_mesh_unique_token_get());
 }
 
 /* Sends the publication status in response to publication messages. */
@@ -290,7 +300,7 @@ static void send_publication_status(access_model_handle_t this_handle, const acc
 
     /* Finally send the message: */
     send_reply(this_handle, p_incoming, CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, (const uint8_t *) &response,
-            PACKET_LENGTH_WITH_ID(config_msg_publication_status_t, sig_model), 0);
+            PACKET_LENGTH_WITH_ID(config_msg_publication_status_t, sig_model), nrf_mesh_unique_token_get());
 }
 
 /* Sends the publication error codes in response to publication messages. */
@@ -343,7 +353,7 @@ static void status_error_pub_send(access_model_handle_t this_handle, const acces
 
             /* Finally send the message: */
             send_reply(this_handle, p_incoming, CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, (const uint8_t *) &response,
-                       PACKET_LENGTH_WITH_ID(config_msg_publication_status_t, sig_model), 0);
+                       PACKET_LENGTH_WITH_ID(config_msg_publication_status_t, sig_model), nrf_mesh_unique_token_get());
             break;
         }
     }
@@ -407,7 +417,7 @@ static void status_error_sub_send(access_model_handle_t this_handle, const acces
             }
 
             send_reply(this_handle, p_incoming, CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS, (const uint8_t *) &response,
-                       PACKET_LENGTH_WITH_ID(config_msg_subscription_status_t, sig_model), 0);
+                       PACKET_LENGTH_WITH_ID(config_msg_subscription_status_t, sig_model), nrf_mesh_unique_token_get());
             break;
         }
 
@@ -424,7 +434,7 @@ static void status_error_sub_send(access_model_handle_t this_handle, const acces
             response.sig_model_id    = p_pdu->model_id.sig.model_id;
 
             send_reply(this_handle, p_incoming, CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_LIST, (const uint8_t *) &response,
-                       sizeof(config_msg_sig_model_subscription_list_t), 0);
+                       sizeof(config_msg_sig_model_subscription_list_t), nrf_mesh_unique_token_get());
             break;
         }
 
@@ -442,7 +452,7 @@ static void status_error_sub_send(access_model_handle_t this_handle, const acces
             response.vendor_company_id = p_pdu->model_id.vendor.company_id;
 
             send_reply(this_handle, p_incoming, CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_LIST, (const uint8_t *) &response,
-                       sizeof(config_msg_vendor_model_subscription_list_t), 0);
+                       sizeof(config_msg_vendor_model_subscription_list_t), nrf_mesh_unique_token_get());
             break;
         }
 
@@ -482,7 +492,7 @@ static void send_subscription_status(access_model_handle_t this_handle, const ac
     packet.model_id = model_id;
 
     send_reply(this_handle, p_message, CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS, (const uint8_t *) &packet,
-            PACKET_LENGTH_WITH_ID(config_msg_subscription_status_t, sig_model), 0);
+            PACKET_LENGTH_WITH_ID(config_msg_subscription_status_t, sig_model), nrf_mesh_unique_token_get());
 }
 
 static void send_netkey_status(access_model_handle_t handle,
@@ -491,7 +501,8 @@ static void send_netkey_status(access_model_handle_t handle,
                                config_msg_key_index_12_t key_index)
 {
     const config_msg_netkey_status_t response = {status, key_index};
-    send_reply(handle, p_message, CONFIG_OPCODE_NETKEY_STATUS, (const uint8_t *) &response, sizeof(response), 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_NETKEY_STATUS,
+               (const uint8_t *) &response, sizeof(response), nrf_mesh_unique_token_get());
 }
 
 static uint16_t get_element_index(uint16_t element_address)
@@ -794,12 +805,12 @@ static void handle_appkey_get(access_model_handle_t handle, const access_message
             p_reply->netkey_index = p_pdu->netkey_index;
             reply_length += PACKED_INDEX_LIST_SIZE(appkey_count);
             packed_index_list_create(appkeys, (uint8_t *) p_reply->packed_appkey_indexes, appkey_count);
-            send_reply(handle, p_message, CONFIG_OPCODE_APPKEY_LIST, packet_buffer, reply_length, 0);
+            send_reply(handle, p_message, CONFIG_OPCODE_APPKEY_LIST, packet_buffer, reply_length, nrf_mesh_unique_token_get());
             break;
         case NRF_ERROR_NOT_FOUND:
             p_reply->status = ACCESS_STATUS_INVALID_NETKEY;
             p_reply->netkey_index = p_pdu->netkey_index;
-            send_reply(handle, p_message, CONFIG_OPCODE_APPKEY_LIST, packet_buffer, reply_length, 0);
+            send_reply(handle, p_message, CONFIG_OPCODE_APPKEY_LIST, packet_buffer, reply_length, nrf_mesh_unique_token_get());
             break;
         default:
             send_generic_error_reply(handle, p_message, ACCESS_STATUS_UNSPECIFIED_ERROR, CONFIG_OPCODE_APPKEY_LIST,
@@ -857,7 +868,8 @@ static void handle_composition_data_get(access_model_handle_t handle, const acce
     uint16_t size = CONFIG_COMPOSITION_DATA_SIZE;
     config_composition_data_get(p_response->data, &size);
 
-    send_reply(handle, p_message, CONFIG_OPCODE_COMPOSITION_DATA_STATUS, buffer, sizeof(config_msg_composition_data_status_t) + size, 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_COMPOSITION_DATA_STATUS, buffer,
+               sizeof(config_msg_composition_data_status_t) + size, nrf_mesh_unique_token_get());
 }
 
 static void handle_config_default_ttl_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -868,7 +880,7 @@ static void handle_config_default_ttl_get(access_model_handle_t handle, const ac
     }
 
     uint8_t ttl = access_default_ttl_get();
-    send_reply(handle, p_message, CONFIG_OPCODE_DEFAULT_TTL_STATUS, (const uint8_t *) &ttl, sizeof(ttl), 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_DEFAULT_TTL_STATUS, (const uint8_t *) &ttl, sizeof(ttl), nrf_mesh_unique_token_get());
 }
 
 static void handle_config_default_ttl_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -887,7 +899,7 @@ static void handle_config_default_ttl_set(access_model_handle_t handle, const ac
                                             .params.default_ttl_set.default_ttl = ttl};
         app_evt_send(&evt);
 
-        send_reply(handle, p_message, CONFIG_OPCODE_DEFAULT_TTL_STATUS, (const uint8_t *) &ttl, sizeof(ttl), 0);
+        send_reply(handle, p_message, CONFIG_OPCODE_DEFAULT_TTL_STATUS, (const uint8_t *) &ttl, sizeof(ttl), nrf_mesh_unique_token_get());
     }
 }
 
@@ -899,7 +911,8 @@ static void handle_config_friend_get(access_model_handle_t handle, const access_
     }
 
     const config_msg_friend_status_t status_message = { .friend_state = CONFIG_FRIEND_STATE_UNSUPPORTED };
-    send_reply(handle, p_message, CONFIG_OPCODE_FRIEND_STATUS, (const uint8_t *) &status_message, sizeof(status_message), 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_FRIEND_STATUS,
+               (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
 }
 
 static void handle_config_friend_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -912,7 +925,8 @@ static void handle_config_friend_set(access_model_handle_t handle, const access_
     }
 
     const config_msg_friend_status_t status_message = { .friend_state = CONFIG_FRIEND_STATE_UNSUPPORTED };
-    send_reply(handle, p_message, CONFIG_OPCODE_FRIEND_STATUS, (const uint8_t *) &status_message, sizeof(status_message), 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_FRIEND_STATUS,
+               (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
 }
 
 static void handle_config_gatt_proxy_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -930,7 +944,8 @@ static void handle_config_gatt_proxy_get(access_model_handle_t handle, const acc
     const config_msg_proxy_status_t status_message = { .proxy_state = CONFIG_GATT_PROXY_STATE_UNSUPPORTED };
 #endif
 
-    send_reply(handle, p_message, CONFIG_OPCODE_GATT_PROXY_STATUS, (const uint8_t *) &status_message, sizeof(status_message), 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_GATT_PROXY_STATUS,
+               (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
 }
 
 static void handle_config_gatt_proxy_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -960,7 +975,8 @@ static void handle_config_gatt_proxy_set(access_model_handle_t handle, const acc
     const config_msg_proxy_status_t status_message = { .proxy_state = CONFIG_GATT_PROXY_STATE_UNSUPPORTED };
 #endif
 
-    send_reply(handle, p_message, CONFIG_OPCODE_GATT_PROXY_STATUS, (const uint8_t *) &status_message, sizeof(status_message), 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_GATT_PROXY_STATUS,
+               (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
 }
 
 static void handle_config_key_refresh_phase_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -986,7 +1002,8 @@ static void handle_config_key_refresh_phase_get(access_model_handle_t handle, co
         status_message.status = ACCESS_STATUS_INVALID_NETKEY;
         status_message.phase = 0x00;
     }
-    send_reply(handle, p_message, CONFIG_OPCODE_KEY_REFRESH_PHASE_STATUS, (const uint8_t *) &status_message, sizeof(status_message), 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_KEY_REFRESH_PHASE_STATUS,
+               (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
 }
 
 static void handle_config_key_refresh_phase_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -1042,7 +1059,8 @@ static void handle_config_key_refresh_phase_set(access_model_handle_t handle, co
         }
     }
 
-    send_reply(handle, p_message, CONFIG_OPCODE_KEY_REFRESH_PHASE_STATUS, (const uint8_t *) &status_message, sizeof(status_message), 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_KEY_REFRESH_PHASE_STATUS,
+               (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
 
     if (status_message.status == ACCESS_STATUS_SUCCESS)
     {
@@ -1873,7 +1891,8 @@ static void send_relay_status(access_model_handle_t handle, const access_message
             CONFIG_RETRANSMIT_INTERVAL_MS_TO_STEP(param_value.opt.val) - 1;
     }
 
-    send_reply(handle, p_message, CONFIG_OPCODE_RELAY_STATUS, (const uint8_t *) &status_message, sizeof(status_message), 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_RELAY_STATUS,
+               (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
 }
 
 static void handle_config_relay_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -1961,7 +1980,8 @@ static void send_network_transmit_status(access_model_handle_t handle, const acc
     status_message.network_transmit_interval_steps =
         CONFIG_RETRANSMIT_INTERVAL_MS_TO_STEP(param_value.opt.val) - 1;
 
-    send_reply(handle, p_message, CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS, (const uint8_t *) &status_message, sizeof(status_message), 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS,
+               (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
 }
 
 static void handle_config_network_transmit_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -2051,7 +2071,7 @@ static void handle_config_sig_model_subscription_get(access_model_handle_t handl
     memcpy((void *) p_response->subscriptions, subscription_list, subscription_count * sizeof(uint16_t));
 
     send_reply(handle, p_message, CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_LIST, response_buffer,
-            sizeof(config_msg_sig_model_subscription_list_t) + subscription_count * sizeof(uint16_t), 0);
+            sizeof(config_msg_sig_model_subscription_list_t) + subscription_count * sizeof(uint16_t), nrf_mesh_unique_token_get());
 }
 
 static void handle_config_vendor_model_subscription_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -2101,7 +2121,7 @@ static void handle_config_vendor_model_subscription_get(access_model_handle_t ha
     memcpy((void *) p_response->subscriptions, subscription_list, subscription_list_size);
 
     send_reply(handle, p_message, CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_LIST, response_buffer,
-            sizeof(config_msg_vendor_model_subscription_list_t) + subscription_list_size, 0);
+            sizeof(config_msg_vendor_model_subscription_list_t) + subscription_list_size, nrf_mesh_unique_token_get());
 }
 
 static inline uint32_t heartbeat_publication_count_decode(uint8_t count_log)
@@ -2223,7 +2243,7 @@ static void handle_heartbeat_publication_get(access_model_handle_t handle, const
     status_message.netkey_index = m_heartbeat_publication.netkey_index;
 
     send_reply(handle, p_message, CONFIG_OPCODE_HEARTBEAT_PUBLICATION_STATUS,
-              (const uint8_t *) &status_message, sizeof(status_message), 0);
+              (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
 }
 
 static void handle_heartbeat_publication_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -2297,7 +2317,7 @@ static void handle_heartbeat_publication_set(access_model_handle_t handle, const
     status_message.netkey_index =  p_pdu->netkey_index;
 
     send_reply(handle, p_message, CONFIG_OPCODE_HEARTBEAT_PUBLICATION_STATUS,
-              (const uint8_t *) &status_message, sizeof(status_message), 0);
+              (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
 
     if (status_message.status == ACCESS_STATUS_SUCCESS)
     {
@@ -2347,7 +2367,8 @@ static void handle_heartbeat_subscription_get(access_model_handle_t handle, cons
         status_message.max_hops    = p_hb_sub->max_hops;
     }
 
-    send_reply(handle, p_message, CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS, (const uint8_t *) &status_message, sizeof(status_message), 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS,
+               (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
 }
 
 static void handle_heartbeat_subscription_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -2383,7 +2404,7 @@ static void handle_heartbeat_subscription_set(access_model_handle_t handle, cons
     status_message.max_hops = p_hb_sub->max_hops;
 
     send_reply(handle, p_message, CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS,
-               (const uint8_t *) &status_message, sizeof(status_message), 0);
+               (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
 
     const config_server_evt_t evt = {
         .type = CONFIG_SERVER_EVT_HEARTBEAT_SUBSCRIPTION_SET,
@@ -2415,7 +2436,7 @@ static void handle_model_app_bind_unbind(access_model_handle_t handle, const acc
     {
         response.status = ACCESS_STATUS_CANNOT_BIND;
         send_reply(handle, p_message, CONFIG_OPCODE_MODEL_APP_STATUS, (const uint8_t *) &response,
-                PACKET_LENGTH_WITH_ID(config_msg_app_status_t, sig_model), 0);
+                PACKET_LENGTH_WITH_ID(config_msg_app_status_t, sig_model), nrf_mesh_unique_token_get());
         return;
     }
 
@@ -2424,7 +2445,7 @@ static void handle_model_app_bind_unbind(access_model_handle_t handle, const acc
     {
         response.status = ACCESS_STATUS_INVALID_ADDRESS;
         send_reply(handle, p_message, CONFIG_OPCODE_MODEL_APP_STATUS, (const uint8_t *) &response,
-                PACKET_LENGTH_WITH_ID(config_msg_app_status_t, sig_model), 0);
+                PACKET_LENGTH_WITH_ID(config_msg_app_status_t, sig_model), nrf_mesh_unique_token_get());
         return;
     }
 
@@ -2433,7 +2454,7 @@ static void handle_model_app_bind_unbind(access_model_handle_t handle, const acc
     {
         response.status = ACCESS_STATUS_INVALID_MODEL;
         send_reply(handle, p_message, CONFIG_OPCODE_MODEL_APP_STATUS, (const uint8_t *) &response,
-                PACKET_LENGTH_WITH_ID(config_msg_app_status_t, sig_model), 0);
+                PACKET_LENGTH_WITH_ID(config_msg_app_status_t, sig_model), nrf_mesh_unique_token_get());
         return;
     }
 
@@ -2484,7 +2505,7 @@ static void handle_model_app_bind_unbind(access_model_handle_t handle, const acc
     }
 
     send_reply(handle, p_message, CONFIG_OPCODE_MODEL_APP_STATUS, (const uint8_t *) &response,
-            PACKET_LENGTH_WITH_ID(config_msg_app_status_t, sig_model), 0);
+            PACKET_LENGTH_WITH_ID(config_msg_app_status_t, sig_model), nrf_mesh_unique_token_get());
 
     if (response.status == ACCESS_STATUS_SUCCESS)
     {
@@ -2630,7 +2651,7 @@ static void handle_netkey_get(access_model_handle_t handle, const access_message
     uint16_t reply_length = PACKED_INDEX_LIST_SIZE(num_netkeys);
     packed_index_list_create(netkey_indexes, buffer, num_netkeys);
 
-    send_reply(handle, p_message, CONFIG_OPCODE_NETKEY_LIST, buffer, reply_length, 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_NETKEY_LIST, buffer, reply_length, nrf_mesh_unique_token_get());
 }
 
 static void handle_node_identity_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -2668,7 +2689,8 @@ static void handle_node_identity_get(access_model_handle_t handle, const access_
     };
 #endif
 
-    send_reply(handle, p_message, CONFIG_OPCODE_NODE_IDENTITY_STATUS, (const uint8_t *) &reply, sizeof(config_msg_identity_status_t), 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_NODE_IDENTITY_STATUS,
+               (const uint8_t *) &reply, sizeof(config_msg_identity_status_t), nrf_mesh_unique_token_get());
 }
 
 static void handle_node_identity_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -2737,14 +2759,17 @@ static void handle_node_identity_set(access_model_handle_t handle, const access_
     };
 #endif
 
-    send_reply(handle, p_message, CONFIG_OPCODE_NODE_IDENTITY_STATUS, (const uint8_t *) &reply, sizeof(config_msg_identity_status_t), 0);
+    send_reply(handle, p_message, CONFIG_OPCODE_NODE_IDENTITY_STATUS,
+               (const uint8_t *) &reply, sizeof(config_msg_identity_status_t), nrf_mesh_unique_token_get());
 }
 
 static void handle_node_reset(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
 {
     /* Send reply, and then wait until reply has been clocked out of the radio (i.e. wait for the
      * TX_COMPLETE event) before clearing the state */
-    send_reply(handle, p_message, CONFIG_OPCODE_NODE_RESET_STATUS, NULL, 0, NODE_RESET_TX_TOKEN);
+    m_reset_token = nrf_mesh_unique_token_get();
+    m_node_reset_pending = NODE_RESET_PENDING;
+    send_reply(handle, p_message, CONFIG_OPCODE_NODE_RESET_STATUS, NULL, 0, m_reset_token);
 }
 
 static uint8_t model_app_response_create(uint16_t opcode,
@@ -2816,7 +2841,7 @@ static void handle_model_app_get(access_model_handle_t handle, const access_mess
                                                           &model_id,
                                                           NULL,
                                                           0);
-        send_reply(handle, p_message, response_opcode, response_buffer, response_size, 0);
+        send_reply(handle, p_message, response_opcode, response_buffer, response_size, nrf_mesh_unique_token_get());
         return;
     }
 
@@ -2830,7 +2855,7 @@ static void handle_model_app_get(access_model_handle_t handle, const access_mess
                                                           &model_id,
                                                           NULL,
                                                           0);
-        send_reply(handle, p_message, response_opcode, response_buffer, response_size, 0);
+        send_reply(handle, p_message, response_opcode, response_buffer, response_size, nrf_mesh_unique_token_get());
         return;
     }
 
@@ -2852,7 +2877,7 @@ static void handle_model_app_get(access_model_handle_t handle, const access_mess
                                                       &model_id,
                                                       appkey_instances,
                                                       appkey_count);
-    send_reply(handle, p_message, response_opcode, response_buffer, response_size, 0);
+    send_reply(handle, p_message, response_opcode, response_buffer, response_size, nrf_mesh_unique_token_get());
 }
 
 static void mesh_event_cb(const nrf_mesh_evt_t * p_evt)
@@ -2860,7 +2885,8 @@ static void mesh_event_cb(const nrf_mesh_evt_t * p_evt)
     switch (p_evt->type)
     {
         case NRF_MESH_EVT_TX_COMPLETE:
-            if (p_evt->params.tx_complete.token == NODE_RESET_TX_TOKEN)
+            if (p_evt->params.tx_complete.token == m_reset_token &&
+                NODE_RESET_PENDING == m_node_reset_pending)
             {
                 /* Clear all the state. */
                 mesh_stack_config_clear();
@@ -2868,21 +2894,21 @@ static void mesh_event_cb(const nrf_mesh_evt_t * p_evt)
                 {
                     const config_server_evt_t evt = { .type = CONFIG_SERVER_EVT_NODE_RESET };
                     app_evt_send(&evt);
+                    m_node_reset_pending = NODE_RESET_IDLE;
                 }
                 else
                 {
-                    m_node_reset_pending = true;
+                    m_node_reset_pending = NODE_RESET_FLASHING;
                 }
             }
             break;
 
         case NRF_MESH_EVT_FLASH_STABLE:
-            if (m_node_reset_pending)
+            if (NODE_RESET_FLASHING == m_node_reset_pending)
             {
                 const config_server_evt_t evt = { .type = CONFIG_SERVER_EVT_NODE_RESET };
                 app_evt_send(&evt);
-
-                m_node_reset_pending = false;
+                m_node_reset_pending = NODE_RESET_IDLE;
             }
             break;
 

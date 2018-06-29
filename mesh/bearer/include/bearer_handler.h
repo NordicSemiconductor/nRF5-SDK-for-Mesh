@@ -41,6 +41,8 @@
 #include <stdbool.h>
 #include "timer.h"
 #include "queue.h"
+#include "nordic_common.h"
+#include "nrf_mesh_config_bearer.h"
 
 /**
  * @defgroup BEARER_HANDLER Bearer context handler
@@ -52,6 +54,9 @@
 /** Maximal duration of a single bearer action. */
 #define BEARER_ACTION_DURATION_MAX_US  (100000)
 
+#define BEARER_ACTION_TIMER             CONCAT_2(NRF_TIMER, BEARER_ACTION_TIMER_INDEX)
+#define BEARER_ACTION_TIMER_IRQn        CONCAT_3(TIMER, BEARER_ACTION_TIMER_INDEX, _IRQn)
+#define BEARER_ACTION_TIMER_IRQHandler  CONCAT_3(TIMER, BEARER_ACTION_TIMER_INDEX, _IRQHandler)
 /**
  * @defgroup BEARER_CONTEXT_CALLBACKS Callbacks for bearer actions.
  * @{
@@ -62,7 +67,8 @@
  *
  * @param[in] start_time Timestamp of the start event, according to the
  * handler. The action must call @ref bearer_handler_action_end() before its
- * start_time + duration.
+ * start_time + duration. The @ref BEARER_ACTION_TIMER is started at the given start time,
+ * and can be used freely throughout the action.
  * @param[in] p_args Argument pointer, as specified by the caller.
  */
 typedef void (*bearer_start_cb_t)(timestamp_t start_time, void* p_args);
@@ -73,6 +79,12 @@ typedef void (*bearer_start_cb_t)(timestamp_t start_time, void* p_args);
  * @param[in] p_args Argument pointer, as specified by the caller.
  */
 typedef void (*bearer_radio_irq_handler_t)(void* p_args);
+/**
+ * Action timer interrupt handler function.
+ *
+ * @param[in] p_args Argument pointer, as specified by the caller.
+ */
+typedef void (*bearer_timer_irq_handler_t)(void* p_args);
 
 /**
  * @}
@@ -97,6 +109,7 @@ typedef struct
 {
     bearer_start_cb_t          start_cb;          /**< Start of action-callback for the action. */
     bearer_radio_irq_handler_t radio_irq_handler; /**< Radio interrupt handler for the action. */
+    bearer_timer_irq_handler_t timer_irq_handler; /**< Timer interrupt handler for the action. */
     timestamp_t                duration_us;       /**< Upper limit on action execution time in microseconds. Must be lower than @ref BEARER_ACTION_DURATION_MAX_US.*/
     void*                      p_args;            /**< Arguments pointer provided to the callbacks. */
 

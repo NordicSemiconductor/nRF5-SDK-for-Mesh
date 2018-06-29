@@ -85,6 +85,6 @@ def load_platforms(filename):
     with open(filename, "r") as f:
         d = json.load(f)["platforms"]
 
-    # No support for nrf52810 and nrf51422_xxAB yet.
+    # No support for nrf51422_xxAB yet.
     return [p for p in d
-            if "nrf52810" not in p["name"] and "nrf51422_xxAB" not in p["name"]]
+            if "nrf51422_xxAB" not in p["name"]]

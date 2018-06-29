@@ -35,6 +35,7 @@ set(lint_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/api
     ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../test/include # sdk_config.h
     ${${SOFTDEVICE}_INCLUDE_DIRS}
     ${${PLATFORM}_INCLUDE_DIRS}
     ${${nRF5_SDK_VERSION}_INCLUDE_DIRS})

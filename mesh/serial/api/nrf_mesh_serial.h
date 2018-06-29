@@ -39,6 +39,7 @@
 #define NRF_MESH_SERIAL_H__
 
 #include <stdint.h>
+#include <limits.h>
 #include "nrf_mesh.h"
 
 /**
@@ -52,8 +53,9 @@
  * @{
  */
 
-/** Maximum length of a serial packet's payload. */
-#define NRF_MESH_SERIAL_PAYLOAD_MAXLEN      (97)
+/** Maximum length of a serial packet's payload. Limited by the size of the length byte minus
+ * packet overhead (length and opcode). */
+#define NRF_MESH_SERIAL_PAYLOAD_MAXLEN    (UINT8_MAX - 1)
 /** Overhead of the packet header, not including the length field. */
 #define NRF_MESH_SERIAL_PACKET_OVERHEAD   (1UL)
 

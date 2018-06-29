@@ -37,7 +37,9 @@
 #include "bearer_handler.h"
 #include "queue.h"
 #include "nrf_mesh_assert.h"
+#include "nrf_mesh_config_bearer.h"
 #include "timeslot.h"
+#include "timer.h"
 #include "toolchain.h"
 #include "nrf.h"
 #include "scanner.h"
@@ -57,22 +59,81 @@ static volatile bool    m_stopped;      /**< Current state of the bearer handler
 static bearer_action_t* mp_action;      /**< Ongoing bearer action. */
 static timestamp_t      m_end_time;     /**< Latest end time for the ongoing action. */
 static bool             m_scanner_is_active;
+static bool             m_action_ended; /**< The event end function has been called */
+static bool             m_in_callback; /**< In the callback. */
 /*****************************************************************************
 * Static functions
 *****************************************************************************/
+static void action_switch(void);
 
 static inline bool action_in_progress(void)
 {
-    return (queue_peek(&m_action_queue) != NULL || mp_action);
+    return (queue_peek(&m_action_queue) != NULL || (mp_action && !m_action_ended));
+}
+
+static void timer_irq_clear(void)
+{
+    BEARER_ACTION_TIMER->TASKS_STOP = 1;
+    BEARER_ACTION_TIMER->TASKS_CLEAR = 1;
+    BEARER_ACTION_TIMER->INTENCLR = 0xFFFFFFFF;
+    BEARER_ACTION_TIMER->SHORTS = 0;
+    (void) NVIC_ClearPendingIRQ(BEARER_ACTION_TIMER_IRQn);
+}
+
+/**
+ * Start the action timer.
+ *
+ * @returns Device timestamp at the start of the timer.
+ */
+static timestamp_t action_timer_start(void)
+{
+    DEBUG_PIN_BEARER_HANDLER_ON(DEBUG_PIN_BEARER_HANDLER_TIMER_SETUP);
+
+    timer_irq_clear();
+    /* Start the action timer with the first CC set to 1 us, and make TIMER0 capture a timestamp at that time with PPI.
+     * With this, we can determine the exact start time of the action timer on the TIMER0 timeline, as we can read out
+     * the captured value of TIMER0 when the action timer is at T=1us. */
+    BEARER_ACTION_TIMER->EVENTS_COMPARE[0] = 0;
+    BEARER_ACTION_TIMER->CC[0] = 1; /* Trigger compare event at 1us */
+    BEARER_ACTION_TIMER->PRESCALER = 4; /* 1 us step */
+    BEARER_ACTION_TIMER->MODE = TIMER_MODE_MODE_Timer;
+    BEARER_ACTION_TIMER->BITMODE = TIMER_BITMODE_BITMODE_16Bit;
+
+    NRF_PPI->CH[TIMER_PPI_CH_START + TIMER_INDEX_RADIO].EEP = (uint32_t) &BEARER_ACTION_TIMER->EVENTS_COMPARE[0];
+    NRF_PPI->CH[TIMER_PPI_CH_START + TIMER_INDEX_RADIO].TEP = (uint32_t) &NRF_TIMER0->TASKS_CAPTURE[TIMER_INDEX_RADIO];
+    NRF_PPI->CHENSET = (1UL << (TIMER_PPI_CH_START + TIMER_INDEX_RADIO));
+
+    BEARER_ACTION_TIMER->TASKS_START = 1;
+
+#ifndef HOST
+    /* Wait for the compare event */
+    while (BEARER_ACTION_TIMER->EVENTS_COMPARE[0] == 0);
+#endif
+
+    /* Cleanup */
+    BEARER_ACTION_TIMER->EVENTS_COMPARE[0] = 0;
+    NRF_PPI->CHENCLR = (1UL << (TIMER_PPI_CH_START + TIMER_INDEX_RADIO));
+
+    DEBUG_PIN_BEARER_HANDLER_OFF(DEBUG_PIN_BEARER_HANDLER_TIMER_SETUP);
+
+    return timeslot_start_time_get() + NRF_TIMER0->CC[TIMER_INDEX_RADIO] - BEARER_ACTION_TIMER->CC[0];
+}
+
+static void radio_irq_clear(void)
+{
+    NRF_RADIO->INTENCLR = 0xFFFFFFFF;
+
+    (void) NVIC_ClearPendingIRQ(RADIO_IRQn);
 }
 
 static void scanner_start(void)
 {
     if (!m_scanner_is_active)
     {
+        radio_irq_clear();
         DEBUG_PIN_BEARER_HANDLER_ON(DEBUG_PIN_BEARER_HANDLER_SCANNER);
         m_scanner_is_active = true;
-        scanner_radio_start();
+        scanner_radio_start(action_timer_start());
     }
 }
 
@@ -89,20 +150,57 @@ static void scanner_stop(void)
     }
 }
 
+
+static void end_handle(void)
+{
+    /* Ensure the action didn't last too long: */
+    uint32_t time_now = timer_now();
+    NRF_MESH_ASSERT(TIMER_OLDER_THAN(time_now, m_end_time));
+
+    timeslot_state_lock(false);
+
+#ifdef BEARER_HANDLER_DEBUG
+    timestamp_t start_time = m_end_time - mp_action->duration_us;
+    mp_action->debug.prev_duration_us = time_now - start_time;
+    mp_action->debug.prev_margin_us = m_end_time - time_now;
+#endif
+
+    DEBUG_PIN_BEARER_HANDLER_OFF(DEBUG_PIN_BEARER_HANDLER_ACTION);
+    mp_action = NULL;
+    if (m_stopped)
+    {
+        timeslot_stop();
+    }
+    else
+    {
+        action_switch();
+    }
+}
+
 static void action_start(bearer_action_t* p_action)
 {
     timeslot_state_lock(true);
     mp_action = p_action;
-    /* Clear radio state before entering */
-    NRF_RADIO->INTENCLR = 0xFFFFFFFF;
-    (void) NVIC_ClearPendingIRQ(RADIO_IRQn);
-    const timestamp_t time_now = timer_now();
+    radio_irq_clear();
+
+    const timestamp_t time_now = action_timer_start();
     m_end_time = time_now + mp_action->duration_us;
+
+    m_action_ended = false;
+
 #ifdef BEARER_HANDLER_DEBUG
     mp_action->debug.event_count++;
 #endif
     DEBUG_PIN_BEARER_HANDLER_ON(DEBUG_PIN_BEARER_HANDLER_ACTION);
+
+    m_in_callback = true;
     mp_action->start_cb(time_now, mp_action->p_args);
+    m_in_callback = false;
+
+    if (m_action_ended)
+    {
+        end_handle();
+    }
 }
 
 static void action_switch(void)
@@ -133,6 +231,29 @@ static void action_switch(void)
         }
     }
 }
+
+void BEARER_ACTION_TIMER_IRQHandler(void)
+{
+    if (mp_action != NULL)
+    {
+        NRF_MESH_ASSERT(mp_action->timer_irq_handler != NULL);
+
+        m_in_callback = true;
+        mp_action->timer_irq_handler(mp_action->p_args);
+        m_in_callback = false;
+
+        if (m_action_ended)
+        {
+            end_handle();
+        }
+    }
+    else
+    {
+        NRF_MESH_ASSERT(m_scanner_is_active);
+        scanner_timer_irq_handler();
+    }
+}
+
 /*****************************************************************************
 * Interface functions
 *****************************************************************************/
@@ -142,6 +263,10 @@ void bearer_handler_init(void)
     mp_action = NULL;
     m_scanner_is_active = false;
     m_stopped = true;
+    m_in_callback = false;
+    m_action_ended = false;
+
+    NVIC_SetPriority(BEARER_ACTION_TIMER_IRQn, 0);
 }
 
 uint32_t bearer_handler_start(void)
@@ -235,32 +360,21 @@ uint32_t bearer_handler_action_fire(bearer_action_t* p_action)
     return status;
 }
 
+
 void bearer_handler_action_end(void)
 {
     NRF_MESH_ASSERT(mp_action != NULL);
     /* Ensure that we're in signal handler context: */
     NRF_MESH_ASSERT(timeslot_is_in_cb());
-    /* Ensure the action didn't last too long: */
-    uint32_t time_now = timer_now();
-    NRF_MESH_ASSERT(TIMER_OLDER_THAN(time_now, m_end_time));
+    NRF_MESH_ASSERT(!m_action_ended);
 
-    timeslot_state_lock(false);
-
-#ifdef BEARER_HANDLER_DEBUG
-    timestamp_t start_time = m_end_time - mp_action->duration_us;
-    mp_action->debug.prev_duration_us = time_now - start_time;
-    mp_action->debug.prev_margin_us = m_end_time - time_now;
-#endif
-
-    DEBUG_PIN_BEARER_HANDLER_OFF(DEBUG_PIN_BEARER_HANDLER_ACTION);
-    mp_action = NULL;
-    if (m_stopped)
+    if (m_in_callback)
     {
-        timeslot_stop();
+        m_action_ended = true;
     }
     else
     {
-        action_switch();
+        end_handle();
     }
 }
 
@@ -271,7 +385,15 @@ void bearer_handler_radio_irq_handler(void)
     if (mp_action != NULL)
     {
         NRF_MESH_ASSERT(mp_action->radio_irq_handler != NULL);
+
+        m_in_callback = true;
         mp_action->radio_irq_handler(mp_action->p_args);
+        m_in_callback = false;
+
+        if (m_action_ended)
+        {
+            end_handle();
+        }
     }
     else
     {
@@ -295,6 +417,7 @@ void bearer_handler_on_ts_begin(void)
     NRF_MESH_ASSERT(timeslot_is_in_cb());
     NRF_MESH_ASSERT(mp_action == NULL);
 
+    NVIC_EnableIRQ(BEARER_ACTION_TIMER_IRQn);
     (void) NVIC_EnableIRQ(RADIO_IRQn);
 
     action_switch();
@@ -306,4 +429,8 @@ void bearer_handler_on_ts_end(void)
     NRF_MESH_ASSERT(mp_action == NULL);
 
     scanner_stop();
+    timer_irq_clear();
+    radio_irq_clear();
+
+    NVIC_DisableIRQ(BEARER_ACTION_TIMER_IRQn);
 }

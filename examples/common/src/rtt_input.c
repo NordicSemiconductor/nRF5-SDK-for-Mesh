@@ -38,36 +38,28 @@
 #include "rtt_input.h"
 #include <stdlib.h>
 #include "SEGGER_RTT.h"
-#include "nrf.h"
 #include "nrf_mesh_defines.h"
-
-
-#define RTT_TIMER             NRF_TIMER2
-#define RTT_TIMER_IRQ_HANDLER TIMER2_IRQHandler
-#define RTT_TIMER_IRQn        TIMER2_IRQn
-#define RTT_TIMER_PRESCALER   9                                             /**< 31250 Hz */
-#define RTT_TIMER_FREQ        (16000000ULL / (1UL << RTT_TIMER_PRESCALER))
+#include "app_timer.h"
+#include "mesh_app_utils.h"
+#include "hal.h"
 
 static rtt_input_handler_t m_rtt_input_handler;
 
+APP_TIMER_DEF(m_rtt_timer);
 
-void RTT_TIMER_IRQ_HANDLER(void)
+void timeout_handler(void * p_unused)
 {
-    if (RTT_TIMER->EVENTS_COMPARE[0])
+    if (m_rtt_input_handler != NULL)
     {
-        if (m_rtt_input_handler != NULL)
+        for (;;)
         {
-            for (;;)
+            int key = SEGGER_RTT_GetKey();
+            if (key < 0)
             {
-                int key = SEGGER_RTT_GetKey();
-                if (key < 0)
-                {
-                    break;
-                }
-                m_rtt_input_handler(key);
+                break;
             }
+            m_rtt_input_handler(key);
         }
-        RTT_TIMER->EVENTS_COMPARE[0] = 0;
     }
 }
 
@@ -75,22 +67,12 @@ void rtt_input_enable(rtt_input_handler_t rtt_input_handler, uint32_t poll_perio
 {
     m_rtt_input_handler = rtt_input_handler;
 
-    RTT_TIMER->MODE        = TIMER_MODE_MODE_Timer;
-    RTT_TIMER->BITMODE     = TIMER_BITMODE_BITMODE_16Bit;
-    RTT_TIMER->PRESCALER   = RTT_TIMER_PRESCALER;
-    RTT_TIMER->CC[0]       = (uint32_t)((poll_period_ms * RTT_TIMER_FREQ) / 1000);
-    RTT_TIMER->SHORTS      = (TIMER_SHORTS_COMPARE0_CLEAR_Enabled << TIMER_SHORTS_COMPARE0_CLEAR_Pos);
-    RTT_TIMER->INTENSET    = (TIMER_INTENSET_COMPARE0_Enabled << TIMER_INTENSET_COMPARE0_Pos);
-    RTT_TIMER->TASKS_START = 1;
-
-    NVIC_SetPriority(RTT_TIMER_IRQn, NRF_MESH_IRQ_PRIORITY_LOWEST);
-    NVIC_EnableIRQ(RTT_TIMER_IRQn);
+    ERROR_CHECK(app_timer_create(&m_rtt_timer, APP_TIMER_MODE_REPEATED, timeout_handler));
+    ERROR_CHECK(app_timer_start(m_rtt_timer, MAX(APP_TIMER_MIN_TIMEOUT_TICKS, HAL_MS_TO_RTC_TICKS(poll_period_ms)), NULL));
 }
 
 void rtt_input_disable(void)
 {
-    NVIC_DisableIRQ(RTT_TIMER_IRQn);
-    RTT_TIMER->TASKS_STOP = 1;
-
+    ERROR_CHECK(app_timer_stop(m_rtt_timer));
     m_rtt_input_handler = NULL;
 }

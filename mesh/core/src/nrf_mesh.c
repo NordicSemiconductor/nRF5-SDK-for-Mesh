@@ -86,6 +86,9 @@ static bool m_is_enabled;
 static bool m_is_initialized;
 static nrf_mesh_rx_cb_t m_rx_cb;
 
+/** Unique Tx token. */
+static nrf_mesh_tx_token_t m_tx_token = NRF_MESH_INITIAL_TOKEN;
+
 static bool scanner_packet_process_cb(void);
 
 static void nrf_mesh_listen(const uint8_t * p_packet,
@@ -467,4 +470,15 @@ void nrf_mesh_subnet_added(uint16_t net_key_index, const uint8_t * p_network_id)
 #if GATT_PROXY
     proxy_subnet_added(net_key_index, p_network_id);
 #endif
+}
+
+nrf_mesh_tx_token_t nrf_mesh_unique_token_get(void)
+{
+   if (++m_tx_token == NRF_MESH_SERVICE_BORDER_TOKEN)
+   {
+       m_tx_token = NRF_MESH_INITIAL_TOKEN;
+       m_tx_token++;
+   }
+
+   return m_tx_token;
 }

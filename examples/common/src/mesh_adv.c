@@ -39,6 +39,7 @@
 #include "ble_gap.h"
 #include "ble_types.h"
 #include "app_error.h"
+#include "timeslot.h"
 
 /**
  * This is a sample implementation of the `mesh_adv.h` interface.
@@ -163,6 +164,8 @@ void mesh_adv_start(void)
 #else
     APP_ERROR_CHECK(sd_ble_gap_adv_start(&m_adv_params,  MESH_SOFTDEVICE_CONN_CFG_TAG));
 #endif
+    /* We restart the mesh timeslot to yield time for the softdevice advertiser to start. */
+    timeslot_restart();
 }
 
 void mesh_adv_stop(void)

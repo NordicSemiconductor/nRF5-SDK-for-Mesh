@@ -61,6 +61,7 @@ static void reply_status(const simple_on_off_server_t * p_server,
     reply.length = sizeof(status);
     reply.force_segmented = false;
     reply.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
+    reply.access_token = nrf_mesh_unique_token_get();
 
     (void) access_model_reply(p_server->model_handle, p_message, &reply);
 }
@@ -138,5 +139,6 @@ uint32_t simple_on_off_server_status_publish(simple_on_off_server_t * p_server, 
     msg.length = sizeof(status);
     msg.force_segmented = false;
     msg.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
+    msg.access_token = nrf_mesh_unique_token_get();
     return access_model_publish(p_server->model_handle, &msg);
 }

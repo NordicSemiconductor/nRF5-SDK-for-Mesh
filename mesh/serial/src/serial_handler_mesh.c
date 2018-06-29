@@ -252,7 +252,7 @@ static void handle_cmd_addr_get(const serial_packet_t * p_cmd)
     {
         rsp.address_handle = p_cmd->payload.cmd.mesh.addr_get.address_handle;
         rsp.addr_type = addr.type;
-        rsp.subscribed = dsm_address_subscription_get(p_cmd->payload.cmd.mesh.addr_get.address_handle);
+        rsp.subscribed = dsm_address_is_rx(&addr);
         rsp.raw_short_addr = addr.value;
 
         if (addr.p_virtual_uuid)

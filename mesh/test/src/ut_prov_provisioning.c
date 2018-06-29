@@ -130,7 +130,7 @@
 #define DATA_IVINDEX 0x01020304
 #define DATA_ADDRESS 0x0b0c
 
-#define PROVISIONEE_NUM_COMPONENTS 1
+#define PROVISIONEE_NUM_ELEMENTS 1
 
 typedef union
 {
@@ -208,7 +208,7 @@ uint32_t tx_caps_cb(prov_bearer_t* p_bearer, const prov_pdu_caps_t* p_caps, uint
     TEST_ASSERT_TRUE(p_bearer == &m_bearer_provisionee);
     TEST_ASSERT_NOT_NULL(p_caps);
     TEST_ASSERT_EQUAL_UINT8(PROV_PDU_TYPE_CAPABILITIES, p_caps->pdu_type);
-    TEST_ASSERT_EQUAL_UINT8(m_provisionee_ctx.capabilities.num_elements, p_caps->num_components);
+    TEST_ASSERT_EQUAL_UINT8(m_provisionee_ctx.capabilities.num_elements, p_caps->num_elements);
     TEST_ASSERT_EQUAL_UINT16(m_provisionee_ctx.capabilities.algorithms, BE2LE16(p_caps->algorithms));
     TEST_ASSERT_EQUAL_UINT8(m_provisionee_ctx.capabilities.pubkey_type, p_caps->pubkey_type);
     TEST_ASSERT_EQUAL_UINT8(m_provisionee_ctx.capabilities.oob_static_types, p_caps->oob_static_types);
@@ -414,4 +414,59 @@ void test_oob_authentication(void)
 
     TEST_ASSERT_TRUE(provisionee_oob_key_req_happened);
     TEST_ASSERT_TRUE(provisioner_oob_key_req_happened);
+}
+
+void test_disallow_public_key_oob_when_not_supported(void)
+{
+    const char * URI = "hello";
+    uint16_t oob_info_sources = 0;
+
+    memset(&m_bearer_provisionee, 0, sizeof(prov_bearer_t));
+    m_bearer_provisionee.bearer_type = NRF_MESH_PROV_BEARER_MESH;
+    m_bearer_provisionee.p_interface = &m_interface;
+
+    memset(&m_provisionee_ctx, 0, sizeof(nrf_mesh_prov_ctx_t));
+    m_provisionee_ctx.p_active_bearer = &m_bearer_provisionee;
+    m_provisionee_ctx.event_handler = provisionee_event_handler;
+    m_bearer_provisionee.p_parent = &m_provisionee_ctx;
+
+    /* 1 Test provisionee invitation */
+    /* 1.1 Initialization */
+    TEST_ASSERT_EQUAL_UINT32(NRF_SUCCESS, prov_provisionee_listen(&m_provisionee_ctx,
+                                                                  &m_bearer_provisionee,
+                                                                  URI,
+                                                                  oob_info_sources));
+    /* 1.2 Start listening */
+    m_bearer_provisionee.p_callbacks->opened(&m_bearer_provisionee);
+
+    /* 1.3 Receiving invitation from provisioner. Sending back capabilities. */
+    prov_tx_capabilities_StubWithCallback(tx_caps_cb);
+    prov_packet_length_valid_IgnoreAndReturn(true);
+    m_prov_pdu.pdu_invite.pdu_type = PROV_PDU_TYPE_INVITE;
+    m_prov_pdu.pdu_invite.attention_duration = 0;
+
+    m_provisionee_ctx.capabilities.algorithms = NRF_MESH_PROV_ALGORITHM_FIPS_P256EC;
+    m_provisionee_ctx.capabilities.num_elements = 1;
+    m_provisionee_ctx.capabilities.pubkey_type = NRF_MESH_PROV_OOB_PUBKEY_TYPE_INBAND;
+    m_provisionee_ctx.capabilities.oob_static_types = NRF_MESH_PROV_OOB_STATIC_TYPE_SUPPORTED;
+    m_provisionee_ctx.capabilities.oob_input_size = 1;
+    m_provisionee_ctx.capabilities.oob_input_actions = NRF_MESH_PROV_OOB_INPUT_ACTION_ENTER_NUMBER;
+    m_provisionee_ctx.capabilities.oob_output_size = 1;
+    m_provisionee_ctx.capabilities.oob_input_actions = NRF_MESH_PROV_OOB_OUTPUT_ACTION_NUMERIC;
+
+    m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *)&m_prov_pdu.pdu_invite, sizeof(prov_pdu_invite_t));
+    m_bearer_provisionee.p_callbacks->ack(&m_bearer_provisionee);
+    /* Now for the real test... The provisionee has indicated PUBKEY inband, but we'll select OOB. */
+    memset(&m_prov_pdu, 0, sizeof(m_prov_pdu));
+    m_prov_pdu.pdu_start.pdu_type = PROV_PDU_TYPE_START;
+    m_prov_pdu.pdu_start.algorithm = NRF_MESH_PROV_ALGORITHM_FIPS_P256;
+
+    m_prov_pdu.pdu_start.public_key = NRF_MESH_PROV_PUBLIC_KEY_OOB;
+
+    m_prov_pdu.pdu_start.auth_method = NRF_MESH_PROV_OOB_METHOD_OUTPUT;
+    m_prov_pdu.pdu_start.auth_action = NRF_MESH_PROV_OUTPUT_ACTION_ALPHANUMERIC;
+    m_prov_pdu.pdu_start.auth_size = 3;
+
+    prov_tx_failed_ExpectAndReturn(&m_bearer_provisionee, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT, NRF_SUCCESS);
+    m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *) &m_prov_pdu.pdu_start, sizeof(prov_pdu_prov_start_t));
 }

@@ -68,13 +68,13 @@
         E_LINK_CLOSE,                           \
         E_LINK_TIMEOUT
 
-#define ACTION_LIST A_LINK_OPEN_NOTIFY,   a_link_open_notify,       \
+#define ACTION_LIST A_LINK_OPEN,          a_link_open,              \
+                    A_LINK_TIMER_START,   a_link_timer_start,       \
                     A_LINK_CLOSE_NOTIFY,  a_link_close_notify,      \
                     A_LINK_CLOSE,         a_link_close,             \
                     A_PDU_TX,             a_pdu_tx,                 \
                     A_PDU_RX,             a_pdu_rx,                 \
                     A_PDU_ACK,            a_pdu_ack,                \
-                    A_LINK_TIMER_START,   a_link_timer_start,       \
                     A_LISTEN_START,       a_listen_start,           \
                     A_LISTEN_STOP,        a_listen_stop
 
@@ -113,15 +113,15 @@ static bool pb_gatt_fsm_guard(fsm_action_id_t action_id, void * p_data);
 static const fsm_transition_t m_pb_gatt_fsm_transition_table[] =
 {
     FSM_STATE(S_IDLE),
-    FSM_TRANSITION(E_LISTEN_START,    FSM_ALWAYS,         A_LISTEN_START,        S_LISTENING),
+    FSM_TRANSITION(E_LISTEN_START,    FSM_ALWAYS,         A_LISTEN_START,       S_LISTENING),
 
     FSM_STATE(S_LISTENING),
-    FSM_TRANSITION(E_CONNECTED,       FSM_ALWAYS,         A_LINK_TIMER_START,   S_CONNECTED),
+    FSM_TRANSITION(E_CONNECTED,       FSM_ALWAYS,         A_LINK_OPEN,          S_CONNECTED),
     FSM_TRANSITION(E_LISTEN_STOP,     FSM_ALWAYS,         A_LISTEN_STOP,        S_IDLE),
     FSM_TRANSITION(E_LISTEN_TIMEOUT,  FSM_ALWAYS,         FSM_NO_ACTION,        S_IDLE),
 
     FSM_STATE(S_CONNECTED),
-    FSM_TRANSITION(E_TX_READY,        FSM_ALWAYS,         A_LINK_OPEN_NOTIFY,   S_LINK_ACTIVE),
+    FSM_TRANSITION(E_TX_READY,        FSM_ALWAYS,         A_LINK_TIMER_START,   S_LINK_ACTIVE),
     FSM_TRANSITION(E_LINK_TIMEOUT,    FSM_ALWAYS,         A_LINK_CLOSE,         S_CONNECTED),
     FSM_TRANSITION(E_DISCONNECTED,    FSM_ALWAYS,         A_LINK_CLOSE_NOTIFY,  S_IDLE),
 
@@ -245,7 +245,13 @@ static bool g_is_prov_pdu_type(void * p_context)
     return (p_evt->pdu_type == MESH_GATT_PDU_TYPE_PROV_PDU);
 }
 
-static void a_link_open_notify(void * p_context)
+static void a_link_timer_start(void * p_context)
+{
+    fsm_evt_gatt_data_t * p_evt = p_context;
+    link_timer_reset(p_evt->p_bearer_gatt);
+}
+
+static void a_link_open(void * p_context)
 {
     fsm_evt_gatt_data_t * p_evt = p_context;
     p_evt->p_bearer_gatt->bearer.p_callbacks->opened(&p_evt->p_bearer_gatt->bearer);
@@ -313,13 +319,6 @@ static void a_listen_start(void * p_context)
 static void a_listen_stop(void * p_context)
 {
     mesh_adv_stop();
-}
-
-static void a_link_timer_start(void * p_context)
-{
-    fsm_evt_gatt_data_t * p_evt = p_context;
-    nrf_mesh_prov_bearer_gatt_t * p_bearer_gatt = p_evt->p_bearer_gatt;
-    link_timer_reset(p_bearer_gatt);
 }
 
 /*******************************************************************************

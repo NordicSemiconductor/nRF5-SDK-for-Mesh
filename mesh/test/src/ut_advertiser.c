@@ -339,6 +339,11 @@ void test_config(void)
     TEST_NRF_MESH_ASSERT_EXPECT(advertiser_address_set(&m_adv, NULL));
     TEST_NRF_MESH_ASSERT_EXPECT(advertiser_address_set(NULL, &config.adv_addr));
 
+    /* TX power */
+    advertiser_tx_power_set(&m_adv, RADIO_POWER_NRF_POS4DBM);
+    TEST_ASSERT_EQUAL(RADIO_POWER_NRF_POS4DBM, m_adv.broadcast.params.radio_config.tx_power);
+    /* invalid params: */
+    TEST_NRF_MESH_ASSERT_EXPECT(advertiser_tx_power_set(NULL, RADIO_POWER_NRF_0DBM));
 }
 
 void test_packet_alloc(void)

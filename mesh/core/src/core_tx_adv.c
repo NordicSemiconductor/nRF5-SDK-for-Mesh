@@ -176,3 +176,9 @@ void core_tx_adv_address_set(core_tx_role_t role, const ble_gap_addr_t * p_addr)
     NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
     advertiser_address_set(&m_bearer_roles[role].advertiser, p_addr);
 }
+
+void core_tx_adv_tx_power_set(core_tx_role_t role, radio_tx_power_t tx_power)
+{
+    NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
+    advertiser_tx_power_set(&m_bearer_roles[role].advertiser, tx_power);
+}

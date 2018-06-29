@@ -51,6 +51,7 @@
 #include "rand_mock.h"
 #include "nrf_mesh_events_mock.h"
 #include "mesh_stack_mock.h"
+#include "nrf_mesh_mock.h"
 
 #include "access.h"
 #include "config_messages.h"
@@ -259,9 +260,12 @@ void setUp(void)
     rand_mock_Init();
     nrf_mesh_events_mock_Init();
     mesh_stack_mock_Init();
+    nrf_mesh_mock_Init();
 
     m_previous_reply_received = false;
     mp_previous_reply_buffer = NULL;
+
+    nrf_mesh_unique_token_get_IgnoreAndReturn((nrf_mesh_tx_token_t)0x55AA55AAul);
 
     access_model_add_StubWithCallback(access_model_add_mock);
     access_model_reply_StubWithCallback(access_model_reply_mock);
@@ -303,6 +307,8 @@ void tearDown(void)
     nrf_mesh_events_mock_Destroy();
     mesh_stack_mock_Verify();
     mesh_stack_mock_Destroy();
+    nrf_mesh_mock_Verify();
+    nrf_mesh_mock_Destroy();
 }
 
 /*********** Test Cases ***********/

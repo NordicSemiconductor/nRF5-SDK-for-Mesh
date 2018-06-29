@@ -42,6 +42,7 @@
 #include "boards.h"
 #include "nrf_delay.h"
 #include "simple_hal.h"
+#include "app_timer.h"
 
 /* Core */
 #include "nrf_mesh.h"
@@ -253,7 +254,7 @@ static void app_config_successful_cb(void)
     access_flash_config_store();
     ERROR_CHECK(store_app_data());
 
-    if (m_nw_state.configured_devices < SERVER_NODE_COUNT)
+    if (m_nw_state.configured_devices < (SERVER_NODE_COUNT + CLIENT_NODE_COUNT))
     {
         m_exp_uuid.p_uuid = m_server_uuid_filter;
         m_exp_uuid.length = SERVER_NODE_UUID_PREFIX_SIZE;
@@ -364,7 +365,7 @@ static void check_network_state(void)
 
             hal_led_pin_set(APP_PROVISIONING_LED, 1);
         }
-        else if (m_nw_state.provisioned_devices < SERVER_NODE_COUNT)
+        else if (m_nw_state.provisioned_devices < (SERVER_NODE_COUNT + CLIENT_NODE_COUNT))
         {
             /* Start provisioning - rest of the devices */
             m_exp_uuid.p_uuid = m_server_uuid_filter;
@@ -375,6 +376,12 @@ static void check_network_state(void)
 
             hal_led_pin_set(APP_PROVISIONING_LED, 1);
         }
+        else
+        {
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "All servers provisioned\n");
+            return;
+        }
+
         m_node_prov_setup_started = true;
     }
     else
@@ -549,7 +556,9 @@ static void initialize(void)
     __LOG_INIT(LOG_SRC_APP | LOG_SRC_ACCESS, LOG_LEVEL_INFO, LOG_CALLBACK_DEFAULT);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- BLE Mesh Light Switch Provisioner Demo -----\n");
 
+    ERROR_CHECK(app_timer_init());
     hal_leds_init();
+
 #if BUTTON_BOARD
     ERROR_CHECK(hal_buttons_init(button_event_handler));
 #endif

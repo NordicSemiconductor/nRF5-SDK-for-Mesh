@@ -663,12 +663,15 @@ typedef struct __attribute((packed))
     uint8_t data[NRF_MESH_SERIAL_PAYLOAD_MAXLEN - sizeof(serial_cmd_model_specific_init_header_t)]; /**< Additional data provided to the initializer */
 } serial_cmd_model_specific_init_t;
 
+NRF_MESH_STATIC_ASSERT(sizeof(serial_cmd_model_specific_init_t) == NRF_MESH_SERIAL_PAYLOAD_MAXLEN);
+
 /** Used for sending commands to one of the initialized models */
 typedef struct __attribute((packed))
 {
     serial_cmd_model_specific_command_header_t model_cmd_info; /**< Contains the handle of the model being addressed. */
     uint8_t data[NRF_MESH_SERIAL_PAYLOAD_MAXLEN - sizeof(serial_cmd_model_specific_command_header_t)]; /**< Additional data provided to the event */
 } serial_cmd_model_specific_command_t;
+NRF_MESH_STATIC_ASSERT(sizeof(serial_cmd_model_specific_command_t) == NRF_MESH_SERIAL_PAYLOAD_MAXLEN);
 
 /** ACCESS layer command parameters. */
 typedef union __attribute((packed))

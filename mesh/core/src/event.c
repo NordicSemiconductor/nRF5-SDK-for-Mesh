@@ -40,8 +40,33 @@
 #include "list.h"
 #include "utils.h"
 
+typedef enum
+{
+    EVENT_HANDLER_IDLE,
+    EVENT_HANDLER_PROCEEDING,
+    EVENT_HANDLER_CLEANING_REQUIRED,
+} event_handler_state_t;
+
 /** Linked list of event handlers */
 static list_node_t * mp_evt_handlers_head;
+static event_handler_state_t m_event_handler_state = EVENT_HANDLER_IDLE;
+
+static void event_list_clean(void)
+{
+    list_node_t * p_item = mp_evt_handlers_head;
+    while (p_item != NULL)
+    {
+        nrf_mesh_evt_handler_t * p_handler = PARENT_BY_FIELD_GET(nrf_mesh_evt_handler_t,
+                                                                 node,
+                                                                 p_item);
+        list_node_t * p_next = p_item->p_next;
+        if (p_handler->is_removed)
+        {
+            (void) list_remove(&mp_evt_handlers_head, p_item);
+        }
+        p_item = p_next;
+    }
+}
 
 void event_handle(const nrf_mesh_evt_t * p_evt)
 {
@@ -49,13 +74,23 @@ void event_handle(const nrf_mesh_evt_t * p_evt)
 
     if (mp_evt_handlers_head != NULL)
     {
+        m_event_handler_state = EVENT_HANDLER_PROCEEDING;
         LIST_FOREACH(p_node, mp_evt_handlers_head)
         {
             nrf_mesh_evt_handler_t * p_handler = PARENT_BY_FIELD_GET(nrf_mesh_evt_handler_t,
-                                                                     p_next,
+                                                                     node,
                                                                      p_node);
 
-            p_handler->evt_cb(p_evt);
+            if (!p_handler->is_removed)
+            {
+                p_handler->evt_cb(p_evt);
+            }
+        }
+
+        if (EVENT_HANDLER_CLEANING_REQUIRED == m_event_handler_state)
+        {
+            event_list_clean();
+            m_event_handler_state = EVENT_HANDLER_IDLE;
         }
     }
 }
@@ -63,12 +98,20 @@ void event_handle(const nrf_mesh_evt_t * p_evt)
 void event_handler_add(nrf_mesh_evt_handler_t * p_handler_params)
 {
     NRF_MESH_ASSERT(p_handler_params != NULL);
-    list_add(&mp_evt_handlers_head, (list_node_t*) &p_handler_params->p_next);
+    p_handler_params->is_removed = false;
+    list_add(&mp_evt_handlers_head, &p_handler_params->node);
 }
 
 void event_handler_remove(nrf_mesh_evt_handler_t * p_handler_params)
 {
     NRF_MESH_ASSERT(p_handler_params != NULL);
-    /* This function ignores attempts to remove event handlers that are not in the list. */
-    (void) list_remove(&mp_evt_handlers_head, (list_node_t*) &p_handler_params->p_next);
+    if (EVENT_HANDLER_PROCEEDING == m_event_handler_state || EVENT_HANDLER_CLEANING_REQUIRED == m_event_handler_state)
+    {
+        m_event_handler_state = EVENT_HANDLER_CLEANING_REQUIRED;
+        p_handler_params->is_removed = true;
+    }
+    else
+    {
+        (void) list_remove(&mp_evt_handlers_head, &p_handler_params->node);
+    }
 }

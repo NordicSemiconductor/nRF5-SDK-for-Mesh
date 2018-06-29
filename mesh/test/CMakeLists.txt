@@ -248,7 +248,7 @@ set(timeslot_test_srcs
   ${CMOCK_BIN}/bearer_handler_mock.c
   ${CMOCK_BIN}/nrf_mesh_cmsis_mock_mock.c
   )
-add_unit_test(timeslot "${timeslot_test_srcs}" "${include_directories}" "${compile_options};-DNRF52;-DS130;-DSD_BLE_API_VERSION=2")
+add_unit_test(timeslot "${timeslot_test_srcs}" "${include_directories}" "${compile_options};-DNRF52")
 
 # Encryption
 set(enc_test_srcs
@@ -617,8 +617,10 @@ add_unit_test(prov_utils "${prov_utils_srcs}" "${include_directories}" "${compil
 set(access_srcs
     src/ut_access.c
     ../access/src/access.c
+    ../access/src/access_loopback.c
     ../core/src/log.c
     ../core/src/fifo.c
+    ../core/src/list.c
     ${CMOCK_BIN}/device_state_manager_mock.c
     ${CMOCK_BIN}/flash_manager_mock.c
     ${CMOCK_BIN}/nrf_mesh_mock.c
@@ -628,6 +630,7 @@ set(access_srcs
     ${CMOCK_BIN}/access_reliable_mock.c
     ${CMOCK_BIN}/bearer_event_mock.c
     ${CMOCK_BIN}/event_mock.c
+    ${CMOCK_BIN}/proxy_mock.c
     )
 set(access_defines
     -DACCESS_ELEMENT_COUNT=2
@@ -664,6 +667,7 @@ set(config_client_srcs
     ${CMOCK_BIN}/access_reliable_mock.c
     ${CMOCK_BIN}/access_config_mock.c
     ${CMOCK_BIN}/packet_mgr_mock.c
+    ${CMOCK_BIN}/nrf_mesh_mock.c
     ${CMAKE_SOURCE_DIR}/models/config/src/config_client.c
     ${CMAKE_SOURCE_DIR}/models/config/src/packed_index_list.c
     )
@@ -688,6 +692,7 @@ set(config_server_srcs
     ${CMOCK_BIN}/nrf_mesh_events_mock.c
     ${CMOCK_BIN}/event_mock.c
     ${CMOCK_BIN}/mesh_stack_mock.c
+    ${CMOCK_BIN}/nrf_mesh_mock.c
     )
 add_unit_test(config_server "${config_server_srcs}" "${include_directories}" "${compile_options};-DACCESS_ELEMENT_COUNT=1024;-DACCESS_SUBSCRIPTION_LIST_COUNT=3")
 
@@ -718,6 +723,8 @@ set(device_state_manager_srcs
     ${CMOCK_BIN}/flash_manager_mock.c
     ${CMOCK_BIN}/event_mock.c
     ${CMOCK_BIN}/bearer_event_mock.c
+    ${CMOCK_BIN}/proxy_mock.c
+    ${CMOCK_BIN}/nrf_mesh_opt_mock.c
     )
 add_unit_test(device_state_manager "${device_state_manager_srcs}" "${include_directories}" "${compile_options}")
 
@@ -801,6 +808,7 @@ set(health_server_srcs
     ${CMOCK_BIN}/access_reliable_mock.c
     ${CMOCK_BIN}/bearer_event_mock.c
     ${CMOCK_BIN}/timer_scheduler_mock.c
+    ${CMOCK_BIN}/nrf_mesh_mock.c
     )
 add_unit_test(health_server "${health_server_srcs}" "${include_directories}" "${compile_options}")
 
@@ -811,6 +819,7 @@ set(health_client_srcs
     ${CMOCK_BIN}/access_mock.c
     ${CMOCK_BIN}/access_config_mock.c
     ${CMOCK_BIN}/access_reliable_mock.c
+    ${CMOCK_BIN}/nrf_mesh_mock.c
     )
 add_unit_test(health_client "${health_client_srcs}" "${include_directories}" "${compile_options}")
 
@@ -826,6 +835,7 @@ set(scanner_srcs
     ${CMOCK_BIN}/nrf_mesh_cmsis_mock_mock.c
     ${CMOCK_BIN}/filter_engine_mock.c
     ${CMOCK_BIN}/bearer_event_mock.c
+    ${CMOCK_BIN}/mesh_pa_lna_internal_mock.c
     )
 add_unit_test(scanner "${scanner_srcs}" "${include_directories}" "${compile_options};-DNRF52")
 
@@ -908,7 +918,7 @@ set(mesh_gatt_srcs
     ${CMOCK_BIN}/ble_gap_mock.c
     ${CMOCK_BIN}/timer_scheduler_mock.c
     ${CMOCK_BIN}/timer_mock.c)
-add_unit_test(mesh_gatt "${mesh_gatt_srcs}" "${include_directories}" "${compile_options};-DNRF52")
+add_unit_test(mesh_gatt "${mesh_gatt_srcs}" "${include_directories}" "${compile_options};-DNRF52;-DNRF_SD_BLE_API_VERSION=6")
 
 # Mesh stack module
 set(mesh_stack_srcs
@@ -977,3 +987,10 @@ set(proxy_filter_srcs
     src/ut_proxy_filter.c
     ../gatt/src/proxy_filter.c)
 add_unit_test(proxy_filter "${proxy_filter_srcs}" "${include_directories}" "${compile_options};-DGATT_PROXY")
+
+# Event management
+set(event_srcs
+    src/ut_event.c
+    ../core/src/event.c
+    ../core/src/list.c)
+add_unit_test(event "${event_srcs}" "${include_directories}" "${compile_options}")

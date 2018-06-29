@@ -52,6 +52,8 @@
 #include "nrf_mesh_keygen_mock.h"
 #include "net_state_mock.h"
 #include "flash_manager_mock.h"
+#include "proxy_mock.h"
+#include "nrf_mesh_opt_mock.h"
 
 /* Enable this to check that the handle ordering is as expected (0..N-1). */
 #define TEST_EXPLICIT_ORDERING 1
@@ -105,6 +107,8 @@ void setUp(void)
     flash_manager_mock_Init();
     net_state_mock_Init();
     nrf_mesh_events_mock_Init();
+    proxy_mock_Init();
+    nrf_mesh_opt_mock_Init();
     mp_flash_manager = NULL;
     m_add_manager_result_state = FM_STATE_READY;
     m_expected_flash_data.verify_contents = true;
@@ -139,6 +143,10 @@ void tearDown(void)
     net_state_mock_Destroy();
     nrf_mesh_events_mock_Verify();
     nrf_mesh_events_mock_Destroy();
+    nrf_mesh_opt_mock_Verify();
+    nrf_mesh_opt_mock_Destroy();
+    proxy_mock_Verify();
+    proxy_mock_Destroy();
 }
 
 static void flash_manager_mem_listener_register_cb(fm_mem_listener_t * p_listener, int calls)
@@ -716,13 +724,36 @@ void test_rx_addr(void)
     TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_address_subscription_add_handle(0x8887)); /* never referenced before */
     TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, dsm_address_subscription_add_handle(0x8888)); /* never referenced before */
 
-    /* Test getter */
+    /* Test subscription getter */
     TEST_ASSERT_EQUAL(true, dsm_address_subscription_get(handles[1]));
     TEST_ASSERT_EQUAL(true, dsm_address_subscription_get(handles[2]));
     TEST_ASSERT_EQUAL(true, dsm_address_subscription_get(handles[0]));
     TEST_ASSERT_EQUAL(false, dsm_address_subscription_get(0x8887));
     TEST_ASSERT_EQUAL(false, dsm_address_subscription_get(0x8888));
     TEST_ASSERT_EQUAL(false, dsm_address_subscription_get(DSM_HANDLE_INVALID));
+
+    /* Test _is_rx */
+    nrf_mesh_address_t known_addrs[] = {
+        {NRF_MESH_ADDRESS_TYPE_GROUP, 0xF001},
+        {NRF_MESH_ADDRESS_TYPE_GROUP, 0xF002},
+        {NRF_MESH_ADDRESS_TYPE_VIRTUAL, 0x8001, uuid},
+        {NRF_MESH_ADDRESS_TYPE_UNICAST, unicast.address_start},
+    };
+    nrf_mesh_address_t unknown_addrs[] = {
+        {NRF_MESH_ADDRESS_TYPE_GROUP, 0x8887},
+        {NRF_MESH_ADDRESS_TYPE_GROUP, 0x8888},
+        {NRF_MESH_ADDRESS_TYPE_INVALID, 0},
+        {NRF_MESH_ADDRESS_TYPE_UNICAST, unicast.address_start + unicast.count},
+    };
+
+    for (uint32_t i = 0; i < ARRAY_SIZE(known_addrs); ++i)
+    {
+        TEST_ASSERT_TRUE(dsm_address_is_rx(&known_addrs[i]));
+    }
+    for (uint32_t i = 0; i < ARRAY_SIZE(unknown_addrs); ++i)
+    {
+        TEST_ASSERT_FALSE(dsm_address_is_rx(&unknown_addrs[i]));
+    }
 
     /* Test core lookup of rx addresses */
     nrf_mesh_address_t addr;
@@ -755,6 +786,43 @@ void test_rx_addr(void)
     TEST_ASSERT_FALSE(nrf_mesh_rx_address_get(0xF002, &addr)); /* group */
     TEST_ASSERT_FALSE(nrf_mesh_rx_address_get(0x8002, &addr)); /* virtual */
     TEST_ASSERT_FALSE(nrf_mesh_rx_address_get(0x0000, &addr)); /* invalid */
+
+    /* Spec-defined addresses */
+    TEST_ASSERT_TRUE(nrf_mesh_rx_address_get(NRF_MESH_ALL_NODES_ADDR, &addr));
+    TEST_ASSERT_FALSE(nrf_mesh_rx_address_get(NRF_MESH_ALL_FRIENDS_ADDR, &addr)); // friendship not supported
+    TEST_ASSERT_FALSE(nrf_mesh_rx_address_get(NRF_MESH_ALL_PROXIES_ADDR, &addr)); // proxy not supported
+    nrf_mesh_opt_t opt;
+    opt.len = sizeof(opt.opt.val);
+    opt.opt.val = 1;
+    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_RELAY_ENABLE, NULL, NRF_SUCCESS);
+    nrf_mesh_opt_get_IgnoreArg_p_opt();
+    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&opt);
+    TEST_ASSERT_TRUE(nrf_mesh_rx_address_get(NRF_MESH_ALL_RELAYS_ADDR, &addr));
+    opt.opt.val = 0;
+    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_RELAY_ENABLE, NULL, NRF_SUCCESS);
+    nrf_mesh_opt_get_IgnoreArg_p_opt();
+    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&opt);
+    TEST_ASSERT_FALSE(nrf_mesh_rx_address_get(NRF_MESH_ALL_RELAYS_ADDR, &addr));
+
+    /* Verify that the spec defined addresses work when calling is_rx as well */
+    nrf_mesh_address_t all_nodes = {NRF_MESH_ADDRESS_TYPE_GROUP, NRF_MESH_ALL_NODES_ADDR};
+    TEST_ASSERT_TRUE(dsm_address_is_rx(&all_nodes));
+    nrf_mesh_address_t all_friends = {NRF_MESH_ADDRESS_TYPE_GROUP, NRF_MESH_ALL_FRIENDS_ADDR};
+    TEST_ASSERT_FALSE(dsm_address_is_rx(&all_friends)); // friendship not supported
+    nrf_mesh_address_t all_proxies = {NRF_MESH_ADDRESS_TYPE_GROUP, NRF_MESH_ALL_PROXIES_ADDR};
+    TEST_ASSERT_FALSE(dsm_address_is_rx(&all_proxies)); // proxy not supported
+    opt.len = sizeof(opt.opt.val);
+    opt.opt.val = 1;
+    nrf_mesh_address_t all_relays = {NRF_MESH_ADDRESS_TYPE_GROUP, NRF_MESH_ALL_RELAYS_ADDR};
+    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_RELAY_ENABLE, NULL, NRF_SUCCESS);
+    nrf_mesh_opt_get_IgnoreArg_p_opt();
+    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&opt);
+    TEST_ASSERT_TRUE(dsm_address_is_rx(&all_relays));
+    opt.opt.val = 0;
+    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_RELAY_ENABLE, NULL, NRF_SUCCESS);
+    nrf_mesh_opt_get_IgnoreArg_p_opt();
+    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&opt);
+    TEST_ASSERT_FALSE(dsm_address_is_rx(&all_relays));
 
     //TODO: Test sublist overflow
 }
@@ -797,6 +865,9 @@ void test_net(void)
     uint8_t identity_key[NRF_MESH_KEY_SIZE];
     memset(identity_key, 0xEE, NRF_MESH_KEY_SIZE);
 
+    uint8_t net_key[NRF_MESH_KEY_SIZE];
+    memset(net_key, 0xFF, NRF_MESH_KEY_SIZE);
+
     /**** Add ****/
     for (uint32_t i = 0; i < ARRAY_SIZE(net); i++)
     {
@@ -828,6 +899,8 @@ void test_net(void)
             TEST_ASSERT_EQUAL(NRF_SUCCESS, net[i].expected_status);
             TEST_ASSERT_NOT_EQUAL(DSM_HANDLE_INVALID, net[i].handle);
             TEST_ASSERT_NOT_EQUAL(0xABCD, net[i].handle); /* The handle must have changed */
+            TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_key_get(net[i].handle, net_key));
+            TEST_ASSERT_EQUAL_HEX8_ARRAY(net[i].key, net_key, NRF_MESH_KEY_SIZE);
         }
         else
         {
@@ -1876,6 +1949,10 @@ void test_key_refresh_all_phases(void)
     TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_kr_phase_get(network_handle, &current_phase));
     TEST_ASSERT_EQUAL(NRF_MESH_KEY_REFRESH_PHASE_1, current_phase);
 
+    uint8_t net_key[NRF_MESH_KEY_SIZE];
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_key_get(network_handle, net_key));
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(old_key, net_key, NRF_MESH_KEY_SIZE);
+
     uint8_t new_appkey[NRF_MESH_KEY_SIZE] = { 7, 6, 5, 4, 3, 2, 1, 0, 0, 1, 2, 3, 4, 5, 6, 7};
     uint8_t new_aid = 0xbe;
 
@@ -1951,6 +2028,9 @@ void test_key_refresh_all_phases(void)
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_kr_phase_get(network_handle, &current_phase));
     TEST_ASSERT_EQUAL(NRF_MESH_KEY_REFRESH_PHASE_2, current_phase);
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_key_get(network_handle, net_key));
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(new_key, net_key, NRF_MESH_KEY_SIZE);
 
     /* In key refresh phase 2, the new keys should be used for transmitting packets: */
     for (uint32_t i = 0; i < ARRAY_SIZE(app); i++)

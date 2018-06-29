@@ -316,7 +316,7 @@ void instaburst_tx_instance_init(instaburst_tx_t * p_instaburst,
     p_instaburst->broadcast.params.tx_complete_cb = broadcast_tx_callback;
     p_instaburst->broadcast.params.radio_config.payload_maxlen = RADIO_CONFIG_ADV_MAX_PAYLOAD_SIZE;
     p_instaburst->broadcast.params.radio_config.radio_mode     = RADIO_MODE_BLE_1MBIT;
-    p_instaburst->broadcast.params.radio_config.tx_power       = RADIO_POWER_NRF_0DBM;
+    p_instaburst->broadcast.params.radio_config.tx_power       = p_config->tx_power;
 
     bearer_event_sequential_add(&p_instaburst->tx_complete_event, tx_complete_event, p_instaburst);
 
@@ -522,4 +522,13 @@ void instaburst_tx_interval_set(instaburst_tx_t * p_instaburst, uint32_t interva
         timer_sch_reschedule(&p_instaburst->timer_event,
                              timer_now() + randomized_tx_interval_get(p_instaburst));
     }
+}
+
+void instaburst_tx_tx_power_set(instaburst_tx_t * p_instaburst, radio_tx_power_t tx_power)
+{
+    NRF_MESH_ASSERT(p_instaburst != NULL);
+
+    p_instaburst->config.tx_power = tx_power;
+    p_instaburst->broadcast.params.radio_config.tx_power = tx_power;
+    p_instaburst->adv_ext_tx.config.radio_config.tx_power = tx_power;
 }

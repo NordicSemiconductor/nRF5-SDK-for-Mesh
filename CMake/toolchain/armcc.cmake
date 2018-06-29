@@ -36,6 +36,9 @@ set(CMAKE_ASM_FLAGS "--cpreproc --apcs=interwork  --predefine \"__HEAP_SIZE SETA
 set(cortex-m0_DEFINES
     --cpu=Cortex-M0)
 
+set(cortex-m4_DEFINES
+    --cpu=Cortex-M4)
+
 set(cortex-m4f_DEFINES
     --cpu=Cortex-M4.fp)
 

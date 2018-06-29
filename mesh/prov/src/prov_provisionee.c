@@ -97,7 +97,7 @@ static void send_capabilities(nrf_mesh_prov_ctx_t * p_ctx)
     prov_pdu_caps_t pdu;
     pdu.pdu_type = PROV_PDU_TYPE_CAPABILITIES;
 
-    pdu.num_components = p_ctx->capabilities.num_elements;
+    pdu.num_elements = p_ctx->capabilities.num_elements;
     pdu.algorithms = LE2BE16(p_ctx->capabilities.algorithms);
     pdu.pubkey_type = p_ctx->capabilities.pubkey_type;
     pdu.oob_static_types = p_ctx->capabilities.oob_static_types;
@@ -124,6 +124,12 @@ static uint32_t handle_prov_start(nrf_mesh_prov_ctx_t * p_ctx, const uint8_t * p
         p_pdu->auth_method >= NRF_MESH_PROV_OOB_METHOD_PROHIBITED)
     {
     	return NRF_ERROR_INVALID_DATA;
+    }
+
+    if (p_pdu->public_key == NRF_MESH_PROV_PUBLIC_KEY_OOB &&
+        p_ctx->capabilities.pubkey_type != NRF_MESH_PROV_OOB_PUBKEY_TYPE_OOB)
+    {
+        return NRF_ERROR_INVALID_DATA;
     }
 
     if ((p_pdu->auth_method == NRF_MESH_PROV_OOB_METHOD_NONE ||

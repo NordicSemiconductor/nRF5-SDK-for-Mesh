@@ -258,6 +258,14 @@ void instaburst_tx_buffer_lock(bool lock);
  */
 void instaburst_tx_interval_set(instaburst_tx_t * p_instaburst, uint32_t interval_ms);
 
+/**
+ * Sets the TX power for the given Instaburst instance.
+ *
+ * @param[in,out] p_instaburst Instaburst instance to configure.
+ * @param[in] tx_power New TX power.
+ */
+void instaburst_tx_tx_power_set(instaburst_tx_t * p_instaburst, radio_tx_power_t tx_power);
+
 /** @} */
 
 #endif /* INSTABURST_TX_H__ */

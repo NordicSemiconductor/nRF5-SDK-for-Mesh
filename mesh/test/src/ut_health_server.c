@@ -43,6 +43,7 @@
 #include "access_reliable_mock.h"
 #include "bearer_event_mock.h"
 #include "timer_scheduler_mock.h"
+#include "nrf_mesh_mock.h"
 
 #include "health_messages.h"
 #include "health_opcodes.h"
@@ -313,6 +314,9 @@ void setUp(void)
     timer_scheduler_mock_Init();
     timer_sch_schedule_StubWithCallback(timer_sch_schedule_mock);
 
+    nrf_mesh_mock_Init();
+    nrf_mesh_unique_token_get_IgnoreAndReturn((nrf_mesh_tx_token_t)0x55AA55AAul);
+
     bearer_event_critical_section_begin_Ignore();
     bearer_event_critical_section_end_Ignore();
 }
@@ -339,6 +343,9 @@ void tearDown(void)
 
     timer_scheduler_mock_Verify();
     timer_scheduler_mock_Destroy();
+
+    nrf_mesh_mock_Verify();
+    nrf_mesh_mock_Destroy();
 }
 
 /********** Test cases **********/

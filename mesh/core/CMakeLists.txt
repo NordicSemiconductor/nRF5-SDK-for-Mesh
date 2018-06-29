@@ -30,7 +30,6 @@ set(MESH_CORE_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/msqueue.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/nrf_mesh_keygen.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/cache.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/uri.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/list.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/log.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/flash_manager.c"
@@ -42,7 +41,14 @@ set(MESH_CORE_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/core_tx.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/heartbeat.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/net_beacon.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/fsm.c")
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/fsm.c"
+
+    # uri.c is not in use.
+    # It is an optional feature to include
+    # in the build if you want to support generating and parsing of URIs
+    # as in Bluetooth CSSv6 Ch. 1.18.
+    # "${CMAKE_CURRENT_SOURCE_DIR}/src/uri.c"
+    )
 
 if (EXPERIMENTAL_INSTABURST_ENABLED)
     set(MESH_CORE_SOURCE_FILES ${MESH_CORE_SOURCE_FILES}
@@ -112,9 +118,9 @@ set(lint_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/include
     ${CMAKE_SOURCE_DIR}/examples/templates
     ${CMAKE_SOURCE_DIR}/external/rtt/include
-    ${SDK_ROOT}/components/libraries/util
     ${${SOFTDEVICE}_INCLUDE_DIRS}
-    ${${PLATFORM}_INCLUDE_DIRS})
+    ${${PLATFORM}_INCLUDE_DIRS}
+    ${${nRF5_SDK_VERSION}_INCLUDE_DIRS})
 
 add_pc_lint(mesh_core_${PLATFORM}
     "${MESH_CORE_SOURCE_FILES}"

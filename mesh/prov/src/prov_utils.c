@@ -93,7 +93,7 @@ static void oob_gen_count(uint8_t * p_auth_value, uint8_t oob_size)
     rand_hw_rng_get(&count, 1);
     /* Mesh Profile Specification v1.0, section 5.4.2.2: random integer number between 1
      * and the [oob size] inclusive */
-    count = (count % (oob_size + 1));
+    count = (count % oob_size) + 1;
     p_auth_value[PROV_AUTH_LEN - 1] = count;
 }
 

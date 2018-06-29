@@ -131,7 +131,7 @@ static void packet_relay(network_packet_metadata_t * p_net_metadata,
     network_tx_packet_buffer_t buffer;
     buffer.user_data.p_metadata = p_net_metadata;
     buffer.user_data.payload_len = payload_len;
-    buffer.user_data.token = CORE_TX_TOKEN_RELAY;
+    buffer.user_data.token = NRF_MESH_RELAY_TOKEN;
     buffer.role = CORE_TX_ROLE_RELAY;
 
     if (allocate_packet(&buffer) == NRF_SUCCESS)
@@ -256,6 +256,13 @@ uint32_t network_opt_set(nrf_mesh_opt_id_t id, const nrf_mesh_opt_t * p_opt)
                 break;
 #endif
             }
+        case NRF_MESH_OPT_NET_RELAY_TX_POWER:
+#if EXPERIMENTAL_INSTABURST_ENABLED
+            core_tx_instaburst_tx_power_set(CORE_TX_ROLE_RELAY, (radio_tx_power_t)p_opt->opt.val);
+#else
+            core_tx_adv_tx_power_set(CORE_TX_ROLE_RELAY, (radio_tx_power_t)p_opt->opt.val);
+#endif
+            break;
         case NRF_MESH_OPT_NET_NETWORK_TRANSMIT_INTERVAL_MS:
 #if EXPERIMENTAL_INSTABURST_ENABLED
             core_tx_instaburst_interval_set(CORE_TX_ROLE_ORIGINATOR, p_opt->opt.val);
@@ -277,6 +284,13 @@ uint32_t network_opt_set(nrf_mesh_opt_id_t id, const nrf_mesh_opt_t * p_opt)
                 break;
 #endif
             }
+        case NRF_MESH_OPT_NET_NETWORK_TX_POWER:
+#if EXPERIMENTAL_INSTABURST_ENABLED
+            core_tx_instaburst_tx_power_set(CORE_TX_ROLE_ORIGINATOR, (radio_tx_power_t)p_opt->opt.val);
+#else
+            core_tx_adv_tx_power_set(CORE_TX_ROLE_ORIGINATOR, (radio_tx_power_t)p_opt->opt.val);
+#endif
+            break;
         default:
             return NRF_ERROR_NOT_FOUND;
     }
@@ -378,6 +392,7 @@ uint32_t network_packet_in(const uint8_t * p_packet, uint32_t net_packet_len, co
     {
         return NRF_ERROR_NULL;
     }
+
     const packet_mesh_net_packet_t * p_net_packet = (const packet_mesh_net_packet_t *) p_packet;
     uint32_t status = NRF_SUCCESS;
 
@@ -399,18 +414,20 @@ uint32_t network_packet_in(const uint8_t * p_packet, uint32_t net_packet_len, co
     {
         NRF_MESH_ASSERT(net_metadata.p_security_material != NULL);
 
+#if GATT_PROXY
+        proxy_net_packet_processed(&net_metadata, p_rx_metadata);
+#endif
+
         const uint8_t * p_net_payload = packet_mesh_net_payload_get(&net_decrypted_packet);
 
         uint8_t payload_len = net_packet_payload_len_get(&net_metadata, net_packet_len);
+
+        __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_NET_PACKET_RECEIVED, 0, net_packet_len, &net_decrypted_packet);
 
         status = transport_packet_in((const packet_mesh_trs_packet_t *) p_net_payload,
                                      payload_len,
                                      &net_metadata,
                                      p_rx_metadata);
-
-#if GATT_PROXY
-        proxy_net_packet_processed(&net_metadata, p_rx_metadata);
-#endif
 
         if (should_relay(&net_metadata))
         {

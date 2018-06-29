@@ -37,6 +37,7 @@
 #ifndef CORE_TX_ADV_H__
 #define CORE_TX_ADV_H__
 #include "core_tx.h"
+#include "radio_config.h"
 
 /**
  * @defgroup CORE_TX_ADV Core TX Advertiser bearer
@@ -94,6 +95,14 @@ uint32_t core_tx_adv_interval_get(core_tx_role_t role);
  * @param[in] p_addr New GAP advertisement address.
  */
 void core_tx_adv_address_set(core_tx_role_t role, const ble_gap_addr_t * p_addr);
+
+/**
+ * Sets the TX power for the specific role.
+ *
+ * @param[in] role Role to set the TX power for.
+ * @param[in] tx_power New TX power.
+ */
+void core_tx_adv_tx_power_set(core_tx_role_t role, radio_tx_power_t tx_power);
 
 /** @} */
 

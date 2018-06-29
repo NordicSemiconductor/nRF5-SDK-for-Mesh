@@ -57,8 +57,10 @@
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
 #include "nrf_sdh_soc.h"
+#include "ble_conn_params.h"
 #include "sdk_config.h"
 #include "proxy.h"
+#include "app_timer.h"
 
 #define RTT_INPUT_POLL_PERIOD_MS (100)
 #define GROUP_MSG_REPEAT_COUNT   (2)
@@ -70,11 +72,17 @@
 #define LED_BLINK_CNT_PROV          (4)
 #define LED_BLINK_CNT_NO_REPLY      (6)
 
-#define DEVICE_NAME "nRF5x Mesh Switch"
-#define MIN_CONN_INTERVAL MSEC_TO_UNITS(250, UNIT_1_25_MS)
-#define MAX_CONN_INTERVAL MSEC_TO_UNITS(1000, UNIT_1_25_MS)
-#define SLAVE_LATENCY     0
-#define CONN_SUP_TIMEOUT  MSEC_TO_UNITS(4000, UNIT_10_MS)
+#define DEVICE_NAME                     "nRF5x Mesh Switch"
+#define MIN_CONN_INTERVAL               MSEC_TO_UNITS(150,  UNIT_1_25_MS)           /**< Minimum acceptable connection interval. */
+#define MAX_CONN_INTERVAL               MSEC_TO_UNITS(250,  UNIT_1_25_MS)           /**< Maximum acceptable connection interval. */
+#define SLAVE_LATENCY                   0                                           /**< Slave latency. */
+#define CONN_SUP_TIMEOUT                MSEC_TO_UNITS(4000, UNIT_10_MS)             /**< Connection supervisory timeout (4 seconds). */
+#define FIRST_CONN_PARAMS_UPDATE_DELAY  APP_TIMER_TICKS(100)                        /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called. */
+#define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(2000)                       /**< Time between each call to sd_ble_gap_conn_param_update after the first call. */
+#define MAX_CONN_PARAMS_UPDATE_COUNT    3                                           /**< Number of attempts before giving up the connection parameter negotiation. */
+
+static void gap_params_init(void);
+static void conn_params_init(void);
 
 static void on_sd_evt(uint32_t sd_evt, void * p_context)
 {
@@ -83,38 +91,18 @@ static void on_sd_evt(uint32_t sd_evt, void * p_context)
 
 NRF_SDH_SOC_OBSERVER(mesh_observer, NRF_SDH_BLE_STACK_OBSERVER_PRIO, on_sd_evt, NULL);
 
-
 static simple_on_off_client_t m_clients[CLIENT_MODEL_INSTANCE_COUNT];
 static const uint8_t          m_client_node_uuid[NRF_MESH_UUID_SIZE] = CLIENT_NODE_UUID;
 static bool                   m_device_provisioned;
 
-static void client_status_cb(const simple_on_off_client_t * p_self, simple_on_off_status_t status, uint16_t src);
-
-
-static bool client_publication_configured(void)
-{
-    dsm_handle_t pub_addr_handle;
-    for (uint8_t i = 0; i < CLIENT_MODEL_INSTANCE_COUNT; i++)
-    {
-        if (access_model_publish_address_get(m_clients[i].model_handle, &pub_addr_handle) == NRF_SUCCESS)
-        {
-            if (pub_addr_handle == DSM_HANDLE_INVALID)
-            {
-                return false;
-            }
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
 
 static void provisioning_complete_cb(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
+
+    /* Restores the application parameters after switching from the Provisioning service to the Proxy  */
+    gap_params_init();
+    conn_params_init();
 
     dsm_local_unicast_address_t node_address;
     dsm_local_unicast_addresses_get(&node_address);
@@ -140,22 +128,26 @@ static void client_status_cb(const simple_on_off_client_t * p_self, simple_on_of
 {
     uint32_t server_index = server_index_get(p_self);
 
-    __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "server status received \n");
     switch (status)
     {
         case SIMPLE_ON_OFF_STATUS_ON:
             hal_led_pin_set(BSP_LED_0 + server_index, true);
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "OnOff server %u status ON\n", server_index);
             break;
 
         case SIMPLE_ON_OFF_STATUS_OFF:
             hal_led_pin_set(BSP_LED_0 + server_index, false);
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "OnOff server %u status OFF\n", server_index);
             break;
 
         case SIMPLE_ON_OFF_STATUS_ERROR_NO_REPLY:
             hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "No reply from OnOff server %u\n", server_index);
             break;
 
         case SIMPLE_ON_OFF_STATUS_CANCELLED:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_WARN, "Message to server %u cancelled\n", server_index);
+            break;
         default:
             __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Unknown status \n");
             break;
@@ -182,46 +174,57 @@ static void button_event_handler(uint32_t button_number)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Button %u pressed\n", button_number);
 
-    if (client_publication_configured())
+    uint32_t status = NRF_SUCCESS;
+    switch (button_number)
     {
-        uint32_t status = NRF_SUCCESS;
-        switch (button_number)
-        {
-            case 0:
-            case 1:
-                /* send unicast message, with inverted GPIO pin value */
-                status = simple_on_off_client_set(&m_clients[button_number],
-                                                !hal_led_pin_get(BSP_LED_0 + button_number));
-                break;
+        case 0:
+        case 1:
+            /* send unicast message, with inverted GPIO pin value */
+            status = simple_on_off_client_set(&m_clients[button_number],
+                                              !hal_led_pin_get(BSP_LED_0 + button_number));
+            break;
 
-            case 2:
-            case 3:
-                /* send a group message to the ODD group, with inverted GPIO pin value */
-                status = simple_on_off_client_set_unreliable(&m_clients[button_number],
-                                                            !hal_led_pin_get(BSP_LED_0 + button_number),
-                                                            GROUP_MSG_REPEAT_COUNT);
+        case 2:
+        case 3:
+            /* send a group message to the ODD group, with inverted GPIO pin value */
+            status = simple_on_off_client_set_unreliable(&m_clients[button_number],
+                                                         !hal_led_pin_get(BSP_LED_0 + button_number),
+                                                         GROUP_MSG_REPEAT_COUNT);
+            if (status == NRF_SUCCESS)
+            {
                 hal_led_pin_set(BSP_LED_0 + button_number, !hal_led_pin_get(BSP_LED_0 + button_number));
-                break;
-            default:
-                break;
-
-        }
-
-        if (status == NRF_ERROR_INVALID_STATE ||
-            status == NRF_ERROR_NO_MEM ||
-            status == NRF_ERROR_BUSY)
-        {
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Cannot send. Device is busy.\n");
-            hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
-        }
-        else
-        {
-            ERROR_CHECK(status);
-        }
+            }
+            break;
+        default:
+            break;
     }
-    else
+
+    switch (status)
     {
-        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Ignored. Node is not configured.\n");
+        case NRF_SUCCESS:
+            break;
+
+        case NRF_ERROR_NO_MEM:
+        case NRF_ERROR_BUSY:
+        case NRF_ERROR_INVALID_STATE:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Cannot send - client %u is busy\n", button_number);
+            hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
+            break;
+
+        case NRF_ERROR_INVALID_PARAM:
+            /* Publication not enabled for this client. One (or more) of the following is wrong:
+             * - An application key is missing, or there is no application key bound to the model
+             * - The client does not have its publication state set
+             *
+             * It is the provisioner that adds an application key, binds it to the model and sets
+             * the model's publication state.
+             */
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Publication not configured for client %u\n", button_number);
+            break;
+
+        default:
+            ERROR_CHECK(status);
+            break;
     }
 }
 
@@ -247,6 +250,26 @@ static void models_init_cb(void)
     }
 }
 
+static void on_conn_params_evt(ble_conn_params_evt_t * p_evt)
+{
+    uint32_t err_code;
+
+    if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED)
+    {
+        err_code = sd_ble_gap_disconnect(p_evt->conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
+        APP_ERROR_CHECK(err_code);
+    }
+    else if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_SUCCEEDED)
+    {
+        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully updated connection parameters\n");
+    }
+}
+
+static void conn_params_error_handler(uint32_t nrf_error)
+{
+    APP_ERROR_HANDLER(nrf_error);
+}
+
 static void mesh_init(void)
 {
     mesh_stack_init_params_t init_params =
@@ -263,7 +286,6 @@ static void mesh_init(void)
 static void gap_params_init(void)
 {
     uint32_t                err_code;
-    ble_gap_conn_params_t   gap_conn_params;
     ble_gap_conn_sec_mode_t sec_mode;
 
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
@@ -272,15 +294,34 @@ static void gap_params_init(void)
                                           (const uint8_t *) DEVICE_NAME,
                                           strlen(DEVICE_NAME));
     APP_ERROR_CHECK(err_code);
+}
+
+static void conn_params_init(void)
+{
+    uint32_t               err_code;
+    ble_conn_params_init_t cp_init;
+    ble_gap_conn_params_t  gap_conn_params;
 
     memset(&gap_conn_params, 0, sizeof(gap_conn_params));
-
     gap_conn_params.min_conn_interval = MIN_CONN_INTERVAL;
     gap_conn_params.max_conn_interval = MAX_CONN_INTERVAL;
     gap_conn_params.slave_latency     = SLAVE_LATENCY;
     gap_conn_params.conn_sup_timeout  = CONN_SUP_TIMEOUT;
 
     err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
+    APP_ERROR_CHECK(err_code);
+
+    memset(&cp_init, 0, sizeof(cp_init));
+    cp_init.p_conn_params                  = &gap_conn_params;
+    cp_init.first_conn_params_update_delay = FIRST_CONN_PARAMS_UPDATE_DELAY;
+    cp_init.next_conn_params_update_delay  = NEXT_CONN_PARAMS_UPDATE_DELAY;
+    cp_init.max_conn_params_update_count   = MAX_CONN_PARAMS_UPDATE_COUNT;
+    cp_init.start_on_notify_cccd_handle    = BLE_GATT_HANDLE_INVALID;
+    cp_init.disconnect_on_fail             = false;
+    cp_init.evt_handler                    = on_conn_params_evt;
+    cp_init.error_handler                  = conn_params_error_handler;
+
+    err_code = ble_conn_params_init(&cp_init);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -289,7 +330,9 @@ static void initialize(void)
     __LOG_INIT(LOG_SRC_APP | LOG_SRC_ACCESS, LOG_LEVEL_INFO, LOG_CALLBACK_DEFAULT);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- BLE Mesh Light Switch Client Demo -----\n");
 
+    ERROR_CHECK(app_timer_init());
     hal_leds_init();
+
 #if BUTTON_BOARD
     ERROR_CHECK(hal_buttons_init(button_event_handler));
 #endif
@@ -305,6 +348,7 @@ static void initialize(void)
     APP_ERROR_CHECK(err_code);
 
     gap_params_init();
+    conn_params_init();
 
     mesh_init();
 }
@@ -320,7 +364,8 @@ static void start(void)
         mesh_provisionee_start_params_t prov_start_params =
         {
             .p_static_data    = static_auth_data,
-            .prov_complete_cb = provisioning_complete_cb
+            .prov_complete_cb = provisioning_complete_cb,
+            .p_device_uri = NULL
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }

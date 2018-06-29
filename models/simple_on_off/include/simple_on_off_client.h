@@ -57,10 +57,10 @@
 /** Simple OnOff status codes. */
 typedef enum
 {
-    /** Received status ON from the server. */
-    SIMPLE_ON_OFF_STATUS_ON,
     /** Received status OFF from the server. */
     SIMPLE_ON_OFF_STATUS_OFF,
+    /** Received status ON from the server. */
+    SIMPLE_ON_OFF_STATUS_ON,
     /** The server did not reply to a Simple OnOff Set/Get. */
     SIMPLE_ON_OFF_STATUS_ERROR_NO_REPLY,
     /** Simple OnOff Set/Get was cancelled. */

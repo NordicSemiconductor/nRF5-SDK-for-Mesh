@@ -40,6 +40,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "nrf_mesh.h"
+#include "timer.h"
 #include "radio_config.h"
 #include "packet.h"
 #include "bearer_event.h"
@@ -73,6 +74,7 @@ typedef struct
     uint32_t successful_receives;           /**< Number of received packets. */
     uint32_t crc_failures;                  /**< Number of CRC failures. */
     uint32_t length_out_of_bounds;          /**< Number of packets with length out of bounds. */
+    uint32_t out_of_memory;                 /**< Number of times the scanner has ran out of memory. */
 } scanner_stats_t;
 
 /**
@@ -201,8 +203,10 @@ void scanner_config_reset(void);
  * Start scanner radio.
  *
  * @warning Only to be used by the bearer module.
+
+ * @param[in] start_time Timestamp when the action timer was started.
  */
-void scanner_radio_start(void);
+void scanner_radio_start(timestamp_t start_time);
 
 /**
  * Stop scanner radio.
@@ -217,6 +221,13 @@ void scanner_radio_stop(void);
  * @warning Only to be used by the bearer module.
  */
 void scanner_radio_irq_handler(void);
+
+/**
+ * Scanner timer IRQ handler.
+ *
+ * @warning Only to be used by the bearer module.
+ */
+void scanner_timer_irq_handler(void);
 
 /** @} */
 

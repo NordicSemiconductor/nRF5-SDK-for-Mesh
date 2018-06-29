@@ -1,6 +1,7 @@
 ####### DFU example with an active serial connection:
 set(target "dfu_${PLATFORM}_${SOFTDEVICE}")
 
+if (NOT PLATFORM MATCHES "nrf52810")
 add_executable(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
     "${CMAKE_SOURCE_DIR}/mesh/stack/src/mesh_stack.c"
@@ -42,6 +43,7 @@ target_compile_options(${target} PUBLIC
 
 target_compile_definitions(${target} PUBLIC
     ${USER_DEFINITIONS}
+    -DUSE_APP_CONFIG=1
     ${${PLATFORM}_DEFINES}
     ${${SOFTDEVICE}_DEFINES}
     ${${BOARD}_DEFINES})
@@ -60,7 +62,7 @@ add_pc_lint(${target}
     "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES}")
 
 add_ses_project(${target})
-
+endif()
 ####### DFU example without an active serial connection:
 set(target "dfu_no_serial_${PLATFORM}_${SOFTDEVICE}")
 
@@ -102,7 +104,8 @@ target_compile_options(${target} PUBLIC
     ${${ARCH}_DEFINES})
 
 target_compile_definitions(${target} PUBLIC
-    "-DNRF_MESH_SERIAL_ENABLE=0"
+    -DNRF_MESH_SERIAL_ENABLE=0
+    -DUSE_APP_CONFIG=1
     ${USER_DEFINITIONS}
     ${${PLATFORM}_DEFINES}
     ${${SOFTDEVICE}_DEFINES}

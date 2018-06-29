@@ -120,6 +120,7 @@ static uint32_t send_reliable_message(const simple_on_off_client_t * p_client,
     reliable.message.opcode.company_id = SIMPLE_ON_OFF_COMPANY_ID;
     reliable.message.force_segmented = false;
     reliable.message.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
+    reliable.message.access_token = nrf_mesh_unique_token_get();
     reliable.reply_opcode.opcode = SIMPLE_ON_OFF_OPCODE_STATUS;
     reliable.reply_opcode.company_id = SIMPLE_ON_OFF_COMPANY_ID;
     reliable.timeout = ACCESS_RELIABLE_TIMEOUT_MIN;
@@ -229,6 +230,7 @@ uint32_t simple_on_off_client_set_unreliable(simple_on_off_client_t * p_client, 
     uint32_t status = NRF_SUCCESS;
     for (uint8_t i = 0; i < repeats; ++i)
     {
+        message.access_token = nrf_mesh_unique_token_get();
         status = access_model_publish(p_client->model_handle, &message);
         if (status != NRF_SUCCESS)
         {

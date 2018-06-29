@@ -112,6 +112,7 @@ static uint32_t reliable_send(health_client_t * p_client, uint16_t opcode, uint1
         .message.opcode = ACCESS_OPCODE_SIG(opcode),
         .message.force_segmented = false,
         .message.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT,
+        .message.access_token = nrf_mesh_unique_token_get(), /*lint !e446: side effect in initializer */
         .reply_opcode = ACCESS_OPCODE_SIG(reply_opcode),
         .timeout = ACCESS_RELIABLE_TIMEOUT_MIN,
         .status_cb = reliable_status_cb
@@ -226,8 +227,9 @@ uint32_t health_client_fault_clear(health_client_t * p_client, uint16_t company_
             .p_buffer = (const uint8_t *) &message,
             .length = sizeof(health_msg_fault_clear_t),
             .force_segmented = false,
-            .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT
-        };
+            .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT,
+            .access_token = nrf_mesh_unique_token_get()
+        }; /*lint !e446: side effect in initializer */
         return access_model_publish(p_client->model_handle, &packet);
     }
     else
@@ -252,8 +254,9 @@ uint32_t health_client_fault_test(health_client_t * p_client, uint16_t company_i
             .p_buffer = (const uint8_t *) &message,
             .length = sizeof(health_msg_fault_test_t),
             .force_segmented = false,
-            .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT
-        };
+            .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT,
+            .access_token = nrf_mesh_unique_token_get()
+        }; /*lint !e446: side effect in initializer */
         return access_model_publish(p_client->model_handle, &packet);
     }
     else
@@ -278,8 +281,9 @@ uint32_t health_client_period_set(health_client_t * p_client, uint8_t fast_perio
             .p_buffer = (const uint8_t *) &message,
             .length = sizeof(health_msg_period_set_t),
             .force_segmented = false,
-            .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT
-        };
+            .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT,
+            .access_token = nrf_mesh_unique_token_get()
+        }; /*lint !e446: side effect in initializer */
         return access_model_publish(p_client->model_handle, &packet);
     }
     else
@@ -304,8 +308,9 @@ uint32_t health_client_attention_set(health_client_t * p_client, uint8_t attenti
             .p_buffer = (const uint8_t *) &message,
             .length = sizeof(health_msg_attention_set_t),
             .force_segmented = false,
-            .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT
-        };
+            .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT,
+            .access_token = nrf_mesh_unique_token_get()
+        }; /*lint !e446: side effect in initializer */
         return access_model_publish(p_client->model_handle, &packet);
     }
     else

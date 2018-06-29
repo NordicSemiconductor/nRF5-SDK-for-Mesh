@@ -66,7 +66,7 @@ class DevicePageEntry(object):
         #print("Type: ", type(data).__name__)
         if not (isinstance(bl_info_type, BLInfoType) and
                 (isinstance(data, bytearray) or isinstance(data, str))):
-            raise TypeError
+            raise TypeError("Invalid type %r" % (type(data)))
 
         self.bl_info_type = bl_info_type
         if (isinstance(data, str)):
@@ -96,7 +96,7 @@ class DevicePage(object):
         self.softdevice = softdevice
 
     def generate_entries(self, platform, softdevice, bootloader_config):
-        public_key = bootloader_config["public_key"] \
+        public_key = bytearray.fromhex(bootloader_config["public_key"]) \
                      if "public_key" in bootloader_config else None
         if public_key:
             self.entries.append(
@@ -207,7 +207,7 @@ def main():
     for plt in platforms:
         plt_str += ''.join(plt["name"]) + '\n'
 
-    SOFTDEVICE = "s132_5.0.0"
+    SOFTDEVICE = "s132_6.0.0"
     DEVICE = "nrf52832_xxAA"
     parser = argparse.ArgumentParser(description="Device Page Generator")
     parser.add_argument("-d", "--device", help="Select device: " + ''.join(plt_str),
@@ -217,12 +217,15 @@ def main():
     parser.add_argument("-c", "--bootloader-config",
                         default="bootloader_config_default.json",
                         help="Bootloader configuration file")
-    parser.add_argument("-o", "--output-file", help="Output hex file",
-                        default="bin/device_page_%s_%s.hex" % (DEVICE, SOFTDEVICE))
+    parser.add_argument("-o", "--output-file",
+                        help="Output hex file (default: bin/device_page_%s_%s.hex)." % ("<DEVICE>", "<SOFTDEVICE>"),
+                        default=False)
     parser.add_argument("--all", default=False, action="store_true",
                         help=("Writes all known device page combinations to "
                               + "\'bin/\'"))
     args = parser.parse_args()
+    if not args.output_file:
+        args.output_file = "bin/device_page_%s_%s.hex" % (args.device, args.softdevice)
 
     dirname = os.path.dirname(args.output_file)
     if not os.path.exists(dirname):

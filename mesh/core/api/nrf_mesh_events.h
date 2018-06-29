@@ -41,6 +41,7 @@
 #include <stdbool.h>
 #include "nrf_mesh.h"
 #include "nrf_mesh_dfu_types.h"
+#include "list.h"
 
 /**
  * @defgroup NRF_MESH_EVENTS Mesh events
@@ -356,8 +357,10 @@ typedef struct
 {
     /** Callback function pointer. */
     nrf_mesh_evt_handler_cb_t evt_cb;
-    /** Pointer to next handler in linked list. Set and used internally. */
-    void * p_next;
+    /** Node for the keeping in linked list. Set and used internally. */
+    list_node_t node;
+    /** To save list integrity. Set and used internally. */
+    bool is_removed;
 } nrf_mesh_evt_handler_t;
 
 /**

@@ -159,3 +159,9 @@ uint32_t core_tx_instaburst_interval_get(core_tx_role_t role)
     NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
     return m_instaburst[role].config.interval_ms;
 }
+
+void core_tx_instaburst_tx_power_set(core_tx_role_t role, radio_tx_power_t tx_power)
+{
+    NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
+    instaburst_tx_tx_power_set(&m_instaburst[role], tx_power);
+}

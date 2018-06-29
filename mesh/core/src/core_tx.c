@@ -107,7 +107,7 @@ core_tx_bearer_bitmap_t core_tx_packet_alloc(const core_tx_alloc_params_t * p_pa
 
     if (p_params->role == CORE_TX_ROLE_RELAY)
     {
-        NRF_MESH_ASSERT(p_params->token == CORE_TX_TOKEN_RELAY);
+        NRF_MESH_ASSERT(p_params->token == NRF_MESH_RELAY_TOKEN);
     }
 
 

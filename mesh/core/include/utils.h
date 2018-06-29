@@ -112,7 +112,7 @@
 #define IS_PAGE_ALIGNED(p) (((uint32_t)(p) & (PAGE_SIZE - 1)) == 0)
 /** Check whether the given pointer is word aligned. */
 #define IS_WORD_ALIGNED(p) (((uint32_t)(p) & (WORD_SIZE - 1)) == 0)
-/** Aligns a given value X to an A-bit value (A must be 2^n). */
+/** Returns an equivalent for a number (X) aligned to given word size (A). Value of A must be 2^n. */
 #define ALIGN_VAL(X, A)          (((X)+((A)-1))&~((A)-1))
 /** Checks whether the given value is power of two. */
 #define IS_POWER_OF_2(VALUE) ((VALUE) && (((VALUE) & ((VALUE) - 1)) == 0))
@@ -260,9 +260,7 @@ static inline void utils_xor(uint8_t * p_dst, const uint8_t * p_src1, const uint
 }
 
 /**
- * Left shift an array of bytes one bit.
- *
- * @warning Cannot be done in place.
+ * Left shift an array of bytes one bit. p_dst and p_src may be the same.
  *
  * @param p_dst Destination address.
  * @param p_src Source address.
@@ -270,16 +268,12 @@ static inline void utils_xor(uint8_t * p_dst, const uint8_t * p_src1, const uint
  */
 static inline void utils_lshift(uint8_t * p_dst, const uint8_t * p_src, uint16_t size)
 {
-    uint8_t overflow;
-
-    overflow = 0;
-    while (0 != size)
+    for (uint16_t i = 0; i < size - 1; ++i)
     {
-        size--;
-        p_dst[size] = p_src[size] << 1;
-        p_dst[size] |= overflow;
-        overflow = p_src[size] >> 7;
+        p_dst[i] = (p_src[i] << 1);
+        p_dst[i] |= !!(p_src[i + 1] & 0x80);
     }
+    p_dst[size - 1] = (p_src[size - 1] << 1);
 }
 
 /**

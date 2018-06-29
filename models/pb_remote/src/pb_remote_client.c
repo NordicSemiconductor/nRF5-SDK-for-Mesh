@@ -268,6 +268,7 @@ static inline void send_reliable_msg(pb_remote_client_t * p_ctx, pb_remote_opcod
     p_ctx->reliable.message.length = length;
     p_ctx->reliable.message.force_segmented = true;
     p_ctx->reliable.message.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
+    p_ctx->reliable.message.access_token = nrf_mesh_unique_token_get();
     p_ctx->reliable.reply_opcode.opcode = reply_opcode;
     p_ctx->reliable.reply_opcode.company_id = ACCESS_COMPANY_ID_NONE;
     NRF_MESH_ERROR_CHECK(access_model_reliable_publish(&p_ctx->reliable));
@@ -312,7 +313,7 @@ static pb_remote_client_state_t pb_remote_client_event_unprov_uuid_cb(pb_remote_
     reply.length = sizeof(scan_report_status);
     reply.force_segmented = false;
     reply.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
-
+    reply.access_token = nrf_mesh_unique_token_get();
 
     pb_remote_msg_scan_uuid_report_t * p_scan_report =
         (pb_remote_msg_scan_uuid_report_t *) &p_evt->evt.p_message->p_data[0];
@@ -518,6 +519,7 @@ static pb_remote_client_state_t pb_remote_client_event_link_status_report_cb(pb_
             reply.length = sizeof(link_status);
             reply.force_segmented = false;
             reply.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
+            reply.access_token = nrf_mesh_unique_token_get();
 
             link_status.status = PB_REMOTE_REMOTE_LINK_STATUS_ACCEPTED;
             link_status.bearer_type = NRF_MESH_PROV_BEARER_ADV;
@@ -585,6 +587,7 @@ static pb_remote_client_state_t pb_remote_client_event_packet_transfer_cb(pb_rem
     reply.length = sizeof(transfer_status);
     reply.force_segmented = false;
     reply.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
+    reply.access_token = nrf_mesh_unique_token_get();
 
     switch (p_ctx->state)
     {
@@ -663,6 +666,7 @@ static pb_remote_client_state_t pb_remote_client_event_transfer_status_report_cb
                 reply.length = sizeof(transfer_status);
                 reply.force_segmented = false;
                 reply.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
+                reply.access_token = nrf_mesh_unique_token_get();
                 transfer_status.status = PB_REMOTE_PACKET_TRANSFER_STATUS_ACCEPTED;
                 send_reply(p_ctx, p_evt->evt.p_message, &reply);
 
@@ -835,6 +839,7 @@ static void nack_message(const pb_remote_client_t * p_ctx, const access_message_
             reply.length = sizeof(status);
             reply.force_segmented = false;
             reply.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
+            reply.access_token = nrf_mesh_unique_token_get();
             send_reply(p_ctx, p_message, &reply);
             break;
         }
@@ -845,6 +850,7 @@ static void nack_message(const pb_remote_client_t * p_ctx, const access_message_
             reply.opcode.opcode = PB_REMOTE_OP_SCAN_STATUS;
             reply.p_buffer = (const uint8_t*) &status;
             reply.length = sizeof(status);
+            reply.access_token = nrf_mesh_unique_token_get();
             send_reply(p_ctx, p_message, &reply);
             break;
         }
@@ -856,6 +862,7 @@ static void nack_message(const pb_remote_client_t * p_ctx, const access_message_
             reply.opcode.opcode = PB_REMOTE_OP_LINK_STATUS;
             reply.p_buffer = (const uint8_t*) &status;
             reply.length = sizeof(status);
+            reply.access_token = nrf_mesh_unique_token_get();
             send_reply(p_ctx, p_message, &reply);
             break;
         }

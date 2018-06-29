@@ -245,7 +245,7 @@ void test_alloc(void)
         core_tx_alloc_params_t params = {.role           = vector[i].role,
                                          .net_packet_len = vector[i].size,
                                          .p_metadata     = &metadata,
-                                         .token = ((vector[i].role == CORE_TX_ROLE_RELAY) ? CORE_TX_TOKEN_RELAY
+                                         .token = ((vector[i].role == CORE_TX_ROLE_RELAY) ? NRF_MESH_RELAY_TOKEN
                                                                                           : TOKEN)};
         p_packet                      = NULL;
 

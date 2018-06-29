@@ -39,7 +39,7 @@
 #include "nrf.h"
 #include "nrf_sdm.h"
 #include "nrf_mesh_assert.h"
-#if defined(S130) || defined(S132) || defined(S140)
+#if defined(S130) || defined(S132) || defined(S140) || defined(S112)
 #include "nrf_nvic.h"
 #elif defined(S110)
 #include "nrf_soc.h"

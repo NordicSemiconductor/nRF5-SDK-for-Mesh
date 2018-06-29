@@ -126,9 +126,11 @@ The value of `x` depends on the configuration of the mesh stack and can be calcu
   where:
    - `DATA_SIZE` is
 
-         (sizeof(fm_header_t) + sizeof(access_model_state_data_t))        * ACCESS_MODEL_COUNT +
-         (sizeof(fm_header_t) + sizeof(access_flash_subscription_list_t)) * ACCESS_SUBSCRIPTION_LIST_COUNT +
-         (sizeof(fm_header_t) + sizeof(uint16_t))                         * ACCESS_ELEMENT_COUNT
+         (ALIGN_VAL((sizeof(fm_header_t) + sizeof(access_model_state_data_t)), WORD_SIZE) * ACCESS_MODEL_COUNT) +
+         (ALIGN_VAL((sizeof(fm_header_t) + sizeof(access_flash_subscription_list_t)), WORD_SIZE) * ACCESS_SUBSCRIPTION_LIST_COUNT) +
+         (ALIGN_VAL((sizeof(fm_header_t) + sizeof(uint16_t)), WORD_SIZE) * ACCESS_ELEMENT_COUNT) +
+
+   - `ALIGN_VAL` returns the total field size aligned to WORD boundaries.
 
    - `FLASH_MANAGER_DATA_PER_PAGE` is
 
@@ -138,17 +140,18 @@ The value of `x` depends on the configuration of the mesh stack and can be calcu
 
 - `DSM_FLASH_PAGE_COUNT` shall be equal to or greater than
 
-      (1 + ((DATA_SIZE) / (FLASH_MANAGER_DATA_PER_PAGE - LARGEST_ENTRY_SIZE)))
+         (1 + ((DATA_SIZE) / (FLASH_MANAGER_DATA_PER_PAGE - LARGEST_ENTRY_SIZE)))
 
  where:
    - `DATA_SIZE` is
 
-         (sizeof(fm_header_t) + sizeof(dsm_local_unicast_address_t) +
-         (sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_nonvirtual_t))  * DSM_NONVIRTUAL_ADDR_MAX +
-         (sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_virtual_t))     * DSM_VIRTUAL_ADDR_MAX +
-         (sizeof(fm_header_t) + sizeof(dsm_flash_entry_subnet_t))           * DSM_SUBNET_MAX +
-         (sizeof(fm_header_t) + sizeof(dsm_flash_entry_devkey_t))           * DSM_DEVICE_MAX +
-         (sizeof(fm_header_t) + sizeof(dsm_flash_entry_appkey_t))           * DSM_APP_MAX)
+         (ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_unicast_t)), WORD_SIZE) +
+         ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_nonvirtual_t)), WORD_SIZE)  * DSM_NONVIRTUAL_ADDR_MAX +
+         ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_virtual_t)), WORD_SIZE)     * DSM_VIRTUAL_ADDR_MAX +
+         ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_subnet_t)), WORD_SIZE)           * DSM_SUBNET_MAX +
+         ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_devkey_t)), WORD_SIZE)           * DSM_DEVICE_MAX +
+         ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_appkey_t)), WORD_SIZE)           * DSM_APP_MAX)
+
 
    - `FLASH_MANAGER_DATA_PER_PAGE` is
 

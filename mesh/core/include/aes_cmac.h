@@ -46,15 +46,6 @@
  */
 
 /**
- * Generates AES-CMAC Subkeys K1 and K2.
- *
- * @param p_key         Pointer to a 128-bit encryption key.
- * @param p_subkey1_out Pointer to a 128-bit buffer to store K1.
- * @param p_subkey2_out Pointer to a 128-bit buffer to store K2.
- */
-void aes_cmac_subkey_generate(const uint8_t * const p_key, uint8_t * p_subkey1_out, uint8_t * p_subkey2_out);
-
-/**
  * Performs an AES-CMAC operation.
  * @param p_key         Pointer to a 128-bit encryption key.
  * @param p_msg         Pointer to the data that should be hashed.

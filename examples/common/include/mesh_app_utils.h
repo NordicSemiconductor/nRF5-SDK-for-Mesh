@@ -74,7 +74,7 @@ extern void app_error_handler(uint32_t error_code, uint32_t line_number, const u
         }                          \
     } while (0);
 
-#if defined(S130) || defined(S132) || defined(S140)
+#if defined(S130) || defined(S132) || defined(S140) || defined(S112)
 #include "nrf_nvic.h"
 extern nrf_nvic_state_t nrf_nvic_state;
 #endif

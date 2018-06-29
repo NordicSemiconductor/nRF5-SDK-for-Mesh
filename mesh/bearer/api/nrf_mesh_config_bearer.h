@@ -54,6 +54,29 @@
  * @{
  */
 
+/**
+ * External power amplifier (PA) setup time in microseconds.
+ *
+ * Must be lower than the radio rampup time (as specified in the Electrical specification of each chip's Product Specification).
+ */
+#ifndef MESH_PA_SETUP_TIME_US
+#define MESH_PA_SETUP_TIME_US 18
+#endif
+
+/**
+ * External low noise amplifier (LNA) setup time in microseconds.
+ *
+ * Must be lower than the radio rampup time (as specified in the Electrical specification of each chip's Product Specification).
+ */
+#ifndef MESH_LNA_SETUP_TIME_US
+#define MESH_LNA_SETUP_TIME_US 18
+#endif
+
+/** HF timer peripheral index to allocate for bearer handler. E.g. if set to 2, NRF_TIMER2 will be used. Must be a literal number. */
+#ifndef BEARER_ACTION_TIMER_INDEX
+#define BEARER_ACTION_TIMER_INDEX 2
+#endif
+
 /** Maximum overhead of application TX Complete call, */
 #ifndef APPLICATION_TX_COMPLETE_OVERHEAD_US
 #define APPLICATION_TX_COMPLETE_OVERHEAD_US 80
@@ -113,7 +136,7 @@
 
 /** Number of flags available for allocation. */
 #ifndef BEARER_EVENT_FLAG_COUNT
-#define BEARER_EVENT_FLAG_COUNT     8
+#define BEARER_EVENT_FLAG_COUNT     9
 #endif
 
 /** @} end of MESH_CONFIG_BEARER_EVENT */

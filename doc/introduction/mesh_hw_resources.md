@@ -21,8 +21,7 @@ Shared with the SoftDevice, the RADIO peripheral is occupied by the mesh stack d
 Shared with the SoftDevice, the TIMER0 peripheral is occupied by the mesh stack during the acquired Radio Timeslot sessions. The TIMER0 peripheral should not be modified by the application at any time.
 
 ### TIMER2
-If built with Nordic Advertiser Extensions (InstaBurst), the mesh stack uses TIMER2 when receiving InstaBurst packets.
-Also the rtt_input module, which is used in several examples, uses TIMER2.
+By default, the mesh stack uses TIMER2 to manage its radio timing for all low-level operations. Which timer to use can be controlled by changing @ref BEARER_ACTION_TIMER_INDEX in mesh/bearer/api/nrf_mesh_config_bearer.h.
 
 ### ECB
 Shared with the SoftDevice, the ECB peripheral is occupied by the mesh stack during the acquired Radio Timeslot sessions on the nRF51. For the nRF52, the mesh stack uses the SoftDevice interface for the ECB.

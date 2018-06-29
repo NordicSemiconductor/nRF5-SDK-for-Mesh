@@ -36,6 +36,9 @@
  */
 
 #include "mesh_softdevice_init.h"
+
+#include <string.h>
+
 #include "ble.h"
 #include "nrf_mesh.h"
 #include "toolchain.h"
@@ -46,7 +49,7 @@
 #include "app_error_weak.h"
 #endif
 
-#if defined(S130) || defined(S132) || defined(S140)
+#if defined(S130) || defined(S132) || defined(S140) || defined(S112)
     #include "nrf_nvic.h"
 #else
     #include "nrf_soc.h"
@@ -67,11 +70,6 @@ void SD_EVT_IRQHandler(void)
 
 #endif /* !defined(HOST) */
 
-#if defined(S130) || defined(S132) || defined(S140)
-#include "nrf_nvic.h"
-nrf_nvic_state_t nrf_nvic_state;
-#endif
-
 static uint32_t ble_enable(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Enabling BLE...\n");
@@ -85,7 +83,6 @@ static uint32_t ble_enable(void)
     volatile uint32_t ram_start = (uint32_t) &__data_start__;
 #endif
     uint32_t app_ram_base = ram_start;
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Ram base: 0x%x\n", ram_start);
 
 #if NRF_SD_BLE_API_VERSION == 1
     ble_enable_params_t ble_enable_params = {{0}};
@@ -94,6 +91,14 @@ static uint32_t ble_enable(void)
     ble_enable_params_t ble_enable_params = {{0}};
     uint32_t error_code = sd_ble_enable(&ble_enable_params, &app_ram_base);
 #elif NRF_SD_BLE_API_VERSION == 5 || NRF_SD_BLE_API_VERSION == 6
+    ble_cfg_t cfg;
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.common_cfg.vs_uuid_cfg.vs_uuid_count = 0;
+    RETURN_ON_ERROR(sd_ble_cfg_set(BLE_COMMON_CFG_VS_UUID, &cfg, app_ram_base));
+
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.gatts_cfg.attr_tab_size.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_MIN;
+    RETURN_ON_ERROR(sd_ble_cfg_set(BLE_GATTS_CFG_ATTR_TAB_SIZE, &cfg, app_ram_base));
     uint32_t error_code = sd_ble_enable(&app_ram_base);
 #else
     #error Unsupported NRF_SD_BLE_API_VERSION
@@ -121,8 +126,8 @@ uint32_t mesh_softdevice_init(nrf_clock_lf_cfg_t lfc_cfg)
      * handling (in S132 v5.0.0, S112 v5.0.0, S212 v5.0.0 and S332 v5.0.0 the priority is set to 6
      * by default). */
     RETURN_ON_ERROR(sd_nvic_SetPriority(SD_EVT_IRQn, NRF_MESH_IRQ_PRIORITY_LOWEST));
-
     RETURN_ON_ERROR(sd_nvic_EnableIRQ(SD_EVT_IRQn));
+
     RETURN_ON_ERROR(ble_enable());
 #endif
 

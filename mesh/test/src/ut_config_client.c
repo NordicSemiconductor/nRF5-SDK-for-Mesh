@@ -52,6 +52,7 @@
 #include "access_reliable_mock.h"
 #include "access_config_mock.h"
 #include "packet_mgr_mock.h"
+#include "nrf_mesh_mock.h"
 
 /*****************************************************************************
  * Defines
@@ -274,6 +275,7 @@ void setUp(void)
     access_config_mock_Init();
     access_reliable_mock_Init();
     packet_mgr_mock_Init();
+    nrf_mesh_mock_Init();
     memset(&m_buffer, 0, sizeof(m_buffer));
     m_buffer.free = true;
     m_handle = 0;
@@ -281,6 +283,7 @@ void setUp(void)
     memset(&m_model_params, 0, sizeof(m_model_params));
     packet_mgr_alloc_StubWithCallback(pacman_alloc_cb);
     packet_mgr_free_StubWithCallback(pacman_free_cb);
+    nrf_mesh_unique_token_get_IgnoreAndReturn((nrf_mesh_tx_token_t)0x55AA55AAul);
     m_expect_timeout = false;
     m_expect_cancelled = false;
     m_expect_ack = false;
@@ -304,6 +307,8 @@ void tearDown(void)
     access_reliable_mock_Destroy();
     packet_mgr_mock_Verify();
     packet_mgr_mock_Destroy();
+    nrf_mesh_mock_Verify();
+    nrf_mesh_mock_Destroy();
 }
 
 /*****************************************************************************

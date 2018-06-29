@@ -61,6 +61,7 @@
 #include "mesh_provisionee.h"
 #include "nrf_mesh_config_examples.h"
 
+#include "app_timer.h"
 
 /**
  * Static authentication data. This data must match the data provided to the provisioner node.
@@ -132,7 +133,9 @@ static void initialize(void)
     __LOG_INIT(LOG_SRC_APP | LOG_SRC_ACCESS, LOG_LEVEL_INFO, LOG_CALLBACK_DEFAULT);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- BLE Mesh Provisionee + Remote Provisioning Server Demo -----\n");
 
+    ERROR_CHECK(app_timer_init());
     hal_leds_init();
+
     nrf_clock_lf_cfg_t lfc_cfg = DEV_BOARD_LF_CLK_CFG;
     ERROR_CHECK(mesh_softdevice_init(lfc_cfg));
     mesh_init();
@@ -148,7 +151,8 @@ static void start(void)
         mesh_provisionee_start_params_t prov_start_params =
         {
             .p_static_data    = static_auth_data,
-            .prov_complete_cb = provisioning_complete_cb
+            .prov_complete_cb = provisioning_complete_cb,
+            .p_device_uri = NULL
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }

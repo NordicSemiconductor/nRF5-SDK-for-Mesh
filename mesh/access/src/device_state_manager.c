@@ -53,11 +53,17 @@
 #include "event.h"
 #include "net_state.h"
 #include "nrf_mesh_events.h"
+#include "nrf_mesh_externs.h"
+#include "nrf_mesh_opt.h"
 
 #if PERSISTENT_STORAGE
 #include "flash_manager.h"
 #include "device_state_manager_flash.h"
 #endif
+
+#if GATT_PROXY
+#include "proxy.h"
+#endif  /* GATT_PROXY */
 
 /*lint -e415 -e416 Lint fails to understand the boundary checking used for handles in this module (MBTLE-1831). */
 
@@ -84,13 +90,13 @@
 
 /** We must be able to store at least all the entries that go into the RAM representation in the
  * flash. Calculate the minimum and static assert. */
-#define DSM_FLASH_DATA_SIZE_MINIMUM                                                                 \
-     (sizeof(fm_header_t) + sizeof(dsm_local_unicast_address_t) +                                   \
-     (sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_nonvirtual_t))  * DSM_NONVIRTUAL_ADDR_MAX + \
-     (sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_virtual_t))     * DSM_VIRTUAL_ADDR_MAX +    \
-     (sizeof(fm_header_t) + sizeof(dsm_flash_entry_subnet_t))           * DSM_SUBNET_MAX +          \
-     (sizeof(fm_header_t) + sizeof(dsm_flash_entry_devkey_t))           * DSM_DEVICE_MAX +          \
-     (sizeof(fm_header_t) + sizeof(dsm_flash_entry_appkey_t))           * DSM_APP_MAX)
+#define DSM_FLASH_DATA_SIZE_MINIMUM                                                                                  \
+     (ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_unicast_t)), WORD_SIZE) +                               \
+      ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_nonvirtual_t)), WORD_SIZE)  * DSM_NONVIRTUAL_ADDR_MAX + \
+      ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_virtual_t)), WORD_SIZE)     * DSM_VIRTUAL_ADDR_MAX +    \
+      ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_subnet_t)), WORD_SIZE)           * DSM_SUBNET_MAX +          \
+      ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_devkey_t)), WORD_SIZE)           * DSM_DEVICE_MAX +          \
+      ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_appkey_t)), WORD_SIZE)           * DSM_APP_MAX)
 
 #define DSM_FLASH_PAGE_COUNT_MINIMUM FLASH_MANAGER_PAGE_COUNT_MINIMUM(DSM_FLASH_DATA_SIZE_MINIMUM, DSM_FLASH_PAGE_MARGIN)
 
@@ -384,17 +390,33 @@ static bool address_nonvirtual_subscription_exists(uint16_t address, dsm_handle_
  */
 static bool rx_group_address_get(uint16_t address, nrf_mesh_address_t * p_address)
 {
-    dsm_handle_t handle;
-    if (address_nonvirtual_subscription_exists(address, &handle))
+    p_address->value = address;
+    p_address->type = NRF_MESH_ADDRESS_TYPE_GROUP;
+    p_address->p_virtual_uuid = NULL;
+
+    switch (address)
     {
-        p_address->value = address;
-        p_address->type = NRF_MESH_ADDRESS_TYPE_GROUP;
-        p_address->p_virtual_uuid = NULL;
-        return true;
-    }
-    else
-    {
-        return false;
+        case NRF_MESH_ALL_PROXIES_ADDR:
+#if GATT_PROXY
+            return proxy_is_enabled();
+#else
+            return false;
+#endif
+        case NRF_MESH_ALL_FRIENDS_ADDR:
+            return false;
+        case NRF_MESH_ALL_RELAYS_ADDR:
+        {
+            nrf_mesh_opt_t option;
+            NRF_MESH_ERROR_CHECK(nrf_mesh_opt_get(NRF_MESH_OPT_NET_RELAY_ENABLE, &option));
+            return !!option.opt.val;
+        }
+        case NRF_MESH_ALL_NODES_ADDR:
+            return true;
+        default:
+        {
+            dsm_handle_t handle;
+            return address_nonvirtual_subscription_exists(address, &handle);
+        }
     }
 }
 
@@ -1684,6 +1706,30 @@ bool dsm_address_subscription_get(dsm_handle_t address_handle)
     }
 }
 
+bool dsm_address_is_rx(const nrf_mesh_address_t * p_addr)
+{
+    switch (p_addr->type)
+    {
+        case NRF_MESH_ADDRESS_TYPE_UNICAST:
+        case NRF_MESH_ADDRESS_TYPE_GROUP:
+        {
+            nrf_mesh_address_t dummy;
+            return nrf_mesh_rx_address_get(p_addr->value, &dummy);
+        }
+        case NRF_MESH_ADDRESS_TYPE_VIRTUAL:
+        {
+            dsm_handle_t virtual_addr_index;
+            if (virtual_address_uuid_index_get(p_addr->p_virtual_uuid, &virtual_addr_index))
+            {
+                return (m_virtual_addresses[virtual_addr_index].subscription_count > 0);
+            }
+            return false;
+        }
+        default:
+            return false;
+    }
+}
+
 uint32_t dsm_address_subscription_count_get(dsm_handle_t address_handle, uint16_t * p_count)
 {
     if (p_count == NULL)
@@ -2188,6 +2234,28 @@ uint32_t dsm_subnet_get_all(mesh_key_index_t * p_key_list, uint32_t * p_count)
     }
 }
 
+uint32_t dsm_subnet_key_get(dsm_handle_t subnet_handle, uint8_t * p_key)
+{
+    if (NULL == p_key)
+    {
+        return NRF_ERROR_NULL;
+    }
+    else if (subnet_handle >= DSM_SUBNET_MAX || !bitfield_get(m_subnet_allocated, subnet_handle))
+    {
+        return NRF_ERROR_NOT_FOUND;
+    }
+    else if (m_subnets[subnet_handle].key_refresh_phase == NRF_MESH_KEY_REFRESH_PHASE_2 ||
+             m_subnets[subnet_handle].key_refresh_phase == NRF_MESH_KEY_REFRESH_PHASE_3)
+    {
+        memcpy(p_key, m_subnets[subnet_handle].root_key_updated, NRF_MESH_KEY_SIZE);
+        return NRF_SUCCESS;
+    }
+    else
+    {
+        memcpy(p_key, m_subnets[subnet_handle].root_key, NRF_MESH_KEY_SIZE);
+        return NRF_SUCCESS;
+    }
+}
 
 uint32_t dsm_devkey_add(uint16_t raw_unicast_addr, dsm_handle_t subnet_handle, const uint8_t * p_key, dsm_handle_t * p_devkey_handle)
 {

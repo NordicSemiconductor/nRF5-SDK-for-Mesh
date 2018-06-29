@@ -39,9 +39,11 @@
 #define SERIAL_PACKET_H__
 
 #include <stdint.h>
+#include <limits.h>
 #include "serial_cmd.h"
 #include "serial_evt.h"
 #include "nrf_mesh_serial.h"
+#include "nrf_mesh_assert.h"
 
 /**
  * @defgroup SERIAL_PACKET Serial packet
@@ -71,6 +73,10 @@ typedef struct __attribute((packed))
         serial_evt_t evt; /**< Event packet parameters. */
     } payload;
 } serial_packet_t;
+
+
+/* Check that the length of the packet fits in a uint8_t. */
+NRF_MESH_STATIC_ASSERT(sizeof(serial_packet_t) <= (UINT8_MAX + 1));
 
 /*lint -align_max(pop) */
 

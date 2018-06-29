@@ -64,6 +64,10 @@
 #warning An MTU size of 69 octets is recommended.
 #endif
 
+#if NRF_SDH_BLE_GATT_MAX_MTU_SIZE < BLE_GATT_ATT_MTU_DEFAULT
+#error NRF_SDH_BLE_GATT_MAX_MTU_SIZE < 23
+#endif
+
 typedef enum
 {
     MESH_GATT_PDU_TYPE_NETWORK_PDU,
@@ -94,7 +98,7 @@ typedef struct
 
 typedef struct
 {
-    uint32_t token;
+    nrf_mesh_tx_token_t token;
     mesh_gatt_pdu_type_t pdu_type;
 } mesh_gatt_evt_tx_complete_t;
 

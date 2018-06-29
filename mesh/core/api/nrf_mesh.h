@@ -57,6 +57,15 @@
  * @{
  */
 
+/** Initial value of tokens. */
+#define NRF_MESH_INITIAL_TOKEN          0x00000000ul
+/** The upper border of the token values which are used for general communication. */
+#define NRF_MESH_SERVICE_BORDER_TOKEN   0xF0000000ul
+/** Reserved token values. */
+#define NRF_MESH_HEARTBEAT_TOKEN        0xFFFFFFFDul
+#define NRF_MESH_SAR_TOKEN              0xFFFFFFFEul
+#define NRF_MESH_RELAY_TOKEN            0xFFFFFFFFul
+
 /**
  * @defgroup MESH_CORE_COMMON_TYPES Types
  * Core mesh type definitions
@@ -399,7 +408,7 @@ typedef struct
  */
 typedef struct
 {
-#if (defined(S140) || defined(S130) || defined(S132) || defined(HOST))
+#if (defined(S140) || defined(S130) || defined(S132) || defined(S112) || defined(HOST))
     nrf_clock_lf_cfg_t lfclksrc; /**< See nrf_sdm.h or SoftDevice documentation. */
 #elif defined(S110)
     nrf_clock_lfclksrc_t lfclksrc; /**< See nrf_sdm.h or SoftDevice documentation. */
@@ -554,6 +563,14 @@ void nrf_mesh_rx_cb_clear(void);
  */
 void nrf_mesh_subnet_added(uint16_t net_key_index, const uint8_t * p_network_id);
 
+/**
+ * Get unique token to be able to recognize tx complete events.
+ * The function guarantees that the given token will no be intersected
+ * with tokens of services from the mesh stack.
+ *
+ * @retval 32bits unique token value.
+ */
+nrf_mesh_tx_token_t nrf_mesh_unique_token_get(void);
 
 /** @} end of MESH_API_GROUP_CORE */
 /** @} */

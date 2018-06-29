@@ -81,6 +81,11 @@ void radio_config_reset(void)
     NRF_RADIO->CRCINIT = ((RADIO_CONFIG_CRC_ADV_INIT << RADIO_CRCINIT_CRCINIT_Pos) & RADIO_CRCINIT_CRCINIT_Msk);
 
     NRF_RADIO->TIFS = RADIO_CONFIG_DEFAULT_TIFS;
+
+#ifdef NRF52_SERIES
+    /* Enable fast ramup on nRF52 */
+    NRF_RADIO->MODECNF0 |= ((RADIO_MODECNF0_RU_Fast << RADIO_MODECNF0_RU_Pos) & RADIO_MODECNF0_RU_Msk);
+#endif
 }
 
 /**

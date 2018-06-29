@@ -42,6 +42,8 @@
 #include "bitfield.h"
 #include "device_state_manager.h"
 #include "access_publish.h"
+#include "utils.h"
+
 /**
  * @internal
  * @defgroup ACCESS_INTERNAL Access Layer internal definitions
@@ -75,9 +77,9 @@
 #define ACCESS_INTERNAL_STATE_IS_OUTDATED(INTERNAL_STATE)   ((bool)((INTERNAL_STATE) & ACCESS_INTERNAL_STATE_OUTDATED))
 #define ACCESS_INTERNAL_STATE_IS_RESTORED(INTERNAL_STATE)   ((bool)((INTERNAL_STATE) & ACCESS_INTERNAL_STATE_RESTORED))
 
-#define ACCESS_MODEL_STATE_FLASH_SIZE ((sizeof(fm_header_t) + sizeof(access_model_state_data_t)) * ACCESS_MODEL_COUNT)
-#define ACCESS_SUBS_LIST_FLASH_SIZE   ((sizeof(fm_header_t) + sizeof(access_flash_subscription_list_t)) * ACCESS_SUBSCRIPTION_LIST_COUNT)
-#define ACCESS_ELEMENTS_FLASH_SIZE    ((sizeof(fm_header_t) + sizeof(uint16_t)) * ACCESS_ELEMENT_COUNT)
+#define ACCESS_MODEL_STATE_FLASH_SIZE (ALIGN_VAL((sizeof(fm_header_t) + sizeof(access_model_state_data_t)), WORD_SIZE) * ACCESS_MODEL_COUNT)
+#define ACCESS_SUBS_LIST_FLASH_SIZE   (ALIGN_VAL((sizeof(fm_header_t) + sizeof(access_flash_subscription_list_t)), WORD_SIZE) * ACCESS_SUBSCRIPTION_LIST_COUNT)
+#define ACCESS_ELEMENTS_FLASH_SIZE    (ALIGN_VAL((sizeof(fm_header_t) + sizeof(uint16_t)), WORD_SIZE) * ACCESS_ELEMENT_COUNT)
 #define ACCESS_FLASH_ENTRY_SIZE       (ACCESS_MODEL_STATE_FLASH_SIZE + ACCESS_SUBS_LIST_FLASH_SIZE + ACCESS_ELEMENTS_FLASH_SIZE)
 
 #define FLASH_HANDLE_TO_ACCESS_HANDLE_MASK (0x0FFF) /**< Mask to apply to convert a flash handle to a DSM handle. */
@@ -133,7 +135,7 @@ typedef struct
     access_publish_period_t publication_period;
     /** The publish retransmit count and the interval of the retransmitting steps for the retransmitting functionality. */
     access_publish_retransmit_t publication_retransmit;
-}access_model_state_data_t;
+} access_model_state_data_t;
 
 typedef struct
 {
@@ -156,7 +158,7 @@ typedef struct
     uint16_t subscription_list_count;
     uint16_t element_count;
     uint16_t model_count;
-}access_flash_metadata_t;
+} access_flash_metadata_t;
 
 typedef struct
 {
@@ -164,25 +166,12 @@ typedef struct
 } access_flash_subscription_list_t;
 
 /**
- * Initializes the access layer publication module.
+ * Handles the received message and calls the acceptable model handler.
+ *
+ * @param[in]  p_message Pointer to the structure with information about
+ *                       received message (data, length, metadata).
  */
-void access_publish_init(void);
-
-/**
- * Sets the publishing period for a model.
- * @param[in] p_pubstate  Model publication state.
- * @param[in] resolution  Resolution of the publication timer.
- * @param[in] step_number Number of steps at the specified resolution per publication event.
- */
-void access_publish_period_set(access_model_publication_state_t * p_pubstate, access_publish_resolution_t resolution, uint8_t step_number);
-
-/**
- * Retrieves the publishing period for a model.
- * @param[in]  p_pubstate    Model publication state.
- * @param[out] p_resolution  Pointer to a variable where the timer resolution is returned.
- * @param[out] p_step_number Pointer to a variable where the number of steps per publication event is returned.
- */
-void access_publish_period_get(const access_model_publication_state_t * p_pubstate, access_publish_resolution_t * p_resolution, uint8_t * p_step_number);
+void access_incoming_handle(const access_message_rx_t * p_message);
 
 /** @} */
 #endif /* ACCESS_INTERNAL_H__ */

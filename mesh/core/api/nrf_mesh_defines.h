@@ -115,6 +115,18 @@
 /** Unassigned address. */
 #define NRF_MESH_ADDR_UNASSIGNED                  (0x0000)
 
+/** All-proxies fixed group address. */
+#define NRF_MESH_ALL_PROXIES_ADDR                 (0xFFFC)
+
+/** All-friends fixed group address. */
+#define NRF_MESH_ALL_FRIENDS_ADDR                 (0xFFFD)
+
+/** All-relays fixed group address. */
+#define NRF_MESH_ALL_RELAYS_ADDR                  (0xFFFE)
+
+/** All-nodes fixed group address. */
+#define NRF_MESH_ALL_NODES_ADDR                   (0xFFFF)
+
 /** Offset of bits determining the address type. */
 #define NRF_MESH_ADDR_TYPE_BITS_OFFSET            (14)
 

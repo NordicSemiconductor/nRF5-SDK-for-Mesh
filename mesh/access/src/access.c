@@ -41,6 +41,7 @@
 
 #include "access.h"
 #include "access_internal.h"
+#include "access_loopback.h"
 #include "access_config.h"
 
 #include "access_publish.h"
@@ -229,57 +230,6 @@ static inline bool model_handle_valid_and_allocated(access_model_handle_t handle
     return (handle < ACCESS_MODEL_COUNT && ACCESS_INTERNAL_STATE_IS_ALLOCATED(m_model_pool[handle].internal_state));
 }
 
-static void handle_incoming(const access_message_rx_t * p_message)
-{
-    const nrf_mesh_address_t * p_dst = &p_message->meta_data.dst;
-
-    if (p_dst->type == NRF_MESH_ADDRESS_TYPE_UNICAST)
-    {
-        dsm_local_unicast_address_t local_addresses;
-        dsm_local_unicast_addresses_get(&local_addresses);
-
-        if (p_dst->value >= local_addresses.address_start &&
-            p_dst->value <  (local_addresses.address_start + local_addresses.count))
-        {
-            uint16_t element_index = p_dst->value - local_addresses.address_start;
-            for (int i = 0; i < ACCESS_MODEL_COUNT; ++i)
-            {
-                access_common_t * p_model = &m_model_pool[i];
-                uint32_t opcode_index;
-                if (ACCESS_INTERNAL_STATE_IS_ALLOCATED(p_model->internal_state) &&
-                    p_model->model_info.element_index == element_index &&
-                    bitfield_get(p_model->model_info.application_keys_bitfield, p_message->meta_data.appkey_handle) &&
-                    is_opcode_of_model(p_model, p_message->opcode, &opcode_index))
-                {
-                    access_reliable_message_rx_cb(i, p_message, p_model->p_args);
-                    p_model->p_opcode_handlers[opcode_index].handler(i, p_message, p_model->p_args);
-                }
-            }
-        }
-    }
-    else
-    {
-        dsm_handle_t address_handle = DSM_HANDLE_INVALID;
-        /* If it's not one of the element addresses, it has to be a subscription address. */
-        NRF_MESH_ERROR_CHECK(dsm_address_handle_get(p_dst, &address_handle));
-        NRF_MESH_ASSERT(dsm_address_subscription_get(address_handle));
-        for (int i = 0; i < ACCESS_MODEL_COUNT; ++i)
-        {
-            access_common_t * p_model = &m_model_pool[i];
-            uint32_t opcode_index;
-
-            if (ACCESS_INTERNAL_STATE_IS_ALLOCATED(p_model->internal_state) &&
-                ACCESS_SUBSCRIPTION_LIST_COUNT > p_model->model_info.subscription_pool_index  &&
-                bitfield_get(p_model->model_info.application_keys_bitfield, p_message->meta_data.appkey_handle) &&
-                bitfield_get(m_subscription_list_pool[p_model->model_info.subscription_pool_index].bitfield, address_handle) &&
-                is_opcode_of_model(p_model, p_message->opcode, &opcode_index))
-            {
-                p_model->p_opcode_handlers[opcode_index].handler(i, p_message, p_model->p_args);
-            }
-        }
-    }
-}
-
 static void mesh_msg_handle(const nrf_mesh_evt_message_t * p_evt)
 {
     NRF_MESH_ASSERT(p_evt != NULL);
@@ -294,24 +244,24 @@ static void mesh_msg_handle(const nrf_mesh_evt_message_t * p_evt)
     dsm_handle_t appkey_handle = dsm_appkey_handle_get(p_evt->secmat.p_app);
     dsm_handle_t subnet_handle = dsm_subnet_handle_get(p_evt->secmat.p_net);
     access_message_rx_t message =
-        {
-            .opcode = opcode,
-            .p_data = &p_evt->p_buffer[access_utils_opcode_size_get(opcode)],
-            .length = p_evt->length - access_utils_opcode_size_get(opcode),
-            .meta_data.src.type = p_evt->src.type,
-            .meta_data.src.value = p_evt->src.value,
-            .meta_data.src.p_virtual_uuid = p_evt->src.p_virtual_uuid,
-            .meta_data.dst.type = p_evt->dst.type,
-            .meta_data.dst.value = p_evt->dst.value,
-            .meta_data.dst.p_virtual_uuid = p_evt->dst.p_virtual_uuid,
-            .meta_data.ttl = p_evt->ttl,
-            .meta_data.appkey_handle = appkey_handle,
-            .meta_data.p_core_metadata = p_evt->p_metadata,
-            .meta_data.subnet_handle = subnet_handle,
-        };
+    {
+        .opcode = opcode,
+        .p_data = &p_evt->p_buffer[access_utils_opcode_size_get(opcode)],
+        .length = p_evt->length - access_utils_opcode_size_get(opcode),
+        .meta_data.src.type = p_evt->src.type,
+        .meta_data.src.value = p_evt->src.value,
+        .meta_data.src.p_virtual_uuid = p_evt->src.p_virtual_uuid,
+        .meta_data.dst.type = p_evt->dst.type,
+        .meta_data.dst.value = p_evt->dst.value,
+        .meta_data.dst.p_virtual_uuid = p_evt->dst.p_virtual_uuid,
+        .meta_data.ttl = p_evt->ttl,
+        .meta_data.appkey_handle = appkey_handle,
+        .meta_data.p_core_metadata = p_evt->p_metadata,
+        .meta_data.subnet_handle = subnet_handle,
+    };
     /*lint -restore */
 
-    handle_incoming(&message);
+    access_incoming_handle(&message);
 }
 
 static void mesh_evt_cb(const nrf_mesh_evt_t * p_evt)
@@ -370,7 +320,7 @@ static uint32_t packet_tx(access_model_handle_t handle,
 
     dsm_local_unicast_address_t local_addresses;
     dsm_local_unicast_addresses_get(&local_addresses);
-    if (local_addresses.count <= m_model_pool[handle].model_info.element_index)
+    if (m_model_pool[handle].model_info.element_index >= local_addresses.count)
     {
         return NRF_ERROR_INVALID_ADDR;
     }
@@ -378,29 +328,24 @@ static uint32_t packet_tx(access_model_handle_t handle,
     uint16_t src_address = local_addresses.address_start + m_model_pool[handle].model_info.element_index;
 
     nrf_mesh_address_t dst_address;
-    dsm_handle_t appkey_handle, publish_handle;
+    dsm_handle_t appkey_handle;
     dsm_handle_t subnet_handle = DSM_HANDLE_INVALID;
     if (p_rx_message != NULL)
     {
         appkey_handle = p_rx_message->meta_data.appkey_handle;
         subnet_handle = p_rx_message->meta_data.subnet_handle;
         dst_address = p_rx_message->meta_data.src;
-        if (dsm_address_handle_get(&p_rx_message->meta_data.src, &publish_handle) != NRF_SUCCESS)
-        {
-            publish_handle = DSM_HANDLE_INVALID;
-        }
     }
     else
     {
         appkey_handle = m_model_pool[handle].model_info.publish_appkey_handle;
-        publish_handle = m_model_pool[handle].model_info.publish_address_handle;
-        if (dsm_address_get(publish_handle, &dst_address) != NRF_SUCCESS)
+        if (dsm_address_get(m_model_pool[handle].model_info.publish_address_handle, &dst_address) != NRF_SUCCESS)
         {
             return NRF_ERROR_NOT_FOUND;
         }
-        if (nrf_mesh_address_type_get(dst_address.value) == NRF_MESH_ADDRESS_TYPE_INVALID)
+        if  (dst_address.value == NRF_MESH_ADDR_UNASSIGNED)
         {
-            return NRF_ERROR_INVALID_PARAM;
+            return NRF_ERROR_INVALID_ADDR;
         }
     }
 
@@ -414,37 +359,23 @@ static uint32_t packet_tx(access_model_handle_t handle,
         ttl = m_model_pool[handle].model_info.publish_ttl;
     }
 
-    /* Check if we are sending a message to one of our own addresses: */
-    bool loopback_packet = (dst_address.type == NRF_MESH_ADDRESS_TYPE_UNICAST
-            && dst_address.value >= local_addresses.address_start
-            && dst_address.value < local_addresses.address_start + local_addresses.count)
-        || (dst_address.type != NRF_MESH_ADDRESS_TYPE_UNICAST
-                && publish_handle != DSM_HANDLE_INVALID
-                && dsm_address_subscription_get(publish_handle));
-
+    bool loopback_packet = is_access_loopback(&dst_address);
     if (loopback_packet)
     {
-        const nrf_mesh_rx_metadata_t rx_metadata = {.source          = NRF_MESH_RX_SOURCE_LOOPBACK,
-                                                    .params.loopback = {
-                                                        .tx_token = p_tx_message->access_token}};
-        const access_message_rx_t rx_message =
+        access_loopback_request_t request =
         {
-            .opcode = p_tx_message->opcode,  /*lint !e64 Type mismatch */
+            .token = p_tx_message->access_token,
+            .opcode = p_tx_message->opcode, /*lint !e64 Type mismatch */
             .p_data = p_tx_message->p_buffer,
             .length = p_tx_message->length,
-            .meta_data =
-            {
-                .src = { NRF_MESH_ADDRESS_TYPE_UNICAST, src_address },
-                .dst = dst_address, /*lint !e64 Type mismatch */
-                .ttl = ttl,
-                .appkey_handle = appkey_handle,
-                .p_core_metadata = &rx_metadata,
-                .subnet_handle = subnet_handle
-            }
+            .src_value = src_address,
+            .dst = dst_address,              /*lint !e64 Type mismatch */
+            .ttl = ttl,
+            .appkey_handle = appkey_handle,
+            .subnet_handle = subnet_handle
         };
 
-        handle_incoming(&rx_message);
-        status = NRF_SUCCESS;
+        status = access_loopback_handle(&request);
     }
 
     if (!loopback_packet || (dst_address.type != NRF_MESH_ADDRESS_TYPE_UNICAST))
@@ -494,6 +425,44 @@ static void access_state_clear(void)
         m_model_pool[i].model_info.subscription_pool_index = ACCESS_SUBSCRIPTION_LIST_COUNT;
         m_model_pool[i].model_info.element_index = ACCESS_ELEMENT_INDEX_INVALID;
     }
+}
+
+static bool model_subscribes_to_addr(const access_common_t * p_model, dsm_handle_t address_handle)
+{
+    return (p_model->model_info.subscription_pool_index < ACCESS_SUBSCRIPTION_LIST_COUNT &&
+            bitfield_get(m_subscription_list_pool[p_model->model_info.subscription_pool_index].bitfield,
+                         address_handle));
+}
+
+/**
+ * Checks whether a destination address is designated for a specific element.
+ *
+ * @param[in] p_dst The destination address to check for
+ * @param[in,out] p_index Index of the element that should process the message destined for the given address.
+ *
+ * @returns Whether or not the destination address is designated for a specific element.
+ */
+static bool is_element_rx_address(const nrf_mesh_address_t * p_dst, uint16_t * p_index)
+{
+    if (p_dst->type == NRF_MESH_ADDRESS_TYPE_UNICAST)
+    {
+        dsm_local_unicast_address_t local_addresses;
+        dsm_local_unicast_addresses_get(&local_addresses);
+
+        *p_index = p_dst->value - local_addresses.address_start;
+        return true;
+    }
+    else if (p_dst->value == NRF_MESH_ALL_PROXIES_ADDR ||
+             p_dst->value == NRF_MESH_ALL_FRIENDS_ADDR ||
+             p_dst->value == NRF_MESH_ALL_RELAYS_ADDR ||
+             p_dst->value == NRF_MESH_ALL_NODES_ADDR)
+    {
+        /* According to the Mesh Profile Specification v1.0 section 3.4.2, only models on the
+         * primary element of the node shall process the fixed group addresses. */
+        *p_index = 0;
+        return true;
+    }
+    return false;
 }
 
 #if PERSISTENT_STORAGE
@@ -950,6 +919,48 @@ void access_flash_config_store(void)
 
 }
 #endif /* PERSISTENT_STORAGE */
+
+/* ********** Private API ********** */
+void access_incoming_handle(const access_message_rx_t * p_message)
+{
+    const nrf_mesh_address_t * p_dst = &p_message->meta_data.dst;
+
+    if (dsm_address_is_rx(p_dst))
+    {
+        uint16_t element_index;
+        dsm_handle_t address_handle = DSM_HANDLE_INVALID;
+        bool is_element_message = is_element_rx_address(p_dst, &element_index);
+
+        if (!is_element_message)
+        {
+            /* If it's not one of the element addresses, it has to be a subscription address. */
+            NRF_MESH_ERROR_CHECK(dsm_address_handle_get(p_dst, &address_handle));
+        }
+
+        for (int i = 0; i < ACCESS_MODEL_COUNT; ++i)
+        {
+            access_common_t * p_model = &m_model_pool[i];
+            uint32_t opcode_index;
+
+            bool address_match =
+                (is_element_message ? (p_model->model_info.element_index == element_index)
+                                    : (model_subscribes_to_addr(p_model, address_handle)));
+
+            if (ACCESS_INTERNAL_STATE_IS_ALLOCATED(p_model->internal_state) &&
+                address_match &&
+                bitfield_get(p_model->model_info.application_keys_bitfield, p_message->meta_data.appkey_handle) &&
+                is_opcode_of_model(p_model, p_message->opcode, &opcode_index))
+            {
+                if (p_dst->type == NRF_MESH_ADDRESS_TYPE_UNICAST)
+                {
+                    access_reliable_message_rx_cb(i, p_message, p_model->p_args);
+                }
+                p_model->p_opcode_handlers[opcode_index].handler(i, p_message, p_model->p_args);
+            }
+        }
+    }
+}
+
 /* ********** Public API ********** */
 void access_clear(void)
 {
@@ -966,6 +977,7 @@ void access_init(void)
     nrf_mesh_evt_handler_add(&m_evt_handler);
     access_reliable_init();
     access_publish_init();
+    access_loopback_init();
 
     /* Initialize the flash manager */
     /* Assuming that we only need to play nice to DSM: */
@@ -1322,8 +1334,7 @@ uint32_t access_model_subscriptions_get(access_model_handle_t handle,
         *p_count = 0;
         for (uint32_t i = 0; i < DSM_ADDR_MAX; ++i)
         {
-            if (ACCESS_SUBSCRIPTION_LIST_COUNT > m_model_pool[handle].model_info.subscription_pool_index &&
-                bitfield_get(m_subscription_list_pool[m_model_pool[handle].model_info.subscription_pool_index].bitfield, i))
+            if (model_subscribes_to_addr(&m_model_pool[handle], i))
             {
                 if (*p_count >= max_count)
                 {

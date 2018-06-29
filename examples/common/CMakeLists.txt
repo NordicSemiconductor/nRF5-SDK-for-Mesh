@@ -27,6 +27,7 @@ set(lint_include_dirs
     ${CMAKE_SOURCE_DIR}/examples/templates
     ${SDK_ROOT}/components/libraries/util
     ${SDK_ROOT}/components/drivers_nrf/delay
+    ${CMAKE_SOURCE_DIR}/mesh/test/include # sdk_config.h
     ${${BOARD}_INCLUDE_DIRS}
     ${${SOFTDEVICE}_INCLUDE_DIRS}
     ${${PLATFORM}_INCLUDE_DIRS}

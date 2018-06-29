@@ -48,6 +48,7 @@
 
 /** First channel to use for timer PPI triggering */
 #define TIMER_PPI_CH_START  (8)
+#define TIMER_PPI_CH_STOP   (TIMER_PPI_CH_START + TIMER_INDEX_TIMESTAMP)
 /** Invalid timestamp */
 #define TIMER_TIMEOUT_INVALID (0xFFFFFFFF)
 

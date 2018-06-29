@@ -42,22 +42,18 @@
 #include "utils.h"
 #include "ble.h"
 #include "aes.h"
-#include "ccm_soft.h"
+#include "enc.h"
 #include "ble_gap.h"
 #include "log.h"
 #include "app_error.h"
 
-#define PTM_CRYPTO_DATA_SIZE       (PTM215B_COMM_PACKET_KEY_SIZE)
-#define PTM_NONCE_SIZE             (13)
-#define PTM_NONCE_SRC_ADDR_OFFSET  (0)
-#define PTM_NONCE_SEQ_OFFSET       (6)
-#define PTM_NONCE_PADDING_OFFSET   (10)
-#define CRYPTO_B1_DATA_OFFSET      (2)
 
-#define A0_FLAG     (0x01)
-#define B0_FLAG     (0x49)
-#define L_LEN       (CCM_LENGTH_FIELD_LENGTH)
-
+typedef struct __attribute((packed))
+{
+    uint8_t address[6];
+    uint8_t seq[4];
+    uint8_t padding[3];
+} enocean_nonce_t;
 
 typedef enum
 {
@@ -133,7 +129,7 @@ typedef struct __attribute((packed))
     uint16_t manufacturer_id;
     uint32_t seq;
 
-    uint8_t key[PTM_CRYPTO_DATA_SIZE];
+    uint8_t key[NRF_MESH_KEY_SIZE];
 } enocean_commissioning_data_old_t;
 
 typedef struct __attribute((packed))
@@ -143,7 +139,7 @@ typedef struct __attribute((packed))
     uint16_t manufacturer_id;
     uint32_t seq;
 
-    uint8_t key[PTM_CRYPTO_DATA_SIZE];
+    uint8_t key[NRF_MESH_KEY_SIZE];
     uint8_t ble_addr[BLE_GAP_ADDR_LEN];
 } enocean_commissioning_data_new_t;
 
@@ -171,13 +167,8 @@ static bool data_replay_check(const enocean_packet_t * p_data_pkt,
 
 /* Authenticates the given data packet. Returns true if authentication is successful */
 static bool data_authenticate(const enocean_packet_t * p_data_pkt,
-                                      enocean_commissioning_secmat_t * p_secmat)
+                              enocean_commissioning_secmat_t * p_secmat)
 {
-    uint8_t nonce[PTM_NONCE_SIZE] = {0};
-    uint8_t buf1[PTM_CRYPTO_DATA_SIZE] = {0};
-    uint8_t buf2[PTM_CRYPTO_DATA_SIZE] = {0};
-    uint8_t buf3[PTM_CRYPTO_DATA_SIZE] = {0};
-
     /* Validate packet length and BLE GAP address */
     if ((p_data_pkt->data.data_packet.length > (PTM215B_DATA_PACKET_MAX_SIZE - PTM215B_DATA_PACKET_MIC_SIZE))
         || memcmp(p_data_pkt->p_ble_gap_addr, p_secmat->p_ble_gap_addr, BLE_GAP_ADDR_LEN) != 0)
@@ -185,49 +176,33 @@ static bool data_authenticate(const enocean_packet_t * p_data_pkt,
         return false;
     }
 
+    enocean_nonce_t nonce;
     /* Derive Nonce */
-    memcpy(&nonce[PTM_NONCE_SRC_ADDR_OFFSET], (void *)p_data_pkt->p_ble_gap_addr, BLE_GAP_ADDR_LEN);
-    memcpy(&nonce[PTM_NONCE_SEQ_OFFSET],
-          (void *)&p_data_pkt->data.data_packet.p_raw_data[PTM215B_DATA_PACKET_SEQ_COUNTER_OFFSET],
-          PTM215B_DATA_PACKET_SEQ_COUNTER_SIZE);
+    memcpy(&nonce.address[0], p_data_pkt->p_ble_gap_addr, sizeof(nonce.address));
+    memcpy(&nonce.seq[0],
+           &p_data_pkt->data.data_packet.p_raw_data[PTM215B_DATA_PACKET_SEQ_COUNTER_OFFSET],
+           sizeof(nonce.seq));
+    memset(&nonce.padding[0], 0, sizeof(nonce.padding));
 
-    /* Calculate B0 */
-    buf1[0] = B0_FLAG;
-    memcpy(&buf1[1], &nonce[0], PTM_NONCE_SIZE);
-
-    /* Derive X_1 */
-    aes_encrypt(p_secmat->p_key, buf1, buf2);
-
-    /* Calculate B1 */
-    memset(buf1, 0x00, PTM_CRYPTO_DATA_SIZE);
-    buf1[1] = p_data_pkt->data.data_packet.length;
-    memcpy(&buf1[CRYPTO_B1_DATA_OFFSET],
-           p_data_pkt->data.data_packet.p_raw_data,
-           p_data_pkt->data.data_packet.length);
-
-    /* Derive X_1A */
-    utils_xor(buf3, buf1, buf2, PTM_CRYPTO_DATA_SIZE);
-
-    /* Derive X_2 */
-    aes_encrypt(p_secmat->p_key, buf3, buf1);
-
-    /* Calculate A0 */
-    memset(buf3, 0x00, PTM_CRYPTO_DATA_SIZE);
-    buf3[0] = A0_FLAG;
-    memcpy(&buf3[1], &nonce[0], PTM_NONCE_SIZE);
-
-    /* Calculate S_0 */
-    aes_encrypt(p_secmat->p_key, buf3, buf2);
-
-    /* Calculate T_0 */
-    utils_xor(buf3, buf1, buf2, PTM_CRYPTO_DATA_SIZE);
-
-    if (memcmp(buf3, p_data_pkt->data.data_packet.p_mic, PTM215B_DATA_PACKET_MIC_SIZE) == 0)
+    /* The EnOcean data frame is not encrypted, only authenticated.
+     * Setting `p_m` (and `p_out`) to NULL and m_len to 0 skips the decryption stage.
+     */
+    ccm_soft_data_t ccm =
     {
-        return true;
-    }
+        .p_key = p_secmat->p_key,
+        .p_nonce = (const uint8_t *) &nonce,
+        .p_m = NULL,
+        .m_len = 0,
+        .p_a = p_data_pkt->data.data_packet.p_raw_data,
+        .a_len = p_data_pkt->data.data_packet.length,
+        .p_out = NULL,
+        .p_mic = (uint8_t *) p_data_pkt->data.data_packet.p_mic,
+        .mic_len = PTM215B_DATA_PACKET_MIC_SIZE
+    };
 
-    return false;
+    bool mic_authenticated;
+    enc_aes_ccm_decrypt(&ccm, &mic_authenticated);
+    return mic_authenticated;
 }
 
 static bool packet_parse(const nrf_mesh_adv_packet_rx_data_t * p_rx_data, enocean_packet_t * p_pkt)
