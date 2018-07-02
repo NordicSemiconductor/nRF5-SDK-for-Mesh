@@ -1,6 +1,6 @@
 # Release Notes
 
-## BLE Mesh v2.1.0
+## BLE Mesh v2.1.1
 - This is a minor production release.
 
 ### New features
