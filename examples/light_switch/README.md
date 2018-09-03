@@ -7,7 +7,7 @@ proxy support, the light switch client and a provisioner example.
 
 It demonstrates the mesh eco system containing devices acting in two roles, a Provisioner role, and
 a Node role. In addition, it demonstrates how to use custom models by using
-the custom [Simple OnOff model](@ref md_models_simple_on_off_README) in
+the [Generic OnOff model](@ref GENERIC_ONOFF_MODEL) in
 a real application.
 
 
@@ -20,7 +20,7 @@ See [compatiblity](@ref readme-compatibility) section for the supported boards.
 - One development board for a client.
 - One development board for the provisioner.
 - One or more development boards for the servers.
-  If you have more than thirty boards for the server, set `SERVER_NODE_COUNT` (in `light_switch_example_common.h`)
+  If you have more than thirty boards for the servers, set `SERVER_NODE_COUNT` (in `light_switch_example_common.h`)
   to the number of boards available and rebuild the provisioner example.
 
 ### Running the demo
@@ -42,18 +42,22 @@ The provisioner prints details about the provisioning and the configuration proc
 When provisioner is scanning and provisioning a device, LED 1 on the Provisioner board is turned ON.
 When configuration procedure is underway, LED 2 on the provisioner board is turned ON.
 
-The provisioner configures Button 1 on the client board to control the first server, Button 2 to control
-the second server, Button 3 to control the servers with Odd addresses, and Button 4 to control the
-servers with Even addresses.
+The provisioner configures the client model instances on the client board. The client example is
+configured as follows:
+- The Button 1 on the client board turns ON LED 1 on the servers with Odd addresses.
+- The Button 2 on the client board turns OFF LED 1 on the servers with Odd addresses.
+- The Button 3 on the client board turns ON LED 1 on the servers with Even addresses.
+- The Button 4 on the client board turns OFF LED 1 on the servers with Even addresses.
 
 Once provisioning and configuration of the client node and at least one of the server nodes is completed,
 you can press buttons on the client to see the LEDs getting toggled on the associated servers.
 
-You can also press Button 1 on the first or second server to locally toggle the state of LED1 on them
-and the same state will be reflected on the LED1 and LED2 of the client board.
-
 If an RTT terminal is available and connected to the client, sending
 the ASCII numbers `0`--`3` will have the same effect as pressing the buttons.
+
+You can also press Button 1 on the servers to locally toggle the state of their LED 1,
+and the status reflecting this state will be sent to the client board. You can see the status printed in
+the RTT log of the client board.
 
 If any of the devices are powered off and back on, they will remember their configuration
 in flash and rejoin the network. More information about the flash manager can be found
@@ -62,6 +66,15 @@ in the [flash manager documentation](@ref md_doc_libraries_flash_manager).
 If provisioner encounters the error during the provisioning or configuration process for a certain node,
 you can reset the provisioner to restart this process for that node.
 
+### Provisioning with nRF Mesh app
+
+1. Switch off the provisioner board, and flash the client and server firmwares again.
+2. Download the `nRF Mesh` app for your mobile phone (iOS or Android) and provision these nodes.
+3. Bind the Generic OnOff client and server model instances on the nodes with the same app key.
+4. Set the publish address of the 1st Generic OnOff client model instance on the client example to
+the unicast address of any server node.
+5. Press Button 1 on the client board to turn ON LED 1 on the corresponding server board.
+6. Press Button 2 on the client board to turn OFF LED 1 on the corresponding server board.
 
 ## Details
 
@@ -83,40 +96,56 @@ For more information on how a provisioner works, see the [Mesh provisioning Guid
 
 
 The *Light switch client* has a provisionee role in the network.
-The client has four buttons to control state of the LED1 on servers.
-It instantiates four instances of simple OnOff Client model.
+The client has four buttons to control the state of LED 1 on servers.
+It instantiates two instances of Generic OnOff Client model.
 The provisioner configures this client model instances to communicate with
 servers.
 
 ### Light switch server
 
 The *Light switch server* has a provisionee role in the network. It instantiates one instance
-of the simple OnOff server model to control state of the LED1.
+of the Generic OnOff server model to control the state of LED 1. The provisioner configures this
+server model instance to communicate with the client model on the client board and to publish a message
+when value of the OnOff state changes.
 
 ![State diagram for the Light switch server](img/light_switch_server_state_diagram.svg)
 
-### Light switch server (with Proxy server)
+### GATT Proxy
 
-The proxy server example application has the same behavior as the light switch server, but
+Variants of both the Light switch server and Light switch client examples with additional
+provisioning over GATT (PB-GATT) and Proxy Server support are provided as the *Light switch proxy
+server* and *Light switch proxy client*, respectively. The proxy-enabled examples behave in the same
+way as the non-proxy variant. Note that the *Proxy Client* role is **not** supported.
+
+Read more about the Proxy feature in @ref md_doc_getting_started_gatt_proxy.
+
+#### Light switch server (Proxy)
+
+The Light switch proxy server example application has the same behavior as the light switch server, but
 additionally has the proxy role enabled. As proxy is only supported on the nRF52, cmake will not
 generate the proxy server example for nRF51.
 
 The proxy server application can either be provisioned and configured by the provisioner device
 like the light switch server, or by a GATT-based provisioner. After provisioning, the proxy server
-application starts advertising a connectable proxy beacon, which can be connected to by a proxy
-client to interact with the mesh. The proxy client acts like any other mesh device, but sends all
-its mesh communication over a BLE connection to a proxy server, which relays it into the mesh.
+application starts advertising a connectable proxy beacon, which can be connected to by a Proxy
+Client to interact with the mesh. The Proxy Client acts like any other mesh device, but sends all
+its mesh communication over a BLE connection to a Proxy Server, which relays it into the mesh.
+
+#### Light switch client (Proxy)
+The Light switch proxy client example has the same behavior as the light switch client, but
+with the added Proxy Server support. The name might suggest that it also supports the Proxy Client,
+however that is **not** the case.
 
 
-### Simple OnOff client/server model
+### Generic OnOff client/server model
 
-The Simple OnOff Client/Server is a simple proprietary model for manipulating an
+The Generic OnOff Client/Server is used for manipulating an
 on/off state. Note that when the server has a publish address set (as in this example),
-the server will publish any operation of its state to its publish address.
+the server will publish any operation of its state change to its publish address.
 
-More information about the Simple OnOff model can be found in the
-[Simple OnOff model README](@ref md_models_simple_on_off_README)
-and in [Creating new models](@ref md_doc_getting_started_how_to_models).
+More information about the Generic OnOff model can be found in the
+[Generic OnOff model documentation](@ref GENERIC_ONOFF_MODEL)
+and [Generic OnOff server behaviour documentation](@ref APP_ONOFF).
 
 ## Mesh SDK APIs
 

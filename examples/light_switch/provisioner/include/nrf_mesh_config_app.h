@@ -49,7 +49,18 @@
  */
 
 /**
- * @defgroup DEVICE_CONFIG Application specific device configuration
+ * @defgroup MODEL_CONFIG Model layer configuration parameters
+ */
+
+/** Acknowledged message transaction timeout
+ * @note Mesh Profile Specification v1.0 recommends this to be minimum 60s.
+ */
+#define MODEL_ACKNOWLEDGED_TRANSACTION_TIMEOUT  (SEC_TO_US(10))
+
+/** @} end of MODEL_CONFIG */
+
+/**
+ * @defgroup DEVICE_CONFIG Application-specific device configuration
  *
  * @{
  */
@@ -147,18 +158,6 @@
 /** Number of flash pages reserved for the DSM storage */
 #define DSM_FLASH_PAGE_COUNT                            (3)
 /** @} end of DSM_CONFIG */
-
-/**
- * @defgroup REPLAY_CONFIG Application specific replay cache size configuration
- *
- * @{
- */
-
-/** Number of entries in the replay protection cache. */
-#define REPLAY_CACHE_ENTRIES                            (SERVER_NODE_COUNT + \
-                                                        (CLIENT_NODE_COUNT * CLIENT_MODEL_INSTANCE_COUNT))
-
-/** @} end of REPLAY_CONFIG */
 
 /** @} */
 

@@ -49,6 +49,17 @@
  */
 
 /**
+ * @defgroup MODEL_CONFIG Model layer configuration parameters
+ */
+
+/** Acknowledged message transaction timeout
+ * @note Mesh Profile Specification v1.0 recommends this to be minimum 60s.
+ */
+#define MODEL_ACKNOWLEDGED_TRANSACTION_TIMEOUT  (SEC_TO_US(10))
+
+/** @} end of MODEL_CONFIG */
+
+/**
  * @defgroup DEVICE_CONFIG Device configuration
  *
  * @{
@@ -64,7 +75,7 @@
 #define DEVICE_VERSION_ID (0x0000)
 
 /** Supported features of the device. @see config_feature_bit_t */
-#define DEVICE_FEATURES (CONFIG_FEATURE_RELAY_BIT)
+#define DEVICE_FEATURES (CONFIG_FEATURE_RELAY_BIT | CONFIG_FEATURE_PROXY_BIT)
 
 /** @} end of DEVICE_CONFIG */
 
@@ -86,8 +97,8 @@
  */
 #define ACCESS_MODEL_COUNT (1 + /* Configuration server */  \
                             1 + /* Health server */  \
-                            2 + /* Simple OnOff client (2 groups) */ \
-                            2   /* Simple OnOff client (2 unicast) */)
+                            2 + /* Generic OnOff client (2 groups) */ \
+                            2   /* Generic OnOff client (2 unicast) */)
 
 /**
  * The number of elements in the application.
@@ -95,7 +106,7 @@
  * @warning If the application is to support multiple _instances_ of the _same_ model, they cannot
  * belong in the same element and a separate element is needed for the new instance.
  */
-#define ACCESS_ELEMENT_COUNT (1 + CLIENT_MODEL_INSTANCE_COUNT) /* One element per Simple OnOff client instance */
+#define ACCESS_ELEMENT_COUNT (1 + CLIENT_MODEL_INSTANCE_COUNT) /* One element per Generic OnOff client instance */
 
 /**
  * The number of allocated subscription lists for the application.
@@ -142,7 +153,6 @@
 /** Number of flash pages reserved for the DSM storage */
 #define DSM_FLASH_PAGE_COUNT                            (1)
 /** @} end of DSM_CONFIG */
-
 
 /** @} */
 

@@ -42,6 +42,7 @@
 #include "mesh_app_utils.h"
 #include "nrf_mesh_prov_bearer_adv.h"
 #include "app_error.h"
+#include "mesh_opt_core.h"
 
 #if MESH_FEATURE_GATT
 #include "nrf_sdh.h"
@@ -50,6 +51,7 @@
 #include "nrf_mesh_prov_bearer_gatt.h"
 #include "nrf_mesh_gatt.h"
 #include "proxy.h"
+#include "mesh_opt_gatt.h"
 
 #define PROV_BEARERS                        (NRF_MESH_PROV_BEARER_GATT | \
                                              NRF_MESH_PROV_BEARER_ADV)
@@ -96,11 +98,19 @@ static void sd_state_evt_handler(nrf_sdh_state_evt_t state, void * p_context)
             mesh_key_index_t key_index;
             uint32_t count = 1;
             nrf_mesh_key_refresh_phase_t kr_phase;
+
             APP_ERROR_CHECK(dsm_subnet_get_all(&key_index, &count));
             APP_ERROR_CHECK(dsm_subnet_kr_phase_get(dsm_net_key_index_to_subnet_handle(key_index),
                                                     &kr_phase));
+
             proxy_init();
-            proxy_node_id_enable(NULL, kr_phase);
+
+            /* NOTE: Even though the device supports the GATT proxy feature, enabling the proxy
+             * state is _not_ required. The Node Identity will be advertised for 60s, if the proxy
+             * is enabled, the device will start advertising the Network ID afterwards. The default
+             * state for the proxy feature is set with `PROXY_ENABLED_DEFAULT`.
+             */
+            NRF_MESH_ERROR_CHECK(proxy_node_id_enable(NULL, kr_phase));
 #endif  /* GATT_PROXY */
 
             /* We deliberately start the mesh _after_ the proxy to ensure that the
@@ -120,6 +130,9 @@ static void sd_state_evt_handler(nrf_sdh_state_evt_t state, void * p_context)
         {
             uint32_t err_code = nrf_sdh_enable_request();
             APP_ERROR_CHECK(err_code);
+#if defined S140  // todo remove that after S140 priority fixing
+            softdevice_irq_priority_checker();
+#endif
             break;
         }
         default:
@@ -227,4 +240,9 @@ uint32_t mesh_provisionee_prov_start(const mesh_provisionee_start_params_t * p_s
                         nrf_mesh_prov_bearer_gatt_interface_get(&m_prov_bearer_gatt)));
 #endif
     return provisionee_start();
+}
+
+uint32_t mesh_provisionee_prov_listen_stop(void)
+{
+    return nrf_mesh_prov_listen_stop(&m_prov_ctx);
 }

@@ -35,28 +35,52 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdint.h>
+#include <string.h>
+
+/* HAL */
 #include "boards.h"
 #include "simple_hal.h"
-#include "log.h"
-#include "access_config.h"
-#include "simple_on_off_server.h"
-#include "light_switch_example_common.h"
-#include "mesh_app_utils.h"
-#include "net_state.h"
-#include "rtt_input.h"
-#include "mesh_stack.h"
-#include "mesh_provisionee.h"
-#include "nrf_mesh_configure.h"
-#include "nrf_mesh_config_examples.h"
-#include "mesh_adv.h"
+#include "app_timer.h"
 
+/* Core */
+#include "sdk_config.h"
+#include "nrf_mesh_configure.h"
+#include "nrf_mesh.h"
+#include "mesh_stack.h"
+#include "device_state_manager.h"
+#include "access_config.h"
+#include "net_state.h"
+#include "mesh_adv.h"
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
 #include "nrf_sdh_soc.h"
 #include "ble_conn_params.h"
-#include "sdk_config.h"
+#include "ble_hci.h"
 #include "proxy.h"
-#include "app_timer.h"
+#include "mesh_opt_gatt.h"
+#include "mesh_config.h"
+
+/* Provisioning and configuration */
+#include "mesh_provisionee.h"
+#include "mesh_app_utils.h"
+#include "mesh_softdevice_init.h"
+
+/* Models */
+#include "generic_onoff_server.h"
+
+/* Logging and RTT */
+#include "log.h"
+#include "rtt_input.h"
+
+/* Example specific includes */
+#include "app_config.h"
+#include "example_common.h"
+#include "nrf_mesh_config_examples.h"
+#include "light_switch_example_common.h"
+#include "app_onoff.h"
+
+#define ONOFF_SERVER_0_LED          (BSP_LED_0)
 
 #define DEVICE_NAME                     "nRF5x Mesh Light"
 #define MIN_CONN_INTERVAL               MSEC_TO_UNITS(150,  UNIT_1_25_MS)           /**< Minimum acceptable connection interval. */
@@ -67,16 +91,47 @@
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(2000)                       /**< Time between each call to sd_ble_gap_conn_param_update after the first call. */
 #define MAX_CONN_PARAMS_UPDATE_COUNT    3                                           /**< Number of attempts before giving up the connection parameter negotiation. */
 
-#define RTT_INPUT_POLL_PERIOD_MS (100)
-#define LED_PIN_NUMBER (BSP_LED_0)
-#define LED_PIN_MASK   (1u << LED_PIN_NUMBER)
-#define LED_BLINK_INTERVAL_MS    (200)
-#define LED_BLINK_CNT_START      (2)
-#define LED_BLINK_CNT_RESET      (3)
-#define LED_BLINK_CNT_PROV       (4)
+static bool m_device_provisioned;
 
 static void gap_params_init(void);
 static void conn_params_init(void);
+
+/*************************************************************************************************/
+static void app_onoff_server_set_cb(const app_onoff_server_t * p_server, bool onoff);
+static void app_onoff_server_get_cb(const app_onoff_server_t * p_server, bool * p_present_onoff);
+
+/* Generic OnOff server structure definition and initialization */
+APP_ONOFF_SERVER_DEF(m_onoff_server_0,
+                     APP_CONFIG_FORCE_SEGMENTATION,
+                     APP_CONFIG_MIC_SIZE,
+                     app_onoff_server_set_cb,
+                     app_onoff_server_get_cb)
+
+/* Callback for updating the hardware state */
+static void app_onoff_server_set_cb(const app_onoff_server_t * p_server, bool onoff)
+{
+    /* Resolve the server instance here if required, this example uses only 1 instance. */
+
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Setting GPIO value: %d\n", onoff)
+
+    hal_led_pin_set(ONOFF_SERVER_0_LED, onoff);
+}
+
+/* Callback for reading the hardware state */
+static void app_onoff_server_get_cb(const app_onoff_server_t * p_server, bool * p_present_onoff)
+{
+    /* Resolve the server instance here if required, this example uses only 1 instance. */
+
+    *p_present_onoff = hal_led_pin_get(ONOFF_SERVER_0_LED);
+}
+
+static void app_model_init(void)
+{
+    /* Instantiate onoff server on element index 0 */
+    ERROR_CHECK(app_onoff_init(&m_onoff_server_0, 0));
+}
+
+/*************************************************************************************************/
 
 static void on_sd_evt(uint32_t sd_evt, void * p_context)
 {
@@ -85,42 +140,10 @@ static void on_sd_evt(uint32_t sd_evt, void * p_context)
 
 NRF_SDH_SOC_OBSERVER(mesh_observer, NRF_SDH_BLE_STACK_OBSERVER_PRIO, on_sd_evt, NULL);
 
-static simple_on_off_server_t m_server;
-static bool                   m_device_provisioned;
-
-
-static void provisioning_complete_cb(void)
-{
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
-
-    /* Restores the application parameters after switching from the Provisioning service to the Proxy  */
-    gap_params_init();
-    conn_params_init();
-
-    dsm_local_unicast_address_t node_address;
-    dsm_local_unicast_addresses_get(&node_address);
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
-
-    hal_led_mask_set(LEDS_MASK, false);
-    hal_led_blink_ms(LED_PIN_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
-}
-
-static bool on_off_server_get_cb(const simple_on_off_server_t * p_server)
-{
-    return hal_led_pin_get(LED_PIN_NUMBER);
-}
-
-static bool on_off_server_set_cb(const simple_on_off_server_t * p_server, bool value)
-{
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Got SET command to %u\n", value);
-    hal_led_pin_set(LED_PIN_NUMBER, value);
-    return value;
-}
-
 static void node_reset(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset  -----\n");
-    hal_led_blink_ms(LED_PIN_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
+    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
     /* This function may return if there are ongoing flash operations. */
     mesh_stack_device_reset();
 }
@@ -143,10 +166,9 @@ static void button_event_handler(uint32_t button_number)
         state change publication due to local event. */
         case 0:
         {
-            uint8_t value = !hal_led_pin_get(LED_PIN_NUMBER);
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "User action \n");
-            hal_led_pin_set(LED_PIN_NUMBER, value);
-            (void)simple_on_off_server_status_publish(&m_server, value);
+            hal_led_pin_set(ONOFF_SERVER_0_LED, !hal_led_pin_get(ONOFF_SERVER_0_LED));
+            app_onoff_status_publish(&m_onoff_server_0);
             break;
         }
 
@@ -154,9 +176,16 @@ static void button_event_handler(uint32_t button_number)
         case 3:
         {
             /* Clear all the states to reset the node. */
-            proxy_disable();
-            mesh_stack_config_clear();
-            node_reset();
+            if (mesh_stack_is_device_provisioned())
+            {
+                (void) proxy_stop();
+                mesh_stack_config_clear();
+                node_reset();
+            }
+            else
+            {
+                __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "The device is unprovisioned. Resetting has no effect.\n");
+            }
             break;
         }
 
@@ -194,23 +223,34 @@ static void conn_params_error_handler(uint32_t nrf_error)
     APP_ERROR_HANDLER(nrf_error);
 }
 
+static void provisioning_complete_cb(void)
+{
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
+
+    /* Restores the application parameters after switching from the Provisioning service to the Proxy  */
+    gap_params_init();
+    conn_params_init();
+
+    dsm_local_unicast_address_t node_address;
+    dsm_local_unicast_addresses_get(&node_address);
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
+
+    hal_led_mask_set(LEDS_MASK, false);
+    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
+}
+
 static void models_init_cb(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Initializing and adding models\n");
-    m_server.get_cb = on_off_server_get_cb;
-    m_server.set_cb = on_off_server_set_cb;
-    ERROR_CHECK(simple_on_off_server_init(&m_server, 0));
-    ERROR_CHECK(access_model_subscription_list_alloc(m_server.model_handle));
-    hal_led_mask_set(LEDS_MASK, false);
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
+    app_model_init();
 }
 
 static void mesh_init(void)
 {
     uint8_t dev_uuid[NRF_MESH_UUID_SIZE];
-    uint8_t node_uuid_prefix[SERVER_NODE_UUID_PREFIX_SIZE] = SERVER_NODE_UUID_PREFIX;
+    uint8_t node_uuid_prefix[NODE_UUID_PREFIX_LEN] = SERVER_NODE_UUID_PREFIX;
 
-    ERROR_CHECK(mesh_app_uuid_gen(dev_uuid, node_uuid_prefix, SERVER_NODE_UUID_PREFIX_SIZE));
+    ERROR_CHECK(mesh_app_uuid_gen(dev_uuid, node_uuid_prefix, NODE_UUID_PREFIX_LEN));
     mesh_stack_init_params_t init_params =
     {
         .core.irq_priority       = NRF_MESH_IRQ_PRIORITY_LOWEST,
@@ -277,6 +317,9 @@ static void initialize(void)
 #endif
     uint32_t err_code = nrf_sdh_enable_request();
     APP_ERROR_CHECK(err_code);
+#if defined S140 // todo remove that after S140 priority fixing
+    softdevice_irq_priority_checker();
+#endif
 
     uint32_t ram_start = 0;
     /* Set the default configuration (as defined through sdk_config.h). */

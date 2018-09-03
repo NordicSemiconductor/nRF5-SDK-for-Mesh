@@ -4,10 +4,11 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(data_flags "-ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin --short-enums")
 set(warning_flags "-Wall -Wno-attributes -Wno-format")
 set(CMAKE_C_FLAGS_INIT "--std=gnu99 ${warning_flags} ${data_flags}")
-set(CMAKE_C_FLAGS_DEBUG "-Og -g3" CACHE STRING "")
-set(CMAKE_C_FLAGS_MINSIZEREL "-Os -g" CACHE STRING "")
-set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O3 -g" CACHE STRING "")
-set(CMAKE_C_FLAGS_RELEASE "-O3" CACHE STRING "")
+
+set(CMAKE_C_FLAGS_DEBUG          "-Og -g3"  CACHE STRING "")
+set(CMAKE_C_FLAGS_MINSIZEREL     "-Os -g "  CACHE STRING "")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O3 -g "  CACHE STRING "")
+set(CMAKE_C_FLAGS_RELEASE        "-O3 -DNDEBUG" CACHE STRING "")
 
 set(cortex-m0_DEFINES
     -mcpu=cortex-m0

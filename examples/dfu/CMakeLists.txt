@@ -43,7 +43,8 @@ target_compile_options(${target} PUBLIC
 
 target_compile_definitions(${target} PUBLIC
     ${USER_DEFINITIONS}
-    -DUSE_APP_CONFIG=1
+    -DUSE_APP_CONFIG
+    -DCONFIG_APP_IN_CORE
     ${${PLATFORM}_DEFINES}
     ${${SOFTDEVICE}_DEFINES}
     ${${BOARD}_DEFINES})
@@ -105,7 +106,7 @@ target_compile_options(${target} PUBLIC
 
 target_compile_definitions(${target} PUBLIC
     -DNRF_MESH_SERIAL_ENABLE=0
-    -DUSE_APP_CONFIG=1
+    -DUSE_APP_CONFIG
     ${USER_DEFINITIONS}
     ${${PLATFORM}_DEFINES}
     ${${SOFTDEVICE}_DEFINES}

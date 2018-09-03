@@ -39,12 +39,13 @@
 #error This file should only be used when unit testing or linting
 #endif
 
+
 #ifndef SDK_CONFIG_H__
 #define SDK_CONFIG_H__
 
 #define NRF_SDH_BLE_TOTAL_LINK_COUNT (1)
 #define NRF_SDH_BLE_GATT_MAX_MTU_SIZE (69)
-#define APP_TIMER_CONFIG_RTC_FREQUENCY (1)
+#define APP_TIMER_CONFIG_RTC_FREQUENCY (0)
 
 #endif /* SDK_CONFIG_H__ */
 

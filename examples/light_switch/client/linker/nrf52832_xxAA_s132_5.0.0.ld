@@ -48,6 +48,13 @@ SECTIONS
     KEEP(*(.cli_sorted_cmd_ptrs))
     PROVIDE(__stop_cli_sorted_cmd_ptrs = .);
   } > RAM
+
+  .nrf_mesh_ram :
+  {
+    PROVIDE(__start_nrf_mesh_ram = .);
+    KEEP(*(SORT(.nrf_mesh_ram.*)))
+    PROVIDE(__stop_nrf_mesh_ram = .);
+  } > RAM
 } INSERT AFTER .data;
 
 SECTIONS
@@ -113,6 +120,13 @@ SECTIONS
     PROVIDE(__start_sdh_soc_observers = .);
     KEEP(*(SORT(.sdh_soc_observers*)))
     PROVIDE(__stop_sdh_soc_observers = .);
+  } > FLASH
+
+  .nrf_mesh_flash :
+  {
+    PROVIDE(__start_nrf_mesh_flash = .);
+    KEEP(*(SORT(.nrf_mesh_flash.*)))
+    PROVIDE(__stop_nrf_mesh_flash = .);
   } > FLASH
 } INSERT AFTER .text
 

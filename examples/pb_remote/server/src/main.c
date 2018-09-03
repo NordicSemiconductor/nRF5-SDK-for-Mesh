@@ -60,6 +60,7 @@
 #include "mesh_softdevice_init.h"
 #include "mesh_provisionee.h"
 #include "nrf_mesh_config_examples.h"
+#include "nrf_mesh_configure.h"
 
 #include "app_timer.h"
 
@@ -156,6 +157,9 @@ static void start(void)
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }
+
+    const uint8_t *p_uuid = nrf_mesh_configure_device_uuid_get();
+    __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "Device UUID ", p_uuid, NRF_MESH_UUID_SIZE);
 
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);

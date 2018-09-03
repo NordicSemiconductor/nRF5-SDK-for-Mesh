@@ -473,6 +473,7 @@ void test_packet_in(void)
 
         net_state_rx_iv_index_get_ExpectAndReturn(test_vector.metadata.internal.iv_index & 0x01, test_vector.metadata.internal.iv_index);
 
+        core_tx_adv_is_enabled_ExpectAndReturn(CORE_TX_ROLE_RELAY, true);
         TEST_ASSERT_EQUAL(NRF_SUCCESS, network_packet_in(test_vector.p_encrypted_packet, test_vector.lengths.encrypted, &rx_metadata));
 
         TEST_ASSERT_EQUAL(0, m_net_secmat_get_calls_expect);
@@ -502,7 +503,7 @@ void test_packet_in(void)
         m_net_secmat_get_calls_expect = 3;
 
         net_state_rx_iv_index_get_ExpectAndReturn(test_vector.metadata.internal.iv_index & 0x01, test_vector.metadata.internal.iv_index);
-
+        core_tx_adv_is_enabled_ExpectAndReturn(CORE_TX_ROLE_RELAY, true);
         TEST_ASSERT_EQUAL(NRF_SUCCESS, network_packet_in(test_vector.p_encrypted_packet, test_vector.lengths.encrypted, &rx_metadata));
 
         TEST_ASSERT_EQUAL(0, m_net_secmat_get_calls_expect);

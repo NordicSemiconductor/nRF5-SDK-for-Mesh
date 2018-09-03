@@ -20,10 +20,10 @@ the mesh network ecosystem.
 
 These examples contain three sub-examples:
 - Light Switch Server: A minimalistic server implementing a vendor-specific
-[Simple OnOff server model](@ref md_models_simple_on_off_README) that is used to
-receive the state data and control state of the LED 1 on the board.
+[Generic OnOff server model](@ref GENERIC_ONOFF_MODEL) that is used to
+receive the state data and control the state of LED 1 on the board.
 - Light Switch Client: A minimalistic client implementing four instances of a vendor-specific
-[Simple OnOff client model](@ref md_models_simple_on_off_README).
+[Generic OnOff client model](@ref GENERIC_ONOFF_MODEL).
 When a user presses any of the buttons, an OnOff Set message is sent out to the
 configured destination address.
 - Mesh Provisioner: A simple static provisioner implementation. This provisioner provisions all
@@ -47,13 +47,12 @@ to initiate certain actions, and the LEDs (LED 1..4) are used to reflect the sta
   During provisioning process:
   - LED 1..4: Blink four times to indicate provisioning process is completed.
 
-  After provisioning and configuration is over:
-  - Buttons on the client are used to send OnOff Set messages to the servers:
-    - Button 1: Send a message to the first server (address: 0x105).
-    - Button 2: Send a message to the second server (address: 0x106).
-    - Button 3: Send a message to the odd group (address: 0xC003).
-    - Button 4: Send a message to the even group (address: 0xC002).
-  - LEDs on the client reflect the status of OnOff state of the corresponding servers (or group of servers).
+  After provisioning and configuration is over, buttons on the client are used to send OnOff Set
+  messages to the servers:
+    - Button 1: Send a message to the odd group (address: 0xC003) to turn on LED 1.
+    - Button 2: Send a message to the odd group (address: 0xC003) to turn off LED 1.
+    - Button 3: Send a message to the even group (address: 0xC002) to turn on LED 1.
+    - Button 4: Send a message to the even group (address: 0xC002) to turn off LED 1.
 
 - Server:
 
@@ -97,6 +96,10 @@ or the @link_nrf5x_cmd_line_tools_linux<!--nRF5x command line tools: https://www
 
 3. <a href="https://www.python.org/downloads/" target="_blank">Python 3</a> or <a href="https://www.python.org/downloads/" target="_blank">Python 2.7</a>.
 
+> **Important:** For Debian/Ubuntu, you must reload the udev rules after installing the nRF5x Command Line Tools:
+>
+>     $ sudo udevadm control --reload
+>     $ sudo udevadm trigger --action=add
 
 ## Flashing the example firmware @anchor qs-flashing-firmware
 
@@ -131,7 +134,7 @@ After the reset, the provisioner waits for user input. Follow these steps to see
 1. Press Button 1 on the provisioner board to start the provisioning process.
 
    The provisioner first provisions and configures the client and assigns the address 0x100 to the client
-   node. The four instances of the OnOff client models are instantiated on separate secondary elements.
+   node. The two instances of the OnOff client models are instantiated on separate secondary elements.
    Therefore, they get consecutive addresses starting with 0x101.
    After this, the provisioner picks up the available devices at random, assigns them consecutive addresses, and adds them to odd and even groups.
 
@@ -140,18 +143,22 @@ After the reset, the provisioner waits for user input. Follow these steps to see
    all available boards have been provisioned and configured.
 
    Now you can press buttons on the client board to change the state of LED 1 on the server boards.
-3. Press Button 1 on the client board to change the state of LED 1 on the first server.
-4. Press Button 2 on the client board to change the state of LED 1 on the second server.
-5. Press Button 3 (or Button 4) on the client board to change the state of LED 1 on all servers
-belonging to the odd (or even) group.
+3. Press Button 1 on the client board to turn ON LED 1 on all servers with ODD addresses.
+4. Press Button 2 on the client board to turn OFF LED 1 on all servers with ODD addresses.
+5. Press Button 3 on the client board to turn ON LED 1 on all servers with EVEN addresses.
+6. Press Button 4 on the client board to turn OFF LED 1 on all servers with EVEN addresses.
 
-  Observe that as the state of LED 1 of the entire group changes, the state of LED 1 (or LED 2)
-  on the client board also changes. This happens because the first and second servers are part
-  of odd and even groups, and they have been configured to send the status back to clients
-  whenever the value of their OnOff state gets changed.
-5. If you want to see the RTT logs printed during the provisioning and configuration process,
+7. If you want to see the RTT logs printed during the provisioning and configuration process,
  connect J-Link RTT viewer to the provisioner or client board and repeat the above steps
  starting from [Flashing the example firmware](@ref qs-flashing-firmware).
+
+8. In the client's RTT log status, observe messages sent by the servers in response to acknowledged
+Set messages. The client example sends acknowledged Set messages only to odd servers, and hence only those
+servers respond with status messages. Additionally, the provisioner enables publication for all servers,
+so that they can publish messages to their corresponding group client.
+
+9. Press Button 1 on the servers to locally change the state of LED 1 and observe that the client receives
+the status message from the corresponding server containing the new state value.
 
 
 ## More information and further reading

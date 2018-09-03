@@ -141,7 +141,7 @@ Use the `nrfutil` tool to generate the DFU archive matching your SoftDevice requ
 - For nRF52:
 
   ```
-  mesh-sdk$ nrfutil dfu genpkg --application bin/blinky/blinky_nrf52832_xxAA_s132_5.0.0.hex \
+  mesh-sdk$ nrfutil dfu genpkg --application bin/blinky/blinky_nrf52832_xxAA_s132_6.0.0.hex \
       --company-id 0x00000059 \
       --application-id 1 \
       --application-version 2 \
@@ -178,12 +178,12 @@ parameters will make the device reject the transfer, as its own firmware ID won'
 in the transfer.
 
 For example, run the following command from inside the `tools/dfu` folder to generate a device
-page hex file for an NRF52 Series device using s132 SoftDevice version 5.0.0:
+page hex file for an NRF52 Series device using s132 SoftDevice version 6.0.0:
 
 For nRF52:
 
   ```
-  dfu$ python device_page_generator.py -d nrf52832_xxAA -sd "s132_5.0.0"
+  dfu$ python device_page_generator.py -d nrf52832_xxAA -sd "s132_6.0.0"
   ```
 
 This creates a device page .hex file in the `tools\dfu\bin` folder. This file
@@ -208,10 +208,10 @@ SoftDevices for nRF51 and nRF52 are located in the `bin/softdevice` folder.
 mesh-sdk$ nrfjprog --program bin/softdevice/<SoftDevice HEX file>
 ```
 
-For example, to flash S132 SoftDevice v5.0.0, run the following command:
+For example, to flash S132 SoftDevice v6.0.0, run the following command:
 
 ```
-mesh-sdk$ nrfjprog --program bin/softdevice/s132_5.0.0/s132_nrf52_5.0.0_softdevice.hex --chiperase
+mesh-sdk$ nrfjprog --program bin/softdevice/s132_nrf52_6.0.0_softdevice.hex --chiperase
 ```
 
 ### 7. Flash the serial bootloader on all devices
@@ -249,18 +249,13 @@ To be able to do Device Firmware Updates, you must flash an application that
 supports DFU. The DFU example application can be found in `examples/dfu/`.
 
 From your build folder, flash the DFU example application HEX file matching your chip version and
-SoftDevice to your device, for example `build/examples/dfu/dfu_nrf52832_xxAA_s132_5.0.0.hex`
-if your device is an `nRF52832_xxAA` with s132 SoftDevice v5.0.0.
-
-- **IMPORTANT:** The mesh serial interface requires that some host device picks up serial packets
-to function correctly. Any devices that aren't connected to an active serial port must run a
-program without serial support. For these devices, use
-`build/examples/dfu/dfu_no_serial_<target>_<SoftDevice>.hex` instead.
+SoftDevice to your device, for example `build/examples/dfu/dfu_nrf52832_xxAA_s132_6.0.0.hex`
+if your device is an `nRF52832_xxAA` with s132 SoftDevice v6.0.0.
 
 Flash the file with the following command:
 
 ```
-mesh-sdk$ nrfjprog --program build/examples/dfu/dfu_nrf52832_xxAA_s132_5.0.0.hex
+mesh-sdk$ nrfjprog --program build/examples/dfu/dfu_nrf52832_xxAA_s132_6.0.0.hex
 ```
 
 ### 9. Flash the device page on all devices
@@ -268,7 +263,7 @@ mesh-sdk$ nrfjprog --program build/examples/dfu/dfu_nrf52832_xxAA_s132_5.0.0.hex
 Flash the device page HEX file that you generated in step 4 to the devices:
 
 ```
-mesh-sdk$ nrfjprog --program tools/dfu/bin/device_page_nrf52832_xxAA_s132_5.0.0.hex
+mesh-sdk$ nrfjprog --program tools/dfu/bin/device_page_nrf52832_xxAA_s132_6.0.0.hex
 ```
 
 Then reset the device to start the application:

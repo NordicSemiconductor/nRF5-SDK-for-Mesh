@@ -1,0 +1,13 @@
+msc {
+    hscale="2.0";
+    u [label="User"],
+    m [label="Mesh config"],
+    s [label="State owner"],
+    l [label="Change listener"],
+    b [label="Backend"];
+
+    u => m [label="mesh_config_entry_get(ID)"];
+    m => s [label="getter_callback(ID)"];
+    m <- s [label="value=5"],
+    u <- m [label="value=5"];
+}

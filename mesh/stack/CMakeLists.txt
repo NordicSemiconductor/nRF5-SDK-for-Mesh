@@ -16,8 +16,8 @@ set(lint_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/api
     ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../../examples/templates
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../models/config/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../models/health/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../models/foundation/config/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../models/foundation/health/include
     ${${SOFTDEVICE}_INCLUDE_DIRS}
     ${${PLATFORM}_INCLUDE_DIRS}
     ${${nRF5_SDK_VERSION}_INCLUDE_DIRS})

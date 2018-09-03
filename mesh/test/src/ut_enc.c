@@ -40,7 +40,6 @@
 #include <unity.h>
 
 #include "enc.h"
-#include "nordic_common.h"
 #include "packet.h"
 #include "utils.h"
 

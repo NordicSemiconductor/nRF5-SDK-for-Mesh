@@ -40,6 +40,7 @@
 
 #include <stdint.h>
 #include "ble_gap.h"
+#include "app_util.h"
 
 /**
  * @defgroup MESH_ADV Mesh application advertisement interface
@@ -60,8 +61,13 @@
 /** Tag used to set up Mesh GATT parameters. */
 #define MESH_SOFTDEVICE_CONN_CFG_TAG (1)
 
-/** Default advertisement interval used by the mesh stack. */
-#define MESH_ADV_INTERVAL_DEFAULT (BLE_GAP_ADV_INTERVAL_MIN)
+/**
+ * Default advertisement interval used by the mesh stack.
+ *
+ * @warning If the advertisement interval is set below 200 ms, the mesh will not be able to
+ * allocate sufficiently large timeslots from the SoftDevice for its persistent backend.
+ */
+#define MESH_ADV_INTERVAL_DEFAULT (MSEC_TO_UNITS(200, UNIT_0_625_MS))
 /** Advertise indefinitely. */
 #define MESH_ADV_TIMEOUT_INFINITE  (BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED)
 

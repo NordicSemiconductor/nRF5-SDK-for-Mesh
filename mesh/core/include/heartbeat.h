@@ -118,8 +118,6 @@ typedef struct
 /** Heartbeat publication information state */
 typedef struct
 {
-    /** Heartbeat publication state data */
-    const heartbeat_publication_state_t * p_publication;
     /** Local address */
     uint16_t    local_address;
     /** Pointer to valid network security material */
@@ -145,17 +143,15 @@ typedef struct
 } heartbeat_subscription_state_t;
 
 /** Function type to fetch publication parameters for the heartbeat. */
-typedef uint32_t (*heartbeat_publication_params_get_cb_t)(heartbeat_publication_information_t * p_pub_info);
-
-/** Function type to decrement the heartbeat publication counter value. */
-typedef void (*heartbeat_publication_count_decrement_cb_t)(void);
+typedef uint32_t (* hb_pub_info_getter_t)(heartbeat_publication_information_t * p_pub_info);
 
 /**
- * Provides the unicast address of the current node to the heartbeat module.
+ * Registers the function which requests the necessary information for publication
+ * outside heartbeat handler.
  *
- * @param[in]   address     Unicast address of this node.
+ * @param[in]   p_getter  Pointer to get a publication information.
  */
-void heartbeat_local_address_set(uint16_t address);
+void heartbeat_public_info_getter_register(hb_pub_info_getter_t p_getter);
 
 /**
  * Initializes the heartbeat module.
@@ -166,20 +162,10 @@ void heartbeat_local_address_set(uint16_t address);
 void heartbeat_init(void);
 
 /**
- * Sets the value of internal heartbeat publication state.
- *
- * @param[in]   p_hb_pub    Pointer to strucutre holding heartbeat publication state.
- *
- * @retval      NRF_SUCCESS             If the internal state has been updated successfully
- * @retval      NRF_ERROR_INVALID_PARAM If an invalid netkey index is provided
- */
-uint32_t heartbeat_publication_set(const heartbeat_publication_state_t * p_hb_pub);
-
-/**
  * Gets the value of the internal heartbeat publication state.
  * @returns Returns a pointer to the heartbeat publication state.
  */
-const heartbeat_publication_state_t * heartbeat_publication_get(void);
+heartbeat_publication_state_t * heartbeat_publication_get(void);
 
 /**
  * Sets the value of internal heartbeat subscription state.
@@ -197,33 +183,6 @@ uint32_t heartbeat_subscription_set(const heartbeat_subscription_state_t * p_hb_
  * @returns Returns a pointer to the heartbeat publication state.
  */
 const heartbeat_subscription_state_t * heartbeat_subscription_get(void);
-
-
-/**
- * Triggers the heartbeat message when a particular feature is turned on or off.
- *
- * This function should always be called when the state of a feature is changed.
- * The Heartbeat module will decide whether to trigger the heartbeat based on the configuration of the
- * heartbeat_publication state.
- *
- * @note The heartbeat message will not be sent out immediately when this function is called.
- *       This delay is to prevent problems when the function is called from config server
- *       message handlers. The message will be sent following the next TX_COMPLETE event, at which
- *       point the current state information will be sent.
- *
- *  @param[in]  hb_trigger      Bitmask of the features that caused the heartbeat to trigger.
- *
- */
-void heartbeat_on_feature_change_trigger(uint16_t hb_trigger);
-
-/**
- * Sets the callback functions used to communicate with the config server.
- *
- * @param[in]  p_cb          Pointer to the function for retrieving the publication information.
- * @param[in]  p_pub_cnt_cb  Pointer to the function that decrements heartbeat publication count.
- */
-void heartbeat_config_server_cb_set(heartbeat_publication_params_get_cb_t p_cb,
-                                    heartbeat_publication_count_decrement_cb_t p_pub_cnt_cb);
 
 /**
  * Notifies the heartbeat module about changes in the heartbeat publication state.

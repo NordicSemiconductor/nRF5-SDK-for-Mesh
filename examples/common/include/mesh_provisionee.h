@@ -105,6 +105,14 @@ typedef struct
 uint32_t mesh_provisionee_prov_start(const mesh_provisionee_start_params_t * p_start_params);
 
 /**
+ * Stops listening for incoming provisioning links.
+ *
+ * @retval NRF_ERROR_INVALID_STATE The provisionee is not currently listening.
+ * @retval NRF_SUCCESS             Successfully stopped listening.
+ */
+uint32_t mesh_provisionee_prov_listen_stop(void);
+
+/**
  * @}
  */
 

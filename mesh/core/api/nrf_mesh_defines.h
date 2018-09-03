@@ -61,14 +61,11 @@
  * @{
  */
 
-/** Maximum possible segmented payload size. */
+/** Maximum possible segmented payload size (octets). */
 #define NRF_MESH_SEG_PAYLOAD_SIZE_MAX (380)
 
-/** Maximum possible single segment payload size. */
+/** Maximum useful access unsegmented payload size (octets). */
 #define NRF_MESH_UNSEG_PAYLOAD_SIZE_MAX (11)
-
-/** Size of a single segment in a segmented transfer. */
-#define NRF_MESH_SEG_SIZE (12)
 
 /** All advertisement channels */
 #define NRF_MESH_ADV_CHAN_ALL {37, 38, 39}
@@ -165,6 +162,9 @@
 
 /** Maximum allowed number of 10 ms steps for the interval between relayed packet retranmissions. */
 #define NETWORK_RELAY_INTERVAL_STEPS_MAX ((1 << 5) - 1)
+
+/** Maximum allowed relay interval in milliseconds. */
+#define NETWORK_RELAY_INTERVAL_MAX_MS (NETWORK_RELAY_INTERVAL_STEPS_MAX * 10)
 
 /** The minimum time between IV updates, in minutes. */
 #define NETWORK_MIN_IV_UPDATE_INTERVAL_MINUTES (96 * 60)

@@ -41,7 +41,6 @@
 
 #include "log.h"
 #include "nrf_mesh.h"
-#include "enc.h"
 
 #include "nrf_mesh_assert.h"
 #include "nrf_mesh_config_prov.h"

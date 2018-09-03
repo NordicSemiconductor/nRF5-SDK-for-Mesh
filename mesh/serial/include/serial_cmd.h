@@ -66,6 +66,9 @@
 #define SERIAL_OPCODE_CMD_DEVICE_BEACON_STOP                  (0x11) /**< Params: @ref serial_cmd_device_beacon_stop_t */
 #define SERIAL_OPCODE_CMD_DEVICE_BEACON_PARAMS_SET            (0x12) /**< Params: @ref serial_cmd_device_beacon_params_set_t */
 #define SERIAL_OPCODE_CMD_DEVICE_BEACON_PARAMS_GET            (0x13) /**< Params: @ref serial_cmd_device_beacon_params_get_t */
+#define SERIAL_OPCODE_CMD_DEVICE_HOUSEKEEPING_DATA_GET        (0x14) /**< Params: None. */
+#define SERIAL_OPCODE_CMD_DEVICE_HOUSEKEEPING_DATA_CLEAR      (0x15) /**< Params: None. */
+
 #define SERIAL_OPCODE_CMD_RANGE_DEVICE_END                    (0x1F) /**< DEVICE range end. */
 
 #define SERIAL_OPCODE_CMD_RANGE_APP_START                     (0x20) /**< APP range start. */

@@ -127,20 +127,7 @@ static void serial_process_cmd(void * p_context __attribute((unused)))
         if (!handled)
         {
             __LOG(LOG_SRC_SERIAL, LOG_LEVEL_WARN, "No handler for 0x%02x\n", packet_in.opcode);
-            serial_packet_t * p_rsp;
-            /* Should not fail: */
-            uint32_t err_code = serial_packet_buffer_get(SERIAL_EVT_CMD_RSP_LEN_OVERHEAD, &p_rsp);
-            if (NRF_SUCCESS != err_code)
-            {
-                __LOG(LOG_SRC_SERIAL, LOG_LEVEL_ERROR, "Unable to get a serial packet buffer, error_code: %u\n", err_code);
-            }
-            else
-            {
-                p_rsp->opcode = SERIAL_OPCODE_EVT_CMD_RSP;
-                p_rsp->payload.evt.cmd_rsp.opcode = packet_in.opcode;
-                p_rsp->payload.evt.cmd_rsp.status = SERIAL_STATUS_ERROR_CMD_UNKNOWN;
-                serial_tx(p_rsp);
-            }
+            serial_cmd_rsp_send(packet_in.opcode, SERIAL_STATUS_ERROR_CMD_UNKNOWN, NULL, 0);
         }
     }
 }
@@ -193,9 +180,21 @@ uint32_t serial_packet_buffer_get(uint16_t packet_len, serial_packet_t ** pp_pac
     {
         return NRF_ERROR_INVALID_STATE;
     }
-    else
+
+    uint32_t status = serial_bearer_packet_buffer_get(packet_len, pp_packet);
+    switch (status)
     {
-        return serial_bearer_blocking_buffer_get(packet_len, pp_packet);
+        case NRF_ERROR_INVALID_LENGTH:
+        case NRF_ERROR_NO_MEM:
+            serial_handler_device_alloc_fail_report();
+            return status;
+
+        case NRF_SUCCESS:
+            return status;
+
+        default:
+            NRF_MESH_ASSERT(false);
+            return status;
     }
 }
 

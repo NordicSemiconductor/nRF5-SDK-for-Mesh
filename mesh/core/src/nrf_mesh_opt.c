@@ -43,7 +43,7 @@
 #include "log.h"
 #include "utils.h"
 
-uint32_t nrf_mesh_opt_set(nrf_mesh_opt_id_t id, const nrf_mesh_opt_t * const p_opt)
+uint32_t  nrf_mesh_opt_set(nrf_mesh_opt_id_t id, const nrf_mesh_opt_t * const p_opt)
 {
     if (NRF_MESH_OPT_PROV_START <= id && id < NRF_MESH_OPT_TRS_START)
     {

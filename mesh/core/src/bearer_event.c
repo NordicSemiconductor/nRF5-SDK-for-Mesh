@@ -154,17 +154,6 @@ void EVENT_IRQHandler(void)
 * Static functions
 *****************************************************************************/
 
-/* Gets the current IRQ handler, or 0 if no IRQ is active. */
-static inline IRQn_Type active_irq_get(void)
-{
-#if defined(HOST)
-    return Reset_IRQn; /* Fallback for other platforms. */
-#else
-    return (IRQn_Type) (((SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) >> SCB_ICSR_VECTACTIVE_Pos) - 16);
-#endif
-}
-
-
 static void trigger_event_handler(void)
 {
 #if defined(HOST)
@@ -439,13 +428,14 @@ bool bearer_event_handler(void)
 
 bool bearer_event_in_correct_irq_priority(void)
 {
-    IRQn_Type active_irq = active_irq_get();
-    if (active_irq == 0)
+    volatile IRQn_Type active_irq = hal_irq_active_get();
+    if (active_irq == HAL_IRQn_NONE)
     {
-        return (m_irq_priority == NRF_MESH_IRQ_PRIORITY_THREAD);
+        return (m_irq_priority == NRF_MESH_IRQ_PRIORITY_THREAD || !hal_irq_is_enabled(EVENT_IRQn));
     }
     else
     {
-        return (NVIC_GetPriority(active_irq) == m_irq_priority);
+        volatile uint32_t prio = NVIC_GetPriority(active_irq);
+        return (prio == m_irq_priority || (prio > m_irq_priority && !hal_irq_is_enabled(EVENT_IRQn)));
     }
 }

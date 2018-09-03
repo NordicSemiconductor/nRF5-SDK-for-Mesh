@@ -81,7 +81,7 @@ extern void mesh_assertion_handler(uint32_t pc);
  * Debug assertions are only run if the stack is compiled in debug mode.
  */
 #ifdef NDEBUG /* The NDEBUG define is added automatically when compiling in release mode. */
-    #define NRF_MESH_ASSERT_DEBUG(cond) (void) cond
+    #define NRF_MESH_ASSERT_DEBUG(cond) (void) (cond)
 #else
     #define NRF_MESH_ASSERT_DEBUG(cond) NRF_MESH_ASSERT(cond)
 #endif

@@ -21,8 +21,8 @@ set(lint_include_dirs
     ${CMAKE_SOURCE_DIR}/mesh/bearer/include
     ${CMAKE_SOURCE_DIR}/mesh/dfu/api
     ${CMAKE_SOURCE_DIR}/mesh/dfu/include
-    ${CMAKE_SOURCE_DIR}/models/config/include
-    ${CMAKE_SOURCE_DIR}/models/health/include
+    ${CMAKE_SOURCE_DIR}/models/foundation/config/include
+    ${CMAKE_SOURCE_DIR}/models/foundation/health/include
     ${CMAKE_SOURCE_DIR}/external/rtt/include
     ${CMAKE_SOURCE_DIR}/examples/templates
     ${SDK_ROOT}/components/libraries/util

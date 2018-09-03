@@ -63,6 +63,12 @@
 
 /*lint -align_max(push) -align_max(1) */
 
+/** Serial interface housekeeping data. */
+typedef struct __attribute((packed))
+{
+    uint32_t alloc_fail_count;  /**< Number of failed serial packet allocations. */
+} serial_evt_cmd_rsp_data_housekeeping_t;
+
 /** Subnetwork access response data */
 typedef struct __attribute((packed))
 {
@@ -295,6 +301,7 @@ typedef struct __attribute((packed))
     uint8_t status; /**< Return status of the serial command. */
     union __attribute((packed))
     {
+        serial_evt_cmd_rsp_data_housekeeping_t         hk_data;        /**< Housekeeping data response. */
         serial_evt_cmd_rsp_data_subnet_t               subnet;         /**< Subnet response. */
         serial_evt_cmd_rsp_data_subnet_list_t          subnet_list;    /**< List of all subnet key indexes. */
         serial_evt_cmd_rsp_data_appkey_t               appkey;         /**< Appkey response. */

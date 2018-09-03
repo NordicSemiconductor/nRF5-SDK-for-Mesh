@@ -39,7 +39,7 @@
 #include <cmock.h>
 #include <string.h>
 
-#include "nordic_common.h"
+#include "utils.h"
 #include "test_assert.h"
 
 #include "log.h"
@@ -756,6 +756,39 @@ void test_model_add(void)
     init_params.element_index = ACCESS_ELEMENT_COUNT - 1;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_add(&init_params, &handle));
     TEST_ASSERT_EQUAL(ACCESS_MODEL_COUNT-1, handle);
+}
+
+void test_access_model_element_index_get(void)
+{
+    access_model_handle_t handle;
+    access_model_add_params_t init_params;
+    uint16_t element_idx;
+
+    for (uint32_t i = 0; i < OPCODE_COUNT; ++i)
+    {
+        m_opcode_handlers[0][i].opcode.opcode = i + ACCESS_MODEL_COUNT;
+        m_opcode_handlers[0][i].opcode.company_id = ACCESS_COMPANY_ID_NONE;
+    }
+
+    init_params.element_index = ACCESS_ELEMENT_COUNT-1;
+    init_params.model_id.model_id = TEST_MODEL_ID;
+    init_params.model_id.company_id = ACCESS_COMPANY_ID_NONE;
+    init_params.p_opcode_handlers = &m_opcode_handlers[0][0];
+    init_params.opcode_count = OPCODE_COUNT;
+    init_params.p_args = TEST_REFERENCE;
+    init_params.publish_timeout_cb = NULL;
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_add(&init_params, &handle));
+
+    /* Test null input */
+    TEST_ASSERT_EQUAL(NRF_ERROR_NULL, access_model_element_index_get(handle, NULL));
+
+    /* Test invalid model handle */
+    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, access_model_element_index_get(handle + 1, &element_idx));
+
+    /* Test correct behaviour */
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_element_index_get(handle, &element_idx));
+    TEST_ASSERT_EQUAL(init_params.element_index, element_idx);
 }
 
 void test_rx_tx(void)

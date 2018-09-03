@@ -49,7 +49,6 @@
 #include "rand.h"
 #include "log.h"
 
-
 typedef enum
 {
     PROV_STATE_IDLE,
@@ -64,6 +63,7 @@ static uint8_t m_private_key[NRF_MESH_PROV_PRIVKEY_SIZE];
 static nrf_mesh_prov_bearer_adv_t m_prov_bearer_adv;
 static nrf_mesh_prov_ctx_t m_prov_ctx;
 static prov_helper_uuid_filter_t * mp_expected_uuid;
+static uint8_t * mp_current_uuid;
 
 static prov_state_t m_prov_state;
 static uint8_t      m_retry_cnt;
@@ -79,18 +79,18 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt);
 
 /* Compare the given UUID with the predefined filter. If filter is undefined, this function
 will always return true */
-static bool uuid_filter_compare(const uint8_t *p_in_uuid)
+bool uuid_filter_compare(const uint8_t *p_in_uuid, const prov_helper_uuid_filter_t * p_expected_uuid)
 {
-    if (mp_expected_uuid->p_uuid == NULL || mp_expected_uuid->length == 0)
+    if (p_expected_uuid->p_uuid == NULL || p_expected_uuid->length == 0)
     {
         __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Any UUID accepted\n");
         return true;
     }
-    NRF_MESH_ASSERT(mp_expected_uuid->length <= NRF_MESH_UUID_SIZE);
+    NRF_MESH_ASSERT(p_expected_uuid->length <= NRF_MESH_UUID_SIZE);
 
-    for (uint8_t i = 0; i <= (NRF_MESH_UUID_SIZE - mp_expected_uuid->length); i++)
+    for (uint8_t i = 0; i <= (NRF_MESH_UUID_SIZE - p_expected_uuid->length); i++)
     {
-        if (memcmp(&p_in_uuid[i], mp_expected_uuid->p_uuid, mp_expected_uuid->length) == 0)
+        if (memcmp(&p_in_uuid[i], p_expected_uuid->p_uuid, p_expected_uuid->length) == 0)
         {
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "UUID filter matched\n");
             return true;
@@ -112,7 +112,6 @@ static void start_provisioning(const uint8_t * p_uuid)
         };
     memcpy(prov_data.netkey, m_provisioner.p_nw_data->netkey, NRF_MESH_KEY_SIZE);
     ERROR_CHECK(nrf_mesh_prov_provision(&m_prov_ctx, p_uuid, &prov_data, NRF_MESH_PROV_BEARER_ADV));
-    m_prov_state = PROV_STATE_PROV;
 }
 
 static void prov_helper_provisioner_init(void)
@@ -142,9 +141,14 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
             {
 
                 __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "UUID seen", p_evt->params.unprov.device_uuid, NRF_MESH_UUID_SIZE);
-                if (!uuid_filter_compare(p_evt->params.unprov.device_uuid))
+                if (!uuid_filter_compare(p_evt->params.unprov.device_uuid, mp_expected_uuid))
                 {
                     break;
+                }
+
+                if (mp_current_uuid != NULL)
+                {
+                    memcpy(mp_current_uuid, p_evt->params.unprov.device_uuid, NRF_MESH_UUID_SIZE);
                 }
                 start_provisioning(p_evt->params.unprov.device_uuid);
                 m_prov_state = PROV_STATE_PROV;
@@ -181,7 +185,7 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
                       m_provisioner.p_nw_data->last_device_address, m_target_elements);
 
                 node_setup_start(m_provisioner.p_nw_data->last_device_address, PROVISIONER_RETRY_COUNT,
-                m_provisioner.p_nw_data->appkey, APPKEY_INDEX);
+                m_provisioner.p_nw_data->appkey, APPKEY_INDEX, mp_current_uuid);
                 m_prov_state = PROV_STATE_IDLE;
 
             }
@@ -265,14 +269,16 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
 
 }
 
-void prov_helper_provision_next_device(uint8_t retry_cnt, uint16_t address, prov_helper_uuid_filter_t * p_uuid_filter)
+void prov_helper_provision_next_device(uint8_t retry_cnt, uint16_t address, prov_helper_uuid_filter_t * p_uuid_filter,
+                                       uint8_t * p_current_uuid)
 {
     m_retry_cnt = retry_cnt;
     m_target_address = address;
     m_prov_state = PROV_STATE_WAIT;
 
     NRF_MESH_ASSERT(p_uuid_filter->length <= NRF_MESH_UUID_SIZE);
-    mp_expected_uuid= p_uuid_filter;
+    mp_expected_uuid = p_uuid_filter;
+    mp_current_uuid = p_current_uuid;
 
     prov_helper_provisioner_init();
 }

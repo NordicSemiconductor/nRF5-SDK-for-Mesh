@@ -99,6 +99,18 @@ typedef enum
 uint32_t nrf_mesh_dfu_init(void);
 
 /**
+ * Enable the DFU module in the Bootloader.
+ *
+ * @note This function is called from nrf_mesh_enable()
+ *
+ * @retval NRF_SUCCESS The DFU app successfully sent a msg to bootloader to enable DFU.
+ * @retval NRF_ERROR_NOT_SUPPORTED The dfu functionality is not available.
+ * @retval NRF_ERROR_* The given command did not succeed. The meaning of each
+ * error code depends on the command.
+ */
+uint32_t nrf_mesh_dfu_enable(void);
+
+/**
 * Manually trigger the bootloader. The device will be reset immediately, and
 * may not be available for regular operation for several minutes. If
 * successful, this function does not return.

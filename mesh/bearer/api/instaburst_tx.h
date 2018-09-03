@@ -191,6 +191,15 @@ void instaburst_tx_enable(instaburst_tx_t * p_instaburst);
 void instaburst_tx_disable(instaburst_tx_t * p_instaburst);
 
 /**
+ * Checks if the Instaburst instance is enabled.
+ *
+ * @param[in] p_instaburst Instaburst instance pointer.
+ *
+ * @returns @c true if the Instaburst instance is enabled (scheduled), @c false otherwise.
+ */
+bool instaburst_tx_is_enabled(const instaburst_tx_t * p_instaburst);
+
+/**
  * Allocates a buffer for transmission.
  *
  * @warning Only one buffer can be allocated at a time. To allocate a second buffer, free or discard
@@ -259,12 +268,36 @@ void instaburst_tx_buffer_lock(bool lock);
 void instaburst_tx_interval_set(instaburst_tx_t * p_instaburst, uint32_t interval_ms);
 
 /**
+ * Gets the TX interval for the given Instaburst instance.
+ *
+ * @param[in] p_instaburst Instaburst instance pointer.
+ *
+ * @returns the current TX interval in milliseconds.
+ */
+static inline uint32_t instaburst_tx_interval_get(const instaburst_tx_t * p_instaburst)
+{
+    return p_instaburst->config.interval_ms;
+}
+
+/**
  * Sets the TX power for the given Instaburst instance.
  *
  * @param[in,out] p_instaburst Instaburst instance to configure.
  * @param[in] tx_power New TX power.
  */
 void instaburst_tx_tx_power_set(instaburst_tx_t * p_instaburst, radio_tx_power_t tx_power);
+
+/**
+ * Gets the TX power for the given Instaburst instance.
+ *
+ * @param[in] p_instaburst Instaburst instance pointer.
+ *
+ * @returns the current TX power.
+ */
+static inline radio_tx_power_t instaburst_tx_tx_power_get(const instaburst_tx_t * p_instaburst)
+{
+    return p_instaburst->config.tx_power;
+}
 
 /** @} */
 

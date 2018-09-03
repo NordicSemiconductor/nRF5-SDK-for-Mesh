@@ -1,0 +1,34 @@
+msc {
+    hscale = "1.5";
+    p[label="Provisioner"], n[label="Node 1"], n2[label="Node 2"];
+
+    |||;
+    n rbox n[label="Unprovisioned"], n2 rbox n2[label="Already provisioned"];
+    |||;
+
+    n -> p [label="Unprovisioned beacon (ADV_NONCONN)"];
+    n -> p [label="Unprovisioned beacon (ADV_IND)"];
+
+    ...;
+
+    p -> n[label="CONN_REQ"];
+    |||;
+    p rbox n[label="Provisioning process"];
+    |||;
+
+    p abox n[label="Disconnect"];
+    n note n[label="\nThe device resets its GATT database, removing the Provisioning service and replacing it with the Proxy service.\n"];
+    n -> p [label="Node Identity (ADV_IND)"];
+    n note n[label="\nIf the provisioner does not connect within 60 s, the device starts advertising the Network Identity instead."];
+    p -> n[label="CONN_REQ"];
+    p -> n[label="Composition Data Get"];
+    n -> p[label="Composition Data Status"];
+    p -> n[label="App Key Add"];
+    n -> p[label="App Key Status"];
+
+    p note n2[label="The provisioner may commuticate with Node 2, using Node 1 as a bridge."];
+    p -> n[label="Composition Data Get (destination: Node 2)"], n -> n2[label="Relayed over the ADV bearer"];
+    n2 -> n[label="Composition Data Status (destination: provisioner)"], n -> p[label="Relayed over the GATT bearer"];
+    p abox n[label="Disconnect"];
+    n -> p [label="Network ID"];
+}

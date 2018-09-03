@@ -81,6 +81,27 @@ extern nrf_nvic_state_t nrf_nvic_state;
 
 typedef void (*execution_start_cb_t)(void);
 
+#if defined S140
+#include "nrf_soc.h"
+/**
+ * Checks the current interrupt priority of the softdevice event interrupt.
+ * In case the priority is not the lowest one the assertion is generated.
+ *
+ * @note The function is required only for S140 v6.0.0
+ *       since it has the priority issue at the moment
+ */
+static inline void softdevice_irq_priority_checker(void)
+{
+    uint32_t priority = 0ul;
+
+    ERROR_CHECK(sd_nvic_GetPriority(SD_EVT_IRQn, &priority));
+    if (priority != NRF_MESH_IRQ_PRIORITY_LOWEST)
+    {
+        ERROR_CHECK(NRF_ERROR_INTERNAL);
+    }
+}
+#endif
+
 /**
  * Run function for starting dynamic behavior.
  *

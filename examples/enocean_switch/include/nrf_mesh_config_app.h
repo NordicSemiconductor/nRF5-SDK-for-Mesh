@@ -47,6 +47,17 @@
  */
 
 /**
+ * @defgroup MODEL_CONFIG Model layer configuration parameters
+ */
+
+/** Acknowledged message transaction timeout
+ * @note Mesh Profile Specification v1.0 recommends this to be minimum 60s.
+ */
+#define MODEL_ACKNOWLEDGED_TRANSACTION_TIMEOUT  (SEC_TO_US(10))
+
+/** @} end of MODEL_CONFIG */
+
+/**
  * @defgroup DEVICE_CONFIG Device configuration
  *
  * @{
@@ -82,7 +93,7 @@
  * @note This value has to be greater than two to fit the configuration and health models,
  * plus the number of models needed by the application.
  */
-#define ACCESS_MODEL_COUNT (6)
+#define ACCESS_MODEL_COUNT (4)
 
 /**
  * The number of elements in the application.
@@ -90,7 +101,7 @@
  * @warning If the application is to support multiple _instances_ of the _same_ model, they cannot
  * belong in the same element and a separate element is needed for the new instance.
  */
-#define ACCESS_ELEMENT_COUNT (5)
+#define ACCESS_ELEMENT_COUNT (3)
 
 /**
  * The number of allocated subscription lists for the application.
@@ -137,7 +148,6 @@
 /** Number of flash pages reserved for the DSM storage */
 #define DSM_FLASH_PAGE_COUNT                            (1)
 /** @} end of DSM_CONFIG */
-
 
 /** @} */
 

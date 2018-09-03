@@ -87,3 +87,6 @@ Ruby is used by the mocking framework @link_cmock. Install it with:
 
     $ sudo apt-get install ruby
 
+If the GCC compiler is used, a code coverage report can be generated. This requires `lcov`. Install it with:
+
+    $ sudo apt-get install lcov

@@ -79,126 +79,181 @@ static uint8_t find_context_id(const nrf_mesh_prov_ctx_t * p_ctx)
 static void serial_handler_prov_evt_in(const nrf_mesh_prov_evt_t * p_evt)
 {
     serial_packet_t * p_packet;
-
+    uint32_t status;
     switch (p_evt->type)
     {
         case NRF_MESH_PROV_EVT_UNPROVISIONED_RECEIVED:
             if (m_scanning_running)
             {
-                NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_unprov_t), &p_packet));
-                p_packet->opcode = SERIAL_OPCODE_EVT_PROV_UNPROVISIONED_RECEIVED;
-                serial_evt_prov_unprov_t * p_unprov = &p_packet->payload.evt.prov.unprov;
-                memcpy(p_unprov->uuid, p_evt->params.unprov.device_uuid, NRF_MESH_UUID_SIZE);
-                p_unprov->rssi = p_evt->params.unprov.p_metadata->params.scanner.rssi;
-                p_unprov->gatt_supported = p_evt->params.unprov.gatt_supported;
-                p_unprov->adv_addr_type = p_evt->params.unprov.p_metadata->params.scanner.adv_addr.addr_type;
-                memcpy(p_unprov->adv_addr, p_evt->params.unprov.p_metadata->params.scanner.adv_addr.addr, BLE_GAP_ADDR_LEN);
-                serial_tx(p_packet);
+                status = serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_unprov_t), &p_packet);
+                if (status == NRF_SUCCESS)
+                {
+                    p_packet->opcode = SERIAL_OPCODE_EVT_PROV_UNPROVISIONED_RECEIVED;
+                    serial_evt_prov_unprov_t * p_unprov = &p_packet->payload.evt.prov.unprov;
+                    memcpy(p_unprov->uuid, p_evt->params.unprov.device_uuid, NRF_MESH_UUID_SIZE);
+                    p_unprov->rssi = p_evt->params.unprov.p_metadata->params.scanner.rssi;
+                    p_unprov->gatt_supported = p_evt->params.unprov.gatt_supported;
+                    p_unprov->adv_addr_type = p_evt->params.unprov.p_metadata->params.scanner.adv_addr.addr_type;
+                    memcpy(p_unprov->adv_addr, p_evt->params.unprov.p_metadata->params.scanner.adv_addr.addr, BLE_GAP_ADDR_LEN);
+                    serial_tx(p_packet);
+                }
             }
             break;
         case NRF_MESH_PROV_EVT_LINK_ESTABLISHED:
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_link_established_t), &p_packet));
-            p_packet->opcode = SERIAL_OPCODE_EVT_PROV_LINK_ESTABLISHED;
-            p_packet->payload.evt.prov.link_established.context_id = find_context_id(p_evt->params.link_established.p_context);
-            serial_tx(p_packet);
+            status = serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_link_established_t), &p_packet);
+            if (status == NRF_SUCCESS)
+            {
+                p_packet->opcode = SERIAL_OPCODE_EVT_PROV_LINK_ESTABLISHED;
+                p_packet->payload.evt.prov.link_established.context_id = find_context_id(p_evt->params.link_established.p_context);
+                serial_tx(p_packet);
+            }
             break;
         case NRF_MESH_PROV_EVT_LINK_CLOSED:
         {
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_link_closed_t), &p_packet));
-            p_packet->opcode = SERIAL_OPCODE_EVT_PROV_LINK_CLOSED;
-            serial_evt_prov_link_closed_t * p_link_closed = &p_packet->payload.evt.prov.link_closed;
-            p_link_closed->context_id = find_context_id(p_evt->params.link_closed.p_context);
-            p_link_closed->close_reason = p_evt->params.link_closed.close_reason;
-            serial_tx(p_packet);
+            status = serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_link_closed_t), &p_packet);
+            if (status == NRF_SUCCESS)
+            {
+                p_packet->opcode = SERIAL_OPCODE_EVT_PROV_LINK_CLOSED;
+                serial_evt_prov_link_closed_t * p_link_closed = &p_packet->payload.evt.prov.link_closed;
+                p_link_closed->context_id = find_context_id(p_evt->params.link_closed.p_context);
+                p_link_closed->close_reason = p_evt->params.link_closed.close_reason;
+                serial_tx(p_packet);
+            }
             break;
         }
         case NRF_MESH_PROV_EVT_CAPS_RECEIVED:
         {
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_caps_received_t), &p_packet));
-            p_packet->opcode = SERIAL_OPCODE_EVT_PROV_CAPS_RECEIVED;
-            serial_evt_prov_caps_received_t * p_caps_received = &p_packet->payload.evt.prov.caps_received;
-            p_caps_received->context_id         = find_context_id(p_evt->params.oob_caps_received.p_context);
-            p_caps_received->num_elements       = p_evt->params.oob_caps_received.oob_caps.num_elements;
-            p_caps_received->public_key_type    = p_evt->params.oob_caps_received.oob_caps.pubkey_type;
-            p_caps_received->static_oob_types   = p_evt->params.oob_caps_received.oob_caps.oob_static_types;
-            p_caps_received->output_oob_size    = p_evt->params.oob_caps_received.oob_caps.oob_output_size;
-            p_caps_received->output_oob_actions = p_evt->params.oob_caps_received.oob_caps.oob_output_actions;
-            p_caps_received->input_oob_size     = p_evt->params.oob_caps_received.oob_caps.oob_input_size;
-            p_caps_received->input_oob_actions  = p_evt->params.oob_caps_received.oob_caps.oob_input_actions;
-            serial_tx(p_packet);
+            status = serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_caps_received_t), &p_packet);
+            if (status == NRF_SUCCESS)
+            {
+                p_packet->opcode = SERIAL_OPCODE_EVT_PROV_CAPS_RECEIVED;
+                serial_evt_prov_caps_received_t * p_caps_received = &p_packet->payload.evt.prov.caps_received;
+                p_caps_received->context_id         = find_context_id(p_evt->params.oob_caps_received.p_context);
+                p_caps_received->num_elements       = p_evt->params.oob_caps_received.oob_caps.num_elements;
+                p_caps_received->public_key_type    = p_evt->params.oob_caps_received.oob_caps.pubkey_type;
+                p_caps_received->static_oob_types   = p_evt->params.oob_caps_received.oob_caps.oob_static_types;
+                p_caps_received->output_oob_size    = p_evt->params.oob_caps_received.oob_caps.oob_output_size;
+                p_caps_received->output_oob_actions = p_evt->params.oob_caps_received.oob_caps.oob_output_actions;
+                p_caps_received->input_oob_size     = p_evt->params.oob_caps_received.oob_caps.oob_input_size;
+                p_caps_received->input_oob_actions  = p_evt->params.oob_caps_received.oob_caps.oob_input_actions;
+                serial_tx(p_packet);
+            }
+            break;
+        }
+        case NRF_MESH_PROV_EVT_INVITE_RECEIVED:
+        {
+            status = serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_invite_received_t), &p_packet);
+            if (status == NRF_SUCCESS)
+            {
+                p_packet->opcode = SERIAL_OPCODE_EVT_PROV_INVITE_RECEIVED;
+                serial_evt_prov_invite_received_t * p_invite_received = &p_packet->payload.evt.prov.invite_received;
+                p_invite_received->context_id = find_context_id(p_evt->params.invite_received.p_context);
+                p_invite_received->attention_duration_s = p_evt->params.invite_received.attention_duration_s;
+                serial_tx(p_packet);
+            }
+            break;
+        }
+        case NRF_MESH_PROV_EVT_START_RECEIVED:
+        {
+            status = serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_start_received_t), &p_packet);
+            if (status == NRF_SUCCESS)
+            {
+                p_packet->opcode = SERIAL_OPCODE_EVT_PROV_START_RECEIVED;
+                serial_evt_prov_start_received_t * p_start_received = &p_packet->payload.evt.prov.start_received;
+                p_start_received->context_id = find_context_id(p_evt->params.start_received.p_context);
+                serial_tx(p_packet);
+            }
             break;
         }
         case NRF_MESH_PROV_EVT_COMPLETE:
         {
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_complete_t), &p_packet));
-            p_packet->opcode = SERIAL_OPCODE_EVT_PROV_COMPLETE;
-            serial_evt_prov_complete_t * p_prov_complete = &p_packet->payload.evt.prov.complete;
-            p_prov_complete->context_id = find_context_id(p_evt->params.complete.p_context);
-            p_prov_complete->iv_index = p_evt->params.complete.p_prov_data->iv_index;
-            p_prov_complete->address = p_evt->params.complete.p_prov_data->address;
-            p_prov_complete->net_key_index = p_evt->params.complete.p_prov_data->netkey_index;
-            p_prov_complete->iv_update_flag = p_evt->params.complete.p_prov_data->flags.iv_update;
-            p_prov_complete->key_refresh_flag = p_evt->params.complete.p_prov_data->flags.key_refresh;
-            memcpy(p_prov_complete->device_key, p_evt->params.complete.p_devkey, NRF_MESH_KEY_SIZE);
-            memcpy(p_prov_complete->net_key, p_evt->params.complete.p_prov_data->netkey, NRF_MESH_KEY_SIZE);
-            serial_tx(p_packet);
+            status = serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_complete_t), &p_packet);
+            if (status == NRF_SUCCESS)
+            {
+                p_packet->opcode = SERIAL_OPCODE_EVT_PROV_COMPLETE;
+                serial_evt_prov_complete_t * p_prov_complete = &p_packet->payload.evt.prov.complete;
+                p_prov_complete->context_id = find_context_id(p_evt->params.complete.p_context);
+                p_prov_complete->iv_index = p_evt->params.complete.p_prov_data->iv_index;
+                p_prov_complete->address = p_evt->params.complete.p_prov_data->address;
+                p_prov_complete->net_key_index = p_evt->params.complete.p_prov_data->netkey_index;
+                p_prov_complete->iv_update_flag = p_evt->params.complete.p_prov_data->flags.iv_update;
+                p_prov_complete->key_refresh_flag = p_evt->params.complete.p_prov_data->flags.key_refresh;
+                memcpy(p_prov_complete->device_key, p_evt->params.complete.p_devkey, NRF_MESH_KEY_SIZE);
+                memcpy(p_prov_complete->net_key, p_evt->params.complete.p_prov_data->netkey, NRF_MESH_KEY_SIZE);
+                serial_tx(p_packet);
+            }
             break;
         }
         case NRF_MESH_PROV_EVT_STATIC_REQUEST:
         {
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_auth_request_t), &p_packet));
-            p_packet->opcode = SERIAL_OPCODE_EVT_PROV_AUTH_REQUEST;
-            serial_evt_prov_auth_request_t * p_auth_req = &p_packet->payload.evt.prov.auth_request;
-            p_auth_req->context_id = find_context_id(p_evt->params.static_request.p_context);
-            p_auth_req->method = NRF_MESH_PROV_OOB_METHOD_STATIC;
-            p_auth_req->action = 0;
-            p_auth_req->size = NRF_MESH_KEY_SIZE;
-            serial_tx(p_packet);
+            status = serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_auth_request_t), &p_packet);
+            if (status == NRF_SUCCESS)
+            {
+                p_packet->opcode = SERIAL_OPCODE_EVT_PROV_AUTH_REQUEST;
+                serial_evt_prov_auth_request_t * p_auth_req = &p_packet->payload.evt.prov.auth_request;
+                p_auth_req->context_id = find_context_id(p_evt->params.static_request.p_context);
+                p_auth_req->method = NRF_MESH_PROV_OOB_METHOD_STATIC;
+                p_auth_req->action = 0;
+                p_auth_req->size = NRF_MESH_KEY_SIZE;
+                serial_tx(p_packet);
+            }
             break;
         }
         case NRF_MESH_PROV_EVT_ECDH_REQUEST:
         {
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_ecdh_request_t), &p_packet));
-            p_packet->opcode = SERIAL_OPCODE_EVT_PROV_ECDH_REQUEST;
-            serial_evt_prov_ecdh_request_t * p_ecdh_req = &p_packet->payload.evt.prov.ecdh_request;
-            p_ecdh_req->context_id = find_context_id(p_evt->params.ecdh_request.p_context);
-            memcpy(p_ecdh_req->peer_public, p_evt->params.ecdh_request.p_peer_public, NRF_MESH_PROV_PUBKEY_SIZE);
-            memcpy(p_ecdh_req->node_private, p_evt->params.ecdh_request.p_node_private, NRF_MESH_PROV_PRIVKEY_SIZE);
-            serial_tx(p_packet);
+            status = serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_ecdh_request_t), &p_packet);
+            if (status == NRF_SUCCESS)
+            {
+                p_packet->opcode = SERIAL_OPCODE_EVT_PROV_ECDH_REQUEST;
+                serial_evt_prov_ecdh_request_t * p_ecdh_req = &p_packet->payload.evt.prov.ecdh_request;
+                p_ecdh_req->context_id = find_context_id(p_evt->params.ecdh_request.p_context);
+                memcpy(p_ecdh_req->peer_public, p_evt->params.ecdh_request.p_peer_public, NRF_MESH_PROV_PUBKEY_SIZE);
+                memcpy(p_ecdh_req->node_private, p_evt->params.ecdh_request.p_node_private, NRF_MESH_PROV_PRIVKEY_SIZE);
+                serial_tx(p_packet);
+            }
             break;
         }
         case NRF_MESH_PROV_EVT_OUTPUT_REQUEST:
         {
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_output_request_t), &p_packet));
-            p_packet->opcode = SERIAL_OPCODE_EVT_PROV_OUTPUT_REQUEST;
-            serial_evt_prov_output_request_t * p_output_req = &p_packet->payload.evt.prov.output_request;
-            p_output_req->context_id = find_context_id(p_evt->params.output_request.p_context);
-            p_output_req->output_action = p_evt->params.output_request.action;
-            memcpy(p_output_req->data, p_evt->params.output_request.p_data,
-                   p_evt->params.output_request.size);
-            serial_tx(p_packet);
+            status = serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_output_request_t), &p_packet);
+            if (status == NRF_SUCCESS)
+            {
+                p_packet->opcode = SERIAL_OPCODE_EVT_PROV_OUTPUT_REQUEST;
+                serial_evt_prov_output_request_t * p_output_req = &p_packet->payload.evt.prov.output_request;
+                p_output_req->context_id = find_context_id(p_evt->params.output_request.p_context);
+                p_output_req->output_action = p_evt->params.output_request.action;
+                memcpy(p_output_req->data, p_evt->params.output_request.p_data,
+                       p_evt->params.output_request.size);
+                serial_tx(p_packet);
+            }
             break;
         }
         case NRF_MESH_PROV_EVT_INPUT_REQUEST:
         {
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_auth_request_t), &p_packet));
-            p_packet->opcode = SERIAL_OPCODE_EVT_PROV_AUTH_REQUEST;
-            serial_evt_prov_auth_request_t * p_auth_req = &p_packet->payload.evt.prov.auth_request;
-            p_auth_req->context_id = find_context_id(p_evt->params.input_request.p_context);
-            p_auth_req->method = NRF_MESH_PROV_OOB_METHOD_INPUT;
-            p_auth_req->action = p_evt->params.input_request.action;
-            p_auth_req->size = p_evt->params.input_request.size;
-            serial_tx(p_packet);
+            status = serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_auth_request_t), &p_packet);
+            if (status == NRF_SUCCESS)
+            {
+                p_packet->opcode = SERIAL_OPCODE_EVT_PROV_AUTH_REQUEST;
+                serial_evt_prov_auth_request_t * p_auth_req = &p_packet->payload.evt.prov.auth_request;
+                p_auth_req->context_id = find_context_id(p_evt->params.input_request.p_context);
+                p_auth_req->method = NRF_MESH_PROV_OOB_METHOD_INPUT;
+                p_auth_req->action = p_evt->params.input_request.action;
+                p_auth_req->size = p_evt->params.input_request.size;
+                serial_tx(p_packet);
+            }
             break;
         }
         case NRF_MESH_PROV_EVT_FAILED:
         {
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_failed_t), &p_packet));
-            p_packet->opcode = SERIAL_OPCODE_EVT_PROV_FAILED;
-            serial_evt_prov_failed_t * p_failed = &p_packet->payload.evt.prov.failed;
-            p_failed->context_id = find_context_id(p_evt->params.failed.p_context);
-            p_failed->error_code = p_evt->params.failed.failure_code;
-            serial_tx(p_packet);
+            status = serial_packet_buffer_get(NRF_MESH_SERIAL_PACKET_OVERHEAD + sizeof(serial_evt_prov_failed_t), &p_packet);
+            if (status == NRF_SUCCESS)
+            {
+                p_packet->opcode = SERIAL_OPCODE_EVT_PROV_FAILED;
+                serial_evt_prov_failed_t * p_failed = &p_packet->payload.evt.prov.failed;
+                p_failed->context_id = find_context_id(p_evt->params.failed.p_context);
+                p_failed->error_code = p_evt->params.failed.failure_code;
+                serial_tx(p_packet);
+            }
             break;
 
         }

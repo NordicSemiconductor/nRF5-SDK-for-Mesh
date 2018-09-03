@@ -45,6 +45,7 @@
 #include "mesh_softdevice_init.h"
 #include "mesh_provisionee.h"
 #include "nrf_mesh_config_examples.h"
+#include "mesh_opt_prov.h"
 #include "app_timer.h"
 
 #define LED_BLINK_INTERVAL_SHORT_MS (100)
@@ -65,8 +66,7 @@ static void mesh_init(void)
     ERROR_CHECK(mesh_stack_init(&init_params, &m_device_provisioned));
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Enabling ECDH offloading...\n");
-    nrf_mesh_opt_t value = {.len = 4, .opt.val = 1 };
-    ERROR_CHECK(nrf_mesh_opt_set(NRF_MESH_OPT_PROV_ECDH_OFFLOADING, &value));
+    ERROR_CHECK(mesh_opt_prov_ecdh_offloading_set(true));
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Initializing serial interface...\n");
     ERROR_CHECK(nrf_mesh_serial_init(NULL));

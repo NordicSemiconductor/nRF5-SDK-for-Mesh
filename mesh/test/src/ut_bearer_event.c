@@ -41,6 +41,7 @@
 
 #include "bearer_event.h"
 #include "nrf_mesh_cmsis_mock_mock.h"
+#include "hal_mock.h"
 
 #include "nrf_mesh_config_bearer.h"
 #include "test_assert.h"
@@ -65,12 +66,15 @@ void setUp(void)
     m_seq_cb_expect = 0;
 
     nrf_mesh_cmsis_mock_mock_Init();
+    hal_mock_Init();
 }
 
 void tearDown(void)
 {
     nrf_mesh_cmsis_mock_mock_Verify();
     nrf_mesh_cmsis_mock_mock_Destroy();
+    hal_mock_Verify();
+    hal_mock_Destroy();
 }
 
 void generic_callback(void * p_context)
@@ -253,18 +257,43 @@ void test_irq_level_checker(void)
 {
     bearer_event_init(NRF_MESH_IRQ_PRIORITY_LOWEST);
 
+    hal_irq_is_enabled_IgnoreAndReturn(true);
+
+    hal_irq_active_get_ExpectAndReturn(HAL_IRQn_NONE);
+    TEST_ASSERT_FALSE(bearer_event_in_correct_irq_priority());
+
+    hal_irq_active_get_ExpectAndReturn(Reset_IRQn);
     NVIC_GetPriority_ExpectAndReturn(Reset_IRQn, NRF_MESH_IRQ_PRIORITY_LOWEST);
     TEST_ASSERT_TRUE(bearer_event_in_correct_irq_priority());
 
+    hal_irq_active_get_ExpectAndReturn(Reset_IRQn);
     NVIC_GetPriority_ExpectAndReturn(Reset_IRQn, NRF_MESH_IRQ_PRIORITY_LOWEST + 1);
     TEST_ASSERT_FALSE(bearer_event_in_correct_irq_priority());
 
+    hal_irq_active_get_ExpectAndReturn(Reset_IRQn);
+    NVIC_GetPriority_ExpectAndReturn(Reset_IRQn, NRF_MESH_IRQ_PRIORITY_LOWEST - 1);
+    TEST_ASSERT_FALSE(bearer_event_in_correct_irq_priority());
+
+    hal_irq_is_enabled_IgnoreAndReturn(false);
+
+    hal_irq_active_get_ExpectAndReturn(HAL_IRQn_NONE);
+    TEST_ASSERT_TRUE(bearer_event_in_correct_irq_priority());
+
+    hal_irq_active_get_ExpectAndReturn(Reset_IRQn);
+    NVIC_GetPriority_ExpectAndReturn(Reset_IRQn, NRF_MESH_IRQ_PRIORITY_LOWEST + 1);
+    TEST_ASSERT_TRUE(bearer_event_in_correct_irq_priority());
+
+    hal_irq_active_get_ExpectAndReturn(Reset_IRQn);
     NVIC_GetPriority_ExpectAndReturn(Reset_IRQn, NRF_MESH_IRQ_PRIORITY_LOWEST - 1);
     TEST_ASSERT_FALSE(bearer_event_in_correct_irq_priority());
 
     bearer_event_init(NRF_MESH_IRQ_PRIORITY_THREAD);
-    NVIC_GetPriority_ExpectAndReturn(Reset_IRQn, NRF_MESH_IRQ_PRIORITY_LOWEST);
-    TEST_ASSERT_FALSE(bearer_event_in_correct_irq_priority());
-    NVIC_GetPriority_ExpectAndReturn(Reset_IRQn, NRF_MESH_IRQ_PRIORITY_THREAD);
+
+    hal_irq_active_get_ExpectAndReturn(HAL_IRQn_NONE);
+    hal_irq_is_enabled_IgnoreAndReturn(true);
+    TEST_ASSERT_TRUE(bearer_event_in_correct_irq_priority());
+
+    hal_irq_active_get_ExpectAndReturn(HAL_IRQn_NONE);
+    hal_irq_is_enabled_IgnoreAndReturn(false);
     TEST_ASSERT_TRUE(bearer_event_in_correct_irq_priority());
 }

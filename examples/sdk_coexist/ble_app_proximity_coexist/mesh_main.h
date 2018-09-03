@@ -45,7 +45,7 @@
 /**
  * Initialize mesh part of coexistence example.
  */
-void mesh_main_init(void);
+void mesh_main_initialize(void);
 
 /**
  * Start mesh part of coexistence example.

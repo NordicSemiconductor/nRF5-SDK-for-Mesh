@@ -38,6 +38,7 @@
 #include "serial_handler_device.h"
 
 #include <stdint.h>
+#include <limits.h>
 
 #include "nrf_mesh_config_serial.h"
 #include "serial.h"
@@ -73,11 +74,17 @@ typedef struct
      */
     uint8_t buffer[ADVERTISER_PACKET_BUFFER_PACKET_MAXLEN * 3]; /**< Advertiser packet buffer. */
 } beacon_slot_t;
+
 /*****************************************************************************
 * Static globals
 *****************************************************************************/
 static beacon_slot_t m_beacons[NRF_MESH_SERIAL_BEACON_SLOTS]; /**< Parameters for beacon operation. */
+static struct
+{
+    uint32_t alloc_fail_count;
+} m_hk_data;
 
+NRF_MESH_STATIC_ASSERT(sizeof(m_hk_data) == sizeof(serial_evt_cmd_rsp_data_housekeeping_t));
 /*****************************************************************************
 * Static functions
 *****************************************************************************/
@@ -87,15 +94,19 @@ static uint32_t event_report_cb(internal_event_t * p_event)
 {
     /* Send a serial event with the contents of the event. */
     serial_packet_t * p_serial_evt;
-    NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + SERIAL_PACKET_INTERNAL_EVENT_OVERHEAD + p_event->packet_size, &p_serial_evt));
-    p_serial_evt->opcode = SERIAL_OPCODE_EVT_DEVICE_INTERNAL_EVENT;
-    p_serial_evt->length = SERIAL_PACKET_LENGTH_OVERHEAD + SERIAL_PACKET_INTERNAL_EVENT_OVERHEAD + p_event->packet_size;
-    p_serial_evt->payload.evt.device.internal_event.event_type = p_event->type;
-    p_serial_evt->payload.evt.device.internal_event.state = p_event->state.value;
-    p_serial_evt->payload.evt.device.internal_event.packet_size = p_event->packet_size;
-    memcpy(p_serial_evt->payload.evt.device.internal_event.packet, p_event->p_packet, p_event->packet_size);
-    serial_tx(p_serial_evt);
-    return NRF_SUCCESS;
+    uint32_t status = serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + SERIAL_PACKET_INTERNAL_EVENT_OVERHEAD + p_event->packet_size, &p_serial_evt);
+    if (status == NRF_SUCCESS)
+    {
+        p_serial_evt->opcode = SERIAL_OPCODE_EVT_DEVICE_INTERNAL_EVENT;
+        p_serial_evt->length = SERIAL_PACKET_LENGTH_OVERHEAD + SERIAL_PACKET_INTERNAL_EVENT_OVERHEAD + p_event->packet_size;
+        p_serial_evt->payload.evt.device.internal_event.event_type = p_event->type;
+        p_serial_evt->payload.evt.device.internal_event.state = p_event->state.value;
+        p_serial_evt->payload.evt.device.internal_event.packet_size = p_event->packet_size;
+        memcpy(p_serial_evt->payload.evt.device.internal_event.packet, p_event->p_packet, p_event->packet_size);
+        serial_tx(p_serial_evt);
+    }
+
+    return status;
 }
 #endif
 
@@ -105,11 +116,14 @@ static uint32_t event_report_cb(internal_event_t * p_event)
 static void handle_cmd_device_echo(const serial_packet_t * p_cmd)
 {
     serial_packet_t * p_serial_evt;
-    NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(p_cmd->length, &p_serial_evt));
-    p_serial_evt->opcode = SERIAL_OPCODE_EVT_DEVICE_ECHO_RSP;
-    memcpy(p_serial_evt->payload.evt.device.echo.data, p_cmd->payload.cmd.device.echo.data,
-            p_serial_evt->length - SERIAL_PACKET_LENGTH_OVERHEAD);
-    (void) serial_tx(p_serial_evt);
+    uint32_t status = serial_packet_buffer_get(p_cmd->length, &p_serial_evt);
+    if (status == NRF_SUCCESS)
+    {
+        p_serial_evt->opcode = SERIAL_OPCODE_EVT_DEVICE_ECHO_RSP;
+        memcpy(p_serial_evt->payload.evt.device.echo.data, p_cmd->payload.cmd.device.echo.data,
+               p_serial_evt->length - SERIAL_PACKET_LENGTH_OVERHEAD);
+        (void) serial_tx(p_serial_evt);
+    }
 }
 
 static void handle_cmd_device_internal_events_report(const serial_packet_t * p_cmd)
@@ -254,18 +268,35 @@ static void handle_cmd_device_beacon_params_set(const serial_packet_t * p_cmd)
     serial_cmd_rsp_send(p_cmd->opcode, serial_translate_error(status), NULL, 0);
 }
 
+static void handle_cmd_hk_data_get(const serial_packet_t * p_cmd)
+{
+    serial_evt_cmd_rsp_data_housekeeping_t rsp;
+    memset(&rsp, 0, sizeof(rsp));
+    rsp.alloc_fail_count = m_hk_data.alloc_fail_count;
+    serial_cmd_rsp_send(p_cmd->opcode, SERIAL_STATUS_SUCCESS, (const uint8_t *) &rsp, sizeof(rsp));
+}
+
+static void handle_cmd_hk_data_clear(const serial_packet_t * p_cmd)
+{
+    memset(&m_hk_data, 0, sizeof(m_hk_data));
+    serial_cmd_rsp_send(p_cmd->opcode, SERIAL_STATUS_SUCCESS, NULL, 0);
+}
+
+
 /* Serial command handler lookup table. */
 static const serial_handler_common_opcode_to_fp_map_t m_cmd_handlers[] =
 {
-    {SERIAL_OPCODE_CMD_DEVICE_ECHO,                   0,                                 NRF_MESH_SERIAL_PAYLOAD_MAXLEN, handle_cmd_device_echo},
-    {SERIAL_OPCODE_CMD_DEVICE_INTERNAL_EVENTS_REPORT, 0,                                                              0, handle_cmd_device_internal_events_report},
-    {SERIAL_OPCODE_CMD_DEVICE_SERIAL_VERSION_GET,     0,                                                              0, handle_cmd_device_serial_version_get},
-    {SERIAL_OPCODE_CMD_DEVICE_FW_INFO_GET,            0,                                                              0, handle_cmd_device_fw_info_get},
-    {SERIAL_OPCODE_CMD_DEVICE_RADIO_RESET,            0,                                                              0, handle_cmd_device_radio_reset},
-    {SERIAL_OPCODE_CMD_DEVICE_BEACON_START,           BEACON_START_CMD_DATA_OVERHEAD, BLE_ADV_PACKET_PAYLOAD_MAX_LENGTH, handle_cmd_device_beacon_start},
-    {SERIAL_OPCODE_CMD_DEVICE_BEACON_STOP,            sizeof(serial_cmd_device_beacon_stop_t),                        0, handle_cmd_device_beacon_stop},
-    {SERIAL_OPCODE_CMD_DEVICE_BEACON_PARAMS_SET,      sizeof(serial_cmd_device_beacon_params_set_t),                  0, handle_cmd_device_beacon_params_set},
-    {SERIAL_OPCODE_CMD_DEVICE_BEACON_PARAMS_GET,      sizeof(serial_cmd_device_beacon_params_get_t),                  0, handle_cmd_device_beacon_params_get},
+    {SERIAL_OPCODE_CMD_DEVICE_ECHO,                    0,                                 NRF_MESH_SERIAL_PAYLOAD_MAXLEN, handle_cmd_device_echo},
+    {SERIAL_OPCODE_CMD_DEVICE_INTERNAL_EVENTS_REPORT,  0,                                                              0, handle_cmd_device_internal_events_report},
+    {SERIAL_OPCODE_CMD_DEVICE_SERIAL_VERSION_GET,      0,                                                              0, handle_cmd_device_serial_version_get},
+    {SERIAL_OPCODE_CMD_DEVICE_FW_INFO_GET,             0,                                                              0, handle_cmd_device_fw_info_get},
+    {SERIAL_OPCODE_CMD_DEVICE_RADIO_RESET,             0,                                                              0, handle_cmd_device_radio_reset},
+    {SERIAL_OPCODE_CMD_DEVICE_BEACON_START,            BEACON_START_CMD_DATA_OVERHEAD, BLE_ADV_PACKET_PAYLOAD_MAX_LENGTH, handle_cmd_device_beacon_start},
+    {SERIAL_OPCODE_CMD_DEVICE_BEACON_STOP,             sizeof(serial_cmd_device_beacon_stop_t),                        0, handle_cmd_device_beacon_stop},
+    {SERIAL_OPCODE_CMD_DEVICE_BEACON_PARAMS_SET,       sizeof(serial_cmd_device_beacon_params_set_t),                  0, handle_cmd_device_beacon_params_set},
+    {SERIAL_OPCODE_CMD_DEVICE_BEACON_PARAMS_GET,       sizeof(serial_cmd_device_beacon_params_get_t),                  0, handle_cmd_device_beacon_params_get},
+    {SERIAL_OPCODE_CMD_DEVICE_HOUSEKEEPING_DATA_GET,   0,                                                              0, handle_cmd_hk_data_get},
+    {SERIAL_OPCODE_CMD_DEVICE_HOUSEKEEPING_DATA_CLEAR, 0,                                                              0, handle_cmd_hk_data_clear},
 };
 
 /*****************************************************************************
@@ -287,4 +318,12 @@ void serial_handler_device_rx(const serial_packet_t* p_cmd)
 {
     NRF_MESH_ASSERT(p_cmd->opcode <= SERIAL_OPCODE_CMD_RANGE_DEVICE_END);
     serial_handler_common_rx(p_cmd, m_cmd_handlers, sizeof(m_cmd_handlers) / sizeof(m_cmd_handlers[0]));
+}
+
+void serial_handler_device_alloc_fail_report(void)
+{
+    if (m_hk_data.alloc_fail_count < UINT32_MAX)
+    {
+        m_hk_data.alloc_fail_count++;
+    }
 }

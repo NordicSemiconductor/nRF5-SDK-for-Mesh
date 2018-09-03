@@ -613,7 +613,7 @@ class ConfigurationClient(Model):
             state, node.relay_retransmit.count, node.relay_retransmit.interval)
 
     def __heartbeat_subscription_status_handler(self, opcode, message):
-        status, src, dst, period_log, min_hops, max_hops = struct.unpack(
+        status, src, dst, period_log, count_log, min_hops, max_hops = struct.unpack(
             "<BHHBBBB", message.data)
         status = AccessStatus(status)
         self.logger.info("Heartbeat subscription status: %s", status)
@@ -623,8 +623,8 @@ class ConfigurationClient(Model):
             else:
                 period = 2**(period_log - 1)
             self.logger.info("Heartbeat subscription state: " +
-                             "src: %04x, dst: %04x, period: %ds, min/max: %d/%d",
-                             src, dst, period, min_hops, max_hops)
+                             "src: %04x, dst: %04x, period: %ds, count: %d, min/max: %d/%d",
+                             src, dst, period, count_log, min_hops, max_hops)
 
     def __model_app_status_handler(self, opcode, message):
         status, element_address, appkey_index = struct.unpack(

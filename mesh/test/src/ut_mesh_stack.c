@@ -48,8 +48,10 @@
 #include "flash_manager_mock.h"
 #include "config_server_mock.h"
 #include "health_server_mock.h"
+#include "mesh_config_mock.h"
 #include "hal_mock.h"
 #include "nrf_mesh_events.h"
+#include "mesh_config_backend_glue_mock.h"
 
 /********** Additional mock functions **********/
 
@@ -117,6 +119,7 @@ static void successful_init_test(bool dsm_flash_config_load_return, bool access_
     health_server_init_IgnoreArg_p_server();
     dsm_flash_config_load_ExpectAndReturn(dsm_flash_config_load_return);
     access_flash_config_load_ExpectAndReturn(access_flash_config_load_return);
+    mesh_config_load_Expect();
     dsm_local_unicast_addresses_get_Expect(NULL);
     dsm_local_unicast_addresses_get_IgnoreArg_p_address();
 
@@ -147,6 +150,8 @@ void setUp(void)
     config_server_mock_Init();
     health_server_mock_Init();
     hal_mock_Init();
+    mesh_config_mock_Init();
+    mesh_config_backend_glue_mock_Init();
     m_mesh_stack_models_init_cb_expected = false;
     m_mesh_evt_cb = NULL;
 }
@@ -171,6 +176,10 @@ void tearDown(void)
     health_server_mock_Destroy();
     hal_mock_Verify();
     hal_mock_Destroy();
+    mesh_config_mock_Verify();
+    mesh_config_mock_Destroy();
+    mesh_config_backend_glue_mock_Verify();
+    mesh_config_backend_glue_mock_Destroy();
 
     mesh_stack_models_init_cb_Verify();
 }
@@ -264,5 +273,35 @@ void test_mesh_stack_device_reset_no_persistent_storage(void)
 #if !PERSISTENT_STORAGE
     hal_device_reset_Expect(0);
     mesh_stack_device_reset();
+#endif
+}
+
+void test_mesh_stack_persistence_flash_usage(void)
+{
+#if PERSISTENT_STORAGE
+    /* has mesh config: */
+    mesh_config_backend_flash_usage_t mesh_config_usage = {
+        (const uint32_t *) 1024,
+        1024
+    };
+    mesh_config_backend_flash_usage_get_ExpectAnyArgs();
+    mesh_config_backend_flash_usage_get_ReturnThruPtr_p_usage(&mesh_config_usage);
+    flash_manager_recovery_page_get_ExpectAndReturn((void *) 4096);
+    const uint32_t * p_start = 0;
+    uint32_t length = 0;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_stack_persistence_flash_usage(&p_start, &length));
+    TEST_ASSERT_EQUAL(mesh_config_usage.p_start, p_start);
+    TEST_ASSERT_EQUAL(4096 - 1024 + PAGE_SIZE, length);
+
+    /* No mesh config */
+    mesh_config_usage.p_start = NULL;
+    mesh_config_usage.length = 0;
+    mesh_config_backend_flash_usage_get_ExpectAnyArgs();
+    mesh_config_backend_flash_usage_get_ReturnThruPtr_p_usage(&mesh_config_usage);
+    access_flash_area_get_ExpectAndReturn((void*) 1024);
+    flash_manager_recovery_page_get_ExpectAndReturn((void *) 4096);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_stack_persistence_flash_usage(&p_start, &length));
+    TEST_ASSERT_EQUAL(1024, (uint32_t) p_start);
+    TEST_ASSERT_EQUAL(4096 - 1024 + PAGE_SIZE, length);
 #endif
 }

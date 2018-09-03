@@ -41,8 +41,7 @@
 #include "bearer_event.h"
 #include "toolchain.h"
 
-
-/** Time in us to regard as immidiate when firing several timers at once */
+/** Time in us to regard as immediate when firing several timers at once */
 #define TIMER_MARGIN    (100)
 
 /*****************************************************************************
@@ -50,10 +49,8 @@
 *****************************************************************************/
 typedef struct
 {
-    timer_event_t* p_head;
-    timer_event_t* p_add_head; /**< List of timers waiting to be added to the fire list. */
-    uint32_t dirty_events; /**< Events in the fire list that needs processing */
-    uint32_t event_count;
+    timer_event_t * p_head;
+    uint16_t event_count;
 } scheduler_t;
 
 /*****************************************************************************
@@ -61,14 +58,10 @@ typedef struct
 *****************************************************************************/
 static volatile scheduler_t m_scheduler; /**< Global scheduler instance */
 static bearer_event_flag_t m_event_flag;
+
 /*****************************************************************************
 * Static functions
 *****************************************************************************/
-static inline bool is_dirty_state(timer_event_state_t state)
-{
-    return (state == TIMER_EVENT_STATE_RESCHEDULED ||
-            state == TIMER_EVENT_STATE_ABORTED);
-}
 static void timer_cb(timestamp_t timestamp)
 {
     bearer_event_flag_set(m_event_flag);
@@ -76,89 +69,49 @@ static void timer_cb(timestamp_t timestamp)
 
 static void add_evt(timer_event_t* p_evt)
 {
-    NRF_MESH_ASSERT(p_evt->p_next == NULL);
-
     if (m_scheduler.p_head == NULL ||
         TIMER_OLDER_THAN(p_evt->timestamp, m_scheduler.p_head->timestamp))
     {
         p_evt->p_next = m_scheduler.p_head;
         m_scheduler.p_head = p_evt;
-        NRF_MESH_ASSERT(++m_scheduler.event_count > 0);
-        return;
     }
-
-    timer_event_t* p_temp = m_scheduler.p_head;
-    while (p_temp->p_next &&
-         TIMER_OLDER_THAN(p_temp->p_next->timestamp, p_evt->timestamp))
+    else
     {
-        p_temp = p_temp->p_next;
+        timer_event_t* p_temp = m_scheduler.p_head;
+        while (p_temp->p_next &&
+            TIMER_OLDER_THAN(p_temp->p_next->timestamp, p_evt->timestamp))
+        {
+            p_temp = p_temp->p_next;
+        }
+
+        p_evt->p_next = p_temp->p_next;
+        p_temp->p_next = p_evt;
     }
 
-    p_evt->p_next = p_temp->p_next;
-    p_temp->p_next = p_evt;
     NRF_MESH_ASSERT(++m_scheduler.event_count > 0);
-}
-
-/** Takes all events in the add list, and inserts them in the fire list. */
-static void process_add_list(void)
-{
-    /* insert all pending events */
-    while (m_scheduler.p_add_head != NULL)
-    {
-        timer_event_t * p_evt = (timer_event_t *) m_scheduler.p_add_head;
-        m_scheduler.p_add_head = p_evt->p_next;
-        p_evt->p_next = NULL;
-        if (p_evt->state == TIMER_EVENT_STATE_IGNORED)
-        {
-            p_evt->state = TIMER_EVENT_STATE_UNUSED;
-        }
-        else
-        {
-            NRF_MESH_ASSERT(p_evt->state == TIMER_EVENT_STATE_ADDED);
-            p_evt->state = TIMER_EVENT_STATE_QUEUED;
-            add_evt(p_evt);
-        }
-    }
-}
-
-static inline void add_to_add_list(timer_event_t * p_evt)
-{
-    NRF_MESH_ASSERT(p_evt->state == TIMER_EVENT_STATE_UNUSED ||
-                    p_evt->state == TIMER_EVENT_STATE_IN_CALLBACK);
-    NRF_MESH_ASSERT(p_evt->p_next == NULL);
     p_evt->state = TIMER_EVENT_STATE_ADDED;
-    p_evt->p_next = m_scheduler.p_add_head;
-    m_scheduler.p_add_head = p_evt;
 }
 
-/** Run through the fire list, pop the aborted events and move the events that
- * have been rescheduled to the add-list. */
-static void process_dirty_events(void)
+static void remove_evt(timer_event_t * p_evt)
 {
-    timer_event_t ** pp_evt = (timer_event_t **) &m_scheduler.p_head;
-    while (*pp_evt != NULL && m_scheduler.dirty_events > 0)
+    if (p_evt == m_scheduler.p_head)
     {
-        timer_event_state_t state = (*pp_evt)->state;
-        if (is_dirty_state(state))
+        m_scheduler.p_head = p_evt->p_next;
+    }
+    else
+    {
+        timer_event_t * p_it = m_scheduler.p_head;
+        while (p_it != NULL)
         {
-            timer_event_t * p_evt = *pp_evt;
-            *pp_evt = p_evt->p_next; /* pop */
-            p_evt->p_next = NULL;
-            NRF_MESH_ASSERT(m_scheduler.event_count-- > 0);
-
-            m_scheduler.dirty_events--;
-            p_evt->state = TIMER_EVENT_STATE_UNUSED;
-
-            if (state == TIMER_EVENT_STATE_RESCHEDULED)
+            if (p_it->p_next == p_evt)
             {
-                add_to_add_list(p_evt);
+                p_it->p_next = p_evt->p_next;
+                break;
             }
-        }
-        else
-        {
-            pp_evt = &((*pp_evt)->p_next); /* step */
+            p_it = p_it->p_next;
         }
     }
+    p_evt->state = TIMER_EVENT_STATE_UNUSED;
 }
 
 static void fire_timers(timestamp_t time_now)
@@ -168,7 +121,7 @@ static void fire_timers(timestamp_t time_now)
     {
         timer_event_t* p_evt = m_scheduler.p_head;
 
-        NRF_MESH_ASSERT(p_evt->state == TIMER_EVENT_STATE_QUEUED);
+        NRF_MESH_ASSERT(p_evt->state == TIMER_EVENT_STATE_ADDED);
 
         /* iterate */
         m_scheduler.p_head = p_evt->p_next;
@@ -183,11 +136,7 @@ static void fire_timers(timestamp_t time_now)
         /* Re-sample the time to avoid lagging behind after long running timer callbacks. */
         time_now = timer_now();
 
-        /* We let the user execute, so we have to check whether they've changed something: */
-        process_dirty_events();
-        process_add_list();
-
-        /* Only re-add the event if it wasn't added back in in the callback. */
+        /* Only re-add the event if it wasn't added back in the callback. */
         if (p_evt->state == TIMER_EVENT_STATE_IN_CALLBACK)
         {
             if (p_evt->interval == 0)
@@ -201,7 +150,6 @@ static void fire_timers(timestamp_t time_now)
                     p_evt->timestamp += p_evt->interval;
                 } while (TIMER_OLDER_THAN(p_evt->timestamp, time_now + TIMER_MARGIN));
 
-                p_evt->state = TIMER_EVENT_STATE_QUEUED;
                 add_evt(p_evt);
             }
         }
@@ -225,16 +173,11 @@ static void setup_timeout(timestamp_t time_now)
 
 static bool flag_event_cb(void)
 {
-    process_dirty_events();
-
-    /* add all the popped events back in, at their right places. */
-    process_add_list();
-
     fire_timers(timer_now());
     setup_timeout(timer_now());
-
     return true;
 }
+
 /*****************************************************************************
 * Interface functions
 *****************************************************************************/
@@ -246,71 +189,38 @@ void timer_sch_init(void)
 
 void timer_sch_schedule(timer_event_t* p_timer_evt)
 {
+    NRF_MESH_ASSERT_DEBUG(bearer_event_in_correct_irq_priority());
     NRF_MESH_ASSERT(p_timer_evt != NULL);
     NRF_MESH_ASSERT(p_timer_evt->cb != NULL);
+    NRF_MESH_ASSERT(p_timer_evt->state != TIMER_EVENT_STATE_ADDED);
 
-    uint32_t was_masked;
-    _DISABLE_IRQS(was_masked);
     p_timer_evt->p_next = NULL;
-    add_to_add_list(p_timer_evt);
-    _ENABLE_IRQS(was_masked);
-
-    bearer_event_flag_set(m_event_flag);
+    add_evt(p_timer_evt);
+    setup_timeout(timer_now());
 }
 
 void timer_sch_abort(timer_event_t* p_timer_evt)
 {
+    NRF_MESH_ASSERT_DEBUG(bearer_event_in_correct_irq_priority());
     NRF_MESH_ASSERT(p_timer_evt != NULL);
-    uint32_t was_masked;
-    _DISABLE_IRQS(was_masked);
-    if (p_timer_evt->state == TIMER_EVENT_STATE_IN_CALLBACK)
-    {
-        p_timer_evt->state = TIMER_EVENT_STATE_UNUSED;
-    }
-    else if (p_timer_evt->state == TIMER_EVENT_STATE_ADDED)
-    {
-        p_timer_evt->state = TIMER_EVENT_STATE_IGNORED;
-    }
-    else if (p_timer_evt->state != TIMER_EVENT_STATE_UNUSED)
-    {
-        if (!is_dirty_state(p_timer_evt->state))
-        {
-            m_scheduler.dirty_events++;
-        }
-        p_timer_evt->state = TIMER_EVENT_STATE_ABORTED;
-        bearer_event_flag_set(m_event_flag);
-    }
-    _ENABLE_IRQS(was_masked);
+    remove_evt(p_timer_evt);
+    p_timer_evt->p_next = NULL;
+    setup_timeout(timer_now());
 }
 
 void timer_sch_reschedule(timer_event_t* p_timer_evt, timestamp_t new_timeout)
 {
+    NRF_MESH_ASSERT_DEBUG(bearer_event_in_correct_irq_priority());
     NRF_MESH_ASSERT(p_timer_evt != NULL);
-
-    uint32_t was_masked;
-    _DISABLE_IRQS(was_masked);
-    /* The events in the added queue will reinsert themselves in the processing. */
-    if (p_timer_evt->state == TIMER_EVENT_STATE_UNUSED ||
-        p_timer_evt->state == TIMER_EVENT_STATE_IN_CALLBACK)
-    {
-        add_to_add_list(p_timer_evt);
-    }
-    else if (p_timer_evt->state == TIMER_EVENT_STATE_ADDED ||
-             p_timer_evt->state == TIMER_EVENT_STATE_IGNORED)
-    {
-        p_timer_evt->state = TIMER_EVENT_STATE_ADDED;
-    }
-    else
-    {
-        /* Mark the rescheduled event as dirty, will be processed at the next opportunity. */
-        if (!is_dirty_state(p_timer_evt->state))
-        {
-            m_scheduler.dirty_events++;
-        }
-        p_timer_evt->state = TIMER_EVENT_STATE_RESCHEDULED;
-    }
+    remove_evt(p_timer_evt);
+    p_timer_evt->p_next = NULL;
     p_timer_evt->timestamp = new_timeout;
-    bearer_event_flag_set(m_event_flag);
-    _ENABLE_IRQS(was_masked);
+    add_evt(p_timer_evt);
+    setup_timeout(timer_now());
 }
 
+bool timer_sch_is_scheduled(const timer_event_t * p_timer_evt)
+{
+    return (p_timer_evt->state == TIMER_EVENT_STATE_ADDED ||
+            p_timer_evt->state == TIMER_EVENT_STATE_IN_CALLBACK);
+}

@@ -44,7 +44,7 @@
 #include "bearer_handler_mock.h"
 #include "timer_mock.h"
 #include "bl_if.h"
-#include "nordic_common.h"
+#include "utils.h"
 #include "test_assert.h"
 
 #define START_TIME                      (123)

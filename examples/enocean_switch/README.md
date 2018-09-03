@@ -5,8 +5,8 @@
 This demo project shows how a PTM215B EnOcean switch can be integrated in the mesh eco system.
 
 It demonstrates how to capture the commissioning data of the EnOcean switch and how to translate the
-EnOcean switch messages into equivalent mesh messages. It uses four instances of the the custom
-[Simple OnOff client model](@ref md_models_simple_on_off_README) corresponding to four switches.
+EnOcean switch messages into equivalent mesh messages. It uses two instances of the
+[Generic OnOff client model](@ref GENERIC_ONOFF_MODEL).
 These On/Off clients can be configured to control desired servers by the provisioner. Following
 diagram shows the illustration of such hybrid network containing non-Bluetooth Mesh device, translator client,
 and servers. All servers have relay functionality enabled thereby allowing EnOcean switch to control state of any
@@ -61,7 +61,11 @@ device using `nrfjprog`.
    Once entered in the radio commissioning mode, PTM215B will transmit commissioning telegrams. These
    telegrams will be captured by the translator, and the security material contained within those
    telegrams will be stored in the flash.
-   Once the commissioning telegram is captured by the translator, LED1 will blink twice.
+   Once the commissioning telegram is captured by the translator, LED 1 will blink twice.
+
+   The example supports two Enocean switches to be connected in parallel. You can repeat the above
+   mentioned steps to commission the second switch.
+
 6. Press Button 1 on the provisioner to start the provisioning process.
 
 The provisioner prints details about the provisioning and the configuration process in the RTT log.
@@ -70,10 +74,10 @@ When configuration procedure is underway, LED 2 on the provisioner board is turn
 
 The provisioner configures the On/Off client model instances on the client board to control various
 servers as follows:
-- The 1st instance controls the first server.
-- The 2nd instance controls the second server.
-- The 3rd instance controls the servers with Odd addresses.
-- The 4th instance controls the servers with Even addresses.
+- The Button A0 turns ON LED 1 on the servers with Odd addresses.
+- The Button A1 turns OFF LED 1 on the servers with Odd addresses.
+- The Button B0 turns ON LED 1 on the servers with Even addresses.
+- The Button B1 turns OFF LED 1 on the servers with Even addresses.
 
 Once provisioning and configuration of the EnOcean translator client node and at least one of
 the server nodes is completed, you can press buttons on the EnOcean switch to toggle the LED state
@@ -100,13 +104,15 @@ about the provisioner and server examples.
 
 The *EnOcean switch translator client* has a provisionee role in the network.
 The client receives messages from the PTM215B switch and converts them to equivalent On/Off client
-messages to control the state of the LED1 on servers.
-It instantiates four instances of the simple OnOff Client model.
+messages to control the state of LED 1 on servers.
+It instantiates two instances of the Generic OnOff Client model.
 The provisioner configures these client model instances to communicate with servers.
 
-The example is configured to store security material for one EnOcean switch. If you want to reset
-the application data without re-flashing the firmware, press Button 4. The LED1 will blink twice to
+The example is configured to store security material for two EnOcean switch. If you want to reset
+the application data without re-flashing the firmware, press Button 4. LED 1 will blink twice to
 indicate that application specific data and mesh related data has been erased. Press Reset button
 to reset the board and start the application.
 
+If you want this example to support more than two EnOcean switches in parallel, set the value
+of `MAX_ENOCEAN_DEVICES_SUPPORTED` to the desired number of switches.
 

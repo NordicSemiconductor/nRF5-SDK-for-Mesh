@@ -46,7 +46,7 @@
 #include "bearer_event.h"
 #include "fifo.h"
 #include "flash_manager_test_util.h"
-#include "nordic_common.h"
+#include "utils.h"
 #include "test_assert.h"
 
 static uint32_t m_expect_mem_listener;

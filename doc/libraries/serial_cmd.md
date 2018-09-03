@@ -50,6 +50,8 @@ Command                                 | Opcode
 [Beacon Stop](#device-beacon-stop)                      | `0x11`
 [Beacon Params Get](#device-beacon-params-get)                | `0x13`
 [Beacon Params Set](#device-beacon-params-set)                | `0x12`
+[Housekeeping Data Get](#device-housekeeping-data-get)            | `0x14`
+[Housekeeping Data Clear](#device-housekeeping-data-clear)          | `0x15`
 
 
 ## Application Commands {#application-commands}
@@ -436,6 +438,51 @@ Potential status codes:
 - `ERROR_REJECTED`
 
 - `ERROR_INVALID_PARAMETER`
+
+- `INVALID_LENGTH`
+
+_The response has no parameters._
+
+### Device Housekeeping Data Get {#device-housekeeping-data-get}
+
+_Opcode:_ `0x14`
+
+_Total length: 1 byte_
+
+Get the current housekeeping data values.
+
+_Housekeeping Data Get takes no parameters._
+
+### Response
+
+Potential status codes:
+
+- `SUCCESS`
+
+- `INVALID_LENGTH`
+
+_Housekeeping Data Get Response Parameters:_
+
+Type          | Name                                    | Size | Offset | Description
+--------------|-----------------------------------------|------|--------|------------
+`uint32_t`    | Alloc Fail Count                        | 4    | 0      | Number of failed serial packet allocations.
+
+
+### Device Housekeeping Data Clear {#device-housekeeping-data-clear}
+
+_Opcode:_ `0x15`
+
+_Total length: 1 byte_
+
+Clear the current housekeeping data values.
+
+_Housekeeping Data Clear takes no parameters._
+
+### Response
+
+Potential status codes:
+
+- `SUCCESS`
 
 - `INVALID_LENGTH`
 

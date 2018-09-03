@@ -74,7 +74,7 @@ static inline nrf_mesh_prov_ctx_t * prov_bearer_ctx_get(prov_bearer_t * p_bearer
 
 
 /**
- * Verify provisioning data.
+ * Verifies the format of the provisioning data.
  *
  * @param[in] p_data Data to verify
  *
@@ -84,6 +84,21 @@ static inline bool prov_data_is_valid(const nrf_mesh_prov_provisioning_data_t * 
 {
     return (p_data->netkey_index <= NRF_MESH_GLOBAL_KEY_INDEX_MAX &&
             nrf_mesh_address_type_get(p_data->address) == NRF_MESH_ADDRESS_TYPE_UNICAST);
+}
+
+/**
+ * Verifies that the starting address assigned by the provisioner has enough room for all the
+ * device's elements.
+ *
+ * @param[in] p_data Provisioning data structure.
+ * @param[in] num_elements Number of elements in the device.
+ *
+ * @returns @c true if the address is valid.
+ */
+static inline bool prov_address_is_valid(const nrf_mesh_prov_provisioning_data_t * p_data, uint8_t num_elements)
+{
+    return (nrf_mesh_address_type_get(p_data->address) == NRF_MESH_ADDRESS_TYPE_UNICAST &&
+            nrf_mesh_address_type_get(p_data->address + num_elements - 1) == NRF_MESH_ADDRESS_TYPE_UNICAST);
 }
 
 /**

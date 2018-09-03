@@ -62,6 +62,7 @@ you could also use this command:
 
     $ dmesg | grep -C 3 SEGGER
 
+> This command requires 'sudo' when accessing /dev/tty* devices.
 
 ### Other options
 
@@ -118,7 +119,9 @@ The interface consists of the following files:
     │
     ├── models                            # Mesh models
     │   ├── config.py                     # Configuration client
-    │   └── simple_on_off.py              # Simple On/Off client
+    │   ├── common.py                     # Contains common defines, structures, and functions used by the Mesh Models
+    │   ├── simple_on_off.py              # Simple On/Off client
+    │   └── generic_on_off.py             # Generic On/Off client
     │
     ├── README.md                         # The README you're reading now
     └── requirements.tx                   # Python pip requirements file

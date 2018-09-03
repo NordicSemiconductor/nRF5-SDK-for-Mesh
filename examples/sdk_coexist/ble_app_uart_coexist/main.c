@@ -69,6 +69,7 @@
 #include "bsp_btn_ble.h"
 #include "nrf_pwr_mgmt.h"
 #include "mesh_main.h"
+#include "mesh_app_utils.h"
 
 #if defined (UART_PRESENT)
 #include "nrf_uart.h"
@@ -696,13 +697,12 @@ int main(void)
     services_init();
     advertising_init();
     conn_params_init();
-    mesh_main_init();
+    mesh_main_initialize();
 
     // Start execution.
-    printf("\r\nUART started.\r\n");
     NRF_LOG_INFO("Debug logging for UART over RTT started.");
     advertising_start();
-    mesh_main_start();
+    execution_start(mesh_main_start);
 
     // Enter main loop.
     for (;;)

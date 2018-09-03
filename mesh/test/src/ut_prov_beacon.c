@@ -38,7 +38,7 @@
 #include <unity.h>
 #include <cmock.h>
 
-#include "nordic_common.h"
+#include "utils.h"
 #include "prov_beacon.h"
 #include "uri.h"
 

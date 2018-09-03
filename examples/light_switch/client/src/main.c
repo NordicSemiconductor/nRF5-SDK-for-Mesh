@@ -38,38 +38,59 @@
 #include <stdint.h>
 #include <string.h>
 
+/* HAL */
 #include "boards.h"
 #include "simple_hal.h"
-#include "log.h"
-#include "access_config.h"
-#include "simple_on_off_client.h"
-#include "rtt_input.h"
-#include "device_state_manager.h"
-#include "light_switch_example_common.h"
-#include "mesh_app_utils.h"
-#include "mesh_stack.h"
-#include "mesh_softdevice_init.h"
-#include "mesh_provisionee.h"
-#include "nrf_mesh_config_examples.h"
-#include "nrf_mesh_configure.h"
 #include "app_timer.h"
 
+/* Core */
+#include "nrf_mesh_configure.h"
+#include "nrf_mesh.h"
+#include "mesh_stack.h"
+#include "device_state_manager.h"
+#include "access_config.h"
 
-#define RTT_INPUT_POLL_PERIOD_MS (100)
-#define GROUP_MSG_REPEAT_COUNT   (2)
+/* Provisioning and configuration */
+#include "mesh_provisionee.h"
+#include "mesh_app_utils.h"
+#include "mesh_softdevice_init.h"
 
-#define LED_BLINK_INTERVAL_MS       (200)
-#define LED_BLINK_SHORT_INTERVAL_MS (50)
-#define LED_BLINK_CNT_START         (2)
-#define LED_BLINK_CNT_RESET         (3)
-#define LED_BLINK_CNT_PROV          (4)
-#define LED_BLINK_CNT_NO_REPLY      (6)
+/* Models */
+#include "generic_onoff_client.h"
 
+/* Logging and RTT */
+#include "log.h"
+#include "rtt_input.h"
 
-static simple_on_off_client_t m_clients[CLIENT_MODEL_INSTANCE_COUNT];
-static const uint8_t          m_client_node_uuid[NRF_MESH_UUID_SIZE] = CLIENT_NODE_UUID;
+/* Example specific includes */
+#include "app_config.h"
+#include "nrf_mesh_config_examples.h"
+#include "light_switch_example_common.h"
+#include "example_common.h"
+
+#define APP_STATE_OFF                (0)
+#define APP_STATE_ON                 (1)
+
+#define APP_UNACK_MSG_REPEAT_COUNT   (2)
+
+static generic_onoff_client_t m_clients[CLIENT_MODEL_INSTANCE_COUNT];
 static bool                   m_device_provisioned;
 
+/* Forward declaration */
+static void app_gen_onoff_client_publish_interval_cb(access_model_handle_t handle, void * p_self);
+static void app_generic_onoff_client_status_cb(const generic_onoff_client_t * p_self,
+                                               const access_message_rx_meta_t * p_meta,
+                                               const generic_onoff_status_params_t * p_in);
+static void app_gen_onoff_client_transaction_status_cb(access_model_handle_t model_handle,
+                                                       void * p_args,
+                                                       access_reliable_status_t status);
+
+const generic_onoff_client_callbacks_t client_cbs =
+{
+    .onoff_status_cb = app_generic_onoff_client_status_cb,
+    .ack_transaction_status_cb = app_gen_onoff_client_transaction_status_cb,
+    .periodic_publish_cb = app_gen_onoff_client_publish_interval_cb
+};
 
 static void provisioning_complete_cb(void)
 {
@@ -83,47 +104,58 @@ static void provisioning_complete_cb(void)
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
 }
 
-static uint32_t server_index_get(const simple_on_off_client_t * p_client)
+/* This callback is called periodically if model is configured for periodic publishing */
+static void app_gen_onoff_client_publish_interval_cb(access_model_handle_t handle, void * p_self)
 {
-    uint32_t index = p_client - &m_clients[0];
-    NRF_MESH_ASSERT(index < SERVER_NODE_COUNT);
-    return index;
+     __LOG(LOG_SRC_APP, LOG_LEVEL_WARN, "Publish desired message here.\n");
 }
 
-static void client_publish_timeout_cb(access_model_handle_t handle, void * p_self)
+/* Acknowledged transaction status callback, if acknowledged transfer fails, application can
+* determine suitable course of action (e.g. re-initiate previous transaction) by using this
+* callback.
+*/
+static void app_gen_onoff_client_transaction_status_cb(access_model_handle_t model_handle,
+                                                       void * p_args,
+                                                       access_reliable_status_t status)
 {
-     __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Acknowledged send timedout\n");
-}
-
-static void client_status_cb(const simple_on_off_client_t * p_self, simple_on_off_status_t status, uint16_t src)
-{
-    uint32_t server_index = server_index_get(p_self);
-
-    switch (status)
+    switch(status)
     {
-        case SIMPLE_ON_OFF_STATUS_ON:
-            hal_led_pin_set(BSP_LED_0 + server_index, true);
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "OnOff server %u status ON\n", server_index);
+        case ACCESS_RELIABLE_TRANSFER_SUCCESS:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Acknowledged transfer success.\n");
             break;
 
-        case SIMPLE_ON_OFF_STATUS_OFF:
-            hal_led_pin_set(BSP_LED_0 + server_index, false);
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "OnOff server %u status OFF\n", server_index);
-            break;
-
-        case SIMPLE_ON_OFF_STATUS_ERROR_NO_REPLY:
+        case ACCESS_RELIABLE_TRANSFER_TIMEOUT:
             hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "No reply from OnOff server %u\n", server_index);
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Acknowledged transfer timeout.\n");
             break;
 
-        case SIMPLE_ON_OFF_STATUS_CANCELLED:
-            __LOG(LOG_SRC_APP, LOG_LEVEL_WARN, "Message to server %u cancelled\n", server_index);
+        case ACCESS_RELIABLE_TRANSFER_CANCELLED:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Acknowledged transfer cancelled.\n");
             break;
+
         default:
-            __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Unknown status \n");
+            ERROR_CHECK(NRF_ERROR_INTERNAL);
             break;
     }
 }
+
+/* Generic OnOff client model interface: Process the received status message in this callback */
+static void app_generic_onoff_client_status_cb(const generic_onoff_client_t * p_self,
+                                               const access_message_rx_meta_t * p_meta,
+                                               const generic_onoff_status_params_t * p_in)
+{
+    if (p_in->remaining_time_ms > 0)
+    {
+        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "OnOff server: 0x%04x, Present OnOff: %d, Target OnOff: %d, Remaining Time: %d ms\n",
+              p_meta->src.value, p_in->present_on_off, p_in->target_on_off, p_in->remaining_time_ms);
+    }
+    else
+    {
+        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "OnOff server: 0x%04x, Present OnOff: %d\n",
+              p_meta->src.value, p_in->present_on_off);
+    }
+}
+
 static void node_reset(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset  -----\n");
@@ -145,27 +177,49 @@ static void button_event_handler(uint32_t button_number)
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Button %u pressed\n", button_number);
 
     uint32_t status = NRF_SUCCESS;
+    generic_onoff_set_params_t set_params;
+    model_transition_t transition_params;
+    static uint8_t tid = 0;
+
+    /* Button 1: On, Button 2: Off, Client[0]
+     * Button 2: On, Button 3: Off, Client[1]
+     */
+
+    switch(button_number)
+    {
+        case 0:
+        case 2:
+            set_params.on_off = APP_STATE_ON;
+            break;
+
+        case 1:
+        case 3:
+            set_params.on_off = APP_STATE_OFF;
+            break;
+    }
+
+    set_params.tid = tid++;
+    transition_params.delay_ms = APP_CONFIG_ONOFF_DELAY_MS;
+    transition_params.transition_time_ms = APP_CONFIG_ONOFF_TRANSITION_TIME_MS;
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Sending msg: ONOFF SET %d\n", set_params.on_off);
+
     switch (button_number)
     {
         case 0:
         case 1:
-            /* send unicast message, with inverted GPIO pin value */
-            status = simple_on_off_client_set(&m_clients[button_number],
-                                              !hal_led_pin_get(BSP_LED_0 + button_number));
+            /* Demonstrate acknowledged transaction, using 1st client model instance */
+            /* In this examples, users will not be blocked if the model is busy */
+            (void)access_model_reliable_cancel(m_clients[0].model_handle);
+            status = generic_onoff_client_set(&m_clients[0], &set_params, &transition_params);
+            hal_led_pin_set(BSP_LED_0, set_params.on_off);
             break;
 
         case 2:
         case 3:
-            /* send a group message to the ODD group, with inverted GPIO pin value */
-            status = simple_on_off_client_set_unreliable(&m_clients[button_number],
-                                                         !hal_led_pin_get(BSP_LED_0 + button_number),
-                                                         GROUP_MSG_REPEAT_COUNT);
-            if (status == NRF_SUCCESS)
-            {
-                hal_led_pin_set(BSP_LED_0 + button_number, !hal_led_pin_get(BSP_LED_0 + button_number));
-            }
-            break;
-        default:
+            /* Demonstrate un-acknowledged transaction, using 2nd client model instance */
+            status = generic_onoff_client_set_unack(&m_clients[1], &set_params,
+                                                    &transition_params, APP_UNACK_MSG_REPEAT_COUNT);
+            hal_led_pin_set(BSP_LED_1, set_params.on_off);
             break;
     }
 
@@ -177,7 +231,7 @@ static void button_event_handler(uint32_t button_number)
         case NRF_ERROR_NO_MEM:
         case NRF_ERROR_BUSY:
         case NRF_ERROR_INVALID_STATE:
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Cannot send - client %u is busy\n", button_number);
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Client %u cannot send\n", button_number);
             hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
             break;
 
@@ -213,20 +267,26 @@ static void models_init_cb(void)
 
     for (uint32_t i = 0; i < CLIENT_MODEL_INSTANCE_COUNT; ++i)
     {
-        m_clients[i].status_cb = client_status_cb;
-        m_clients[i].timeout_cb = client_publish_timeout_cb;
-        ERROR_CHECK(simple_on_off_client_init(&m_clients[i], i + 1));
-        ERROR_CHECK(access_model_subscription_list_alloc(m_clients[i].model_handle));
+        m_clients[i].settings.p_callbacks = &client_cbs;
+        m_clients[i].settings.timeout = 0;
+        m_clients[i].settings.force_segmented = APP_CONFIG_FORCE_SEGMENTATION;
+        m_clients[i].settings.transmic_size = APP_CONFIG_MIC_SIZE;
+
+        ERROR_CHECK(generic_onoff_client_init(&m_clients[i], i + 1));
     }
 }
 
 static void mesh_init(void)
 {
+    uint8_t dev_uuid[NRF_MESH_UUID_SIZE];
+    uint8_t node_uuid_prefix[NODE_UUID_PREFIX_LEN] = CLIENT_NODE_UUID_PREFIX;
+
+    ERROR_CHECK(mesh_app_uuid_gen(dev_uuid, node_uuid_prefix, NODE_UUID_PREFIX_LEN));
     mesh_stack_init_params_t init_params =
     {
         .core.irq_priority       = NRF_MESH_IRQ_PRIORITY_LOWEST,
         .core.lfclksrc           = DEV_BOARD_LF_CLK_CFG,
-        .core.p_uuid             = m_client_node_uuid,
+        .core.p_uuid             = dev_uuid,
         .models.models_init_cb   = models_init_cb,
         .models.config_server_cb = config_server_evt_cb
     };

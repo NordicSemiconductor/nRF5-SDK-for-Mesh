@@ -17,8 +17,12 @@ The following examples are provided with this SDK:
   - Mesh provisioner (`provisioner`)
   - Mesh light bulb with proxy server (`proxy_server`)
 
-  The client and server examples show how to use a [custom model](@ref md_models_simple_on_off_README) in an application.
+  The client and server examples show how to use a [Generic OnOff model](@ref GENERIC_ONOFF_MODEL) APIs in an application.
   The proxy_server example additionally shows how to implement mesh proxy service.
+
+* @subpage md_examples_experimental_dimming_README "Experimental dimming" - These examples demonstrate
+  how to use [Generic Level model](@ref GENERIC_LEVEL_MODEL) APIs in an application to implement dimming
+  light and corresponding dimmer switch.
 
 * @subpage md_examples_enocean_switch_README "Enocean switch: Using third party devices in Mesh ecosystem" -
   This example shows how to implement an Enocean-to-Mesh translator. The Enocean switches send the button status using BLE advertising packets. These packets can be captured and can be used to generate equivalent
@@ -39,6 +43,8 @@ The following examples are provided with this SDK:
 
 * @subpage md_examples_serial_README           "Serial" - This example shows how to
   use the serial interface to create a mesh connectivity device.
+
+* @subpage md_examples_sdk_coexist_README      "SDK coexistence" - These examples show how the nRF5 SDK features can be simultaneously used with nRF5 SDK for Mesh.
 
 Example models are present in the @subpage md_models_README folder, while common example utility
 modules are present in @subpage md_examples_common_README.

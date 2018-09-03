@@ -52,6 +52,7 @@
 #include "nrf_mesh_assert.h"
 #include "nrf_mesh_config_core.h"
 #include "nrf_mesh_defines.h"
+#include "packet_mesh.h"
 
 #include "timer.h"
 #include "timer_scheduler.h"
@@ -247,9 +248,10 @@ static uint32_t calculate_interval(const access_reliable_t * p_message)
     uint32_t interval = (ttl * ACCESS_RELIABLE_HOP_PENALTY) + ACCESS_RELIABLE_INTERVAL_DEFAULT;
     if (NRF_MESH_UNSEG_PAYLOAD_SIZE_MAX < length)
     {
-        interval += ((length + (NRF_MESH_SEG_SIZE - 1))/ NRF_MESH_SEG_SIZE) * ACCESS_RELIABLE_SEGMENT_COUNT_PENALTY;
+        interval += ((length + (PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE - 1)) /
+                PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE) * ACCESS_RELIABLE_SEGMENT_COUNT_PENALTY;
     }
-    return interval;
+    return MIN(p_message->timeout, interval);
 }
 
 static void add_reliable_message(uint16_t index, const access_reliable_t * p_message)
@@ -311,6 +313,18 @@ void access_reliable_message_rx_cb(access_model_handle_t model_handle, const acc
     }
 
     bearer_event_critical_section_end();
+}
+
+bool access_reliable_model_is_free(access_model_handle_t model_handle)
+{
+    for (uint32_t i = 0; i < ACCESS_RELIABLE_TRANSFER_COUNT; ++i)
+    {
+        if (m_reliable.pool[i].in_use && m_reliable.pool[i].params.model_handle == model_handle)
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 /* ******************* Public API ******************* */
@@ -385,8 +399,6 @@ uint32_t access_model_reliable_publish(const access_reliable_t * p_reliable)
 {
     uint32_t status;
     uint16_t index;
-    dsm_handle_t pub_addr_handle;
-    nrf_mesh_address_t pub_addr;
 
     if (NULL == p_reliable || NULL == p_reliable->status_cb)
     {
@@ -408,28 +420,12 @@ uint32_t access_model_reliable_publish(const access_reliable_t * p_reliable)
     else
     {
         status = access_model_publish(p_reliable->model_handle, &p_reliable->message);
-
         if (NRF_SUCCESS == status || NRF_ERROR_NO_MEM == status)
         {
-            status = access_model_publish_address_get(p_reliable->model_handle, &pub_addr_handle);
-            if (status != NRF_SUCCESS)
-            {
-                return status;
-            }
-
-            status = dsm_address_get(pub_addr_handle, &pub_addr);
-            if (status != NRF_SUCCESS)
-            {
-                return status;
-            }
-
-            if (pub_addr.type == NRF_MESH_ADDRESS_TYPE_UNICAST)
-            {
-                /** @todo If we get @c NRF_ERROR_NO_MEM, we could be even "smarter" and retry in @ref
-                 * ACCESS_RELIABLE_RETRY_DELAY scaled based on advertising intervals or something.
-                 * Ref.: MBTLE-1542. */
-                add_reliable_message(index, p_reliable);
-            }
+            /** @todo If we get @c NRF_ERROR_NO_MEM, we could be even "smarter" and retry in @ref
+             * ACCESS_RELIABLE_RETRY_DELAY scaled based on advertising intervals or something.
+             * Ref.: MBTLE-1542. */
+            add_reliable_message(index, p_reliable);
             return NRF_SUCCESS;
         }
         else

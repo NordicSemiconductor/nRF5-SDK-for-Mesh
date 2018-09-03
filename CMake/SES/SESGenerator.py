@@ -95,10 +95,11 @@ GROUP_TEMPLATES = [
     Group(name="uECC", files=[], match_string="micro-ecc"),
     Group(name="nRF5 SDK", files=[], match_string="$(SDK_ROOT"),
     Group(name="Provisioning", files=[], match_string="mesh/prov"),
-    Group(name="Configuration Model", files=[], match_string="models/config"),
-    Group(name="Health Model", files=[], match_string="models/health"),
-    Group(name="Simple OnOff Model", files=[], match_string="models/simple_on_off"),
-    Group(name="Remote provisioning Model", files=[], match_string="models/pb_remote")]
+    Group(name="Configuration Model", files=[], match_string="models/foundation/config"),
+    Group(name="Health Model", files=[], match_string="models/foundation/health"),
+    Group(name="Generic OnOff Model", files=[], match_string="models/model_spec/generic_onoff"),
+    Group(name="Simple OnOff Model", files=[], match_string="models/vendor/simple_on_off"),
+    Group(name="Remote provisioning Model", files=[], match_string="models/experimental/pb_remote")]
 
 def unix_relative_path_get(path1, path2):
     if not path1.startswith('$('):

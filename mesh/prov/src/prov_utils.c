@@ -45,6 +45,8 @@
 #include "enc.h"
 #include "rand.h"
 #include "uECC.h"
+#include "mesh_config.h"
+#include "mesh_opt_prov.h"
 
 #define CONFIRMATION_KEY_INFO        (const uint8_t *) "prck"
 #define CONFIRMATION_KEY_INFO_LENGTH 4
@@ -59,7 +61,8 @@
 
 NRF_MESH_STATIC_ASSERT(NRF_MESH_PROV_OOB_SIZE_MAX == 8);
 
-static bool m_offload_ecdh = false;
+static const bool m_ecdh_offloading_default = false;
+MESH_CONFIG_ENTRY_IMPLEMENTATION(ecdh_offloading, MESH_OPT_PROV_ECDH_OFFLOADING_EID, 1, bool, true, &m_ecdh_offloading_default);
 
 static void create_confirmation_salt(const nrf_mesh_prov_ctx_t * p_ctx, uint8_t * p_confirmation_salt)
 {
@@ -133,16 +136,7 @@ uint32_t prov_utils_opt_set(nrf_mesh_opt_id_t id, const nrf_mesh_opt_t * p_opt)
 {
     if (id == NRF_MESH_OPT_PROV_ECDH_OFFLOADING)
     {
-        if (p_opt->opt.val)
-        {
-            m_offload_ecdh = true;
-        }
-        else
-        {
-            m_offload_ecdh = false;
-        }
-
-        return NRF_SUCCESS;
+        return mesh_opt_prov_ecdh_offloading_set((bool) p_opt->opt.val);
     }
 
     return NRF_ERROR_INVALID_PARAM;
@@ -153,8 +147,7 @@ uint32_t prov_utils_opt_get(nrf_mesh_opt_id_t id, nrf_mesh_opt_t * p_opt)
     if (id == NRF_MESH_OPT_PROV_ECDH_OFFLOADING)
     {
         p_opt->len = 1;
-        p_opt->opt.val = m_offload_ecdh;
-        return NRF_SUCCESS;
+        return mesh_opt_prov_ecdh_offloading_get((bool *) &p_opt->opt.val);
     }
 
     return NRF_ERROR_INVALID_PARAM;
@@ -162,7 +155,9 @@ uint32_t prov_utils_opt_get(nrf_mesh_opt_id_t id, nrf_mesh_opt_t * p_opt)
 
 bool prov_utils_use_ecdh_offloading(void)
 {
-    return m_offload_ecdh;
+    bool retval;
+    NRF_MESH_ERROR_CHECK(mesh_opt_prov_ecdh_offloading_get(&retval));
+    return retval;
 }
 
 void prov_utils_authentication_values_derive(const nrf_mesh_prov_ctx_t * p_ctx,
@@ -339,4 +334,14 @@ bool prov_utils_confirmation_check(const nrf_mesh_prov_ctx_t * p_ctx)
                  confirmation);
 
     return memcmp(confirmation, p_ctx->peer_confirmation, sizeof(confirmation)) == 0;
+}
+
+uint32_t mesh_opt_prov_ecdh_offloading_set(bool enabled)
+{
+    return mesh_config_entry_set(MESH_OPT_PROV_ECDH_OFFLOADING_EID, &enabled);
+}
+
+uint32_t mesh_opt_prov_ecdh_offloading_get(bool * p_enabled)
+{
+    return mesh_config_entry_get(MESH_OPT_PROV_ECDH_OFFLOADING_EID, p_enabled);
 }

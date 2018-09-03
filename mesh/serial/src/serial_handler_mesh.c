@@ -449,6 +449,7 @@ static const mesh_serial_cmd_handler_t m_handlers[] =
 static void serial_handler_mesh_evt_handle(const nrf_mesh_evt_t* p_evt)
 {
     static serial_packet_t * p_serial_evt;
+    uint32_t status;
     switch (p_evt->type)
     {
         case NRF_MESH_EVT_MESSAGE_RECEIVED:
@@ -459,7 +460,12 @@ static void serial_handler_mesh_evt_handle(const nrf_mesh_evt_t* p_evt)
             {
                 data_length = SERIAL_EVT_MESH_MESSAGE_RECEIVED_DATA_MAXLEN;
             }
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(data_length + SERIAL_EVT_MESH_MESSAGE_RECEIVED_LEN_OVERHEAD, &p_serial_evt));
+            status = serial_packet_buffer_get(data_length + SERIAL_EVT_MESH_MESSAGE_RECEIVED_LEN_OVERHEAD, &p_serial_evt);
+            if (status != NRF_SUCCESS)
+            {
+                break;
+            }
+
             serial_evt_mesh_message_received_t * p_msg_rcvd = &p_serial_evt->payload.evt.mesh.message_received;
             p_msg_rcvd->actual_length = p_evt->params.message.length;
             if (p_evt->params.message.dst.type == NRF_MESH_ADDRESS_TYPE_UNICAST)
@@ -491,18 +497,24 @@ static void serial_handler_mesh_evt_handle(const nrf_mesh_evt_t* p_evt)
             break;
         }
         case NRF_MESH_EVT_IV_UPDATE_NOTIFICATION:
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_mesh_iv_update_t), &p_serial_evt));
-            p_serial_evt->opcode = SERIAL_OPCODE_EVT_MESH_IV_UPDATE_NOTIFICATION;
-            p_serial_evt->payload.evt.mesh.iv_update.iv_index = p_evt->params.iv_update.iv_index;
-            serial_tx(p_serial_evt);
+            status = serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_mesh_iv_update_t), &p_serial_evt);
+            if (status == NRF_SUCCESS)
+            {
+                p_serial_evt->opcode = SERIAL_OPCODE_EVT_MESH_IV_UPDATE_NOTIFICATION;
+                p_serial_evt->payload.evt.mesh.iv_update.iv_index = p_evt->params.iv_update.iv_index;
+                serial_tx(p_serial_evt);
+            }
             break;
 
         case NRF_MESH_EVT_KEY_REFRESH_NOTIFICATION:
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_mesh_key_refresh_t), &p_serial_evt));
-            p_serial_evt->opcode = SERIAL_OPCODE_EVT_MESH_KEY_REFRESH_NOTIFICATION;
-            p_serial_evt->payload.evt.mesh.key_refresh.netkey_index = p_evt->params.key_refresh.subnet_index;
-            p_serial_evt->payload.evt.mesh.key_refresh.phase = p_evt->params.key_refresh.phase;
-            serial_tx(p_serial_evt);
+            status = serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_mesh_key_refresh_t), &p_serial_evt);
+            if (status == NRF_SUCCESS)
+            {
+                p_serial_evt->opcode = SERIAL_OPCODE_EVT_MESH_KEY_REFRESH_NOTIFICATION;
+                p_serial_evt->payload.evt.mesh.key_refresh.netkey_index = p_evt->params.key_refresh.subnet_index;
+                p_serial_evt->payload.evt.mesh.key_refresh.phase = p_evt->params.key_refresh.phase;
+                serial_tx(p_serial_evt);
+            }
             break;
 
         default:

@@ -8,17 +8,16 @@ The mesh stack runs in two interrupt priorities:
 - The less time-critical parts should run in the same IRQ priority as the user application's
 low priority code. This can be any priority lower than the SoftDevice API call priority,
 but it should be the same as the SoftDevice event IRQ handler.
-When using the nRF5 SDK, this will normally be NRF_MESH_IRQ_PRIORITY_LOWEST
+When using the nRF5 SDK, this will normally be `::NRF_MESH_IRQ_PRIORITY_LOWEST`
 (APP_IRQ_PRIORITY_LOWEST).
 However, if you use the nRF5 SDK's app_scheduler module to run the application from the main loop,
 the low priority parts of the mesh stack should also run from the main loop.
 
 ## Configuration
 
-The mesh network must know in which IRQ priority the user application is running. Both
-nrf_mesh_init_params_t (used by nrf_mesh_init) and nrf_mesh_node_config_params_t
-(used by nrf_mesh_node_config) now has an irq_priority field.
-Normally it should be set to NRF_MESH_IRQ_PRIORITY_LOWEST, or NRF_MESH_IRQ_PRIORITY_THREAD if
+The mesh network must know in which IRQ priority the user application is running.
+nrf_mesh_init_params_t (used by nrf_mesh_init) now has an irq_priority field.
+Normally it should be set to `::NRF_MESH_IRQ_PRIORITY_LOWEST`, or `::NRF_MESH_IRQ_PRIORITY_THREAD` if
 running in the main loop. The APP_IRQ_PRIORITY_* defines in NRF5 SDK can also be used.
 
 ## Limitations

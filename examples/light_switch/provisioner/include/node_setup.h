@@ -79,13 +79,14 @@ typedef void (*node_setup_failed_cb_t)(void);
  * Starts state machine for configuring the newly provisioned node. If this function is called
  * when previous setup process is underway it will trigger error condition.
  *
- * @param[in]  address      Unicast address of the node to be configured.
- * @param[in]  retry_cnt    Number of times a message can be resent if failed
- * @param[in]  p_appkey     Pointer to the appkey that will be used for configuring nodes
- * @param[in]  appkey_idx   Desired appkey index.
+ * @param[in]  address        Unicast address of the node to be configured.
+ * @param[in]  retry_cnt      Number of times a message can be resent if failed
+ * @param[in]  p_appkey       Pointer to the appkey that will be used for configuring nodes
+ * @param[in]  appkey_idx     Desired appkey index.
+ * @param[in]  p_current_uuid Pointer to the current node UUID
  */
 void node_setup_start(uint16_t address, uint8_t  retry_cnt, const uint8_t * p_appkey,
-                      uint16_t appkey_idx);
+                      uint16_t appkey_idx, const uint8_t * p_current_uuid);
 
 /**
  * Sets the application callbacks to be called when node setup succeeds or fails.

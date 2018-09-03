@@ -86,6 +86,26 @@
                         ],
                         "params": ""
                     }
+                },
+                {
+                    "name": "Housekeeping data get",
+                    "description": "Get the current housekeeping data values.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": "cmd_rsp_data_housekeeping"
+                    }
+                },
+                {
+                    "name": "Housekeeping data clear",
+                    "description": "Clear the current housekeeping data values.",
+                    "response": {
+                        "status": [
+                            "SUCCESS"
+                        ],
+                        "params": ""
+                    }
                 }
             ]
         },
@@ -1188,6 +1208,14 @@
         {
             "name": "Prov Caps Received",
             "description": "The device received provisioning capabilities on the provisioning link with the given context ID."
+        },
+        {
+            "name": "Prov Invite Received",
+            "description": "The device received provisioning invite so it can start identifying itself using anymeans it can."
+        },
+        {
+            "name": "Prov Start Received",
+            "description": "The device received provisioning start meaning that the provisioning process has been started and shall stop identifying itself."
         },
         {
             "name": "Prov Complete",

@@ -54,7 +54,7 @@
 #include "net_state.h"
 #include "nrf_mesh_events.h"
 #include "nrf_mesh_externs.h"
-#include "nrf_mesh_opt.h"
+#include "mesh_opt_core.h"
 
 #if PERSISTENT_STORAGE
 #include "flash_manager.h"
@@ -406,9 +406,9 @@ static bool rx_group_address_get(uint16_t address, nrf_mesh_address_t * p_addres
             return false;
         case NRF_MESH_ALL_RELAYS_ADDR:
         {
-            nrf_mesh_opt_t option;
-            NRF_MESH_ERROR_CHECK(nrf_mesh_opt_get(NRF_MESH_OPT_NET_RELAY_ENABLE, &option));
-            return !!option.opt.val;
+            mesh_opt_core_adv_t options;
+            NRF_MESH_ERROR_CHECK(mesh_opt_core_adv_get(CORE_TX_ROLE_RELAY, &options));
+            return options.enabled;
         }
         case NRF_MESH_ALL_NODES_ADDR:
             return true;
@@ -1515,6 +1515,11 @@ bool dsm_flash_config_load(void)
 bool dsm_has_unflashed_data(void)
 {
     return false;
+}
+
+const void * dsm_flash_area_get(void)
+{
+    return NULL;
 }
 #endif /* PERSISTENT_STORAGE*/
 

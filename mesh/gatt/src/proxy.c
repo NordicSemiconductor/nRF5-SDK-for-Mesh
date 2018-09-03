@@ -54,6 +54,8 @@
 #include "mesh_adv.h"
 #include "timer_scheduler.h"
 #include "cache.h"
+#include "mesh_config_entry.h"
+#include "mesh_opt_gatt.h"
 
 #define PROXY_UUID_SERVICE 0x1828
 #define PROXY_UUID_CHAR_TX 0x2ade
@@ -136,7 +138,8 @@ static const core_tx_bearer_interface_t m_interface = {core_tx_packet_alloc_cb,
                                                        core_tx_packet_discard_cb};
 static proxy_connection_t m_connections[MESH_GATT_CONNECTION_COUNT_MAX];
 static nrf_mesh_evt_handler_t m_mesh_evt_handler;
-static bool m_enabled;
+static bool m_enabled = PROXY_ENABLED_DEFAULT;
+
 static struct
 {
     bool running;
@@ -590,6 +593,7 @@ static void gatt_evt_handler(const mesh_gatt_evt_t * p_evt, void * p_context)
             p_connection->connected = false;
             if (m_enabled && !m_advertising.running)
             {
+                m_advertising.p_net_beacon_info = NULL;
                 adv_start(PROXY_ADV_TYPE_NETWORK_ID, true);
             }
             break;
@@ -764,7 +768,6 @@ void core_tx_packet_discard_cb(core_tx_bearer_t * p_bearer)
 *****************************************************************************/
 void proxy_init(void)
 {
-    m_enabled = false;
     mesh_gatt_uuids_t uuids = {.service = PROXY_UUID_SERVICE,
                                .tx_char = PROXY_UUID_CHAR_TX,
                                .rx_char = PROXY_UUID_CHAR_RX};
@@ -784,6 +787,50 @@ void proxy_init(void)
     {
         core_tx_bearer_add(&m_connections[i].bearer, &m_interface, CORE_TX_BEARER_TYPE_GATT_SERVER);
         m_connections[i].connected = false;
+    }
+
+    /* NOTE: We're not setting the m_enabled state here. It is stored in zero-initialized memory and
+     * set by mesh_config_load() which _has to be called before this function_.
+     *
+     * The reason is that this function shall only be called if the device has been provisioned,
+     * otherwise it will add the Proxy Service to the GATT database (through mesh_gatt_init(...)).
+     */
+}
+
+uint32_t proxy_start(void)
+{
+    if (m_enabled)
+    {
+        if (!m_advertising.running)
+        {
+            m_advertising.p_net_beacon_info = NULL;
+            adv_start(PROXY_ADV_TYPE_NETWORK_ID, true);
+        }
+        return NRF_SUCCESS;
+    }
+    else
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+}
+
+uint32_t proxy_stop(void)
+{
+    if (m_enabled)
+    {
+        proxy_disconnect();
+        if (m_advertising.running)
+        {
+            mesh_adv_stop();
+            on_adv_end();
+        }
+
+        m_enabled = false;
+        return NRF_SUCCESS;
+    }
+    else
+    {
+        return NRF_ERROR_INVALID_STATE;
     }
 }
 
@@ -821,78 +868,12 @@ void proxy_net_packet_processed(const network_packet_metadata_t * p_net_metadata
     }
 }
 
-uint32_t proxy_enable(void)
-{
-    if (m_enabled)
-    {
-        return NRF_ERROR_INVALID_STATE;
-    }
-    else
-    {
-        m_advertising.p_net_beacon_info = NULL;
-        m_enabled                       = true;
-        adv_start(PROXY_ADV_TYPE_NETWORK_ID, true);
-        return NRF_SUCCESS;
-    }
-}
-
-uint32_t proxy_node_id_enable(const nrf_mesh_beacon_info_t * p_beacon_info, nrf_mesh_key_refresh_phase_t kr_phase)
-{
-    m_advertising.p_net_beacon_info = p_beacon_info;
-    m_advertising.kr_phase          = kr_phase;
-    m_enabled                       = true;
-    if (active_connection_count() < MESH_GATT_CONNECTION_COUNT_MAX)
-    {
-        adv_start(PROXY_ADV_TYPE_NODE_ID, (p_beacon_info == NULL));
-        return NRF_SUCCESS;
-    }
-    else
-    {
-        return NRF_ERROR_BUSY;
-    }
-}
-
 bool proxy_node_id_is_enabled(const nrf_mesh_beacon_info_t * p_beacon_info)
 {
     return (m_enabled &&
             m_advertising.running &&
             m_advertising.type == PROXY_ADV_TYPE_NODE_ID &&
             (p_beacon_info == NULL || p_beacon_info == m_advertising.p_net_beacon_info));
-}
-
-uint32_t proxy_node_id_disable(void)
-{
-    if (proxy_node_id_is_enabled(NULL))
-    {
-        adv_start(PROXY_ADV_TYPE_NETWORK_ID, true);
-        return NRF_SUCCESS;
-    }
-    else
-    {
-        return NRF_ERROR_INVALID_STATE;
-    }
-}
-
-void proxy_disable(void)
-{
-    if (m_enabled)
-    {
-        m_enabled = false;
-        if (m_advertising.running)
-        {
-            mesh_adv_stop();
-            on_adv_end();
-        }
-
-        for (uint32_t i = 0; i < MESH_GATT_CONNECTION_COUNT_MAX; ++i)
-        {
-            if (m_connections[i].connected)
-            {
-                (void) mesh_gatt_disconnect(i);
-                m_connections[i].connected = false;
-            }
-        }
-    }
 }
 
 bool proxy_is_enabled(void)
@@ -903,4 +884,121 @@ bool proxy_is_enabled(void)
 bool proxy_is_connected(void)
 {
     return (m_enabled && active_connection_count() > 0);
+}
+
+void proxy_disconnect(void)
+{
+    for (uint32_t i = 0; i < MESH_GATT_CONNECTION_COUNT_MAX; ++i)
+    {
+        if (m_connections[i].connected)
+        {
+            (void) mesh_gatt_disconnect(i);
+            m_connections[i].connected = false;
+        }
+    }
+}
+
+uint32_t proxy_enable(void)
+{
+    return mesh_opt_gatt_proxy_set(true);
+}
+
+void proxy_disable(void)
+{
+    (void) mesh_opt_gatt_proxy_set(false);
+}
+
+uint32_t proxy_node_id_enable(const nrf_mesh_beacon_info_t * p_beacon_info, nrf_mesh_key_refresh_phase_t kr_phase)
+{
+    if (active_connection_count() >= MESH_GATT_CONNECTION_COUNT_MAX)
+    {
+        return NRF_ERROR_BUSY;
+    }
+    else
+    {
+        /* If the Node ID is already enabled, we'll restart the counter now. */
+        m_advertising.p_net_beacon_info = p_beacon_info;
+        m_advertising.kr_phase          = kr_phase;
+        adv_start(PROXY_ADV_TYPE_NODE_ID, (p_beacon_info == NULL));
+        return NRF_SUCCESS;
+    }
+}
+
+uint32_t proxy_node_id_disable(void)
+{
+    if (proxy_node_id_is_enabled(NULL))
+    {
+        /* If the Proxy state is enabled, we'll go back to advertising
+         * the Network ID. */
+        if (m_enabled)
+        {
+            adv_start(PROXY_ADV_TYPE_NETWORK_ID, true);
+        }
+        else
+        {
+            mesh_adv_stop();
+            on_adv_end();
+        }
+        return NRF_SUCCESS;
+    }
+    else
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+}
+
+/*****************************************************************************
+ * Mesh config wrappers
+ *****************************************************************************/
+
+static uint32_t proxy_set(mesh_config_entry_id_t id, const void * p_entry)
+{
+    const bool enable = *((bool *) p_entry);
+
+    if (enable && !m_enabled)
+    {
+        m_enabled = true;
+        return NRF_SUCCESS;
+    }
+    else if (!enable && m_enabled)
+    {
+        m_enabled = false;
+
+        if (m_advertising.running)
+        {
+            mesh_adv_stop();
+            on_adv_end();
+        }
+
+        return NRF_SUCCESS;
+    }
+    else
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+}
+
+static void proxy_get(mesh_config_entry_id_t id, void * p_entry)
+{
+    bool * p_enabled = p_entry;
+    *p_enabled = proxy_is_enabled();
+}
+
+MESH_CONFIG_ENTRY(mesh_opt_gatt_proxy,
+                  MESH_OPT_GATT_PROXY_EID,
+                  1,
+                  sizeof(bool),
+                  proxy_set,
+                  proxy_get,
+                  NULL,
+                  &m_enabled);
+
+uint32_t mesh_opt_gatt_proxy_set(bool enabled)
+{
+    return mesh_config_entry_set(MESH_OPT_GATT_PROXY_EID, &enabled);
+}
+
+uint32_t mesh_opt_gatt_proxy_get(bool * p_enabled)
+{
+    return mesh_config_entry_get(MESH_OPT_GATT_PROXY_EID, p_enabled);
 }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -42,7 +42,7 @@
 #include "unity.h"
 #include "cmock.h"
 
-#include "nordic_common.h"
+#include "utils.h"
 #include "test_assert.h"
 
 #include "log.h"

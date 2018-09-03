@@ -221,7 +221,7 @@ static inline uint32_t time_required_to_send_us(const packet_t * p_packet, uint8
                                                                            ,4, 128
                                                             #endif
                                                                            };
-    uint32_t packet_length_in_bytes = BLE_PACKET_OVERHEAD(RADIO_MODE_BLE_1MBIT) + BLE_ADV_PACKET_HEADER_LENGTH + p_packet->header.length;
+    uint32_t packet_length_in_bytes = BLE_PACKET_OVERHEAD(RADIO_MODE_BLE_1MBIT) + p_packet->header.length;
 #ifdef NRF52_SERIES
     if (radio_mode == RADIO_MODE_BLE_2MBIT)
     {

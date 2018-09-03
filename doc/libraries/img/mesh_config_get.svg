@@ -1,0 +1,77 @@
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1"
+ width="1200px" height="106px"
+ viewBox="0 0 1200 106"
+ xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges"
+ stroke-width="1" text-rendering="geometricPrecision">
+<polygon fill="white" points="106,7 132,7 132,16 106,16"/>
+<text x="120" y="16" textLength="25" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+User
+</text>
+<polygon fill="white" points="326,7 392,7 392,16 326,16"/>
+<text x="360" y="16" textLength="65" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+Mesh config
+</text>
+<polygon fill="white" points="566,7 632,7 632,16 566,16"/>
+<text x="600" y="16" textLength="64" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+State owner
+</text>
+<polygon fill="white" points="796,7 882,7 882,16 796,16"/>
+<text x="840" y="16" textLength="84" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+Change listener
+</text>
+<polygon fill="white" points="1055,7 1103,7 1103,16 1055,16"/>
+<text x="1080" y="16" textLength="47" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+Backend
+</text>
+<line x1="120" y1="22" x2="120" y2="50" stroke="black"/>
+<line x1="360" y1="22" x2="360" y2="50" stroke="black"/>
+<line x1="600" y1="22" x2="600" y2="50" stroke="black"/>
+<line x1="840" y1="22" x2="840" y2="50" stroke="black"/>
+<line x1="1080" y1="22" x2="1080" y2="50" stroke="black"/>
+<line x1="120" y1="33" x2="360" y2="33" stroke="black"/>
+<polygon fill="black" points="360,33 350,39 350,27"/>
+<polygon fill="white" points="166,23 313,23 313,32 166,32"/>
+<text x="167" y="32" textLength="145" font-family="Helvetica" font-size="12" fill="black">
+mesh_config_entry_get(ID)
+</text>
+<line x1="120" y1="50" x2="120" y2="78" stroke="black"/>
+<line x1="360" y1="50" x2="360" y2="78" stroke="black"/>
+<line x1="600" y1="50" x2="600" y2="78" stroke="black"/>
+<line x1="840" y1="50" x2="840" y2="78" stroke="black"/>
+<line x1="1080" y1="50" x2="1080" y2="78" stroke="black"/>
+<line x1="360" y1="61" x2="600" y2="61" stroke="black"/>
+<polygon fill="black" points="600,61 590,67 590,55"/>
+<polygon fill="white" points="428,51 531,51 531,60 428,60"/>
+<text x="429" y="60" textLength="101" font-family="Helvetica" font-size="12" fill="black">
+getter_callback(ID)
+</text>
+<line x1="120" y1="78" x2="120" y2="106" stroke="black"/>
+<line x1="360" y1="78" x2="360" y2="106" stroke="black"/>
+<line x1="600" y1="78" x2="600" y2="106" stroke="black"/>
+<line x1="840" y1="78" x2="840" y2="106" stroke="black"/>
+<line x1="1080" y1="78" x2="1080" y2="106" stroke="black"/>
+<line x1="600" y1="89" x2="360" y2="89" stroke="black"/>
+<line x1="360" y1="89" x2="370" y2="95" stroke="black"/>
+<polygon fill="white" points="457,79 501,79 501,88 457,88"/>
+<text x="458" y="88" textLength="42" font-family="Helvetica" font-size="12" fill="black">
+value=5
+</text>
+<line x1="360" y1="89" x2="120" y2="89" stroke="black"/>
+<line x1="120" y1="89" x2="130" y2="95" stroke="black"/>
+<polygon fill="white" points="217,79 261,79 261,88 217,88"/>
+<text x="218" y="88" textLength="42" font-family="Helvetica" font-size="12" fill="black">
+value=5
+</text>
+<line x1="120" y1="100" x2="120" y2="106" stroke="black"/>
+<line x1="360" y1="100" x2="360" y2="106" stroke="black"/>
+<line x1="600" y1="100" x2="600" y2="106" stroke="black"/>
+<line x1="840" y1="100" x2="840" y2="106" stroke="black"/>
+<line x1="1080" y1="100" x2="1080" y2="106" stroke="black"/>
+</svg>

@@ -46,7 +46,7 @@
 #include "device_state_manager_mock.h"
 #include "heartbeat_mock.h"
 #include "net_beacon_mock.h"
-#include "nrf_mesh_opt_mock.h"
+#include "mesh_opt_core_mock.h"
 #include "nrf_mesh_keygen_mock.h"
 #include "rand_mock.h"
 #include "nrf_mesh_events_mock.h"
@@ -57,7 +57,7 @@
 #include "config_messages.h"
 #include "config_opcodes.h"
 #include "config_server.h"
-#include "nordic_common.h"
+#include "utils.h"
 #include "packed_index_list.h"
 
 #define CONFIG_SERVER_MODEL_ID  0x0000
@@ -255,7 +255,7 @@ void setUp(void)
     device_state_manager_mock_Init();
     heartbeat_mock_Init();
     net_beacon_mock_Init();
-    nrf_mesh_opt_mock_Init();
+    mesh_opt_core_mock_Init();
     nrf_mesh_keygen_mock_Init();
     rand_mock_Init();
     nrf_mesh_events_mock_Init();
@@ -270,9 +270,7 @@ void setUp(void)
     access_model_add_StubWithCallback(access_model_add_mock);
     access_model_reply_StubWithCallback(access_model_reply_mock);
 
-    heartbeat_config_server_cb_set_Expect(NULL, NULL);
-    heartbeat_config_server_cb_set_IgnoreArg_p_cb();
-    heartbeat_config_server_cb_set_IgnoreArg_p_pub_cnt_cb();
+    heartbeat_public_info_getter_register_ExpectAnyArgs();
     nrf_mesh_evt_handler_add_ExpectAnyArgs();
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_server_init(config_server_evt_cb));
 }
@@ -297,8 +295,8 @@ void tearDown(void)
     heartbeat_mock_Destroy();
     net_beacon_mock_Verify();
     net_beacon_mock_Destroy();
-    nrf_mesh_opt_mock_Verify();
-    nrf_mesh_opt_mock_Destroy();
+    mesh_opt_core_mock_Verify();
+    mesh_opt_core_mock_Destroy();
     nrf_mesh_keygen_mock_Verify();
     nrf_mesh_keygen_mock_Destroy();
     rand_mock_Verify();
@@ -491,21 +489,11 @@ void test_gatt_proxy_set(void)
 
 void test_config_relay_get(void)
 {
-    nrf_mesh_opt_t relay_state = { .len = 4, .opt.val = CONFIG_RELAY_STATE_SUPPORTED_ENABLED };
-    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_RELAY_ENABLE, NULL, NRF_SUCCESS);
-    nrf_mesh_opt_get_IgnoreArg_p_opt();
-    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&relay_state);
 
-    nrf_mesh_opt_t retransmits = { .len = 4, .opt.val = 2};
-    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_RELAY_RETRANSMIT_COUNT, NULL, NRF_SUCCESS);
-    nrf_mesh_opt_get_IgnoreArg_p_opt();
-    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&retransmits);
-
-    nrf_mesh_opt_t interval = { .len = 4, .opt.val = 50};
-    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_RELAY_RETRANSMIT_INTERVAL_MS, NULL, NRF_SUCCESS);
-    nrf_mesh_opt_get_IgnoreArg_p_opt();
-    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&interval);
-
+    mesh_opt_core_adv_t relay_state = {.enabled = true, .tx_count = 2, .tx_interval_ms = 50};
+    mesh_opt_core_adv_get_ExpectAndReturn(CORE_TX_ROLE_RELAY, NULL, NRF_SUCCESS);
+    mesh_opt_core_adv_get_IgnoreArg_p_entry();
+    mesh_opt_core_adv_get_ReturnThruPtr_p_entry(&relay_state);
     send_message(CONFIG_OPCODE_RELAY_GET, NULL, 0); /* Message with no parameters */
 
     TEST_ASSERT_TRUE(m_previous_reply_received);
@@ -527,30 +515,16 @@ void test_config_relay_set(void)
             .relay_retransmit_interval_steps = 1
         };
 
-    nrf_mesh_opt_t expected_optval_enable = { .len = 4, .opt.val = 1 };
-    nrf_mesh_opt_set_ExpectWithArrayAndReturn(NRF_MESH_OPT_NET_RELAY_ENABLE, &expected_optval_enable, 1, NRF_SUCCESS);
+    mesh_opt_core_adv_t relay_state = {.enabled = true,
+                                       .tx_count = message.relay_retransmit_count + 1,
+                                       .tx_interval_ms = 10*(message.relay_retransmit_interval_steps + 1)};
+    mesh_opt_core_adv_set_ExpectWithArrayAndReturn(CORE_TX_ROLE_RELAY, &relay_state, 1, NRF_SUCCESS);
 
-    nrf_mesh_opt_t expected_optval_retransmits = { .len = 4, .opt.val = message.relay_retransmit_count + 1 };
-    nrf_mesh_opt_set_ExpectWithArrayAndReturn(NRF_MESH_OPT_NET_RELAY_RETRANSMIT_COUNT,
-                                              &expected_optval_retransmits, 1, NRF_SUCCESS);
-
-    /* 10 ms * (steps + 1) according to Mesh Profile spec. 4.2.20.2. */
-    nrf_mesh_opt_t expected_optval_interval = { .len = 4, .opt.val = 10*(message.relay_retransmit_interval_steps + 1) };
-    nrf_mesh_opt_set_ExpectWithArrayAndReturn(NRF_MESH_OPT_NET_RELAY_RETRANSMIT_INTERVAL_MS,
-                                              &expected_optval_interval, 1, NRF_SUCCESS);
 
     /* The server reads out the expected state back again when replying. */
-    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_RELAY_ENABLE, NULL, NRF_SUCCESS);
-    nrf_mesh_opt_get_IgnoreArg_p_opt();
-    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&expected_optval_enable);
-
-    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_RELAY_RETRANSMIT_COUNT, NULL, NRF_SUCCESS);
-    nrf_mesh_opt_get_IgnoreArg_p_opt();
-    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&expected_optval_retransmits);
-
-    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_RELAY_RETRANSMIT_INTERVAL_MS, NULL, NRF_SUCCESS);
-    nrf_mesh_opt_get_IgnoreArg_p_opt();
-    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&expected_optval_interval);
+    mesh_opt_core_adv_get_ExpectAndReturn(CORE_TX_ROLE_RELAY, NULL, NRF_SUCCESS);
+    mesh_opt_core_adv_get_IgnoreArg_p_entry();
+    mesh_opt_core_adv_get_ReturnThruPtr_p_entry(&relay_state);
 
     send_message(CONFIG_OPCODE_RELAY_SET, (const uint8_t *) &message, sizeof(message));
 
@@ -1916,23 +1890,15 @@ void test_network_transmit_set(void)
             .network_transmit_interval_steps = INTERVAL_STEPS
         };
 
-    nrf_mesh_opt_t expected_optval_retransmits = { .len = 4, .opt.val = TRANSMIT_COUNT + 1 };
-    nrf_mesh_opt_set_ExpectWithArrayAndReturn(NRF_MESH_OPT_NET_NETWORK_TRANSMIT_COUNT,
-                                              &expected_optval_retransmits, 1, NRF_SUCCESS);
-
-    /* 10 ms * (steps + 1) according to Mesh Profile spec. 4.2.19.2. */
-    nrf_mesh_opt_t expected_optval_interval = { .len = 4, .opt.val = INTERVAL_MS};
-    nrf_mesh_opt_set_ExpectWithArrayAndReturn(NRF_MESH_OPT_NET_NETWORK_TRANSMIT_INTERVAL_MS,
-                                              &expected_optval_interval, 1, NRF_SUCCESS);
+    mesh_opt_core_adv_t net_state = {.enabled = true,
+                                     .tx_count = TRANSMIT_COUNT + 1,
+                                     .tx_interval_ms = INTERVAL_MS};
+    mesh_opt_core_adv_set_ExpectWithArrayAndReturn(CORE_TX_ROLE_ORIGINATOR, &net_state, 1, NRF_SUCCESS);
 
     /* The server reads out the expected state back again when replying. */
-    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_NETWORK_TRANSMIT_COUNT, NULL, NRF_SUCCESS);
-    nrf_mesh_opt_get_IgnoreArg_p_opt();
-    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&expected_optval_retransmits);
-
-    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_NETWORK_TRANSMIT_INTERVAL_MS, NULL, NRF_SUCCESS);
-    nrf_mesh_opt_get_IgnoreArg_p_opt();
-    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&expected_optval_interval);
+    mesh_opt_core_adv_get_ExpectAndReturn(CORE_TX_ROLE_ORIGINATOR, NULL, NRF_SUCCESS);
+    mesh_opt_core_adv_get_IgnoreArg_p_entry();
+    mesh_opt_core_adv_get_ReturnThruPtr_p_entry(&net_state);
 
     send_message(CONFIG_OPCODE_NETWORK_TRANSMIT_SET, (const uint8_t *) &message, sizeof(message));
     TEST_ASSERT_TRUE(m_previous_reply_received);
@@ -1952,16 +1918,14 @@ void test_network_transmit_get(void)
     /* 10 ms * (steps + 1) according to Mesh Profile spec. 4.2.19.2. */
     const uint32_t INTERVAL_MS = 10 * (INTERVAL_STEPS + 1);
 
-    nrf_mesh_opt_t expected_optval_retransmits = { .len = 4, .opt.val = TRANSMIT_COUNT + 1 };
-    nrf_mesh_opt_t expected_optval_interval    = { .len = 4, .opt.val = INTERVAL_MS};
-    /* The server reads out the expected state back again when replying. */
-    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_NETWORK_TRANSMIT_COUNT, NULL, NRF_SUCCESS);
-    nrf_mesh_opt_get_IgnoreArg_p_opt();
-    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&expected_optval_retransmits);
+    mesh_opt_core_adv_t net_state = {.enabled = true,
+                                     .tx_count = TRANSMIT_COUNT + 1,
+                                     .tx_interval_ms = INTERVAL_MS};
 
-    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_NETWORK_TRANSMIT_INTERVAL_MS, NULL, NRF_SUCCESS);
-    nrf_mesh_opt_get_IgnoreArg_p_opt();
-    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&expected_optval_interval);
+    /* The server reads out the expected state back again when replying. */
+    mesh_opt_core_adv_get_ExpectAndReturn(CORE_TX_ROLE_ORIGINATOR, NULL, NRF_SUCCESS);
+    mesh_opt_core_adv_get_IgnoreArg_p_entry();
+    mesh_opt_core_adv_get_ReturnThruPtr_p_entry(&net_state);
 
     send_message(CONFIG_OPCODE_NETWORK_TRANSMIT_GET, NULL, 0);
     TEST_ASSERT_TRUE(m_previous_reply_received);

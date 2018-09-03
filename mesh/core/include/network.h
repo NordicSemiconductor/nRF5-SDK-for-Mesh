@@ -75,6 +75,11 @@ typedef struct
 void network_init(const nrf_mesh_init_params_t * p_init_params);
 
 /**
+ * Enables the network module.
+ */
+void network_enable(void);
+
+/**
  * Sets a network layer option.
  * @param[in] id    Option ID.
  * @param[in] p_opt Pointer to a structure containing the new value of the option.

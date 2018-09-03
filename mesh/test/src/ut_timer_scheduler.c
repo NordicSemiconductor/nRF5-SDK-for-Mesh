@@ -44,6 +44,8 @@
 #include "nrf_mesh.h"
 #include "test_assert.h"
 
+#define TIMER_MARGIN    (100)
+
 typedef struct
 {
     bearer_event_callback_t cb;
@@ -148,6 +150,12 @@ uint32_t bearer_event_flag_add(bearer_event_flag_callback_t callback)
     m_flag_cb = callback;
     return 0;
 }
+
+bool bearer_event_in_correct_irq_priority(void)
+{
+    return true;
+}
+
 void bearer_event_flag_set(uint32_t flag)
 {
     TEST_ASSERT_EQUAL(0, flag);
@@ -244,6 +252,8 @@ void test_timer_sch_add(void)
     timer_sch_schedule(&evts[11]);
     TEST_ASSERT_EQUAL(11, m_cb_count);
     timer_sch_schedule(&evts[0]);
+    m_time_now += TIMER_MARGIN;
+    m_timer_cb(m_time_now);
     TEST_ASSERT_EQUAL(12, m_cb_count);
     TEST_ASSERT_EQUAL(m_time_now, m_last_timestamp);
 
@@ -251,17 +261,6 @@ void test_timer_sch_add(void)
     m_timer_cb(m_time_now);
     TEST_ASSERT_EQUAL(13, m_cb_count);
     TEST_ASSERT_EQUAL(m_time_now, m_last_timestamp);
-
-    /* schedule while in add-queue */
-    m_async_exec = true;
-    m_time_now = 0;
-    timer_sch_schedule(&evts[0]);
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[0].state);
-    /* This isn't legal */
-    TEST_NRF_MESH_ASSERT_EXPECT(timer_sch_schedule(&evts[0]));
-    exec_async();
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[0].state);
-    TEST_ASSERT_FALSE(event_is_in_loop(&evts[0]));
 }
 
 void test_timer_sch_abort(void)
@@ -343,37 +342,6 @@ void test_timer_sch_abort(void)
     m_time_now = 12000;
     m_timer_cb(m_time_now);
     TEST_ASSERT_EQUAL(7, m_cb_count);
-
-    /* abort while in add-queue */
-    m_async_exec = true;
-    m_time_now = 0;
-    timer_sch_schedule(&evts[0]);
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[0].state);
-    timer_sch_abort(&evts[0]);
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_IGNORED, evts[0].state);
-    exec_async();
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_UNUSED, evts[0].state);
-
-    /* abort while in add-queue, then schedule before handling */
-    timer_sch_schedule(&evts[0]);
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[0].state);
-    timer_sch_abort(&evts[0]);
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_IGNORED, evts[0].state);
-    TEST_NRF_MESH_ASSERT_EXPECT(timer_sch_schedule(&evts[0]));
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_IGNORED, evts[0].state);
-    exec_async();
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_UNUSED, evts[0].state);
-
-    /* abort while in add-queue, then reschedule before handling */
-    timer_sch_schedule(&evts[0]);
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[0].state);
-    timer_sch_abort(&evts[0]);
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_IGNORED, evts[0].state);
-    timer_sch_reschedule(&evts[0], 10000);
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[0].state);
-    exec_async();
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[0].state);
-    TEST_ASSERT_FALSE(event_is_in_loop(&evts[0]));
 }
 
 void test_timer_sch_reschedule(void)
@@ -490,28 +458,6 @@ void test_timer_sch_reschedule(void)
     exec_async(); /* execute fire */
     TEST_ASSERT_EQUAL(2, m_cb_count);
     TEST_ASSERT_EQUAL(m_time_now, m_last_timestamp);
-
-    m_cb_count = 0;
-    /* reschedule on full queue, don't stop execution */
-    m_async_exec = false;
-    m_ret_val = NRF_ERROR_NO_MEM;
-    timer_sch_reschedule(&evts[1], 4000);
-    m_ret_val = NRF_SUCCESS;
-    timer_sch_schedule(&evts[2]);
-    m_time_now = 5000;
-    m_timer_cb(m_time_now);
-    TEST_ASSERT_EQUAL(2, m_cb_count);
-
-    /* reschedule while in add-queue */
-    m_async_exec = true;
-    m_time_now = 0;
-    timer_sch_schedule(&evts[0]);
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[0].state);
-    timer_sch_reschedule(&evts[0], 10000);
-    /* No change to state, we just adjusted the time */
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[0].state);
-    exec_async();
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[0].state);
 }
 
 void test_timer_sch_periodic(void)
@@ -577,7 +523,7 @@ void test_abort_self_from_callback(void)
     exec_async();
     for (uint32_t i = 0; i < 3; i++)
     {
-        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[i].state);
+        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[i].state);
     }
 
     m_cb_count = 0;
@@ -627,7 +573,7 @@ void test_abort_other_from_callback(void)
     exec_async();
     for (uint32_t i = 0; i < 3; i++)
     {
-        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[i].state);
+        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[i].state);
     }
 
     m_cb_count = 0;
@@ -689,7 +635,7 @@ void test_reschedule_self_from_callback(void)
     exec_async();
     for (uint32_t i = 0; i < 3; i++)
     {
-        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[i].state);
+        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[i].state);
     }
     m_cb_count = 0;
     for (uint32_t i = 0; i < 3; i++)
@@ -699,7 +645,7 @@ void test_reschedule_self_from_callback(void)
         exec_async();
     }
     TEST_ASSERT_EQUAL(2, m_cb_count);
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[1].state);
+    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[1].state);
     TEST_ASSERT_EQUAL(6000, evts[1].timestamp);
     TEST_ASSERT_FALSE(event_is_in_loop(&evts[1]));
 }
@@ -727,7 +673,7 @@ void test_reschedule_self_earlier_from_callback(void)
     exec_async();
     for (uint32_t i = 0; i < 3; i++)
     {
-        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[i].state);
+        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[i].state);
     }
     m_cb_count = 0;
     /* the first timer will fire normally */
@@ -743,7 +689,7 @@ void test_reschedule_self_earlier_from_callback(void)
     m_time_now = 3000;
     m_timer_cb(m_time_now);
     exec_async();
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[1].state); /* ready for next interval */
+    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[1].state); /* ready for next interval */
     TEST_ASSERT_EQUAL(3, m_cb_count); /* the "earlier" call was to the normal callback */
     TEST_ASSERT_EQUAL(8000, evts[1].timestamp);
     TEST_ASSERT_FALSE(event_is_in_loop(&evts[1]));
@@ -773,7 +719,7 @@ void test_reschedule_other_from_callback(void)
     exec_async();
     for (uint32_t i = 0; i < 3; i++)
     {
-        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[i].state);
+        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[i].state);
     }
     m_cb_count = 0;
     for (uint32_t i = 0; i < 3; i++)
@@ -783,7 +729,7 @@ void test_reschedule_other_from_callback(void)
         exec_async();
     }
     TEST_ASSERT_EQUAL(1, m_cb_count);
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[2].state);
+    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[2].state);
     TEST_ASSERT_EQUAL(6000, evts[2].timestamp);
     TEST_ASSERT_FALSE(event_is_in_loop(&evts[1]));
     TEST_ASSERT_FALSE(event_is_in_loop(&evts[2]));
@@ -813,7 +759,7 @@ void test_reschedule_other_earlier_from_callback(void)
     exec_async();
     for (uint32_t i = 0; i < 3; i++)
     {
-        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[i].state);
+        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[i].state);
     }
     m_cb_count = 0;
     /* the first timer will fire normally */
@@ -826,8 +772,8 @@ void test_reschedule_other_earlier_from_callback(void)
     m_time_now = 2000;
     m_timer_cb(m_time_now);
     exec_async();
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[1].state); /* ready for next interval */
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[2].state); /* ready for next interval */
+    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[1].state); /* ready for next interval */
+    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[2].state); /* ready for next interval */
     TEST_ASSERT_EQUAL(2, m_cb_count);
     TEST_ASSERT_EQUAL(12000, evts[1].timestamp); /* normal */
     TEST_ASSERT_EQUAL(8000, evts[2].timestamp);
@@ -852,7 +798,7 @@ void test_schedule_self_from_callback(void)
     }
 
     /* Make the timer call schedule on itself from its own callback */
-    evts[1].cb = timer_callback_call_schedule;
+    evts[1].cb = timer_callback_call_reschedule;
     for (uint32_t i = 0; i < 3; i++)
     {
         timer_sch_schedule(&evts[i]);
@@ -861,7 +807,7 @@ void test_schedule_self_from_callback(void)
     exec_async();
     for (uint32_t i = 0; i < 3; i++)
     {
-        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[i].state);
+        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[i].state);
     }
     m_cb_count = 0;
     for (uint32_t i = 0; i < 3; i++)
@@ -871,7 +817,7 @@ void test_schedule_self_from_callback(void)
         exec_async();
     }
     TEST_ASSERT_EQUAL(2, m_cb_count);
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[1].state);
+    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[1].state);
     TEST_ASSERT_EQUAL(6000, evts[1].timestamp);
 }
 
@@ -886,6 +832,7 @@ void test_schedule_other_from_callback(void)
         evts[i].interval = 10000;
         evts[i].state = TIMER_EVENT_STATE_UNUSED;
         evts[i].p_context = &evts[i];
+        TEST_ASSERT_FALSE(timer_sch_is_scheduled(&evts[i]));
     }
 
     /* Make the timer schedule an other event from its callback */
@@ -895,11 +842,13 @@ void test_schedule_other_from_callback(void)
     {
         timer_sch_schedule(&evts[i]);
         TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[i].state);
+        TEST_ASSERT_TRUE(timer_sch_is_scheduled(&evts[i]));
     }
     exec_async();
     for (uint32_t i = 0; i < 3; i++)
     {
-        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[i].state);
+        TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[i].state);
+        TEST_ASSERT_TRUE(timer_sch_is_scheduled(&evts[i]));
     }
     m_cb_count = 0;
     /* the first timer will fire normally */
@@ -913,6 +862,5 @@ void test_schedule_other_from_callback(void)
     TEST_NRF_MESH_ASSERT_EXPECT(exec_async());
 
     TEST_ASSERT_EQUAL(1, m_cb_count);
-    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_QUEUED, evts[2].state); /* still queued. */
+    TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[2].state); /* still queued. */
 }
-

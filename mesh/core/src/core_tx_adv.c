@@ -39,7 +39,9 @@
 #include "core_tx.h"
 #include "advertiser.h"
 #include "nrf_mesh_assert.h"
-
+#include "mesh_opt_core.h"
+#include "mesh_config_entry.h"
+#include "app_util_platform.h"
 
 static struct
 {
@@ -65,9 +67,17 @@ static const core_tx_bearer_interface_t m_interface = {packet_alloc,
                                                        packet_send,
                                                        packet_discard};
 static core_tx_bearer_t m_bearer;
+static mesh_opt_core_adv_t m_default_adv = {.enabled = true,
+                                            .tx_count = 1,
+                                            .tx_interval_ms = BEARER_ADV_INT_DEFAULT_MS};
+static ble_gap_addr_t m_default_adv_addr;
+static const radio_tx_power_t m_default_tx_power = RADIO_POWER_NRF_0DBM;
+
+
 /*****************************************************************************
 * Static functions
 *****************************************************************************/
+
 static void adv_tx_complete_callback(advertiser_t * p_adv,
                                      nrf_mesh_tx_token_t token,
                                      timestamp_t timestamp)
@@ -124,9 +134,205 @@ static void packet_discard(core_tx_bearer_t * p_bearer)
                               m_current_alloc.p_packet);
     m_current_alloc.p_packet = NULL;
 }
+
 /*****************************************************************************
-* Interface functions
-*****************************************************************************/
+ * Core options interface
+ *****************************************************************************/
+
+static uint32_t core_tx_adv_set(core_tx_role_t role, const void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+    const mesh_opt_core_adv_t * p_adv = p_entry;
+
+    if (IS_IN_RANGE(p_adv->tx_count, 1, NETWORK_RELAY_RETRANSMITS_MAX + 1) &&
+        IS_IN_RANGE(p_adv->tx_interval_ms,
+                    BEARER_ADV_INT_MIN_MS,
+                    MIN(BEARER_ADV_INT_MAX_MS, NETWORK_RELAY_INTERVAL_MAX_MS)))
+    {
+        bool is_enabled = advertiser_is_enabled(&m_bearer_roles[role].advertiser);
+        if (p_adv->enabled && !is_enabled)
+        {
+            advertiser_enable(&m_bearer_roles[role].advertiser);
+        }
+        else if (!p_adv->enabled && is_enabled)
+        {
+            advertiser_disable(&m_bearer_roles[role].advertiser);
+        }
+        m_bearer_roles[role].adv_tx_count = p_adv->tx_count;
+        advertiser_interval_set(&m_bearer_roles[role].advertiser, p_adv->tx_interval_ms);
+        return NRF_SUCCESS;
+    }
+
+    return NRF_ERROR_INVALID_PARAM;
+}
+
+static void core_tx_adv_get(core_tx_role_t role, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+    mesh_opt_core_adv_t * p_adv = p_entry;
+    p_adv->enabled = advertiser_is_enabled(&m_bearer_roles[role].advertiser);
+    p_adv->tx_count = m_bearer_roles[role].adv_tx_count;
+    p_adv->tx_interval_ms = advertiser_interval_get(&m_bearer_roles[role].advertiser);
+}
+
+static uint32_t core_tx_tx_power_set(core_tx_role_t role, const void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+    const radio_tx_power_t * p_tx_power = p_entry;
+    advertiser_tx_power_set(&m_bearer_roles[role].advertiser, *p_tx_power);
+    return NRF_SUCCESS;
+}
+
+static void core_tx_tx_power_get(core_tx_role_t role, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+    radio_tx_power_t * p_tx_power = p_entry;
+    *p_tx_power = advertiser_tx_power_get(&m_bearer_roles[role].advertiser);
+}
+
+static uint32_t core_tx_adv_addr_set(core_tx_role_t role, const void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+    const ble_gap_addr_t * p_addr = p_entry;
+    if (p_addr->addr_type == BLE_GAP_ADDR_TYPE_PUBLIC ||
+        p_addr->addr_type == BLE_GAP_ADDR_TYPE_RANDOM_STATIC)
+    {
+        advertiser_address_set(&m_bearer_roles[role].advertiser, p_addr);
+        return NRF_SUCCESS;
+    }
+    return NRF_ERROR_INVALID_PARAM;
+}
+
+static void core_tx_adv_addr_get(core_tx_role_t role, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+    ble_gap_addr_t * p_addr = p_entry;
+    advertiser_address_get(&m_bearer_roles[role].advertiser, p_addr);
+}
+
+
+/*****************************************************************************
+ * Wrapper functions
+ *****************************************************************************/
+
+
+static uint32_t core_tx_set(mesh_config_entry_id_t entry_id, const void * p_entry)
+{
+    if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_ADV_RECORD_START, MESH_OPT_CORE_ADV_RECORD_END))
+    {
+        return core_tx_adv_set((core_tx_role_t) (entry_id.record - MESH_OPT_CORE_ADV_RECORD_START),
+                               p_entry);
+    }
+    else if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_TX_POWER_RECORD_START, MESH_OPT_CORE_TX_POWER_RECORD_END))
+    {
+        return core_tx_tx_power_set((core_tx_role_t) (entry_id.record - MESH_OPT_CORE_TX_POWER_RECORD_START),
+                                    p_entry);
+    }
+    else if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_ADV_ADDR_RECORD_START, MESH_OPT_CORE_ADV_ADDR_RECORD_END))
+    {
+        return core_tx_adv_addr_set((core_tx_role_t) (entry_id.record - MESH_OPT_CORE_ADV_ADDR_RECORD_START),
+                                    p_entry);
+    }
+    return NRF_ERROR_INVALID_PARAM;
+}
+
+static void core_tx_get(mesh_config_entry_id_t entry_id, void * p_entry)
+{
+    if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_ADV_RECORD_START, MESH_OPT_CORE_ADV_RECORD_END))
+    {
+        core_tx_adv_get((core_tx_role_t) (entry_id.record - MESH_OPT_CORE_ADV_RECORD_START),
+                        p_entry);
+    }
+    else if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_TX_POWER_RECORD_START, MESH_OPT_CORE_TX_POWER_RECORD_END))
+    {
+        core_tx_tx_power_get((core_tx_role_t) (entry_id.record - MESH_OPT_CORE_TX_POWER_RECORD_START),
+                          p_entry);
+    }
+    else if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_ADV_ADDR_RECORD_START, MESH_OPT_CORE_ADV_ADDR_RECORD_END))
+    {
+        core_tx_adv_addr_get((core_tx_role_t) (entry_id.record - MESH_OPT_CORE_ADV_ADDR_RECORD_START),
+                             p_entry);
+    }
+    else
+    {
+        NRF_MESH_ASSERT_DEBUG(false);
+    }
+}
+
+MESH_CONFIG_ENTRY(mesh_opt_core_adv,
+                  MESH_OPT_CORE_ADV_EID,
+                  CORE_TX_ROLE_COUNT,
+                  sizeof(mesh_opt_core_adv_t),
+                  core_tx_set,
+                  core_tx_get,
+                  NULL,
+                  &m_default_adv);
+
+MESH_CONFIG_ENTRY(mesh_opt_core_tx_power,
+                  MESH_OPT_CORE_TX_POWER_EID,
+                  CORE_TX_ROLE_COUNT,
+                  sizeof(radio_tx_power_t),
+                  core_tx_set,
+                  core_tx_get,
+                  NULL,
+                  &m_default_tx_power);
+
+MESH_CONFIG_ENTRY(mesh_opt_core_adv_addr,
+                  MESH_OPT_CORE_ADV_ADDR_EID,
+                  CORE_TX_ROLE_COUNT,
+                  sizeof(ble_gap_addr_t),
+                  core_tx_set,
+                  core_tx_get,
+                  NULL,
+                  &m_default_adv_addr);
+
+
+MESH_CONFIG_ENTRY_ARRAY_WRAPPER_DECLARE(mesh_opt_core_adv,
+                                        MESH_OPT_CORE_ADV_EID,
+                                        mesh_opt_core_adv_t,
+                                        core_tx_role_t,
+                                        CORE_TX_ROLE_COUNT)
+MESH_CONFIG_ENTRY_ARRAY_WRAPPER_DECLARE(mesh_opt_core_adv_addr,
+                                        MESH_OPT_CORE_ADV_ADDR_EID,
+                                        ble_gap_addr_t,
+                                        core_tx_role_t,
+                                        CORE_TX_ROLE_COUNT)
+
+uint32_t mesh_opt_core_tx_power_set(core_tx_role_t index, radio_tx_power_t tx_power)
+{
+    if (index >= (CORE_TX_ROLE_COUNT))
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+    mesh_config_entry_id_t id = MESH_OPT_CORE_TX_POWER_EID;
+    id.record += (uint16_t) index;
+    return mesh_config_entry_set(id, &tx_power);
+}
+
+uint32_t mesh_opt_core_tx_power_get(core_tx_role_t index, radio_tx_power_t * p_tx_power)
+{
+    if (index >= (CORE_TX_ROLE_COUNT))
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+    mesh_config_entry_id_t id = MESH_OPT_CORE_TX_POWER_EID;
+    id.record += (uint16_t) index;
+    return mesh_config_entry_get(id, p_tx_power);
+}
+
+uint32_t mesh_opt_core_tx_power_delete(core_tx_role_t index)
+{
+    if (index >= (CORE_TX_ROLE_COUNT))
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+    mesh_config_entry_id_t id = MESH_OPT_CORE_TX_POWER_EID;
+    id.record += (uint16_t) index;
+    return mesh_config_entry_delete(id);
+}
+/*****************************************************************************
+ * Interface functions
+ *****************************************************************************/
 void core_tx_adv_init(void)
 {
     m_bearer_roles[CORE_TX_ROLE_ORIGINATOR].adv_tx_count = CORE_TX_REPEAT_ORIGINATOR_DEFAULT;
@@ -142,43 +348,12 @@ void core_tx_adv_init(void)
                              m_relay_adv_packet_buffer,
                              sizeof(m_relay_adv_packet_buffer));
     advertiser_enable(&m_bearer_roles[CORE_TX_ROLE_RELAY].advertiser);
-
     core_tx_bearer_add(&m_bearer, &m_interface, CORE_TX_BEARER_TYPE_ADV);
+    advertiser_address_default_get(&m_default_adv_addr);
 }
 
-void core_tx_adv_count_set(core_tx_role_t role, uint8_t tx_count)
+bool core_tx_adv_is_enabled(core_tx_role_t role)
 {
-    NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
-    NRF_MESH_ASSERT(tx_count > 0);
-    m_bearer_roles[role].adv_tx_count = tx_count;
-}
-
-uint8_t core_tx_adv_count_get(core_tx_role_t role)
-{
-    NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
-    return m_bearer_roles[role].adv_tx_count;
-}
-
-void core_tx_adv_interval_set(core_tx_role_t role, uint32_t interval_ms)
-{
-    NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
-    advertiser_interval_set(&m_bearer_roles[role].advertiser, interval_ms);
-}
-
-uint32_t core_tx_adv_interval_get(core_tx_role_t role)
-{
-    NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
-    return US_TO_MS(m_bearer_roles[role].advertiser.config.advertisement_interval_us);
-}
-
-void core_tx_adv_address_set(core_tx_role_t role, const ble_gap_addr_t * p_addr)
-{
-    NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
-    advertiser_address_set(&m_bearer_roles[role].advertiser, p_addr);
-}
-
-void core_tx_adv_tx_power_set(core_tx_role_t role, radio_tx_power_t tx_power)
-{
-    NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
-    advertiser_tx_power_set(&m_bearer_roles[role].advertiser, tx_power);
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+    return advertiser_is_enabled(&m_bearer_roles[role].advertiser);
 }

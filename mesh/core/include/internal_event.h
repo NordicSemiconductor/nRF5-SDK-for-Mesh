@@ -47,7 +47,7 @@
 
 /**
  * @defgroup INTERNAL_EVT Internal event module
- * @ingroup MESH_API_GROUP_CORE
+ * @ingroup NRF_MESH
  * Module for reporting internal stack events, to help traceability and debugging.
  * @{
  */

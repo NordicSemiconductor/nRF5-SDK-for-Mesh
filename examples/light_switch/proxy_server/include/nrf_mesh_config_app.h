@@ -38,6 +38,8 @@
 #ifndef NRF_MESH_CONFIG_APP_H__
 #define NRF_MESH_CONFIG_APP_H__
 
+#include "light_switch_example_common.h"
+
 /**
  * @defgroup NRF_MESH_CONFIG_APP nRF Mesh app config
  *
@@ -62,7 +64,7 @@
 #define DEVICE_VERSION_ID (0x0000)
 
 /** Supported features of the device. @see config_feature_bit_t */
-#define DEVICE_FEATURES (CONFIG_FEATURE_RELAY_BIT)
+#define DEVICE_FEATURES (CONFIG_FEATURE_RELAY_BIT | CONFIG_FEATURE_PROXY_BIT)
 
 /** @} end of DEVICE_CONFIG */
 
@@ -133,7 +135,7 @@
 /** Maximum number of virtual addresses. */
 #define DSM_VIRTUAL_ADDR_MAX                            (8)
 /** Maximum number of non-virtual addresses.
- * - Simple OnOff publication
+ * - Generic OnOff publication
  * - Health publication
  * - Subscription address
  */
@@ -141,7 +143,6 @@
 /** Number of flash pages reserved for the DSM storage */
 #define DSM_FLASH_PAGE_COUNT                            (1)
 /** @} end of DSM_CONFIG */
-
 
 /** @} */
 

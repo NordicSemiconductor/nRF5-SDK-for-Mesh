@@ -33,42 +33,49 @@ If built with serial support, the mesh stack uses the UART0 peripheral to serial
 The mesh uses PPI channels 8, 9, 10 and 11 for various timing related tasks when controlling the radio.
 
 ## RAM and flash usage
-The core mesh can be configured to achieve higher performance and functionality, or reduced footprint depending on application needs. The following tables outline the flash and minimum statically allocated RAM requirements for each module. The mesh stack shares its call stack with the application and the SoftDevice and requires a minimum call stack size of *2 KB*. The mesh stack also requires the presence of a heap (of minimum *380 bytes*), unless it is configured with a custom memory allocator to replace the need for malloc (see `transport_sar_mem_funcs_set` in the transport module).
+The core mesh can be configured to achieve higher performance and functionality, or reduced footprint depending on application needs. The mesh stack shares its call stack with the application and the SoftDevice and requires a minimum call stack size of *2 KB*. The mesh stack also requires the presence of a heap (of minimum *380 bytes*), unless it is configured with a custom memory allocator to replace the need for malloc (see `transport_sar_mem_funcs_set` in the transport module).
 
 ### nRF52
-The following table shows the flash and RAM requirements for the mesh stack libraries on nRF52 when built with ARMCC v5 (-O3):
+The following tables show the flash and RAM requirements for the mesh examples on nRF52832. The
+examples are build with the GNU Arm Embedded Toolchain (`arm-none-eabi-gcc`) v6.3.1.
 
-**Modules with persistent storage**
-| Library                              | Flash use | RAM use    |
-|:--------                             |:--------- |:-----------|
-|   Core with persistent storage       |  35.7 KB  |  9.5 KB    |
-|   Access with persistent storage     |  15.2 KB  |  1.8 KB    |
-|   **Subtotal**                       |  50.9 KB  | 11.3 KB    |
+#### Build type: `RelWithDebInfo` (`-O3`), Logging: Full
 
-**Modules without persistent storage**
-| Library                              | Flash use | RAM use    |
-|:--------                             |:--------- |:-----------|
-|   Core without persistent storage    |  31.6 KB  |  9.2 KB    |
-|   Access without persistent storage  |  11.9 KB  |  1.6 KB    |
-|   **Subtotal**                       |  43.5 KB  | 10.8 KB    |
+| Flash usage (kB) | RAM usage (kB) | Example                                                         |
+|-----------------:|---------------:|:----------------------------------------------------------------|
+| 129.784          | 13.760         | Beaconing                                                       |
+| 135.600          | 14.044         | DFU without serial interface                                    |
+| 149.552          | 17.420         | DFU with serial interface                                       |
+| 137.268          | 14.072         | Enocean switch                                                  |
+| 128.552          | 12.956         | Light switch dimming client                                     |
+| 135.228          | 13.092         | Light switch dimming server                                     |
+| 127.480          | 13.140         | Light switch client                                             |
+| 140.100          | 14.292         | Light switch provisioner                                        |
+| 142.092          | 14.108         | Light switch client with GATT Proxy support                     |
+| 145.916          | 14.332         | Light switch server with GATT Proxy support                     |
+| 125.240          | 12.712         | Light switch server                                             |
+| 130.464          | 13.152         | PB-Remote client                                                |
+| 129.308          | 13.620         | PB-Remote server                                                |
+| 123.176          | 17.412         | Serial                                                          |
 
-**Other modules**
-| Library                              | Flash use | RAM use    |
-|:--------                             |:--------- |:-----------|
-|   DFU + bootloader                   |  22.7 KB  |  3.0 KB    |
-|   Provisioning common                |   6.3 KB  |   13 Bytes |
-|   Provisionee                        |   1.7 KB  |    0 Bytes |
-|   Provisioner                        |   1.5 KB  |    0 Bytes |
-|   Serial                             |   8.3 KB  |  2.4 KB    |
-|   RTT                                |   2.3 KB  |  1.3 KB    |
-|   uECC                               |   6.2 KB  |    4 Bytes |
-|   **Subtotal**                       |  49.0 KB  |  6.7 KB    |
+#### Build type: `MinSizeRel` (`-Os`), Logging: None
 
-**Footprint**
-| Library                              | Flash use | RAM use    |
-|:--------                             |:--------- |:-----------|
-|   With persistent storage            |  99.9 KB  | 18.0 KB    |
-|   Without persistent storage         |  92.5 KB  | 17.5 KB    |
+| Flash usage (kB) | RAM usage (kB) | Example                                                         |
+|-----------------:|---------------:|:----------------------------------------------------------------|
+| 75.696           | 12.448         | Beaconing                                                       |
+| 76.248           | 12.732         | DFU without serial interface                                    |
+| 86.584           | 15.852         | DFU with serial interface                                       |
+| 77.296           | 14.028         | Enocean switch                                                  |
+| 75.476           | 12.912         | Light switch dimming client                                     |
+| 81.016           | 13.056         | Light switch dimming server                                     |
+| 75.140           | 13.096         | Light switch client                                             |
+| 79.840           | 14.240         | Light switch provisioner                                        |
+| 85.796           | 14.064         | Light switch client with GATT Proxy support                     |
+| 86.532           | 14.288         | Light switch server with GATT Proxy support                     |
+| 75.044           | 12.668         | Light switch server                                             |
+| 76.076           | 13.104         | PB-Remote client                                                |
+| 76.644           | 12.308         | PB-Remote server                                                |
+| 73.440           | 15.844         | Serial                                                          |
 
 ## Flash lifetime
 The flash hardware can withstand a limited number of write/erase cycles. As the mesh stack uses the flash to store state across power failures, the device flash will eventually start failing, resulting in unexpected behavior in the mesh stack. As explained in the [flash manager documentation](@ref md_doc_libraries_flash_manager), the flash manager will write new data to the area by allocating a new entry before invalidating the old one. Because of this, the area must be erased periodically.
@@ -91,7 +98,7 @@ To calculate the flash lifetime of a device, some parameters must be defined:
 | `MSG_PER_SEC`     | The number of messages created by the device every second (relayed messages not included). The message sequence number field is 24 bits. It cannot be depleted within one IV update period, which must be at least 192 hours. Because of this, a device cannot possibly send more than `2^24 / (192 * 60 * 60) = 24.3` messages per second on average without breaking the specification. | N/A | 24.3 | 24.3 | messages/s |
 | `BLOCK_SIZE`      | The message sequence numbers are allocated in blocks. Every block represents a set number of messages. | `NETWORK_SEQNUM_FLASH_BLOCK_SIZE` | 8192 | 8192 | messages |
 | `ENTRY_SIZE`      | The size of a single allocated block entry in flash storage. | N/A | 8 | 8 | bytes |
-| `AREA_SIZE`       | Size of the storage area. Must be in flash page sized increments. Defaults to a single page. | `NET_FLASH_PAGE_COUNT` | 1024 | 4096 | bytes |
+| `AREA_SIZE`       | Size of the storage area. Must be in flash page sized increments. Defaults to a single page. | N/A | 1024 | 4096 | bytes |
 | `AREA_OVERHEAD`   | Static overhead in the storage area, per page. | N/A | 8 | 8 | bytes |
 | `ERASE_CYCLES`    | The number of times the device can erase a flash page before it starts faulting. | N/A | 20000 | 10000 | cycles |
 

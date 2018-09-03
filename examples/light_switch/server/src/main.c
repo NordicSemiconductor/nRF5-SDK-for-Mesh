@@ -35,60 +35,80 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdint.h>
+#include <string.h>
+
+/* HAL */
 #include "boards.h"
 #include "simple_hal.h"
-#include "log.h"
-#include "access_config.h"
-#include "simple_on_off_server.h"
-#include "light_switch_example_common.h"
-#include "mesh_app_utils.h"
-#include "net_state.h"
-#include "rtt_input.h"
-#include "mesh_stack.h"
-#include "mesh_softdevice_init.h"
-#include "mesh_provisionee.h"
-#include "nrf_mesh_config_examples.h"
-#include "nrf_mesh_configure.h"
 #include "app_timer.h"
 
-#include "nrf_mesh_events.h"
-#include "nrf_nvic.h"
+/* Core */
+#include "nrf_mesh_configure.h"
+#include "nrf_mesh.h"
+#include "mesh_stack.h"
+#include "device_state_manager.h"
+#include "access_config.h"
 
+/* Provisioning and configuration */
+#include "mesh_provisionee.h"
+#include "mesh_app_utils.h"
+#include "mesh_softdevice_init.h"
 
-#define RTT_INPUT_POLL_PERIOD_MS (100)
-#define LED_PIN_NUMBER           (BSP_LED_0)
-#define LED_PIN_MASK             (1u << LED_PIN_NUMBER)
-#define LED_BLINK_INTERVAL_MS    (200)
-#define LED_BLINK_CNT_START      (2)
-#define LED_BLINK_CNT_RESET      (3)
-#define LED_BLINK_CNT_PROV       (4)
+/* Models */
+#include "generic_onoff_server.h"
 
-static simple_on_off_server_t m_server;
-static bool                   m_device_provisioned;
+/* Logging and RTT */
+#include "log.h"
+#include "rtt_input.h"
 
-static void provisioning_complete_cb(void)
+/* Example specific includes */
+#include "app_config.h"
+#include "example_common.h"
+#include "nrf_mesh_config_examples.h"
+#include "light_switch_example_common.h"
+#include "app_onoff.h"
+
+#define ONOFF_SERVER_0_LED          (BSP_LED_0)
+
+static bool m_device_provisioned;
+
+/*************************************************************************************************/
+static void app_onoff_server_set_cb(const app_onoff_server_t * p_server, bool onoff);
+static void app_onoff_server_get_cb(const app_onoff_server_t * p_server, bool * p_present_onoff);
+
+/* Generic OnOff server structure definition and initialization */
+APP_ONOFF_SERVER_DEF(m_onoff_server_0,
+                     APP_CONFIG_FORCE_SEGMENTATION,
+                     APP_CONFIG_MIC_SIZE,
+                     app_onoff_server_set_cb,
+                     app_onoff_server_get_cb)
+
+/* Callback for updating the hardware state */
+static void app_onoff_server_set_cb(const app_onoff_server_t * p_server, bool onoff)
 {
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
+    /* Resolve the server instance here if required, this example uses only 1 instance. */
 
-    dsm_local_unicast_address_t node_address;
-    dsm_local_unicast_addresses_get(&node_address);
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Setting GPIO value: %d\n", onoff)
 
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
+    hal_led_pin_set(ONOFF_SERVER_0_LED, onoff);
 }
 
-static bool on_off_server_get_cb(const simple_on_off_server_t * p_server)
+/* Callback for reading the hardware state */
+static void app_onoff_server_get_cb(const app_onoff_server_t * p_server, bool * p_present_onoff)
 {
-    return hal_led_pin_get(LED_PIN_NUMBER);
+    /* Resolve the server instance here if required, this example uses only 1 instance. */
+
+    *p_present_onoff = hal_led_pin_get(ONOFF_SERVER_0_LED);
 }
 
-static bool on_off_server_set_cb(const simple_on_off_server_t * p_server, bool value)
+static void app_model_init(void)
 {
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Got SET command to %u\n", value);
-    hal_led_pin_set(LED_PIN_NUMBER, value);
-    return value;
+    /* Instantiate onoff server on element index 0 */
+    ERROR_CHECK(app_onoff_init(&m_onoff_server_0, 0));
 }
+
+/*************************************************************************************************/
 
 static void node_reset(void)
 {
@@ -116,10 +136,9 @@ static void button_event_handler(uint32_t button_number)
         state change publication due to local event. */
         case 0:
         {
-            uint8_t value = !hal_led_pin_get(LED_PIN_NUMBER);
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "User action \n");
-            hal_led_pin_set(LED_PIN_NUMBER, value);
-            (void)simple_on_off_server_status_publish(&m_server, value);
+            hal_led_pin_set(ONOFF_SERVER_0_LED, !hal_led_pin_get(ONOFF_SERVER_0_LED));
+            app_onoff_status_publish(&m_onoff_server_0);
             break;
         }
 
@@ -146,21 +165,30 @@ static void app_rtt_input_handler(int key)
     }
 }
 
+static void provisioning_complete_cb(void)
+{
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
+
+    dsm_local_unicast_address_t node_address;
+    dsm_local_unicast_addresses_get(&node_address);
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
+
+    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
+}
+
 static void models_init_cb(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Initializing and adding models\n");
-    m_server.get_cb = on_off_server_get_cb;
-    m_server.set_cb = on_off_server_set_cb;
-    ERROR_CHECK(simple_on_off_server_init(&m_server, 0));
-    ERROR_CHECK(access_model_subscription_list_alloc(m_server.model_handle));
+    app_model_init();
 }
 
 static void mesh_init(void)
 {
     uint8_t dev_uuid[NRF_MESH_UUID_SIZE];
-    uint8_t node_uuid_prefix[SERVER_NODE_UUID_PREFIX_SIZE] = SERVER_NODE_UUID_PREFIX;
+    uint8_t node_uuid_prefix[NODE_UUID_PREFIX_LEN] = SERVER_NODE_UUID_PREFIX;
 
-    ERROR_CHECK(mesh_app_uuid_gen(dev_uuid, node_uuid_prefix, SERVER_NODE_UUID_PREFIX_SIZE));
+    ERROR_CHECK(mesh_app_uuid_gen(dev_uuid, node_uuid_prefix, NODE_UUID_PREFIX_LEN));
     mesh_stack_init_params_t init_params =
     {
         .core.irq_priority       = NRF_MESH_IRQ_PRIORITY_LOWEST,

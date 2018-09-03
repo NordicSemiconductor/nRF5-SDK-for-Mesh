@@ -81,11 +81,13 @@
 #define SERIAL_OPCODE_EVT_PROV_LINK_ESTABLISHED              (0xC1) /**< Params: @ref serial_evt_prov_link_established_t */
 #define SERIAL_OPCODE_EVT_PROV_LINK_CLOSED                   (0xC2) /**< Params: @ref serial_evt_prov_link_closed_t */
 #define SERIAL_OPCODE_EVT_PROV_CAPS_RECEIVED                 (0xC3) /**< Params: @ref serial_evt_prov_caps_received_t */
+#define SERIAL_OPCODE_EVT_PROV_INVITE_RECEIVED               (0xC4) /**< Params: @ref serial_evt_prov_invite_received_t */
 #define SERIAL_OPCODE_EVT_PROV_COMPLETE                      (0xC5) /**< Params: @ref serial_evt_prov_complete_t */
 #define SERIAL_OPCODE_EVT_PROV_AUTH_REQUEST                  (0xC6) /**< Params: @ref serial_evt_prov_auth_request_t */
 #define SERIAL_OPCODE_EVT_PROV_ECDH_REQUEST                  (0xC7) /**< Params: @ref serial_evt_prov_ecdh_request_t */
 #define SERIAL_OPCODE_EVT_PROV_OUTPUT_REQUEST                (0xC8) /**< Params: @ref serial_evt_prov_output_request_t */
 #define SERIAL_OPCODE_EVT_PROV_FAILED                        (0xC9) /**< Params: @ref serial_evt_prov_failed_t */
+#define SERIAL_OPCODE_EVT_PROV_START_RECEIVED                (0xCA) /**< Params: @ref serial_evt_prov_start_received_t */
 
 #define SERIAL_OPCODE_EVT_MESH_MESSAGE_RECEIVED_UNICAST      (0xD0) /**< Params: @ref serial_evt_mesh_message_received_t */
 #define SERIAL_OPCODE_EVT_MESH_MESSAGE_RECEIVED_SUBSCRIPTION (0xD1) /**< Params: @ref serial_evt_mesh_message_received_t */
@@ -169,6 +171,19 @@ typedef struct __attribute((packed))
     uint16_t input_oob_actions;  /**< Available OOB input actions. */
 } serial_evt_prov_caps_received_t;
 
+/** Provisioning invite event. */
+typedef struct __attribute((packed))
+{
+    uint8_t context_id;             /**< Context ID of the provisioning link. */
+    uint8_t attention_duration_s;   /**< How long the primary element of the device identifies itself using the Attention Timer in seconds. */
+} serial_evt_prov_invite_received_t;
+
+/** Provisioning start event. */
+typedef struct __attribute((packed))
+{
+    uint8_t context_id;             /**< Context ID of the provisioning link. */
+} serial_evt_prov_start_received_t;
+
 /** Provisioning complete event packet. */
 typedef struct __attribute((packed))
 {
@@ -220,6 +235,8 @@ typedef union __attribute((packed))
     serial_evt_prov_link_established_t link_established; /**< Link established event parameters. */
     serial_evt_prov_link_closed_t      link_closed;      /**< Link closed event parameters. */
     serial_evt_prov_caps_received_t    caps_received;    /**< Capabilities received parameters. */
+    serial_evt_prov_invite_received_t  invite_received;  /**< Invite received event params. */
+    serial_evt_prov_start_received_t   start_received;   /**< Start received event params. */
     serial_evt_prov_complete_t         complete;         /**< Provisioning complete event parameters. */
     serial_evt_prov_auth_request_t     auth_request;     /**< Authorization request event parameters. */
     serial_evt_prov_ecdh_request_t     ecdh_request;     /**< ECDH request event parameters. */

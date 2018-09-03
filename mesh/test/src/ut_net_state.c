@@ -168,7 +168,6 @@ void nrf_mesh_evt_handler_add(nrf_mesh_evt_handler_t * p_handler_params)
 void setUp(void)
 {
     m_critical_section_counter = 0;
-    mp_iv_update_timer = NULL;
     event_mock_Init();
     flash_manager_mock_Init();
 
@@ -176,6 +175,7 @@ void setUp(void)
     flash_manager_add_StubWithCallback(flash_manager_add_callback);
 
     net_state_init();
+    net_state_enable();
 }
 
 void tearDown(void)

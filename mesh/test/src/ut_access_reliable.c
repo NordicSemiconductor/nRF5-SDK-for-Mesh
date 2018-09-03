@@ -40,13 +40,13 @@
 #include <string.h>
 
 #include "access_reliable.h"
+#include "packet_mesh.h"
 #include "test_assert.h"
 
 #include "access_mock.h"
 #include "access_config_mock.h"
 #include "bearer_event_mock.h"
 #include "timer_scheduler_mock.h"
-#include "device_state_manager_mock.h"
 #include "timer_mock.h"
 
 /* ******************* Various definitions ******************* */
@@ -206,16 +206,6 @@ static void initialize_contexts(void)
         access_model_publish_ttl_get_ExpectAndReturn(m_reliables[i].model_handle, NULL, NRF_SUCCESS);
         access_model_publish_ttl_get_IgnoreArg_p_ttl();
         access_model_publish_ttl_get_ReturnThruPtr_p_ttl(&ttl);
-
-        static dsm_handle_t pub_addr_handle = 0;
-        static nrf_mesh_address_t pub_addr = {.type = NRF_MESH_ADDRESS_TYPE_UNICAST, .value = 0x0F00};
-        access_model_publish_address_get_ExpectAndReturn(m_reliables[i].model_handle, NULL, NRF_SUCCESS);
-        access_model_publish_address_get_IgnoreArg_p_address_handle();
-        access_model_publish_address_get_ReturnThruPtr_p_address_handle(&pub_addr_handle);
-        dsm_address_get_ExpectAndReturn(pub_addr_handle, NULL, NRF_SUCCESS);
-        dsm_address_get_IgnoreArg_p_address();
-        dsm_address_get_ReturnThruPtr_p_address(&pub_addr);
-
         access_model_publish_ExpectAndReturn(m_reliables[i].model_handle, &m_reliables[i].message, NRF_SUCCESS);
         TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_reliable_publish(&m_reliables[i]));
         if (i == 0)
@@ -244,7 +234,6 @@ void setUp(void)
     timer_mock_Init();
     timer_scheduler_mock_Init();
     bearer_event_mock_Init();
-    device_state_manager_mock_Init();
     memset(&m_timer, 0, sizeof(m_timer));
     memset(&m_status_cb, 0, sizeof(m_status_cb));
     access_reliable_init();
@@ -265,8 +254,6 @@ void tearDown(void)
     timer_scheduler_mock_Destroy();
     bearer_event_mock_Verify();
     bearer_event_mock_Destroy();
-    device_state_manager_mock_Verify();
-    device_state_manager_mock_Destroy();
 }
 
 /* ******************* Test functions ******************* */
@@ -457,7 +444,6 @@ void test_error_conditions(void)
     access_model_publish_ExpectAndReturn(p_reliable->model_handle, &p_reliable->message, error_code);
     TEST_ASSERT_EQUAL(error_code, access_model_reliable_publish(p_reliable));
 
-
     /* Access should retry silently if it gets NRF_ERROR_NO_MEM */
     error_code = NRF_ERROR_NO_MEM;
     timer_now_IgnoreAndReturn(0);
@@ -471,16 +457,6 @@ void test_error_conditions(void)
     access_model_publish_ttl_get_ExpectAndReturn(p_reliable->model_handle, NULL, NRF_SUCCESS);
     access_model_publish_ttl_get_IgnoreArg_p_ttl();
     access_model_publish_ttl_get_ReturnThruPtr_p_ttl(&ttl);
-
-    static dsm_handle_t pub_addr_handle = 0;
-    static nrf_mesh_address_t pub_addr = {.type = NRF_MESH_ADDRESS_TYPE_UNICAST, .value = 0x0F00};
-    access_model_publish_address_get_ExpectAndReturn(p_reliable->model_handle, NULL, NRF_SUCCESS);
-    access_model_publish_address_get_IgnoreArg_p_address_handle();
-    access_model_publish_address_get_ReturnThruPtr_p_address_handle(&pub_addr_handle);
-    dsm_address_get_ExpectAndReturn(pub_addr_handle, NULL, NRF_SUCCESS);
-    dsm_address_get_IgnoreArg_p_address();
-    dsm_address_get_ReturnThruPtr_p_address(&pub_addr);
-
     access_model_publish_ExpectAndReturn(p_reliable->model_handle, &p_reliable->message, error_code);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_reliable_publish(p_reliable));
 
@@ -512,39 +488,6 @@ void test_no_mem_retry(void)
     access_model_publish_ExpectAndReturn(m_reliables[0].model_handle, &m_reliables[0].message, NRF_ERROR_NULL);
     TEST_NRF_MESH_ASSERT_EXPECT(fire_timeout(ACCESS_RELIABLE_INTERVAL_DEFAULT + ACCESS_RELIABLE_RETRY_DELAY, NULL));
 
-}
-
-void test_no_reliable_queue_addition_for_non_unicast_addr(void)
-{
-    const access_opcode_t OPCODE_1BYTE = {0x0001, ACCESS_COMPANY_ID_NONE};
-    const uint8_t data[128] = {0};
-
-    access_reliable_t * p_reliable = &m_reliables[0];
-    p_reliable->model_handle = 0;
-    p_reliable->reply_opcode.opcode = 0x02;
-    p_reliable->reply_opcode.company_id = ACCESS_COMPANY_ID_NONE;
-    p_reliable->status_cb = status_cb;
-    p_reliable->timeout = ACCESS_RELIABLE_TIMEOUT_MIN;
-
-    /* add_reliable_message() should not be called for GROUP publish address */
-    memcpy(&p_reliable->message.opcode, &OPCODE_1BYTE, sizeof(access_opcode_t));
-    p_reliable->message.p_buffer = data;
-    p_reliable->message.length   = NRF_MESH_UNSEG_PAYLOAD_SIZE_MAX - 2;
-
-    bearer_event_critical_section_begin_Expect();
-    bearer_event_critical_section_end_Expect();
-
-    static dsm_handle_t pub_addr_handle = 0;
-    static nrf_mesh_address_t pub_addr = {.type = NRF_MESH_ADDRESS_TYPE_GROUP, .value = 0xCAFE};
-    access_model_publish_address_get_ExpectAndReturn(p_reliable->model_handle, NULL, NRF_SUCCESS);
-    access_model_publish_address_get_IgnoreArg_p_address_handle();
-    access_model_publish_address_get_ReturnThruPtr_p_address_handle(&pub_addr_handle);
-    dsm_address_get_ExpectAndReturn(pub_addr_handle, NULL, NRF_SUCCESS);
-    dsm_address_get_IgnoreArg_p_address();
-    dsm_address_get_ReturnThruPtr_p_address(&pub_addr);
-
-    access_model_publish_ExpectAndReturn(p_reliable->model_handle, &p_reliable->message, NRF_SUCCESS);
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_reliable_publish(p_reliable));
 }
 
 void test_sar_packet(void)
@@ -579,16 +522,6 @@ void test_sar_packet(void)
     bearer_event_critical_section_begin_Expect();
     bearer_event_critical_section_end_Expect();
     timer_now_ExpectAndReturn(0);
-
-    static dsm_handle_t pub_addr_handle = 0;
-    static nrf_mesh_address_t pub_addr = {.type = NRF_MESH_ADDRESS_TYPE_UNICAST, .value = 0x0F00};
-    access_model_publish_address_get_ExpectAndReturn(p_reliable->model_handle, NULL, NRF_SUCCESS);
-    access_model_publish_address_get_IgnoreArg_p_address_handle();
-    access_model_publish_address_get_ReturnThruPtr_p_address_handle(&pub_addr_handle);
-    dsm_address_get_ExpectAndReturn(pub_addr_handle, NULL, NRF_SUCCESS);
-    dsm_address_get_IgnoreArg_p_address();
-    dsm_address_get_ReturnThruPtr_p_address(&pub_addr);
-
     access_model_publish_ExpectAndReturn(p_reliable->model_handle, &p_reliable->message, NRF_SUCCESS);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_reliable_publish(p_reliable));
 
@@ -606,7 +539,7 @@ void test_sar_packet(void)
     uint32_t expected_segments = 3;
     memcpy(&p_reliable->message.opcode, &OPCODE_2BYTE, sizeof(access_opcode_t));
     p_reliable->message.p_buffer = data;
-    p_reliable->message.length   = NRF_MESH_SEG_SIZE * (expected_segments - 1) - 1;
+    p_reliable->message.length   = PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE * (expected_segments - 1) - 1;
 
     expected_timeout = (ACCESS_RELIABLE_INTERVAL_DEFAULT
                         + ACCESS_RELIABLE_SEGMENT_COUNT_PENALTY * expected_segments);
@@ -619,14 +552,6 @@ void test_sar_packet(void)
     bearer_event_critical_section_begin_Expect();
     bearer_event_critical_section_end_Expect();
     timer_now_ExpectAndReturn(0);
-
-    access_model_publish_address_get_ExpectAndReturn(p_reliable->model_handle, NULL, NRF_SUCCESS);
-    access_model_publish_address_get_IgnoreArg_p_address_handle();
-    access_model_publish_address_get_ReturnThruPtr_p_address_handle(&pub_addr_handle);
-    dsm_address_get_ExpectAndReturn(pub_addr_handle, NULL, NRF_SUCCESS);
-    dsm_address_get_IgnoreArg_p_address();
-    dsm_address_get_ReturnThruPtr_p_address(&pub_addr);
-
     access_model_publish_ExpectAndReturn(p_reliable->model_handle, &p_reliable->message, NRF_SUCCESS);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_reliable_publish(p_reliable));
 
@@ -644,7 +569,7 @@ void test_sar_packet(void)
     expected_segments = 5;
     memcpy(&p_reliable->message.opcode, &OPCODE_3BYTE, sizeof(access_opcode_t));
     p_reliable->message.p_buffer = data;
-    p_reliable->message.length   = NRF_MESH_SEG_SIZE * (expected_segments - 1) - 2;
+    p_reliable->message.length   = PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE * (expected_segments - 1) - 2;
 
     expected_timeout = (ACCESS_RELIABLE_INTERVAL_DEFAULT
                         + ACCESS_RELIABLE_SEGMENT_COUNT_PENALTY * expected_segments);
@@ -657,14 +582,6 @@ void test_sar_packet(void)
     bearer_event_critical_section_begin_Expect();
     bearer_event_critical_section_end_Expect();
     timer_now_ExpectAndReturn(0);
-
-    access_model_publish_address_get_ExpectAndReturn(p_reliable->model_handle, NULL, NRF_SUCCESS);
-    access_model_publish_address_get_IgnoreArg_p_address_handle();
-    access_model_publish_address_get_ReturnThruPtr_p_address_handle(&pub_addr_handle);
-    dsm_address_get_ExpectAndReturn(pub_addr_handle, NULL, NRF_SUCCESS);
-    dsm_address_get_IgnoreArg_p_address();
-    dsm_address_get_ReturnThruPtr_p_address(&pub_addr);
-
     access_model_publish_ExpectAndReturn(p_reliable->model_handle, &p_reliable->message, NRF_SUCCESS);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_reliable_publish(p_reliable));
 
@@ -725,4 +642,109 @@ void test_rx_wrong_opcode(void)
 
     }
     verify_callbacks();
+}
+
+void test_access_reliable_model_is_free(void)
+{
+    printf("\n----------------Start Test---------------\n");
+    /* Initialize all contexts */
+    initialize_contexts();
+    /* Should be ACCESS_RELIABLE_TRANSFER_COUNT spaced TIME_SPACING in time
+     *
+     * |---------|----------...------------------------|------------------------>
+     * 0   TIME_SPACING*1        TIME_SPACING*ACCESS_RELIABLE_TRANSFER_COUNT   t
+     */
+
+    printf("---> Fire all except last timeout.\n");
+    uint32_t time = ACCESS_RELIABLE_INTERVAL_DEFAULT;
+    for (; time < ACCESS_RELIABLE_TIMEOUT_MIN; time *= ACCESS_RELIABLE_BACK_OFF_FACTOR)
+    {
+        __test_timeout_fire_round(time);
+    }
+    verify_callbacks();
+
+    /* Test if the model context are free */
+    for (uint32_t i=0; i<ACCESS_RELIABLE_TRANSFER_COUNT; i++)
+    {
+        TEST_ASSERT_EQUAL(false, access_reliable_model_is_free(m_reliables[i].model_handle));
+    }
+
+    printf("---> Let the first, last and middle transfer succeed.\n");
+    time = ACCESS_RELIABLE_TIMEOUT_MIN;
+    /* . */
+    uint32_t remove_bitfield = (1 << 0) | (1 << (ACCESS_RELIABLE_TRANSFER_COUNT-1)) | (1 << (ACCESS_RELIABLE_TRANSFER_COUNT / 2));
+    access_message_rx_t rx_message = {0};
+    for (uint32_t i = 0; i < ACCESS_RELIABLE_TRANSFER_COUNT; ++i)
+    {
+        if (((1 << i) & remove_bitfield) == 0)
+        {
+            continue;
+        }
+
+        access_reliable_t * p_ctx = &m_reliables[i];
+        rx_message.opcode.opcode = p_ctx->reply_opcode.opcode;
+        rx_message.opcode.company_id = p_ctx->reply_opcode.company_id;
+        void * p_args = (uint8_t *) TEST_ARGS_PTR + i;
+        if (i == 0)
+        {
+            /* Expect a reschedule when clearing HEAD */
+            timer_reschedule_ExpectAndReturn(TIMER_STATE_RUNNING, time + TIME_SPACING);
+        }
+
+        bearer_event_critical_section_begin_Expect();
+        bearer_event_critical_section_end_Expect();
+        status_cb_Expect(p_ctx->model_handle, p_args, ACCESS_RELIABLE_TRANSFER_SUCCESS);
+        access_reliable_message_rx_cb(p_ctx->model_handle, &rx_message, p_args);
+    }
+    verify_callbacks();
+
+    /* Test if the model context are free for the first last and middle contexts, and others are busy */
+    TEST_ASSERT_EQUAL(true, access_reliable_model_is_free(m_reliables[0].model_handle));
+    TEST_ASSERT_EQUAL(true, access_reliable_model_is_free(m_reliables[(ACCESS_RELIABLE_TRANSFER_COUNT-1)].model_handle));
+    TEST_ASSERT_EQUAL(true, access_reliable_model_is_free(m_reliables[(ACCESS_RELIABLE_TRANSFER_COUNT/2)].model_handle));
+    for (uint32_t i=0; i<ACCESS_RELIABLE_TRANSFER_COUNT; i++)
+    {
+        if (i == 0 || i == (ACCESS_RELIABLE_TRANSFER_COUNT-1) || i == (ACCESS_RELIABLE_TRANSFER_COUNT/2))
+        {
+            continue;
+        }
+        TEST_ASSERT_EQUAL(false, access_reliable_model_is_free(m_reliables[i].model_handle));
+    }
+
+    printf("---> Timeout the remaining contexts.\n");
+    void * p_args;
+    /* Timeout the remaining contexts */
+    uint32_t remaining_bitfield = (~remove_bitfield) & (~(1 << ACCESS_RELIABLE_TRANSFER_COUNT));
+    for (int i = 0; i < ACCESS_RELIABLE_TRANSFER_COUNT; ++i)
+    {
+        if ((remaining_bitfield & (1 << i)) > 0)
+        {
+            if ((remaining_bitfield & (1 << (i+1))) > 0)
+            {
+                /* The next is not removed */
+                timer_reschedule_ExpectAndReturn(TIMER_STATE_RUNNING,
+                                                 ACCESS_RELIABLE_TIMEOUT_MIN + TIME_SPACING*(i + 1));
+            }
+            else if ((remaining_bitfield & (1 << (i+2))) > 0)
+            {
+                /* The one after the next is not removed */
+                timer_reschedule_ExpectAndReturn(TIMER_STATE_RUNNING,
+                                                 ACCESS_RELIABLE_TIMEOUT_MIN + TIME_SPACING*(i + 2));
+            }
+
+            p_args = (uint8_t *) TEST_ARGS_PTR + i;
+            printf("p_args: %p\n", p_args);
+            access_model_p_args_get_ExpectAndReturn(m_reliables[i].model_handle, NULL, NRF_SUCCESS);
+            access_model_p_args_get_IgnoreArg_pp_args();
+            access_model_p_args_get_ReturnThruPtr_pp_args(&p_args);
+            status_cb_Expect(m_reliables[i].model_handle, p_args, ACCESS_RELIABLE_TRANSFER_TIMEOUT);
+            fire_timeout(time + i*TIME_SPACING, NULL);
+        }
+    }
+
+    /* Test if the model context are free */
+    for (uint32_t i=0; i<ACCESS_RELIABLE_TRANSFER_COUNT; i++)
+    {
+        TEST_ASSERT_EQUAL(true, access_reliable_model_is_free(m_reliables[i].model_handle));
+    }
 }

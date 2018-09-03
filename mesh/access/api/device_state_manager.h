@@ -484,12 +484,13 @@ uint32_t dsm_subnet_get_all(mesh_key_index_t * p_key_list, uint32_t * p_count);
  * @note In NRF_MESH_KEY_REFRESH_PHASE_2 and NRF_MESH_KEY_REFRESH_PHASE_3 this will return the updated key.
  *
  * @param[in]  subnet_handle Subnet handle.
- * @param[out] p_root_key    Pointer to NRF_MESH_KEY_SIZE array to store the key.
+ * @param[out] p_key    Pointer to NRF_MESH_KEY_SIZE array to store the key.
  *
  * @retval NRF_SUCCESS         Successfully copied the key.
  * @retval NRF_ERROR_NOT_FOUND Invalid subnet handle.
  */
 uint32_t dsm_subnet_key_get(dsm_handle_t subnet_handle, uint8_t * p_key);
+
 /** @} end of DEVICE_STATE_MANAGER_NET_KEYS */
 
 /**
@@ -502,7 +503,7 @@ uint32_t dsm_subnet_key_get(dsm_handle_t subnet_handle, uint8_t * p_key);
  * Adds a device key.
  *
  * @note           "A device key is implicitly bound to all network keys." see Mesh Profile Bluetooth
- *                 Specification v1.0, section 3.8.5. An exception to this is the provisioner who stores all the device
+ *                 Specification v1.0, section 3.8.6. An exception to this is the provisioner who stores all the device
  *                 keys of the other nodes, see section 5.
  *
  * @param[in]      raw_unicast_addr          Unicast address associated with this device key.

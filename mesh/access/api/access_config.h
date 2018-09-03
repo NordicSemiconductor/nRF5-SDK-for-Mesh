@@ -485,5 +485,12 @@ uint32_t access_element_models_get(uint16_t element_index, access_model_handle_t
 uint32_t access_handle_get(uint16_t element_index, access_model_id_t model_id, access_model_handle_t * p_handle);
 
 
+/**
+ * Gets a pointer to the flash area used by access.
+ *
+ * @returns A pointer to access flash area.
+ */
+const void * access_flash_area_get(void);
+
 /** @} */
 #endif  /* ACCESS_CONFIG_H__ */

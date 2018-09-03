@@ -46,7 +46,7 @@
  */
 
 /** Spec-defined access address for non-connected state */
-#define BEARER_ACCESS_ADDR_NONCONN 0x8E89BED6
+#define BEARER_ACCESS_ADDR_NONCONN 0x8E89BED6U
 
 /** Lower boundary on advertisement interval. */
 #define BEARER_ADV_INT_MIN_MS (20)

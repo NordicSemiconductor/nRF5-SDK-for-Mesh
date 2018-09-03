@@ -199,6 +199,18 @@ bool mesh_stack_is_device_provisioned(void);
 void mesh_stack_device_reset(void);
 
 /**
+ * Gets which flash areas used by the mesh stack for storing persistent data.
+ *
+ * @param[in,out] pp_start Returns a pointer to the first word used by the mesh stack for storing
+ * persistent data, or NULL if no flash space is used for persistent data.
+ * @param[in,out] p_length Returns the length of the mesh stack persistent data.
+ *
+ * @retval NRF_SUCCESS The parameters have successfully been populated.
+ * @retval NRF_ERROR_NULL One or more of the parameters were NULL.
+ */
+uint32_t mesh_stack_persistence_flash_usage(const uint32_t ** pp_start, uint32_t * p_length);
+
+/**
  * @}
  */
 

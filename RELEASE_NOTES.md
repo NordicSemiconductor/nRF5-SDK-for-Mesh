@@ -1,5 +1,49 @@
 # Release Notes
 
+## BLE Mesh v2.2.0
+- This is a minor production release.
+
+### New features
+  - Generic server/client model interfaces for OnOff, Default Transition Time, and Level models
+  - Sample generic OnOff server behavior implementation
+  - New Mesh Config module that provides high-level access to persistent storage. This module uses the existing
+  Flash Manager and aims to enable multiple flash backends (including nRF5 SDK fstorage) in the future.
+  - Moved mesh runtime configuration options to a new, type-safe mesh_opt_* API in their
+  respective submodules. The options are stored in persistent memory through the new
+  mesh_config module.
+  - Added persistent storage to several internal states:
+    - Heartbeat publication
+    - Net beacon
+    - GATT proxy
+
+### Other
+  - Updated model directory structure:
+    - Foundation models have been moved to models/foundation
+    - Generic models are present in models/model_spec
+    - Vendor specific models have been moved to models/vendor
+    - Experimental models have been moved to models/experimental
+  - Updated examples to support Generic OnOff models
+  - Simplified EnOcean, Light Switch Client, and SDK coexistence examples to use only two Generic OnOff
+  client model instances
+  - Marked the old `nrf_mesh_opt` API deprecated (it will be removed in the next major production release)
+  - Updated the mesh to use the section variables module from the nRF5 SDK (see the migration guide for details)
+  - Updated various parts of the documentation (added documentation for GATT Proxy example and for PA/LNA support)
+
+### Bugfixes
+  - EnOcean example was not supporting multiple enocean switches
+  - Mesh GATT asserted if other services uses HVX (MBTLE-2623)
+  - Serial interface driver does no longer block on packet allocation (MBTLE-1844)
+  - Made access address definition explicitly unsigned (MBTLE-2453)
+  - `bootloader_verify.py` did not recognize nRF52840 (MBTLE-2610)
+  - Fixed parsing error in PyACI `heartbeat_subscription_get()` (MBTLE-2690)
+
+### Known issues and limitations
+  - Softdevice S140 v6.0.0 sets the event IRQ priority into the wrong value 6 (should be 7).
+  That might cause an internal stack memory corruption.
+  To avoid the issue the file from Mesh SDK `<Mesh SDK folder>/external/sdk_fix/nrf_sdh.c` shall be used.
+  Otherwise the examples which use GATT will generate assertion `Mesh error 3 at <address> (examples/common/include/mesh_app_utils.h:100)`
+  - If the mesh stack is configured with IRQ priority NRF_MESH_IRQ_PRIORITY_THREAD and run in the main loop with app_scheduler, there might be delays of ~15 ms.
+
 ## BLE Mesh v2.1.1
 - This is a minor production release.
 
@@ -239,7 +283,7 @@ This is a hotfix release, providing critical bug fixes and improvements.
 
 ### New features
 
-- nrf_mesh_packet_send() now supports the reliable feature. I.e., it is possible to send single segments messages using the transport layer SAR.
+- nrf_mesh_packet_send() now supports the reliable feature. I.e., it is possible to send single segments messages using the transport layer SAR.
 - Interactive PyACI has support for an interactive provisioner and provisionee
 - New serial interface event "Prov Failed"
 
@@ -247,14 +291,14 @@ This is a hotfix release, providing critical bug fixes and improvements.
 
 - Provisionee not handling invalid provisioning data properly
 - Problems using "Release" configuration in SES examples
-- Incorrect usage of hal_led_blink_ms() in light control server
+- Incorrect usage of hal_led_blink_ms() in light control server
 - Serial buffers must be word aligned
 - Number of elements not handled in Serial interface's "Capabilities set" command
 - S110 build failure
 - Default build type is set in CMake
 - Word alignment problems caused by high optimization levels when using Segger Embedded Studio
 - PB-remote opcodes overlapping with Configuration model opcodes
-- Advertisement bearer used timer_scheduler contexts dangerously, potentially corrupting its internal linked list
+- Advertisement bearer used timer_scheduler contexts dangerously, potentially corrupting its internal linked list
 - PB-remote server would get confused about out-of-order ACKs from the client
 - Documentation has been updated
 
@@ -459,4 +503,3 @@ can be overridden using +transport_sar_mem_funcs_set()+, otherwise +__HEAPSIZE+ 
 defined.
 
 **WARNING:** SoftDevice needs to be Flashed without memory protection
-

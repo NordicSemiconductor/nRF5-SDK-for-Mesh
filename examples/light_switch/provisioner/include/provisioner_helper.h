@@ -97,7 +97,7 @@ typedef struct
 
 typedef struct
 {
-    /** Application specific structure storing dsm handles */
+    /** Application-specific structure storing dsm handles */
     network_dsm_handles_data_volatile_t * p_dev_data;
     /** Pointer to the network device count data */
     network_stats_data_stored_t * p_nw_data;
@@ -132,21 +132,23 @@ void prov_helper_scan_start(void);
  * The address specified here will be used by the provisioner as a unicast address for the
  * unprovisioned device. .
  *
- * @param[in] retry_cnt         Number of times, provisioning process will be re-run, if it fails.
- * @param[in] address           The address specified here will be used by the provisioner as a
+ * @param[in]  retry_cnt        Number of times, provisioning process will be re-run, if it fails.
+ * @param[in]  address          The address specified here will be used by the provisioner as a
  *                              start address (unicast address) for the unprovisioned device.
- * @param[in] uuid_filter       Structure of the type @prov_helper_uuid_filter_t containing pointer
+ * @param[in]  uuid_filter      Structure of the type @prov_helper_uuid_filter_t containing pointer
  *                              to uuid filter array (p_uuid) and length of the filter (length).
  *                              If `uuid_filter->p_uuid` is set to NULL or if `uuid_filter->length`
  *                              is zero provisioner helper will provision the next unprovisioned
  *                              device it sees.
+ * @param[out] p_current_uuid   Buffer to copy the full UUID of the node being provisioned.
  *
  * @note In this example, we know that our light switch servers only have _one_ element,
  *       therefore their unicast addresses will be sequential. This assumption does not hold
  *       in general.
  */
 void prov_helper_provision_next_device(uint8_t retry_cnt, uint16_t address,
-                                       prov_helper_uuid_filter_t * p_uuid_filter);
+                                       prov_helper_uuid_filter_t * p_uuid_filter,
+                                       uint8_t * p_current_uuid);
 
 /** Initializes the local node by adding self address, self device key, and by binding models. */
 void prov_helper_provision_self(void);
@@ -165,6 +167,14 @@ uint32_t prov_helper_element_count_get(void);
  * Retrieves stored handles for the netkey, appkey and self device key.
  */
 void prov_helper_device_handles_load(void);
+
+/**
+ * Compares the given UUID with the UUID filter
+ *
+ * @param[in] p_in_uuid         Input UUID
+ * @param[in] p_expected_uuid   Expected UUID filter
+ */
+bool uuid_filter_compare(const uint8_t *p_in_uuid, const prov_helper_uuid_filter_t * p_expected_uuid);
 
 /** @} end of PROVISIONER_HELPER */
 

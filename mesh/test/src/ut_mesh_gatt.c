@@ -52,7 +52,7 @@
 
 #include "timer_mock.h"
 #include "timer_scheduler_mock.h"
-#include "nordic_common.h"
+#include "utils.h"
 
 /*******************************************************************************
  * Definitions

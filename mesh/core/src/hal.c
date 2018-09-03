@@ -52,6 +52,7 @@
  * register. */
 #define RESET_REASON_MASK   (0xFFFFFFFF)
 
+#define IRQn_NONE       ((IRQn_Type) -16)
 /*****************************************************************************
 * Interface functions
 *****************************************************************************/
@@ -138,4 +139,22 @@ uint32_t hal_lfclk_ppm_get(uint32_t lfclksrc)
         default: /* all RC-sources are 250 */
             return 250;
     }
+}
+
+IRQn_Type hal_irq_active_get(void)
+{
+#if defined(HOST)
+    return Reset_IRQn; /* Fallback for other platforms. */
+#else
+    return (IRQn_Type) (((SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) >> SCB_ICSR_VECTACTIVE_Pos) - 16);
+#endif
+}
+
+bool hal_irq_is_enabled(IRQn_Type irq)
+{
+#if defined(HOST)
+    return true; /* Fallback for other platforms. */
+#else
+    return 0 != (NVIC->ISER[irq / 32] & (1UL << (irq % 32)));
+#endif
 }

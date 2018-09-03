@@ -40,7 +40,7 @@
 
 #include "core_tx.h"
 
-#include "nordic_common.h"
+#include "utils.h"
 #include "test_assert.h"
 
 #define TOKEN   0x12345678

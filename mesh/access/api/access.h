@@ -402,5 +402,21 @@ uint32_t access_model_reply(access_model_handle_t handle,
                             const access_message_rx_t * p_message,
                             const access_message_tx_t * p_reply);
 
+/**
+ * Returns the element index for the model handle
+ *
+ * This function is indended to be used inside the state transaction callbacks triggered by the
+ * model to quickly resolve the element index on which the message arrived.
+ *
+ * @param[in]  handle           Access handle for the model that wants to send data.
+ * @param[out] p_element_index  Pointer to the hold retrieved element index for the model handle
+ *
+ * @retval NRF_SUCCESS          Model handle is valid and `element_index` pointer is updated.
+ * @retval NRF_ERROR_NULL       NULL pointer supplied to function.
+ * @retval NRF_ERROR_NOT_FOUND  Invalid model handle or model not bound to element.
+ *
+ */
+uint32_t access_model_element_index_get(access_model_handle_t handle, uint16_t * p_element_index);
+
 /** @} */
 #endif /* ACCESS_H__ */

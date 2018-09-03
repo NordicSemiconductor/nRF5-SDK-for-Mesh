@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="21cm" height="5cm" viewBox="650 278 419 83" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g>
+    <rect style="fill: #fefece" x="662" y="280" width="112" height="80"/>
+    <path style="fill: #fefece" d="M 662,280 A 10,10 0 0 0 652,290 L 662,290 z"/>
+    <path style="fill: #fefece" d="M 784,290 A 10,10 0 0 0 774,280 L 774,290 z"/>
+    <rect style="fill: #fefece" x="652" y="290" width="132" height="60"/>
+    <path style="fill: #fefece" d="M 652,350 A 10,10 0 0 0 662,360 L 662,350 z"/>
+    <path style="fill: #fefece" d="M 774,360 A 10,10 0 0 0 784,350 L 774,350 z"/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" x1="662" y1="280" x2="774" y2="280"/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" x1="662" y1="360" x2="774" y2="360"/>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" d="M 662,280 A 10,10 0 0 0 652,290"/>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" d="M 784,290 A 10,10 0 0 0 774,280"/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" x1="652" y1="290" x2="652" y2="350"/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" x1="784" y1="290" x2="784" y2="350"/>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" d="M 652,350 A 10,10 0 0 0 662,360"/>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" d="M 774,360 A 10,10 0 0 0 784,350"/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="718" y="324.8">
+      <tspan x="718" y="324.8">nRF52</tspan>
+    </text>
+  </g>
+  <g>
+    <rect style="fill: #fefece" x="910" y="280" width="110" height="80"/>
+    <path style="fill: #fefece" d="M 910,280 A 10,10 0 0 0 900,290 L 910,290 z"/>
+    <path style="fill: #fefece" d="M 1030,290 A 10,10 0 0 0 1020,280 L 1020,290 z"/>
+    <rect style="fill: #fefece" x="900" y="290" width="130" height="60"/>
+    <path style="fill: #fefece" d="M 900,350 A 10,10 0 0 0 910,360 L 910,350 z"/>
+    <path style="fill: #fefece" d="M 1020,360 A 10,10 0 0 0 1030,350 L 1020,350 z"/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" x1="910" y1="280" x2="1020" y2="280"/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" x1="910" y1="360" x2="1020" y2="360"/>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" d="M 910,280 A 10,10 0 0 0 900,290"/>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" d="M 1030,290 A 10,10 0 0 0 1020,280"/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" x1="900" y1="290" x2="900" y2="350"/>
+    <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" x1="1030" y1="290" x2="1030" y2="350"/>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" d="M 900,350 A 10,10 0 0 0 910,360"/>
+    <path style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #a80036" d="M 1020,360 A 10,10 0 0 0 1030,350"/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="965" y="316.8">
+      <tspan x="965" y="316.8">Front End Module</tspan>
+      <tspan x="965" y="332.8">(PA/LNA)</tspan>
+    </text>
+  </g>
+  <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x1="784" y1="300" x2="900" y2="300"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x1="784" y1="340" x2="900" y2="340"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x1="1030" y1="320" x2="1060" y2="320"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x1="1060" y1="320" x2="1060" y2="310"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x1="1060" y1="310" x2="1060" y2="300"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x1="1060" y1="310" x2="1068" y2="302"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x1="1060" y1="310" x2="1052" y2="302"/>
+  <text font-size="12.7998" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="788" y="296">
+    <tspan x="788" y="296">GPIO n</tspan>
+  </text>
+  <text font-size="12.7998" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="788" y="336">
+    <tspan x="788" y="336">GPIO m</tspan>
+  </text>
+  <text font-size="12.7998" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="856" y="296">
+    <tspan x="856" y="296">TX_EN</tspan>
+  </text>
+  <text font-size="12.7998" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="856" y="332">
+    <tspan x="856" y="332">RX_EN</tspan>
+  </text>
+</svg>

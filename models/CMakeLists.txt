@@ -1,4 +1,5 @@
-add_subdirectory("simple_on_off")
-add_subdirectory("config")
-add_subdirectory("pb_remote")
-add_subdirectory("health")
+add_subdirectory("experimental")
+add_subdirectory("foundation")
+add_subdirectory("model_spec")
+add_subdirectory("vendor")
+

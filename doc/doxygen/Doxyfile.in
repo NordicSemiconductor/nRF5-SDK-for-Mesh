@@ -266,7 +266,13 @@ link_nrf5x_cmd_line_tools_w32="<a href=\"http://www.nordicsemi.com/eng/nordic/Pr
 link_nrf5x_cmd_line_tools_linux="<a href=\"https://www.nordicsemi.com/eng/nordic/Products/nRF51822/nRF5x-Command-Line-Tools-Linux64/51386\" target=\"_blank\">nRFx Command Line Tools for Linux (64-bit)</a>" \
 link_rtt="<a href=\"https://www.segger.com/products/debug-probes/j-link/technology/real-time-transfer/about-real-time-transfer/\" target=\"_blank\">SEGGER RTT</a>" \
 link_nRFConnectDesktop="<a href=\"https://www.nordicsemi.com/eng/Products/Bluetooth-low-energy/nRF-Connect-for-desktop\" target=\"_blank\">nRF Connect for desktop</a>" \
-link_nRFConnectMobile="<a href=\"https://www.nordicsemi.com/eng/Products/Nordic-mobile-Apps/nRF-Connect-for-Mobile\" target=\"_blank\">nRF Connect for mobile</a>"
+link_nRFConnectMobile="<a href=\"https://www.nordicsemi.com/eng/Products/Nordic-mobile-Apps/nRF-Connect-for-Mobile\" target=\"_blank\">nRF Connect for mobile</a>" \
+link_enocean_ds="<a href=\"https://www.enocean.com/en/enocean_modules_2.4ghz_ble/ptm-215b/\" target=\"_blank\">EnOcean PTM215B Datasheet</a>" \
+link_APIref="<a href=\"modules.html\">API Reference</a>" \
+link_Structref="<a href=\"annotated.html\">Data structures</a>" \
+link_MeshSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\">Mesh Profile Specification</a>" \
+link_ModelSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\">Mesh Model Specification</a>" \
+link_MeshSdk_download="<a href=\"http://www.nordicsemi.com/eng/Products/Bluetooth-low-energy/nRF5-SDK-for-Mesh#Downloads\">Download</a>"
 
 # rufu: Links to the Infocenter must use a prefix because they differ for
 # offline and online documentation.
@@ -275,12 +281,10 @@ link_ic_SDtimeslotAPI="[SoftDevice Timeslot API](@INFOCENTER@/com.nordic.infocen
 link_ic_nrfutil="[nrfutil](@INFOCENTER@/com.nordic.infocenter.tools/dita/tools/nrfutil/nrfutil_intro.html)" \
 link_ic_nRF51PS="[nRF51](@INFOCENTER@/com.nordic.infocenter.nrf51/dita/nrf51/pdflinks/51822_ps.html)" \
 link_ic_nRF52832PS="[nRF52832](@INFOCENTER@/com.nordic.infocenter.nrf52/dita/nrf52/chips/nrf52832_ps.html)" \
-link_enocean_ds="<a href=\"https://www.enocean.com/en/enocean_modules_2.4ghz_ble/ptm-215b/\" target=\"_blank\">EnOcean PTM215B Datasheet</a>" \
-link_APIref="<a href=\"modules.html\">API Reference</a>" \
-link_Structref="<a href=\"annotated.html\">Data structures</a>" \
-link_MeshSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\">Mesh Profile Specification</a>" \
-link_ModelSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\">Mesh Model Specification</a>" \
-link_MeshSdk_download="<a href=\"http://www.nordicsemi.com/eng/Products/Bluetooth-low-energy/nRF5-SDK-for-Mesh#Downloads\">Download</a>"
+link_52832_PPI="[PPI](@INFOCENTER@/com.nordic.infocenter.nrf52832.ps.v1.1/ppi.html#concept_sxf_21l_1s)" \
+link_52832_GPIOTE="[GPIOTE](@INFOCENTER@/com.nordic.infocenter.nrf52832.ps.v1.1/gpiote.html#concept_knz_kww_lr)" \
+link_app_timer="[App timer](@INFOCENTER@/com.nordic.infocenter.sdk5.v15.0.0/lib_timer.html)" \
+link_section_vars="[Section variables](@INFOCENTER@/com.nordic.infocenter.sdk5.v15.0.0/lib_section_vars.html)"
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"
@@ -834,10 +838,14 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/mesh/gatt/api" \
 "@PROJECT_SOURCE_DIR@/mesh/dfu/api" \
 "@PROJECT_SOURCE_DIR@/mesh/stack/api" \
-"@PROJECT_SOURCE_DIR@/models/pb_remote/include" \
-"@PROJECT_SOURCE_DIR@/models/config/include" \
-"@PROJECT_SOURCE_DIR@/models/health/include" \
-"@PROJECT_SOURCE_DIR@/models/simple_on_off/include" \
+"@PROJECT_SOURCE_DIR@/models/experimental/pb_remote/include" \
+"@PROJECT_SOURCE_DIR@/models/foundation/config/include" \
+"@PROJECT_SOURCE_DIR@/models/foundation/health/include" \
+"@PROJECT_SOURCE_DIR@/models/vendor/simple_on_off/include" \
+"@PROJECT_SOURCE_DIR@/models/model_spec/common/include" \
+"@PROJECT_SOURCE_DIR@/models/model_spec/generic_dtt/include" \
+"@PROJECT_SOURCE_DIR@/models/model_spec/generic_onoff/include" \
+"@PROJECT_SOURCE_DIR@/models/model_spec/generic_level/include" \
 "@PROJECT_SOURCE_DIR@/RELEASE_NOTES.md" \
 "@PROJECT_SOURCE_DIR@/MIGRATION_GUIDE.md" \
 "@PROJECT_SOURCE_DIR@/doc/migration" \
@@ -847,23 +855,28 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/mesh/doc" \
 "@PROJECT_SOURCE_DIR@/doc" \
 "@PROJECT_SOURCE_DIR@/doc/doxygen" \
-"@PROJECT_SOURCE_DIR@/doc/getting_started" \
 "@PROJECT_SOURCE_DIR@/doc/introduction" \
+"@PROJECT_SOURCE_DIR@/doc/getting_started" \
 "@PROJECT_SOURCE_DIR@/doc/libraries" \
+"@PROJECT_SOURCE_DIR@/scripts/README.md" \
 "@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/README.md" \
 "@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/doc/demo_loopback.md" \
 "@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/doc/demo_sending_packets.md" \
 "@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/doc/demo_configuration.md" \
 "@PROJECT_SOURCE_DIR@/models/README.md" \
-"@PROJECT_SOURCE_DIR@/models/simple_on_off/README.md" \
+"@PROJECT_SOURCE_DIR@/models/vendor/simple_on_off/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/pb_remote/client/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/pb_remote/server/README.md" \
-"@PROJECT_SOURCE_DIR@/models/simple_on_off/README.md" \
+"@PROJECT_SOURCE_DIR@/models/vendor/simple_on_off/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/light_switch/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/experimental_dimming/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/enocean_switch/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/dfu/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/serial/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/beaconing/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/sdk_coexist/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/sdk_coexist/ble_app_proximity_coexist/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/sdk_coexist/ble_app_uart_coexist/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/common/README.md"
 
@@ -954,10 +967,10 @@ EXAMPLE_RECURSIVE      = NO
 # \image command).
 
 IMAGE_PATH             = "@PROJECT_SOURCE_DIR@/mesh/doc" \
-                         "@PROJECT_SOURCE_DIR@/models/pb_remote/doc" \
+                         "@PROJECT_SOURCE_DIR@/models/experimental/pb_remote/doc" \
                          "@PROJECT_SOURCE_DIR@/examples/light_switch/img" \
                          "@PROJECT_SOURCE_DIR@/examples/enocean_switch/img" \
-                         "@PROJECT_SOURCE_DIR@/models/simple_on_off/img" \
+                         "@PROJECT_SOURCE_DIR@/models/vendor/simple_on_off/img" \
                          "@PROJECT_SOURCE_DIR@/doc/getting_started/img" \
                          "@PROJECT_SOURCE_DIR@/doc/libraries/img"
 
@@ -2391,7 +2404,7 @@ DOT_PATH               =
 
 DOTFILE_DIRS           = "@PROJECT_SOURCE_DIR@/mesh/doc" \
                          "@PROJECT_SOURCE_DIR@/mesh/doc/access" \
-                         "@PROJECT_SOURCE_DIR@/models/pb_remote/doc"
+                         "@PROJECT_SOURCE_DIR@/models/experimental/pb_remote/doc"
 
 # The MSCFILE_DIRS tag can be used to specify one or more directories that
 # contain msc files that are included in the documentation (see the \mscfile
@@ -2399,7 +2412,7 @@ DOTFILE_DIRS           = "@PROJECT_SOURCE_DIR@/mesh/doc" \
 
 MSCFILE_DIRS           = "@PROJECT_SOURCE_DIR@/mesh/doc" \
                          "@PROJECT_SOURCE_DIR@/mesh/doc/access" \
-                         "@PROJECT_SOURCE_DIR@/models/pb_remote/doc"
+                         "@PROJECT_SOURCE_DIR@/models/experimental/pb_remote/doc"
 
 # The DIAFILE_DIRS tag can be used to specify one or more directories that
 # contain dia files that are included in the documentation (see the \diafile

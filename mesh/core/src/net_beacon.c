@@ -47,6 +47,8 @@
 #include "nrf_mesh_events.h"
 #include "event.h"
 #include "nordic_common.h"
+#include "mesh_opt_core.h"
+#include "mesh_config_entry.h"
 
 /*****************************************************************************
 * Local defines
@@ -68,7 +70,6 @@
 *****************************************************************************/
 
 /*lint -align_max(push) -align_max(1) */
-
 /**
  * Secure network broadcast beacon flags.
  */
@@ -97,10 +98,10 @@ typedef struct __attribute((packed))
     net_beacon_payload_t payload;                    /**< Payload of the secure network beacon. */
     uint8_t              cmac[NET_BEACON_CMAC_SIZE]; /**< CMAC authentication value. */
 } net_beacon_t;
-
 /*lint -align_max(pop) */
 
 NRF_MESH_STATIC_ASSERT(NET_BEACON_BUFFER_SIZE == sizeof(net_beacon_t) + BEACON_PACKET_OVERHEAD);
+
 /*****************************************************************************
 * Static globals
 *****************************************************************************/
@@ -110,10 +111,10 @@ static bool          m_enabled;                        /**< Secure network beaco
 static advertiser_t  m_adv;
 static uint8_t       m_adv_buf[ADVERTISER_PACKET_BUFFER_PACKET_MAXLEN] __attribute((aligned(WORD_SIZE)));
 static const nrf_mesh_beacon_info_t * mp_beacon_info;
+
 /*****************************************************************************
 * Static functions
 *****************************************************************************/
-
 /**
  * Calculate the secure network broadcast beacon CMAC.
  *
@@ -275,12 +276,51 @@ static void tx_complete_cb(advertiser_t * p_adv, nrf_mesh_tx_token_t token, uint
 }
 
 /*****************************************************************************
+ * Mesh Config wrapper functions
+ *****************************************************************************/
+static uint32_t beacon_setter(mesh_config_entry_id_t entry_id, const void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(MESH_OPT_CORE_SEC_NWK_BCN_RECORD == entry_id.record);
+
+    bool enabled = *(bool *)p_entry;
+
+    /* Enable the beacon from disabled state: */
+    if (!m_enabled && enabled)
+    {
+        timer_sch_reschedule((timer_event_t *) &m_tx_timer, timer_now() + m_tx_timer.interval);
+    }
+    else if (m_enabled && !enabled)
+    {
+        timer_sch_abort((timer_event_t *) & m_tx_timer);
+    }
+
+    m_enabled = enabled;
+
+    return NRF_SUCCESS;
+}
+
+static void beacon_getter(mesh_config_entry_id_t entry_id, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(MESH_OPT_CORE_SEC_NWK_BCN_RECORD == entry_id.record);
+
+    *(bool *)p_entry = m_enabled;
+}
+
+MESH_CONFIG_ENTRY(net_beacon_enable,
+                  MESH_OPT_CORE_SEC_NWK_BCN_EID,
+                  1,
+                  sizeof(m_enabled),
+                  beacon_setter,
+                  beacon_getter,
+                  NULL,
+                  &m_enabled);
+
+/*****************************************************************************
 * Interface functions
 *****************************************************************************/
 void net_beacon_init(void)
 {
     /* Start the beacon in enabled state: */
-    m_enabled = true;
     mp_beacon_info = NULL;
 
     m_tx_timer.interval  = SEC_TO_US(NRF_MESH_BEACON_SECURE_NET_BCAST_INTERVAL_SECONDS);
@@ -298,31 +338,33 @@ void net_beacon_init(void)
      * where a single device diminishes the throughput of its neighbors. */
     advertiser_interval_set(&m_adv, SEC_TO_MS(1));
 
-    advertiser_enable(&m_adv);
-
-    timer_sch_schedule((timer_event_t *) &m_tx_timer);
-
     enc_s1(NETWORK_BKEY_SALT_INPUT, NETWORK_BKEY_SALT_INPUT_LENGTH, m_beacon_salt);
+}
+
+void net_beacon_enable(void)
+{
+    if (!m_enabled)
+    {
+        advertiser_enable(&m_adv);
+        timer_sch_schedule((timer_event_t *) &m_tx_timer);
+        m_enabled = true;
+    }
 }
 
 void net_beacon_state_set(bool enabled)
 {
-    /* Enable the beacon from disabled state: */
-    if (!m_enabled && enabled)
-    {
-        timer_sch_reschedule((timer_event_t *) &m_tx_timer, timer_now() + m_tx_timer.interval);
-    }
-    else if (m_enabled && !enabled)
-    {
-        timer_sch_abort((timer_event_t *) & m_tx_timer);
-    }
+    mesh_config_entry_id_t id = MESH_OPT_CORE_SEC_NWK_BCN_EID;
 
-    m_enabled = enabled;
+    NRF_MESH_ASSERT(NRF_SUCCESS == mesh_config_entry_set(id, &enabled));
 }
 
 bool net_beacon_state_get(void)
 {
-    return m_enabled;
+    bool enabled;
+    mesh_config_entry_id_t id = MESH_OPT_CORE_SEC_NWK_BCN_EID;
+
+    NRF_MESH_ASSERT(NRF_SUCCESS == mesh_config_entry_get(id, &enabled));
+    return enabled;
 }
 
 uint32_t net_beacon_build(const nrf_mesh_beacon_secmat_t * p_beacon_secmat,

@@ -39,7 +39,7 @@
 
 #include "proxy.h"
 
-#include "nordic_common.h"
+#include "utils.h"
 #include "proxy_test_common.h"
 
 #include "proxy_filter_mock.h"
@@ -52,6 +52,8 @@
 #include "rand_mock.h"
 #include "mesh_adv_mock.h"
 #include "cache_mock.h"
+#include "mesh_config_entry.h"
+#include "mesh_opt_gatt.h"
 
 #define NET_ID {0x3e, 0xca, 0xff, 0x67, 0x2f, 0x67, 0x33, 0x70}
 #define ID_KEY {0x84, 0x39, 0x6c, 0x43, 0x5a, 0xc4, 0x85, 0x60, 0xb5, 0x96, 0x53, 0x85, 0x25, 0x3e, 0x21, 0x0c}
@@ -61,9 +63,31 @@
 
 static nrf_mesh_network_secmat_t m_rx_net_secmat;
 
+extern const mesh_config_entry_params_t m_mesh_opt_gatt_proxy_params;
+uint32_t mesh_config_entry_set(mesh_config_entry_id_t id, const void * p_entry)
+{
+    return m_mesh_opt_gatt_proxy_params.callbacks.setter(id, p_entry);
+}
+
+uint32_t mesh_config_entry_get(mesh_config_entry_id_t id, void * p_entry)
+{
+    m_mesh_opt_gatt_proxy_params.callbacks.getter(id, p_entry);
+    return NRF_SUCCESS;
+}
+
 
 void setUp(void)
 {
+    /* Clear the state */
+    bool enabled;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_get(&enabled));
+    if (enabled)
+    {
+        /* Expect the proxy to kill the advertiser when disabling it. */
+        mesh_adv_stop_Expect();
+        timer_sch_abort_ExpectAnyArgs();
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(false));
+    }
     proxy_filter_mock_Init();
     timer_scheduler_mock_Init();
     network_mock_Init();
@@ -203,7 +227,8 @@ void test_adv_net_id(void)
     mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_ADV_INT_MS * 1000) / 625);
     mesh_adv_start_Expect();
 
-    proxy_enable();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(true));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_start());
 }
 
 void test_adv_node_id(void)
@@ -237,7 +262,8 @@ void test_adv_node_id(void)
     mesh_adv_params_set_Expect(60*1000, (MESH_GATT_PROXY_ADV_INT_MS * 1000) / 625);
     mesh_adv_start_Expect();
 
-    proxy_node_id_enable(&beacon_info, NRF_MESH_KEY_REFRESH_PHASE_0);
+    nrf_mesh_key_refresh_phase_t kr_phase = NRF_MESH_KEY_REFRESH_PHASE_0;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_node_id_enable(&beacon_info, kr_phase));
 }
 
 void test_rx_config(void)
@@ -552,7 +578,8 @@ void test_disconnect(void)
     mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_ADV_INT_MS * 1000) / 625);
     mesh_adv_start_Expect();
 
-    proxy_enable();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(true));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_start());
 
     /* Connect, then disconnect */
     establish_connection(0);
@@ -565,4 +592,46 @@ void test_disconnect(void)
 
     disconnect(0);
 
+}
+
+void test_enable_get_set(void)
+{
+    cache_init_ExpectAnyArgs();
+    init();
+
+    bool enabled = true;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_get(&enabled));
+    TEST_ASSERT_FALSE(enabled);
+
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, mesh_opt_gatt_proxy_set(false));
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(true));
+
+    enabled = false;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_get(&enabled));
+    TEST_ASSERT_TRUE(enabled);
+
+    /* Start advertising */
+    nrf_mesh_beacon_info_t beacon_info = {.secmat.net_id = NET_ID};
+    beacon_info_set(&beacon_info, 1);
+
+    uint8_t service_data[9];
+    service_data[0] = 0;
+    memcpy(&service_data[1], beacon_info.secmat.net_id, 8);
+
+    mesh_adv_data_set_Expect(0x1828, service_data, sizeof(service_data));
+    mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_ADV_INT_MS * 1000) / 625);
+    mesh_adv_start_Expect();
+
+    timer_sch_reschedule_ExpectAnyArgs();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_start());
+
+    /* Expect the proxy to kill the advertiser when disabling it. */
+    mesh_adv_stop_Expect();
+    timer_sch_abort_ExpectAnyArgs();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(false));
+
+    enabled = true;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_get(&enabled));
+    TEST_ASSERT_FALSE(enabled);
 }

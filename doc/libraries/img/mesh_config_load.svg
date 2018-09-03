@@ -1,0 +1,229 @@
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1"
+ width="1200px" height="510px"
+ viewBox="0 0 1200 510"
+ xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges"
+ stroke-width="1" text-rendering="geometricPrecision">
+<polygon fill="white" points="106,7 132,7 132,16 106,16"/>
+<text x="120" y="16" textLength="25" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+User
+</text>
+<polygon fill="white" points="326,7 392,7 392,16 326,16"/>
+<text x="360" y="16" textLength="65" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+Mesh config
+</text>
+<polygon fill="white" points="566,7 632,7 632,16 566,16"/>
+<text x="600" y="16" textLength="64" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+State owner
+</text>
+<polygon fill="white" points="796,7 882,7 882,16 796,16"/>
+<text x="840" y="16" textLength="84" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+Change listener
+</text>
+<polygon fill="white" points="1055,7 1103,7 1103,16 1055,16"/>
+<text x="1080" y="16" textLength="47" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+Backend
+</text>
+<line x1="120" y1="22" x2="120" y2="50" stroke="black"/>
+<line x1="360" y1="22" x2="360" y2="50" stroke="black"/>
+<line x1="600" y1="22" x2="600" y2="50" stroke="black"/>
+<line x1="840" y1="22" x2="840" y2="50" stroke="black"/>
+<line x1="1080" y1="22" x2="1080" y2="50" stroke="black"/>
+<line x1="120" y1="33" x2="360" y2="33" stroke="black"/>
+<polygon fill="black" points="360,33 350,39 350,27"/>
+<polygon fill="white" points="186,23 293,23 293,32 186,32"/>
+<text x="187" y="32" textLength="105" font-family="Helvetica" font-size="12" fill="black">
+mesh_config_load()
+</text>
+<line x1="120" y1="50" x2="120" y2="78" stroke="black"/>
+<line x1="360" y1="50" x2="360" y2="78" stroke="black"/>
+<line x1="600" y1="50" x2="600" y2="78" stroke="black"/>
+<line x1="840" y1="50" x2="840" y2="78" stroke="black"/>
+<line x1="1080" y1="50" x2="1080" y2="78" stroke="black"/>
+<line x1="360" y1="61" x2="1080" y2="61" stroke="black"/>
+<polygon fill="black" points="1080,61 1070,67 1070,55"/>
+<polygon fill="white" points="703,51 736,51 736,60 703,60"/>
+<text x="704" y="60" textLength="31" font-family="Helvetica" font-size="12" fill="black">
+load()
+</text>
+<line x1="120" y1="78" x2="120" y2="106" stroke="black"/>
+<line x1="360" y1="78" x2="360" y2="106" stroke="black"/>
+<line x1="600" y1="78" x2="600" y2="106" stroke="black"/>
+<line x1="840" y1="78" x2="840" y2="106" stroke="black"/>
+<line x1="1080" y1="78" x2="1080" y2="106" stroke="black"/>
+<line x1="1080" y1="89" x2="360" y2="89" stroke="black"/>
+<line x1="360" y1="89" x2="370" y2="95" stroke="black"/>
+<polygon fill="white" points="645,79 793,79 793,88 645,88"/>
+<text x="646" y="88" textLength="146" font-family="Helvetica" font-size="12" fill="black">
+found_entry(ID=1, value=5)
+</text>
+<line x1="120" y1="106" x2="120" y2="134" stroke="black"/>
+<line x1="360" y1="106" x2="360" y2="134" stroke="black"/>
+<line x1="600" y1="106" x2="600" y2="134" stroke="black"/>
+<line x1="840" y1="106" x2="840" y2="134" stroke="black"/>
+<line x1="1080" y1="106" x2="1080" y2="134" stroke="black"/>
+<line x1="360" y1="117" x2="600" y2="117" stroke="black"/>
+<polygon fill="black" points="600,117 590,123 590,111"/>
+<polygon fill="white" points="397,107 562,107 562,116 397,116"/>
+<text x="398" y="116" textLength="163" font-family="Helvetica" font-size="12" fill="black">
+setter_callback(ID=1, value=5)
+</text>
+<line x1="120" y1="134" x2="120" y2="162" stroke="black"/>
+<line x1="360" y1="134" x2="360" y2="162" stroke="black"/>
+<line x1="600" y1="134" x2="600" y2="162" stroke="black"/>
+<line x1="840" y1="134" x2="840" y2="162" stroke="black"/>
+<line x1="1080" y1="134" x2="1080" y2="162" stroke="black"/>
+<line x1="600" y1="145" x2="360" y2="145" stroke="black"/>
+<line x1="360" y1="145" x2="370" y2="151" stroke="black"/>
+<polygon fill="white" points="434,135 525,135 525,144 434,144"/>
+<text x="435" y="144" textLength="89" font-family="Helvetica" font-size="12" fill="black">
+NRF_SUCCESS
+</text>
+<line x1="120" y1="162" x2="120" y2="179" stroke="black"/>
+<line x1="360" y1="162" x2="360" y2="179" stroke="black"/>
+<line x1="600" y1="162" x2="600" y2="179" stroke="black"/>
+<line x1="840" y1="162" x2="840" y2="179" stroke="black"/>
+<line x1="1080" y1="162" x2="1080" y2="179" stroke="black"/>
+<line x1="120" y1="179" x2="120" y2="207" stroke="black"/>
+<line x1="360" y1="179" x2="360" y2="207" stroke="black"/>
+<line x1="600" y1="179" x2="600" y2="207" stroke="black"/>
+<line x1="840" y1="179" x2="840" y2="207" stroke="black"/>
+<line x1="1080" y1="179" x2="1080" y2="207" stroke="black"/>
+<line x1="1080" y1="190" x2="360" y2="190" stroke="black"/>
+<line x1="360" y1="190" x2="370" y2="196" stroke="black"/>
+<polygon fill="white" points="645,180 793,180 793,189 645,189"/>
+<text x="646" y="189" textLength="146" font-family="Helvetica" font-size="12" fill="black">
+found_entry(ID=4, value=2)
+</text>
+<line x1="120" y1="207" x2="120" y2="235" stroke="black"/>
+<line x1="360" y1="207" x2="360" y2="235" stroke="black"/>
+<line x1="600" y1="207" x2="600" y2="235" stroke="black"/>
+<line x1="840" y1="207" x2="840" y2="235" stroke="black"/>
+<line x1="1080" y1="207" x2="1080" y2="235" stroke="black"/>
+<line x1="360" y1="218" x2="600" y2="218" stroke="black"/>
+<polygon fill="black" points="600,218 590,224 590,212"/>
+<polygon fill="white" points="397,208 562,208 562,217 397,217"/>
+<text x="398" y="217" textLength="163" font-family="Helvetica" font-size="12" fill="black">
+setter_callback(ID=4, value=2)
+</text>
+<line x1="120" y1="235" x2="120" y2="263" stroke="black"/>
+<line x1="360" y1="235" x2="360" y2="263" stroke="black"/>
+<line x1="600" y1="235" x2="600" y2="263" stroke="black"/>
+<line x1="840" y1="235" x2="840" y2="263" stroke="black"/>
+<line x1="1080" y1="235" x2="1080" y2="263" stroke="black"/>
+<line x1="600" y1="246" x2="360" y2="246" stroke="black"/>
+<line x1="360" y1="246" x2="370" y2="252" stroke="black"/>
+<polygon fill="white" points="434,236 525,236 525,245 434,245"/>
+<text x="435" y="245" textLength="89" font-family="Helvetica" font-size="12" fill="black">
+NRF_SUCCESS
+</text>
+<line x1="120" y1="263" x2="120" y2="280" stroke="black"/>
+<line x1="360" y1="263" x2="360" y2="280" stroke="black"/>
+<line x1="600" y1="263" x2="600" y2="280" stroke="black"/>
+<line x1="840" y1="263" x2="840" y2="280" stroke="black"/>
+<line x1="1080" y1="263" x2="1080" y2="280" stroke="black"/>
+<line x1="120" y1="280" x2="120" y2="308" stroke="black"/>
+<line x1="360" y1="280" x2="360" y2="308" stroke="black"/>
+<line x1="600" y1="280" x2="600" y2="308" stroke="black"/>
+<line x1="840" y1="280" x2="840" y2="308" stroke="black"/>
+<line x1="1080" y1="280" x2="1080" y2="308" stroke="black"/>
+<line x1="1080" y1="291" x2="360" y2="291" stroke="black"/>
+<line x1="360" y1="291" x2="370" y2="297" stroke="black"/>
+<polygon fill="white" points="625,281 813,281 813,290 625,290"/>
+<text x="626" y="290" textLength="186" font-family="Helvetica" font-size="12" fill="black">
+found_entry(ID=3, value=INVALID)
+</text>
+<line x1="120" y1="308" x2="120" y2="336" stroke="black"/>
+<line x1="360" y1="308" x2="360" y2="336" stroke="black"/>
+<line x1="600" y1="308" x2="600" y2="336" stroke="black"/>
+<line x1="840" y1="308" x2="840" y2="336" stroke="black"/>
+<line x1="1080" y1="308" x2="1080" y2="336" stroke="black"/>
+<line x1="360" y1="319" x2="600" y2="319" stroke="black"/>
+<polygon fill="black" points="600,319 590,325 590,313"/>
+<polygon fill="white" points="377,309 582,309 582,318 377,318"/>
+<text x="378" y="318" textLength="203" font-family="Helvetica" font-size="12" fill="black">
+setter_callback(ID=3, value=INVALID)
+</text>
+<line x1="120" y1="336" x2="120" y2="364" stroke="black"/>
+<line x1="360" y1="336" x2="360" y2="364" stroke="black"/>
+<line x1="600" y1="336" x2="600" y2="364" stroke="black"/>
+<line x1="840" y1="336" x2="840" y2="364" stroke="black"/>
+<line x1="1080" y1="336" x2="1080" y2="364" stroke="black"/>
+<line x1="600" y1="347" x2="360" y2="347" stroke="black"/>
+<line x1="360" y1="347" x2="370" y2="353" stroke="black"/>
+<polygon fill="white" points="395,337 564,337 564,346 395,346"/>
+<text x="396" y="346" textLength="167" font-family="Helvetica" font-size="12" fill="black">
+NRF_ERROR_INVALID_DATA
+</text>
+<line x1="360" y1="347" x2="120" y2="347" stroke="black" stroke-dasharray="2,2"/>
+<polygon fill="black" points="120,347 130,353 130,341"/>
+<polygon fill="white" points="97,337 382,337 382,346 97,346"/>
+<text x="98" y="346" textLength="283" font-family="Helvetica" font-size="12" fill="black">
+NRF_MESH_EVT_CONFIG_LOAD_FAILURE (ID=3)
+</text>
+<line x1="120" y1="364" x2="120" y2="381" stroke="black"/>
+<line x1="360" y1="364" x2="360" y2="381" stroke="black"/>
+<line x1="600" y1="364" x2="600" y2="381" stroke="black"/>
+<line x1="840" y1="364" x2="840" y2="381" stroke="black"/>
+<line x1="1080" y1="364" x2="1080" y2="381" stroke="black"/>
+<line x1="120" y1="381" x2="120" y2="409" stroke="black"/>
+<line x1="360" y1="381" x2="360" y2="409" stroke="black"/>
+<line x1="600" y1="381" x2="600" y2="409" stroke="black"/>
+<line x1="840" y1="381" x2="840" y2="409" stroke="black"/>
+<line x1="1080" y1="381" x2="1080" y2="409" stroke="black"/>
+<line x1="1080" y1="392" x2="360" y2="392" stroke="black"/>
+<line x1="360" y1="392" x2="370" y2="398" stroke="black"/>
+<polygon fill="white" points="645,382 793,382 793,391 645,391"/>
+<text x="646" y="391" textLength="146" font-family="Helvetica" font-size="12" fill="black">
+found_entry(ID=2, value=7)
+</text>
+<line x1="120" y1="409" x2="120" y2="437" stroke="black"/>
+<line x1="360" y1="409" x2="360" y2="437" stroke="black"/>
+<line x1="600" y1="409" x2="600" y2="437" stroke="black"/>
+<line x1="840" y1="409" x2="840" y2="437" stroke="black"/>
+<line x1="1080" y1="409" x2="1080" y2="437" stroke="black"/>
+<line x1="360" y1="420" x2="600" y2="420" stroke="black"/>
+<polygon fill="black" points="600,420 590,426 590,414"/>
+<polygon fill="white" points="397,410 562,410 562,419 397,419"/>
+<text x="398" y="419" textLength="163" font-family="Helvetica" font-size="12" fill="black">
+setter_callback(ID=2, value=7)
+</text>
+<line x1="120" y1="437" x2="120" y2="465" stroke="black"/>
+<line x1="360" y1="437" x2="360" y2="465" stroke="black"/>
+<line x1="600" y1="437" x2="600" y2="465" stroke="black"/>
+<line x1="840" y1="437" x2="840" y2="465" stroke="black"/>
+<line x1="1080" y1="437" x2="1080" y2="465" stroke="black"/>
+<line x1="600" y1="448" x2="360" y2="448" stroke="black"/>
+<line x1="360" y1="448" x2="370" y2="454" stroke="black"/>
+<polygon fill="white" points="434,438 525,438 525,447 434,447"/>
+<text x="435" y="447" textLength="89" font-family="Helvetica" font-size="12" fill="black">
+NRF_SUCCESS
+</text>
+<line x1="120" y1="465" x2="120" y2="482" stroke="black"/>
+<line x1="360" y1="465" x2="360" y2="482" stroke="black"/>
+<line x1="600" y1="465" x2="600" y2="482" stroke="black"/>
+<line x1="840" y1="465" x2="840" y2="482" stroke="black"/>
+<line x1="1080" y1="465" x2="1080" y2="482" stroke="black"/>
+<line x1="120" y1="482" x2="120" y2="510" stroke="black"/>
+<line x1="360" y1="482" x2="360" y2="510" stroke="black"/>
+<line x1="600" y1="482" x2="600" y2="510" stroke="black"/>
+<line x1="840" y1="482" x2="840" y2="510" stroke="black"/>
+<line x1="1080" y1="482" x2="1080" y2="510" stroke="black"/>
+<line x1="360" y1="493" x2="120" y2="493" stroke="black"/>
+<line x1="120" y1="493" x2="130" y2="499" stroke="black"/>
+<polygon fill="white" points="194,483 285,483 285,492 194,492"/>
+<text x="195" y="492" textLength="89" font-family="Helvetica" font-size="12" fill="black">
+NRF_SUCCESS
+</text>
+<line x1="120" y1="504" x2="120" y2="510" stroke="black"/>
+<line x1="360" y1="504" x2="360" y2="510" stroke="black"/>
+<line x1="600" y1="504" x2="600" y2="510" stroke="black"/>
+<line x1="840" y1="504" x2="840" y2="510" stroke="black"/>
+<line x1="1080" y1="504" x2="1080" y2="510" stroke="black"/>
+</svg>

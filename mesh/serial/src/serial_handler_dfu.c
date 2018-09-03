@@ -48,70 +48,92 @@ static nrf_mesh_evt_handler_t m_evt_handler;
 static void serial_handler_mesh_evt_handle(const nrf_mesh_evt_t* p_evt)
 {
     serial_packet_t * p_serial_evt;
+    uint32_t status;
     switch (p_evt->type)
     {
         case NRF_MESH_EVT_DFU_FIRMWARE_OUTDATED:
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_dfu_firmware_outdated_t), &p_serial_evt));
-            p_serial_evt->opcode = SERIAL_OPCODE_EVT_DFU_FIRMWARE_OUTDATED;
-            p_serial_evt->payload.evt.dfu.firmware_outdated.dfu_type = p_evt->params.dfu.fw_outdated.transfer.dfu_type;
-            p_serial_evt->payload.evt.dfu.firmware_outdated.available_fwid     = p_evt->params.dfu.fw_outdated.transfer.id;
-            p_serial_evt->payload.evt.dfu.firmware_outdated.current_fwid  = p_evt->params.dfu.fw_outdated.current;
-            serial_tx(p_serial_evt);
+            status = serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_dfu_firmware_outdated_t), &p_serial_evt);
+            if (status == NRF_SUCCESS)
+            {
+                p_serial_evt->opcode = SERIAL_OPCODE_EVT_DFU_FIRMWARE_OUTDATED;
+                p_serial_evt->payload.evt.dfu.firmware_outdated.dfu_type = p_evt->params.dfu.fw_outdated.transfer.dfu_type;
+                p_serial_evt->payload.evt.dfu.firmware_outdated.available_fwid     = p_evt->params.dfu.fw_outdated.transfer.id;
+                p_serial_evt->payload.evt.dfu.firmware_outdated.current_fwid  = p_evt->params.dfu.fw_outdated.current;
+                serial_tx(p_serial_evt);
+            }
             break;
 
         case NRF_MESH_EVT_DFU_FIRMWARE_OUTDATED_NO_AUTH:
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_dfu_firmware_outdated_t), &p_serial_evt));
-            p_serial_evt->opcode = SERIAL_OPCODE_EVT_DFU_FIRMWARE_OUTDATED_NO_AUTH;
-            p_serial_evt->payload.evt.dfu.firmware_outdated.dfu_type = p_evt->params.dfu.fw_outdated.transfer.dfu_type;
-            p_serial_evt->payload.evt.dfu.firmware_outdated.available_fwid     = p_evt->params.dfu.fw_outdated.transfer.id;
-            p_serial_evt->payload.evt.dfu.firmware_outdated.current_fwid  = p_evt->params.dfu.fw_outdated.current;
-            serial_tx(p_serial_evt);
+            status = serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_dfu_firmware_outdated_t), &p_serial_evt);
+            if (status == NRF_SUCCESS)
+            {
+                p_serial_evt->opcode = SERIAL_OPCODE_EVT_DFU_FIRMWARE_OUTDATED_NO_AUTH;
+                p_serial_evt->payload.evt.dfu.firmware_outdated.dfu_type = p_evt->params.dfu.fw_outdated.transfer.dfu_type;
+                p_serial_evt->payload.evt.dfu.firmware_outdated.available_fwid     = p_evt->params.dfu.fw_outdated.transfer.id;
+                p_serial_evt->payload.evt.dfu.firmware_outdated.current_fwid  = p_evt->params.dfu.fw_outdated.current;
+                serial_tx(p_serial_evt);
+            }
             break;
 
         case NRF_MESH_EVT_DFU_REQ_RELAY:
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_dfu_req_relay_t), &p_serial_evt));
-            p_serial_evt->opcode = SERIAL_OPCODE_EVT_DFU_REQ_RELAY;
-            p_serial_evt->payload.evt.dfu.req_relay.dfu_type  = p_evt->params.dfu.req_relay.transfer.dfu_type;
-            p_serial_evt->payload.evt.dfu.req_relay.fwid      = p_evt->params.dfu.req_relay.transfer.id;
-            p_serial_evt->payload.evt.dfu.req_relay.authority = p_evt->params.dfu.req_relay.authority;
-            serial_tx(p_serial_evt);
+            status = serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_dfu_req_relay_t), &p_serial_evt);
+            if (status == NRF_SUCCESS)
+            {
+                p_serial_evt->opcode = SERIAL_OPCODE_EVT_DFU_REQ_RELAY;
+                p_serial_evt->payload.evt.dfu.req_relay.dfu_type  = p_evt->params.dfu.req_relay.transfer.dfu_type;
+                p_serial_evt->payload.evt.dfu.req_relay.fwid      = p_evt->params.dfu.req_relay.transfer.id;
+                p_serial_evt->payload.evt.dfu.req_relay.authority = p_evt->params.dfu.req_relay.authority;
+                serial_tx(p_serial_evt);
+            }
             break;
 
         case NRF_MESH_EVT_DFU_REQ_SOURCE:
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_dfu_req_source_t), &p_serial_evt));
-            p_serial_evt->opcode = SERIAL_OPCODE_EVT_DFU_REQ_SOURCE;
-            p_serial_evt->payload.evt.dfu.req_source.dfu_type = p_evt->params.dfu.req_source.dfu_type;
-            serial_tx(p_serial_evt);
+            status = serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_dfu_req_source_t), &p_serial_evt);
+            if (status == NRF_SUCCESS)
+            {
+                p_serial_evt->opcode = SERIAL_OPCODE_EVT_DFU_REQ_SOURCE;
+                p_serial_evt->payload.evt.dfu.req_source.dfu_type = p_evt->params.dfu.req_source.dfu_type;
+                serial_tx(p_serial_evt);
+            }
             break;
 
         case NRF_MESH_EVT_DFU_START:
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_dfu_start_t), &p_serial_evt));
-            p_serial_evt->opcode = SERIAL_OPCODE_EVT_DFU_START;
-            p_serial_evt->payload.evt.dfu.start.role     = p_evt->params.dfu.start.role;
-            p_serial_evt->payload.evt.dfu.start.dfu_type = p_evt->params.dfu.start.transfer.dfu_type;
-            p_serial_evt->payload.evt.dfu.start.fwid     = p_evt->params.dfu.start.transfer.id;
-            serial_tx(p_serial_evt);
+            status = serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_dfu_start_t), &p_serial_evt);
+            if (status == NRF_SUCCESS)
+            {
+                p_serial_evt->opcode = SERIAL_OPCODE_EVT_DFU_START;
+                p_serial_evt->payload.evt.dfu.start.role     = p_evt->params.dfu.start.role;
+                p_serial_evt->payload.evt.dfu.start.dfu_type = p_evt->params.dfu.start.transfer.dfu_type;
+                p_serial_evt->payload.evt.dfu.start.fwid     = p_evt->params.dfu.start.transfer.id;
+                serial_tx(p_serial_evt);
+            }
             break;
 
         case NRF_MESH_EVT_DFU_END:
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_dfu_end_t), &p_serial_evt));
-            p_serial_evt->opcode = SERIAL_OPCODE_EVT_DFU_END;
-            p_serial_evt->payload.evt.dfu.end.role       = p_evt->params.dfu.end.role;
-            p_serial_evt->payload.evt.dfu.end.dfu_type   = p_evt->params.dfu.end.transfer.dfu_type;
-            p_serial_evt->payload.evt.dfu.end.fwid       = p_evt->params.dfu.end.transfer.id;
-            p_serial_evt->payload.evt.dfu.end.end_reason = p_evt->params.dfu.end.end_reason;
-            serial_tx(p_serial_evt);
+            status = serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_dfu_end_t), &p_serial_evt);
+            if (status == NRF_SUCCESS)
+            {
+                p_serial_evt->opcode = SERIAL_OPCODE_EVT_DFU_END;
+                p_serial_evt->payload.evt.dfu.end.role       = p_evt->params.dfu.end.role;
+                p_serial_evt->payload.evt.dfu.end.dfu_type   = p_evt->params.dfu.end.transfer.dfu_type;
+                p_serial_evt->payload.evt.dfu.end.fwid       = p_evt->params.dfu.end.transfer.id;
+                p_serial_evt->payload.evt.dfu.end.end_reason = p_evt->params.dfu.end.end_reason;
+                serial_tx(p_serial_evt);
+            }
             break;
 
         case NRF_MESH_EVT_DFU_BANK_AVAILABLE:
-            NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_dfu_bank_t), &p_serial_evt));
-            p_serial_evt->opcode = SERIAL_OPCODE_EVT_DFU_BANK_AVAILABLE;
-            p_serial_evt->payload.evt.dfu.bank.dfu_type   = p_evt->params.dfu.bank.transfer.dfu_type;
-            p_serial_evt->payload.evt.dfu.bank.fwid       = p_evt->params.dfu.bank.transfer.id;
-            p_serial_evt->payload.evt.dfu.bank.start_addr = (uint32_t) p_evt->params.dfu.bank.p_start_addr;
-            p_serial_evt->payload.evt.dfu.bank.length     = p_evt->params.dfu.bank.length;
-            p_serial_evt->payload.evt.dfu.bank.is_signed  = p_evt->params.dfu.bank.is_signed;
-            serial_tx(p_serial_evt);
+            status = serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_dfu_bank_t), &p_serial_evt);
+            if (status == NRF_SUCCESS)
+            {
+                p_serial_evt->opcode = SERIAL_OPCODE_EVT_DFU_BANK_AVAILABLE;
+                p_serial_evt->payload.evt.dfu.bank.dfu_type   = p_evt->params.dfu.bank.transfer.dfu_type;
+                p_serial_evt->payload.evt.dfu.bank.fwid       = p_evt->params.dfu.bank.transfer.id;
+                p_serial_evt->payload.evt.dfu.bank.start_addr = (uint32_t) p_evt->params.dfu.bank.p_start_addr;
+                p_serial_evt->payload.evt.dfu.bank.length     = p_evt->params.dfu.bank.length;
+                p_serial_evt->payload.evt.dfu.bank.is_signed  = p_evt->params.dfu.bank.is_signed;
+                serial_tx(p_serial_evt);
+            }
             break;
 
         default:

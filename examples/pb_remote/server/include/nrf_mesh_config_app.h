@@ -47,6 +47,17 @@
  */
 
 /**
+ * @defgroup MODEL_CONFIG Model layer configuration parameters
+ */
+
+/** Acknowledged message transaction timeout
+ * @note Mesh Profile Specification v1.0 recommends this to be minimum 60s.
+ */
+#define MODEL_ACKNOWLEDGED_TRANSACTION_TIMEOUT  (SEC_TO_US(10))
+
+/** @} end of MODEL_CONFIG */
+
+/**
  * @defgroup DEVICE_CONFIG Device configuration
  *
  * @{

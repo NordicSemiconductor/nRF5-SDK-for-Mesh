@@ -51,7 +51,7 @@
 #include <string.h>
 
 /** Spec-defined access address for non-connected state */
-#define BEARER_ACCESS_ADDR_NONCONN 0x8E89BED6
+#define BEARER_ACCESS_ADDR_NONCONN 0x8E89BED6U
 
 /** Default access address. */
 #ifndef BEARER_ACCESS_ADDR_DEFAULT

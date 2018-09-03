@@ -331,7 +331,7 @@ void instaburst_tx_instance_init(instaburst_tx_t * p_instaburst,
 void instaburst_tx_enable(instaburst_tx_t * p_instaburst)
 {
     NRF_MESH_ASSERT(p_instaburst != NULL);
-    NRF_MESH_ASSERT(p_instaburst->timer_event.state == TIMER_EVENT_STATE_UNUSED);
+    NRF_MESH_ASSERT(!timer_sch_is_scheduled(&p_instaburst->timer_event));
     /* Randomize the entire interval, as if we're at some arbitrary place in the middle of two
      * transmissions. Minimizes the chance of collisions in case of synchronized enabling. */
     p_instaburst->timer_event.timestamp =
@@ -343,6 +343,11 @@ void instaburst_tx_enable(instaburst_tx_t * p_instaburst)
 void instaburst_tx_disable(instaburst_tx_t * p_instaburst)
 {
     timer_sch_abort(&p_instaburst->timer_event);
+}
+
+bool instaburst_tx_is_enabled(const instaburst_tx_t * p_instaburst)
+{
+    return timer_sch_is_scheduled(&p_instaburst->timer_event);
 }
 
 uint8_t * instaburst_tx_buffer_alloc(instaburst_tx_t * p_instaburst, uint32_t data_len, nrf_mesh_tx_token_t tx_token)
@@ -517,7 +522,7 @@ void instaburst_tx_interval_set(instaburst_tx_t * p_instaburst, uint32_t interva
     NRF_MESH_ASSERT(interval_ms <= BEARER_ADV_INT_MAX_MS);
 
     p_instaburst->config.interval_ms = interval_ms;
-    if (p_instaburst->timer_event.state != TIMER_EVENT_STATE_UNUSED)
+    if (timer_sch_is_scheduled(&p_instaburst->timer_event))
     {
         timer_sch_reschedule(&p_instaburst->timer_event,
                              timer_now() + randomized_tx_interval_get(p_instaburst));
@@ -532,3 +537,4 @@ void instaburst_tx_tx_power_set(instaburst_tx_t * p_instaburst, radio_tx_power_t
     p_instaburst->broadcast.params.radio_config.tx_power = tx_power;
     p_instaburst->adv_ext_tx.config.radio_config.tx_power = tx_power;
 }
+

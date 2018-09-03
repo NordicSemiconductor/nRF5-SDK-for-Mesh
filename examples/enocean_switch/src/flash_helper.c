@@ -42,6 +42,7 @@
 #include "device_state_manager.h"
 #include "flash_manager.h"
 #include "nrf_mesh_config_app.h"
+#include "mesh_stack.h"
 #include "log.h"
 
 
@@ -105,13 +106,17 @@ void app_flash_init(void)
         .callback = flash_manager_mem_available,
         .p_args = app_flash_init
     };
+
+    const uint32_t * start_address;
+    uint32_t allocated_area_size;
+    ERROR_CHECK(mesh_stack_persistence_flash_usage(&start_address, &allocated_area_size));
+
     flash_manager_config_t manager_config;
     manager_config.write_complete_cb = flash_write_complete;
     manager_config.invalidate_complete_cb = flash_invalidate_complete;
     manager_config.remove_complete_cb = flash_remove_complete;
     manager_config.min_available_space = WORD_SIZE;
-    manager_config.p_area = (const flash_manager_page_t *) (((const uint8_t *) dsm_flash_area_get())
-                            - (ACCESS_FLASH_PAGE_COUNT * PAGE_SIZE * 2));
+    manager_config.p_area = (const flash_manager_page_t *)((uint32_t)start_address - PAGE_SIZE * APP_FLASH_PAGE_COUNT);
     manager_config.page_count = APP_FLASH_PAGE_COUNT;
 
     uint32_t status = flash_manager_add(&m_flash_manager, &manager_config);

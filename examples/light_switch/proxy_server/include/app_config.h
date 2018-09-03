@@ -38,6 +38,33 @@
 #ifndef APP_CONFIG_H__
 #define APP_CONFIG_H__
 
+#include <stdbool.h>
+
+/**
+ * @defgroup APP_SPECIFIC_DEFINES Application-specific definitions
+ *
+ * Application-specific macro definitions are provided here.
+ *
+ * @{
+ */
+
+/** Controls if the model instance should force all mesh messages to be segmented messages. */
+#define APP_CONFIG_FORCE_SEGMENTATION  (false)
+
+/** Controls the MIC size used by the model instance for sending the mesh messages. */
+#define APP_CONFIG_MIC_SIZE            (NRF_MESH_TRANSMIC_SIZE_SMALL)
+
+/** @} end of APP_SPECIFIC_DEFINES */
+
+
+/**
+ * @defgroup APP_SDK_CONFIG SDK configuration
+ *
+ * Application-specific SDK configuration settings are provided here.
+ *
+ * @{
+ */
+
 /* Override default sdk_config.h values. */
 #define NRF_SDH_ENABLED 1
 #define NRF_SDH_BLE_ENABLED 1
@@ -50,5 +77,7 @@
 #define NRF_BLE_CONN_PARAMS_ENABLED 1
 #define NRF_BLE_CONN_PARAMS_MAX_SLAVE_LATENCY_DEVIATION 499
 #define NRF_BLE_CONN_PARAMS_MAX_SUPERVISION_TIMEOUT_DEVIATION 65535
+
+/** @} end of APP_SDK_CONFIG */
 
 #endif /* APP_CONFIG_H__ */

@@ -3,25 +3,25 @@
 The light switch example is meant to showcase the APIs for the provisioner and provisionee roles
 and how a simple Bluetooth Mesh network may be set up and configured. The network consists of one static
 provisioner (that configures a network in a fixed predefined way), one light switch
-(that implements a Simple OnOff client), and one or more light bulbs (that implement Simple OnOff servers).
+(that implements a Generic OnOff client), and one or more light bulbs (that implement Generic OnOff servers).
 
 
 #### Provisionee: light switch server
 
 The server uses the following set of APIs:
 
-1. [Initialization module](@ref MESH_STACK)
-2. [Core mesh stack](@ref MESH_API_GROUP_CORE)
-3. [Simple OnOff server model](@ref md_models_simple_on_off_README)
+1. [Application support modules](@ref MESH_API_GROUP_APP_SUPPORT)
+2. [Initialization module](@ref MESH_STACK)
+3. [Core mesh stack](@ref MESH_API_GROUP_CORE)
+4. [Generic OnOff server model](@ref GENERIC_ONOFF_MODEL)
 
 The initialization module implements the behavior of a provisionee device. It handles the
 interface with the provisioning stack, setting up the configuration server, and restoring the device
 state from flash.
 
-As seen in `examples/light_switch/server/src/main.c`, the amount of code needed for the
-application is minimal. It implements the following functionality:
+The main application (`examples/light_switch/server/src/main.c`) implements the following functionality:
 
-1.  Setting basic configuration parameters, supported Out-Of-Bound (OOB) methods, clock configuration, callbacks,
+1.  Setting basic configuration parameters, supported Out-Of-Band (OOB) methods, clock configuration, callbacks,
     etc.
 2.  Adding models and their event callbacks.
 
@@ -35,16 +35,17 @@ configured by the provisioner. The following figure illustrates the setup with t
 
 The client uses the following set of APIs:
 
-1.  [Initialization module](@ref MESH_STACK)
-2.  [Core mesh stack](@ref MESH_API_GROUP_CORE)
-3.  [Simple OnOff client](@ref md_models_simple_on_off_README)
+1.  [Application support modules](@ref MESH_API_GROUP_APP_SUPPORT)
+2.  [Initialization module](@ref MESH_STACK)
+3.  [Core mesh stack](@ref MESH_API_GROUP_CORE)
+4.  [Generic OnOff client](@ref GENERIC_ONOFF_MODEL)
 
 The client application is implemented in a similar way as that of the server
 (see `examples/light_switch/client/src/main.c`). Additionally, it has the following functionality:
 
-1.  Handle button presses and call [Simple OnOff client APIs](@ref SIMPLE_ON_OFF_CLIENT) to send
+1.  Handle button presses and call [Generic OnOff client APIs](@ref SIMPLE_ON_OFF_CLIENT) to send
 mesh messages to the desired nodes or a group of nodes.
-2.  Handle acknowledged message time-out and print a message in RTT log.
+2.  Handle model callbacks and print corresponding messages in RTT log.
 
 ![Figure 2: Light switch server setup](img/light_switch_client_interface.svg "Figure 3: Light switch server setup")
 
@@ -52,10 +53,11 @@ mesh messages to the desired nodes or a group of nodes.
 
 The provisioner uses the following set of APIs:
 
-1.  [Initialization module](@ref MESH_STACK)
-2.  [Core mesh stack](@ref MESH_API_GROUP_CORE)
-3.  [Provisioning](@ref MESH_API_GROUP_PROV)
-4.  [Configuration client](@ref CONFIG_CLIENT)
+1.  [Application support modules](@ref MESH_API_GROUP_APP_SUPPORT)
+2.  [Initialization module](@ref MESH_STACK)
+3.  [Core mesh stack](@ref MESH_API_GROUP_CORE)
+4.  [Provisioning](@ref MESH_API_GROUP_PROV)
+5.  [Configuration client](@ref CONFIG_CLIENT)
 
 In general, the provisioner role is an order of magnitude more complex than the provisionee role, both in
 resource requirements and application complexity. Therefore, there is no simple "press play and it

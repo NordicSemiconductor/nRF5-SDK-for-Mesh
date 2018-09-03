@@ -57,7 +57,6 @@
 #include "packet.h"
 #include "nrf_mesh_dfu.h"
 #include "dfu_types_internal.h"
-#include "ticker.h"
 #include "timer_scheduler.h"
 #include "timeslot.h"
 #include "toolchain.h"
@@ -68,7 +67,6 @@
 #include "utils.h"
 #include "log.h"
 #include "mesh_flash.h"
-#include "flash_manager.h"
 #include "scanner.h"
 #include "ad_listener.h"
 #include "packet_mgr.h"
@@ -77,6 +75,8 @@
 #include "instaburst_rx.h"
 #include "heartbeat.h"
 #include "prov_bearer_adv.h"
+#include "mesh_config.h"
+#include "mesh_opt.h"
 
 #if GATT_PROXY
 #include "proxy.h"
@@ -258,16 +258,6 @@ static bool instaburst_packet_process_cb(void)
 }
 #endif
 
-#if PERSISTENT_STORAGE
-static void flash_stable_cb(void)
-{
-    nrf_mesh_evt_t evt;
-    memset(&evt, 0, sizeof(nrf_mesh_evt_t));
-    evt.type = NRF_MESH_EVT_FLASH_STABLE;
-    event_handle(&evt);
-}
-#endif
-
 uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
 {
     if (m_is_initialized)
@@ -340,11 +330,10 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
     advertiser_init();
 
     mesh_flash_init();
-
 #if PERSISTENT_STORAGE
-    flash_manager_init();
-    flash_manager_action_queue_empty_cb_set(flash_stable_cb);
+    mesh_config_init();
 #endif
+    mesh_opt_init();
 
 #if EXPERIMENTAL_INSTABURST_ENABLED
     core_tx_instaburst_init();
@@ -363,8 +352,6 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
         return status;
     }
 #endif
-
-    ticker_init();
 
     (void) ad_listener_subscribe(&m_nrf_mesh_listener);
 
@@ -392,9 +379,19 @@ uint32_t nrf_mesh_enable(void)
         }
 
         scanner_enable();
+        network_enable();
 
 #if EXPERIMENTAL_INSTABURST_ENABLED
         instaburst_rx_enable();
+#endif
+
+#if !defined(HOST)
+        status = nrf_mesh_dfu_enable();
+        if ((status != NRF_SUCCESS) && (status != NRF_ERROR_NOT_SUPPORTED))
+        {
+            __LOG(LOG_SRC_APP, LOG_LEVEL_WARN, "nrf_mesh_dfu_enable() failed [0x%X]\n",status);
+            return status;
+        }
 #endif
 
         m_is_enabled = true;

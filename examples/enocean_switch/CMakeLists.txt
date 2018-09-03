@@ -13,7 +13,7 @@ add_executable(${target}
     ${WEAK_SOURCE_FILES}
     ${MESH_CORE_SOURCE_FILES}
     ${MESH_BEARER_SOURCE_FILES}
-    ${SIMPLE_ON_OFF_CLIENT_SOURCE_FILES}
+    ${GENERIC_ONOFF_CLIENT_SOURCE_FILES}
     ${CONFIG_SERVER_SOURCE_FILES}
     ${HEALTH_SERVER_SOURCE_FILES}
     ${ACCESS_SOURCE_FILES}
@@ -28,7 +28,7 @@ target_include_directories(${target} PUBLIC
     "${CMAKE_SOURCE_DIR}/examples"
     "${CMAKE_SOURCE_DIR}/examples/common/include"
     "${SDK_ROOT}/components/drivers_nrf/delay"
-    ${SIMPLE_ON_OFF_CLIENT_INCLUDE_DIRS}
+    ${GENERIC_ONOFF_CLIENT_INCLUDE_DIRS}
     ${CONFIG_SERVER_INCLUDE_DIRS}
     ${HEALTH_SERVER_INCLUDE_DIRS}
     ${MESH_INCLUDE_DIRS}
@@ -45,7 +45,8 @@ target_compile_options(${target} PUBLIC
 
 target_compile_definitions(${target} PUBLIC
     ${USER_DEFINITIONS}
-    -DUSE_APP_CONFIG=1
+    -DUSE_APP_CONFIG
+    -DCONFIG_APP_IN_CORE
     ${${PLATFORM}_DEFINES}
     ${${SOFTDEVICE}_DEFINES}
     ${${BOARD}_DEFINES})

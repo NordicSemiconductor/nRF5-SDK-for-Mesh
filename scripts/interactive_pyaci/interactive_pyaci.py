@@ -54,7 +54,7 @@ from mesh.provisioning import Provisioner, Provisionee  # NOQA: ignore unused im
 from mesh import types as mt                            # NOQA: ignore unused import
 from mesh.database import MeshDB                        # NOQA: ignore unused import
 from models.config import ConfigurationClient           # NOQA: ignore unused import
-from models.simple_on_off import SimpleOnOffClient      # NOQA: ignore unused import
+from models.generic_on_off import GenericOnOffClient    # NOQA: ignore unused import
 
 
 LOG_DIR = os.path.join(os.path.dirname(sys.argv[0]), "log")

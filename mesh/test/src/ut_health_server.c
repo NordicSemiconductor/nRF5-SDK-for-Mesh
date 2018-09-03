@@ -49,7 +49,7 @@
 #include "health_opcodes.h"
 #include "health_server.h"
 
-#include "nordic_common.h"
+#include "utils.h"
 
 #define TEST_MODEL_HANDLE   14
 #define TEST_ELEMENT_INDEX  42

@@ -563,11 +563,7 @@ static void add_flash_manager(void)
     manager_config.invalidate_complete_cb = flash_invalidate_complete;
     manager_config.remove_complete_cb = flash_remove_complete;
     manager_config.min_available_space = WORD_SIZE;
-#ifdef ACCESS_FLASH_AREA_LOCATION
-    manager_config.p_area = (const flash_manager_page_t *) ACCESS_FLASH_AREA_LOCATION;
-#else
-    manager_config.p_area = (const flash_manager_page_t *) (((const uint8_t *) dsm_flash_area_get()) - (ACCESS_FLASH_PAGE_COUNT * PAGE_SIZE));
-#endif
+    manager_config.p_area = access_flash_area_get();
     manager_config.page_count = ACCESS_FLASH_PAGE_COUNT;
     m_flash_not_ready = true;
     uint32_t status = flash_manager_add(&m_flash_manager, &manager_config);
@@ -710,6 +706,18 @@ static inline void restore_addresses_for_model(const access_common_t * p_model)
     }
 }
 
+#if ACCESS_MODEL_PUBLISH_PERIOD_RESTORE
+static inline void restore_publication_period(access_common_t * p_model)
+{
+    if (p_model->model_info.publication_period.step_num != 0)
+    {
+        access_publish_period_set(&p_model->publication_state,
+                                  (access_publish_resolution_t) p_model->model_info.publication_period.step_res,
+                                  p_model->model_info.publication_period.step_num);
+    }
+}
+#endif
+
 static inline bool restore_models(void)
 {
     if (restore_flash_data(FLASH_GROUP_MODEL, ACCESS_MODEL_COUNT, restore_acquired_model) <= 0)
@@ -722,6 +730,10 @@ static inline bool restore_models(void)
         if (m_model_pool[i].model_info.element_index != ACCESS_ELEMENT_INDEX_INVALID)
         {
                 restore_addresses_for_model(&m_model_pool[i]);
+
+#if ACCESS_MODEL_PUBLISH_PERIOD_RESTORE
+                restore_publication_period(&m_model_pool[i]);
+#endif
         }
     }
 
@@ -1070,6 +1082,23 @@ uint32_t access_model_reply(access_model_handle_t handle,
     else
     {
         return packet_tx(handle, p_reply, p_message);
+    }
+}
+
+uint32_t access_model_element_index_get(access_model_handle_t handle, uint16_t * p_element_index)
+{
+    if (p_element_index == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+    else if (!model_handle_valid_and_allocated(handle))
+    {
+        return NRF_ERROR_NOT_FOUND;
+    }
+    else
+    {
+        *p_element_index = m_model_pool[handle].model_info.element_index;
+        return NRF_SUCCESS;
     }
 }
 
@@ -1695,6 +1724,7 @@ uint32_t access_model_publication_stop(access_model_handle_t handle)
 
     access_publish_period_set(&m_model_pool[handle].publication_state, (access_publish_resolution_t)0, 0);
     (void) access_model_reliable_cancel(handle);
+    (void) dsm_address_publish_remove(m_model_pool[handle].model_info.publish_address_handle);
     m_model_pool[handle].model_info.publish_address_handle = DSM_HANDLE_INVALID;
     m_model_pool[handle].model_info.publish_appkey_handle = DSM_HANDLE_INVALID;
     m_model_pool[handle].model_info.publication_retransmit.count = 0;
@@ -1730,4 +1760,13 @@ uint32_t access_model_publication_by_appkey_stop(dsm_handle_t appkey_handle)
     }
 
     return NRF_SUCCESS;
+}
+
+const void * access_flash_area_get(void)
+{
+#ifdef ACCESS_FLASH_AREA_LOCATION
+    return (const flash_manager_page_t *) ACCESS_FLASH_AREA_LOCATION;
+#else
+    return (const flash_manager_page_t *) (((const uint8_t *) dsm_flash_area_get()) - (ACCESS_FLASH_PAGE_COUNT * PAGE_SIZE));
+#endif
 }

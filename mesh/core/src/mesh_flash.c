@@ -48,6 +48,7 @@
 #include "timer.h"
 #include "msqueue.h"
 #include "bearer_handler.h"
+#include "hal.h"
 
 /*****************************************************************************
 * Local defines
@@ -58,28 +59,6 @@
 
 /** Maximum overhead of processing the flash queue. */
 #define FLASH_PROCESS_TIME_OVERHEAD		    (500)
-
-#ifdef UNIT_TEST
-    /** Timer to erase a single flash page. */
-    #define FLASH_TIME_TO_ERASE_PAGE_US         (20000)
-    /** Timer to write a single flash word. */
-    #define FLASH_TIME_TO_WRITE_ONE_WORD_US     (50)
-
-#elif defined(NRF51)
-    /** Timer to erase a single flash page. */
-    #define FLASH_TIME_TO_ERASE_PAGE_US         (22050)
-    /** Timer to write a single flash word. */
-    #define FLASH_TIME_TO_WRITE_ONE_WORD_US     (48)
-
-#elif defined(NRF52_SERIES)
-    /** Timer to erase a single flash page. */
-    #define FLASH_TIME_TO_ERASE_PAGE_US         (89700)
-    /** Timer to write a single flash word. */
-    #define FLASH_TIME_TO_WRITE_ONE_WORD_US     (338)
-
-#else
-    #error "Unsupported platform"
-#endif
 
 /* A single page erase operation must fit inside a bearer action */
 NRF_MESH_STATIC_ASSERT(FLASH_TIME_TO_ERASE_PAGE_US + FLASH_PROCESS_TIME_OVERHEAD <= BEARER_ACTION_DURATION_MAX_US);
@@ -241,7 +220,7 @@ static timestamp_t flash_op_duration(flash_operation_t * p_op, uint32_t processe
         default:
             NRF_MESH_ASSERT(false);
     }
-    
+
     return (duration < BEARER_ACTION_DURATION_MAX_US) ? duration : BEARER_ACTION_DURATION_MAX_US;
 }
 
@@ -262,7 +241,7 @@ static timestamp_t flash_op_type_min_duration(flash_operation_t * p_op)
         default:
             NRF_MESH_ASSERT(false);
         }
-        
+
         return min_duration;
 }
 

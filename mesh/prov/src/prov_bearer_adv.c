@@ -327,29 +327,39 @@ static inline void reset_adv_int(nrf_mesh_prov_bearer_adv_t * p_pb_adv)
 
 static void init_bearer_structure(nrf_mesh_prov_bearer_adv_t * p_pb_adv, uint32_t link_timeout_us)
 {
+    p_pb_adv->link_timeout = link_timeout_us;
+    p_pb_adv->link_timeout_event.interval = 0;
+
     p_pb_adv->buffer.state = PROV_BEARER_ADV_BUF_STATE_UNUSED;
     p_pb_adv->transaction_out = 0;
     p_pb_adv->transaction_in = 0;
-    p_pb_adv->instance_state = PROV_BEARER_ADV_INSTANCE_INITIALIZED;
     p_pb_adv->state = PROV_BEARER_ADV_STATE_IDLE;
     p_pb_adv->last_token = NRF_MESH_INITIAL_TOKEN;
 
-    p_pb_adv->timeout_event.cb = tx_retry_cb;
-    p_pb_adv->timeout_event.p_context = p_pb_adv;
+    /* If the advertiser is already initialized once, we do not re-initialize it.
+     * Re-initializing the advertiser will re-initialize the packet buffer as well and this will
+     * cause an assert (advertiser.c:169) in the case where the buffer has been flushed, but there
+     * is one packet popped for transmitting.
+     */
+    if (p_pb_adv->instance_state != PROV_BEARER_ADV_INSTANCE_INITIALIZED)
+    {
+        p_pb_adv->instance_state = PROV_BEARER_ADV_INSTANCE_INITIALIZED;
 
-    p_pb_adv->link_timeout = link_timeout_us;
-    p_pb_adv->link_timeout_event.cb = link_timeout_cb;
-    p_pb_adv->link_timeout_event.p_context = p_pb_adv;
-    p_pb_adv->link_timeout_event.interval = 0;
+        p_pb_adv->timeout_event.cb = tx_retry_cb;
+        p_pb_adv->timeout_event.p_context = p_pb_adv;
 
-    advertiser_instance_init(&p_pb_adv->advertiser,
-                             tx_complete_cb,
-                             p_pb_adv->tx_buffer,
-                             NRF_MESH_PROV_BEARER_ADV_TX_BUFFER_SIZE);
+        p_pb_adv->link_timeout_event.cb = link_timeout_cb;
+        p_pb_adv->link_timeout_event.p_context = p_pb_adv;
+
+        advertiser_instance_init(&p_pb_adv->advertiser,
+                                 tx_complete_cb,
+                                 p_pb_adv->tx_buffer,
+                                 NRF_MESH_PROV_BEARER_ADV_TX_BUFFER_SIZE);
+    }
+
 #if defined NRF_MESH_TEST_SHIM
     nrf_mesh_test_shim(EDIT_PROV_BEARER_ADV_ADDR, &p_pb_adv->advertiser.config.adv_addr);
 #endif
-
 }
 
 /**** Link list managment ****/

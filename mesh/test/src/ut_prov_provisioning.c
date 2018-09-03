@@ -162,6 +162,8 @@ static prov_bearer_t m_bearer_provisionee;
 static prov_bearer_t m_bearer_provisioner;
 static bool provisioner_oob_key_req_happened;
 static bool provisionee_oob_key_req_happened;
+static bool provisionee_invite_rx_happened;
+static bool provisionee_start_rx_happened;
 
 static uint32_t tx_dummy(prov_bearer_t * p_bearer, const uint8_t * p_data, uint16_t length)
 {
@@ -247,6 +249,24 @@ static void provisionee_event_handler(const nrf_mesh_prov_evt_t * p_evt)
 
     switch (p_evt->type)
     {
+        case NRF_MESH_PROV_EVT_INVITE_RECEIVED:
+            {
+                const nrf_mesh_prov_evt_invite_received_t * p_invite = &p_evt->params.invite_received;
+
+                TEST_ASSERT_TRUE(&m_provisionee_ctx == p_invite->p_context);
+
+                provisionee_invite_rx_happened = true;
+            }
+            break;
+        case NRF_MESH_PROV_EVT_START_RECEIVED:
+            {
+                const nrf_mesh_prov_evt_start_received_t * p_start = &p_evt->params.start_received;
+
+                TEST_ASSERT_TRUE(&m_provisionee_ctx == p_start->p_context);
+
+                provisionee_start_rx_happened = true;
+            }
+            break;
         case NRF_MESH_PROV_EVT_OOB_PUBKEY_REQUEST:
             {
                 const nrf_mesh_prov_evt_oob_pubkey_request_t * p_data = &p_evt->params.oob_pubkey_request;
@@ -366,6 +386,8 @@ void test_oob_authentication(void)
     m_provisionee_ctx.capabilities.oob_input_actions = NRF_MESH_PROV_OOB_OUTPUT_ACTION_NUMERIC;
     m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *)&m_prov_pdu.pdu_invite, sizeof(prov_pdu_invite_t));
 
+    TEST_ASSERT_TRUE(provisionee_invite_rx_happened);
+
     memset(&m_bearer_provisioner, 0, sizeof(prov_bearer_t));
     m_bearer_provisioner.bearer_type = NRF_MESH_PROV_BEARER_MESH;
     m_bearer_provisioner.p_interface = &m_interface;
@@ -408,6 +430,8 @@ void test_oob_authentication(void)
     prov_packet_length_valid_IgnoreAndReturn(true);
     m_bearer_provisionee.p_callbacks->ack(&m_bearer_provisionee);
     m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *)&m_prov_pdu.pdu_start, sizeof(prov_pdu_prov_start_t));
+
+    TEST_ASSERT_TRUE(provisionee_start_rx_happened);
 
     /* 5. Test provisioner OOB public key event */
     m_bearer_provisioner.p_callbacks->ack(&m_bearer_provisioner);
@@ -455,6 +479,9 @@ void test_disallow_public_key_oob_when_not_supported(void)
     m_provisionee_ctx.capabilities.oob_input_actions = NRF_MESH_PROV_OOB_OUTPUT_ACTION_NUMERIC;
 
     m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *)&m_prov_pdu.pdu_invite, sizeof(prov_pdu_invite_t));
+
+    TEST_ASSERT_TRUE(provisionee_invite_rx_happened);
+
     m_bearer_provisionee.p_callbacks->ack(&m_bearer_provisionee);
     /* Now for the real test... The provisionee has indicated PUBKEY inband, but we'll select OOB. */
     memset(&m_prov_pdu, 0, sizeof(m_prov_pdu));

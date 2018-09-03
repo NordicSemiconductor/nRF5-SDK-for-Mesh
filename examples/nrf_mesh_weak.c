@@ -95,6 +95,7 @@ uint32_t __attribute__((weak, alias ("_weak_handler"))) prov_utils_opt_get(nrf_m
 
 /** DFU  */
 uint32_t __attribute__((weak, alias ("_weak_handler"))) nrf_mesh_dfu_init(void);
+uint32_t __attribute__((weak, alias ("_weak_handler"))) nrf_mesh_dfu_enable(void);
 uint32_t __attribute__((weak, alias ("_weak_handler"))) nrf_mesh_dfu_abort(void);
 uint32_t __attribute__((weak, alias ("_weak_handler"))) nrf_mesh_dfu_bank_flash(nrf_mesh_dfu_type_t bank_type);
 uint32_t __attribute__((weak, alias ("_weak_handler"))) nrf_mesh_dfu_bank_info_get(nrf_mesh_dfu_type_t type, nrf_mesh_dfu_bank_info_t* p_bank_info);

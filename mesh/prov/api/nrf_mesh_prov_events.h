@@ -56,6 +56,10 @@ typedef enum
     NRF_MESH_PROV_EVT_LINK_ESTABLISHED,
     /** Provisioning link lost. */
     NRF_MESH_PROV_EVT_LINK_CLOSED,
+    /** Provisioning invite received. */
+    NRF_MESH_PROV_EVT_INVITE_RECEIVED,
+    /** Provisioning start received. */
+    NRF_MESH_PROV_EVT_START_RECEIVED,
     /** Provisioning output request. */
     NRF_MESH_PROV_EVT_OUTPUT_REQUEST,
     /** Provisioning input request. */
@@ -110,6 +114,26 @@ typedef struct
     /** Reason for closing the link. */
     nrf_mesh_prov_link_close_reason_t close_reason;
 } nrf_mesh_prov_evt_link_closed_t;
+
+/**
+ * Provisioning invite event
+ */
+typedef struct
+{
+    /** Provisioning context pointer. */
+    nrf_mesh_prov_ctx_t * p_context;
+    /** How long the primary element of the device identifies itself using the Attention Timer in seconds. */
+    uint8_t attention_duration_s;
+} nrf_mesh_prov_evt_invite_received_t;
+
+/**
+ * Provisioning start event
+ */
+typedef struct
+{
+    /** Provisioning context pointer. */
+    nrf_mesh_prov_ctx_t * p_context;
+} nrf_mesh_prov_evt_start_received_t;
 
 /**
  * Provisioning input requested event.
@@ -233,6 +257,10 @@ typedef struct
         nrf_mesh_prov_evt_link_established_t    link_established;
         /** Provisioning link lost event. */
         nrf_mesh_prov_evt_link_closed_t         link_closed;
+        /** Provisioning invite event */
+        nrf_mesh_prov_evt_invite_received_t     invite_received;
+        /** Provisioning start event */
+        nrf_mesh_prov_evt_start_received_t      start_received;
         /** Provisioning input requested. */
         nrf_mesh_prov_evt_input_request_t       input_request;
         /** Provisioning output requested. */

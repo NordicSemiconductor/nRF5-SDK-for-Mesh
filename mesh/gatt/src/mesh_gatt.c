@@ -422,6 +422,11 @@ static void write_evt_handle(const ble_evt_t * p_ble_evt)
 
 static void tx_complete_handle(uint16_t conn_handle)
 {
+    /**
+     * NOTE: We're assuming that a successful call to sd_ble_gatts_hvx() means guarantee of
+     * delivery. Hence, the TX_COMPLETE event is merely used for flow control.
+     */
+
     uint16_t conn_index = conn_handle_to_index(conn_handle);
     if (conn_index == MESH_GATT_CONN_INDEX_INVALID)
     {
@@ -430,7 +435,13 @@ static void tx_complete_handle(uint16_t conn_handle)
 
     mesh_gatt_connection_t * p_conn = &m_gatt.connections[conn_index];
     packet_buffer_packet_t * p_packet = p_conn->tx.transaction.p_curr_packet;
-    NRF_MESH_ASSERT(p_packet != NULL);
+
+    if (p_packet == NULL)
+    {
+        /* Some other HVX user transmitted a packet. We don't have anything to send for this
+         * connection index, so we'll return here. */
+        return;
+    }
 
     mesh_gatt_proxy_buffer_t * p_proxy_buffer = (mesh_gatt_proxy_buffer_t *) p_packet->packet;
 

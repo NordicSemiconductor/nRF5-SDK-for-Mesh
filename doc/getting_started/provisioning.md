@@ -71,24 +71,25 @@ input the indicated value into the input device (for example, by pushing a butto
 required number of times or entering the value via a keyboard).
 
 Which form of authentication to use is chosen by the provisioner in response
-to the `NRF_MESH_PROV_CAPS_RECEIVED` event.
+to the `::NRF_MESH_PROV_EVT_CAPS_RECEIVED` event.
 
 If static authentication is chosen,
 the application will at some point during the provisioning procedure receive
-an `NRF_MESH_PROV_STATIC_REQUEST` event. The application should respond
+an `::NRF_MESH_PROV_EVT_STATIC_REQUEST` event. The application should respond
 to this event by calling `nrf_mesh_prov_auth_data_provide()` with the static key data.
 
 If input/output authentication is chosen, the input device will receive an
-`NRF_MESH_PROV_INPUT_REQUEST` event. The application should then request
+`::NRF_MESH_PROV_EVT_INPUT_REQUEST` event. The application should then request
 input from the user and provide this input to the provisioning stack by calling
 `nrf_mesh_prov_auth_data_provide()`. The output device will receive an
-`NRF_MESH_PROV_OUTPUT_REQUEST` event and should then display the provided data
+`::NRF_MESH_PROV_EVT_OUTPUT_REQUEST` event and should then display the provided data
 to the user.
 
 ## Provisionees
 
-Provisionee behavior is normally handled by the `nrf_mesh_node_config()` API function. However,
-it is also possible to manually handle provisioning using the provisioning API if necessary.
+Provisionee behavior with static authentication is handled by the `mesh_provisionee_prov_start()`
+API function. However, it is also possible to manually handle provisioning using the provisioning
+API if necessary.
 
 The following example assumes that static authentication is used. The steps a provisionee application
 must take are as follows:
@@ -98,15 +99,21 @@ must take are as follows:
    function. This function starts the unprovisioned node broadcast beacon, using the provided
    type of bearer as underlying transport. The advertisement can optionally include a URI
    that points to the location for additional data and a field that specifies the location where
-   OOB authentication data can be found. Incoming link requests will be automatically accepted
-   by the device.
-3. When the link has been established, an `NRF_MESH_EVT_PROV_LINK_ESTABLISHED` event is passed
+   OOB authentication data can be found.
+3. When the provisioning invite has been received, an `::NRF_MESH_PROV_EVT_INVITE_RECEIVED`
+   event is passed to the application. When the `nrf_mesh_prov_evt_invite_received_t.attention_duration_s` 
+   is set to a non-zero value, the device may identify itself using any means it can. When the attention 
+   timer expires, the device stops identifying itself. Incoming link requests will be automatically
+   accepted by the device.
+4. When the provisioning process has been started, an `::NRF_MESH_PROV_EVT_START_RECEIVED`
+   event is passed to the application. The device shall stop identifing itself.
+5. When the link has been established, an `::NRF_MESH_PROV_EVT_LINK_ESTABLISHED` event is passed
    to the application.
-4. If static authentication is enabled, an `NRF_MESH_EVT_PROV_STATIC_REQUEST` event is
+6. If static authentication is enabled, an `::NRF_MESH_PROV_EVT_STATIC_REQUEST` event is
    passed to the application. The application should respond with the static authentication
    data by passing it to the stack via the `nrf_mesh_prov_auth_data_provide()` function.
    Note that static authentication data is always 16 bytes long.
-5. The provisioning can be considered successful when an `NRF_MESH_EVT_PROV_COMPLETE` event
+7. The provisioning can be considered successful when an `::NRF_MESH_PROV_EVT_COMPLETE` event
    is received. This event provides the provisioning data and the device key for the device.
    The received provisioning data must be entered into the device state manager to be used
    by the access layer modules. At this point, the device can receive further configuration
@@ -151,20 +158,20 @@ as follows:
 
 1. Initialize the provisioning context as described in the "Initialization" section.
 2. Wait for unprovisioned node broadcast beacons. When a beacon is received, the application
-   receives an `NRF_MESH_EVT_UNPROVISIONED_RECEIVED` event, which contains the UUID for the
+   receives an `::NRF_MESH_PROV_EVT_UNPROVISIONED_RECEIVED` event, which contains the UUID for the
    device from which the beacon was received.
 3. Establish a link to a device for provisioning using the `nrf_mesh_prov_provision()` function.
 4. When the link  to the unprovisioned device has been established, an
-   `NRF_MESH_EVT_PROV_LINK_ESTABLISHED` event is passed to the application.
+   `::NRF_MESH_PROV_EVT_LINK_ESTABLISHED` event is passed to the application.
 5. When the out-of-band authentication capabilities of the provisionee have been received, an
-   `NRF_MESH_EVT_PROV_CAPS_RECEIVED` event is received. The application should check the
+   `::NRF_MESH_PROV_EVT_CAPS_RECEIVED` event is received. The application should check the
    capabilities of the provisionee against its own capabilities and decide what kind of
    authentication to do. The authentication method to use is selected using the
    `nrf_mesh_prov_oob_use()` function.
-6. If static authentication is enabled, an `NRF_MESH_EVT_PROV_STATIC_REQUEST` event is
+6. If static authentication is enabled, an `::NRF_MESH_PROV_EVT_STATIC_REQUEST` event is
    passed to the application. The application should respond with the static authentication
    data by passing it to the stack through the `nrf_mesh_prov_auth_data_provide()` function.
-7. When the provisioning of the device is complete, an `NRF_MESH_EVT_PROV_COMPLETE` event
+7. When the provisioning of the device is complete, an `::NRF_MESH_PROV_EVT_COMPLETE` event
    is passed to the application. At this point, the provisioner can continue configuring
    the device using the configuration model. See the Light switch client example application
    for more information on how to do the configuration.
@@ -196,13 +203,8 @@ ECDH is a processor-intensive algorithm that can easily become a bottleneck.
 ECDH offloading is a feature that lets the host processor calculate the ECDH shared
 secret, freeing up CPU resources in the target processor.
 
-ECDH offloading can be enabled by running the following code while initializing the
-device:
-
-```C
-    nrf_mesh_opt_t value = {.len = 4, .opt.val = 1 };
-    nrf_mesh_opt_set(NRF_MESH_OPT_PROV_ECDH_OFFLOADING, &value);
-```
+ECDH offloading can be enabled by calling @ref mesh_opt_prov_ecdh_offloading_set while
+initializing the device.
 
 ### Remote provisioning
 
@@ -219,9 +221,9 @@ found in [the PB-Remote manual](@ref PB_REMOTE).
 ## Errors
 
 If an error occurs in the provisioning procedure, the link is closed. An
-`NRF_MESH_EVT_PROV_LINK_CLOSED` event is passed to the application. If an
-`NRF_MESH_EVT_PROV_LINK_CLOSED` event is received before an
-`NRF_MESH_EVT_PROV_COMPLETE` event, the provisioning procedure must be considered
-to have failed. The `NRF_MESH_EVT_PROV_LINK_CLOSED` event also contains a `close_reason`
+`::NRF_MESH_PROV_EVT_LINK_CLOSED` event is passed to the application. If an
+`::NRF_MESH_PROV_EVT_LINK_CLOSED` event is received before an
+`::NRF_MESH_PROV_EVT_COMPLETE` event, the provisioning procedure must be considered
+to have failed. The `::NRF_MESH_PROV_EVT_LINK_CLOSED` event also contains a `nrf_mesh_prov_evt_link_closed_t.close_reason`
 parameter that can be used to determine what caused the provisioning to fail.
 

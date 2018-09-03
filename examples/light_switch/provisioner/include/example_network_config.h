@@ -35,8 +35,8 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef EXAMPLE_COMMON_H__
-#define EXAMPLE_COMMON_H__
+#ifndef EXAMPLE_NETWORK_CONFIG_H__
+#define EXAMPLE_NETWORK_CONFIG_H__
 
 #include "nrf_mesh_defines.h"
 #include "device_state_manager.h"
@@ -64,11 +64,9 @@
 /* Element indices for ONOFF clients instantiated on the Switch node */
 #define ELEMENT_IDX_ONOFF_CLIENT1       (1)
 #define ELEMENT_IDX_ONOFF_CLIENT2       (2)
-#define ELEMENT_IDX_ONOFF_CLIENT3       (3)
-#define ELEMENT_IDX_ONOFF_CLIENT4       (4)
 
 #define PROVISIONER_RETRY_COUNT  (2)
 
 /** @} end of LIGHT_SWT_V2 */
 
-#endif /* EXAMPLE_COMMON_H__ */
+#endif /* EXAMPLE_NETWORK_CONFIG_H__ */

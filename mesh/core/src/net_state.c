@@ -117,6 +117,8 @@ static network_state_t m_net_state;
 static timer_event_t m_iv_update_timer;
 /** IV update test mode state */
 static bool m_test_mode;
+static bool m_enabled;
+static bool m_iv_state_set;
 
 static nrf_mesh_evt_handler_t m_mesh_evt_handler;
 /*****************************************************************************
@@ -455,6 +457,7 @@ void net_state_reset(void)
         flash_manager_entry_invalidate(&m_flash_manager, FLASH_HANDLE_IV_INDEX) == NRF_SUCCESS)
     {
         memset(&m_net_state, 0, sizeof(m_net_state));
+        m_iv_state_set = false;
     }
     else
     {
@@ -491,6 +494,7 @@ void net_state_recover_from_flash(void)
 void net_state_reset(void)
 {
     memset(&m_net_state, 0, sizeof(m_net_state));
+    m_iv_state_set = false;
     RESET_SEQNUM_MAX();
 }
 const void * net_state_flash_area_get(void)
@@ -512,15 +516,22 @@ void net_state_init(void)
     m_iv_update_timer.p_next = NULL;
     m_test_mode = false;
 
-    m_mesh_evt_handler.evt_cb = mesh_evt_handler;
-    nrf_mesh_evt_handler_add(&m_mesh_evt_handler);
-
-    timer_sch_schedule(&m_iv_update_timer);
 #if PERSISTENT_STORAGE
     init_flash_storage();
 #else
     RESET_SEQNUM_MAX();
 #endif
+}
+
+void net_state_enable(void)
+{
+    if (!m_enabled)
+    {
+        m_mesh_evt_handler.evt_cb = mesh_evt_handler;
+        nrf_mesh_evt_handler_add(&m_mesh_evt_handler);
+        timer_sch_schedule(&m_iv_update_timer);
+        m_enabled = true;
+    }
 }
 
 uint32_t net_state_seqnum_alloc(uint32_t * p_seqnum)
@@ -674,14 +685,13 @@ net_state_iv_update_t net_state_iv_update_get(void)
 
 uint32_t net_state_iv_index_set(uint32_t iv_index, bool iv_update)
 {
-    static bool iv_state_set = false;
-    if (iv_state_set)
+    if (m_iv_state_set)
     {
         return NRF_ERROR_INVALID_STATE;
     }
     else
     {
-        iv_state_set = true;
+        m_iv_state_set = true;
         m_net_state.iv_index = iv_index;
         m_net_state.iv_update.state =
             iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL;

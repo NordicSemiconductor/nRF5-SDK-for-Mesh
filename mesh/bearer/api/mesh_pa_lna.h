@@ -41,6 +41,7 @@
 #include "ble.h"
 /**
  * @defgroup MESH_PA_LNA Mesh PA/LNA interface
+ * @ingroup MESH_API_GROUP_BEARER
  * Controls external PA/LNA support for the mesh radio operation.
  *
  * The mesh PA/LNA module enables external power amplifiers and low noise amplifiers by setting

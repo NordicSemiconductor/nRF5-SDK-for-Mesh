@@ -146,8 +146,9 @@ void test_serial_invalid(void)
     uint8_t blah = 0;
     TEST_NRF_MESH_ASSERT_EXPECT(serial_cmd_rsp_send(0,0,&blah,0));
 
-    serial_bearer_blocking_buffer_get_ExpectAndReturn(sizeof(serial_evt_device_started_t) + NRF_MESH_SERIAL_PACKET_OVERHEAD, NULL, NRF_ERROR_INVALID_LENGTH);
-    serial_bearer_blocking_buffer_get_IgnoreArg_pp_packet();
+    serial_bearer_packet_buffer_get_ExpectAndReturn(sizeof(serial_evt_device_started_t) + NRF_MESH_SERIAL_PACKET_OVERHEAD, NULL, NRF_ERROR_INVALID_LENGTH);
+    serial_bearer_packet_buffer_get_IgnoreArg_pp_packet();
+    serial_handler_device_alloc_fail_report_Expect();
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_LENGTH, serial_start());
     TEST_ASSERT_EQUAL(NRF_MESH_SERIAL_STATE_INITIALIZED, serial_state_get());
 
@@ -157,9 +158,9 @@ void test_serial_invalid(void)
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, serial_packet_buffer_get(1, &p_packet));
     TEST_NRF_MESH_ASSERT_EXPECT(serial_tx(p_packet));
 
-    serial_bearer_blocking_buffer_get_ExpectAndReturn(sizeof(serial_evt_device_started_t) + NRF_MESH_SERIAL_PACKET_OVERHEAD, &p_packet, NRF_SUCCESS);
-    serial_bearer_blocking_buffer_get_IgnoreArg_pp_packet();
-    serial_bearer_blocking_buffer_get_ReturnThruPtr_pp_packet(&p_packet);
+    serial_bearer_packet_buffer_get_ExpectAndReturn(sizeof(serial_evt_device_started_t) + NRF_MESH_SERIAL_PACKET_OVERHEAD, &p_packet, NRF_SUCCESS);
+    serial_bearer_packet_buffer_get_IgnoreArg_pp_packet();
+    serial_bearer_packet_buffer_get_ReturnThruPtr_pp_packet(&p_packet);
     serial_bearer_tx_Expect(p_packet);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, serial_start());
 }
@@ -171,18 +172,18 @@ void test_serial_tx(void)
     serial_packet_t * p_packet = &serial_packet;
     TEST_ASSERT_EQUAL(NRF_MESH_SERIAL_STATE_RUNNING, serial_state_get());
     serial_packet_t *p_serial_packet;
-    serial_bearer_blocking_buffer_get_ExpectAndReturn(0xFFF, &p_packet, NRF_SUCCESS);
-    serial_bearer_blocking_buffer_get_IgnoreArg_pp_packet();
-    serial_bearer_blocking_buffer_get_ReturnThruPtr_pp_packet(&p_packet);
+    serial_bearer_packet_buffer_get_ExpectAndReturn(0xFFF, &p_packet, NRF_SUCCESS);
+    serial_bearer_packet_buffer_get_IgnoreArg_pp_packet();
+    serial_bearer_packet_buffer_get_ReturnThruPtr_pp_packet(&p_packet);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, serial_packet_buffer_get(0xFFF, &p_serial_packet));
     TEST_ASSERT_EQUAL_PTR(p_packet, p_serial_packet);
     serial_bearer_tx_Expect(p_packet);
     serial_tx(p_serial_packet);
 
     uint8_t blah = 0xFA;
-    serial_bearer_blocking_buffer_get_ExpectAndReturn(1+SERIAL_EVT_CMD_RSP_LEN_OVERHEAD, &p_packet, NRF_SUCCESS);
-    serial_bearer_blocking_buffer_get_IgnoreArg_pp_packet();
-    serial_bearer_blocking_buffer_get_ReturnThruPtr_pp_packet(&p_packet);
+    serial_bearer_packet_buffer_get_ExpectAndReturn(1+SERIAL_EVT_CMD_RSP_LEN_OVERHEAD, &p_packet, NRF_SUCCESS);
+    serial_bearer_packet_buffer_get_IgnoreArg_pp_packet();
+    serial_bearer_packet_buffer_get_ReturnThruPtr_pp_packet(&p_packet);
     serial_bearer_tx_Expect(p_packet);
     serial_cmd_rsp_send(0xF,0x10,&blah,1);
     TEST_ASSERT_EQUAL(SERIAL_OPCODE_EVT_CMD_RSP, p_packet->opcode);
@@ -369,9 +370,9 @@ void test_serial_rx(void)
     for (uint32_t i = SERIAL_OPCODE_CMD_RANGE_MESH_END+1; i < SERIAL_OPCODE_CMD_RANGE_DFU_START; ++i)
     {
         serial_packet.opcode = i;
-        serial_bearer_blocking_buffer_get_ExpectAndReturn(SERIAL_EVT_CMD_RSP_LEN_OVERHEAD, &p_packet, NRF_SUCCESS);
-        serial_bearer_blocking_buffer_get_IgnoreArg_pp_packet();
-        serial_bearer_blocking_buffer_get_ReturnThruPtr_pp_packet(&p_packet);
+        serial_bearer_packet_buffer_get_ExpectAndReturn(SERIAL_EVT_CMD_RSP_LEN_OVERHEAD, &p_packet, NRF_SUCCESS);
+        serial_bearer_packet_buffer_get_IgnoreArg_pp_packet();
+        serial_bearer_packet_buffer_get_ReturnThruPtr_pp_packet(&p_packet);
         serial_bearer_tx_Expect(p_packet);
         serial_bearer_rx_get_ExpectAndReturn(&serial_packet, true);
         serial_bearer_rx_get_IgnoreArg_p_packet();
@@ -382,9 +383,9 @@ void test_serial_rx(void)
     for (uint32_t i = SERIAL_OPCODE_CMD_RANGE_DFU_END+1; i <= UINT8_MAX; ++i)
     {
         serial_packet.opcode = i;
-        serial_bearer_blocking_buffer_get_ExpectAndReturn(SERIAL_EVT_CMD_RSP_LEN_OVERHEAD, &p_packet, NRF_SUCCESS);
-        serial_bearer_blocking_buffer_get_IgnoreArg_pp_packet();
-        serial_bearer_blocking_buffer_get_ReturnThruPtr_pp_packet(&p_packet);
+        serial_bearer_packet_buffer_get_ExpectAndReturn(SERIAL_EVT_CMD_RSP_LEN_OVERHEAD, &p_packet, NRF_SUCCESS);
+        serial_bearer_packet_buffer_get_IgnoreArg_pp_packet();
+        serial_bearer_packet_buffer_get_ReturnThruPtr_pp_packet(&p_packet);
         serial_bearer_tx_Expect(p_packet);
         serial_bearer_rx_get_ExpectAndReturn(&serial_packet, true);
         serial_bearer_rx_get_IgnoreArg_p_packet();
@@ -392,15 +393,16 @@ void test_serial_rx(void)
     }
     serial_packet.opcode = 0xFF;
     /* sending invalid data but not being able to get buffer will not result in a tx*/
-    serial_bearer_blocking_buffer_get_ExpectAndReturn(SERIAL_EVT_CMD_RSP_LEN_OVERHEAD, &p_packet, NRF_ERROR_INVALID_STATE);
-    serial_bearer_blocking_buffer_get_IgnoreArg_pp_packet();
-    serial_bearer_blocking_buffer_get_ReturnThruPtr_pp_packet(&p_packet);
+    serial_bearer_packet_buffer_get_ExpectAndReturn(SERIAL_EVT_CMD_RSP_LEN_OVERHEAD, &p_packet, NRF_ERROR_NO_MEM);
+    serial_bearer_packet_buffer_get_IgnoreArg_pp_packet();
+    serial_bearer_packet_buffer_get_ReturnThruPtr_pp_packet(&p_packet);
     serial_bearer_rx_get_ExpectAndReturn(&serial_packet, true);
     serial_bearer_rx_get_IgnoreArg_p_packet();
     serial_bearer_rx_get_ReturnThruPtr_p_packet(&serial_packet);
 
     serial_bearer_rx_get_ExpectAndReturn(NULL, false);
     serial_bearer_rx_get_IgnoreArg_p_packet();
+    serial_handler_device_alloc_fail_report_Expect();
     m_serial_process_cmd(NULL);
 
 

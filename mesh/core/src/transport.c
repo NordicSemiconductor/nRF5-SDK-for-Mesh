@@ -71,12 +71,18 @@
 #define TRANSPORT_SAR_PACKET_MAX_SIZE(control) (TRANSPORT_SAR_SEGMENT_COUNT_MAX * TRANSPORT_SAR_PDU_LEN(control))
 #define TRANSPORT_UNSEG_PDU_LEN(control) ((control) ? PACKET_MESH_TRS_UNSEG_CONTROL_PDU_MAX_SIZE : PACKET_MESH_TRS_UNSEG_ACCESS_PDU_MAX_SIZE)
 
+#define TRANSPORT_SAR_RX_CACHE_LEN_MASK    (TRANSPORT_SAR_RX_CACHE_LEN - 1)
+
 NRF_MESH_STATIC_ASSERT(IS_POWER_OF_2(TRANSPORT_SAR_RX_CACHE_LEN));
 /* The SEQZERO mask must be (power of two - 1) to work as a mask (ie if a bit in the mask is set to
  * 1, all lower bits must also be 1). */
 NRF_MESH_STATIC_ASSERT(IS_POWER_OF_2(TRANSPORT_SAR_SEQZERO_MASK + 1));
+/* Checks whether the maximum access payload is according to 3.7.3 Access payload */
+NRF_MESH_STATIC_ASSERT(NRF_MESH_SEG_PAYLOAD_SIZE_MAX == TRANSPORT_SAR_SEGMENT_COUNT_MAX * PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE -
+                       PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE);
+/* Checks whether the maximum unsegmented access payload is according to 3.7.3 Access payload */
+NRF_MESH_STATIC_ASSERT(NRF_MESH_UNSEG_PAYLOAD_SIZE_MAX == PACKET_MESH_TRS_UNSEG_ACCESS_PDU_MAX_SIZE - PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE);
 
-#define TRANSPORT_SAR_RX_CACHE_LEN_MASK    (TRANSPORT_SAR_RX_CACHE_LEN - 1)
 /*********************
  * Local types *
  *********************/
@@ -89,12 +95,12 @@ NRF_MESH_STATIC_ASSERT(IS_POWER_OF_2(TRANSPORT_SAR_SEQZERO_MASK + 1));
 typedef struct
 {
     timestamp_t rx_timeout;                /**< Timeout for receiving a SAR message. */
-    timestamp_t rx_ack_base_timeout;       /**< RX acknowledgement timer timeout value. */
-    timestamp_t rx_ack_per_hop_addition;   /**< RX acknowledgement time delay added per hop in the transmission. */
+    timestamp_t rx_ack_base_timeout;       /**< RX acknowledgment timer timeout value. */
+    timestamp_t rx_ack_per_hop_addition;   /**< RX acknowledgment time delay added per hop in the transmission. */
     timestamp_t tx_retry_base_timeout;     /**< Base timeout for TX retries.*/
     timestamp_t tx_retry_per_hop_addition; /**< TX retry time added per hop in the transmission. */
-    uint8_t tx_retries;                    /**< Number of retries before cancelling SAR session. */
-    uint8_t segack_ttl; /**< Default TTL value for segment acknowledgement messages. */
+    uint8_t tx_retries;                    /**< Number of retries before canceling SAR session. */
+    uint8_t segack_ttl; /**< Default TTL value for segment acknowledgment messages. */
     uint8_t szmic;      /**< Use 32- or 64-bit MIC for application payload. */
 } transport_config_t;
 
@@ -172,10 +178,10 @@ typedef struct
                 bool seqzero_is_set;         /**< Flag indicating whether the seqzero has been set. */
                 nrf_mesh_tx_token_t token;      /**< TX Token set by the user. */
             } tx;
-            /** Fields that are only valid for RX-sesssions */
+            /** Fields that are only valid for RX-sessions */
             struct
             {
-                /** Acknowledgement timer */
+                /** Acknowledgment timer */
                 timer_event_t ack_timer;
                 sar_ack_state_t ack_state;
             } rx;
@@ -393,16 +399,18 @@ static bool sar_ctx_alloc(trs_sar_ctx_t * p_sar_ctx,
     p_sar_ctx->session.session_type = session_type;
     return true;
 }
+
 static void sar_ctx_free(trs_sar_ctx_t * p_sar_ctx)
 {
     m_sar_release(p_sar_ctx->payload);
-    p_sar_ctx->payload = NULL;
     timer_sch_abort(&p_sar_ctx->timer_event);
     if (p_sar_ctx->session.session_type == TRS_SAR_SESSION_RX)
     {
         timer_sch_abort(&p_sar_ctx->session.params.rx.ack_timer);
     }
+    memset(p_sar_ctx, 0, sizeof(trs_sar_ctx_t));
     p_sar_ctx->session.session_type = TRS_SAR_SESSION_INACTIVE;
+
     net_state_iv_index_lock(false);
 }
 
@@ -468,7 +476,6 @@ static void tx_retry_timer_reset(trs_sar_ctx_t * p_sar_ctx)
     }
     timer_sch_reschedule(&p_sar_ctx->timer_event, timer_now() + p_sar_ctx->timer_event.interval);
 }
-
 
 static void trs_packet_header_build(const transport_packet_metadata_t * p_metadata, packet_mesh_trs_packet_t * p_packet)
 {
@@ -1358,12 +1365,12 @@ static void retry_timeout(timestamp_t timestamp, void * p_context)
         /* We're out of retries. Should give up. */
         if (p_sar_ctx->metadata.net.dst.type == NRF_MESH_ADDRESS_TYPE_UNICAST)
         {
-            sar_ctx_cancel(p_sar_ctx, NRF_MESH_SAR_CANCEL_REASON_TIMEOUT);
+            sar_ctx_cancel(p_sar_ctx, NRF_MESH_SAR_CANCEL_REASON_RETRY_OVER);
         }
         else
         {
             /* For non-unicast addresses, timing out is considered a successful way to end, as there
-             * are no acknowledgements. */
+             * are no acknowledgments. */
             sar_ctx_tx_complete(p_sar_ctx);
         }
     }

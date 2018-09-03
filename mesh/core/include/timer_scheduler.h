@@ -63,10 +63,6 @@ typedef enum
 {
     TIMER_EVENT_STATE_UNUSED,      /**< Not present in the scheduler */
     TIMER_EVENT_STATE_ADDED,       /**< Added for processing */
-    TIMER_EVENT_STATE_QUEUED,      /**< Queued for firing */
-    TIMER_EVENT_STATE_RESCHEDULED, /**< Rescheduled, but not resorted */
-    TIMER_EVENT_STATE_ABORTED,     /**< Aborted, but still in the list */
-    TIMER_EVENT_STATE_IGNORED,     /**< Aborted, but added for processing */
     TIMER_EVENT_STATE_IN_CALLBACK  /**< Currently being called */
 } timer_event_state_t;
 
@@ -91,7 +87,7 @@ void timer_sch_init(void);
 /**
  * Schedules a timer event.
  *
- * @warning This function must be called from @ref BEARER_EVENT "bearer event" IRQ level or lower.
+ * @warning This function must be called from the configured mesh IRQ level.
  *
  * @warning The structure parameters must not be changed after the structure has been added to the
  *          scheduler, as this may cause race conditions. If a change in timing is needed, please use the
@@ -106,7 +102,7 @@ void timer_sch_schedule(timer_event_t* p_timer_evt);
 /**
  * Aborts a previously scheduled event.
  *
- * @warning This function must be called from @ref BEARER_EVENT "bearer event" IRQ level or lower.
+ * @warning This function must be called from the configured mesh IRQ level.
  *
  * @param[in] p_timer_evt A pointer to a previously scheduled event.
  */
@@ -115,12 +111,21 @@ void timer_sch_abort(timer_event_t* p_timer_evt);
 /**
  * Reschedules a previously scheduled event.
  *
- * @warning This function must be called from @ref BEARER_EVENT "bearer event" IRQ level or lower.
+ * @warning This function must be called from the configured mesh IRQ level.
  *
  * @param[in] p_timer_evt   A pointer to a previously scheduled event.
  * @param[in] new_timestamp When the event should time out, instead of the old time.
  */
 void timer_sch_reschedule(timer_event_t* p_timer_evt, timestamp_t new_timestamp);
+
+/**
+ * Checks if a timer event is scheduled.
+ *
+ * @param[in] p_timer_evt Timer scheduler event context pointer.
+ *
+ * @returns @c true if the event is active, @c false otherwise.
+ */
+bool timer_sch_is_scheduled(const timer_event_t * p_timer_evt);
 
 /** @} */
 

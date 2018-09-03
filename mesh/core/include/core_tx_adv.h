@@ -52,57 +52,11 @@
  */
 void core_tx_adv_init(void);
 
-/**
- * Sets the number of transmissions to do for a single packet, when transmitted in the given role.
- *
- * @param[in] role Role to configure the TX count for.
- * @param[in] tx_count The number of transmissions to do per packet. Must be larger than 0. Setting
- * this to @ref ADVERTISER_REPEAT_INFINITE causes the packet to be transmitted until a new packet
- * has been added to the queue.
- */
-void core_tx_adv_count_set(core_tx_role_t role, uint8_t tx_count);
 
 /**
- * Gets the number of transmissions that will be done per packet when transmitted in the given role.
- *
- * @param[in] role Role to get the configuration for.
- *
- * @returns The configured number of transmissions per packet for the given role.
+ * Checks if the advertiser for the given role is enabled.
  */
-uint8_t core_tx_adv_count_get(core_tx_role_t role);
-
-/**
- * Sets the advertisement interval for the specific role.
- *
- * @param[in] role Role to set the advertisement interval for.
- * @param[in] interval_ms Advertisement interval in milliseconds.
- */
-void core_tx_adv_interval_set(core_tx_role_t role, uint32_t interval_ms);
-
-/**
- * Gets the advertisement interval in milliseconds for the given role.
- *
- * @param[in] role Role to get the advertisement interval for.
- *
- * @returns The advertisement interval for the given role in milliseconds.
- */
-uint32_t core_tx_adv_interval_get(core_tx_role_t role);
-
-/**
- * Sets the advertisement address for the specific role.
- *
- * @param[in] role Role to set the advertisement address for.
- * @param[in] p_addr New GAP advertisement address.
- */
-void core_tx_adv_address_set(core_tx_role_t role, const ble_gap_addr_t * p_addr);
-
-/**
- * Sets the TX power for the specific role.
- *
- * @param[in] role Role to set the TX power for.
- * @param[in] tx_power New TX power.
- */
-void core_tx_adv_tx_power_set(core_tx_role_t role, radio_tx_power_t tx_power);
+bool core_tx_adv_is_enabled(core_tx_role_t role);
 
 /** @} */
 

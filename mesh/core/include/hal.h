@@ -39,6 +39,7 @@
 #define HAL_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "nrf.h"
 
 /**
@@ -62,6 +63,10 @@
 #define DEVICE_CODE_RAM_END_GET() (CODE_RAM_START + (NRF_FICR->SIZERAMBLOCKS * NRF_FICR->NUMRAMBLOCK))
 /** First address outside the device flash */
 #define DEVICE_FLASH_END_GET()    (NRF_FICR->CODESIZE * NRF_FICR->CODEPAGESIZE)
+/** Timer to erase a single flash page. */
+#define FLASH_TIME_TO_ERASE_PAGE_US         (22300)
+/** Timer to write a single flash word. */
+#define FLASH_TIME_TO_WRITE_ONE_WORD_US     (48)
 #elif NRF52_SERIES
 /** Gets the nRF52 bootloader address. */
 #define BOOTLOADERADDR() (NRF_UICR->NRFFW[0])
@@ -77,6 +82,18 @@
 #define DEVICE_CODE_RAM_END_GET() (CODE_RAM_START + (1024 * NRF_FICR->INFO.RAM))
 /** First address outside the device flash */
 #define DEVICE_FLASH_END_GET()    (NRF_FICR->CODESIZE * NRF_FICR->CODEPAGESIZE)
+
+#if defined(NRF52832)
+/** Timer to erase a single flash page. */
+#define FLASH_TIME_TO_ERASE_PAGE_US         (89700)
+/** Timer to write a single flash word. */
+#define FLASH_TIME_TO_WRITE_ONE_WORD_US     (338)
+#elif defined(NRF52840)
+/** Timer to erase a single flash page. */
+#define FLASH_TIME_TO_ERASE_PAGE_US         (85000)
+/** Timer to write a single flash word. */
+#define FLASH_TIME_TO_WRITE_ONE_WORD_US     (41)
+#endif
 #else
 #if defined(HOST)
 #define PAGE_SIZE      (0x400)
@@ -85,6 +102,14 @@
 #define DEVICE_DATA_RAM_END_GET()   (0xFFFFFFFF)
 #define DEVICE_CODE_RAM_END_GET()   (0xFFFFFFFF)
 #define DEVICE_FLASH_END_GET()      (NRF_MESH_ASSERT(false))
+#define FLASH_TIME_TO_ERASE_PAGE_US         (20000)
+#define FLASH_TIME_TO_WRITE_ONE_WORD_US     (50)
+
+typedef enum
+{
+    Reset_IRQn
+} IRQn_Type;
+
 #else
 #error "Unsupported hardware platform"
 #endif  /* HOST */
@@ -97,6 +122,9 @@
 #define HAL_US_TO_RTC_TICKS(time_us)    (((uint64_t) (time_us) << 15ULL) / 1000000ULL)
 #define HAL_MS_TO_RTC_TICKS(time_ms)    (((uint64_t) (time_ms) << 15ULL) / 1000ULL)
 #define HAL_SECS_TO_RTC_TICKS(time_s)   (((uint64_t) (time_s) << 15ULL))
+
+/** IRQ value for no IRQ */
+#define HAL_IRQn_NONE       ((IRQn_Type) - 16)
 
 /**
  * Clear the reset reason register, set the retention register, and reset the
@@ -114,6 +142,24 @@ void hal_device_reset(uint8_t gpregret_value);
  * @returns The drift of the given XTAL clock accuracy.
  */
 uint32_t hal_lfclk_ppm_get(uint32_t lfclksrc);
+
+
+/**
+ * Gets the currently active IRQ type, or @ref HAL_IRQn_NONE if no IRQ is active.
+ *
+ * @returns Currently active IRQ type.
+ */
+IRQn_Type hal_irq_active_get(void);
+
+/**
+ * Checks whether a specific IRQ is enabled.
+ *
+ * @param[in] irq IRQ type to check
+ *
+ * @returns Whether the given IRQ is enabled.
+ */
+bool hal_irq_is_enabled(IRQn_Type irq);
+
 /** @} */
 
 #endif /* HAL_H__ */

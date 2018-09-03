@@ -1,28 +1,47 @@
 @startuml
 skinparam defaultFontName Arial
-participant a as "Application"
+box "Application" #FFFFFF
+participant a as "main.c"
+participant ah as "Application support\nmodules"
+end box
 participant c as "Mesh stack"
-participant s as "Simple OnOff server"
+participant s as "Generic OnOff server"
 box
 participant core as "Mesh core modules"
 end box
 
-note over a: config_params defines OOB information\n and event callbacks
-a -> c: nrf_mesh_node_config(&config_params)
+note over a: init_params defines UUID, core params\n and event callbacks
+... Initialize ...
+a -> ah: mesh_softdevice_init(...)
+a -> ah: mesh_app_uuid_gen(...)
+a -> c: mesh_stack_init(...)
+c -> core: Initialize: Mesh and Foundation models
+... ...
+a -> ah: app_onoff_init(...)
+ah -> s: generic_onoff_server_init(...)
+... Start ...
+a -> c: mesh_stack_start()
+note over c: Start dynamic behavior
 
-note over c: Initializes core mesh and softdevice
-c -> core: dsm_init()
-c -> core: access_init()
-c -> core: config_server_init()
-c -> a: setup_callback()
-a -> s: simple_on_off_server_init(...)
 
-alt Configuration stored in flash
-    c -> a: complete_callback()
+alt
+    ... Provisioned node ...
+    ah <- s: Model APIs: get_cb(...), set_cb(...)
+    a <- ah: app_onoff_get/set_cb(...)
+    a -> ah: app_onoff_status_publish(...)
+    ah -> s: generic_onoff_server_status_publish(...)
+
 else
-    c -> core: Start unprovisioned device beacon
+    ... Unprovisioned device ...
+    a -> ah: mesh_provisionee_prov_start(...)
+    group Initialize provisionee
+    note over ah: Define OOB capabilities
+    ah -> core: Start unprovisioned device beacon
+    ah -> core: Listen for provisioning invite
+    end
     ... Wait for provisioning to complete ...
-    c -> a: complete_callback()
+    core -> ah: Provisioning Events
+    ah -> a: provisioning_complete_cb()
 end
 
 @enduml

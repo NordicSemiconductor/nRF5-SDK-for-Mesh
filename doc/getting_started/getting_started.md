@@ -16,4 +16,6 @@ The following documentation sections provide more information about how to use v
 * @subpage md_doc_getting_started_mesh_interrupt_priorities
 * @subpage md_doc_getting_started_provisioning
 * @subpage md_doc_getting_started_how_to_models
+* @subpage md_doc_getting_started_how_to_pa_lna
 * @subpage md_doc_getting_started_how_to_nordicSDK
+* @subpage md_doc_getting_started_gatt_proxy

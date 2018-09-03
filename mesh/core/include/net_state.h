@@ -68,6 +68,11 @@ typedef enum
 void net_state_init(void);
 
 /**
+ * Enables the net state module.
+ */
+void net_state_enable(void);
+
+/**
  * Sets the initial IV index and IV update state.
  *
  * @param[in] iv_index Initial IV index value.

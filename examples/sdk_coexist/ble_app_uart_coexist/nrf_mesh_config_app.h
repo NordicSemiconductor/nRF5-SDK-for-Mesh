@@ -91,8 +91,8 @@
  */
 #define ACCESS_MODEL_COUNT (1 + /* Configuration server */  \
                             1 + /* Health server */  \
-                            2 + /* Simple OnOff client (2 groups) */ \
-                            2   /* Simple OnOff client (2 unicast) */)
+                            2 + /* Generic OnOff client (2 groups) */ \
+                            2   /* Generic OnOff client (2 unicast) */)
 
 /**
  * The number of elements in the application.
@@ -100,7 +100,7 @@
  * @warning If the application is to support multiple _instances_ of the _same_ model, they cannot
  * belong in the same element and a separate element is needed for the new instance.
  */
-#define ACCESS_ELEMENT_COUNT (1 + CLIENT_MODEL_INSTANCE_COUNT) /* One element per Simple OnOff client instance */
+#define ACCESS_ELEMENT_COUNT (1 + CLIENT_MODEL_INSTANCE_COUNT) /* One element per Generic OnOff client instance */
 
 /**
  * The number of allocated subscription lists for the application.

@@ -7,10 +7,11 @@ add_executable(${target}
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_provisionee.c"
     "${MBTLE_SOURCE_DIR}/examples/common/src/rtt_input.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/simple_hal.c"
+    "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_app_utils.c"
     ${WEAK_SOURCE_FILES}
     ${MESH_CORE_SOURCE_FILES}
     ${MESH_BEARER_SOURCE_FILES}
-    ${SIMPLE_ON_OFF_CLIENT_SOURCE_FILES}
+    ${GENERIC_ONOFF_CLIENT_SOURCE_FILES}
     ${CONFIG_SERVER_SOURCE_FILES}
     ${HEALTH_SERVER_SOURCE_FILES}
     ${ACCESS_SOURCE_FILES}
@@ -24,7 +25,7 @@ target_include_directories(${target} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/../include"
     "${CMAKE_SOURCE_DIR}/examples/common/include"
     "${CMAKE_SOURCE_DIR}/external/rtt/include"
-    ${SIMPLE_ON_OFF_CLIENT_INCLUDE_DIRS}
+    ${GENERIC_ONOFF_CLIENT_INCLUDE_DIRS}
     ${CONFIG_SERVER_INCLUDE_DIRS}
     ${HEALTH_SERVER_INCLUDE_DIRS}
     ${MESH_INCLUDE_DIRS}
@@ -41,7 +42,8 @@ target_compile_options(${target} PUBLIC
 
 target_compile_definitions(${target} PUBLIC
     ${USER_DEFINITIONS}
-    -DUSE_APP_CONFIG=1
+    -DUSE_APP_CONFIG
+    -DCONFIG_APP_IN_CORE
     ${${PLATFORM}_DEFINES}
     ${${SOFTDEVICE}_DEFINES}
     ${${BOARD}_DEFINES})

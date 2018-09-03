@@ -41,9 +41,9 @@
 
 #include "core_tx_mock.h"
 #include "advertiser_mock.h"
-#include "nordic_common.h"
+#include "utils.h"
 #include "test_assert.h"
-
+#include "mesh_opt_core.h"
 
 #define TOKEN   0x12345678
 
@@ -70,6 +70,23 @@ void tearDown(void)
 /*****************************************************************************
 * Mock functions
 *****************************************************************************/
+extern const mesh_config_entry_params_t m_mesh_opt_core_tx_power_params;
+uint32_t mesh_config_entry_set(mesh_config_entry_id_t id, const void * p_entry)
+{
+    return m_mesh_opt_core_tx_power_params.callbacks.setter(id, p_entry);
+}
+
+uint32_t mesh_config_entry_get(mesh_config_entry_id_t id, void * p_entry)
+{
+    m_mesh_opt_core_tx_power_params.callbacks.getter(id, p_entry);
+    return NRF_SUCCESS;
+}
+
+uint32_t mesh_config_entry_delete(mesh_config_entry_id_t id)
+{
+    return NRF_SUCCESS;
+}
+
 void advertiser_instance_init_cb(advertiser_t * p_adv, advertiser_tx_complete_cb_t tx_cb, uint8_t * p_buffer, uint32_t buffer_size, int calls)
 {
     TEST_ASSERT_NOT_NULL(p_adv);
@@ -96,13 +113,25 @@ void core_tx_bearer_add_cb(core_tx_bearer_t * p_bearer, const core_tx_bearer_int
     mp_bearer    = p_bearer;
     mp_interface = p_if;
 }
+
+void advertiser_interval_set_ExpectAndSave(advertiser_t * p_adv, uint32_t expected_interval_ms)
+{
+    advertiser_interval_set_Expect(p_adv, expected_interval_ms);
+    p_adv->config.advertisement_interval_us = MS_TO_US(expected_interval_ms);
+}
 /*****************************************************************************
 * Test functions
 *****************************************************************************/
 void test_init(void)
 {
+    ble_gap_addr_t default_addr = {.addr_id_peer = 0,
+                                   .addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC,
+                                   .addr = {0, 1, 2, 3, 4, 5}};
     advertiser_instance_init_StubWithCallback(advertiser_instance_init_cb);
     core_tx_bearer_add_StubWithCallback(core_tx_bearer_add_cb);
+    advertiser_address_default_get_Expect(NULL);
+    advertiser_address_default_get_IgnoreArg_p_addr();
+    advertiser_address_default_get_ReturnMemThruPtr_p_addr(&default_addr, sizeof(ble_gap_addr_t));
     core_tx_adv_init();
     TEST_ASSERT_NOT_NULL(mp_advertisers[0]);
     TEST_ASSERT_NOT_NULL(mp_advertisers[1]);
@@ -111,6 +140,18 @@ void test_init(void)
     TEST_ASSERT_EQUAL(CORE_TX_QUEUE_BUFFER_SIZE_ORIGINATOR, mp_advertisers[CORE_TX_ROLE_ORIGINATOR]->buf.size);
     TEST_ASSERT_EQUAL(CORE_TX_QUEUE_BUFFER_SIZE_RELAY, mp_advertisers[CORE_TX_ROLE_RELAY]->buf.size);
     TEST_ASSERT_NOT_EQUAL(mp_advertisers[0]->buf.buffer, mp_advertisers[1]->buf.buffer);
+    advertiser_mock_Verify();
+    mesh_opt_core_adv_t cfg;
+    cfg.enabled = true;
+    cfg.tx_interval_ms = BEARER_ADV_INT_DEFAULT_MS;
+    cfg.tx_count = 1;
+    for (uint32_t i = 0; i < CORE_TX_ROLE_COUNT; ++i)
+    {
+        printf("mp_advertisers[i]: %p \n", mp_advertisers[i]);
+        advertiser_interval_set_ExpectAndSave(mp_advertisers[i], BEARER_ADV_INT_DEFAULT_MS);
+        mesh_opt_core_adv_set(i, &cfg);
+        advertiser_mock_Verify();
+    }
 }
 
 void test_alloc_send_discard(void)
@@ -139,11 +180,16 @@ void test_alloc_send_discard(void)
         {CORE_TX_ROLE_ORIGINATOR, 29, true, false},
     };
 
+    mesh_opt_core_adv_t cfg;
+    mesh_opt_core_adv_get(0, &cfg);
+
     /* Set repeat count per role, so we can verify that they're correct on the returned packet. */
-    uint8_t repeat_counts[CORE_TX_ROLE_COUNT] = {4, 9};
+    uint8_t repeat_counts[CORE_TX_ROLE_COUNT] = {4, NETWORK_RELAY_RETRANSMITS_MAX};
     for (uint32_t i = 0; i < CORE_TX_ROLE_COUNT; ++i)
     {
-        core_tx_adv_count_set(i, repeat_counts[i]);
+        cfg.tx_count = repeat_counts[i];
+        advertiser_interval_set_ExpectAndSave(mp_advertisers[i], cfg.tx_interval_ms);
+        mesh_opt_core_adv_set(i, &cfg);
     }
 
     for (uint32_t i = 0; i < ARRAY_SIZE(vector); ++i)
@@ -220,31 +266,43 @@ void test_tx_complete(void)
 
 void test_config(void)
 {
-    uint8_t repeat_counts[CORE_TX_ROLE_COUNT] = {4, 9};
+    test_init();
+    mesh_opt_core_adv_t cfg;
+    mesh_opt_core_adv_get(0, &cfg);
+    uint8_t repeat_counts[CORE_TX_ROLE_COUNT] = {1, NETWORK_RELAY_RETRANSMITS_MAX + 1};
     for (uint32_t i = 0; i < CORE_TX_ROLE_COUNT; ++i)
     {
-        core_tx_adv_count_set(i, repeat_counts[i]);
+        cfg.tx_count = repeat_counts[i];
+        advertiser_interval_set_ExpectAndSave(mp_advertisers[i], cfg.tx_interval_ms);
+        mesh_opt_core_adv_set(i, &cfg);
+        advertiser_mock_Verify();
     }
     for (uint32_t i = 0; i < CORE_TX_ROLE_COUNT; ++i)
     {
-        TEST_ASSERT_EQUAL(repeat_counts[i], core_tx_adv_count_get(i));
-    }
-
-    for (uint32_t i = 0; i < CORE_TX_ROLE_COUNT; ++i)
-    {
-        advertiser_interval_set_Expect(mp_advertisers[i], 100 * i);
-        core_tx_adv_interval_set(i, i * 100);
-    }
-    for (uint32_t i = 0; i < CORE_TX_ROLE_COUNT; ++i)
-    {
-        mp_advertisers[i]->config.advertisement_interval_us = 25000 * i;
-        TEST_ASSERT_EQUAL(mp_advertisers[i]->config.advertisement_interval_us / 1000, core_tx_adv_interval_get(i));
+        mesh_opt_core_adv_get(i, &cfg);
+        TEST_ASSERT_EQUAL(repeat_counts[i], cfg.tx_count);
     }
 
+    for (uint32_t i = 0; i < CORE_TX_ROLE_COUNT; ++i)
+    {
+        cfg.tx_interval_ms = 100 * (i + 1);
+        advertiser_interval_set_ExpectAndSave(mp_advertisers[i], 100 * (i + 1));
+        mesh_opt_core_adv_set(i, &cfg);
+        advertiser_mock_Verify();
+    }
+    for (uint32_t i = 0; i < CORE_TX_ROLE_COUNT; ++i)
+    {
+        mp_advertisers[i]->config.advertisement_interval_us = 25000 * (i + 1);
+        mesh_opt_core_adv_get(i, &cfg);
+        TEST_ASSERT_EQUAL(mp_advertisers[i]->config.advertisement_interval_us / 1000, cfg.tx_interval_ms);
+    }
+
+    radio_tx_power_t tx_power = RADIO_POWER_NRF_POS4DBM;
     for (uint32_t i = 0; i < CORE_TX_ROLE_COUNT; ++i)
     {
         advertiser_tx_power_set_Expect(mp_advertisers[i], RADIO_POWER_NRF_POS4DBM);
-        core_tx_adv_tx_power_set(i, RADIO_POWER_NRF_POS4DBM);
+        mesh_opt_core_tx_power_set(i, tx_power);
     }
-    TEST_NRF_MESH_ASSERT_EXPECT(core_tx_adv_tx_power_set(CORE_TX_ROLE_COUNT, RADIO_POWER_NRF_0DBM));
+
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, mesh_opt_core_tx_power_set(CORE_TX_ROLE_COUNT, tx_power));
 }

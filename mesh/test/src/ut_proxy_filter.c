@@ -41,7 +41,7 @@
 #include "proxy_filter.h"
 
 #include "nrf_error.h"
-#include "nordic_common.h"
+#include "utils.h"
 #include "nrf_mesh_defines.h"
 
 

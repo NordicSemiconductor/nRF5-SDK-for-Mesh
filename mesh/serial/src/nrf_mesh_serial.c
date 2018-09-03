@@ -111,11 +111,14 @@ uint32_t nrf_mesh_serial_tx(uint8_t* p_data, uint32_t length)
     }
 
     serial_packet_t * p_evt;
-    NRF_MESH_ASSERT(NRF_SUCCESS == serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + length, &p_evt));
-    p_evt->opcode = SERIAL_OPCODE_EVT_APPLICATION;
-    memcpy(p_evt->payload.evt.application.data, p_data, length);
-    serial_tx(p_evt);
+    uint32_t status = serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + length, &p_evt);
+    if (status == NRF_SUCCESS)
+    {
+        p_evt->opcode = SERIAL_OPCODE_EVT_APPLICATION;
+        memcpy(p_evt->payload.evt.application.data, p_data, length);
+        serial_tx(p_evt);
+    }
 
-    return NRF_SUCCESS;
+    return status;
 }
 

@@ -38,6 +38,7 @@
 #include "nrf_mesh_assert.h"
 #include "nrf_mesh_utils.h"
 #include "rand.h"
+#include "utils.h"
 #include <string.h>
 
 /*****************************************************************************

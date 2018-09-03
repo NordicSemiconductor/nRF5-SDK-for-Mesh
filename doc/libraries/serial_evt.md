@@ -36,6 +36,8 @@ Event                                                                    | Opcod
 [Prov Link Established](#prov-link-established)                          | 0xc1
 [Prov Link Closed](#prov-link-closed)                                    | 0xc2
 [Prov Caps Received](#prov-caps-received)                                | 0xc3
+[Prov Invite Received](#prov-invite-received)                            | 0xc4
+[Prov Start Received](#prov-start-received)                              | 0xca
 [Prov Complete](#prov-complete)                                          | 0xc5
 [Prov Auth Request](#prov-auth-request)                                  | 0xc6
 [Prov ECDH Request](#prov-ecdh-request)                                  | 0xc7
@@ -368,6 +370,35 @@ Type              | Name                                    | Size  | Offset | D
 `uint16_t`        | Output OOB Actions                      | 2     | 5      | Available OOB output actions.
 `uint8_t`         | Input OOB Size                          | 1     | 7      | Maximum size of the input OOB supported.
 `uint16_t`        | Input OOB Actions                       | 2     | 8      | Available OOB input actions.
+
+### Prov Invite Received          {#prov-invite-received}
+
+_Opcode:_ `0xc4`
+
+_Total length: 3 bytes_
+
+The device received provisioning invite so it can start identifying itself using anymeans it can.
+
+_Prov Invite Received Parameters_
+
+Type              | Name                                    | Size  | Offset | Description
+------------------|-----------------------------------------|-------|--------|------------
+`uint8_t`         | Context ID                              | 1     | 0      | Context ID of the provisioning link.
+`uint8_t`         | Attention Duration S                    | 1     | 1      | How long the primary element of the device identifies itself using the Attention Timer in seconds.
+
+### Prov Start Received          {#prov-start-received}
+
+_Opcode:_ `0xca`
+
+_Total length: 2 bytes_
+
+The device received provisioning start meaning that the provisioning process has been started and shall stop identifying itself.
+
+_Prov Start Received Parameters_
+
+Type              | Name                                    | Size  | Offset | Description
+------------------|-----------------------------------------|-------|--------|------------
+`uint8_t`         | Context ID                              | 1     | 0      | Context ID of the provisioning link.
 
 ### Prov Complete          {#prov-complete}
 

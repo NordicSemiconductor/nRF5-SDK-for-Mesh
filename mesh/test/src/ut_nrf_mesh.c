@@ -59,9 +59,7 @@
 #include "beacon_mock.h"
 #include "event_mock.h"
 #include "prov_bearer_adv_mock.h"
-#include "ticker_mock.h"
 #include "mesh_flash_mock.h"
-#include "flash_manager_mock.h"
 #include "bearer_handler_mock.h"
 #include "scanner_mock.h"
 #include "timeslot_mock.h"
@@ -70,6 +68,8 @@
 #include "core_tx_adv_mock.h"
 #include "ad_listener_mock.h"
 #include "heartbeat_mock.h"
+#include "mesh_config_mock.h"
+#include "mesh_opt_mock.h"
 
 static uint32_t m_rx_cb_expect;
 static nrf_mesh_adv_packet_rx_data_t m_adv_packet_rx_data_expect;
@@ -125,16 +125,15 @@ static void initialize_mesh(nrf_mesh_init_params_t * p_init_params)
     bearer_event_init_Expect(NRF_MESH_IRQ_PRIORITY_LOWEST);
     transport_init_Expect(p_init_params);
     network_init_Expect(p_init_params);
-    ticker_init_Expect();
     scanner_init_StubWithCallback(scanner_init_callback);
     advertiser_init_Expect();
     mesh_flash_init_Expect();
     heartbeat_init_Expect();
-    flash_manager_init_Expect();
-    flash_manager_action_queue_empty_cb_set_ExpectAnyArgs();
     packet_mgr_init_Expect(p_init_params);
+    mesh_config_init_Expect();
     bearer_handler_init_Expect();
     core_tx_adv_init_Expect();
+    mesh_opt_init_Expect();
     ad_listener_subscribe_StubWithCallback(ad_subscriber_cb);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_init(p_init_params));
@@ -179,9 +178,7 @@ void setUp(void)
     event_mock_Init();
     nrf_mesh_configure_mock_Init();
     prov_bearer_adv_mock_Init();
-    ticker_mock_Init();
     mesh_flash_mock_Init();
-    flash_manager_mock_Init();
     bearer_handler_mock_Init();
     scanner_mock_Init();
     timeslot_mock_Init();
@@ -190,6 +187,8 @@ void setUp(void)
     core_tx_adv_mock_Init();
     ad_listener_mock_Init();
     heartbeat_mock_Init();
+    mesh_config_mock_Init();
+    mesh_opt_mock_Init();
     __LOG_INIT((LOG_SRC_API | LOG_SRC_TEST), LOG_LEVEL_ERROR, LOG_CALLBACK_DEFAULT);
 
     /*
@@ -233,12 +232,8 @@ void tearDown(void)
     nrf_mesh_configure_mock_Destroy();
     prov_bearer_adv_mock_Verify();
     prov_bearer_adv_mock_Destroy();
-    ticker_mock_Verify();
-    ticker_mock_Destroy();
     mesh_flash_mock_Verify();
     mesh_flash_mock_Destroy();
-    flash_manager_mock_Verify();
-    flash_manager_mock_Destroy();
     bearer_handler_mock_Verify();
     bearer_handler_mock_Destroy();
     scanner_mock_Verify();
@@ -255,6 +250,10 @@ void tearDown(void)
     ad_listener_mock_Destroy();
     heartbeat_mock_Verify();
     heartbeat_mock_Destroy();
+    mesh_config_mock_Verify();
+    mesh_config_mock_Destroy();
+    mesh_opt_mock_Verify();
+    mesh_opt_mock_Destroy();
 }
 
 /*************** Test Cases ***************/
@@ -278,6 +277,7 @@ void test_enable_disable(void)
 {
     bearer_handler_start_ExpectAndReturn(NRF_SUCCESS);
     scanner_enable_Expect();
+    network_enable_Expect();
     TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_enable());
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, nrf_mesh_enable());
 

@@ -45,7 +45,7 @@
 #include "nrf.h"
 #include "nrf_mesh.h"
 
-#include "nordic_common.h"
+#include "utils.h"
 #include "test_assert.h"
 
 #include "timer_mock.h"

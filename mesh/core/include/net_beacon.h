@@ -64,6 +64,12 @@
  */
 void net_beacon_init(void);
 
+
+/**
+ * Enables the net beacon module.
+ */
+void net_beacon_enable(void);
+
 /**
  * Sets the state of the secure network beacon.
  * @param[in] enabled Set to @c true to enable the secure network beacon or @c false to disable the beacon.

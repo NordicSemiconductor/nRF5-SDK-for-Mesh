@@ -465,7 +465,11 @@ static void tx_link_open(prov_bearer_t * p_bearer, uint8_t * p_uuid, uint32_t li
 
     ALLOC_AND_TX(&p_bearer_adv->advertiser, PROV_ADV_OVERHEAD + PROV_LINK_OPEN_DATA_SIZE, true);
 
-    advertiser_instance_init_ExpectStub(&p_bearer_adv->advertiser, p_bearer_adv->tx_buffer, sizeof(p_bearer_adv->tx_buffer));
+    if (p_bearer_adv->instance_state != PROV_BEARER_ADV_INSTANCE_INITIALIZED)
+    {
+        advertiser_instance_init_ExpectStub(&p_bearer_adv->advertiser, p_bearer_adv->tx_buffer, sizeof(p_bearer_adv->tx_buffer));
+    }
+
     rand_hw_rng_get_Expect((uint8_t*) &p_bearer_adv->link_id, sizeof(p_bearer_adv->link_id));
     timer_now_ExpectAndReturn(1000);
     timer_sch_reschedule_Expect(&p_bearer_adv->link_timeout_event, 1000 + NRF_MESH_PROV_LINK_TIMEOUT_MIN_US);
@@ -493,7 +497,11 @@ static void tx_link_close(prov_bearer_t * p_bearer, nrf_mesh_prov_link_close_rea
 static void listen_start(prov_bearer_t * p_bearer)
 {
     nrf_mesh_prov_bearer_adv_t * p_bearer_adv = PARENT_BY_FIELD_GET(nrf_mesh_prov_bearer_adv_t, prov_bearer, p_bearer);
-    advertiser_instance_init_ExpectStub(&p_bearer_adv->advertiser, p_bearer_adv->tx_buffer, sizeof(p_bearer_adv->tx_buffer));
+    if (p_bearer_adv->instance_state != PROV_BEARER_ADV_INSTANCE_INITIALIZED)
+    {
+        advertiser_instance_init_ExpectStub(&p_bearer_adv->advertiser, p_bearer_adv->tx_buffer, sizeof(p_bearer_adv->tx_buffer));
+    }
+
     advertiser_enable_Expect(&p_bearer_adv->advertiser);
     prov_beacon_unprov_build_ExpectAndReturn(&p_bearer_adv->advertiser, NULL, 0, &m_packet);
     advertiser_interval_set_Expect(&p_bearer_adv->advertiser, NRF_MESH_UNPROV_BEACON_INTERVAL_MS);
@@ -624,7 +632,12 @@ void test_link_establish_active(void)
     /* Try to open a link and we fail due to pacman, the state should not change */
     bearer_adv.state = PROV_BEARER_ADV_STATE_IDLE;
     bearer_adv.link_id = link_id;
-    advertiser_instance_init_ExpectStub(&bearer_adv.advertiser, bearer_adv.tx_buffer, sizeof(bearer_adv.tx_buffer));
+
+    if (bearer_adv.instance_state != PROV_BEARER_ADV_INSTANCE_INITIALIZED)
+    {
+        advertiser_instance_init_ExpectStub(&bearer_adv.advertiser, bearer_adv.tx_buffer, sizeof(bearer_adv.tx_buffer));
+    }
+
     rand_hw_rng_get_Expect((uint8_t*) &bearer_adv.link_id, sizeof(bearer_adv.link_id));
     ALLOC_AND_TX(&bearer_adv.advertiser, PROV_ADV_OVERHEAD + PROV_LINK_OPEN_DATA_SIZE, false);
     TEST_ASSERT_EQUAL(NRF_ERROR_NO_MEM, prov_bearer_adv_link_open(&bearer_adv.prov_bearer, uuid1, NRF_MESH_PROV_LINK_TIMEOUT_MIN_US));

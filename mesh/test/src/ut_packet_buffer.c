@@ -39,7 +39,7 @@
 #include <stdint.h>
 #include <unity.h>
 
-#include "nordic_common.h"
+#include "utils.h"
 #include "nrf_mesh.h"
 #include "packet_buffer.h"
 #include "test_assert.h"
@@ -583,4 +583,34 @@ void test_ready_to_pop(void)
 
     /* Packet C still in reserved state */
     TEST_ASSERT_FALSE(packet_buffer_packets_ready_to_pop(&my_pacman));
+}
+
+
+void test_buffer_pop_padding(void)
+{
+    uint8_t data[256] __attribute__((aligned(4)));
+    packet_buffer_packet_t * p_buf;
+
+    p_buf = (packet_buffer_packet_t *) &data[0];
+    p_buf->size = 0x30;
+    p_buf->packet_state = PACKET_BUFFER_MEM_STATE_COMMITTED;
+
+    p_buf = (packet_buffer_packet_t *) &data[208];
+    p_buf->size = (sizeof(data) - 208) - sizeof(packet_buffer_packet_t);
+    p_buf->packet_state = PACKET_BUFFER_MEM_STATE_PADDING;
+
+    packet_buffer_t buf;
+    /* Point to the last padding packet with both head and tail */
+    buf.head = 208;
+    buf.tail = 208;
+    buf.size = 256;
+    buf.buffer = data;
+
+    /* The packet buffer is full of committed packets, it should be possible to pop */
+    TEST_ASSERT_TRUE(packet_buffer_can_pop(&buf));
+    TEST_ASSERT_TRUE(packet_buffer_packets_ready_to_pop(&buf));
+
+    p_buf = NULL;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, packet_buffer_pop(&buf, &p_buf));
+    TEST_ASSERT_EQUAL(&data[0], p_buf); // should have popped the packet at the beginning of the buffer, skipping the padding.
 }

@@ -135,6 +135,8 @@ class ProvDevice(object):
                                         Event.PROV_LINK_ESTABLISHED,
                                         Event.PROV_AUTH_REQUEST,
                                         Event.PROV_CAPS_RECEIVED,
+                                        Event.PROV_INVITE_RECEIVED,
+                                        Event.PROV_START_RECEIVED,
                                         Event.PROV_COMPLETE,
                                         Event.PROV_ECDH_REQUEST,
                                         Event.PROV_LINK_CLOSED,
@@ -357,7 +359,15 @@ class Provisionee(ProvDevice):
         self.iaci.send(cmd.Listen())
 
     def __event_handler(self, event):
-        if event._opcode == Event.PROV_COMPLETE:
+        if event._opcode == Event.PROV_INVITE_RECEIVED:
+            attention_duration_s = event._data["attention_duration_s"]
+            self.logger.info("Provisioning Invite received")
+            self.logger.info("\tAttention Duration [s]: {}".format(attention_duration_s))
+
+        elif event._opcode == Event.PROV_START_RECEIVED:
+            self.logger.info("Provisioning Start received")
+
+        elif event._opcode == Event.PROV_COMPLETE:
             address_range = "{}-{}".format(hex(event._data["address"]),
                                            hex(event._data["address"]
                                                + self.__num_elements - 1))
@@ -378,6 +388,11 @@ class Provisionee(ProvDevice):
             self.logger.info("Setting the local unicast address range")
             self.iaci.send(cmd.AddrLocalUnicastSet(event._data["address"],
                                                    self.__num_elements))
+
+            # A slight hack to update the access "layer" in case
+            # anyone wants to try to run this as a provisionee
+            for index, element in enumerate(self.iaci.access.elements):
+                element.address = event._data["address"] + index
 
         else:
             self.default_handler(event)

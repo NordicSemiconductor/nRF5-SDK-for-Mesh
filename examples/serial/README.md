@@ -20,13 +20,8 @@ using a serial interface) and improve the performance of the mesh stack.
 The ECDH operations used in the provisioning process are a suitable candidate for such offloading.
 
 The ECDH offloading allows the device to take advantage of the host's more powerful
-processor to perform ECDH operations during provisioning. It is enabled by setting the corresponding
-option value to 1, as shown below:
-the [options API](@ref NRF_MESH_OPT):
-```C
-    nrf_mesh_opt_t value = {.len = 4, .opt.val = 1 };
-    nrf_mesh_opt_set(NRF_MESH_OPT_PROV_ECDH_OFFLOADING, &value);
-```
+processor to perform ECDH operations during provisioning. It is enabled by calling
+@ref mesh_opt_prov_ecdh_offloading_set with `enabled=true`.
 
 When this offloading is enabled, the serial interface sends the @ref SERIAL_OPCODE_EVT_PROV_ECDH_REQUEST
 event to the host processor with the public and private keys. The host processor then performs the ECDH

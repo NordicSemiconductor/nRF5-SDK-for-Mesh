@@ -55,9 +55,7 @@ static prng_t m_adv_prng;
 static inline bool is_active(const advertiser_t * p_adv)
 {
     /* Any state that will lead to the timer firing is considered active. */
-    return (p_adv->timer.state != TIMER_EVENT_STATE_UNUSED &&
-            p_adv->timer.state != TIMER_EVENT_STATE_ABORTED &&
-            p_adv->timer.state != TIMER_EVENT_STATE_IGNORED);
+    return (p_adv->timer.state != TIMER_EVENT_STATE_UNUSED);
 }
 
 static inline packet_buffer_packet_t * get_packet_buffer_from_adv_packet(adv_packet_t * p_packet)

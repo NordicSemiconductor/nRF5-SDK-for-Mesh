@@ -2,6 +2,7 @@ set(target "light_switch_proxy_server_${PLATFORM}_${SOFTDEVICE}")
 
 add_executable(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
+    "${CMAKE_SOURCE_DIR}/examples/common/src/app_onoff.c"
     "${CMAKE_SOURCE_DIR}/mesh/stack/src/mesh_stack.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_provisionee.c"
     "${MBTLE_SOURCE_DIR}/examples/common/src/rtt_input.c"
@@ -9,10 +10,10 @@ add_executable(${target}
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_app_utils.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_adv.c"
     "${CMAKE_SOURCE_DIR}/mesh/prov/src/nrf_mesh_prov_bearer_gatt.c"
+    "${CMAKE_SOURCE_DIR}/external/sdk_fix/nrf_sdh.c"
     "${SDK_ROOT}/components/libraries/util/app_util_platform.c"
     "${SDK_ROOT}/components/ble/common/ble_advdata.c"
     "${SDK_ROOT}/components/libraries/experimental_section_vars/nrf_section_iter.c"
-    "${SDK_ROOT}/components/softdevice/common/nrf_sdh.c"
     "${SDK_ROOT}/components/softdevice/common/nrf_sdh_soc.c"
     "${SDK_ROOT}/components/softdevice/common/nrf_sdh_ble.c"
     "${SDK_ROOT}/components/ble/common/ble_conn_params.c"
@@ -23,7 +24,7 @@ add_executable(${target}
     ${MESH_CORE_SOURCE_FILES}
     ${MESH_BEARER_SOURCE_FILES}
     ${MESH_GATT_SOURCE_FILES}
-    ${SIMPLE_ON_OFF_SERVER_SOURCE_FILES}
+    ${GENERIC_ONOFF_SERVER_SOURCE_FILES}
     ${CONFIG_SERVER_SOURCE_FILES}
     ${HEALTH_SERVER_SOURCE_FILES}
     ${ACCESS_SOURCE_FILES}
@@ -45,7 +46,7 @@ target_include_directories(${target} PUBLIC
     "${SDK_ROOT}/components/libraries/experimental_log/src"
     "${SDK_ROOT}/components/libraries/strerror"
     "${SDK_ROOT}/components/libraries/atomic"
-    ${SIMPLE_ON_OFF_SERVER_INCLUDE_DIRS}
+    ${GENERIC_ONOFF_SERVER_INCLUDE_DIRS}
     ${CONFIG_SERVER_INCLUDE_DIRS}
     ${HEALTH_SERVER_INCLUDE_DIRS}
     ${MESH_GATT_INCLUDE_DIRS}
@@ -63,9 +64,10 @@ target_compile_options(${target} PUBLIC
 
 target_compile_definitions(${target} PUBLIC
     ${USER_DEFINITIONS}
-    -DUSE_APP_CONFIG=1
+    -DUSE_APP_CONFIG
     -DMESH_FEATURE_GATT=1
     -DGATT_PROXY=1
+    -DCONFIG_APP_IN_CORE
     ${${PLATFORM}_DEFINES}
     ${${SOFTDEVICE}_DEFINES}
     ${${BOARD}_DEFINES})
@@ -79,7 +81,7 @@ add_flash_target(${target})
 
 get_property(target_include_dirs TARGET ${target} PROPERTY INCLUDE_DIRECTORIES)
 add_pc_lint(${target}
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c;${CMAKE_SOURCE_DIR}/examples/common/src/app_onoff.c"
     "${target_include_dirs}"
     "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES}")
 add_ses_project(${target})

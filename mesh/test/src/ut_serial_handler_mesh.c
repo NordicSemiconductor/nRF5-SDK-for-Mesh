@@ -48,7 +48,7 @@
 #include "nrf_mesh_mock.h"
 #include "nrf_mesh_events_mock.h"
 
-#include "nordic_common.h"
+#include "utils.h"
 #include "test_assert.h"
 
 #define CMD_LENGTH_CHECK(_opcode, _intended_length)                                                   \

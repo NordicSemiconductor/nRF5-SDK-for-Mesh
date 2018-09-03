@@ -55,6 +55,7 @@
  * @{
  */
 
+
 /**
  * Enable persistent storage.
  */
@@ -68,6 +69,11 @@
 #ifndef NRF_MESH_UECC_ENABLE
 #define NRF_MESH_UECC_ENABLE 1
 #endif
+
+/**
+ * Switch on the time slotted flash manager as the back end subsystem.
+ */
+#define FLASH_MANAGER_BACKEND
 
 /** @} end of MESH_CONFIG_GENERAL */
 
@@ -267,7 +273,7 @@
  * in a reduced lifetime for the flash hardware.
  */
 #ifndef NETWORK_SEQNUM_FLASH_BLOCK_SIZE
-#define NETWORK_SEQNUM_FLASH_BLOCK_SIZE 8192
+#define NETWORK_SEQNUM_FLASH_BLOCK_SIZE 8192ul
 #endif
 
 /**
@@ -374,11 +380,19 @@
 /**
  * Number of entries in the replay protection cache.
  *
- * @note Note that the number of entries in the replay cache directly limits the
- * number of peer nodes one can receive messages from for the current IV index.
+ * @note The number of entries in the replay protection list directly limits the number of elements
+ * a node can receive messages from on the current IV index. This means if your device has a replay
+ * protection list with 40 entries, a message from a 41st unicast address (element )will be dropped
+ * by the transport layer.
+ *
+ * @note The replay protection list size *does not* affect the node's ability to relay messages.
+ *
+ * @note This number is indicated in the device composition data of the node and provisioner can
+ * make use of this information to prevent unwarranted filling of the replay list on a given node in
+ * a mesh network.
  */
 #ifndef REPLAY_CACHE_ENTRIES
-#define REPLAY_CACHE_ENTRIES 32
+#define REPLAY_CACHE_ENTRIES 40
 #endif
 
 /** @} end of MESH_CONFIG_REPLAY_CACHE */
@@ -432,7 +446,12 @@
 #define MESH_GATT_PROXY_FILTER_ADDR_COUNT 32
 #endif
 
-/** Advertisement interval for Mesh GATT proxy advertisements. */
+/**
+ * Advertisement interval for Mesh GATT proxy advertisements.
+ *
+ * @warning If the advertisement interval is set below 200 ms, the mesh will not be able to
+ * allocate sufficiently large timeslots from the SoftDevice for its persistent backend.
+ */
 #ifndef MESH_GATT_PROXY_ADV_INT_MS
 #define MESH_GATT_PROXY_ADV_INT_MS 2000
 #endif
@@ -442,6 +461,26 @@
 #define MESH_GATT_PROXY_BEACON_CACHE_SIZE 8
 #endif
 /** @} end of MESH_CONFIG_GATT */
+
+/**
+ * @defgroup MESH_CONFIG_ACCESS Access layer configuration defines
+ * @{
+ */
+
+/** Model publish period restore behavior
+ *
+ * If publish period setting is restored, model will start periodic publishing automatically if
+ * it was configured to do so before power down.
+ * Note: If node is configured to restore publish period settings on power-up, and if provisioner
+ * malfunctions after setting up the publish period state or user looses access to the provisioner,
+ * then there is no way to stop periodic publishing other than manually initiated node reset.
+ */
+#ifndef ACCESS_MODEL_PUBLISH_PERIOD_RESTORE
+#define ACCESS_MODEL_PUBLISH_PERIOD_RESTORE 0
+#endif
+
+
+/** @} end of MESH_CONFIG_ACCESS */
 
 /** @} end of NRF_MESH_CONFIG_CORE */
 

@@ -47,20 +47,19 @@
 #include "config_client.h"
 #include "config_server.h"
 #include "access_config.h"
-#include "simple_on_off_server.h"
-#include "simple_on_off_client.h"
+#include "generic_level_server.h"
+#include "generic_level_client.h"
+#include "generic_onoff_server.h"
+#include "generic_onoff_client.h"
 #include "health_common.h"
 
+#include "provisioner_helper.h"
 #include "node_setup.h"
 #include "example_network_config.h"
 #include "light_switch_example_common.h"
 #include "mesh_app_utils.h"
 
 #include "log.h"
-
-/* In this example, client node, has 4 on/off client model instances corresponding to each push
-button on NRF52 DK */
-#define  CLIENT_NODE_ONOFF_CLIENT_MODEL_INSTANCES         (CLIENT_MODEL_INSTANCE_COUNT)
 
 /* USER_NOTE: Add more steps here is you want to customize the nodes further. */
 /* Node setup steps */
@@ -74,11 +73,8 @@ typedef enum
     NODE_SETUP_CONFIG_APPKEY_BIND_ONOFF_CLIENT,
     NODE_SETUP_CONFIG_PUBLICATION_HEALTH,
     NODE_SETUP_CONFIG_PUBLICATION_ONOFF_SERVER,
-    NODE_SETUP_CONFIG_PUBLICATION_ONOFF_SERVER1_2,
     NODE_SETUP_CONFIG_PUBLICATION_ONOFF_CLIENT1,
     NODE_SETUP_CONFIG_PUBLICATION_ONOFF_CLIENT2,
-    NODE_SETUP_CONFIG_PUBLICATION_ONOFF_CLIENT3,
-    NODE_SETUP_CONFIG_PUBLICATION_ONOFF_CLIENT4,
     NODE_SETUP_CONFIG_SUBSCRIPTION_ONOFF_SERVER,
     NODE_SETUP_DONE,
 } config_steps_t;
@@ -99,7 +95,7 @@ typedef struct
 {
     uint8_t  num_statuses;
     uint16_t expected_opcode;
-    const uint8_t  * p_statuses;
+    const access_status_t  * p_statuses;
 } expected_status_list_t;
 
 typedef struct
@@ -128,25 +124,8 @@ static const config_steps_t client_config_steps[] =
     NODE_SETUP_CONFIG_PUBLICATION_HEALTH,
     NODE_SETUP_CONFIG_APPKEY_BIND_ONOFF_CLIENT,
     NODE_SETUP_CONFIG_APPKEY_BIND_ONOFF_CLIENT,
-    NODE_SETUP_CONFIG_APPKEY_BIND_ONOFF_CLIENT,
-    NODE_SETUP_CONFIG_APPKEY_BIND_ONOFF_CLIENT,
     NODE_SETUP_CONFIG_PUBLICATION_ONOFF_CLIENT1,
     NODE_SETUP_CONFIG_PUBLICATION_ONOFF_CLIENT2,
-    NODE_SETUP_CONFIG_PUBLICATION_ONOFF_CLIENT3,
-    NODE_SETUP_CONFIG_PUBLICATION_ONOFF_CLIENT4,
-    NODE_SETUP_DONE
-};
-
-/* Sequence of steps for the 1st two server nodes */
-static const config_steps_t server1_server2_config_steps[] =
-{
-    NODE_SETUP_CONFIG_COMPOSITION_GET,
-    NODE_SETUP_CONFIG_APPKEY_ADD,
-    NODE_SETUP_CONFIG_APPKEY_BIND_HEALTH,
-    NODE_SETUP_CONFIG_APPKEY_BIND_ONOFF_SERVER,
-    NODE_SETUP_CONFIG_PUBLICATION_HEALTH,
-    NODE_SETUP_CONFIG_PUBLICATION_ONOFF_SERVER1_2,
-    NODE_SETUP_CONFIG_SUBSCRIPTION_ONOFF_SERVER,
     NODE_SETUP_DONE
 };
 
@@ -157,6 +136,7 @@ static const config_steps_t server_config_steps[] =
     NODE_SETUP_CONFIG_APPKEY_ADD,
     NODE_SETUP_CONFIG_APPKEY_BIND_HEALTH,
     NODE_SETUP_CONFIG_APPKEY_BIND_ONOFF_SERVER,
+    NODE_SETUP_CONFIG_PUBLICATION_ONOFF_SERVER,
     NODE_SETUP_CONFIG_PUBLICATION_HEALTH,
     NODE_SETUP_CONFIG_SUBSCRIPTION_ONOFF_SERVER,
     NODE_SETUP_DONE
@@ -169,6 +149,12 @@ static uint16_t m_retry_count;
 static client_send_retry_t m_send_timer;
 static const uint8_t * mp_appkey;
 static uint16_t m_appkey_idx;
+static prov_helper_uuid_filter_t m_uuid_filter = {.p_uuid = NULL, .length = NODE_UUID_PREFIX_LEN};
+static const uint8_t m_client_filter[NODE_UUID_PREFIX_LEN] = CLIENT_NODE_UUID_PREFIX;
+static const uint8_t m_server_filter[NODE_UUID_PREFIX_LEN] = SERVER_NODE_UUID_PREFIX;
+static access_model_id_t m_client_model_id;
+static access_model_id_t m_server_model_id;
+
 
 static const config_steps_t m_idle_step = NODE_SETUP_IDLE;
 static const config_steps_t * mp_config_step = &m_idle_step;
@@ -182,7 +168,7 @@ static void config_step_execute(void);
 
 /*************************************************************************************************/
 /* Set expected status opcode and acceptable value of status codes */
-static void expected_status_set(uint32_t opcode, uint32_t n, const uint8_t * p_list)
+static void expected_status_set(uint32_t opcode, uint32_t n, const access_status_t * p_list)
 {
     if (n > 0)
     {
@@ -270,7 +256,7 @@ static status_check_t check_expected_status(uint16_t rx_opcode, const config_msg
         return STATUS_CHECK_PASS;
     }
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "opcode status field: %d \n", status);
-    for(uint32_t i = 0; i<m_expected_status_list.num_statuses; i++)
+    for (uint32_t i = 0; i < m_expected_status_list.num_statuses; i++)
     {
         if (status == m_expected_status_list.p_statuses[i])
         {
@@ -280,7 +266,7 @@ static status_check_t check_expected_status(uint16_t rx_opcode, const config_msg
     return STATUS_CHECK_FAIL;
 }
 /*************************************************************************************************/
-/* Application specific functions for combining some commonly used structure assignments */
+/* Application-specific functions for combining some commonly used structure assignments */
 
 static void client_pub_state_set(config_publication_state_t *p_pubstate, uint16_t element_addr,
                                      uint16_t publish_addr)
@@ -295,8 +281,8 @@ static void client_pub_state_set(config_publication_state_t *p_pubstate, uint16_
     p_pubstate->publish_period.step_res = ACCESS_PUBLISH_RESOLUTION_100MS;
     p_pubstate->retransmit_count = 1;
     p_pubstate->retransmit_interval = 0;
-    p_pubstate->model_id.company_id = ACCESS_COMPANY_ID_NORDIC;
-    p_pubstate->model_id.model_id = SIMPLE_ON_OFF_CLIENT_MODEL_ID;
+    p_pubstate->model_id.company_id = m_client_model_id.company_id;
+    p_pubstate->model_id.model_id = m_client_model_id.model_id;
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Set: on/off client: 0x%04x  pub addr: 0x%04x\n",
             p_pubstate->element_address, p_pubstate->publish_address.value);
 }
@@ -323,10 +309,6 @@ static void setup_select_steps(uint16_t addr)
     if (addr == UNPROV_START_ADDRESS)
     {
         mp_config_step = client_config_steps;
-    }
-    else if (addr <= (UNPROV_START_ADDRESS + CLIENT_NODE_ONOFF_CLIENT_MODEL_INSTANCES + 2))
-    {
-        mp_config_step = server1_server2_config_steps;
     }
     else
     {
@@ -371,8 +353,8 @@ static void config_step_execute(void)
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Adding appkey\n");
             retry_on_fail(config_client_appkey_add(NETKEY_INDEX, m_appkey_idx, mp_appkey));
 
-            static const uint8_t exp_status[] = {ACCESS_STATUS_SUCCESS, ACCESS_STATUS_KEY_INDEX_ALREADY_STORED};
-            expected_status_set(CONFIG_OPCODE_APPKEY_STATUS, sizeof(exp_status), exp_status);
+            static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS, ACCESS_STATUS_KEY_INDEX_ALREADY_STORED};
+            expected_status_set(CONFIG_OPCODE_APPKEY_STATUS, ARRAY_SIZE(exp_status), exp_status);
             break;
         }
 
@@ -386,23 +368,23 @@ static void config_step_execute(void)
             uint16_t element_address = m_current_node_addr;
             retry_on_fail(config_client_model_app_bind(element_address, m_appkey_idx, model_id));
 
-            static const uint8_t exp_status[] = {ACCESS_STATUS_SUCCESS};
-            expected_status_set(CONFIG_OPCODE_MODEL_APP_STATUS, sizeof(exp_status), exp_status);
+            static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
+            expected_status_set(CONFIG_OPCODE_MODEL_APP_STATUS, ARRAY_SIZE(exp_status), exp_status);
             break;
         }
 
         /* Bind the On/Off server to the application key: */
         case NODE_SETUP_CONFIG_APPKEY_BIND_ONOFF_SERVER:
         {
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App key bind: Simple On/Off server\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App key bind: 0x%04x server\n", m_server_model_id.model_id);
             access_model_id_t model_id;
-            model_id.company_id = ACCESS_COMPANY_ID_NORDIC;
-            model_id.model_id = SIMPLE_ON_OFF_SERVER_MODEL_ID;
+            model_id.company_id = m_server_model_id.company_id;
+            model_id.model_id = m_server_model_id.model_id;
             uint16_t element_address = m_current_node_addr;
             retry_on_fail(config_client_model_app_bind(element_address, m_appkey_idx, model_id));
 
-            static const uint8_t exp_status[] = {ACCESS_STATUS_SUCCESS};
-            expected_status_set(CONFIG_OPCODE_MODEL_APP_STATUS, sizeof(exp_status), exp_status);
+            static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
+            expected_status_set(CONFIG_OPCODE_MODEL_APP_STATUS, ARRAY_SIZE(exp_status), exp_status);
             break;
         }
 
@@ -413,16 +395,16 @@ static void config_step_execute(void)
             {
                 model_element_addr = m_current_node_addr + 1;
             }
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App key bind: Simple On/Off client on element 0x%04x\n", model_element_addr);
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App key bind: 0x%04x client on element 0x%04x\n", m_client_model_id.model_id, model_element_addr);
             access_model_id_t model_id;
-            model_id.company_id = ACCESS_COMPANY_ID_NORDIC;
-            model_id.model_id = SIMPLE_ON_OFF_CLIENT_MODEL_ID;
+            model_id.company_id = m_client_model_id.company_id;
+            model_id.model_id = m_client_model_id.model_id;
             uint16_t element_address = model_element_addr;
             status = config_client_model_app_bind(element_address, m_appkey_idx, model_id);
             retry_on_fail(status);
 
-            static const uint8_t exp_status[] = {ACCESS_STATUS_SUCCESS};
-            expected_status_set(CONFIG_OPCODE_MODEL_APP_STATUS, sizeof(exp_status), exp_status);
+            static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
+            expected_status_set(CONFIG_OPCODE_MODEL_APP_STATUS, ARRAY_SIZE(exp_status), exp_status);
 
             if (status == NRF_SUCCESS)
             {
@@ -450,20 +432,28 @@ static void config_step_execute(void)
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Setting publication address for the health server to 0x%04x\n", pubstate.publish_address.value);
             retry_on_fail(config_client_model_publication_set(&pubstate));
 
-            static const uint8_t exp_status[] = {ACCESS_STATUS_SUCCESS};
-            expected_status_set(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, sizeof(exp_status), exp_status);
+            static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
+            expected_status_set(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, ARRAY_SIZE(exp_status), exp_status);
             break;
         }
 
-        /* Configure the publication parameters for the 1st two On/Off servers to publish to
-        corresponding On/Off clients. This demonstrates the state change publication due to local
+        /* Configure the publication parameters for the On/Off servers to publish to the
+        corresponding On/Off clients (ODD servers: Client on Element 1 and EVEN servers: Client on
+        element 2, of the client example). This demonstrates the state change publication due to local
         event on the server. */
-        case NODE_SETUP_CONFIG_PUBLICATION_ONOFF_SERVER1_2:
+        case NODE_SETUP_CONFIG_PUBLICATION_ONOFF_SERVER:
         {
             config_publication_state_t pubstate = {0};
             pubstate.element_address = m_current_node_addr;
             pubstate.publish_address.type = NRF_MESH_ADDRESS_TYPE_UNICAST;
-            pubstate.publish_address.value = m_current_node_addr - CLIENT_NODE_ONOFF_CLIENT_MODEL_INSTANCES;
+            if ((m_current_node_addr % 2) == 0)
+            {
+                pubstate.publish_address.value = UNPROV_START_ADDRESS + ELEMENT_IDX_ONOFF_CLIENT2;
+            }
+            else
+            {
+                pubstate.publish_address.value = UNPROV_START_ADDRESS + ELEMENT_IDX_ONOFF_CLIENT1;
+            }
             pubstate.appkey_index = m_appkey_idx;
             pubstate.frendship_credential_flag = false;
             pubstate.publish_ttl = (SERVER_NODE_COUNT > NRF_MESH_TTL_MAX ? NRF_MESH_TTL_MAX : SERVER_NODE_COUNT);
@@ -471,13 +461,13 @@ static void config_step_execute(void)
             pubstate.publish_period.step_res = ACCESS_PUBLISH_RESOLUTION_100MS;
             pubstate.retransmit_count = 1;
             pubstate.retransmit_interval = 0;
-            pubstate.model_id.company_id = ACCESS_COMPANY_ID_NORDIC;
-            pubstate.model_id.model_id = SIMPLE_ON_OFF_SERVER_MODEL_ID;
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Set: on/off server pub addr: 0x%04x\n", pubstate.publish_address.value);
+            pubstate.model_id.company_id = m_server_model_id.company_id;
+            pubstate.model_id.model_id = m_server_model_id.model_id;
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Set: 0x%04x server pub addr: 0x%04x\n", m_server_model_id.model_id, pubstate.publish_address.value);
             retry_on_fail(config_client_model_publication_set(&pubstate));
 
-            static const uint8_t exp_status[] = {ACCESS_STATUS_SUCCESS};
-            expected_status_set(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, sizeof(exp_status), exp_status);
+            static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
+            expected_status_set(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, ARRAY_SIZE(exp_status), exp_status);
             break;
         }
 
@@ -497,63 +487,38 @@ static void config_step_execute(void)
                 address.value  = GROUP_ADDRESS_EVEN;
             }
             access_model_id_t model_id;
-            model_id.company_id = ACCESS_COMPANY_ID_NORDIC;
-            model_id.model_id = SIMPLE_ON_OFF_SERVER_MODEL_ID;
+            model_id.company_id = m_server_model_id.company_id;
+            model_id.model_id = m_server_model_id.model_id;
             retry_on_fail(config_client_model_subscription_add(element_address, address, model_id));
 
-            static const uint8_t exp_status[] = {ACCESS_STATUS_SUCCESS};
-            expected_status_set(CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS, sizeof(exp_status), exp_status);
+            static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
+            expected_status_set(CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS, ARRAY_SIZE(exp_status), exp_status);
             break;
         }
 
-        /* Configure the 1st client model to 1st server */
         case NODE_SETUP_CONFIG_PUBLICATION_ONOFF_CLIENT1:
         {
             config_publication_state_t pubstate = {0};
-            client_pub_state_set(&pubstate, m_current_node_addr + ELEMENT_IDX_ONOFF_CLIENT1,
-                                 UNPROV_START_ADDRESS + CLIENT_NODE_ONOFF_CLIENT_MODEL_INSTANCES + ELEMENT_IDX_ONOFF_CLIENT1);
+            client_pub_state_set(&pubstate,
+                                 m_current_node_addr + ELEMENT_IDX_ONOFF_CLIENT1,
+                                 GROUP_ADDRESS_ODD);
             retry_on_fail(config_client_model_publication_set(&pubstate));
 
-            static const uint8_t exp_status[] = {ACCESS_STATUS_SUCCESS};
-            expected_status_set(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, sizeof(exp_status), exp_status);
+            static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
+            expected_status_set(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, ARRAY_SIZE(exp_status), exp_status);
             break;
         }
 
         case NODE_SETUP_CONFIG_PUBLICATION_ONOFF_CLIENT2:
         {
             config_publication_state_t pubstate = {0};
-            client_pub_state_set(&pubstate, m_current_node_addr + ELEMENT_IDX_ONOFF_CLIENT2,
-                                 UNPROV_START_ADDRESS + CLIENT_NODE_ONOFF_CLIENT_MODEL_INSTANCES + ELEMENT_IDX_ONOFF_CLIENT2);
-            retry_on_fail(config_client_model_publication_set(&pubstate));
-
-            static const uint8_t exp_status[] = {ACCESS_STATUS_SUCCESS};
-            expected_status_set(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, sizeof(exp_status), exp_status);
-            break;
-        }
-
-        case NODE_SETUP_CONFIG_PUBLICATION_ONOFF_CLIENT3:
-        {
-            config_publication_state_t pubstate = {0};
             client_pub_state_set(&pubstate,
-                                 m_current_node_addr + ELEMENT_IDX_ONOFF_CLIENT3,
-                                 GROUP_ADDRESS_ODD);
-            retry_on_fail(config_client_model_publication_set(&pubstate));
-
-            static const uint8_t exp_status[] = {ACCESS_STATUS_SUCCESS};
-            expected_status_set(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, sizeof(exp_status), exp_status);
-            break;
-        }
-
-        case NODE_SETUP_CONFIG_PUBLICATION_ONOFF_CLIENT4:
-        {
-            config_publication_state_t pubstate = {0};
-            client_pub_state_set(&pubstate,
-                                 m_current_node_addr + ELEMENT_IDX_ONOFF_CLIENT4,
+                                 m_current_node_addr + ELEMENT_IDX_ONOFF_CLIENT2,
                                  GROUP_ADDRESS_EVEN);
             retry_on_fail(config_client_model_publication_set(&pubstate));
 
-            static const uint8_t exp_status[] = {ACCESS_STATUS_SUCCESS};
-            expected_status_set(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, sizeof(exp_status), exp_status);
+            static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
+            expected_status_set(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, ARRAY_SIZE(exp_status), exp_status);
             break;
         }
 
@@ -655,7 +620,7 @@ void node_setup_config_client_event_process(config_client_event_type_t event_typ
  * Begins the node setup process.
  */
 void node_setup_start(uint16_t address, uint8_t  retry_cnt, const uint8_t * p_appkey,
-                      uint16_t appkey_idx)
+                      uint16_t appkey_idx, const uint8_t * p_current_uuid)
 {
     if (*mp_config_step != NODE_SETUP_IDLE)
     {
@@ -668,6 +633,30 @@ void node_setup_start(uint16_t address, uint8_t  retry_cnt, const uint8_t * p_ap
     m_send_timer.count = CLIENT_BUSY_SEND_RETRY_LIMIT;
     mp_appkey = p_appkey;
     m_appkey_idx = appkey_idx;
+
+    /* The filter match will decide, which model pairs to pick up */
+    if (address == UNPROV_START_ADDRESS)
+    {
+        m_uuid_filter.p_uuid = m_client_filter;
+    }
+    else
+    {
+        m_uuid_filter.p_uuid = m_server_filter;
+    }
+
+    if (uuid_filter_compare(p_current_uuid, &m_uuid_filter))
+    {
+        m_client_model_id.model_id = GENERIC_ONOFF_CLIENT_MODEL_ID;
+        m_server_model_id.model_id = GENERIC_ONOFF_SERVER_MODEL_ID;
+    }
+    else
+    {
+        m_client_model_id.model_id = GENERIC_LEVEL_CLIENT_MODEL_ID;
+        m_server_model_id.model_id = GENERIC_LEVEL_SERVER_MODEL_ID;
+    }
+
+    m_client_model_id.company_id = ACCESS_COMPANY_ID_NONE;
+    m_server_model_id.company_id = ACCESS_COMPANY_ID_NONE;
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Configuring Node: 0x%04X\n", m_current_node_addr);
 

@@ -29,10 +29,10 @@ Include the following source files from nRF5 SDK for Mesh in the nRF5 SDK exampl
 - All C files in `mesh/access/src`
 - All C files in `mesh/dfu/src`
 - All C files in `mesh/stack/src`
-- `models/config/src/config_server.c`
-- `models/config/src/composition_data.c`
-- `models/config/src/packed_index_list.c`
-- `models/health/src/health_server.c`
+- `models/foundation/config/src/config_server.c`
+- `models/foundation/config/src/composition_data.c`
+- `models/foundation/config/src/packed_index_list.c`
+- `models/foundation/health/src/health_server.c`
 - Any other mesh models that are used in your application
 - `external/micro-ecc/uECC.c`
 - `examples/common/src/assertion_handler_weak.c`
@@ -54,8 +54,8 @@ Add the following folders to the nRF5 SDK example's project include path:
 - `mesh/dfu/api`
 - `mesh/dfu/include`
 - `mesh/stack/api`
-- `models/config/include`
-- `models/health/include`
+- `models/foundation/config/include`
+- `models/foundation/health/include`
 - Path to include folder of any other mesh models that are used in your application
 - `external/micro-ecc`
 - `examples/common/include`
@@ -117,7 +117,7 @@ pages before the start of the bootloader, if present, or the last `x` number of 
 available flash on the Nordic SoC.
 The value of `x` depends on the configuration of the mesh stack and can be calculated by:
 
-    x = 1 + ACCESS_FLASH_PAGE_COUNT + DSM_FLASH_PAGE_COUNT + NET_FLASH_PAGE_COUNT
+    x = 2 + ACCESS_FLASH_PAGE_COUNT + DSM_FLASH_PAGE_COUNT
 
 - `ACCESS_FLASH_PAGE_COUNT` shall be equal to or greater than
 
@@ -161,8 +161,6 @@ The value of `x` depends on the configuration of the mesh stack and can be calcu
 
          (sizeof(fm_header_t) + sizeof(dsm_flash_entry_t))
 
-- `NET_FLASH_PAGE_COUNT` is 1 by default
-
 #### Estimated sizes
 
 The following are estimated sizes based on the
@@ -201,8 +199,16 @@ built using Keil v5 with optimization level `O3` for nRF52832.
 |:--------------------------|------:|
 |`ACCESS_FLASH_PAGE_COUNT`  |     1 |
 |`DSM_FLASH_PAGE_COUNT`     |     1 |
-|`NET_FLASH_PAGE_COUNT`     |     1 |
 |Total page count           |     4 |
+
+
+### Heap size
+The transport layer uses *malloc()* for its operation. This behavior
+can be overridden using *transport_sar_mem_funcs_set()*, otherwise __HEAP_SIZE needs to be
+defined.
+
+If you are using SES for building the application set the *Heap Size* to *8192* bytes in the
+*Project Options> Code> Runtime Memory Area* settings.
 
 ## Concurrent SoftDevice and mesh activity
 By design, the SoftDevice activity is prioritized over mesh activity. Therefore, you should keep the
@@ -210,3 +216,6 @@ connection and advertisement intervals used by the SoftDevice as large as possib
 Bluetooth low energy connections. If scanning, keep the scan intervals as long as possible, and the
 scan windows as short as possible. You should also reduce mesh activity while the SoftDevice is
 doing fast advertising and continue normal activity after a connection is established.
+
+## Examples
+See @ref md_examples_sdk_coexist_README examples to see how the nRF5 SDK features can be simultaneously used with nRF5 SDK for Mesh.

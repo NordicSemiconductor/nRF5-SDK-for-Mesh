@@ -40,7 +40,9 @@
 #include "nrf_mesh_assert.h"
 #include "nordic_common.h"
 #include "nrf_mesh_config_bearer.h"
-
+#include "mesh_opt_core.h"
+#include "app_util_platform.h"
+#include "advertiser.h"
 
 static instaburst_tx_t m_instaburst[CORE_TX_ROLE_COUNT];
 
@@ -59,6 +61,11 @@ static const uint8_t m_instaburst_channels[] = CORE_TX_INSTABURST_CHANNELS;
 static core_tx_alloc_result_t packet_alloc(core_tx_bearer_t * p_bearer, const core_tx_alloc_params_t * p_params);
 static void packet_send(core_tx_bearer_t * p_bearer, const uint8_t * p_packet, uint32_t packet_length);
 static void packet_discard(core_tx_bearer_t * p_bearer);
+
+static mesh_opt_core_adv_t m_default_adv = {.enabled = true,
+                                            .tx_count = 1,
+                                            .tx_interval_ms = BEARER_ADV_INT_DEFAULT_MS};
+static const radio_tx_power_t m_default_tx_power = RADIO_POWER_NRF_0DBM;
 
 static const core_tx_bearer_interface_t m_interface = {packet_alloc,
                                                        packet_send,
@@ -115,6 +122,202 @@ static void packet_discard(core_tx_bearer_t * p_bearer)
 
     m_current_alloc.p_packet = NULL;
 }
+
+/*****************************************************************************
+ * Core options interface
+ *****************************************************************************/
+
+static uint32_t core_tx_adv_set(core_tx_role_t role, const void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+    const mesh_opt_core_adv_t * p_adv = p_entry;
+
+    if (IS_IN_RANGE(p_adv->tx_count, 1, NETWORK_RELAY_RETRANSMITS_MAX + 1) &&
+        IS_IN_RANGE(p_adv->tx_interval_ms,
+                    BEARER_ADV_INT_MIN_MS,
+                    MIN(BEARER_ADV_INT_MAX_MS, NETWORK_RELAY_INTERVAL_MAX_MS)))
+    {
+        bool is_enabled = instaburst_tx_is_enabled(&m_instaburst[role]);
+        if (p_adv->enabled && !is_enabled)
+        {
+            instaburst_tx_enable(&m_instaburst[role]);
+        }
+        else if (!p_adv->enabled && is_enabled)
+        {
+            instaburst_tx_disable(&m_instaburst[role]);
+        }
+        /* TODO: Add support for TX count (MBTLE-2562). */
+        instaburst_tx_interval_set(&m_instaburst[role], p_adv->tx_interval_ms);
+        return NRF_SUCCESS;
+    }
+
+    return NRF_ERROR_INVALID_PARAM;
+}
+
+static void core_tx_adv_get(core_tx_role_t role, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+    mesh_opt_core_adv_t * p_adv = p_entry;
+    p_adv->enabled = instaburst_tx_is_enabled(&m_instaburst[role]);
+    /* TODO: Add support for TX count (MBTLE-2562). */
+    p_adv->tx_count = 1;
+    p_adv->tx_interval_ms = instaburst_tx_interval_get(&m_instaburst[role]);
+}
+
+static uint32_t core_tx_tx_power_set(core_tx_role_t role, const void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+    const radio_tx_power_t * p_tx_power = p_entry;
+    instaburst_tx_tx_power_set(&m_instaburst[role], *p_tx_power);
+    return NRF_SUCCESS;
+}
+
+static void core_tx_tx_power_get(core_tx_role_t role, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+    radio_tx_power_t * p_tx_power = p_entry;
+    *p_tx_power = instaburst_tx_tx_power_get(&m_instaburst[role]);
+}
+
+static uint32_t core_tx_adv_addr_set(core_tx_role_t role, const void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+    const ble_gap_addr_t * p_addr = p_entry;
+    if (p_addr->addr_type == BLE_GAP_ADDR_TYPE_PUBLIC ||
+        p_addr->addr_type == BLE_GAP_ADDR_TYPE_RANDOM_STATIC)
+    {
+        /* TODO: Support setting GAP address (MBTLE-2563). */
+        return NRF_ERROR_NOT_SUPPORTED;
+    }
+    return NRF_ERROR_INVALID_PARAM;
+}
+
+static void core_tx_adv_addr_get(core_tx_role_t role, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+    ble_gap_addr_t * p_addr = p_entry;
+    advertiser_address_default_get(p_addr);
+}
+
+/*****************************************************************************
+ * Wrapper functions
+ *****************************************************************************/
+
+static uint32_t core_tx_set(mesh_config_entry_id_t entry_id, const void * p_entry)
+{
+    if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_ADV_RECORD_START, MESH_OPT_CORE_ADV_RECORD_END))
+    {
+        return core_tx_adv_set((core_tx_role_t) entry_id.record - MESH_OPT_CORE_ADV_RECORD_START,
+                               p_entry);
+    }
+    else if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_TX_POWER_RECORD_START, MESH_OPT_CORE_TX_POWER_RECORD_END))
+    {
+        return core_tx_tx_power_set((core_tx_role_t) entry_id.record - MESH_OPT_CORE_TX_POWER_RECORD_START,
+                                    p_entry);
+    }
+    else if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_ADV_ADDR_RECORD_START, MESH_OPT_CORE_ADV_ADDR_RECORD_END))
+    {
+        return core_tx_adv_addr_set((core_tx_role_t) entry_id.record - MESH_OPT_CORE_ADV_ADDR_RECORD_START,
+                                    p_entry);
+    }
+    return NRF_ERROR_INVALID_PARAM;
+}
+
+static void core_tx_get(mesh_config_entry_id_t entry_id, void * p_entry)
+{
+    if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_ADV_RECORD_START, MESH_OPT_CORE_ADV_RECORD_END))
+    {
+        core_tx_adv_get((core_tx_role_t) entry_id.record - MESH_OPT_CORE_ADV_RECORD_START,
+                        p_entry);
+    }
+    else if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_TX_POWER_RECORD_START, MESH_OPT_CORE_TX_POWER_RECORD_END))
+    {
+        core_tx_tx_power_get((core_tx_role_t) entry_id.record - MESH_OPT_CORE_TX_POWER_RECORD_START,
+                          p_entry);
+    }
+    else if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_ADV_ADDR_RECORD_START, MESH_OPT_CORE_ADV_ADDR_RECORD_END))
+    {
+        core_tx_adv_addr_get((core_tx_role_t) entry_id.record - MESH_OPT_CORE_ADV_ADDR_RECORD_START,
+                             p_entry);
+    }
+    else
+    {
+        NRF_MESH_ASSERT_DEBUG(false);
+    }
+}
+
+MESH_CONFIG_ENTRY(mesh_opt_core_adv,
+                  MESH_OPT_CORE_ADV_EID,
+                  CORE_TX_ROLE_COUNT,
+                  sizeof(mesh_opt_core_adv_t),
+                  core_tx_set,
+                  core_tx_get,
+                  NULL,
+                  &m_default_adv);
+
+MESH_CONFIG_ENTRY(mesh_opt_core_tx_power,
+                  MESH_OPT_CORE_TX_POWER_EID,
+                  CORE_TX_ROLE_COUNT,
+                  sizeof(radio_tx_power_t),
+                  core_tx_set,
+                  core_tx_get,
+                  NULL,
+                  &m_default_tx_power);
+
+MESH_CONFIG_ENTRY(mesh_opt_core_adv_addr,
+                  MESH_OPT_CORE_ADV_ADDR_EID,
+                  CORE_TX_ROLE_COUNT,
+                  sizeof(ble_gap_addr_t),
+                  core_tx_set,
+                  core_tx_get,
+                  NULL,
+                  NULL);        /* TODO: Support setting GAP address (MBTLE-2563). */
+
+
+MESH_CONFIG_ENTRY_ARRAY_WRAPPER_DECLARE(mesh_opt_core_adv,
+                                        MESH_OPT_CORE_ADV_EID,
+                                        mesh_opt_core_adv_t,
+                                        core_tx_role_t,
+                                        CORE_TX_ROLE_COUNT)
+MESH_CONFIG_ENTRY_ARRAY_WRAPPER_DECLARE(mesh_opt_core_adv_addr,
+                                        MESH_OPT_CORE_ADV_ADDR_EID,
+                                        ble_gap_addr_t,
+                                        core_tx_role_t,
+                                        CORE_TX_ROLE_COUNT)
+
+uint32_t mesh_opt_core_tx_power_set(core_tx_role_t index, radio_tx_power_t tx_power)
+{
+    if (index >= (CORE_TX_ROLE_COUNT))
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+    mesh_config_entry_id_t id = MESH_OPT_CORE_TX_POWER_EID;
+    id.record += (uint16_t) index;
+    return mesh_config_entry_set(id, &tx_power);
+}
+
+uint32_t mesh_opt_core_tx_power_get(core_tx_role_t index, radio_tx_power_t * p_tx_power)
+{
+    if (index >= (CORE_TX_ROLE_COUNT))
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+    mesh_config_entry_id_t id = MESH_OPT_CORE_TX_POWER_EID;
+    id.record += (uint16_t) index;
+    return mesh_config_entry_get(id, p_tx_power);
+}
+
+uint32_t mesh_opt_core_tx_power_delete(core_tx_role_t index)
+{
+    if (index >= (CORE_TX_ROLE_COUNT))
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+    mesh_config_entry_id_t id = MESH_OPT_CORE_TX_POWER_EID;
+    id.record += (uint16_t) index;
+    return mesh_config_entry_delete(id);
+}
+
 /*****************************************************************************
 * Interface functions
 *****************************************************************************/
@@ -147,21 +350,8 @@ void core_tx_instaburst_init(void)
     core_tx_bearer_add(&m_bearer, &m_interface, CORE_TX_BEARER_TYPE_ADV);
 }
 
-
-void core_tx_instaburst_interval_set(core_tx_role_t role, uint32_t interval_ms)
+bool core_tx_instaburst_is_enabled(core_tx_role_t role)
 {
-    NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
-    instaburst_tx_interval_set(&m_instaburst[role], interval_ms);
-}
-
-uint32_t core_tx_instaburst_interval_get(core_tx_role_t role)
-{
-    NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
-    return m_instaburst[role].config.interval_ms;
-}
-
-void core_tx_instaburst_tx_power_set(core_tx_role_t role, radio_tx_power_t tx_power)
-{
-    NRF_MESH_ASSERT(role < CORE_TX_ROLE_COUNT);
-    instaburst_tx_tx_power_set(&m_instaburst[role], tx_power);
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+    return instaburst_tx_is_enabled(&m_instaburst[role]);
 }

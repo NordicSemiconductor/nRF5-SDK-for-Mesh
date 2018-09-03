@@ -80,6 +80,7 @@ void NVIC_SystemReset(void);
 #define __ASM            __asm                                      /*!< asm keyword for GNU Compiler */
 #define __INLINE         inline                                     /*!< inline keyword for GNU Compiler */
 #define __STATIC_INLINE  static inline
+#define __REV            __builtin_bswap32
 
 #endif /* __CMSIS_GENERIC */
 #endif /* NRF_MESH_CMSIS_MOCK_H */

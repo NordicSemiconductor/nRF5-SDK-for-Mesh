@@ -162,15 +162,15 @@ The directory structure should now look like this:
     +-- cmock/
     +-- nrf5_sdk_for_mesh/
 
-Enter the `nrf5_sdk_for_mesh` directory, and make a new build directory, e.g. `build_host`:
+Enter the `nrf5_sdk_for_mesh` directory and make a new build directory, e.g. `build_host`:
 
     nrf5_sdk_for_mesh $ mkdir -p build_host && cd build_host
 
 To build for host, so that the unit tests can be run, set the option `BUILD_HOST`
-to `ON` and provide the path to CMock using the `CMOCK_ROOT` option. Note that all paths given to CMake must
-use forward slashes ('/') as directory separators.
+to `ON`, provide the path to CMock using the `CMOCK_ROOT` option, and set `CMAKE_BUILD_TYPE` to `Debug`.
+Note that all paths given to CMake must use forward slashes ('/') as directory separators.
 
-    build_host $ cmake -G Ninja -DBUILD_HOST=ON -DCMOCK_ROOT=<dir/cmock> ..
+    build_host $ cmake -G Ninja -DBUILD_HOST=ON -DCMOCK_ROOT=<dir/cmock> -DCMAKE_BUILD_TYPE=Debug ..
 
 If a different version of Unity from the one included as a submodule in CMock is wanted, this can be specified by
 passing `-DUNITY_ROOT=<dir/unity>` to CMake. Note that the two paths can be set permanently with environmental variables
@@ -184,4 +184,3 @@ Build all the unit tests with ninja:
 To run the tests, run `ctest` (bundled with CMake) or call `ninja test` in the build directory.
 
     build_host $ ctest # Run all unit tests
-

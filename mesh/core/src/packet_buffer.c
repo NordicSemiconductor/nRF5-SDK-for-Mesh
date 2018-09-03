@@ -303,6 +303,12 @@ uint32_t packet_buffer_pop(packet_buffer_t * const p_buffer, packet_buffer_packe
     uint32_t status = NRF_SUCCESS;
     packet_buffer_packet_t * p_packet = m_get_packet(p_buffer, p_buffer->tail);
 
+    if (p_packet->packet_state == PACKET_BUFFER_MEM_STATE_PADDING)
+    {
+        m_index_increment(p_buffer, &p_buffer->tail);
+        p_packet = m_get_packet(p_buffer, p_buffer->tail);
+    }
+
     switch (p_packet->packet_state)
     {
         case PACKET_BUFFER_MEM_STATE_COMMITTED:
@@ -324,7 +330,12 @@ bool packet_buffer_can_pop(packet_buffer_t * p_buffer)
 {
     NRF_MESH_ASSERT(NULL != p_buffer);
 
-    return (m_get_packet(p_buffer, p_buffer->tail)->packet_state == PACKET_BUFFER_MEM_STATE_COMMITTED);
+    packet_buffer_packet_t * p_packet = m_get_packet(p_buffer, p_buffer->tail);
+    if (p_packet->packet_state == PACKET_BUFFER_MEM_STATE_PADDING)
+    {
+        p_packet = m_get_next_packet(p_buffer, p_packet);
+    }
+    return (p_packet->packet_state == PACKET_BUFFER_MEM_STATE_COMMITTED);
 }
 
 bool packet_buffer_packets_ready_to_pop(packet_buffer_t * p_buffer)
@@ -332,7 +343,8 @@ bool packet_buffer_packets_ready_to_pop(packet_buffer_t * p_buffer)
     NRF_MESH_ASSERT(NULL != p_buffer);
     /* get first non-popped packet */
     packet_buffer_packet_t * p_packet = m_get_packet(p_buffer, p_buffer->tail);
-    while (p_packet->packet_state == PACKET_BUFFER_MEM_STATE_POPPED)
+    while (p_packet->packet_state == PACKET_BUFFER_MEM_STATE_POPPED ||
+           p_packet->packet_state == PACKET_BUFFER_MEM_STATE_PADDING)
     {
         p_packet = m_get_next_packet(p_buffer, p_packet);
     }

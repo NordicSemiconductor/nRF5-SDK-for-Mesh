@@ -301,8 +301,7 @@ void enocean_packet_process(const nrf_mesh_adv_packet_rx_data_t * p_rx_data)
                         evt.params.data.status.a1 = (sw_data >> PTM215B_SWITCH_STATUS_A1_BIT) & 0x01;
                         evt.params.data.status.b0 = (sw_data >> PTM215B_SWITCH_STATUS_B0_BIT) & 0x01;
                         evt.params.data.status.b1 = (sw_data >> PTM215B_SWITCH_STATUS_B1_BIT) & 0x01;
-                        evt.params.data.status.action = ((sw_data >> PTM215B_SWITCH_STATUS_ACTION_BIT) & 0x01) ?
-                                                        RELEASE_ACTION : PRESS_ACTION;
+                        evt.params.data.status.action = (enocean_switch_action_type_t)((sw_data >> PTM215B_SWITCH_STATUS_ACTION_BIT) & 0x01);
                         evt.params.data.p_optional_data = &pkt.data.data_packet.p_raw_data[PTM215B_DATA_PACKET_OPTIONAL_DATA_OFFSET];
                         evt.params.data.optional_data_length = pkt.data.data_packet.length
                                                             - PTM215B_DATA_PACKET_OPTIONAL_DATA_OFFSET;

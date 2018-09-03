@@ -8,6 +8,7 @@ add_subdirectory("enocean_switch")
 add_subdirectory("beaconing")
 add_subdirectory("light_switch")
 add_subdirectory("pb_remote")
+add_subdirectory("experimental_dimming")
 
 if (NOT PLATFORM MATCHES "nrf52810")
     add_subdirectory("dfu")

@@ -25,8 +25,8 @@
       linker_output_format="hex"
       linker_printf_width_precision_supported="Yes"
       linker_section_placement_file="$(ProjectDir)/flash_placement.xml"
-      linker_section_placement_macros="FLASH_PH_START={{"0x%x" % (platform["config"]["flash_start"])}};FLASH_PH_SIZE={{"0x%x" % (platform["config"]["flash_size"])}};RAM_PH_START={{"%s" % (target["ram"].start)}};RAM_PH_SIZE={{(target["ram"].size)}};FLASH_START={{(target["flash"].start)}};FLASH_SIZE={{(target["flash"].size)}};RAM_START={{(target["ram"].start)}};RAM_SIZE={{(target["ram"].size)}}"
-      linker_section_placements_segments="FLASH RX {{"0x%x" % (platform["config"]["flash_start"])}} {{"0x%x" % (platform["config"]["flash_size"])}};RAM RWX {{(target["ram"].start)}} {{(target["ram"].size)}}"
+      linker_section_placement_macros="FLASH_PH_START={{"0x%x" % (platform["config"]["flash_start"])}};FLASH_PH_SIZE={{(target["flash"].size)}};RAM_PH_START={{"0x%x" % (platform["config"]["ram_start"])}};RAM_PH_SIZE={{(target["ram"].size)}};FLASH_START={{(target["flash"].start)}};RAM_START={{(target["ram"].start)}}"
+      linker_section_placements_segments="FLASH RX {{"0x%x" % (platform["config"]["flash_start"])}} {{(target["flash"].size)}};RAM RWX {{"0x%x" % (platform["config"]["ram_start"])}} {{(target["ram"].size)}}"
       project_directory=""
       project_type="Executable" />
 

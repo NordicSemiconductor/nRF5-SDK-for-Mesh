@@ -51,7 +51,8 @@
 #include "rand_mock.h"
 #include "advertiser_mock.h"
 #include "beacon_mock.h"
-
+#include "mesh_config_entry.h"
+#include "mesh_opt_gatt.h"
 
 #define NET_ENC_KEY_1     0x3a, 0x4f, 0xe8, 0x4a, 0x6c, 0xc2, 0xc6, 0xa7, 0x66, 0xea, 0x93, 0xf1, 0x08, 0x4d, 0x40, 0x39
 #define NET_PRIVACY_KEY_1 0xf6, 0x95, 0xfc, 0xce, 0x70, 0x9c, 0xcf, 0xac, 0xe4, 0xd8, 0xb7, 0xa1, 0xe6, 0xe3, 0x9d, 0x25
@@ -112,6 +113,16 @@ static struct {
 
 void setUp(void)
 {
+    /* Clear the state */
+    bool enabled;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_get(&enabled));
+    if (enabled)
+    {
+        /* Expect the proxy to kill the advertiser when disabling it. */
+        mesh_adv_stop_Expect();
+        timer_sch_abort_ExpectAnyArgs();
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(false));
+    }
     proxy_filter_mock_Init();
     timer_scheduler_mock_Init();
     mesh_adv_mock_Init();
@@ -150,6 +161,19 @@ uint32_t network_packet_in(const uint8_t * p_packet, uint32_t net_packet_len, co
 {
     return NRF_SUCCESS;
 }
+
+extern const mesh_config_entry_params_t m_mesh_opt_gatt_proxy_params;
+uint32_t mesh_config_entry_set(mesh_config_entry_id_t id, const void * p_entry)
+{
+    return m_mesh_opt_gatt_proxy_params.callbacks.setter(id, p_entry);
+}
+
+uint32_t mesh_config_entry_get(mesh_config_entry_id_t id, void * p_entry)
+{
+    m_mesh_opt_gatt_proxy_params.callbacks.getter(id, p_entry);
+    return NRF_SUCCESS;
+}
+
 /*****************************************************************************
 * Test functions
 *****************************************************************************/
@@ -204,7 +228,8 @@ void test_adv_net_id(void)
                                       m_service_data_net_id.expected_len);
     mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_ADV_INT_MS * 1000) / 625);
     mesh_adv_start_Expect();
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_enable());
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(true));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_start());
 }
 
 void test_adv_node_id(void)
@@ -221,5 +246,6 @@ void test_adv_node_id(void)
                                       m_service_data_node_id.expected_len);
     mesh_adv_params_set_Expect(60*1000, (MESH_GATT_PROXY_ADV_INT_MS * 1000) / 625);
     mesh_adv_start_Expect();
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_node_id_enable(&m_service_data_node_id.beacon_info, NRF_MESH_KEY_REFRESH_PHASE_0));
+    nrf_mesh_key_refresh_phase_t kr_phase = NRF_MESH_KEY_REFRESH_PHASE_0;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_node_id_enable(&m_service_data_node_id.beacon_info, kr_phase));
 }

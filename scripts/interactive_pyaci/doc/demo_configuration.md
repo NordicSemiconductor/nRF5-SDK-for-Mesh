@@ -71,8 +71,8 @@ After the provisioner has been created, we are ready to scan for unprovisioned d
     In  [4]: p.scan_start()
     2018-03-09 14:43:21,032 - INFO - COM1: Success
     2018-03-09 14:43:21,859 - INFO - COM1: Received UUID 0059ffff000000008007abda46190f5e with RSSI: -15 dB
-    2018-03-09 14:43:27,947 - INFO - COM1: Success
     In  [5]: p.scan_stop()
+    2018-03-09 14:43:27,947 - INFO - COM1: Success
 
 
 As we can see, there is one device nearby that we can provision. This is the light switch server.
@@ -144,7 +144,7 @@ details about the device.
               "modelId": "0002"
             },
             {
-              "modelId": "00590000"
+              "modelId": "1000"
             }
           ],
           "index": 0
@@ -155,7 +155,7 @@ details about the device.
 
 
 In the composition data, we can read that the node has one element with three models: Configuration
-server (`0000`), Health server (`0002`) and the Simple OnOff server (`00590000`).
+server (`0000`), Health server (`0002`) and the Generic OnOff server (`1000`).
 
 Notice that the `example_database.json` is updated automatically with the information from the node.
 
@@ -171,7 +171,7 @@ index `0`. This key was added to the device by the provisioner earlier on with t
 0<sup><a href="#fn:2">2</a></sup>.
 
 For a model to receive and send messages with a given key, it has to be _bound_ to that model. We
-will add AppKey `0` to the device and bind it to the Simple OnOff server.
+will add AppKey `0` to the device and bind it to the Generic OnOff server.
 
 
     In  [11]: cc.appkey_add(0)
@@ -179,35 +179,35 @@ will add AppKey `0` to the device and bind it to the Simple OnOff server.
     2018-03-09 14:53:05,841 - INFO - COM1.ConfigurationClient: Appkey status: AccessStatus.SUCCESS
     2018-03-09 14:53:05,845 - INFO - COM1.ConfigurationClient: Appkey add 0 succeded for subnet 0 at node 0010
 
-    In  [12]: cc.model_app_bind(db.nodes[0].unicast_address, 0, mt.ModelId(0, 0x59))
+    In  [12]: cc.model_app_bind(db.nodes[0].unicast_address, 0, mt.ModelId(0x1000))
     2018-03-09 14:53:13,714 - INFO - COM1: Success
     2018-03-09 14:53:13,733 - INFO - COM1.ConfigurationClient: Model app bind status: AccessStatus.SUCCESS
-    2018-03-09 14:53:13,751 - INFO - COM1.ConfigurationClient: Appkey bind 0 to model 00590000 at 0010
+    2018-03-09 14:53:13,751 - INFO - COM1.ConfigurationClient: Appkey bind 0 to model 1000 at 0010
 
 
-Notice that there are some helper objects defined in `mesh/types.py`, these can be through the `mt`
-namespace, e.g., `mt.ModelId(model_id, company_id)`.
+Notice that there are some helper objects defined in `mesh/types.py`, these can be accessed through the `mt`
+namespace, e.g., `mt.ModelId(model_id, company_id=None)`.
 
 ### Blinking LEDs
 
-We have now configured our Simple OnOff server with the right security credentials, so let us blink
+We have now configured our Generic OnOff server with the right security credentials, so let us blink
 some LEDs!
 
-To control the server, we need a client. A version of the Simple OnOff client has been implemented
-in `models/simple_on_off.py`. We add and configure the model the same way as we did for the
+To control the server, we need a client. A version of the Generic OnOff client has been implemented
+in `models/generic_on_off.py`. We add and configure the model the same way as we did for the
 Configuration Client:
 
 
-    In  [13]: sc = SimpleOnOffClient()
-    In  [14]: device.model_add(sc)
-    In  [15]: sc.publish_set(0, 0)
+    In  [13]: gc = GenericOnOffClient()
+    In  [14]: device.model_add(gc)
+    In  [15]: gc.publish_set(0, 0)
 
 
 Now, let us turn the LED on:
 
 
-    In  [16]: sc.set(True)
-    2018-03-09 15:01:49,230 - INFO - COM1.SimpleOnOffClient: Present value is on
+    In  [16]: gc.set(True)
+    2018-03-09 15:01:49,230 - INFO - COM1.GenericOnOffClient: Present value is on
 
 
 ### Adding a Light Switch client (optional)
@@ -245,32 +245,32 @@ Next, we fetch the Composition Data:
     ...
 
 
-In the Composition Data you will see that the device has 5 elements with 4 different Simple OnOff
-client models (Model ID `00590001`). For the access layer<sup><a href="#fn:3">3</a></sup> to identify which
+In the Composition Data you will see that the device has 5 elements with 4 different Generic OnOff
+client models (Model ID `1001`). For the access layer<sup><a href="#fn:3">3</a></sup> to identify which
 model a particular message is addressed to, can only be _one_ model _instance_ on any given element.
 
-We add AppKey `0` and bind it to the Simple OnOff client model on Element 1.
+We add AppKey `0` and bind it to the Generic OnOff client model on Element 1.
 
 
     In  [22]: cc.appkey_add(0)
     ...
-    In  [23]: cc.model_app_bind(db.nodes[1].unicast_address + 1, 0, mt.ModelId(1, 0x59))
+    In  [23]: cc.model_app_bind(db.nodes[1].unicast_address + 1, 0, mt.ModelId(0x1001))
     2018-03-12 14:13:14,618 - INFO - COM1.ConfigurationClient: Model app bind status: AccessStatus.SUCCESS
-    2018-03-12 14:13:14,623 - INFO - COM1.ConfigurationClient: Appkey bind 0 to model 00590001 at 0012
+    2018-03-12 14:13:14,623 - INFO - COM1.ConfigurationClient: Appkey bind 0 to model 1001 at 0012
 
 
 Finally, we "link" the client to the server by setting its _publication
-state_<sup><a href="#fn:4">4</a></sup> corresponding to element address of the Simple OnOff server, using
+state_<sup><a href="#fn:4">4</a></sup> corresponding to element address of the Generic OnOff server, using
 AppKey `0` and TTL `1`:
 
 
-    In  [24]: cc.model_publication_set(db.nodes[1].unicast_address + 1, mt.ModelId(1, 0x59), mt.Publish(db.nodes[0].unicast_address, index=0, ttl=1))
+    In  [24]: cc.model_publication_set(db.nodes[1].unicast_address + 1, mt.ModelId(0x1001), mt.Publish(db.nodes[0].unicast_address, index=0, ttl=1))
     2018-03-12 15:08:48,071 - INFO - COM1.ConfigurationClient: Model publication status: AccessStatus.SUCCESS
-    2018-03-12 15:08:48,078 - INFO - COM1.ConfigurationClient: Publication status for model 00590001 at element 18 to {'period': 0, 'ttl': 1, 'address': 0010, 'retransmit': {'interval': 50, 'interval_steps': 0, 'count': 0}, 'index': 0, 'credentials': <FriendshipCredentials.DISABLED: 0>}
+    2018-03-12 15:08:48,078 - INFO - COM1.ConfigurationClient: Publication status for model 1001 at element 18 to {'period': 0, 'ttl': 1, 'address': 0010, 'retransmit': {'interval': 50, 'interval_steps': 0, 'count': 0}, 'index': 0, 'credentials': <FriendshipCredentials.DISABLED: 0>}
 
 
 You should now be able to press "Button 1" on the development kit with the Light Switch client
-example and see the "LED1" of the Light Switch server light up.
+example and see the "LED 1" of the Light Switch server light up.
 
 #### Publishing and subscribing
 
@@ -282,25 +282,25 @@ such that it can publish state changes to a pre-defined group address:
 
 
     In  [25]: cc.publish_set(8, 0)
-    In  [26]: cc.model_publication_set(db.nodes[0].unicast_address, mt.ModelId(0, 0x59), mt.Publish(db.groups[0].address, index=0, ttl=1))
+    In  [26]: cc.model_publication_set(db.nodes[0].unicast_address, mt.ModelId(0x1000), mt.Publish(db.groups[0].address, index=0, ttl=1))
     2018-03-12 15:10:48,071 - INFO - COM1.ConfigurationClient: Model publication status: AccessStatus.SUCCESS
-    2018-03-12 15:10:48,078 - INFO - COM1.ConfigurationClient: Publication status for model 00590000 at element 10 to {'period': 0, 'ttl': 1, 'address': 0010, 'retransmit': {'interval': 50, 'interval_steps': 0, 'count': 0}, 'index': 0, 'credentials': <FriendshipCredentials.DISABLED: 0>}
+    2018-03-12 15:10:48,078 - INFO - COM1.ConfigurationClient: Publication status for model 1000 at element 10 to {'period': 0, 'ttl': 1, 'address': 0010, 'retransmit': {'interval': 50, 'interval_steps': 0, 'count': 0}, 'index': 0, 'credentials': <FriendshipCredentials.DISABLED: 0>}
 
 
 Next, we add the same group address to the client's _subscription list_:
 
     In  [27]: cc.publish_set(9, 1)
-    In  [28]: cc.model_subscription_add(db.nodes[1].unicast_address + 1, db.groups[0].address, mt.ModelId(1, 0x59))
+    In  [28]: cc.model_subscription_add(db.nodes[1].unicast_address + 1, db.groups[0].address, mt.ModelId(0x1001))
     2018-03-12 15:11:49,993 - INFO - COM1.ConfigurationClient: Model subscription status: AccessStatus.SUCCESS
-    2018-03-12 15:11:49,996 - INFO - COM1.ConfigurationClient: Added subscription 'c001' to model 00590001 at element 18
+    2018-03-12 15:11:49,996 - INFO - COM1.ConfigurationClient: Added subscription 'c001' to model 1001 at element 18
 
 
-You should now be able to use the Simple OnOff client to change the state of the server and observe
+You should now be able to use the Generic OnOff client to change the state of the server and observe
 that the client also changes its state accordingly:
 
 
-    In  [16]: sc.set(True)
-    2018-03-09 15:12:49,230 - INFO - COM1.SimpleOnOffClient: Present value is on
+    In  [16]: gc.set(True)
+    2018-03-09 15:12:49,230 - INFO - COM1.GenericOnOffClient: Present value is on
 
 ---
 

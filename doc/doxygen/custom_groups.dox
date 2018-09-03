@@ -1,10 +1,12 @@
 /**
  *
+ *
+ *
  * @defgroup MESH_API_GROUP_APP_SUPPORT Application support modules
  * Application support modules designed to abstract complexity of common tasks in the user code.
  *
  * @defgroup MESH_API_GROUP_APP_CONFIG Application configuration
- * Application specific configuration file for mesh resource requirements and parameters.
+ * Application-specific configuration file for mesh resource requirements and parameters.
  *
  * The application configuration file provides a set of defines that controls the application
  * specific parameters of the mesh framework, like company ID, element count and mesh flash area
@@ -53,6 +55,10 @@
  * Experimental Mesh features.
  *
  *
+ * @defgroup MESH_OPT Mesh options API
+ * Provides a consistent top-level API for runtime configuration options.
+ *
+ * Options are stored persistently.
  *
  *
  *
@@ -85,24 +91,38 @@
  * @ingroup MESH_API_GROUP_BEARER
  * @}
  *
- * @defgroup CONFIG_MODEL Configuration Model
- * The configuration model provides functionality that allows nodes to be configured
- * or configure other nodes.
+ *
+ * @defgroup MESH_API_GROUP_GENERIC_MODELS Generic Models
+ * Generic Models as defined in the Mesh Model Specification v1.0
  * @{
  * @ingroup MESH_API_GROUP_MODELS
  * @}
  *
- * @page LIBRARIES Libraries
+ * @defgroup MESH_API_GROUP_FOUNDATION_MODELS Foundation Models
+ * Foundation Models as defined in the Mesh Profile Specification v1.0
  * @{
- * - @subpage md_doc_libraries_flash_manager
- * - @subpage md_doc_libraries_serial
- * - @subpage md_doc_libraries_instaburst
- * - @subpage md_mesh_bootloader_README
+ * @ingroup MESH_API_GROUP_MODELS
  * @}
  *
- * @page SCRIPTS Scripts
+ * @defgroup MESH_API_GROUP_VENDOR_MODELS Vendor Models
+ * Vendor specific model(s)
  * @{
- * - @subpage md_scripts_interactive_pyaci_README
+ * @ingroup MESH_API_GROUP_MODELS
  * @}
+ *
+ * @defgroup MESH_API_GROUP_EXPERIMENTAL_MODELS Experimental Models
+ * Experimental Models with proprietary implementations
+ * @{
+ * @ingroup MESH_API_GROUP_MODELS
+ * @}
+ *
+ * @defgroup CONFIG_MODEL Configuration Model
+ * The configuration model provides functionality that allows nodes to be configured
+ * or configure other nodes.
+ * @{
+ * @ingroup MESH_API_GROUP_FOUNDATION_MODELS
+ * @}
+ *
+ *
  *
  */

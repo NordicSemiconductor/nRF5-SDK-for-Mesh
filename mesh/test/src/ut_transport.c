@@ -34,12 +34,12 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "unity.h"
-#include "cmock.h"
-#include "nordic_common.h"
-
 #include "transport.h"
 
+#include "unity.h"
+#include "cmock.h"
+
+#include "utils.h"
 #include "packet_mesh.h"
 
 #include "bearer_event_mock.h"

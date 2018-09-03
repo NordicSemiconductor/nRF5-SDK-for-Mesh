@@ -87,6 +87,7 @@
 #include "nrf_ble_qwr.h"
 #include "nrf_pwr_mgmt.h"
 #include "mesh_main.h"
+#include "mesh_app_utils.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -1176,13 +1177,13 @@ int main(void)
     services_init();
     conn_params_init();
     peer_manager_init();
-    mesh_main_init();
+    mesh_main_initialize();
 
     // Start execution.
     NRF_LOG_INFO("Proximity example started.");
     advertising_start(erase_bonds);
     tx_power_set();
-    mesh_main_start();
+    execution_start(mesh_main_start);
 
     // Enter main loop.
     for (;;)

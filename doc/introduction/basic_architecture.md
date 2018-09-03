@@ -36,7 +36,7 @@ The access layer controls the device's model composition. It holds references to
 
 *API:* \ref DEVICE_STATE_MANAGER
 
-The Device State Manager stores the encryption keys and addresses used by the mesh stack. When models are assigned application keys and publish addresses through configuration, the Device State Manager stores the raw values and provides handles for the models to use when referencing these values.
+The Device State Manager stores the encryption keys and addresses used by the mesh stack. When models get assigned application keys and publish addresses through configuration, the Device State Manager stores the raw values and provides handles for the models to use when referencing these values.
 
 The Device State Manager stores its data in persistent storage, which it can recover on bootup.
 

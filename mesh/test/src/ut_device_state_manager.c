@@ -40,7 +40,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "nordic_common.h"
+#include "utils.h"
 #include "test_assert.h"
 
 #include "bearer_event_mock.h"
@@ -53,7 +53,7 @@
 #include "net_state_mock.h"
 #include "flash_manager_mock.h"
 #include "proxy_mock.h"
-#include "nrf_mesh_opt_mock.h"
+#include "mesh_opt_core_mock.h"
 
 /* Enable this to check that the handle ordering is as expected (0..N-1). */
 #define TEST_EXPLICIT_ORDERING 1
@@ -108,7 +108,7 @@ void setUp(void)
     net_state_mock_Init();
     nrf_mesh_events_mock_Init();
     proxy_mock_Init();
-    nrf_mesh_opt_mock_Init();
+    mesh_opt_core_mock_Init();
     mp_flash_manager = NULL;
     m_add_manager_result_state = FM_STATE_READY;
     m_expected_flash_data.verify_contents = true;
@@ -143,8 +143,8 @@ void tearDown(void)
     net_state_mock_Destroy();
     nrf_mesh_events_mock_Verify();
     nrf_mesh_events_mock_Destroy();
-    nrf_mesh_opt_mock_Verify();
-    nrf_mesh_opt_mock_Destroy();
+    mesh_opt_core_mock_Verify();
+    mesh_opt_core_mock_Destroy();
     proxy_mock_Verify();
     proxy_mock_Destroy();
 }
@@ -791,17 +791,16 @@ void test_rx_addr(void)
     TEST_ASSERT_TRUE(nrf_mesh_rx_address_get(NRF_MESH_ALL_NODES_ADDR, &addr));
     TEST_ASSERT_FALSE(nrf_mesh_rx_address_get(NRF_MESH_ALL_FRIENDS_ADDR, &addr)); // friendship not supported
     TEST_ASSERT_FALSE(nrf_mesh_rx_address_get(NRF_MESH_ALL_PROXIES_ADDR, &addr)); // proxy not supported
-    nrf_mesh_opt_t opt;
-    opt.len = sizeof(opt.opt.val);
-    opt.opt.val = 1;
-    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_RELAY_ENABLE, NULL, NRF_SUCCESS);
-    nrf_mesh_opt_get_IgnoreArg_p_opt();
-    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&opt);
+    mesh_opt_core_adv_t opt;
+    opt.enabled = true;
+    mesh_opt_core_adv_get_ExpectAndReturn(CORE_TX_ROLE_RELAY, NULL, NRF_SUCCESS);
+    mesh_opt_core_adv_get_IgnoreArg_p_entry();
+    mesh_opt_core_adv_get_ReturnThruPtr_p_entry(&opt);
     TEST_ASSERT_TRUE(nrf_mesh_rx_address_get(NRF_MESH_ALL_RELAYS_ADDR, &addr));
-    opt.opt.val = 0;
-    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_RELAY_ENABLE, NULL, NRF_SUCCESS);
-    nrf_mesh_opt_get_IgnoreArg_p_opt();
-    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&opt);
+    opt.enabled = false;
+    mesh_opt_core_adv_get_ExpectAndReturn(CORE_TX_ROLE_RELAY, NULL, NRF_SUCCESS);
+    mesh_opt_core_adv_get_IgnoreArg_p_entry();
+    mesh_opt_core_adv_get_ReturnThruPtr_p_entry(&opt);
     TEST_ASSERT_FALSE(nrf_mesh_rx_address_get(NRF_MESH_ALL_RELAYS_ADDR, &addr));
 
     /* Verify that the spec defined addresses work when calling is_rx as well */
@@ -811,17 +810,16 @@ void test_rx_addr(void)
     TEST_ASSERT_FALSE(dsm_address_is_rx(&all_friends)); // friendship not supported
     nrf_mesh_address_t all_proxies = {NRF_MESH_ADDRESS_TYPE_GROUP, NRF_MESH_ALL_PROXIES_ADDR};
     TEST_ASSERT_FALSE(dsm_address_is_rx(&all_proxies)); // proxy not supported
-    opt.len = sizeof(opt.opt.val);
-    opt.opt.val = 1;
     nrf_mesh_address_t all_relays = {NRF_MESH_ADDRESS_TYPE_GROUP, NRF_MESH_ALL_RELAYS_ADDR};
-    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_RELAY_ENABLE, NULL, NRF_SUCCESS);
-    nrf_mesh_opt_get_IgnoreArg_p_opt();
-    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&opt);
+    opt.enabled = true;
+    mesh_opt_core_adv_get_ExpectAndReturn(CORE_TX_ROLE_RELAY, NULL, NRF_SUCCESS);
+    mesh_opt_core_adv_get_IgnoreArg_p_entry();
+    mesh_opt_core_adv_get_ReturnThruPtr_p_entry(&opt);
     TEST_ASSERT_TRUE(dsm_address_is_rx(&all_relays));
-    opt.opt.val = 0;
-    nrf_mesh_opt_get_ExpectAndReturn(NRF_MESH_OPT_NET_RELAY_ENABLE, NULL, NRF_SUCCESS);
-    nrf_mesh_opt_get_IgnoreArg_p_opt();
-    nrf_mesh_opt_get_ReturnThruPtr_p_opt(&opt);
+    opt.enabled = false;
+    mesh_opt_core_adv_get_ExpectAndReturn(CORE_TX_ROLE_RELAY, NULL, NRF_SUCCESS);
+    mesh_opt_core_adv_get_IgnoreArg_p_entry();
+    mesh_opt_core_adv_get_ReturnThruPtr_p_entry(&opt);
     TEST_ASSERT_FALSE(dsm_address_is_rx(&all_relays));
 
     //TODO: Test sublist overflow

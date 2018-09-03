@@ -203,7 +203,7 @@ adv_packet_t * advertiser_packet_alloc(advertiser_t * p_adv, uint32_t adv_payloa
 void advertiser_packet_send(advertiser_t * p_adv, adv_packet_t * p_packet);
 
 /**
- * Discard an allocated advertisement packet. The packet memory will be freed, and all contents
+ * Discards an allocated advertisement packet. The packet memory will be freed, and all contents
  * will be lost.
  *
  * @param[in,out] p_adv Advertiser owning the packet to discard.
@@ -212,7 +212,7 @@ void advertiser_packet_send(advertiser_t * p_adv, adv_packet_t * p_packet);
 void advertiser_packet_discard(advertiser_t * p_adv, adv_packet_t * p_packet);
 
 /**
- * Update the advertiser configuration.
+ * Updates the advertiser configuration.
  *
  * @note           The defaults will be already set on @ref advertiser_init, to see what the
  *                 defaults are see @ref advertiser_config_t.
@@ -231,7 +231,7 @@ void advertiser_config_set(advertiser_t * p_adv, const advertiser_config_t * p_c
 void advertiser_config_get(const advertiser_t * p_adv, advertiser_config_t * p_config);
 
 /**
- * Set advertiser channels used by the given advertiser instance.
+ * Sets the advertiser channels used by the given advertiser instance.
  *
  * @param[in,out] p_adv Advertiser instance to configure.
  * @param[in] p_channels New channel configuration.
@@ -239,7 +239,7 @@ void advertiser_config_get(const advertiser_t * p_adv, advertiser_config_t * p_c
 void advertiser_channels_set(advertiser_t * p_adv, const advertiser_channels_t * p_channels);
 
 /**
- * Set advertiser address used by the given advertiser instance.
+ * Sets the advertiser address used by the given advertiser instance.
  *
  * @note Only @c BLE_GAP_ADDR_TYPE_PUBLIC and @c BLE_GAP_ADDR_TYPE_RANDOM_STATIC address types
  * are supported. The advertisement address may be altered to ensure Bluetooth Core Specification v4.0
@@ -251,7 +251,18 @@ void advertiser_channels_set(advertiser_t * p_adv, const advertiser_channels_t *
 void advertiser_address_set(advertiser_t * p_adv, const ble_gap_addr_t * p_addr);
 
 /**
- * Set the advertisement interval for the given advertiser.
+ * Gets the advertiser address used by the given advertiser instance.
+ *
+ * @param[in]  p_adv  Advertiser instance pointer.
+ * @param[out] p_addr GAP address pointer to write the address.
+ */
+static inline void advertiser_address_get(const advertiser_t * p_adv, ble_gap_addr_t * p_addr)
+{
+    memcpy(p_addr, &p_adv->config.adv_addr, sizeof(ble_gap_addr_t));
+}
+
+/**
+ * Sets the advertisement interval for the given advertiser.
  *
  * @param[in,out] p_adv Advertiser to configure.
  * @param[in] interval_ms Advertisement interval in milliseconds.
@@ -259,7 +270,19 @@ void advertiser_address_set(advertiser_t * p_adv, const ble_gap_addr_t * p_addr)
 void advertiser_interval_set(advertiser_t * p_adv, uint32_t interval_ms);
 
 /**
- * Set the TX power for the given advertiser.
+ * Gets the given advertiser's advertisement interval.
+ *
+ * @param[in] p_adv Advertiser instance pointer.
+ *
+ * @returns Advertisement interval in milliseconds.
+ */
+static inline uint32_t advertiser_interval_get(const advertiser_t * p_adv)
+{
+    return US_TO_MS(p_adv->config.advertisement_interval_us);
+}
+
+/**
+ * Sets the TX power for the given advertiser.
  *
  * @param[in,out] p_adv Advertiser to configure.
  * @param[in] tx_power New TX power.
@@ -267,7 +290,19 @@ void advertiser_interval_set(advertiser_t * p_adv, uint32_t interval_ms);
 void advertiser_tx_power_set(advertiser_t * p_adv, radio_tx_power_t tx_power);
 
 /**
- * Flush the given advertiser's packet queue.
+ * Gets the TX power for the given advertiser.
+ *
+ * @param[in] p_adv Advertiser instance pointer.
+ *
+ * @returns the TX power value.
+ */
+static inline radio_tx_power_t advertiser_tx_power_get(const advertiser_t * p_adv)
+{
+    return p_adv->broadcast.params.radio_config.tx_power;
+}
+
+/**
+ * Flushes the given advertiser's packet queue.
  *
  * @warning If called in the middle of a transmission, the ongoing transmission will finish, and
  * produce a TX-complete event, potentially after the call to this function returns.
@@ -280,11 +315,23 @@ void advertiser_tx_power_set(advertiser_t * p_adv, radio_tx_power_t tx_power);
 void advertiser_flush(advertiser_t * p_adv);
 
 /**
- * Get the default advertisement address from device factory information structure.
+ * Gets the default advertisement address from device factory information structure.
  *
  * @param[in,out] p_addr Address structure to return the address in.
  */
 void advertiser_address_default_get(ble_gap_addr_t * p_addr);
+
+/**
+ * Checks if an advertiser is enabled.
+ *
+ * @param[in] p_adv Advertiser instance pointer.
+ *
+ * @returns @c true if the given advertiser is enabled.
+ */
+static inline bool advertiser_is_enabled(const advertiser_t * p_adv)
+{
+    return p_adv->enabled;
+}
 
 /** @} */
 

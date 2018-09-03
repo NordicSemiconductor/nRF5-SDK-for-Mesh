@@ -705,17 +705,20 @@ uint32_t nrf_mesh_dfu_init(void)
 
     mp_curr_fwid = &fwid_cmd.params.info.get.p_entry->version;
 
+    mesh_flash_user_callback_set(MESH_FLASH_USER_DFU, flash_op_complete);
+
+    m_transfer_state.state = NRF_MESH_DFU_STATE_INITIALIZED;
+    return error_code;
+}
+
+uint32_t nrf_mesh_dfu_enable(void)
+{
     bl_cmd_t enable_cmd =
     {
         .type = BL_CMD_TYPE_ENABLE,
         .params = {{0}}
     };
-    error_code = nrf_mesh_dfu_cmd_send(&enable_cmd);
-
-    mesh_flash_user_callback_set(MESH_FLASH_USER_DFU, flash_op_complete);
-
-    m_transfer_state.state = NRF_MESH_DFU_STATE_INITIALIZED;
-    return error_code;
+    return nrf_mesh_dfu_cmd_send(&enable_cmd);
 }
 
 uint32_t nrf_mesh_dfu_jump_to_bootloader(void)

@@ -50,8 +50,8 @@ The nRF5 SDK for Mesh documentation is organized as follows:
   - @ref index : Information providing an overview of nRF5 SDK for Mesh
   - @ref md_doc_getting_started_getting_started : Tutorials describing how to perform common tasks
   such as installing toolchain, building the stack and examples, how to perform DFU, etc.
-  - @ref LIBRARIES : Libraries implementing common tasks in an application using nRF5 SDK for Mesh
-  - @ref SCRIPTS : The Interactive Python Application Controller Interface documentation
+  - @ref md_doc_libraries_libraries : Libraries implementing common tasks in an application using nRF5 SDK for Mesh
+  - @ref md_scripts_README : The Interactive Python Application Controller Interface documentation
   - @ref md_examples_README : nRF5 SDK for Mesh example applications
   - @link_APIref : The API documentation
   - @link_Structref : Documentation for the data structures and data fields used by the APIs

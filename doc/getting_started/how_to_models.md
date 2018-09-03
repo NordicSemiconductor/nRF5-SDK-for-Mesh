@@ -79,12 +79,12 @@ state.
 
 The following table shows the opcodes that are supported by this model:
 
-| Name               | Definition                             | Opcode       | Description                   | Parameter     | Parameter size |
-| ------------------ | ---------------------------------------| ------------:| ----------------------------- | ------------- | --------------:|
-| SET                | `SIMPLE_ON_OFF_OPCODE_SET`             |         0xc1 | Sets the current on/off state | New state     |         1 byte |
-| GET                | `SIMPLE_ON_OFF_OPCODE_GET`             |         0xc2 | Gets the current on/off state | N/A           |   No parameter |
-| SET UNRELIABLE     | `SIMPLE_ON_OFF_OPCODE_SET_UNRELIABLE`  |         0xc3 | Sets the current on/off state | New state     |         1 byte |
-| Status             | `SIMPLE_ON_OFF_OPCODE_STATUS`          |         0xc4 | Contains the current state    | Current state |         1 byte |
+| Name               | Definition                               | Opcode       | Description                   | Parameter     | Parameter size |
+| ------------------ | -----------------------------------------| ------------:| ----------------------------- | ------------- | --------------:|
+| SET                | `::SIMPLE_ON_OFF_OPCODE_SET`             |         0xc1 | Sets the current on/off state | New state     |         1 byte |
+| GET                | `::SIMPLE_ON_OFF_OPCODE_GET`             |         0xc2 | Gets the current on/off state | N/A           |   No parameter |
+| SET UNRELIABLE     | `::SIMPLE_ON_OFF_OPCODE_SET_UNRELIABLE`  |         0xc3 | Sets the current on/off state | New state     |         1 byte |
+| Status             | `::SIMPLE_ON_OFF_OPCODE_STATUS`          |         0xc4 | Contains the current state    | Current state |         1 byte |
 
 The opcodes sent on-air are *three bytes* for the vendor-specific models. The
 complete opcode is the combination of the vendor-specific opcode and the company identifier. For more
@@ -107,8 +107,8 @@ to check the error codes returned from all API functions to prevent easily avoid
 from entering your application.
 
 If you want to explore a complete model implementation using the same basic layout as described
-in this guide, take a look at the @ref md_models_simple_on_off_README implementation
-in `examples/models/simple_on_off`.
+in this guide, take a look at the @ref md_models_vendor_simple_on_off_README implementation
+in `models/vendor/simple_on_off`.
 In addition, if you want to see it integrated into a complete application, take a look at
 the @ref md_examples_light_switch_README in the `examples/light_switch` directory.
 
@@ -163,8 +163,8 @@ typedef void (*access_opcode_handler_cb_t)(access_model_handle_t handle,
 
 
 
-We need three opcode handlers in the server to handle `SIMPLE_ON_OFF_OPCODE_GET`,
-`SIMPLE_ON_OFF_OPCODE_SET`, and `SIMPLE_ON_OFF_OPCODE_SET_UNRELIABLE` messages. Each of
+We need three opcode handlers in the server to handle `::SIMPLE_ON_OFF_OPCODE_GET`,
+`::SIMPLE_ON_OFF_OPCODE_SET`, and `::SIMPLE_ON_OFF_OPCODE_SET_UNRELIABLE` messages. Each of
 these opcode handlers will call the corresponding user callback function from the context
 structure. This context structure gets passed to the opcode handlers via the `p_args` parameter.
 
@@ -209,7 +209,7 @@ static void handle_set_unreliable_cb(access_model_handle_t handle, const access_
 }
 ```
 
-The `reply_status()` function sends the value of the current state in an `SIMPLE_ON_OFF_OPCODE_STATUS`
+The `reply_status()` function sends the value of the current state in an `::SIMPLE_ON_OFF_OPCODE_STATUS`
 message as a reply to the client using the `access_model_reply()` API.
 This API requires certain parameters to send the message correctly, which is why it has been wrapped
 in `send_reply()`. Implement `send_reply()` like this:
@@ -279,7 +279,7 @@ uint32_t simple_on_off_server_init(simple_on_off_server_t * p_server, uint16_t e
 ```
 
 You now have the basic skeleton of a simple OnOff server model, which can be expanded
-or tweaked to produce more complex server models. See `examples/models/simple_on_off/` for the
+or tweaked to produce more complex server models. See `models/vendor/simple_on_off/` for the
 complete code of this model.
 
 ### The client model
@@ -298,9 +298,9 @@ Therefore, a client should perform only one transaction at a time with its corre
 
 The client model uses a callback function to provide information about the state of the server to
 the user application. If the server does not reply within a given time frame, it will notify the
-user application with the error code `SIMPLE_ON_OFF_STATUS_ERROR_NO_REPLY`.
+user application with the error code `::SIMPLE_ON_OFF_STATUS_ERROR_NO_REPLY`.
 
-The following code snippet shows the status codes (`simple_on_off_status_t`) and the context
+The following code snippet shows the status codes (`::simple_on_off_status_t`) and the context
 structure (`simple_on_off_client_t`) needed for this model:
 
 ```C
@@ -484,7 +484,7 @@ uint32_t simple_on_off_client_get(simple_on_off_client_t * p_client)
 }
 ```
 
-To process the reply message, we need to add an opcode handler for the `SIMPLE_ON_OFF_OPCODE_STATUS`
+To process the reply message, we need to add an opcode handler for the `::SIMPLE_ON_OFF_OPCODE_STATUS`
 opcode. All incoming messages, even when they are a reply to a message that was sent from the node,
 need an opcode handler to be processed. This snippet shows the opcode handler implementation and
 defines the opcode handler lookup table for the client model:

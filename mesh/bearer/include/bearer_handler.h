@@ -41,7 +41,6 @@
 #include <stdbool.h>
 #include "timer.h"
 #include "queue.h"
-#include "nordic_common.h"
 #include "nrf_mesh_config_bearer.h"
 
 /**

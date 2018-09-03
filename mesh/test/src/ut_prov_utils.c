@@ -38,14 +38,14 @@
 #include <unity.h>
 #include <cmock.h>
 
-#include "nordic_common.h"
+#include "utils.h"
 #include "prov_utils.h"
 #include "test_assert.h"
 
 #include "enc_mock.h"
 #include "uECC_mock.h"
 #include "rand_mock.h"
-#include "nordic_common.h"
+#include "mesh_config_entry.h"
 
 typedef struct
 {
@@ -54,6 +54,19 @@ typedef struct
 } oob_method_and_action_pair_t;
 
 static nrf_mesh_prov_ctx_t m_ctx;
+
+extern mesh_config_entry_params_t m_ecdh_offloading_params;
+
+uint32_t mesh_config_entry_set(mesh_config_entry_id_t id, const void * p_entry)
+{
+    return m_ecdh_offloading_params.callbacks.setter(id, p_entry);
+}
+
+uint32_t mesh_config_entry_get(mesh_config_entry_id_t id, void * p_entry)
+{
+    m_ecdh_offloading_params.callbacks.getter(id, p_entry);
+    return NRF_SUCCESS;
+}
 
 /* Simple integer power function. Converting between integers and floats can cause rounding errors. */
 static uint32_t pow__(uint32_t num, uint8_t p)

@@ -44,7 +44,7 @@
 #include "flash_manager_internal.h"
 #include "flash_manager_test_util.h"
 
-#include "nordic_common.h"
+#include "utils.h"
 
 #define DEFAULT_MANAGER(AREA, PAGE_COUNT)       \
     {                                           \

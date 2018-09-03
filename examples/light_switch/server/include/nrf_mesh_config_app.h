@@ -133,7 +133,7 @@
 /** Maximum number of virtual addresses. */
 #define DSM_VIRTUAL_ADDR_MAX                            (1)
 /** Maximum number of non-virtual addresses.
- * - Simple OnOff publication
+ * - Generic OnOff publication
  * - Health publication
  * - Subscription address
  */
@@ -141,7 +141,6 @@
 /** Number of flash pages reserved for the DSM storage */
 #define DSM_FLASH_PAGE_COUNT                            (1)
 /** @} end of DSM_CONFIG */
-
 
 /** @} */
 

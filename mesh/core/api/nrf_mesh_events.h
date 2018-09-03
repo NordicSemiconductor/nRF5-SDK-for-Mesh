@@ -42,6 +42,7 @@
 #include "nrf_mesh.h"
 #include "nrf_mesh_dfu_types.h"
 #include "list.h"
+#include "mesh_config.h"
 
 /**
  * @defgroup NRF_MESH_EVENTS Mesh events
@@ -88,7 +89,13 @@ typedef enum
     /** SAR session failed. */
     NRF_MESH_EVT_SAR_FAILED,
     /** Flash has malfunctioned. */
-    NRF_MESH_EVT_FLASH_FAILED
+    NRF_MESH_EVT_FLASH_FAILED,
+    /** Mesh config persistent storage is stable */
+    NRF_MESH_EVT_CONFIG_STABLE,
+    /** Mesh config persistent storage failed catastrophically while storing */
+    NRF_MESH_EVT_CONFIG_STORAGE_FAILURE,
+    /** Mesh config persistent storage failed while loading an entry */
+    NRF_MESH_EVT_CONFIG_LOAD_FAILURE
 } nrf_mesh_evt_type_t;
 
 /**
@@ -253,7 +260,7 @@ typedef enum
     /** The transport SAR session timed out. */
     NRF_MESH_SAR_CANCEL_REASON_TIMEOUT,
     /** The transport SAR session TX retry limit was exceeded. */
-    NRF_MESH_SAR_CANCEL_REASON_RETRY,
+    NRF_MESH_SAR_CANCEL_REASON_RETRY_OVER,
     /** There were not enough resources to process the transport SAR session. */
     NRF_MESH_SAR_CANCEL_REASON_NO_MEM,
     /** The peer has cancelled the SAR session */
@@ -302,6 +309,19 @@ typedef struct
     uint32_t page_count;
 } nrf_mesh_evt_flash_failed_t;
 
+typedef struct
+{
+    mesh_config_entry_id_t id; /**< ID being stored when the storage failure occured. */
+} nrf_mesh_evt_config_storage_failure_t;
+
+typedef struct
+{
+    mesh_config_load_failure_t reason; /**< Reason for the load failure */
+    mesh_config_entry_id_t id;         /**< ID being loaded when the load failure occured. */
+    const void * p_data;               /**< Failing data. */
+    uint32_t data_len;                 /**< Length of the failing data. */
+} nrf_mesh_evt_config_load_failure_t;
+
 /**
  * Mesh event structure.
  */
@@ -333,6 +353,10 @@ typedef struct
         nrf_mesh_evt_sar_failed_t               sar_failed;
         /** Flash failed event */
         nrf_mesh_evt_flash_failed_t             flash_failed;
+        /** Config storage failure event */
+        nrf_mesh_evt_config_storage_failure_t   config_storage_failure;
+        /** Config load failure event */
+        nrf_mesh_evt_config_load_failure_t      config_load_failure;
     } params;
 } nrf_mesh_evt_t;
 

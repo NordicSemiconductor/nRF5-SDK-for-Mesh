@@ -53,10 +53,12 @@
 #include "net_state_mock.h"
 #include "event_mock.h"
 #include "advertiser_mock.h"
+#include "mesh_config_entry_mock.h"
 
-#include "nordic_common.h"
+#include "utils.h"
 #include "test_assert.h"
 #include "nrf_mesh_events.h"
+#include "mesh_opt_core.h"
 
 typedef struct
 {
@@ -119,13 +121,14 @@ static uint32_t m_time_now;
 static advertiser_t * mp_adv;
 static advertiser_tx_complete_cb_t m_tx_complete_cb;
 
+extern const mesh_config_entry_params_t m_net_beacon_enable_params;
+
 void setUp(void)
 {
     mp_expected_net_id = NULL;
     m_info_index = 0;
     m_info_count = 0;
     mpp_infos = NULL;
-    m_timer_cb = NULL;
     m_time_now = 0;
     beacon_mock_Init();
     net_state_mock_Init();
@@ -134,6 +137,7 @@ void setUp(void)
     enc_mock_Init();
     event_mock_Init();
     advertiser_mock_Init();
+    mesh_config_entry_mock_Init();
 }
 
 void tearDown(void)
@@ -152,6 +156,8 @@ void tearDown(void)
     event_mock_Destroy();
     advertiser_mock_Verify();
     advertiser_mock_Destroy();
+    mesh_config_entry_mock_Verify();
+    mesh_config_entry_mock_Destroy();
 }
 
 void nrf_mesh_beacon_info_next_get(const uint8_t * p_network_id, const nrf_mesh_beacon_info_t ** pp_beacon_info,
@@ -208,7 +214,13 @@ static void advertiser_instance_init_cb(advertiser_t * p_adv, advertiser_tx_comp
     m_tx_complete_cb = tx_cb;
 }
 
-void setup_module(void)
+static void advertiser_enable_cb(advertiser_t * p_adv, int calls)
+{
+    TEST_ASSERT_EQUAL(p_adv, mp_adv);
+    TEST_ASSERT_TRUE(calls == 0);
+}
+
+static void setup_module(void)
 {
     m_rand_value = 123456789; // larger than the beacon interval
     rand_hw_rng_get_Expect(NULL, 4);
@@ -223,9 +235,10 @@ void setup_module(void)
     advertiser_instance_init_StubWithCallback(advertiser_instance_init_cb);
     advertiser_interval_set_Expect(NULL, 1000);
     advertiser_interval_set_IgnoreArg_p_adv();
-    advertiser_enable_ExpectAnyArgs();
+    advertiser_enable_StubWithCallback(advertiser_enable_cb);
 
     net_beacon_init();
+    net_beacon_enable();
     TEST_ASSERT_NOT_NULL(m_timer_cb);
     TEST_ASSERT_NOT_NULL(mp_adv);
 }
@@ -511,29 +524,57 @@ void test_pkt_in_multi(void)
 
 void test_beacon_state_change(void)
 {
+    mesh_config_entry_id_t entry_id = MESH_OPT_CORE_SEC_NWK_BCN_EID;
+    bool get_state;
+    bool set_state;
+
+    TEST_ASSERT_NOT_NULL(m_net_beacon_enable_params.callbacks.getter);
+    TEST_ASSERT_NOT_NULL(m_net_beacon_enable_params.callbacks.setter);
+    TEST_ASSERT_NULL(m_net_beacon_enable_params.callbacks.deleter);
+
     setup_module();
-    TEST_ASSERT_EQUAL(true, net_beacon_state_get());
+    m_net_beacon_enable_params.callbacks.getter(entry_id, &get_state);
+    TEST_ASSERT_EQUAL(true, get_state);
 
     /* Enable the beacon while already enabled: */
-    net_beacon_state_set(true);
-    TEST_ASSERT_EQUAL(true, net_beacon_state_get());
+    set_state = true;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, m_net_beacon_enable_params.callbacks.setter(entry_id, &set_state));
+    m_net_beacon_enable_params.callbacks.getter(entry_id, &get_state);
+    TEST_ASSERT_EQUAL(true, get_state);
 
     /* Disable the beacon while running: */
     timer_sch_abort_Expect(NULL);
     timer_sch_abort_IgnoreArg_p_timer_evt();
-    net_beacon_state_set(false);
-    TEST_ASSERT_EQUAL(false, net_beacon_state_get());
+    set_state = false;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, m_net_beacon_enable_params.callbacks.setter(entry_id, &set_state));
+    m_net_beacon_enable_params.callbacks.getter(entry_id, &get_state);
+    TEST_ASSERT_EQUAL(false, get_state);
 
     /* Disable the beacon while already disabled: */
-    net_beacon_state_set(false);
-    TEST_ASSERT_EQUAL(false, net_beacon_state_get());
+    set_state = false;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, m_net_beacon_enable_params.callbacks.setter(entry_id, &set_state));
+    m_net_beacon_enable_params.callbacks.getter(entry_id, &get_state);
+    TEST_ASSERT_EQUAL(false, get_state);
 
     /* Enable the beacon while disabled: */
     timer_now_ExpectAndReturn(1000);
     timer_sch_reschedule_Expect(NULL, 0);
     timer_sch_reschedule_IgnoreArg_p_timer_evt();
     timer_sch_reschedule_IgnoreArg_new_timestamp();
+    set_state = true;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, m_net_beacon_enable_params.callbacks.setter(entry_id, &set_state));
+    m_net_beacon_enable_params.callbacks.getter(entry_id, &get_state);
+    TEST_ASSERT_EQUAL(true, get_state);
+
+    /* Check high level interface */
+    mesh_config_entry_set_ExpectAndReturn(MESH_OPT_CORE_SEC_NWK_BCN_EID, NULL, NRF_SUCCESS);
+    mesh_config_entry_set_IgnoreArg_p_entry();
     net_beacon_state_set(true);
+
+    bool retval = true;
+    mesh_config_entry_get_ExpectAndReturn(MESH_OPT_CORE_SEC_NWK_BCN_EID, NULL, NRF_SUCCESS);
+    mesh_config_entry_get_IgnoreArg_p_entry();
+    mesh_config_entry_get_ReturnThruPtr_p_entry(&retval);
     TEST_ASSERT_EQUAL(true, net_beacon_state_get());
 }
 

@@ -40,7 +40,7 @@
 #include <unity.h>
 #include <cmock.h>
 
-#include "nordic_common.h"
+#include "utils.h"
 #include "test_assert.h"
 
 #include "bearer_event_mock.h"

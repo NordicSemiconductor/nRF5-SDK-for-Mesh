@@ -1,0 +1,35 @@
+msc {
+    hscale="2.0";
+    u [label="User"],
+    m [label="Mesh config"],
+    s [label="State owner"],
+    l [label="Change listener"],
+    b [label="Backend"];
+
+
+    u => m [label="mesh_config_load()"];
+    m => b [label="load()"];
+
+    m <- b [label="found_entry(ID=1, value=5)"];
+    m => s [label="setter_callback(ID=1, value=5)"];
+    m <- s [label="NRF_SUCCESS"];
+    |||;
+
+    m <- b [label="found_entry(ID=4, value=2)"];
+    m => s [label="setter_callback(ID=4, value=2)"];
+    m <- s [label="NRF_SUCCESS"];
+    |||;
+
+    m <- b [label="found_entry(ID=3, value=INVALID)"];
+    m => s [label="setter_callback(ID=3, value=INVALID)"];
+    m <- s [label="NRF_ERROR_INVALID_DATA"],
+    u << m [label="NRF_MESH_EVT_CONFIG_LOAD_FAILURE (ID=3)"];
+    |||;
+
+    m <- b [label="found_entry(ID=2, value=7)"];
+    m => s [label="setter_callback(ID=2, value=7)"];
+    m <- s [label="NRF_SUCCESS"];
+    |||;
+
+    u <- m [label="NRF_SUCCESS"];
+}

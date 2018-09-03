@@ -40,7 +40,7 @@
 #include <unity.h>
 #include <cmock.h>
 
-#include "nordic_common.h"
+#include "utils.h"
 
 #include "access_mock.h"
 #include "access_config_mock.h"

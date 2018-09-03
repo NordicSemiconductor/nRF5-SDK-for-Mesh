@@ -47,17 +47,24 @@ Let's store them in some variables:
     In [6]: publish_handle = 0
     In [7]: appkey_handle = 0
 
+Let's define some variables for `ttl`, `force_segmented` and `transmic_size` parameters of `PacketSend()`
+API. We can use these variables while sending packets between the devices.
+
+    In [8]: ttl = 1
+    In [9]: segmented = 0
+    In [10]: mic_size = 0
 
 Next, we test out sending a message between the devices:
 
-    In [8]: d[0].send(cmd.PacketSend(appkey_handle, d[0].local_unicast_adress_start, publish_handle, 1, 0, "Hello World"))
+    In [11]: d[0].send(cmd.PacketSend(appkey_handle, d[0].local_unicast_adress_start, publish_handle, ttl, segmented, mic_size, "Hello World"))
     2017-08-02 10:15:18,073 - INFO - ttyACM0: Success
     2017-08-02 10:15:18,092 - INFO - ttyACM1: {event: MeshMessageReceivedUnicast, data: {'actual_length': 11, 'adv_addr_type': 1,            \
                                                'adv_addr': bytearray(b'\xe9\x04/\xcc\xcf\xf7'), 'src': 1, 'data': bytearray(b'Hello World'), \
                                                'rssi': 14, 'subnet_handle': 0, 'appkey_handle': 0, 'dst': 2, 'ttl': 1}}
 
-    In [9]: d[1].send(cmd.PacketSend(appkey_handle, d[1].local_unicast_adress_start, publish_handle, 1, 0, "Hi there"))
+    In [12]: d[1].send(cmd.PacketSend(appkey_handle, d[1].local_unicast_adress_start, publish_handle, ttl, segmented, mic_size, "Hi there"))
     2017-08-02 10:15:42,806 - INFO - ttyACM1: Success
     2017-08-02 10:15:42,837 - INFO - ttyACM0: {event: MeshMessageReceivedUnicast, data: {'actual_length': 8, 'adv_addr_type': 1,           \
                                                'adv_addr': bytearray(b'\xd6\x89\x1c\x8d\r\xd7'), 'src': 2, 'data': bytearray(b'Hi there'), \
                                                'rssi': 14, 'subnet_handle': 0, 'appkey_handle': 0, 'dst': 1, 'ttl': 1}}
+

@@ -20,10 +20,12 @@ msc {
 
     ---  [label="Start of Provisioning"];
     b->c [label="Provisioning invite"];
+    c->d [label="NRF_MESH_EVT_PROV_INVITE_RECEIVED"];
     c->b [label="Provisioning capabilities(OOB methods)"];
     b->a [label="NRF_MESH_EVT_PROV_CAPS_RECEIVED"];
     a=>b [label="nrf_mesh_prov_oob_use()"];
     b->c [label="Provisioning start(OOB method)"];
+    c->d [label="NRF_MESH_EVT_PROV_START_RECEIVED"];
 
     ---  [label="Key Exchange and Authentication (static)"];
     b->c [label="Public key"];

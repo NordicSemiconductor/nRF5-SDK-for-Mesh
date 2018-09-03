@@ -18,6 +18,11 @@ The following table lists the required tools to work with the nRF5 SDK for Mesh:
  | <a href="https://www.python.org/downloads/" target="_blank">Python 2.7</a>                                                                                                                                 | 2.7                           | Only needed for DFU. See note about Python below |
  | <a href="https://www.python.org/downloads/" target="_blank">Python 3</a>                                                                                                                                   | 3.5.1.32                      | Must be 32-bit for `nrfjprog` DLL to work        |
 
+> **Important:** For Debian/Ubuntu, you must reload the udev rules after installing the nRF5x Command Line Tools:
+>
+>     $ sudo udevadm control --reload
+>     $ sudo udevadm trigger --action=add
+
 In addition to these tools, a build environment is needed.
 The nRF5 SDK for Mesh supports both CMake and SEGGER Embedded Studio.
 You only need to install one of them.
