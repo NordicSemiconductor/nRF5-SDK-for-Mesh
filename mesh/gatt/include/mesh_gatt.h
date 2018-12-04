@@ -44,7 +44,7 @@
 #include "sdk_config.h"
 
 /**
- * @defgroup MESH_GATT Generic GATT interface for Mesh
+ * @defgroup MESH_GATT Generic GATT interface for Mesh (experimental)
  * @{
  */
 

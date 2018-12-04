@@ -59,6 +59,8 @@
 #include "bearer_event.h"
 #include "bearer_defines.h"
 
+#include "log.h"
+
 /* ******************* Definitions ******************* */
 
 /** Invalid pool index. */
@@ -67,10 +69,12 @@
 typedef struct
 {
     access_reliable_t params;
-    uint32_t next_timeout;
+    timestamp_t next_timeout;
     uint32_t interval;
     bool in_use;
 } access_reliable_ctx_t;
+
+static uint32_t calculate_interval(const access_reliable_t * p_message);
 
 /* ******************* Static asserts ******************* */
 
@@ -115,17 +119,27 @@ static void reliable_timer_cb(timestamp_t timestamp, void * p_context)
         }
         else if (TIMER_OLDER_THAN(m_reliable.pool[i].next_timeout, timestamp))
         {
-            uint32_t status = access_model_publish(m_reliable.pool[i].params.model_handle, &m_reliable.pool[i].params.message);
             m_reliable.next_timeout_index = i;
-            if (NRF_SUCCESS == status)
+
+            uint32_t status = access_model_publish(m_reliable.pool[i].params.model_handle, &m_reliable.pool[i].params.message);
+
+            if (status != NRF_SUCCESS)
+            {
+                __LOG(LOG_SRC_ACCESS, LOG_LEVEL_DBG1, "[er%d] <= access_model_publish()\n", status);
+            }
+
+            if (NRF_SUCCESS == status ||
+                NRF_ERROR_INVALID_STATE == status)
             {
                 m_reliable.pool[i].next_timeout += m_reliable.pool[i].interval;
                 m_reliable.pool[i].interval *= ACCESS_RELIABLE_BACK_OFF_FACTOR;
             }
-            else if (NRF_ERROR_NO_MEM == status)
+            else if (NRF_ERROR_NO_MEM == status ||
+                     NRF_ERROR_FORBIDDEN == status)
             {
-                /* If there is no more memory available, we might as well cancel the rest and set
-                 * the timer to fire in ACCESS_RELIABLE_RETRY_DELAY. */
+                /* If there is no more memory available (NRF_ERROR_NO_MEM) or we cannot allocate
+                 * sequence numbers right now (NRF_ERROR_FORBIDDEN), we might as well cancel the
+                 * rest and set the timer to fire in ACCESS_RELIABLE_RETRY_DELAY. */
                 m_reliable.pool[i].next_timeout += ACCESS_RELIABLE_RETRY_DELAY;
                 break;
             }

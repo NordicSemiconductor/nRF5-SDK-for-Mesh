@@ -614,3 +614,71 @@ void test_buffer_pop_padding(void)
     TEST_ASSERT_EQUAL(NRF_SUCCESS, packet_buffer_pop(&buf, &p_buf));
     TEST_ASSERT_EQUAL(&data[0], p_buf); // should have popped the packet at the beginning of the buffer, skipping the padding.
 }
+
+void test_is_empty(void)
+{
+    packet_buffer_t my_pacman;
+    packet_buffer_packet_t * p_reserve_packet;
+    packet_buffer_packet_t * p_pop_packet;
+    const uint32_t packet_size = 16;
+
+    packet_buffer_init(&my_pacman, memory_block, MEM_BLOCK_SIZE);
+
+    // Should only be empty when there are no packets in the pipeline:
+    TEST_ASSERT_TRUE(packet_buffer_is_empty(&my_pacman));
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, packet_buffer_reserve(&my_pacman, &p_reserve_packet, packet_size));
+    TEST_ASSERT_FALSE(packet_buffer_is_empty(&my_pacman));
+
+    packet_buffer_commit(&my_pacman, p_reserve_packet, p_reserve_packet->size);
+    TEST_ASSERT_FALSE(packet_buffer_is_empty(&my_pacman));
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, packet_buffer_pop(&my_pacman, &p_pop_packet));
+    TEST_ASSERT_FALSE(packet_buffer_is_empty(&my_pacman));
+
+    packet_buffer_free(&my_pacman, p_pop_packet);
+    TEST_ASSERT_TRUE(packet_buffer_is_empty(&my_pacman));
+
+    // Verify that padding doesn't cause false positives - First verify that we've chosen a packet size that generates padding:
+    TEST_ASSERT_NOT_EQUAL(0, ALIGN_VAL(sizeof(packet_buffer_packet_t) + packet_size, WORD_SIZE) % MEM_BLOCK_SIZE);
+
+    // Setup the queue to actually have some padding:
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, packet_buffer_reserve(&my_pacman, &p_reserve_packet, packet_size));
+    packet_buffer_commit(&my_pacman, p_reserve_packet, p_reserve_packet->size);
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, packet_buffer_reserve(&my_pacman, &p_reserve_packet, packet_size));
+    packet_buffer_commit(&my_pacman, p_reserve_packet, p_reserve_packet->size);
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, packet_buffer_pop(&my_pacman, &p_pop_packet));
+    packet_buffer_free(&my_pacman, p_pop_packet);
+
+    do
+    {
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, packet_buffer_reserve(&my_pacman, &p_reserve_packet, packet_size));
+        packet_buffer_commit(&my_pacman, p_reserve_packet, p_reserve_packet->size);
+        TEST_ASSERT_FALSE(packet_buffer_is_empty(&my_pacman));
+    } while (p_reserve_packet != (packet_buffer_packet_t *) &memory_block[0]);
+
+    // The packet reserve is now at the front of the buffer.
+
+    // Since we freed one packet at the beginning, we should now be filling the buffer completely:
+    TEST_ASSERT_EQUAL(NRF_ERROR_NO_MEM, packet_buffer_reserve(&my_pacman, &p_reserve_packet, packet_size));
+
+    // Spin until we catch up with the head:
+
+    while (packet_buffer_pop(&my_pacman, &p_pop_packet) != NRF_ERROR_NOT_FOUND)
+    {
+        // Should be non-empty all the way:
+        TEST_ASSERT_FALSE(packet_buffer_is_empty(&my_pacman));
+        packet_buffer_free(&my_pacman, p_pop_packet);
+
+        //
+        if (p_pop_packet != p_reserve_packet)
+        {
+            TEST_ASSERT_FALSE(packet_buffer_is_empty(&my_pacman));
+        }
+    }
+
+    // Got a NOT_FOUND, buffer is now empty:
+    TEST_ASSERT_TRUE(packet_buffer_is_empty(&my_pacman));
+}

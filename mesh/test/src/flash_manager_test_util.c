@@ -371,6 +371,11 @@ void mesh_flash_user_callback_set(mesh_flash_user_t user, mesh_flash_op_cb_t cb)
     g_flash_cb = cb;
 }
 
+void mesh_flash_set_suspended(bool suspended)
+{
+
+}
+
 bearer_event_flag_t bearer_event_flag_add(bearer_event_flag_callback_t callback)
 {
     TEST_ASSERT_EQUAL(NULL, g_process_cb);

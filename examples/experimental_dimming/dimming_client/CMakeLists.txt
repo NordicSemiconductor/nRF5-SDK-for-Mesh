@@ -3,20 +3,24 @@ set(target "light_switch_dimming_client_${PLATFORM}_${SOFTDEVICE}")
 add_executable(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
     "${CMAKE_SOURCE_DIR}/mesh/stack/src/mesh_stack.c"
-    "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_softdevice_init.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_provisionee.c"
     "${MBTLE_SOURCE_DIR}/examples/common/src/rtt_input.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/simple_hal.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_app_utils.c"
+    ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${WEAK_SOURCE_FILES}
     ${MESH_CORE_SOURCE_FILES}
     ${MESH_BEARER_SOURCE_FILES}
+    ${MESH_GATT_SOURCE_FILES}
     ${GENERIC_LEVEL_CLIENT_SOURCE_FILES}
     ${CONFIG_SERVER_SOURCE_FILES}
     ${HEALTH_SERVER_SOURCE_FILES}
     ${ACCESS_SOURCE_FILES}
+    ${MESH_APP_TIMER_SOURCE_FILES}
     ${PROV_PROVISIONEE_SOURCE_FILES}
     ${PROV_COMMON_SOURCE_FILES}
+    ${PROV_BEARER_ADV_SOURCE_FILES}
+    ${PROV_BEARER_GATT_SOURCE_FILES}
     ${${PLATFORM}_SOURCE_FILES}
     ${${nRF5_SDK_VERSION}_SOURCE_FILES})
 
@@ -25,6 +29,7 @@ target_include_directories(${target} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/../../light_switch/include"
     "${CMAKE_SOURCE_DIR}/examples/common/include"
     "${CMAKE_SOURCE_DIR}/external/rtt/include"
+    ${BLE_SOFTDEVICE_SUPPORT_INCLUDE_DIRS}
     ${GENERIC_LEVEL_CLIENT_INCLUDE_DIRS}
     ${CONFIG_SERVER_INCLUDE_DIRS}
     ${HEALTH_SERVER_INCLUDE_DIRS}

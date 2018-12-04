@@ -64,8 +64,9 @@
 #include "nrf_mesh_utils.h"
 #include "heartbeat.h"
 #include "mesh_stack.h"
+#include "log.h"
 
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
 #include "proxy.h"
 #endif
 /** Configuration server model ID. */
@@ -103,9 +104,9 @@ typedef enum
 {
     NODE_RESET_IDLE,
     NODE_RESET_PENDING,
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
     NODE_RESET_PENDING_PROXY,
-#endif /* GATT_PROXY */
+#endif /* MESH_FEATURE_GATT_PROXY_ENABLED */
     NODE_RESET_FLASHING,
 } node_reset_state_t;
 
@@ -174,20 +175,6 @@ static void send_reply(access_model_handle_t handle, const access_message_rx_t *
     (void) access_model_reply(handle, p_message, &reply);
 }
 
-/*
- * Sends a message with a status code as the first byte. All other bytes in the message is set to 0.
- * The total length of the message is as specified in the msg_size parameter.
- */
-static void send_generic_error_reply(access_model_handle_t handle, const access_message_rx_t * p_message,
-        access_status_t status, uint16_t status_opcode, uint16_t msg_size)
-{
-    uint8_t buffer[msg_size];
-    memset(buffer, 0, msg_size);
-
-    buffer[0] = status;
-    send_reply(handle, p_message, status_opcode, buffer, msg_size, nrf_mesh_unique_token_get());
-}
-
 /* Sends the network beacon state in response to a network beacon state set/get message: */
 static void send_net_beacon_state(access_model_handle_t handle, const access_message_rx_t * p_incoming)
 {
@@ -221,11 +208,13 @@ static void send_publication_status(access_model_handle_t this_handle, const acc
     /* Build the publication status packet: */
     config_msg_publication_status_t response;
     uint32_t status;
+    bool credential_flag;
 
     memset(&response.state, 0, sizeof(response.state));
     response.status = ACCESS_STATUS_SUCCESS;
     response.element_address = element_address;
-    response.state.credential_flag = 0; /* FIXME: When friendship is supported, this bit can be used. */
+    NRF_MESH_ASSERT(access_model_publish_friendship_credential_flag_get(model_handle, &credential_flag) == NRF_SUCCESS);
+    response.state.credential_flag = credential_flag;
     response.state.rfu = 0;
 
     /* Get the model ID: */
@@ -321,7 +310,6 @@ static void status_error_pub_send(access_model_handle_t this_handle, const acces
 
             memset(&response, 0, sizeof(config_msg_publication_status_t));
             response.status = status_opcode;
-            response.state.credential_flag = 0; /* FIXME: When friendship is supported, this bit can be used. */
 
             switch(p_incoming->opcode.opcode)
             {
@@ -610,6 +598,8 @@ static void handle_appkey_add(access_model_handle_t handle, const access_message
     evt.type = CONFIG_SERVER_EVT_APPKEY_ADD;
     status = dsm_appkey_add(appkey_index, network_handle, p_pdu->appkey, &evt.params.appkey_add.appkey_handle);
 
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "dsm_appkey_add(appkey_handle:%X appkey_index:%X)\n", evt.params.appkey_add.appkey_handle, appkey_index );
+
     switch (status)
     {
         case NRF_SUCCESS:
@@ -792,26 +782,23 @@ static void handle_appkey_get(access_model_handle_t handle, const access_message
     uint8_t packet_buffer[sizeof(config_msg_appkey_list_t) + PACKED_INDEX_LIST_SIZE(DSM_APP_MAX)];
     uint16_t reply_length = sizeof(config_msg_appkey_list_t);
     config_msg_appkey_list_t * p_reply = (config_msg_appkey_list_t *) packet_buffer;
+    p_reply->netkey_index = p_pdu->netkey_index;
 
     switch (status)
     {
         case NRF_SUCCESS:
             p_reply->status = ACCESS_STATUS_SUCCESS;
-            p_reply->netkey_index = p_pdu->netkey_index;
             reply_length += PACKED_INDEX_LIST_SIZE(appkey_count);
             packed_index_list_create(appkeys, (uint8_t *) p_reply->packed_appkey_indexes, appkey_count);
-            send_reply(handle, p_message, CONFIG_OPCODE_APPKEY_LIST, packet_buffer, reply_length, nrf_mesh_unique_token_get());
             break;
         case NRF_ERROR_NOT_FOUND:
             p_reply->status = ACCESS_STATUS_INVALID_NETKEY;
-            p_reply->netkey_index = p_pdu->netkey_index;
-            send_reply(handle, p_message, CONFIG_OPCODE_APPKEY_LIST, packet_buffer, reply_length, nrf_mesh_unique_token_get());
             break;
         default:
-            send_generic_error_reply(handle, p_message, ACCESS_STATUS_UNSPECIFIED_ERROR, CONFIG_OPCODE_APPKEY_LIST,
-                    sizeof(config_msg_appkey_list_t));
+            p_reply->status = ACCESS_STATUS_UNSPECIFIED_ERROR;
             break;
     }
+    send_reply(handle, p_message, CONFIG_OPCODE_APPKEY_LIST, packet_buffer, reply_length, nrf_mesh_unique_token_get());
 }
 
 static void handle_config_beacon_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -931,7 +918,7 @@ static void handle_config_gatt_proxy_get(access_model_handle_t handle, const acc
         return;
     }
 
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
     const config_msg_proxy_status_t status_message = {
         .proxy_state = (proxy_is_enabled() ? CONFIG_GATT_PROXY_STATE_RUNNING_ENABLED
                         : CONFIG_GATT_PROXY_STATE_RUNNING_DISABLED)};
@@ -953,7 +940,7 @@ static void handle_config_gatt_proxy_set(access_model_handle_t handle, const acc
         return;
     }
 
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
     bool enabled = p_pdu->proxy_state == CONFIG_GATT_PROXY_STATE_RUNNING_ENABLED;
     uint32_t err_code = mesh_opt_gatt_proxy_set(enabled);
     NRF_MESH_ASSERT_DEBUG(err_code == NRF_SUCCESS || err_code == NRF_ERROR_INVALID_STATE);
@@ -1293,6 +1280,7 @@ static void handle_config_model_publication_set(access_model_handle_t handle, co
         NRF_MESH_ASSERT(access_model_publish_retransmit_set(model_handle, publish_retransmit) == NRF_SUCCESS);
         NRF_MESH_ASSERT(access_model_publish_address_set(model_handle, publish_address_handle) == NRF_SUCCESS);
         NRF_MESH_ASSERT(access_model_publish_application_set(model_handle, publish_appkey_handle) == NRF_SUCCESS);
+        NRF_MESH_ASSERT(access_model_publish_friendship_credential_flag_set(model_handle, p_pubstate->credential_flag) == NRF_SUCCESS);
         NRF_MESH_ASSERT(access_model_publish_ttl_set(model_handle, p_pubstate->publish_ttl) == NRF_SUCCESS);
     }
     else
@@ -1331,7 +1319,7 @@ static void handle_config_model_subscription_add(access_model_handle_t handle, c
 
     /* Check that the subscription address is valid before continuing: */
     nrf_mesh_address_type_t address_type = nrf_mesh_address_type_get(p_pdu->address);
-    if (address_type != NRF_MESH_ADDRESS_TYPE_GROUP)
+    if ((address_type != NRF_MESH_ADDRESS_TYPE_GROUP) || (p_pdu->address == NRF_MESH_ALL_NODES_ADDR))
     {
         status_error_sub_send(handle, p_message, sig_model, ACCESS_STATUS_INVALID_ADDRESS);
         return;
@@ -1863,6 +1851,7 @@ static void send_relay_status(access_model_handle_t handle, const access_message
 {
     config_msg_relay_status_t status_message = { 0 };
 
+#if MESH_FEATURE_RELAY_ENABLED
     mesh_opt_core_adv_t relay;
     NRF_MESH_ERROR_CHECK(mesh_opt_core_adv_get(CORE_TX_ROLE_RELAY, &relay));
     status_message.relay_state = (relay.enabled ?
@@ -1880,6 +1869,9 @@ static void send_relay_status(access_model_handle_t handle, const access_message
         status_message.relay_retransmit_interval_steps =
             CONFIG_RETRANSMIT_INTERVAL_MS_TO_STEP(relay.tx_interval_ms) - 1;
     }
+#else
+    status_message.relay_state = CONFIG_RELAY_STATE_UNSUPPORTED;
+#endif
 
     send_reply(handle, p_message, CONFIG_OPCODE_RELAY_STATUS,
                (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
@@ -1904,6 +1896,7 @@ static void handle_config_relay_set(access_model_handle_t handle, const access_m
         return;
     }
 
+#if MESH_FEATURE_RELAY_ENABLED
     mesh_opt_core_adv_t relay_state;
 
     relay_state.enabled = (p_pdu->relay_state == CONFIG_RELAY_STATE_SUPPORTED_ENABLED);
@@ -1928,9 +1921,11 @@ static void handle_config_relay_set(access_model_handle_t handle, const access_m
     relay_state.tx_interval_ms = MAX(BEARER_ADV_INT_MIN_MS, relay_state.tx_interval_ms);
     NRF_MESH_ERROR_CHECK(mesh_opt_core_adv_set(CORE_TX_ROLE_RELAY,
                                                &relay_state));
+#endif /* MESH_FEATURE_RELAY_ENABLED */
 
     send_relay_status(handle, p_message);
 
+#if MESH_FEATURE_RELAY_ENABLED
     const config_server_evt_t evt = {
         .type = CONFIG_SERVER_EVT_RELAY_SET,
         .params.relay_set.enabled = (p_pdu->relay_state == CONFIG_RELAY_STATE_SUPPORTED_ENABLED),
@@ -1938,6 +1933,7 @@ static void handle_config_relay_set(access_model_handle_t handle, const access_m
         .params.relay_set.interval_steps = p_pdu->relay_retransmit_interval_steps
     };
     app_evt_send(&evt);
+#endif /* MESH_FEATURE_RELAY_ENABLED */
 }
 
 
@@ -2035,7 +2031,7 @@ static void handle_config_sig_model_subscription_get(access_model_handle_t handl
         return;
     }
 
-    uint8_t response_buffer[sizeof(config_msg_sig_model_subscription_list_t) + subscription_count * sizeof(uint16_t)];
+    uint8_t response_buffer[sizeof(config_msg_sig_model_subscription_list_t) + DSM_ADDR_MAX * sizeof(uint16_t)];
     config_msg_sig_model_subscription_list_t * p_response = (config_msg_sig_model_subscription_list_t *) response_buffer;
 
     p_response->status = ACCESS_STATUS_SUCCESS;
@@ -2084,7 +2080,7 @@ static void handle_config_vendor_model_subscription_get(access_model_handle_t ha
     }
 
     const uint16_t subscription_list_size = subscription_count * sizeof(uint16_t);
-    uint8_t response_buffer[sizeof(config_msg_vendor_model_subscription_list_t) + subscription_list_size];
+    uint8_t response_buffer[sizeof(config_msg_vendor_model_subscription_list_t) + DSM_ADDR_MAX * sizeof(uint16_t)];
     config_msg_vendor_model_subscription_list_t * p_response = (config_msg_vendor_model_subscription_list_t *) response_buffer;
 
     p_response->status = ACCESS_STATUS_SUCCESS;
@@ -2425,6 +2421,10 @@ static void handle_model_app_bind_unbind(access_model_handle_t handle, const acc
     }
 
     uint32_t status = access_handle_get(element_index, model_id, &model_handle);
+
+    __LOG(LOG_SRC_ACCESS, LOG_LEVEL_INFO, "Access  Info:\n\t\telement_index=%X\t\tmodel_id = %X-%X\t\tmodel_handle=%d\n",
+                                           element_index, model_id.model_id, model_id.company_id, model_handle);
+
     if (status != NRF_SUCCESS || (!sig_model && model_id.company_id == ACCESS_COMPANY_ID_NONE))
     {
         response.status = ACCESS_STATUS_INVALID_MODEL;
@@ -2618,7 +2618,7 @@ static void handle_netkey_get(access_model_handle_t handle, const access_message
     }
 
     uint32_t num_netkeys = DSM_SUBNET_MAX;
-    mesh_key_index_t netkey_indexes[num_netkeys];
+    mesh_key_index_t netkey_indexes[DSM_SUBNET_MAX];
     (void) dsm_subnet_get_all(netkey_indexes, &num_netkeys);
 
     /* The 12-bit netkey indexes needs to be packed into an array before being sent to the client: */
@@ -2638,7 +2638,7 @@ static void handle_node_identity_get(access_model_handle_t handle, const access_
 
     const config_msg_identity_get_t * p_pdu = (const config_msg_identity_get_t *) p_message->p_data;
 
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
     access_status_t access_status = ACCESS_STATUS_SUCCESS;
     const nrf_mesh_beacon_info_t * p_beacon_info = NULL;
     dsm_handle_t subnet = dsm_net_key_index_to_subnet_handle(p_pdu->netkey_index);
@@ -2677,7 +2677,7 @@ static void handle_node_identity_set(access_model_handle_t handle, const access_
 
     const config_msg_identity_set_t * p_pdu = (const config_msg_identity_set_t *) p_message->p_data;
 
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
     access_status_t access_status = ACCESS_STATUS_SUCCESS;
     const nrf_mesh_beacon_info_t * p_beacon_info = NULL;
 
@@ -2855,6 +2855,24 @@ static void handle_model_app_get(access_model_handle_t handle, const access_mess
     send_reply(handle, p_message, response_opcode, response_buffer, response_size, nrf_mesh_unique_token_get());
 }
 
+#ifdef FRIEND_FEATURE
+static void handle_config_low_power_node_polltimeout_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
+{
+    if (!IS_PACKET_LENGTH_VALID_WITH_ID(config_msg_low_power_node_polltimeout_get_t, p_message))
+    {
+        return;
+    }
+
+    const config_msg_low_power_node_polltimeout_get_t * p_pdu = (config_msg_low_power_node_polltimeout_get_t *) p_message->p_data;
+    const config_msg_low_power_node_polltimeout_status_t response = {p_pdu->lpn_address, 0, 0};
+
+    /* @todo: Query polltime list and fill appropriate value in response if available */
+
+    send_reply(handle, p_message, CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_STATUS,
+               (const uint8_t *) &response, sizeof(response), nrf_mesh_unique_token_get());
+}
+#endif
+
 static void apply_reset(void)
 {
     /* Clear all the state. */
@@ -2878,7 +2896,7 @@ static void mesh_event_cb(const nrf_mesh_evt_t * p_evt)
         case NRF_MESH_EVT_TX_COMPLETE:
             if (p_evt->params.tx_complete.token == m_reset_token)
             {
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
                 if (NODE_RESET_PENDING == m_node_reset_pending)
                 {
                     /* Disconnect from the GATT client if we're in a connection.
@@ -2904,7 +2922,7 @@ static void mesh_event_cb(const nrf_mesh_evt_t * p_evt)
                 {
                     apply_reset();
                 }
-#endif /* GATT_PROXY */
+#endif /* MESH_FEATURE_GATT_PROXY_ENABLED */
             }
             break;
 
@@ -2970,7 +2988,10 @@ static const access_opcode_handler_t opcode_handlers[] =
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_SIG_MODEL_APP_GET)                            , handle_model_app_get },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_VENDOR_MODEL_APP_GET)                         , handle_model_app_get },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETWORK_TRANSMIT_GET)                         , handle_config_network_transmit_get},
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETWORK_TRANSMIT_SET)                         , handle_config_network_transmit_set},
+#ifdef FRIEND_FEATURE
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_GET)               , handle_config_low_power_node_polltimeout_get},
+#endif
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETWORK_TRANSMIT_SET)                         , handle_config_network_transmit_set}
 };
 
 uint32_t config_server_init(config_server_evt_cb_t evt_cb)

@@ -9,6 +9,9 @@
 // Allow parsing ridiculously long lines (required for parsing certain mock files):
 +linebuf
 
+// Silence "module" log lines
+-v
+
 // ----------------------------------------------------------------------------
 // Compiler/library settings
 // ----------------------------------------------------------------------------
@@ -161,7 +164,7 @@
 -sem(mesh_assertion_handler, r_no)
 
 // Calls to TEST_NRF_MESH_ASSERT_EXPECT with void functions as argument causes Lint to complain;
-// it thinks the return value of the functions are going to be used for something, but it's not: 
+// it thinks the return value of the functions are going to be used for something, but it's not:
 -ecall(144, TEST_NRF_MESH_ASSERT_EXPECT)
 -ecall(516, TEST_NRF_MESH_ASSERT_EXPECT)
 

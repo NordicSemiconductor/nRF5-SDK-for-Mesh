@@ -44,7 +44,9 @@
 #include "app_error.h"
 #include "mesh_opt_core.h"
 
-#if MESH_FEATURE_GATT
+#include "nrf_mesh_config_examples.h"
+
+#if MESH_FEATURE_PB_GATT_ENABLED
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
 #include "mesh_adv.h"
@@ -52,31 +54,50 @@
 #include "nrf_mesh_gatt.h"
 #include "proxy.h"
 #include "mesh_opt_gatt.h"
+#include "nrf_mesh_events.h"
 
-#define PROV_BEARERS                        (NRF_MESH_PROV_BEARER_GATT | \
-                                             NRF_MESH_PROV_BEARER_ADV)
 #define MESH_PROVISIONEE_SDH_STATE_PRIORITY 1
 
 static bool                        m_doing_gatt_reset;
-static nrf_mesh_prov_bearer_adv_t  m_prov_bearer_adv;
+
 static nrf_mesh_prov_bearer_gatt_t m_prov_bearer_gatt;
+#endif  /* MESH_FEATURE_PB_GATT_ENABLED */
 
-#else  /* !MESH_FEATURE_GATT */
-#define PROV_BEARERS (NRF_MESH_PROV_BEARER_ADV)
-
+#if MESH_PROVISIONEE_BEARER_ADV_ENABLED
 static nrf_mesh_prov_bearer_adv_t m_prov_bearer_adv;
-#endif  /* MESH_FEATURE_GATT */
+#endif
+
+#if !MESH_PROVISIONEE_BEARER_ADV_ENABLED && !MESH_FEATURE_PB_GATT_ENABLED
+#error "At least one provisioning bearer shall be enabled"
+#endif
 
 static mesh_provisionee_start_params_t m_params;
 static nrf_mesh_prov_ctx_t             m_prov_ctx;
 static uint8_t                         m_public_key[NRF_MESH_PROV_PUBKEY_SIZE];
 static uint8_t                         m_private_key[NRF_MESH_PROV_PRIVKEY_SIZE];
 static bool                            m_device_provisioned;
+static bool                            m_device_identification_started;
 
 
-#if MESH_FEATURE_GATT
+#if MESH_FEATURE_PB_GATT_ENABLED
+
+static void mesh_evt_handler(const nrf_mesh_evt_t * p_evt);
+static nrf_mesh_evt_handler_t m_mesh_evt_handler = {
+    .evt_cb = mesh_evt_handler,
+};
+static void mesh_evt_handler(const nrf_mesh_evt_t * p_evt)
+{
+    if (p_evt->type == NRF_MESH_EVT_DISABLED && m_doing_gatt_reset)
+    {
+        APP_ERROR_CHECK(nrf_sdh_disable_request());
+        nrf_mesh_evt_handler_remove(&m_mesh_evt_handler);
+    }
+}
+
 static void sd_state_evt_handler(nrf_sdh_state_evt_t state, void * p_context)
 {
+    (void) p_context;
+
     if (!m_doing_gatt_reset)
     {
         return;
@@ -94,7 +115,7 @@ static void sd_state_evt_handler(nrf_sdh_state_evt_t state, void * p_context)
             APP_ERROR_CHECK(err_code);
 
 
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
             mesh_key_index_t key_index;
             uint32_t count = 1;
             nrf_mesh_key_refresh_phase_t kr_phase;
@@ -111,7 +132,7 @@ static void sd_state_evt_handler(nrf_sdh_state_evt_t state, void * p_context)
              * state for the proxy feature is set with `PROXY_ENABLED_DEFAULT`.
              */
             NRF_MESH_ERROR_CHECK(proxy_node_id_enable(NULL, kr_phase));
-#endif  /* GATT_PROXY */
+#endif  /* MESH_FEATURE_GATT_PROXY_ENABLED */
 
             /* We deliberately start the mesh _after_ the proxy to ensure that the
              * softdevice gets a timeslot ASAP to advertise. */
@@ -130,9 +151,6 @@ static void sd_state_evt_handler(nrf_sdh_state_evt_t state, void * p_context)
         {
             uint32_t err_code = nrf_sdh_enable_request();
             APP_ERROR_CHECK(err_code);
-#if defined S140  // todo remove that after S140 priority fixing
-            softdevice_irq_priority_checker();
-#endif
             break;
         }
         default:
@@ -149,32 +167,66 @@ NRF_SDH_STATE_OBSERVER(m_sdh_req_obs, MESH_PROVISIONEE_SDH_STATE_PRIORITY) =
 static void gatt_database_reset(void)
 {
     m_doing_gatt_reset = true;
-    uint32_t err_code = nrf_mesh_disable();
-    APP_ERROR_CHECK(err_code);
+    nrf_mesh_evt_handler_add(&m_mesh_evt_handler);
 
-    err_code = nrf_sdh_disable_request();
-    APP_ERROR_CHECK(err_code);
-
+    APP_ERROR_CHECK(nrf_mesh_disable());
+    /* Wait for the mesh to be fully disabled before continuing. */
 }
-#endif /* MESH_FEATURE_GATT */
+#endif /* MESH_FEATURE_PB_GATT_ENABLED */
 
 static uint32_t provisionee_start(void)
 {
-    return nrf_mesh_prov_listen(&m_prov_ctx, m_params.p_device_uri, 0, PROV_BEARERS);
+    uint32_t bearers = 0;
+
+#if MESH_PROVISIONEE_BEARER_ADV_ENABLED
+    bearers = NRF_MESH_PROV_BEARER_ADV;
+#endif
+
+#if MESH_FEATURE_PB_GATT_ENABLED
+    bearers |= NRF_MESH_PROV_BEARER_GATT;
+#endif
+
+    return nrf_mesh_prov_listen(&m_prov_ctx, m_params.p_device_uri, 0, bearers);
 }
 
 static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
 {
     switch (p_evt->type)
     {
+        case NRF_MESH_PROV_EVT_INVITE_RECEIVED:
+            if (m_params.prov_device_identification_start_cb != NULL
+                && p_evt->params.invite_received.attention_duration_s > 0)
+            {
+                m_device_identification_started = true;
+                m_params.prov_device_identification_start_cb(p_evt->params.invite_received.attention_duration_s);
+            }
+
+            break;
+
+        case NRF_MESH_PROV_EVT_START_RECEIVED:
+            if (m_params.prov_device_identification_stop_cb != NULL
+                && m_device_identification_started)
+            {
+                m_device_identification_started = false;
+                m_params.prov_device_identification_stop_cb();
+            }
+
+            break;
+
         case NRF_MESH_PROV_EVT_LINK_CLOSED:
             if (!m_device_provisioned)
             {
+                if (m_params.prov_abort_cb != NULL)
+                {
+                    m_device_identification_started = false;
+                    m_params.prov_abort_cb();
+                }
+
                 (void) provisionee_start();
             }
             else
             {
-#if MESH_FEATURE_GATT
+#if MESH_FEATURE_PB_GATT_ENABLED
                 /* it requires switching GATT service before provisioning complete */
                 gatt_database_reset();
 #else
@@ -182,7 +234,7 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
                 {
                     m_params.prov_complete_cb();
                 }
-#endif  /* MESH_FEATURE_GATT */
+#endif  /* MESH_FEATURE_PB_GATT_ENABLED */
             }
             break;
 
@@ -230,10 +282,14 @@ uint32_t mesh_provisionee_prov_start(const mesh_provisionee_start_params_t * p_s
                                        m_public_key,
                                        m_private_key,
                                        &prov_caps, prov_evt_handler));
+
+#if MESH_PROVISIONEE_BEARER_ADV_ENABLED
     RETURN_ON_ERROR(nrf_mesh_prov_bearer_add(
                         &m_prov_ctx,
                         nrf_mesh_prov_bearer_adv_interface_get(&m_prov_bearer_adv)));
-#if MESH_FEATURE_GATT
+#endif
+
+#if MESH_FEATURE_PB_GATT_ENABLED
     RETURN_ON_ERROR(nrf_mesh_prov_bearer_gatt_init(&m_prov_bearer_gatt));
     RETURN_ON_ERROR(nrf_mesh_prov_bearer_add(
                         &m_prov_ctx,

@@ -356,6 +356,7 @@ void test_packet_in(void)
     nrf_mesh_network_secmat_t secmat;
     secmat.nid = 0xAF;
     typedef enum {
+        STEP_LENGTH_CHECK,
         STEP_DEOBFUSCATION_VERIFICATION,
         STEP_MSG_CACHE,
         STEP_SRC_ADDRESS_IS_ME,
@@ -382,6 +383,11 @@ void test_packet_in(void)
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, true, {SEQNUM, IV_INDEX}, &secmat}, 9+8, NET_PACKET_KIND_TRANSPORT, STEP_SUCCESS}, /* just long enough */
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, NET_PACKET_KIND_TRANSPORT, STEP_SUCCESS},
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, NET_PACKET_KIND_PROXY_CONFIG, STEP_SUCCESS}, /* Packet kind shouldn't affect success */
+        {{{NRF_MESH_ADDRESS_TYPE_GROUP, 0xFFFF}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 0, NET_PACKET_KIND_TRANSPORT, STEP_LENGTH_CHECK}, /* Too short */
+        {{{NRF_MESH_ADDRESS_TYPE_GROUP, 0xFFFF}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 8, NET_PACKET_KIND_TRANSPORT, STEP_LENGTH_CHECK}, /* Too short */
+        {{{NRF_MESH_ADDRESS_TYPE_GROUP, 0xFFFF}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 30, NET_PACKET_KIND_TRANSPORT, STEP_LENGTH_CHECK}, /* Too long */
+        {{{NRF_MESH_ADDRESS_TYPE_GROUP, 0xFFFF}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 9, NET_PACKET_KIND_TRANSPORT, STEP_DEOBFUSCATION_VERIFICATION}, /* min length to start decryption */
+        {{{NRF_MESH_ADDRESS_TYPE_GROUP, 0xFFFF}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 29, NET_PACKET_KIND_TRANSPORT, STEP_SUCCESS}, /* max length */
     };
     uint8_t pecb_data[NRF_MESH_KEY_SIZE];
     uint8_t pecb[NRF_MESH_KEY_SIZE];
@@ -413,14 +419,17 @@ void test_packet_in(void)
             net_packet[i + 1] ^= pecb[i];
         }
 
-        net_state_rx_iv_index_get_ExpectAndReturn(IV_INDEX & 0x01, IV_INDEX);
-
-        /* 1: Get key */
         const nrf_mesh_network_secmat_t * p_secmats[] = {&secmat, NULL};
-        secmat_get_Expect(p_secmats, 2, secmat.nid & 0x7f);
+        if (vector[i].fail_step >= STEP_DEOBFUSCATION_VERIFICATION)
+        {
+            net_state_rx_iv_index_get_ExpectAndReturn(IV_INDEX & 0x01, IV_INDEX);
 
-        /* 2: Deobfuscate */
-        transfuscate_Expect(&vector[i].meta, net_packet, pecb, pecb_data);
+            /* 1: Get key */
+            secmat_get_Expect(p_secmats, 2, secmat.nid & 0x7f);
+
+            /* 2: Deobfuscate */
+            transfuscate_Expect(&vector[i].meta, net_packet, pecb, pecb_data);
+        }
 
         /* 3: Verify deobfuscated header fields */
         if (vector[i].fail_step >= STEP_MSG_CACHE)
@@ -454,7 +463,16 @@ void test_packet_in(void)
                                              (packet_mesh_net_packet_t *) net_packet,
                                              (packet_mesh_net_packet_t *) decrypted_packet,
                                              vector[i].kind);
-        TEST_ASSERT_EQUAL(((vector[i].fail_step == STEP_SUCCESS) ? NRF_SUCCESS : NRF_ERROR_NOT_FOUND),
+
+        static const uint32_t expected_statuses[] = {
+            [STEP_LENGTH_CHECK] = NRF_ERROR_INVALID_LENGTH,
+            [STEP_DEOBFUSCATION_VERIFICATION] = NRF_ERROR_NOT_FOUND,
+            [STEP_MSG_CACHE] = NRF_ERROR_NOT_FOUND,
+            [STEP_SRC_ADDRESS_IS_ME] = NRF_ERROR_NOT_FOUND,
+            [STEP_DECRYPTION] = NRF_ERROR_NOT_FOUND,
+            [STEP_SUCCESS] = NRF_SUCCESS,
+        };
+        TEST_ASSERT_EQUAL(expected_statuses[vector[i].fail_step],
                           status);
 
         nrf_mesh_externs_mock_Verify();

@@ -190,6 +190,7 @@ uint32_t nrf_mesh_prov_listen_stop(nrf_mesh_prov_ctx_t * p_ctx)
 
 uint32_t nrf_mesh_prov_provision(nrf_mesh_prov_ctx_t *                     p_ctx,
                                  const uint8_t *                           p_target_uuid,
+                                 uint8_t                                   attention_duration_s,
                                  const nrf_mesh_prov_provisioning_data_t * p_data,
                                  nrf_mesh_prov_bearer_type_t               bearer_type)
 {
@@ -210,7 +211,7 @@ uint32_t nrf_mesh_prov_provision(nrf_mesh_prov_ctx_t *                     p_ctx
     }
     else
     {
-        return prov_provisioner_provision(p_ctx, p_target_uuid, p_data);
+        return prov_provisioner_provision(p_ctx, p_target_uuid, attention_duration_s, p_data);
     }
 }
 

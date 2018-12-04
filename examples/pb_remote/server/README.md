@@ -2,6 +2,9 @@
 
 This example demonstrates how the client can use a remote provisioning server as a relay for provisioning nodes that it cannot reach directly.
 
+@note
+This example is experimental, meaning it is ready for use, but not qualified.
+
 For more information about remote provisioning, see the
 [PB-remote API reference](@ref PB_REMOTE).
 
@@ -12,9 +15,8 @@ provisioned into a network.
 ## Running the example
 
 To build the example, follow the instructions in
-[Building the Mesh Stack](@ref md_doc_getting_started_how_to_build). Refer to the *How to run examples*
-section in [Examples README](@ref md_examples_README) for the commands required to program a
-device using `nrfjprog`.
+[Building the Mesh Stack](@ref md_doc_getting_started_how_to_build). For commands required to program a device using `nrfjprog`,
+see the [Running examples using nrfjprog](@ref how_to_run_examples_nrfjprog) section on the @ref md_doc_getting_started_how_to_run_examples page.
 
 To use this example application with the client example application,
 flash one device with the client application and two or

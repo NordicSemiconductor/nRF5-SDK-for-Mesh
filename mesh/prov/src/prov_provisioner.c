@@ -232,7 +232,8 @@ static void prov_provisioner_cb_link_established(prov_bearer_t * p_bearer)
         p_ctx->event_handler(&app_event);
 
         /* Send the provisioning invite (with attention timer off). */
-        uint32_t status = prov_tx_invite(p_ctx->p_active_bearer, 0, p_ctx->confirmation_inputs);
+        uint32_t status = prov_tx_invite(p_ctx->p_active_bearer, p_ctx->attention_duration_s,
+                                         p_ctx->confirmation_inputs);
         if (status == NRF_SUCCESS)
         {
             p_ctx->state = NRF_MESH_PROV_STATE_WAIT_CAPS;
@@ -454,7 +455,9 @@ static void prov_provisioner_pkt_in(prov_bearer_t * p_bearer, const uint8_t * p_
 
 /****************** Interface functions ******************/
 uint32_t prov_provisioner_provision(nrf_mesh_prov_ctx_t * p_ctx,
-            const uint8_t * p_uuid, const nrf_mesh_prov_provisioning_data_t * p_data)
+                                    const uint8_t * p_uuid,
+                                    uint8_t attention_duration_s,
+                                    const nrf_mesh_prov_provisioning_data_t * p_data)
 {
     if (p_ctx->state != NRF_MESH_PROV_STATE_IDLE)
     {
@@ -464,6 +467,7 @@ uint32_t prov_provisioner_provision(nrf_mesh_prov_ctx_t * p_ctx,
     prov_bearer_t * p_bearer = p_ctx->p_active_bearer;
     p_bearer->p_callbacks = &m_prov_callbacks;
     p_ctx->role = NRF_MESH_PROV_ROLE_PROVISIONER;
+    p_ctx->attention_duration_s = attention_duration_s;
 
     /* copy data (to be used later)*/
     memcpy(&p_ctx->data, p_data, sizeof(nrf_mesh_prov_provisioning_data_t));

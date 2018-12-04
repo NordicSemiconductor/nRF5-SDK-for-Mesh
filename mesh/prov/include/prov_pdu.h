@@ -93,8 +93,8 @@ typedef enum
 /** Contents of the provisioning invite PDU. */
 typedef struct __attribute((packed))
 {
-    uint8_t pdu_type;           /**< Packet PDU type can be one of type @ref prov_pdu_type_t. */
-    uint8_t attention_duration; /**< Attention timer value in seconds. */
+    uint8_t pdu_type;               /**< Packet PDU type can be one of type @ref prov_pdu_type_t. */
+    uint8_t attention_duration_s;   /**< Attention timer value in seconds. */
 } prov_pdu_invite_t;
 
 /** Contents of the provisioning capabilities PDU. */

@@ -49,7 +49,8 @@
 #include "device_state_manager.h"
 
 #include "nrf_mesh_assert.h"
-#include "packet_mgr.h"
+#include "mesh_mem.h"
+#include "log.h"
 
 #define MAKE_BYTE_MASK(bits) (0xff >> (8u - bits))
 #define CONFIG_PUBLISH_PERIOD(steps, resolution) \
@@ -111,7 +112,7 @@ static void reliable_status_cb(access_model_handle_t model_handle, void * p_args
     /* Some messages does not carry data, s.t. no packet is allocated for it. E.g., netkey_get(). */
     if (mp_packet_buffer != NULL)
     {
-        packet_mgr_free(mp_packet_buffer);
+        mesh_mem_free(mp_packet_buffer);
         mp_packet_buffer = NULL;
     }
 
@@ -153,7 +154,7 @@ static uint32_t send_reliable(config_opcode_t opcode, uint16_t length, config_op
     uint32_t status = access_model_reliable_publish(&reliable);
     if (status != NRF_SUCCESS)
     {
-        packet_mgr_free(mp_packet_buffer);
+        mesh_mem_free(mp_packet_buffer);
         mp_packet_buffer = NULL;
     }
     else
@@ -261,10 +262,10 @@ static uint32_t subscription_virtual_add_del_owr_send(uint16_t element_address,
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     bool sig_model = IS_SIG_MODEL(model_id);
     uint16_t length = PACKET_LENGTH_WITH_ID(config_msg_subscription_virtual_add_del_owr_t, sig_model);
-    uint32_t status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_subscription_virtual_add_del_owr_t * p_msg = (config_msg_subscription_virtual_add_del_owr_t *) mp_packet_buffer;
@@ -281,10 +282,10 @@ static uint32_t subscription_add_del_owr_send(uint16_t element_address, nrf_mesh
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     bool sig_model = IS_SIG_MODEL(model_id);
     uint16_t length = PACKET_LENGTH_WITH_ID(config_msg_subscription_add_del_owr_t, sig_model);
-    uint32_t status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_subscription_add_del_owr_t * p_msg = (config_msg_subscription_add_del_owr_t *) mp_packet_buffer;
@@ -301,10 +302,10 @@ static uint32_t publication_set(const config_publication_state_t * p_publication
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     bool sig_model = IS_SIG_MODEL(p_publication_state->model_id);
     uint16_t length = PACKET_LENGTH_WITH_ID(config_msg_publication_set_t, sig_model);
-    uint32_t status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_publication_set_t * p_msg = (config_msg_publication_set_t *) mp_packet_buffer;
@@ -328,10 +329,10 @@ static uint32_t publication_virtual_set(const config_publication_state_t * p_pub
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     bool sig_model = IS_SIG_MODEL(p_publication_state->model_id);
     uint16_t length = PACKET_LENGTH_WITH_ID(config_msg_publication_virtual_set_t, sig_model);
-    uint32_t status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_publication_virtual_set_t * p_msg = (config_msg_publication_virtual_set_t *) mp_packet_buffer;
@@ -361,10 +362,10 @@ static uint32_t app_bind_unbind_send(uint16_t element_address, uint16_t appkey_i
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     bool sig_model = IS_SIG_MODEL(model_id);
     uint16_t length = PACKET_LENGTH_WITH_ID(config_msg_app_bind_unbind_t, sig_model);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_app_bind_unbind_t * p_msg = (config_msg_app_bind_unbind_t *) mp_packet_buffer;
@@ -484,10 +485,10 @@ uint32_t config_client_composition_data_get(uint8_t page_number)
 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     uint16_t length = sizeof(config_msg_composition_data_get_t);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_composition_data_get_t * p_msg = (config_msg_composition_data_get_t *) mp_packet_buffer;
@@ -508,10 +509,10 @@ uint32_t config_client_appkey_add(uint16_t netkey_index, uint16_t appkey_index, 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
 
     uint16_t length = sizeof(config_msg_appkey_add_t);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_appkey_add_t * p_msg = (config_msg_appkey_add_t *) mp_packet_buffer;
@@ -531,10 +532,10 @@ uint32_t config_client_appkey_delete(uint16_t netkey_index, uint16_t appkey_inde
 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     uint16_t length = sizeof(config_msg_appkey_delete_t);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_appkey_delete_t * p_msg = (config_msg_appkey_delete_t *) mp_packet_buffer;
@@ -553,10 +554,10 @@ uint32_t config_client_appkey_get(uint16_t netkey_index)
 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     uint16_t length = sizeof(config_msg_appkey_get_t);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_appkey_get_t * p_msg = (config_msg_appkey_get_t *) mp_packet_buffer;
@@ -575,10 +576,10 @@ uint32_t config_client_appkey_update(uint16_t netkey_index, uint16_t appkey_inde
 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     uint16_t length = sizeof(config_msg_appkey_update_t);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_appkey_update_t * p_msg = (config_msg_appkey_update_t *) mp_packet_buffer;
@@ -599,10 +600,10 @@ uint32_t config_client_model_publication_get(uint16_t element_address, access_mo
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     bool sig_model = IS_SIG_MODEL(model_id);
     uint16_t length = PACKET_LENGTH_WITH_ID(config_msg_publication_get_t, sig_model);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_publication_get_t * p_msg = (config_msg_publication_get_t *) mp_packet_buffer;
@@ -654,10 +655,10 @@ uint32_t config_client_net_beacon_set(config_net_beacon_state_t state)
 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     uint16_t length = sizeof(config_msg_net_beacon_set_t);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_net_beacon_set_t * p_msg = (config_msg_net_beacon_set_t *) mp_packet_buffer;
@@ -686,10 +687,10 @@ uint32_t config_client_default_ttl_set(uint8_t ttl)
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
 
     uint16_t length = sizeof(config_msg_default_ttl_set_t);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_default_ttl_set_t * p_msg = (config_msg_default_ttl_set_t *) mp_packet_buffer;
@@ -743,10 +744,10 @@ uint32_t config_client_model_subscription_delete_all(uint16_t element_address, a
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     bool sig_model = IS_SIG_MODEL(model_id);
     uint16_t length = PACKET_LENGTH_WITH_ID(config_msg_subscription_delete_all_t, sig_model);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_subscription_delete_all_t * p_msg = (config_msg_subscription_delete_all_t *) mp_packet_buffer;
@@ -767,10 +768,10 @@ uint32_t config_client_model_subscription_get(uint16_t element_address, access_m
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     bool sig_model = IS_SIG_MODEL(model_id);
     uint16_t length = PACKET_LENGTH_WITH_ID(config_msg_model_subscription_get_t, sig_model);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_model_subscription_get_t * p_msg = (config_msg_model_subscription_get_t *) mp_packet_buffer;
@@ -819,10 +820,10 @@ uint32_t config_client_relay_set(config_relay_state_t relay_state, uint8_t retra
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
 
     uint16_t length = sizeof(config_msg_relay_set_t);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_relay_set_t * p_msg = (config_msg_relay_set_t *) mp_packet_buffer;
@@ -849,10 +850,10 @@ uint32_t config_client_model_app_get(uint16_t element_address, access_model_id_t
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     bool sig_model = IS_SIG_MODEL(model_id);
     uint16_t length = PACKET_LENGTH_WITH_ID(config_msg_model_app_get_t, sig_model);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_model_app_get_t * p_msg = (config_msg_model_app_get_t *) mp_packet_buffer;
@@ -879,10 +880,10 @@ uint32_t config_client_netkey_add(uint16_t netkey_index, const uint8_t * p_netke
 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     uint16_t length = sizeof(config_msg_netkey_add_update_t);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_netkey_add_update_t * p_msg = (config_msg_netkey_add_update_t *) mp_packet_buffer;
@@ -902,10 +903,10 @@ uint32_t config_client_netkey_delete(uint16_t netkey_index)
 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     uint16_t length = sizeof(config_msg_netkey_delete_t);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_netkey_delete_t * p_msg = (config_msg_netkey_delete_t *) mp_packet_buffer;
@@ -935,10 +936,10 @@ uint32_t config_client_netkey_update(uint16_t netkey_index, const uint8_t * p_ne
 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     uint16_t length = sizeof(config_msg_netkey_add_update_t);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_netkey_add_update_t * p_msg = (config_msg_netkey_add_update_t *) mp_packet_buffer;
@@ -969,10 +970,10 @@ uint32_t config_client_key_refresh_phase_get(uint16_t netkey_index)
 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     uint16_t length = sizeof(config_msg_key_refresh_phase_get_t);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_key_refresh_phase_get_t * p_msg = (config_msg_key_refresh_phase_get_t *) mp_packet_buffer;
@@ -990,10 +991,10 @@ uint32_t config_client_key_refresh_phase_set(uint16_t netkey_index, nrf_mesh_key
 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     uint16_t length = sizeof(config_msg_key_refresh_phase_set_t);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_key_refresh_phase_set_t * p_msg = (config_msg_key_refresh_phase_set_t *) mp_packet_buffer;
@@ -1053,10 +1054,10 @@ uint32_t config_client_heartbeat_publication_set(const config_msg_heartbeat_publ
 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     uint16_t length = sizeof(config_msg_heartbeat_publication_set_t);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_heartbeat_publication_set_t * p_msg = (config_msg_heartbeat_publication_set_t *) mp_packet_buffer;
@@ -1085,10 +1086,10 @@ uint32_t config_client_heartbeat_subscription_set(const config_msg_heartbeat_sub
 
     NRF_MESH_ASSERT(mp_packet_buffer == NULL);
     uint16_t length = sizeof(config_msg_heartbeat_subscription_set_t);
-    status = packet_mgr_alloc((packet_generic_t **) &mp_packet_buffer, length);
-    if (status != NRF_SUCCESS)
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
     {
-        return status;
+        return NRF_ERROR_NO_MEM;
     }
 
     config_msg_heartbeat_subscription_set_t * p_msg = (config_msg_heartbeat_subscription_set_t *) mp_packet_buffer;

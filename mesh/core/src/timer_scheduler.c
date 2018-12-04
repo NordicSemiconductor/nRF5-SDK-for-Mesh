@@ -97,6 +97,7 @@ static void remove_evt(timer_event_t * p_evt)
     if (p_evt == m_scheduler.p_head)
     {
         m_scheduler.p_head = p_evt->p_next;
+        NRF_MESH_ASSERT(m_scheduler.event_count-- > 0);
     }
     else
     {
@@ -106,11 +107,13 @@ static void remove_evt(timer_event_t * p_evt)
             if (p_it->p_next == p_evt)
             {
                 p_it->p_next = p_evt->p_next;
+                NRF_MESH_ASSERT(m_scheduler.event_count-- > 0);
                 break;
             }
             p_it = p_it->p_next;
         }
     }
+
     p_evt->state = TIMER_EVENT_STATE_UNUSED;
 }
 
@@ -158,16 +161,13 @@ static void fire_timers(timestamp_t time_now)
 
 static void setup_timeout(timestamp_t time_now)
 {
-    if (m_scheduler.p_head)
+    if (m_scheduler.p_head != NULL)
     {
-        if (TIMER_OLDER_THAN(time_now + TIMER_MARGIN, m_scheduler.p_head->timestamp))
-        {
-            NRF_MESH_ERROR_CHECK(timer_order_cb(TIMER_INDEX_SCHEDULER, m_scheduler.p_head->timestamp, timer_cb, TIMER_ATTR_SYNCHRONOUS));
-        }
-        else
-        {
-            NRF_MESH_ERROR_CHECK(timer_order_cb(TIMER_INDEX_SCHEDULER, time_now + TIMER_MARGIN, timer_cb, TIMER_ATTR_SYNCHRONOUS));
-        }
+        timer_start(m_scheduler.p_head->timestamp, timer_cb);
+    }
+    else
+    {
+        timer_stop();
     }
 }
 
@@ -185,6 +185,7 @@ void timer_sch_init(void)
 {
     memset((scheduler_t*) &m_scheduler, 0, sizeof(m_scheduler));
     m_event_flag = bearer_event_flag_add(flag_event_cb);
+    timer_init();
 }
 
 void timer_sch_schedule(timer_event_t* p_timer_evt)

@@ -177,6 +177,9 @@
                                             line,                                                  \
                                             message);                                              \
                 break;                                                                             \
+            case NRF_MESH_EVT_DISABLED:                                                            \
+                /* No parameters */                                                                \
+                break;                                                                             \
             default:                                                                               \
             {                                                                                      \
                 char error_msg[256];                                                               \

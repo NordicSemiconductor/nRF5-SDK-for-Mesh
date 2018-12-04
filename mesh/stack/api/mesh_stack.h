@@ -144,6 +144,10 @@ uint32_t mesh_stack_init(const mesh_stack_init_params_t * p_init_params,
 /**
  * Start dynamic behavior on the mesh stack.
  *
+ * @warning After calling this function, no mesh API functions can be
+ *          called from an IRQ priority other than the one specified
+ *          in @ref nrf_mesh_init_params_t.irq_priority.
+ *
  * @retval NRF_ERROR_INVALID_STATE The mesh stack has not been initialized,
  *                                 or it has already been started.
  * @retval NRF_SUCCESS             The mesh stack was successfully started.
@@ -209,6 +213,16 @@ void mesh_stack_device_reset(void);
  * @retval NRF_ERROR_NULL One or more of the parameters were NULL.
  */
 uint32_t mesh_stack_persistence_flash_usage(const uint32_t ** pp_start, uint32_t * p_length);
+
+/**
+ * Gets a pointer to the Health Server instance in the primary element.
+ *
+ * @note The Health Server is initialized and added by the mesh stack module, and the pointer should
+ * only be used for interacting with the @ref HEALTH_SERVER API.
+ *
+ * @returns A pointer to the Health Server instance in the mesh stack.
+ */
+health_server_t * mesh_stack_health_server_get(void);
 
 /**
  * @}

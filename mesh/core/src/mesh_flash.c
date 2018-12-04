@@ -45,7 +45,7 @@
 #include "nrf_error.h"
 #include "nrf_mesh_assert.h"
 #include "toolchain.h"
-#include "timer.h"
+#include "timeslot_timer.h"
 #include "msqueue.h"
 #include "bearer_handler.h"
 #include "hal.h"
@@ -108,9 +108,9 @@ static const flash_operation_t m_all_operations =
 /*****************************************************************************
 * Static functions
 *****************************************************************************/
-static void flash_op_start(timestamp_t start_time, void * p_args);
+static void flash_op_start(ts_timestamp_t start_time, void * p_args);
 
-static void write_as_much_as_possible(const flash_operation_t* p_write_op, timestamp_t available_time, uint32_t* p_bytes_written)
+static void write_as_much_as_possible(const flash_operation_t* p_write_op, ts_timestamp_t available_time, uint32_t* p_bytes_written)
 {
     uint32_t offset = *p_bytes_written;
     NRF_MESH_ASSERT(p_write_op->type == FLASH_OP_TYPE_WRITE);
@@ -128,7 +128,7 @@ static void write_as_much_as_possible(const flash_operation_t* p_write_op, times
     *p_bytes_written += bytes_to_write;
 }
 
-static void erase_as_much_as_possible(const flash_operation_t * p_erase_op, timestamp_t available_time, uint32_t* p_bytes_erased)
+static void erase_as_much_as_possible(const flash_operation_t * p_erase_op, ts_timestamp_t available_time, uint32_t* p_bytes_erased)
 {
     uint32_t offset = *p_bytes_erased;
     NRF_MESH_ASSERT(p_erase_op->type == FLASH_OP_TYPE_ERASE);
@@ -180,7 +180,7 @@ static inline void end_event_schedule(void)
     bearer_event_flag_set(m_event_flag);
 }
 
-static bool execute_next_operation_chunk(flash_user_t * p_user, flash_operation_t * p_op, uint32_t available_time)
+static bool execute_next_operation_chunk(flash_user_t * p_user, flash_operation_t * p_op, ts_timestamp_t available_time)
 {
     uint32_t operation_length = 0;
 
@@ -203,9 +203,9 @@ static bool execute_next_operation_chunk(flash_user_t * p_user, flash_operation_
     return (operation_length == p_user->processed_bytes);
 }
 
-static timestamp_t flash_op_duration(flash_operation_t * p_op, uint32_t processed_bytes)
+static ts_timestamp_t flash_op_duration(flash_operation_t * p_op, uint32_t processed_bytes)
 {
-    timestamp_t duration = FLASH_PROCESS_TIME_OVERHEAD;
+    ts_timestamp_t duration = FLASH_PROCESS_TIME_OVERHEAD;
 
     switch (p_op->type)
     {
@@ -224,9 +224,9 @@ static timestamp_t flash_op_duration(flash_operation_t * p_op, uint32_t processe
     return (duration < BEARER_ACTION_DURATION_MAX_US) ? duration : BEARER_ACTION_DURATION_MAX_US;
 }
 
-static timestamp_t flash_op_type_min_duration(flash_operation_t * p_op)
+static ts_timestamp_t flash_op_type_min_duration(flash_operation_t * p_op)
 {
-    timestamp_t min_duration = 0;
+    ts_timestamp_t min_duration = 0;
 
     switch (p_op->type)
     {
@@ -245,7 +245,7 @@ static timestamp_t flash_op_type_min_duration(flash_operation_t * p_op)
         return min_duration;
 }
 
-static void flash_op_schedule(flash_user_t * p_user)
+static flash_operation_t* flash_op_action_prepare(flash_user_t * p_user)
 {
     flash_operation_t * p_op = msq_get(&p_user->flash_op_queue.queue, FLASH_OP_STAGE_QUEUED);
     if (p_op != NULL)
@@ -255,16 +255,25 @@ static void flash_op_schedule(flash_user_t * p_user)
         p_user->action.duration_us = flash_op_duration(p_op, p_user->processed_bytes);
         p_user->action.p_args = p_user;
         p_user->active = true;
+    }
 
+    return p_op;
+}
+
+static void flash_op_schedule(flash_user_t * p_user)
+{
+    flash_operation_t * p_op = flash_op_action_prepare(p_user);
+    if (p_op != NULL)
+    {
         NRF_MESH_ASSERT(NRF_SUCCESS == bearer_handler_action_enqueue(&p_user->action));
     }
 }
 
-static void flash_op_start(timestamp_t start_time, void * p_args)
+static void flash_op_start(ts_timestamp_t start_time, void * p_args)
 {
     flash_user_t * p_user = (flash_user_t *)p_args;
-    timestamp_t available_time = p_user->action.duration_us - FLASH_PROCESS_TIME_OVERHEAD;
-    timestamp_t elapsed_time = 0;
+    ts_timestamp_t available_time = p_user->action.duration_us - FLASH_PROCESS_TIME_OVERHEAD;
+    ts_timestamp_t elapsed_time = 0;
 
     /* Terminate bearer action immediately if suspended.
        Will be rescheduled when suspension is removed. */
@@ -295,7 +304,7 @@ static void flash_op_start(timestamp_t start_time, void * p_args)
             break;
         }
 
-        elapsed_time = TIMER_DIFF(timer_now(), start_time);
+        elapsed_time = TIMER_DIFF(ts_timer_now(), start_time);
         if (available_time < elapsed_time + flash_op_type_min_duration(p_op))
         {
             /* Not enough time to complete operation */
@@ -356,6 +365,9 @@ uint32_t mesh_flash_op_push(mesh_flash_user_t user, const flash_operation_t * p_
         /* operation type must be WRITE or ERASE */
         NRF_MESH_ASSERT(false);
     }
+
+    flash_operation_t * p_op_to_enqueue = NULL;
+
     uint32_t was_masked;
     uint32_t status;
     _DISABLE_IRQS(was_masked);
@@ -377,10 +389,17 @@ uint32_t mesh_flash_op_push(mesh_flash_user_t user, const flash_operation_t * p_
 
         if (!m_users[user].active && !m_suspended)
         {
-            flash_op_schedule(&m_users[user]);
+            p_op_to_enqueue = flash_op_action_prepare(&m_users[user]);
         }
     }
     _ENABLE_IRQS(was_masked);
+
+    /* bearer_handler_action_enqueue() call is moved outside of the critical
+     * section because of calling SVC inside it */
+    if (p_op_to_enqueue != NULL)
+    {
+        NRF_MESH_ASSERT(NRF_SUCCESS == bearer_handler_action_enqueue(&m_users[user].action));
+    }
 
     return status;
 }

@@ -43,6 +43,7 @@
 
 #include "access.h"
 #include "nrf_mesh_assert.h"
+#include "log.h"
 
 /*****************************************************************************
  * Static functions
@@ -94,7 +95,7 @@ static void handle_set_unreliable_cb(access_model_handle_t handle, const access_
     NRF_MESH_ASSERT(p_server->set_cb != NULL);
     bool value = (((simple_on_off_msg_set_unreliable_t*) p_message->p_data)->on_off) > 0;
     value = p_server->set_cb(p_server, value);
-    (void)simple_on_off_server_status_publish(p_server, value);
+    (void) simple_on_off_server_status_publish(p_server, value);
 }
 
 static const access_opcode_handler_t m_opcode_handlers[] =

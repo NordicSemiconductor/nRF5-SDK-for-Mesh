@@ -175,12 +175,12 @@ typedef void (*access_publish_timeout_cb_t)(access_model_handle_t handle, void *
  * The format of the opcodes is given in the table below:
  * Table 3.43 in the Mesh Profile Specification (v1.0)
  *
- * | Byte 0     | Byte 1     | Byte 2     | Description                                                     |
- * | ---------- | ---------- | ---------- | --------------------------------------------------------------- |
- * | `0xxxxxxx` |            |            | 1-octet Bluetooth SIG Opcodes (excluding 01111111)              |
- * | `01111111` |            |            | Reserved for Future Use                                         |
- * | `10xxxxxx` | `xxxxxxxx` |            | 2-octet Bluetooth SIG Opcodes                                   |
- * | `11xxxxxx` | `zzzzzzzz` | `zzzzzzzz` | 3-octet Vendor Specific Opcodes. `z` denotes company identifier |
+ * | Byte 0     | Byte 1     | Byte 2     | Description                                                                                   |
+ * | ---------- | ---------- | ---------- | --------------------------------------------------------------------------------------------- |
+ * | `0xxxxxxx` |            |            | 1-octet Bluetooth SIG Opcodes (excluding 01111111)                                            |
+ * | `01111111` |            |            | Reserved for Future Use                                                                       |
+ * | `10xxxxxx` | `xxxxxxxx` |            | 2-octet Bluetooth SIG Opcodes                                                                 |
+ * | `11xxxxxx` | `zzzzzzzz` | `zzzzzzzz` | 3-octet Vendor Specific Opcodes. `z` denotes company identifier packed in little-endian order |
  *
  * To initialize an access_opcode_t, use the @ref ACCESS_OPCODE_SIG() or @ref ACCESS_OPCODE_VENDOR() macros.
  */
@@ -274,7 +274,10 @@ typedef struct
     access_model_id_t model_id;
     /** Element index to add the model to. */
     uint16_t element_index;
-    /** Pointer to list of opcode handler callbacks. */
+    /**
+     * Pointer to list of opcode handler callbacks. This can be specified as NULL if
+     * @ref access_model_add_params_t::opcode_count is specified as zero.
+     */
     const access_opcode_handler_t * p_opcode_handlers;
     /** Number of opcode handles. */
     uint32_t opcode_count;
@@ -354,7 +357,8 @@ void access_clear(void);
  * @retval     NRF_ERROR_NULL            One or more of the function parameters was NULL.
  * @retval     NRF_ERROR_FORBIDDEN       Multiple model instances per element is not allowed.
  * @retval     NRF_ERROR_NOT_FOUND       Invalid access element index.
- * @retval     NRF_ERROR_INVALID_LENGTH  Number of opcodes was zero.
+ * @retval     NRF_ERROR_INVALID_LENGTH  Number of opcodes was zero and pointer to the list of
+ *                                       opcode handler callbacks is not NULL.
  * @retval     NRF_ERROR_INVALID_PARAM   One or more of the opcodes had an invalid format.
  * @see        access_opcode_t for documentation of the valid format.
  */
@@ -376,6 +380,10 @@ uint32_t access_model_add(const access_model_add_params_t * p_model_params,
  * @retval NRF_ERROR_INVALID_PARAM  Model not bound to appkey, publish address not set or wrong
  *                                  opcode format.
  * @retval NRF_ERROR_INVALID_LENGTH Attempted to send message larger than @ref ACCESS_MESSAGE_LENGTH_MAX.
+ * @retval NRF_ERROR_FORBIDDEN      Failed to allocate a sequence number from network.
+ * @retval NRF_ERROR_INVALID_STATE  There's already a segmented packet to this destination in
+ *                                  progress. Wait for it to finish before sending new segmented
+ *                                  packets.
  */
 uint32_t access_model_publish(access_model_handle_t handle, const access_message_tx_t * p_message);
 
@@ -397,6 +405,10 @@ uint32_t access_model_publish(access_model_handle_t handle, const access_message
  * @retval NRF_ERROR_INVALID_PARAM  Model not bound to appkey, publish address not set or wrong
  *                                  opcode format.
  * @retval NRF_ERROR_INVALID_LENGTH Attempted to send message larger than @ref ACCESS_MESSAGE_LENGTH_MAX.
+ * @retval NRF_ERROR_FORBIDDEN      Failed to allocate a sequence number from network.
+ * @retval NRF_ERROR_INVALID_STATE  There's already a segmented packet to this destination in
+ *                                  progress. Wait for it to finish before sending new segmented
+ *                                  packets.
  */
 uint32_t access_model_reply(access_model_handle_t handle,
                             const access_message_rx_t * p_message,

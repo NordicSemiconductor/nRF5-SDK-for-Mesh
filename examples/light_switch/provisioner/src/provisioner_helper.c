@@ -111,7 +111,7 @@ static void start_provisioning(const uint8_t * p_uuid)
             .flags.key_refresh = false
         };
     memcpy(prov_data.netkey, m_provisioner.p_nw_data->netkey, NRF_MESH_KEY_SIZE);
-    ERROR_CHECK(nrf_mesh_prov_provision(&m_prov_ctx, p_uuid, &prov_data, NRF_MESH_PROV_BEARER_ADV));
+    ERROR_CHECK(nrf_mesh_prov_provision(&m_prov_ctx, p_uuid, m_provisioner.attention_duration_s, &prov_data, NRF_MESH_PROV_BEARER_ADV));
 }
 
 static void prov_helper_provisioner_init(void)

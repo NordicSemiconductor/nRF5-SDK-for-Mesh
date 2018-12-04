@@ -39,7 +39,6 @@
 #define PROVISIONING_H__
 
 #include "prov_pdu.h"
-#include "nrf_mesh_prov_bearer_adv.h"
 #include "nrf_mesh_prov.h"
 #include "nrf_mesh_prov_types.h"
 #include "nrf_mesh_assert.h"
@@ -175,7 +174,7 @@ uint32_t prov_tx_random(prov_bearer_t * p_bearer, const uint8_t * p_random);
  * Sends the provisioning invite message.
  *
  * @param[in, out] p_bearer The bearer instance to use.
- * @param[in] attention_duration The attention timer value in seconds.
+ * @param[in] attention_duration_s The attention timer value in seconds.
  * @param[out] p_confirmation_inputs The confirmation inputs array to update, see @ref nrf_mesh_prov_ctx.
  *
  * @retval NRF_SUCCESS Successfully sent a link establishment request.
@@ -184,7 +183,7 @@ uint32_t prov_tx_random(prov_bearer_t * p_bearer, const uint8_t * p_random);
  * @retval NRF_ERROR_NO_MEM The system is short of resources, try again later.
  * @retval NRF_ERROR_BUSY Another transmission is already in progress, wait for it to finish.
  */
-uint32_t prov_tx_invite(prov_bearer_t * p_bearer, uint8_t attention_duration, uint8_t * p_confirmation_inputs);
+uint32_t prov_tx_invite(prov_bearer_t * p_bearer, uint8_t attention_duration_s, uint8_t * p_confirmation_inputs);
 
 /**
  * Sends the provisioning start message

@@ -319,19 +319,19 @@ static void prov_provisionee_pkt_in(prov_bearer_t * p_bearer, const uint8_t * p_
                 /* Copy PDU contents (excluding PDU type) into the confirmation inputs: */
                 memcpy(p_ctx->confirmation_inputs + PROV_CONFIRM_INPUTS_INVITE_OFFSET, p_buffer + 1, sizeof(prov_pdu_invite_t) - 1);
 
-                if (NRF_SUCCESS != send_capabilities(p_ctx))
-                {
-                    send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_OUT_OF_RESOURCES);
-                    break;
-                }
-
                 const prov_pdu_invite_t * p_invite = (const prov_pdu_invite_t *) p_buffer;
 
                 nrf_mesh_prov_evt_t event;
                 event.type = NRF_MESH_PROV_EVT_INVITE_RECEIVED;
                 event.params.invite_received.p_context = p_ctx;
-                event.params.invite_received.attention_duration_s = p_invite->attention_duration;
+                event.params.invite_received.attention_duration_s = p_invite->attention_duration_s;
                 p_ctx->event_handler(&event);
+
+                if (NRF_SUCCESS != send_capabilities(p_ctx))
+                {
+                    send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_OUT_OF_RESOURCES);
+                    break;
+                }
             }
             break;
         case PROV_PDU_TYPE_START:

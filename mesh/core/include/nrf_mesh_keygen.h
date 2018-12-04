@@ -49,6 +49,19 @@
  * @{
  */
 
+/** Parameters for friendship security material derivation*/
+typedef struct
+{
+    /** LPN address */
+    uint16_t lpn_address;
+    /** Friend address */
+    uint16_t friend_address;
+    /** LPN counter value */
+    uint16_t lpn_counter;
+    /** Friend counter value */
+    uint16_t friend_counter;
+} nrf_mesh_keygen_friendship_secmat_params_t;
+
 /**
  * AID generation from application key. As specified by the Bluetooth Mesh Profile Specification v1.0,
  * section 3.8.6.2.
@@ -73,6 +86,21 @@ uint32_t nrf_mesh_keygen_aid(const uint8_t * p_appkey, uint8_t * p_aid);
  * @retval NRF_ERROR_NULL An unexpected NULL pointer is given.
  */
 uint32_t nrf_mesh_keygen_network_secmat(const uint8_t * p_netkey, nrf_mesh_network_secmat_t * p_secmat);
+
+/**
+ * Generation of friendship network security material:  NID, encryption key, and privacy key from the given
+ * network key and friendship parameters. As specified by the Bluetooth Mesh Profile Specification v1.0, section 3.8.6.3.
+ *
+ * @param[in] p_netkey Pointer to the network key of size @ref NRF_MESH_KEY_SIZE.
+ * @param[in] p_params Pointer to friendship parameter structure
+ * @param[out] p_secmat Pointer to a @c nrf_mesh_network_secmat_t struct, in order to store the
+ * resulting NID and keys.
+ *
+ * @retval NRF_SUCCESS The resulting security material from the given key is successfuly stored.
+ * @retval NRF_ERROR_NULL An unexpected NULL pointer is given.
+ */
+uint32_t nrf_mesh_keygen_friendship_secmat(const uint8_t * p_netkey, const nrf_mesh_keygen_friendship_secmat_params_t * p_params,
+                                           nrf_mesh_network_secmat_t * p_secmat);
 
 /**
  * Generation of network beacon security material:  beacon key and net_id from the given network key.

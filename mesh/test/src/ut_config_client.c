@@ -51,7 +51,6 @@
 #include "access_mock.h"
 #include "access_reliable_mock.h"
 #include "access_config_mock.h"
-#include "packet_mgr_mock.h"
 #include "nrf_mesh_mock.h"
 
 /*****************************************************************************
@@ -130,7 +129,6 @@ static struct
     uint8_t buffer[128];
 } m_buffer;
 
-static uint8_t m_packet_buffer[128];
 static access_reliable_cb_t m_reliable_cb;
 static bool m_expect_timeout;
 static bool m_expect_cancelled;
@@ -179,21 +177,6 @@ static uint32_t send_reliable_cb(const access_reliable_t * p_reliable, int num_c
     access_model_reliable_publish_StubWithCallback(NULL);
     m_buffer.free = true;
     return m_retval;
-}
-
-static uint32_t pacman_alloc_cb(packet_generic_t ** pp_packet, uint16_t length, int num_calls)
-{
-    TEST_ASSERT_EQUAL(0, m_pacman_refcount);
-    TEST_ASSERT_NOT_NULL(pp_packet);
-    *pp_packet = &m_packet_buffer[0];
-    m_pacman_refcount++;
-    return m_retval;
-}
-
-static void pacman_free_cb(packet_generic_t * p_packet, int num_calls)
-{
-    TEST_ASSERT(m_pacman_refcount == 1);
-    m_pacman_refcount = 0;
 }
 
 static void event_cb(config_client_event_type_t event_type, const config_client_event_t * p_evt, uint16_t length)
@@ -274,15 +257,12 @@ void setUp(void)
     access_mock_Init();
     access_config_mock_Init();
     access_reliable_mock_Init();
-    packet_mgr_mock_Init();
     nrf_mesh_mock_Init();
     memset(&m_buffer, 0, sizeof(m_buffer));
     m_buffer.free = true;
     m_handle = 0;
     m_retval = NRF_SUCCESS;
     memset(&m_model_params, 0, sizeof(m_model_params));
-    packet_mgr_alloc_StubWithCallback(pacman_alloc_cb);
-    packet_mgr_free_StubWithCallback(pacman_free_cb);
     nrf_mesh_unique_token_get_IgnoreAndReturn((nrf_mesh_tx_token_t)0x55AA55AAul);
     m_expect_timeout = false;
     m_expect_cancelled = false;
@@ -305,8 +285,6 @@ void tearDown(void)
     access_config_mock_Destroy();
     access_reliable_mock_Verify();
     access_reliable_mock_Destroy();
-    packet_mgr_mock_Verify();
-    packet_mgr_mock_Destroy();
     nrf_mesh_mock_Verify();
     nrf_mesh_mock_Destroy();
 }

@@ -47,6 +47,7 @@
 #include "nrf.h"
 #include "nrf_soc.h"
 #include "nrf_mesh_config_bearer.h"
+#include "nrf_nvic.h"
 
 #ifdef BEARER_EVENT_USE_SWI0
 #define EVENT_IRQn          SWI0_IRQn
@@ -62,8 +63,7 @@
 /** The different types of bearer events. */
 typedef enum
 {
-    BEARER_EVENT_TYPE_TIMER,    /**< Timer event type */
-    BEARER_EVENT_TYPE_GENERIC,  /**< Generic event type */
+    BEARER_EVENT_TYPE_GENERIC,        /**< Generic event type */
     BEARER_EVENT_TYPE_TIMER_SCHEDULER /**< Timer scheduler type */
 } bearer_event_type_t;
 
@@ -102,6 +102,8 @@ static fifo_t m_bearer_event_fifo;
 static bearer_event_t m_bearer_event_fifo_buffer[BEARER_EVENT_FIFO_SIZE];
 /** IRQ critical section mask */
 static uint32_t m_critical;
+/** Stores critical region nesting */
+static uint8_t m_is_nested_critical_region;
 /** Event flag field. */
 static volatile uint32_t m_flags[BITFIELD_BLOCK_COUNT(BEARER_EVENT_FLAG_COUNT)];
 /** Lookup table of flag event handlers. */
@@ -121,12 +123,6 @@ static void call_callback(const bearer_event_t * p_evt)
 {
     switch (p_evt->type)
     {
-        case BEARER_EVENT_TYPE_TIMER:
-            if (p_evt->params.timer.callback)
-            {
-                p_evt->params.timer.callback(p_evt->params.timer.timeout);
-            }
-            break;
         case BEARER_EVENT_TYPE_TIMER_SCHEDULER:
             if (p_evt->params.timer_sch.callback)
             {
@@ -195,7 +191,6 @@ static uint32_t evt_push(const bearer_event_t* p_evt)
     }
 }
 
-
 /*****************************************************************************
 * Interface functions
 *****************************************************************************/
@@ -207,14 +202,18 @@ void bearer_event_init(uint8_t irq_priority)
     m_bearer_event_fifo.array_len = BEARER_EVENT_FIFO_SIZE;
     fifo_init(&m_bearer_event_fifo);
     queue_init(&m_sequential_event_queue);
-
-#if !defined(HOST)
     if (m_irq_priority != NRF_MESH_IRQ_PRIORITY_THREAD)
     {
-        (void) NVIC_SetPriority(EVENT_IRQn, m_irq_priority);
-        (void) NVIC_EnableIRQ(EVENT_IRQn);
+        NRF_MESH_ERROR_CHECK(sd_nvic_SetPriority(EVENT_IRQn, m_irq_priority));
     }
-#endif
+}
+
+void bearer_event_start(void)
+{
+    if (m_irq_priority != NRF_MESH_IRQ_PRIORITY_THREAD)
+    {
+        NRF_MESH_ERROR_CHECK(sd_nvic_EnableIRQ(EVENT_IRQn));
+    }
 }
 
 uint32_t bearer_event_generic_post(bearer_event_callback_t callback, void* p_context)
@@ -224,17 +223,6 @@ uint32_t bearer_event_generic_post(bearer_event_callback_t callback, void* p_con
     evt.type = BEARER_EVENT_TYPE_GENERIC;
     evt.params.generic.callback = callback;
     evt.params.generic.p_context = p_context;
-
-    return evt_push(&evt);
-}
-
-uint32_t bearer_event_timer_post(timer_callback_t callback, timestamp_t timestamp)
-{
-    NRF_MESH_ASSERT(callback != NULL);
-    bearer_event_t evt;
-    evt.type = BEARER_EVENT_TYPE_TIMER;
-    evt.params.timer.callback = callback;
-    evt.params.timer.timeout = timestamp;
 
     return evt_push(&evt);
 }
@@ -257,12 +245,10 @@ void bearer_event_critical_section_begin(void)
     _DISABLE_IRQS(was_masked);
     if (!m_critical++)
     {
-#if !defined(HOST)
         if (m_irq_priority != NRF_MESH_IRQ_PRIORITY_THREAD)
         {
-            (void) NVIC_DisableIRQ(EVENT_IRQn);
+            NRF_MESH_ERROR_CHECK(sd_nvic_critical_region_enter(&m_is_nested_critical_region));
         }
-#endif
     }
 
     NRF_MESH_ASSERT(m_critical != 0);
@@ -277,13 +263,12 @@ void bearer_event_critical_section_end(void)
 
     if (!--m_critical)
     {
-#if defined(HOST)
-        trigger_event_handler();
-#else
         if (m_irq_priority != NRF_MESH_IRQ_PRIORITY_THREAD)
         {
-            (void) NVIC_EnableIRQ(EVENT_IRQn);
+            NRF_MESH_ERROR_CHECK(sd_nvic_critical_region_exit(m_is_nested_critical_region));
         }
+#if defined(HOST)
+        trigger_event_handler();
 #endif
 
     }

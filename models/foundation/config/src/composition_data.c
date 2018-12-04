@@ -43,8 +43,6 @@
 #include "access_config.h"
 #include "nrf_mesh_assert.h"
 
-#define CONFIG_FEATURE_RFU_MASK (0xFFF0)
-
 static uint16_t composition_data_vendor_models_write(uint16_t element_index, const access_model_handle_t * p_handles, uint16_t count, uint8_t * p_buffer)
 {
     uint16_t bytes = 0;
@@ -94,7 +92,19 @@ void config_composition_data_get(uint8_t * p_data, uint16_t * p_size)
     device.product_id = DEVICE_PRODUCT_ID;
     device.version_id = DEVICE_VERSION_ID;
     device.replay_cache_entries = REPLAY_CACHE_ENTRIES;
-    device.features = DEVICE_FEATURES & (~CONFIG_FEATURE_RFU_MASK);
+    device.features = 0;
+
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    device.features |= CONFIG_FEATURE_PROXY_BIT;
+#endif
+
+#if MESH_FEATURE_LPN_ENABLED
+    device.features |= CONFIG_FEATURE_LOW_POWER_BIT;
+#endif
+
+#if MESH_FEATURE_RELAY_ENABLED
+    device.features |= CONFIG_FEATURE_RELAY_BIT;
+#endif
 
     memcpy(&p_data[0], &device, sizeof(device));
     *p_size = sizeof(device);

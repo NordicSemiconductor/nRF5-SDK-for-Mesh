@@ -49,6 +49,7 @@
 #include "nrf_mesh_utils.h"
 #include "nordic_common.h"
 
+#include "log.h"
 
 static uint32_t status_send(generic_onoff_server_t * p_server,
                             const access_message_rx_t * p_message,
@@ -132,6 +133,8 @@ static void handle_set(access_model_handle_t model_handle, const access_message_
 
                 in_data_tr.transition_time_ms = model_transition_time_decode(p_msg_params_packed->transition_time);
                 in_data_tr.delay_ms = model_delay_decode(p_msg_params_packed->delay);
+                __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Server: transition_time_ms = %X\n", in_data_tr.transition_time_ms);
+                __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Server: delay_ms = %X\n", in_data_tr.delay_ms);
             }
 
             p_server->settings.p_callbacks->onoff_cbs.set_cb(p_server,

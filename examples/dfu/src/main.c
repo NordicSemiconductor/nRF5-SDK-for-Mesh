@@ -41,14 +41,12 @@
 #include "nrf_mesh_dfu.h"
 #include "mesh_app_utils.h"
 #include "mesh_stack.h"
-#include "mesh_softdevice_init.h"
+#include "ble_softdevice_support.h"
 #include "mesh_provisionee.h"
 #include "nrf_mesh_config_examples.h"
 #include "simple_hal.h"
 #include "app_timer.h"
-
-#define LED_BLINK_INTERVAL_MS (200)
-#define LED_BLINK_CNT_RESET   (3)
+#include "example_common.h"
 
 #ifndef NRF_MESH_SERIAL_ENABLE
 #define NRF_MESH_SERIAL_ENABLE 1
@@ -217,8 +215,8 @@ static void initialize(void)
     __LOG(LOG_SRC_APP, LOG_LEVEL_DBG2, "rom_length %X\n", rom_length);
     __LOG(LOG_SRC_APP, LOG_LEVEL_DBG2, "bank_addr   %X\n", bank_addr);
 
-    nrf_clock_lf_cfg_t lfc_cfg = DEV_BOARD_LF_CLK_CFG;
-    ERROR_CHECK(mesh_softdevice_init(lfc_cfg));
+    ble_stack_init();
+
     mesh_init();
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Initialization complete!\n");
@@ -226,8 +224,6 @@ static void initialize(void)
 
 static void start(void)
 {
-    ERROR_CHECK(mesh_stack_start());
-
     if (!m_device_provisioned)
     {
         static const uint8_t static_auth_data[NRF_MESH_KEY_SIZE] = STATIC_AUTH_DATA;
@@ -235,6 +231,9 @@ static void start(void)
         {
             .p_static_data = static_auth_data,
             .prov_complete_cb = NULL,
+            .prov_device_identification_start_cb = NULL,
+            .prov_device_identification_stop_cb = NULL,
+            .prov_abort_cb = NULL,
             .p_device_uri = NULL
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
@@ -245,13 +244,15 @@ static void start(void)
     ERROR_CHECK(nrf_mesh_serial_enable());
 #endif
 
+    ERROR_CHECK(mesh_stack_start());
+
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "DFU example started!\n");
 }
 
 int main(void)
 {
     initialize();
-    execution_start(start);
+    start();
 
     for (;;)
     {

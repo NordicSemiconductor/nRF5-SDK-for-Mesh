@@ -48,25 +48,28 @@
  * callbacks. The interface is similar to CMock's.
  *
  * Instantiates:
- * - An init function that initializes the queue
- * - A pending function that returns whether there are any more expect calls pending
- * - A verify function that verifies that all expected calls have been fired
+ * - An init function that initializes the queue.
+ * - A pending function that returns whether there are any more expect calls pending.
+ * - A verify function that verifies that all expected calls have been fired.
  * - A destroy function that cleans up.
- * - An expect function that enqueues the expected entry
- * - A consume function that can be used in the expected function
+ * - An expect function that enqueues the expected entry.
+ * - A consume function that can be used in the expected function.
  *
  * Requires queue.c and uses malloc to allocate the entries.
  *
  * @param[in] NAME Name of the calls and queue. Setting @c NAME to my_func creates functions
- * @c my_func_setup, @c my_func_verify, @c my_func_expect and @c my_func_consume.
+ * @c my_func_setup, @c my_func_verify, @c my_func_expect, and @c my_func_consume.
  * @param[in] DATA_TYPE data type of the expected value.
+ * @param[in] ON_DESTROY_CB Optional callback to be called while destroying the mock queue. For example, if
+ * the DATA_TYPE has nested allocations.
  */
-#define MOCK_QUEUE_DEF(NAME, DATA_TYPE)                                                            \
+#define MOCK_QUEUE_DEF(NAME, DATA_TYPE, ON_DESTROY_CB)                                             \
     typedef struct                                                                                 \
     {                                                                                              \
         queue_elem_t queue_elem;                                                                   \
         DATA_TYPE data;                                                                            \
     } NAME##_expect_t;                                                                             \
+    void (*m_##NAME##_destroy_cb)(DATA_TYPE *) = ON_DESTROY_CB;                                           \
     queue_t m_##NAME##_expect_queue;                                                               \
     static void __attribute__((used)) NAME##_Init(void)                                            \
     {                                                                                              \
@@ -79,16 +82,21 @@
     static void __attribute__((used)) NAME##_Verify(void)                                          \
     {                                                                                              \
         UNITY_SET_DETAIL(__FUNCTION__);                                                            \
-        TEST_ASSERT_FALSE_MESSAGE(NAME##_Pending(), #NAME " called less times than expected.");     \
+        TEST_ASSERT_FALSE_MESSAGE(NAME##_Pending(), #NAME " called less times than expected.");    \
     }                                                                                              \
     static void __attribute__((used)) NAME##_Destroy(void)                                         \
     {                                                                                              \
         while (NAME##_Pending())                                                                   \
         {                                                                                          \
-            free(queue_pop(&m_##NAME##_expect_queue)->p_data);                                     \
+            NAME##_expect_t * p_elem = queue_pop(&m_##NAME##_expect_queue)->p_data;                        \
+            if (m_##NAME##_destroy_cb)                                                             \
+            {                                                                                      \
+                m_##NAME##_destroy_cb(&p_elem->data);                                              \
+            }                                                                                      \
+            free(p_elem);                                                                  \
         }                                                                                          \
     }                                                                                              \
-    static void __attribute__((used)) NAME##_Expect(const DATA_TYPE * p_data)                      \
+    static void __attribute__((used)) NAME##_Expect(DATA_TYPE const * p_data)                      \
     {                                                                                              \
         UNITY_SET_DETAIL(__FUNCTION__);                                                            \
         NAME##_expect_t * p_expect = malloc(sizeof(NAME##_expect_t));                              \

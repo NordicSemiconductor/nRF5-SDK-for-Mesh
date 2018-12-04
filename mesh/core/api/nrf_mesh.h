@@ -41,6 +41,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "timer.h"
+
 #include "ble.h"
 #include "ble_gap.h"
 
@@ -62,6 +64,11 @@
 /** The upper border of the token values which are used for general communication. */
 #define NRF_MESH_SERVICE_BORDER_TOKEN   0xF0000000ul
 /** Reserved token values. */
+#define NRF_MESH_FRIEND_POLL_TOKEN      0xFFFFFFF8ul
+#define NRF_MESH_FRIEND_REQUEST_TOKEN   0xFFFFFFF9ul
+#define NRF_MESH_FRIEND_CLEAR_TOKEN     0xFFFFFFFAul
+#define NRF_MESH_SUBMAN_ADD_TOKEN       0xFFFFFFFBul
+#define NRF_MESH_SUBMAN_REMOVE_TOKEN    0xFFFFFFFCul
 #define NRF_MESH_HEARTBEAT_TOKEN        0xFFFFFFFDul
 #define NRF_MESH_SAR_TOKEN              0xFFFFFFFEul
 #define NRF_MESH_RELAY_TOKEN            0xFFFFFFFFul
@@ -81,7 +88,7 @@
  * using CMSIS NVIC_SystemReset().
  *
  * @param[in] pc            The program counter of the failed assertion.
-  */
+ */
 typedef void (*nrf_mesh_assertion_handler_t)(uint32_t pc);
 
 /** TX Token type, used as a context parameter to notify the application of ended transmissions. */
@@ -101,7 +108,7 @@ typedef enum
 /** Metadata structure for packets received with the scanner */
 typedef struct
 {
-    uint32_t timestamp; /**< Device local timestamp of the start of the advertisement header of the packet in microseconds. */
+    timestamp_t timestamp; /**< Device local timestamp of the start of the advertisement header of the packet in microseconds. */
     uint32_t access_addr; /**< Access address the packet was received on. */
     uint8_t  channel; /**< Channel the packet was received on. */
     int8_t   rssi; /**< RSSI value of the received packet. */
@@ -119,7 +126,7 @@ typedef struct
 /** Metadata structure for packets received with Instaburst */
 typedef struct
 {
-    uint32_t timestamp; /**< Device local timestamp of the packet preamble of the adv ext packet in microseconds. */
+    timestamp_t timestamp; /**< Device local timestamp of the packet preamble of the adv ext packet in microseconds. */
     uint8_t  channel; /**< Channel the packet was received on. */
     int8_t   rssi; /**< RSSI value of the received packet. */
     struct
@@ -132,7 +139,7 @@ typedef struct
 
 typedef struct
 {
-    uint32_t timestamp; /**< Device local timestamp of the packet being processed in the stack in microseconds. */
+    timestamp_t timestamp; /**< Device local timestamp of the packet being processed in the stack in microseconds. */
     uint16_t connection_index; /**< Proxy connection index the packet was received from. */
 } nrf_mesh_rx_metadata_gatt_t;
 
@@ -166,17 +173,17 @@ typedef struct
  * which packets should be relayed to other nodes. This is done by passing the function pointer
  * to @ref nrf_mesh_init via the @ref nrf_mesh_init_params_t struct.
  *
- * The default behaviour, which is always applied in addition to the callback function, is
- * that the mesh will only relay new packets with a TTL larger than 1.
+ * With the default behavior, the mesh will only relay new packets with a TTL larger than 1.
+ * This behavior is always applied in addition to the callback function.
  *
  * @warning Devices claiming to be compliant with the Mesh Profile Specification v1.0 should
- *          not override the default relaying behaviour.
+ *          not override the default relaying behavior.
  *
  * @see nrf_mesh_init()
  *
- * @param[in] src The packet source address
- * @param[in] dst The packet destination address
- * @param[in] ttl The time-to-live value for the packet (6-bits)
+ * @param[in] src The packet source address.
+ * @param[in] dst The packet destination address.
+ * @param[in] ttl The time-to-live value for the packet (6-bits).
  *
  * @returns @c true if the packet received should be relayed on to the other mesh nodes, @c false otherwise.
  */
@@ -266,7 +273,7 @@ typedef struct
     uint8_t key[NRF_MESH_KEY_SIZE];
     /** Network ID */
     uint8_t net_id[NRF_MESH_NETID_SIZE];
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
     /** Identity key used with Proxy identity beacons. */
     uint8_t identity_key[NRF_MESH_KEY_SIZE];
 #endif
@@ -281,7 +288,7 @@ typedef struct
     /** Rolling number of beacons received in each preceding period. */
     uint16_t rx_count[NRF_MESH_BEACON_OBSERVATION_PERIODS];
     /** Last transmission time for this beacon. */
-    uint32_t tx_timestamp;
+    timestamp_t tx_timestamp;
 } nrf_mesh_beacon_tx_info_t;
 
 /**
@@ -464,12 +471,20 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params);
 uint32_t nrf_mesh_enable(void);
 
 /**
- * Disables the Mesh.
+ * Starts disabling the Mesh.
  *
  * Calling this function will stop the Mesh, i.e, it will stop ordering
  * time slots from the SoftDevice and will not generate events.
  *
+ * The mesh will produce an @ref NRF_MESH_EVT_DISABLED once it has been fully disabled.
+ *
+ * @warning The mesh should be fully disabled before the Softdevice is disabled. If the application
+ * uses the Softdevice Handler module from the nRF5 SDK, this will be handled automatically.
+ * Otherwise, the application should wait for @ref NRF_MESH_EVT_DISABLED before disabling the
+ * Softdevice.
+ *
  * @retval NRF_SUCCESS The Mesh was stopped successfully.
+ * @retval NRF_ERROR_INVALID_STATE The mesh was already disabled.
  */
 uint32_t nrf_mesh_disable(void);
 
@@ -498,8 +513,10 @@ uint32_t nrf_mesh_disable(void);
  * @retval NRF_ERROR_INVALID_PARAM TTL was larger than NRF_MESH_TTL_MAX.
  * @retval NRF_ERROR_NULL          @c p_params is a @c NULL pointer or a required field of the struct
  *                                 (other than @c p_data) is @c NULL.
- * @retval NRF_ERROR_FORBIDDEN     Failed to allocate a sequence number from network. Only occurs
- *                                 with unsegmented packets.
+ * @retval NRF_ERROR_FORBIDDEN     Failed to allocate a sequence number from network.
+ * @retval NRF_ERROR_INVALID_STATE There's already a segmented packet to this destination in
+ *                                 progress. Wait for it to finish before sending new segmented
+ *                                 packets.
  */
 uint32_t nrf_mesh_packet_send(const nrf_mesh_tx_params_t * p_params,
                               uint32_t * const p_packet_reference);

@@ -40,7 +40,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "nrf_mesh.h"
-#include "timer.h"
+#include "timeslot_timer.h"
 #include "radio_config.h"
 #include "packet.h"
 #include "bearer_event.h"
@@ -82,8 +82,10 @@ typedef struct
  * to the buffer.
  *
  * @param[in] p_packet Packet received.
+ * @param[in] rx_timestamp_ts Timeslot timestamp of the packet RX, sampled at the first bit of the
+ * header with the HF timer.
  */
-typedef void (*scanner_rx_callback_t)(const scanner_packet_t * p_packet);
+typedef void (*scanner_rx_callback_t)(const scanner_packet_t * p_packet, ts_timestamp_t rx_timestamp_ts);
 
 /**
  * Initializes the scanner module.
@@ -206,7 +208,7 @@ void scanner_config_reset(void);
 
  * @param[in] start_time Timestamp when the action timer was started.
  */
-void scanner_radio_start(timestamp_t start_time);
+void scanner_radio_start(ts_timestamp_t start_time);
 
 /**
  * Stop scanner radio.

@@ -61,7 +61,7 @@ extern jmp_buf assert_jump_buf;
         {                                      \
             (void) func;                       \
             mesh_assert_expect = false;        \
-            TEST_FAIL();                       \
+            TEST_FAIL_MESSAGE("Expected assert");                       \
         }                                      \
     } while (0)
 

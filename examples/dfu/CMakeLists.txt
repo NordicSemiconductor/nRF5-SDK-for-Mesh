@@ -5,9 +5,9 @@ if (NOT PLATFORM MATCHES "nrf52810")
 add_executable(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
     "${CMAKE_SOURCE_DIR}/mesh/stack/src/mesh_stack.c"
-    "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_softdevice_init.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_provisionee.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/simple_hal.c"
+    ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${ACCESS_SOURCE_FILES}
     ${SERIAL_SOURCE_FILES}
     ${CONFIG_SERVER_SOURCE_FILES}
@@ -15,10 +15,12 @@ add_executable(${target}
     ${PROV_PROVISIONER_SOURCE_FILES}
     ${PROV_PROVISIONEE_SOURCE_FILES}
     ${PROV_COMMON_SOURCE_FILES}
+    ${PROV_BEARER_ADV_SOURCE_FILES}
     ${DFU_SOURCE_FILES}
     ${WEAK_SOURCE_FILES}
     ${MESH_CORE_SOURCE_FILES}
     ${MESH_BEARER_SOURCE_FILES}
+    ${MESH_APP_TIMER_SOURCE_FILES}
     ${${PLATFORM}_SOURCE_FILES}
     ${${nRF5_SDK_VERSION}_SOURCE_FILES})
 
@@ -26,6 +28,7 @@ target_include_directories(${target} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
     "${MBTLE_SOURCE_DIR}/examples"
     "${CMAKE_SOURCE_DIR}/examples/common/include"
+    ${BLE_SOFTDEVICE_SUPPORT_INCLUDE_DIRS}
     ${CONFIG_SERVER_INCLUDE_DIRS}
     ${HEALTH_SERVER_INCLUDE_DIRS}
     ${MESH_INCLUDE_DIRS}
@@ -70,19 +73,21 @@ set(target "dfu_no_serial_${PLATFORM}_${SOFTDEVICE}")
 add_executable(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
     "${CMAKE_SOURCE_DIR}/mesh/stack/src/mesh_stack.c"
-    "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_softdevice_init.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_provisionee.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/simple_hal.c"
+    ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${ACCESS_SOURCE_FILES}
     ${CONFIG_SERVER_SOURCE_FILES}
     ${HEALTH_SERVER_SOURCE_FILES}
     ${PROV_PROVISIONER_SOURCE_FILES}
     ${PROV_PROVISIONEE_SOURCE_FILES}
     ${PROV_COMMON_SOURCE_FILES}
+    ${PROV_BEARER_ADV_SOURCE_FILES}
     ${DFU_SOURCE_FILES}
     ${WEAK_SOURCE_FILES}
     ${MESH_CORE_SOURCE_FILES}
     ${MESH_BEARER_SOURCE_FILES}
+    ${MESH_APP_TIMER_SOURCE_FILES}
     ${${PLATFORM}_SOURCE_FILES}
     ${${nRF5_SDK_VERSION}_SOURCE_FILES})
 
@@ -90,6 +95,7 @@ target_include_directories(${target} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
     "${MBTLE_SOURCE_DIR}/examples"
     "${CMAKE_SOURCE_DIR}/examples/common/include"
+    ${BLE_SOFTDEVICE_SUPPORT_INCLUDE_DIRS}
     ${CONFIG_SERVER_INCLUDE_DIRS}
     ${HEALTH_SERVER_INCLUDE_DIRS}
     ${MESH_INCLUDE_DIRS}

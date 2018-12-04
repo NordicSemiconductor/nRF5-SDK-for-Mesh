@@ -60,7 +60,7 @@
  * @{
  */
 
-/** Default TX timeout. */
+/** Default RX timeout. */
 #define TRANSPORT_SAR_RX_TIMEOUT_DEFAULT_US SEC_TO_US(10)
 
 /** Default base RX acknowledgement timeout. */
@@ -78,8 +78,12 @@
 /** Default number of retries before cancelling SAR TX session. */
 #define TRANSPORT_SAR_TX_RETRIES_DEFAULT (4)
 
-/** Maximum number of control packet consumers. */
+#if MESH_FEATURE_LPN_ENABLED
+/** Maximum number of control packet consumers. Heartbeat + LPN_SM + LPN FSM */
+#define TRANSPORT_CONTROL_PACKET_CONSUMERS_MAX   (3)
+#else
 #define TRANSPORT_CONTROL_PACKET_CONSUMERS_MAX   (1)
+#endif
 
 /** The highest control packet opcode that can fit in the packet field,  */
 #define TRANSPORT_CONTROL_PACKET_OPCODE_MAX (PACKET_MESH_TRS_CONTROL_OPCODE_MASK)
@@ -122,6 +126,7 @@ typedef struct
     nrf_mesh_address_t dst; /**< Packet destination address. */
     const nrf_mesh_network_secmat_t * p_net_secmat; /**< Network security material used during network encryption/decryption. */
     uint8_t ttl; /**< TTL value for the control packet. This is a 7 bit value. */
+    core_tx_bearer_type_t bearer_selector; /**< The bearer on which the outgoing packets are to be sent on. Alternatively, use CORE_TX_BEARER_TYPE_ALLOW_ALL to allow allocation to all bearers. */
 } transport_control_packet_t;
 
 /**
@@ -142,56 +147,12 @@ typedef struct
 } transport_control_packet_handler_t;
 
 /**
- * Allocation function type for transport SAR buffer allocation. Matches
- * stdlib's malloc.
- *
- * @param[in] size Number of bytes to allocate.
- *
- * @returns A pointer to a valid buffer of at least size @p size, or NULL if
- * the allocation failed.
- */
-typedef void* (*transport_sar_alloc_t)(size_t size);
-
-/**
- * Release function type for transport SAR buffer deallocation. Matches
- * stdlib's free.
- *
- * @param[in] ptr A pointer to a previously allocated buffer, that is to be released.
- */
-typedef void (*transport_sar_release_t)(void* ptr);
-
-/**
  * Initializes the transport layer.
  *
  * @param[in] p_init_params  Generic initialization parameters pointer.
  */
 void transport_init(const nrf_mesh_init_params_t * p_init_params);
 
-/**
- * Set the SAR buffer allocation and release functions. Defaults to stdlib's
- * malloc and free. The transport layer has to allocate a temporary buffer
- * for transport packets that span multiple network packets, in order to put
- * them together (RX) or split them (TX). The transport module takes no
- * precautions to prevent overlapping memory regions for different buffers,
- * although this will cause undefined behavior.
- *
- * @note If both parameters are NULL, the function behaves like @ref
- * transport_sar_mem_funcs_reset. If only one of them is NULL, The function
- * does nothing and returns @c NRF_ERROR_NULL.
- *
- * @param[in] alloc_func Function pointer to the wanted allocation function.
- * @param[in] release_func Function pointer to the wanted release function.
- *
- * @retval NRF_SUCCESS The allocation and release functions were successfully
- * set.
- * @retval NRF_ERROR_NULL One of the given function pointers were NULL, but not both.
- */
-uint32_t transport_sar_mem_funcs_set(transport_sar_alloc_t alloc_func, transport_sar_release_t release_func);
-
-/**
- * Reset the SAR buffer allocation and release functions to malloc and free.
- */
-void transport_sar_mem_funcs_reset(void);
 /**
  * Function for passing packets from the network layer to the transport layer.
  *
@@ -232,14 +193,16 @@ uint32_t transport_addr_to_short(nrf_mesh_address_t * p_addr, uint16_t * p_short
  * @param[in]  p_params           Message parameters.
  * @param[out] p_packet_reference Reference to SAR buffer (for TX complete event).
  *
- * @retval NRF_SUCCESS            The packet was successfully queued for transmission.
- * @retval NRF_ERROR_NULL         Null-pointer supplied.
- * @retval NRF_ERROR_INVALID_ADDR Invalid address supplied.
+ * @retval NRF_SUCCESS              The packet was successfully queued for transmission.
+ * @retval NRF_ERROR_NULL           Null-pointer supplied.
+ * @retval NRF_ERROR_INVALID_ADDR   Invalid address supplied.
  * @retval NRF_ERROR_INVALID_LENGTH The packet length was too long.
- * @retval NRF_ERROR_INVALID_PARAM One or more of the given parameters are out of bounds.
- * @retval NRF_ERROR_NO_MEM       Insufficient amount of available memory.
- * @retval NRF_ERROR_FORBIDDEN    Failed to allocate a sequence number from network. Only occurs
- *                                with unsegmented packets.
+ * @retval NRF_ERROR_INVALID_PARAM  One or more of the given parameters are out of bounds.
+ * @retval NRF_ERROR_NO_MEM         Insufficient amount of available memory.
+ * @retval NRF_ERROR_FORBIDDEN      Failed to allocate a sequence number from network.
+ * @retval NRF_ERROR_INVALID_STATE  There's already a segmented packet to this destination in
+ *                                  progress. Wait for it to finish before sending new segmented
+ *                                  packets.
  */
 uint32_t transport_tx(const nrf_mesh_tx_params_t * p_params, uint32_t * const p_packet_reference);
 
@@ -255,14 +218,16 @@ uint32_t transport_tx(const nrf_mesh_tx_params_t * p_params, uint32_t * const p_
  * @param[in] p_params Transport control packet parameters.
  * @param[in] tx_token Token to use in the TX complete event.
  *
- * @retval NRF_SUCCESS The packet was successfully queued for transmission.
- * @retval NRF_ERROR_NULL         Null-pointer supplied.
- * @retval NRF_ERROR_INVALID_ADDR Invalid address supplied.
+ * @retval NRF_SUCCESS              The packet was successfully queued for transmission.
+ * @retval NRF_ERROR_NULL           Null-pointer supplied.
+ * @retval NRF_ERROR_INVALID_ADDR   Invalid address supplied.
  * @retval NRF_ERROR_INVALID_LENGTH The packet length was too long.
- * @retval NRF_ERROR_INVALID_PARAM One or more of the given parameters are out of bounds.
- * @retval NRF_ERROR_NO_MEM       Insufficient amount of available memory.
- * @retval NRF_ERROR_FORBIDDEN    Failed to allocate a sequence number from network. Only occurs
- *                                with unsegmented packets.
+ * @retval NRF_ERROR_INVALID_PARAM  One or more of the given parameters are out of bounds.
+ * @retval NRF_ERROR_NO_MEM         Insufficient amount of available memory.
+ * @retval NRF_ERROR_FORBIDDEN      Failed to allocate a sequence number from network.
+ * @retval NRF_ERROR_INVALID_STATE  There's already a segmented packet to this destination in
+ *                                  progress. Wait for it to finish before sending new segmented
+ *                                  packets.
  */
 uint32_t transport_control_tx(const transport_control_packet_t * p_params,
                               nrf_mesh_tx_token_t tx_token);

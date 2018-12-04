@@ -237,6 +237,7 @@ void ccm_soft_decrypt(ccm_soft_data_t * p_data, bool * p_mic_passed)
 #if CCM_DEBUG_MODE_ENABLED
     __LOG_XB(LOG_SRC_CCM, LOG_LEVEL_INFO, "ccm_soft_decrypt: IN",  p_data->p_m, p_data->m_len);
 #endif
+    NRF_MESH_ASSERT_DEBUG(p_data->mic_len <= CCM_MIC_LENGTH_MAX);
 
     aes_data_t aes_data;
 
@@ -253,7 +254,7 @@ void ccm_soft_decrypt(ccm_soft_data_t * p_data, bool * p_mic_passed)
     p_data->p_m = p_data->p_out;
 
     /* Authenticate data */
-    uint8_t mic_out[p_data->mic_len];
+    uint8_t mic_out[CCM_MIC_LENGTH_MAX];
 
     ccm_soft_authenticate(p_data, &aes_data, mic_out);
     build_mic(p_data, &aes_data, mic_out, mic_out);

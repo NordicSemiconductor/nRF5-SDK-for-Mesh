@@ -94,6 +94,18 @@ static void mem_listener_cb(void * p_args)
         flash_manager_mem_listener_register(p_args);
     }
 }
+
+static fm_iterate_action_t read_cb(const fm_entry_t * p_entry, void * p_args)
+{
+    test_entry_t * p_expect = p_args;
+    TEST_ASSERT_EQUAL(p_expect->handle, p_entry->header.handle);
+    TEST_ASSERT_EQUAL(p_expect->len, p_entry->header.len_words);
+    for (int32_t word = 0; word < p_expect->len - 1; ++word)
+    {
+        TEST_ASSERT_EQUAL_HEX32(p_expect->data_value, p_entry->data[word]);
+    }
+    return FM_ITERATE_ACTION_CONTINUE;
+}
 /*****************************************************************************
 * Tests
 *****************************************************************************/
@@ -108,6 +120,8 @@ void test_manager_add(void)
     flash_manager_defrag_init_ExpectAndReturn(false);
     flash_manager_init();
     g_flash_queue_slots = 0xFFFFFF;
+
+    flash_manager_defragging_IgnoreAndReturn(false);
 
     /* Add basic 3 page blank area */
     static flash_manager_page_t area[3] __attribute__((aligned(PAGE_SIZE)));
@@ -241,7 +255,6 @@ void test_manager_add(void)
                       + sizeof(flash_manager_t*) + sizeof(uint8_t)      \
                       + sizeof(packet_buffer_packet_t))*AREA_COUNT))
 
-    printf("\n\n FMAN_COUNT %u \n\n", FMAN_COUNT);
     flash_manager_t managers[FMAN_COUNT];
     static flash_manager_page_t areas[FMAN_COUNT][AREA_COUNT] __attribute__((aligned(PAGE_SIZE)));
     memset(areas, 0xFF, sizeof(areas));
@@ -281,6 +294,23 @@ void test_manager_add(void)
     flash_execute();
     /* read the failed manager, should work this time. */
     TEST_ASSERT_EQUAL(NRF_SUCCESS, flash_manager_add(&managers[5], &config));
+
+    /* Add a new area that is being defragged */
+    g_flash_queue_slots = 0xFFFF;
+    static flash_manager_page_t area_c[1] __attribute__((aligned(PAGE_SIZE)));
+    static flash_manager_page_t area_c_expect[1] __attribute__((aligned(PAGE_SIZE)));
+    memset(area_c, 0xFF, sizeof(area_c));
+    TEST_ASSERT_EQUAL(PAGE_SIZE, sizeof(area_c));
+    flash_manager_t manager_c;
+    config.p_area = area_c;
+    config.page_count = 1;
+    build_test_page(area_c, 1, entries, ARRAY_SIZE(entries), false);
+    memcpy(area_c_expect, area_c, sizeof(flash_manager_page_t));
+    flash_manager_defragging_ExpectAndReturn(&manager_c, true);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, flash_manager_add(&manager_c, &config));
+    TEST_ASSERT_EQUAL(FM_STATE_DEFRAG, manager_c.internal.state);
+    flash_execute();
+    TEST_ASSERT_EQUAL_MEMORY(area_c_expect, area_c, sizeof(flash_manager_page_t));
 }
 
 void test_invalidate_duplicate_of_last_entry(void)
@@ -288,6 +318,8 @@ void test_invalidate_duplicate_of_last_entry(void)
     flash_manager_defrag_init_ExpectAndReturn(false);
     flash_manager_init();
     g_flash_queue_slots = 0xFFFFFF;
+
+    flash_manager_defragging_IgnoreAndReturn(false);
 
     static flash_manager_page_t area[3] __attribute__((aligned(PAGE_SIZE)));
     memset(area, 0xFF, sizeof(area));
@@ -794,6 +826,8 @@ void test_getters(void)
     flash_manager_init();
     g_flash_queue_slots = 0xFFFFFF;
 
+    flash_manager_defragging_IgnoreAndReturn(false);
+
     static flash_manager_page_t area[3] __attribute__((aligned(PAGE_SIZE)));
     memset(area, 0xFF, sizeof(area));
     TEST_ASSERT_EQUAL(PAGE_SIZE * 3, sizeof(area));
@@ -865,6 +899,10 @@ void test_getters(void)
     TEST_ASSERT_NOT_NULL(p_entry);
     TEST_ASSERT_EQUAL(0x0102, p_entry->header.handle);
 
+    flash_manager_recovery_area_t recovery;
+    memset(&recovery, 0, sizeof(recovery));
+    flash_manager_defrag_recovery_page_get_IgnoreAndReturn(&recovery);
+
     /* Check count */
     filter.match = 0x0000;
     TEST_ASSERT_EQUAL(5, flash_manager_entry_count_get(&manager, &filter));
@@ -906,6 +944,200 @@ void test_getters(void)
     TEST_ASSERT_EQUAL(0, flash_manager_entry_count_get(&manager, &filter));
 }
 
+void test_defrag_safe_getters(void)
+{
+    flash_manager_defrag_init_ExpectAndReturn(false);
+    flash_manager_init();
+    g_flash_queue_slots = 0xFFFFFF;
+
+    flash_manager_defragging_IgnoreAndReturn(false);
+
+    static flash_manager_recovery_area_t recovery_area __attribute__((aligned(PAGE_SIZE)));;
+    memset(&recovery_area, 0xFF, sizeof(recovery_area));
+    flash_manager_defrag_recovery_page_get_IgnoreAndReturn(&recovery_area);
+
+    static flash_manager_page_t area[3] __attribute__((aligned(PAGE_SIZE)));
+    memset(area, 0xFF, sizeof(area));
+    flash_manager_t manager;
+    const flash_manager_config_t config =
+    {
+        .p_area = area,
+        .page_count = ARRAY_SIZE(area),
+        .min_available_space = 0,
+        .write_complete_cb = NULL,
+        .invalidate_complete_cb = NULL
+    };
+
+    /* Fill the area with all kinds of entries */
+    test_entry_t entries[] =
+    {
+        {0x0010, 0x0001, 0x01010101}, /////////// Page 1
+        {0x0010, 0x0002, 0x02020202},
+        {0x0001, 0x0003, 0x03030303},
+        {0x0020, 0x0000, 0x04040404}, // invalid
+        {0x0020, 0x0000, 0x04040404}, // invalid
+        {0x0010, 0x00FF, 0x0f0f0f0f},
+        {0x0010, 0x0102, 0x22222222},
+        {0x0020, 0x0000, 0x04040404}, // invalid
+        {0x0008, 0x0100, 0x00000000},
+        {0x0020, 0x0000, 0x11111111}, // invalid
+        {0x0008, 0x0103, 0x33333333},
+        {0x0020, 0x0000, 0x04040404}, // invalid
+        {0x0010, 0x0104, 0x44444444}, /////////// Page 2
+        {0x0010, 0x0105, 0x55555555},
+        {0x0020, 0x0000, 0x04040404}, // invalid
+        {0x0020, 0x0000, 0x04040404}, // invalid
+        {0x0020, 0x0000, 0x04040404}, // invalid
+        {0x001A, 0x0000, 0x88888888}, // invalid
+        {0x001C, 0x0199, 0x99999999},
+        {0x0008, 0x0177, 0x77777777},
+        {0x0010, 0x0000, 0x77777777},
+        {0x0008, 0x0200, 0x22222222},
+        {0x0020, 0x0201, 0x22222222},
+        {0x001E, 0x0202, 0x20202020}, ////////// Page 3
+        {0x0008, 0x0166, 0x66666666},
+        {0x0020, 0x0000, 0xfefefefe}, // invalid
+        {0x0011, 0x0167, 0x01670167},
+        {0x0008, 0x0203, 0x11111111},
+    };
+    build_test_page(area, ARRAY_SIZE(area), entries, ARRAY_SIZE(entries), true);
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, flash_manager_add(&manager, &config));
+    flash_execute();
+
+    // Build different kinds of recovery data to cover all recovery scenarios
+    const struct {
+        const flash_manager_page_t * p_page;
+        test_entry_t * p_entries;
+        uint32_t entry_count;
+    } recovery_sets[] = {
+        { // Blank recovery page p_page pointer, nothing else is considered
+            .p_page = NULL, .entry_count = 0,
+            .p_entries = (test_entry_t[]) {
+                {0, 0, 0}
+            }
+        },
+        { // all the valid entries in page 1
+            .p_page = &area[0], .entry_count = 7,
+            .p_entries = (test_entry_t[]) {
+                {0x0010, 0x0001, 0x01010101}, /////////// Page 1
+                {0x0010, 0x0002, 0x02020202},
+                {0x0001, 0x0003, 0x03030303},
+                {0x0010, 0x00FF, 0x0f0f0f0f},
+                {0x0010, 0x0102, 0x22222222},
+                {0x0008, 0x0100, 0x00000000},
+                {0x0008, 0x0103, 0x33333333},
+            }
+        },
+        { // all the valid entries in page 2
+            .p_page = &area[1], .entry_count = 6,
+            .p_entries = (test_entry_t[]) {
+                {0x0010, 0x0104, 0x44444444},
+                {0x0010, 0x0105, 0x55555555},
+                {0x001C, 0x0199, 0x99999999},
+                {0x0008, 0x0177, 0x77777777},
+                {0x0008, 0x0200, 0x22222222},
+                {0x0020, 0x0201, 0x22222222},
+            }
+        },
+        { // all the valid entries in page 3
+            .p_page = &area[2], .entry_count = 4,
+            .p_entries = (test_entry_t[]) {
+                {0x001E, 0x0202, 0x20202020}, ////////// Page 3
+                {0x0008, 0x0166, 0x66666666},
+                {0x0011, 0x0167, 0x01670167},
+                {0x0008, 0x0203, 0x11111111},
+            }
+        },
+        { // all valid entries in page 1 and 2 plus the first two from page 3
+            .p_page = &area[0], .entry_count = 15,
+            .p_entries = (test_entry_t[]) {
+                {0x0010, 0x0001, 0x01010101}, /////////// Page 1
+                {0x0010, 0x0002, 0x02020202},
+                {0x0001, 0x0003, 0x03030303},
+                {0x0010, 0x00FF, 0x0f0f0f0f},
+                {0x0010, 0x0102, 0x22222222},
+                {0x0008, 0x0100, 0x00000000},
+                {0x0008, 0x0103, 0x33333333},
+                {0x0010, 0x0104, 0x44444444}, /////////// Page 2
+                {0x001C, 0x0199, 0x99999999},
+                {0x0008, 0x0177, 0x77777777},
+                {0x0008, 0x0200, 0x22222222},
+                {0x0010, 0x0200, 0x22222222},
+                {0x0020, 0x0201, 0x22222222},
+                {0x001E, 0x0202, 0x20202020}, ////////// Page 3
+                {0x0008, 0x0166, 0x66666666},
+            }
+        },
+        { // all valid entries in page 2 and the first two from page 3
+            .p_page = &area[1], .entry_count = 8,
+            .p_entries = (test_entry_t[]) {
+                {0x0010, 0x0104, 0x44444444},
+                {0x0010, 0x0105, 0x55555555},
+                {0x001C, 0x0199, 0x99999999},
+                {0x0008, 0x0177, 0x77777777},
+                {0x0008, 0x0200, 0x22222222},
+                {0x0020, 0x0201, 0x22222222},
+                {0x001E, 0x0202, 0x20202020}, ////////// Page 3
+                {0x0008, 0x0166, 0x66666666},
+            }
+        },
+    };
+
+    for (uint32_t set = 0; set < ARRAY_SIZE(recovery_sets); ++set)
+    {
+        fflush(stdout);
+        memset(&recovery_area, 0xff, sizeof(recovery_area));
+        build_test_page((flash_manager_page_t *) recovery_area.data, 1, recovery_sets[set].p_entries, recovery_sets[set].entry_count, false);
+        recovery_area.p_storage_page = recovery_sets[set].p_page;
+
+        // Verify that regardless of the recovery page state, we'll get the same answer for all read operations:
+        uint32_t buffer[FLASH_MANAGER_ENTRY_MAX_SIZE / sizeof(uint32_t)];
+        for (uint32_t i = 0; i < ARRAY_SIZE(entries); ++i)
+        {
+            if (entries[i].handle != FLASH_MANAGER_HANDLE_INVALID)
+            {
+                memset(&buffer, 0, sizeof(buffer));
+
+                uint32_t length = sizeof(buffer);
+                TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_LENGTH, flash_manager_entry_read(&manager, entries[i].handle, &buffer, &length));
+                TEST_ASSERT_EQUAL((entries[i].len - 1) * WORD_SIZE, length);
+
+                length += 1; // just too long
+                TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_LENGTH, flash_manager_entry_read(&manager, entries[i].handle, &buffer, &length));
+                TEST_ASSERT_EQUAL((entries[i].len - 1) * WORD_SIZE, length);
+
+                if (entries[i].len > 2)
+                {
+                    length -= WORD_SIZE + 1; // just too short
+                    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_LENGTH, flash_manager_entry_read(&manager, entries[i].handle, &buffer, &length));
+                    TEST_ASSERT_EQUAL((entries[i].len - 1) * WORD_SIZE, length);
+
+                    // within the same word of the expected length
+                    length -= WORD_SIZE - 1;
+                    TEST_ASSERT_EQUAL(NRF_SUCCESS, flash_manager_entry_read(&manager, entries[i].handle, &buffer, &length));
+                    TEST_ASSERT_EQUAL((entries[i].len - 1) * WORD_SIZE, length);
+                }
+
+                // the expected length
+                TEST_ASSERT_EQUAL(NRF_SUCCESS, flash_manager_entry_read(&manager, entries[i].handle, &buffer, &length));
+                TEST_ASSERT_EQUAL((entries[i].len - 1) * WORD_SIZE, length);
+
+                for (int word = 0; word < entries[i].len - 1; ++word)
+                {
+                    TEST_ASSERT_EQUAL_HEX32(entries[i].data_value, buffer[word]);
+                }
+
+                fm_handle_filter_t filter = {.mask = 0xffff, .match = entries[i].handle};
+
+                // Even with duplicates between recovery page and area, each entry should just be visited once:
+                TEST_ASSERT_EQUAL(1, flash_manager_entry_count_get(&manager, &filter));
+                TEST_ASSERT_EQUAL(1, flash_manager_entries_read(&manager, &filter, read_cb, &entries[i]));
+            }
+        }
+    }
+}
+
 /**
  * Test behavior for recovering from power failure during various stages of operation.
  */
@@ -933,6 +1165,8 @@ void test_power_failure(void)
     flash_manager_defrag_init_ExpectAndReturn(false);
     flash_manager_init();
     g_flash_queue_slots = 0xFFFFFF;
+
+    flash_manager_defragging_IgnoreAndReturn(false);
 
     static flash_manager_page_t area[3] __attribute__((aligned(PAGE_SIZE)));
     memset(area, 0xFF, sizeof(area));
@@ -1029,6 +1263,8 @@ void test_invalid_area(void)
     flash_manager_init();
     g_flash_queue_slots = 0xFFFFFF;
 
+    flash_manager_defragging_IgnoreAndReturn(false);
+
     static flash_manager_page_t area[2] __attribute__((aligned(PAGE_SIZE)));
     TEST_ASSERT_EQUAL(PAGE_SIZE * 2, sizeof(area));
     flash_manager_t manager;
@@ -1072,6 +1308,8 @@ void test_defrag_state(void)
     flash_manager_defrag_init_ExpectAndReturn(false);
     flash_manager_init();
     g_flash_queue_slots = 0xFFFFFF;
+
+    flash_manager_defragging_IgnoreAndReturn(false);
 
     test_entry_t entries[] =
     {
@@ -1183,6 +1421,8 @@ void test_remove(void)
     flash_manager_defrag_init_ExpectAndReturn(false);
     flash_manager_init();
     g_flash_queue_slots = 0xFFFFFF;
+
+    flash_manager_defragging_IgnoreAndReturn(false);
 
     static flash_manager_page_t area[3] __attribute__((aligned(PAGE_SIZE)));
     memset(area, 0xFF, sizeof(area));

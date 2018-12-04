@@ -104,7 +104,7 @@ void tearDown(void)
 }
 
 
-static void tx_complete_cb(advertiser_t * p_adv, nrf_mesh_tx_token_t token, uint32_t timestamp)
+static void tx_complete_cb(advertiser_t * p_adv, nrf_mesh_tx_token_t token, timestamp_t timestamp)
 {
     TEST_ASSERT_TRUE(m_expect_tx_cb > 0);
     m_expect_tx_cb--;

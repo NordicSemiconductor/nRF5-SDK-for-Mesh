@@ -55,15 +55,21 @@
 #include "nrf_mesh_events.h"
 #include "nrf_mesh_externs.h"
 #include "mesh_opt_core.h"
+#include "nrf_mesh_keygen.h"
+
+#if MESH_FEATURE_LPN_ENABLED
+#include "mesh_lpn.h"
+#include "mesh_lpn_internal.h"
+#endif
 
 #if PERSISTENT_STORAGE
 #include "flash_manager.h"
 #include "device_state_manager_flash.h"
 #endif
 
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
 #include "proxy.h"
-#endif  /* GATT_PROXY */
+#endif  /* MESH_FEATURE_GATT_PROXY_ENABLED */
 
 /*lint -e415 -e416 Lint fails to understand the boundary checking used for handles in this module (MBTLE-1831). */
 
@@ -119,6 +125,10 @@ NRF_MESH_STATIC_ASSERT(DSM_APP_MAX >= 1);
 NRF_MESH_STATIC_ASSERT(DSM_SUBNET_MAX >= 1);
 NRF_MESH_STATIC_ASSERT(DSM_DEVICE_MAX >= 1);
 
+#if MESH_FEATURE_LPN_ENABLED && (MESH_FRIENDSHIP_CREDENTIALS != 1)
+#error "MESH_FRIENDSHIP_CREDENTIALS shall be set to 1 if MESH_FEATURE_LPN_ENABLED is enabled"
+#endif
+
 /*****************************************************************************
 * Local typedefs
 *****************************************************************************/
@@ -140,6 +150,17 @@ typedef struct
         nrf_mesh_beacon_info_t info;
     } beacon;
 } subnet_t;
+
+#if MESH_FEATURE_LPN_ENABLED
+typedef struct
+{
+    dsm_handle_t subnet_handle;
+    nrf_mesh_keygen_friendship_secmat_params_t secmat_params;
+
+    nrf_mesh_network_secmat_t secmat;
+    nrf_mesh_network_secmat_t secmat_updated;
+} friendship_t;
+#endif
 
 typedef struct
 {
@@ -231,6 +252,12 @@ static regular_address_t m_addresses[DSM_NONVIRTUAL_ADDR_MAX];
 static dsm_local_unicast_address_t m_local_unicast_addr;
 /** Security information for each subnet and its associated application */
 static subnet_t m_subnets[DSM_SUBNET_MAX];
+
+#if MESH_FEATURE_LPN_ENABLED
+/** Security information for friendship */
+static friendship_t m_friendships[MESH_FRIENDSHIP_CREDENTIALS];
+#endif
+
 /** Security information associated with each appkey */
 static appkey_t m_appkeys[DSM_APP_MAX];
 /** Security information associated with each devkey */
@@ -397,7 +424,7 @@ static bool rx_group_address_get(uint16_t address, nrf_mesh_address_t * p_addres
     switch (address)
     {
         case NRF_MESH_ALL_PROXIES_ADDR:
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
             return proxy_is_enabled();
 #else
             return false;
@@ -406,9 +433,13 @@ static bool rx_group_address_get(uint16_t address, nrf_mesh_address_t * p_addres
             return false;
         case NRF_MESH_ALL_RELAYS_ADDR:
         {
+#if MESH_FEATURE_RELAY_ENABLED
             mesh_opt_core_adv_t options;
             NRF_MESH_ERROR_CHECK(mesh_opt_core_adv_get(CORE_TX_ROLE_RELAY, &options));
             return options.enabled;
+#else
+            return false;
+#endif
         }
         case NRF_MESH_ALL_NODES_ADDR:
             return true;
@@ -680,6 +711,31 @@ static dsm_handle_t get_subnet_handle(const nrf_mesh_network_secmat_t * p_secmat
     return retval;
 }
 
+#if MESH_FEATURE_LPN_ENABLED
+/**
+ * Returns an index of the m_friendships array for the given network secmat
+ * Returns end of m_friendship array if secmat is not found
+ */
+static uint32_t friendship_index_by_secmat_get(const nrf_mesh_network_secmat_t * p_secmat)
+{
+    uint32_t j = 0;
+    for (; j < ARRAY_SIZE(m_friendships); j++)
+    {
+        if (m_friendships[j].subnet_handle != DSM_HANDLE_INVALID)
+        {
+            if (p_secmat == &m_friendships[j].secmat ||
+                (p_secmat == &m_friendships[j].secmat_updated &&
+                m_subnets[m_friendships[j].subnet_handle].key_refresh_phase != NRF_MESH_KEY_REFRESH_PHASE_0))
+            {
+                return j;
+            }
+        }
+    }
+
+    return j;
+}
+#endif  /* MESH_FEATURE_LPN_ENABLED */
+
 /** Returns the index to the m_subnets array for the given beacon info,
  *  Returns DSM_HANDLE_INVALID if not found.
  */
@@ -756,6 +812,69 @@ static void net_beacon_rx_handle(const nrf_mesh_beacon_info_t * p_beacon_info,
     }
 }
 
+#if MESH_FEATURE_LPN_ENABLED
+static void friend_update_rx_handle(const nrf_mesh_network_secmat_t * p_net_secmat,
+                                    uint32_t iv_index,
+                                    bool iv_update,
+                                    bool key_refresh)
+{
+    dsm_handle_t subnet_handle = dsm_subnet_handle_get(p_net_secmat);
+    NRF_MESH_ASSERT_DEBUG(subnet_handle != DSM_HANDLE_INVALID);
+
+    if (key_refresh)
+    {
+        if (m_subnets[subnet_handle].key_refresh_phase == NRF_MESH_KEY_REFRESH_PHASE_1)
+        {
+            (void) dsm_subnet_update_swap_keys(subnet_handle);
+        }
+    }
+    else
+    {
+        if (m_subnets[subnet_handle].key_refresh_phase != NRF_MESH_KEY_REFRESH_PHASE_0)
+        {
+            (void) dsm_subnet_update_commit(subnet_handle);
+        }
+    }
+}
+#endif
+
+static bool get_net_secmat_by_nid(dsm_handle_t subnet_handle, uint8_t nid,
+                                  const nrf_mesh_network_secmat_t * p_secmat_cmp,
+                                  const nrf_mesh_network_secmat_t * p_secmat_secondary_cmp,
+                                  const nrf_mesh_network_secmat_t ** pp_secmat_out,
+                                  const nrf_mesh_network_secmat_t ** pp_secmat_secondary_out)
+{
+    if (!bitfield_get(m_subnet_allocated, subnet_handle))
+    {
+        return false;
+    }
+
+    /* If the NIDs for the old and the new network are equal, return both: */
+    if (m_subnets[subnet_handle].key_refresh_phase != NRF_MESH_KEY_REFRESH_PHASE_0
+        && (p_secmat_cmp->nid == nid && p_secmat_secondary_cmp->nid == nid))
+    {
+        *pp_secmat_out = p_secmat_cmp;
+        *pp_secmat_secondary_out = p_secmat_secondary_cmp;
+        return true;
+    }
+    /* During key refresh, return the updated key if it matches the NID: */
+    else if (m_subnets[subnet_handle].key_refresh_phase != NRF_MESH_KEY_REFRESH_PHASE_0
+             && p_secmat_secondary_cmp->nid == nid)
+    {
+        *pp_secmat_out = p_secmat_secondary_cmp;
+        *pp_secmat_secondary_out = NULL;
+        return true;
+    }
+    else if (p_secmat_cmp->nid == nid)
+    {
+        *pp_secmat_out = p_secmat_cmp;
+        *pp_secmat_secondary_out = NULL;
+        return true;
+    }
+
+    return false;
+}
+
 static const nrf_mesh_application_secmat_t * get_devkey_secmat(uint16_t key_address)
 {
     if (key_address == NRF_MESH_ADDR_UNASSIGNED)
@@ -793,6 +912,50 @@ static void get_app_secmat(dsm_handle_t subnet_handle, uint8_t aid, const nrf_me
     *pp_app_secmat = NULL;
 }
 
+static uint32_t app_tx_secmat_get(dsm_handle_t app_handle, dsm_handle_t *p_subnet_handle, const nrf_mesh_application_secmat_t ** p_app)
+{
+    if (app_handle >= DSM_DEVKEY_HANDLE_START + DSM_DEVICE_MAX)
+    {
+        return NRF_ERROR_NOT_FOUND;
+    }
+
+    if (!bitfield_get(app_handle < DSM_DEVKEY_HANDLE_START ? m_appkey_allocated : m_devkey_allocated,
+                      app_handle < DSM_DEVKEY_HANDLE_START ? app_handle : app_handle - DSM_DEVKEY_HANDLE_START))
+    {
+        return NRF_ERROR_NOT_FOUND;
+    }
+
+    if (DSM_HANDLE_INVALID == *p_subnet_handle)
+    {
+        *p_subnet_handle = app_handle < DSM_DEVKEY_HANDLE_START ? m_appkeys[app_handle].subnet_handle :
+                           m_devkeys[app_handle - DSM_DEVKEY_HANDLE_START].subnet_handle;
+    }
+
+    if (*p_subnet_handle >= DSM_SUBNET_MAX || !bitfield_get(m_subnet_allocated, *p_subnet_handle))
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+
+    if (app_handle < DSM_DEVKEY_HANDLE_START)
+    {/* Application key */
+        /* Use updated application security credentials (if available) during key refresh phase 2: */
+        if (m_subnets[*p_subnet_handle].key_refresh_phase == NRF_MESH_KEY_REFRESH_PHASE_2 && m_appkeys[app_handle].key_updated)
+        {
+            *p_app = &m_appkeys[app_handle].secmat_updated;
+        }
+        else
+        {
+            *p_app = &m_appkeys[app_handle].secmat;
+        }
+    }
+    else
+    {/* Device key */
+        *p_app = &m_devkeys[app_handle - DSM_DEVKEY_HANDLE_START].secmat;
+    }
+
+    return NRF_SUCCESS;
+}
+
 static void subnet_set(mesh_key_index_t net_key_index, const uint8_t * p_key, dsm_handle_t handle)
 {
     m_subnets[handle].beacon.info.p_tx_info = &m_subnets[handle].beacon.tx_info;
@@ -802,7 +965,7 @@ static void subnet_set(mesh_key_index_t net_key_index, const uint8_t * p_key, ds
     }
     NRF_MESH_ASSERT(NRF_SUCCESS == nrf_mesh_keygen_network_secmat(p_key, &m_subnets[handle].secmat));
     NRF_MESH_ASSERT(NRF_SUCCESS == nrf_mesh_keygen_beacon_secmat(p_key, &m_subnets[handle].beacon.info.secmat));
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
     NRF_MESH_ASSERT(NRF_SUCCESS == nrf_mesh_keygen_identitykey(p_key, m_subnets[handle].beacon.info.secmat.identity_key));
 #endif
 
@@ -874,6 +1037,7 @@ static uint32_t address_delete_if_unused(dsm_handle_t address_handle)
     else if (address_handle_virtual_valid(address_handle))
     {
         uint32_t addr_virtual_index = address_handle - DSM_VIRTUAL_HANDLE_START;
+
         if (m_virtual_addresses[addr_virtual_index].publish_count == 0 &&
             m_virtual_addresses[addr_virtual_index].subscription_count == 0)
         {
@@ -930,6 +1094,12 @@ static uint32_t add_address(uint16_t raw_address, dsm_handle_t * p_address_handl
         *p_address_handle = handle;
         if (role == DSM_ADDRESS_ROLE_SUBSCRIBE)
         {
+#if MESH_FEATURE_LPN_ENABLED
+            if (m_addresses[*p_address_handle].subscription_count == 0 && mesh_lpn_is_in_friendship())
+            {
+                NRF_MESH_ASSERT_DEBUG(mesh_lpn_subman_add(m_addresses[*p_address_handle].address) == NRF_SUCCESS);
+            }
+#endif
             m_addresses[*p_address_handle].subscription_count++;
         }
         else
@@ -963,6 +1133,12 @@ static uint32_t add_address_virtual(const uint8_t * p_label_uuid, dsm_handle_t *
     *p_address_handle = handle;
     if (role == DSM_ADDRESS_ROLE_SUBSCRIBE)
     {
+#if MESH_FEATURE_LPN_ENABLED
+        if (m_virtual_addresses[dest].subscription_count == 0 && mesh_lpn_is_in_friendship())
+        {
+            NRF_MESH_ASSERT_DEBUG(mesh_lpn_subman_add(m_virtual_addresses[dest].address) == NRF_SUCCESS);
+        }
+#endif
         m_virtual_addresses[dest].subscription_count++;
     }
     else
@@ -971,6 +1147,46 @@ static uint32_t add_address_virtual(const uint8_t * p_label_uuid, dsm_handle_t *
     }
     return NRF_SUCCESS;
 }
+
+#if MESH_FEATURE_LPN_ENABLED
+static void friendship_clear(friendship_t *p_friendship)
+{
+    p_friendship->subnet_handle = DSM_HANDLE_INVALID;
+    memset(&p_friendship->secmat, 0x00, sizeof(nrf_mesh_network_secmat_t));
+    memset(&p_friendship->secmat_updated, 0x00, sizeof(nrf_mesh_network_secmat_t));
+}
+
+static void friendship_established_handle(void)
+{
+    for (uint32_t i = 0; i < DSM_NONVIRTUAL_ADDR_MAX; ++i)
+    {
+        if (bitfield_get(m_addr_nonvirtual_allocated, i) && m_addresses[i].subscription_count > 0)
+        {
+            NRF_MESH_ASSERT_DEBUG(mesh_lpn_subman_add(m_addresses[i].address) == NRF_SUCCESS);
+        }
+    }
+
+    for (uint32_t i = 0; i < DSM_VIRTUAL_ADDR_MAX; ++i)
+    {
+        if (bitfield_get(m_addr_virtual_allocated, i) && m_virtual_addresses[i].subscription_count > 0)
+        {
+            NRF_MESH_ASSERT_DEBUG(mesh_lpn_subman_add(m_virtual_addresses[i].address) == NRF_SUCCESS);
+        }
+    }
+}
+
+static void friendship_termination_handle(const nrf_mesh_evt_friendship_terminated_t *p_terminated)
+{
+    for (uint32_t i = 0; i < ARRAY_SIZE(m_friendships); i++)
+    {
+        if ((m_friendships[i].secmat_params.friend_address == p_terminated->friend_src)
+            && (m_friendships[i].secmat_params.lpn_address == p_terminated->lpn_src))
+        {
+            friendship_clear(&m_friendships[i]);
+        }
+    }
+}
+#endif /* MESH_FEATURE_LPN_ENABLED */
 
 static void mesh_evt_handler(const nrf_mesh_evt_t * p_evt)
 {
@@ -982,6 +1198,27 @@ static void mesh_evt_handler(const nrf_mesh_evt_t * p_evt)
                              p_evt->params.net_beacon.flags.iv_update,
                              p_evt->params.net_beacon.flags.key_refresh);
     }
+#if MESH_FEATURE_LPN_ENABLED
+    else if (p_evt->type == NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED)
+    {
+        friendship_established_handle();
+    }
+    else if (p_evt->type == NRF_MESH_EVT_LPN_FRIEND_UPDATE)
+    {
+        friend_update_rx_handle(p_evt->params.friend_update.p_secmat_net,
+                                p_evt->params.friend_update.iv_index,
+                                p_evt->params.friend_update.iv_update_active,
+                                p_evt->params.friend_update.key_refresh_in_phase2);
+    }
+    else if (p_evt->type == NRF_MESH_EVT_FRIENDSHIP_TERMINATED)
+    {
+        friendship_termination_handle(&p_evt->params.friendship_terminated);
+    }
+    else if (p_evt->type == NRF_MESH_EVT_LPN_FRIEND_REQUEST_TIMEOUT)
+    {
+        friendship_clear(&m_friendships[0]);
+    }
+#endif
 }
 /******************************* FLASH STORAGE MANAGEMENT *****************************************/
 
@@ -1335,6 +1572,19 @@ static void flash_update_all(void)
     }
 }
 
+static fm_iterate_action_t flash_read_callback(const fm_entry_t * p_entry, void * p_args)
+{
+    if (p_entry->header.handle != DSM_FLASH_HANDLE_METAINFO)
+    {
+        dsm_entry_type_t type = flash_handle_to_entry_type(p_entry->header.handle);
+        flash_load(type,
+                    p_entry->header.handle - m_flash_groups[type].flash_start_handle,
+                    (const dsm_flash_entry_t *) p_entry->data,
+                    (p_entry->header.len_words - FLASH_MANAGER_ENTRY_LEN_OVERHEAD) * WORD_SIZE);
+    }
+    return FM_ITERATE_ACTION_CONTINUE;
+}
+
 /**
  * Erase all entries, and re-add up to date metainfo once removal is complete.
  */
@@ -1430,47 +1680,32 @@ static void build_flash_area(void)
 
 bool dsm_flash_config_load(void)
 {
-    flash_manager_wait();
     if (!m_flash_is_available)
     {
         return false;
     }
-    const fm_entry_t * p_metainfo =
-        flash_manager_entry_get(&m_flash_manager, DSM_FLASH_HANDLE_METAINFO);
-    if (p_metainfo == NULL)
+    dsm_flash_entry_metainfo_t metainfo;
+    uint32_t metainfo_size = sizeof(metainfo);
+    if (flash_manager_entry_read(&m_flash_manager,
+                                 DSM_FLASH_HANDLE_METAINFO,
+                                 &metainfo,
+                                 &metainfo_size) != NRF_SUCCESS)
     {
         return false;
     }
-    /* make sure that the stored flash data isn't too big for this firmware: */
-    const dsm_flash_entry_metainfo_t * p_metainfo_data =
-        (const dsm_flash_entry_metainfo_t *) p_metainfo->data;
 
-    if (p_metainfo_data->max_addrs_nonvirtual != DSM_NONVIRTUAL_ADDR_MAX ||
-        p_metainfo_data->max_addrs_virtual != DSM_VIRTUAL_ADDR_MAX ||
-        p_metainfo_data->max_appkeys != DSM_APP_MAX ||
-        p_metainfo_data->max_devkeys != DSM_DEVICE_MAX ||
-        p_metainfo_data->max_subnets != DSM_SUBNET_MAX)
+    if (metainfo.max_addrs_nonvirtual != DSM_NONVIRTUAL_ADDR_MAX ||
+        metainfo.max_addrs_virtual != DSM_VIRTUAL_ADDR_MAX ||
+        metainfo.max_appkeys != DSM_APP_MAX ||
+        metainfo.max_devkeys != DSM_DEVICE_MAX ||
+        metainfo.max_subnets != DSM_SUBNET_MAX)
     {
         /* The area is built with different metadata, reset it */
         reset_flash_area();
         return false;
     }
-    const fm_entry_t * p_entry = NULL;
-
     /* Run through the rest of the entries and load them based on type */
-    do
-    {
-        p_entry = flash_manager_entry_next_get(&m_flash_manager, NULL, p_entry);
-        if (p_entry != NULL && p_entry != p_metainfo)
-        {
-            dsm_entry_type_t type = flash_handle_to_entry_type(p_entry->header.handle);
-            flash_load(type,
-                       p_entry->header.handle - m_flash_groups[type].flash_start_handle,
-                       (const dsm_flash_entry_t *) p_entry->data,
-                       (p_entry->header.len_words - FLASH_MANAGER_ENTRY_LEN_OVERHEAD) * WORD_SIZE);
-        }
-    } while (p_entry != NULL);
-
+    (void) flash_manager_entries_read(&m_flash_manager, NULL, flash_read_callback, NULL);
     /* The storage was valid if there was a local unicast address present */
     return bitfield_get(m_addr_unicast_allocated, 0);
 }
@@ -1554,6 +1789,13 @@ void dsm_clear(void)
     bitfield_clear_all(m_appkey_allocated, BITFIELD_BLOCK_COUNT(DSM_APP_MAX));
     bitfield_clear_all(m_devkey_allocated, BITFIELD_BLOCK_COUNT(DSM_DEVICE_MAX));
 
+#if MESH_FEATURE_LPN_ENABLED
+    for (uint32_t i = 0; i < ARRAY_SIZE(m_friendships); i++)
+    {
+        friendship_clear(&m_friendships[i]);
+    }
+#endif
+
     m_local_unicast_addr.address_start = NRF_MESH_ADDR_UNASSIGNED;
     m_local_unicast_addr.count = 0;
     m_has_primary_subnet = false;
@@ -1579,6 +1821,13 @@ void dsm_init(void)
 
     m_flash_is_available = false;
     build_flash_area();
+#endif
+
+#if MESH_FEATURE_LPN_ENABLED
+    for (uint32_t i = 0; i < ARRAY_SIZE(m_friendships); i++)
+    {
+        friendship_clear(&m_friendships[i]);
+    }
 #endif
 }
 
@@ -1787,18 +2036,31 @@ uint32_t dsm_address_subscription_remove(dsm_handle_t address_handle)
                 else
                 {
                     --m_addresses[address_handle].subscription_count;
+#if MESH_FEATURE_LPN_ENABLED
+                    if (m_addresses[address_handle].subscription_count == 0 && mesh_lpn_is_in_friendship())
+                    {
+                        NRF_MESH_ASSERT_DEBUG(mesh_lpn_subman_remove(m_addresses[address_handle].address)  == NRF_SUCCESS);
+                    }
+#endif
                     return address_delete_if_unused(address_handle);
                 }
             }
             else if (addr.type == NRF_MESH_ADDRESS_TYPE_VIRTUAL)
             {
-                if (m_virtual_addresses[address_handle - DSM_VIRTUAL_HANDLE_START].subscription_count == 0)
+                uint32_t virtual_index = address_handle - DSM_VIRTUAL_HANDLE_START;
+                if (m_virtual_addresses[virtual_index].subscription_count == 0)
                 {
                     return NRF_ERROR_NOT_FOUND;
                 }
                 else
                 {
-                    --m_virtual_addresses[address_handle - DSM_VIRTUAL_HANDLE_START].subscription_count;
+                    --m_virtual_addresses[virtual_index].subscription_count;
+#if MESH_FEATURE_LPN_ENABLED
+                    if (m_virtual_addresses[virtual_index].subscription_count == 0 && mesh_lpn_is_in_friendship())
+                    {
+                        NRF_MESH_ASSERT_DEBUG(mesh_lpn_subman_remove(m_virtual_addresses[virtual_index].address)  == NRF_SUCCESS);
+                    }
+#endif
                     return address_delete_if_unused(address_handle);
                 }
             }
@@ -1936,6 +2198,15 @@ dsm_handle_t dsm_subnet_handle_get(const nrf_mesh_network_secmat_t * p_secmat)
     {
         return DSM_HANDLE_INVALID;
     }
+
+#if MESH_FEATURE_LPN_ENABLED
+    uint32_t i = friendship_index_by_secmat_get(p_secmat);
+    if (i < ARRAY_SIZE(m_friendships))
+    {
+        return m_friendships[i].subnet_handle;
+    }
+#endif
+
     return get_subnet_handle(p_secmat);
 }
 
@@ -2107,10 +2378,23 @@ uint32_t dsm_subnet_update(dsm_handle_t subnet_handle, const uint8_t * p_key)
         NRF_MESH_ASSERT(nrf_mesh_keygen_network_secmat(p_key, &m_subnets[subnet_handle].secmat_updated) == NRF_SUCCESS);
         NRF_MESH_ASSERT(NRF_SUCCESS == nrf_mesh_keygen_beacon_secmat(m_subnets[subnet_handle].root_key_updated, &m_subnets[subnet_handle].beacon.info.secmat_updated));
 
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
         NRF_MESH_ASSERT(nrf_mesh_keygen_identitykey(
                             p_key, m_subnets[subnet_handle].beacon.info.secmat_updated.identity_key) ==
                         NRF_SUCCESS);
+#endif
+
+#if MESH_FEATURE_LPN_ENABLED
+        for (uint32_t i = 0; i < ARRAY_SIZE(m_friendships); i++)
+        {
+            if (m_friendships[i].subnet_handle == subnet_handle)
+            {
+                uint32_t error = nrf_mesh_keygen_friendship_secmat(p_key,
+                                                                   &m_friendships[i].secmat_params,
+                                                                   &m_friendships[i].secmat_updated);
+                NRF_MESH_ERROR_CHECK(error);
+            }
+        }
 #endif
 
         m_subnets[subnet_handle].key_refresh_phase = NRF_MESH_KEY_REFRESH_PHASE_1;
@@ -2163,6 +2447,16 @@ uint32_t dsm_subnet_update_commit(dsm_handle_t subnet_handle)
         memcpy(&m_subnets[subnet_handle].beacon.info.secmat, &m_subnets[subnet_handle].beacon.info.secmat_updated,
                 sizeof(m_subnets[subnet_handle].beacon.info.secmat));
 
+#if MESH_FEATURE_LPN_ENABLED
+        for (uint32_t i = 0; i < ARRAY_SIZE(m_friendships); i++)
+        {
+            if (m_friendships[i].subnet_handle == subnet_handle)
+            {
+                memcpy(&m_friendships[i].secmat, &m_friendships[i].secmat_updated, sizeof(m_friendships[i].secmat));
+            }
+        }
+#endif
+
         m_subnets[subnet_handle].key_refresh_phase = NRF_MESH_KEY_REFRESH_PHASE_0;
         net_state_key_refresh_phase_changed(m_subnets[subnet_handle].net_key_index,
                                             m_subnets[subnet_handle].beacon.info.secmat.net_id,
@@ -2202,6 +2496,16 @@ uint32_t dsm_subnet_delete(dsm_handle_t subnet_handle)
     {
         return NRF_ERROR_FORBIDDEN;
     }
+
+#if MESH_FEATURE_LPN_ENABLED
+    for (uint32_t i = 0; i < ARRAY_SIZE(m_friendships); i++)
+    {
+        if (m_friendships[i].subnet_handle == subnet_handle)
+        {
+            friendship_clear(&m_friendships[i]);
+        }
+    }
+#endif
 
     /* Ensure that the subnetwork has no apps associated */
     for (uint32_t i = 0; i < DSM_APP_MAX; i++)
@@ -2442,48 +2746,15 @@ uint32_t dsm_appkey_get_all(dsm_handle_t subnet_handle, mesh_key_index_t * p_key
 
 uint32_t dsm_tx_secmat_get(dsm_handle_t subnet_handle, dsm_handle_t app_handle, nrf_mesh_secmat_t * p_secmat)
 {
-    if (app_handle >= DSM_DEVKEY_HANDLE_START + DSM_DEVICE_MAX)
-    {
-        return NRF_ERROR_NOT_FOUND;
-    }
-
     if (NULL == p_secmat)
     {
         return NRF_ERROR_NULL;
     }
 
-    if (!bitfield_get(app_handle < DSM_DEVKEY_HANDLE_START ? m_appkey_allocated : m_devkey_allocated,
-                      app_handle < DSM_DEVKEY_HANDLE_START ? app_handle : app_handle - DSM_DEVKEY_HANDLE_START))
+    uint32_t status = app_tx_secmat_get(app_handle, &subnet_handle, &p_secmat->p_app);
+    if (NRF_SUCCESS != status)
     {
-        return NRF_ERROR_NOT_FOUND;
-    }
-
-    if (DSM_HANDLE_INVALID == subnet_handle)
-    {
-        subnet_handle = app_handle < DSM_DEVKEY_HANDLE_START ? m_appkeys[app_handle].subnet_handle :
-                m_devkeys[app_handle - DSM_DEVKEY_HANDLE_START].subnet_handle;
-    }
-
-    if (subnet_handle >= DSM_SUBNET_MAX || !bitfield_get(m_subnet_allocated, subnet_handle))
-    {
-        return NRF_ERROR_INVALID_STATE;
-    }
-
-    if (app_handle < DSM_DEVKEY_HANDLE_START)
-    {/* Application key */
-        /* Use updated application security credentials (if available) during key refresh phase 2: */
-        if (m_subnets[subnet_handle].key_refresh_phase == NRF_MESH_KEY_REFRESH_PHASE_2 && m_appkeys[app_handle].key_updated)
-        {
-            p_secmat->p_app = &m_appkeys[app_handle].secmat_updated;
-        }
-        else
-        {
-            p_secmat->p_app = &m_appkeys[app_handle].secmat;
-        }
-    }
-    else
-    {/* Device key */
-        p_secmat->p_app = &m_devkeys[app_handle - DSM_DEVKEY_HANDLE_START].secmat;
+        return status;
     }
 
     /* Use updated network security credentials during key refresh phase 2: */
@@ -2492,6 +2763,36 @@ uint32_t dsm_tx_secmat_get(dsm_handle_t subnet_handle, dsm_handle_t app_handle, 
 
     return NRF_SUCCESS;
 }
+
+#if MESH_FEATURE_LPN_ENABLED
+uint32_t dsm_tx_friendship_secmat_get(dsm_handle_t subnet_handle, dsm_handle_t app_handle, nrf_mesh_secmat_t * p_secmat)
+{
+    if (NULL == p_secmat)
+    {
+        return NRF_ERROR_NULL;
+    }
+
+    uint32_t error = app_tx_secmat_get(app_handle, &subnet_handle, &p_secmat->p_app);
+    if (NRF_SUCCESS != error)
+    {
+        return error;
+    }
+
+    for (uint32_t i = 0; i < ARRAY_SIZE(m_friendships); i++)
+    {
+        if (m_friendships[i].subnet_handle == subnet_handle)
+        {
+            /* Use updated network security credentials during key refresh phase 2: */
+            p_secmat->p_net = m_subnets[subnet_handle].key_refresh_phase == NRF_MESH_KEY_REFRESH_PHASE_2 ?
+                        &m_friendships[i].secmat_updated : &m_friendships[i].secmat;
+
+            return NRF_SUCCESS;
+        }
+    }
+
+    return NRF_ERROR_NOT_FOUND;
+}
+#endif
 
 uint32_t dsm_beacon_info_get(dsm_handle_t subnet_handle, const nrf_mesh_beacon_info_t ** pp_beacon_info)
 {
@@ -2538,40 +2839,47 @@ void nrf_mesh_net_secmat_next_get(uint8_t nid, const nrf_mesh_network_secmat_t *
     NRF_MESH_ASSERT(NULL != pp_secmat);
     NRF_MESH_ASSERT(NULL != pp_secmat_secondary);
 
-    uint32_t i = 0;
+    nid &= PACKET_MESH_NET_NID_MASK;
+
+#if MESH_FEATURE_LPN_ENABLED
+    uint32_t j = 0;
     if (*pp_secmat != NULL)
     {
-        i = get_subnet_handle(*pp_secmat) + 1; /* we want to iterate over the proceeding elements */
+        /* Find pp_secmat in friendships and go to the next one */
+        j = friendship_index_by_secmat_get(*pp_secmat) + 1;
+    }
+
+    for (; j < ARRAY_SIZE(m_friendships); j++)
+    {
+        if (m_friendships[j].subnet_handle != DSM_HANDLE_INVALID)
+        {
+            if (get_net_secmat_by_nid(m_friendships[j].subnet_handle, nid,
+                                      &m_friendships[j].secmat, &m_friendships[j].secmat_updated,
+                                      pp_secmat, pp_secmat_secondary))
+            {
+                return;
+            }
+        }
+    }
+#endif
+
+    dsm_handle_t i = 0;
+    if (*pp_secmat != NULL)
+    {
+        dsm_handle_t prev = get_subnet_handle(*pp_secmat);
+        i = (prev == DSM_HANDLE_INVALID) ? 0 : prev + 1;
     }
 
     *pp_secmat = NULL;
     *pp_secmat_secondary = NULL;
-    nid &= PACKET_MESH_NET_NID_MASK;
 
     for (; i < DSM_SUBNET_MAX; i++)
     {
-        if (bitfield_get(m_subnet_allocated, i))
+        if (get_net_secmat_by_nid(i, nid,
+                                  &m_subnets[i].secmat, &m_subnets[i].secmat_updated,
+                                  pp_secmat, pp_secmat_secondary))
         {
-            /* If the NIDs for the old and the new network are equal, return both: */
-            if (m_subnets[i].key_refresh_phase != NRF_MESH_KEY_REFRESH_PHASE_0
-                    && (m_subnets[i].secmat.nid == nid && m_subnets[i].secmat_updated.nid == nid))
-            {
-                *pp_secmat = &m_subnets[i].secmat;
-                *pp_secmat_secondary = &m_subnets[i].secmat_updated;
-                break;
-            }
-            /* During key refresh, return the updated key if it matches the NID: */
-            else if (m_subnets[i].key_refresh_phase != NRF_MESH_KEY_REFRESH_PHASE_0
-                    && m_subnets[i].secmat_updated.nid == nid)
-            {
-                *pp_secmat = &m_subnets[i].secmat_updated;
-                break;
-            }
-            else if (m_subnets[i].secmat.nid == nid)
-            {
-                *pp_secmat = &m_subnets[i].secmat;
-                break;
-            }
+            break;
         }
     }
 }
@@ -2582,7 +2890,7 @@ void nrf_mesh_app_secmat_next_get(const nrf_mesh_network_secmat_t * p_network_se
     NRF_MESH_ASSERT(NULL != pp_app_secmat);
     NRF_MESH_ASSERT(NULL != p_network_secmat);
 
-    dsm_handle_t subnet_handle = get_subnet_handle(p_network_secmat);
+    dsm_handle_t subnet_handle = dsm_subnet_handle_get(p_network_secmat);
     if (subnet_handle == DSM_HANDLE_INVALID)
     {
         *pp_app_secmat = NULL;
@@ -2597,6 +2905,33 @@ void nrf_mesh_devkey_secmat_get(uint16_t owner_addr, const nrf_mesh_application_
 {
     NRF_MESH_ASSERT(NULL != pp_app_secmat);
     *pp_app_secmat = get_devkey_secmat(owner_addr);
+}
+
+void nrf_mesh_primary_net_secmat_get(uint16_t owner_addr, const nrf_mesh_network_secmat_t ** pp_secmat)
+{
+    dsm_handle_t devkey_handle;
+    dsm_handle_t netkey_handle;
+    nrf_mesh_secmat_t secmat;
+
+    NRF_MESH_ASSERT(NULL != pp_secmat);
+    *pp_secmat = NULL;
+
+    if (NRF_SUCCESS != dsm_devkey_handle_get(owner_addr, &devkey_handle))
+    {
+        return;
+    }
+
+    if (NRF_SUCCESS != dsm_appkey_handle_to_subnet_handle(devkey_handle, &netkey_handle))
+    {
+        return;
+    }
+
+    if (NRF_SUCCESS != dsm_tx_secmat_get(netkey_handle, devkey_handle, &secmat))
+    {
+        return;
+    }
+
+    *pp_secmat = secmat.p_net;
 }
 
 void nrf_mesh_beacon_info_next_get(const uint8_t * p_network_id, const nrf_mesh_beacon_info_t ** pp_beacon_info,
@@ -2675,3 +3010,72 @@ void nrf_mesh_unicast_address_get(uint16_t * p_addr_start, uint16_t * p_addr_cou
     *p_addr_start = m_local_unicast_addr.address_start;
     *p_addr_count = m_local_unicast_addr.count;
 }
+
+#if MESH_FEATURE_LPN_ENABLED
+uint32_t nrf_mesh_friendship_secmat_params_set(const nrf_mesh_network_secmat_t * p_net, const nrf_mesh_keygen_friendship_secmat_params_t *p_secmat_params)
+{
+    if (NULL == p_net || NULL == p_secmat_params)
+    {
+        return NRF_ERROR_NULL;
+    }
+
+    dsm_handle_t subnet_handle = get_subnet_handle(p_net);
+
+    if (DSM_HANDLE_INVALID == subnet_handle)
+    {
+        return NRF_ERROR_NOT_FOUND;
+    }
+
+    uint32_t fs_subnet;
+    for (fs_subnet = 0; fs_subnet < ARRAY_SIZE(m_friendships); fs_subnet++)
+    {
+        if (m_friendships[fs_subnet].subnet_handle == DSM_HANDLE_INVALID)
+        {
+            break;
+        }
+    }
+
+    if (ARRAY_SIZE(m_friendships) == fs_subnet)
+    {
+        return NRF_ERROR_NO_MEM;
+    }
+
+    m_friendships[fs_subnet].subnet_handle = subnet_handle;
+    m_friendships[fs_subnet].secmat_params = *p_secmat_params;
+
+    if (m_subnets[subnet_handle].key_refresh_phase == NRF_MESH_KEY_REFRESH_PHASE_0)
+    {
+        uint32_t error = nrf_mesh_keygen_friendship_secmat(m_subnets[subnet_handle].root_key,
+                                                           &m_friendships[fs_subnet].secmat_params,
+                                                           &m_friendships[fs_subnet].secmat);
+        NRF_MESH_ERROR_CHECK(error);
+    }
+    else
+    {
+        uint32_t error = nrf_mesh_keygen_friendship_secmat(m_subnets[subnet_handle].root_key_updated,
+                                                           &m_friendships[fs_subnet].secmat_params,
+                                                           &m_friendships[fs_subnet].secmat_updated);
+        NRF_MESH_ERROR_CHECK(error);
+    }
+
+    return NRF_SUCCESS;
+}
+
+void nrf_mesh_friendship_secmat_get(uint16_t lpn_addr, const nrf_mesh_network_secmat_t ** pp_secmat)
+{
+    NRF_MESH_ASSERT(NULL != pp_secmat);
+    *pp_secmat = NULL;
+
+    for (uint32_t count = 0; count < ARRAY_SIZE(m_friendships); count++)
+    {
+        if (m_friendships[count].subnet_handle != DSM_HANDLE_INVALID &&
+            m_friendships[count].secmat_params.lpn_address == lpn_addr)
+        {
+            /* Use updated network security credentials during key refresh phase 2: */
+            *pp_secmat = m_subnets[m_friendships[count].subnet_handle].key_refresh_phase == NRF_MESH_KEY_REFRESH_PHASE_2 ?
+                    &m_friendships[count].secmat_updated : &m_friendships[count].secmat;
+            break;
+        }
+    }
+}
+#endif

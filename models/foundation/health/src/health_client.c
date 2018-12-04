@@ -40,7 +40,7 @@
 #include "nrf_mesh_assert.h"
 #include "access_reliable.h"
 #include "access_config.h"
-#include "packet_mgr.h"
+#include "mesh_mem.h"
 
 #include "health_client.h"
 #include "health_messages.h"
@@ -54,7 +54,7 @@ static void reliable_status_cb(access_model_handle_t model_handle, void * p_args
 
     if (p_client->p_buffer != NULL)
     {
-        packet_mgr_free(p_client->p_buffer);
+        mesh_mem_free(p_client->p_buffer);
         p_client->p_buffer = NULL;
     }
 
@@ -92,10 +92,10 @@ static uint32_t reliable_send(health_client_t * p_client, uint16_t opcode, uint1
     uint32_t status = NRF_SUCCESS;
     if (message_length > 0)
     {
-        status = packet_mgr_alloc((packet_generic_t **) &p_client->p_buffer, message_length);
-        if (status != NRF_SUCCESS)
+        p_client->p_buffer = mesh_mem_alloc(message_length);
+        if (p_client->p_buffer == NULL)
         {
-            return status;
+            return NRF_ERROR_NO_MEM;
         }
         memcpy(p_client->p_buffer, p_message_data, message_length);
     }
@@ -120,7 +120,7 @@ static uint32_t reliable_send(health_client_t * p_client, uint16_t opcode, uint1
     status = access_model_reliable_publish(&reliable);
     if (status != NRF_SUCCESS && p_client->p_buffer != NULL)
     {
-        packet_mgr_free(p_client->p_buffer);
+        mesh_mem_free(p_client->p_buffer);
         p_client->p_buffer = NULL;
     }
     else if (status == NRF_SUCCESS)

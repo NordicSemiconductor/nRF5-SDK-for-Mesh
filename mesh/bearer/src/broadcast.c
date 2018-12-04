@@ -82,10 +82,10 @@ register" */
 
 #define BROADCAST_TIMER_INDEX_TIMESTAMP (0)
 #define BROADCAST_TIMER_INDEX_PA_SETUP  (1)
-#define BROADCAST_PPI_CH (TIMER_PPI_CH_START + TIMER_INDEX_RADIO)
+#define BROADCAST_PPI_CH (TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO)
 
 static uint8_t m_next_channel_index;
-static timestamp_t m_action_start_time;
+static timestamp_t m_action_start_time; /**< Start of the action (in device time, not timeslot time) */
 
 static void configure_timer_capture(void)
 {
@@ -108,7 +108,7 @@ static inline void prepare_last_tx(void)
 }
 
 /* Start of the alloted time slice for the broadcast event */
-static void broadcast_start(timestamp_t start_time, void* p_args)
+static void broadcast_start(ts_timestamp_t start_time, void* p_args)
 {
     DEBUG_PIN_BROADCAST_ON(DEBUG_PIN_BROADCAST_START);
     DEBUG_PIN_BROADCAST_ON(DEBUG_PIN_BROADCAST_ACTIVE);
@@ -120,7 +120,7 @@ static void broadcast_start(timestamp_t start_time, void* p_args)
     radio_config_access_addr_set(p_broadcast->params.access_address, 0);
     radio_config_channel_set(p_broadcast->params.p_channels[0]);
     m_next_channel_index = 1;
-    m_action_start_time = start_time;
+    m_action_start_time = ts_timer_to_device_time(start_time);
     NRF_RADIO->PACKETPTR = (uint32_t) p_broadcast->params.p_packet;
     NRF_RADIO->EVENTS_DISABLED = 0;
     NRF_RADIO->INTENSET = RADIO_INTENSET_DISABLED_Msk;
@@ -158,9 +158,9 @@ static void broadcast_start(timestamp_t start_time, void* p_args)
 static inline void tx_complete_notify_user(broadcast_t * p_broadcast)
 {
     const timestamp_t tx_timestamp = m_action_start_time + BEARER_ACTION_TIMER->CC[BROADCAST_TIMER_INDEX_TIMESTAMP];
-    const timestamp_t user_cb_time_start = timer_now();
+    const ts_timestamp_t user_cb_time_start = ts_timer_now();
     p_broadcast->params.tx_complete_cb(&p_broadcast->params, tx_timestamp);
-    const timestamp_t user_cb_time_end = timer_now();
+    const ts_timestamp_t user_cb_time_end = ts_timer_now();
 #if BROADCAST_DEBUG
     p_broadcast->debug.prev_tx_complete_app_time_us = user_cb_time_end - user_cb_time_start;
 #endif
@@ -214,7 +214,7 @@ static void radio_irq_handler(void* p_args)
     DEBUG_PIN_BROADCAST_OFF(DEBUG_PIN_BROADCAST_RADIO_EVT);
 }
 
-static inline uint32_t time_required_to_send_us(const packet_t * p_packet, uint8_t channel_count, radio_mode_t radio_mode)
+static inline ts_timestamp_t time_required_to_send_us(const packet_t * p_packet, uint8_t channel_count, radio_mode_t radio_mode)
 {
     static const uint8_t radio_mode_to_us_per_byte[RADIO_MODE_END] =  {8, 4, 32, 8
                                                             #ifdef NRF52_SERIES

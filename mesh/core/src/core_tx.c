@@ -105,23 +105,28 @@ core_tx_bearer_bitmap_t core_tx_packet_alloc(const core_tx_alloc_params_t * p_pa
     NRF_MESH_ASSERT(m_packet.bearer_bitmap == 0);
     NRF_MESH_ASSERT(p_params->net_packet_len <= sizeof(m_packet.buffer));
 
+#if MESH_FEATURE_RELAY_ENABLED
     if (p_params->role == CORE_TX_ROLE_RELAY)
     {
         NRF_MESH_ASSERT(p_params->token == NRF_MESH_RELAY_TOKEN);
     }
-
+#endif
 
     LIST_FOREACH(p_iterator, mp_bearers)
     {
         core_tx_bearer_t * p_bearer = PARENT_BY_FIELD_GET(core_tx_bearer_t, list_node, p_iterator);
 
-        core_tx_alloc_result_t result = p_bearer->p_interface->packet_alloc(p_bearer, p_params);
-
-        alloc_result_log(p_bearer, result);
-
-        if (result == CORE_TX_ALLOC_SUCCESS)
+        if (p_params->bearer_selector == CORE_TX_BEARER_TYPE_ALLOW_ALL ||
+            p_params->bearer_selector == p_bearer->type)
         {
-            m_packet.bearer_bitmap |= (1 << p_bearer->bearer_index);
+            core_tx_alloc_result_t result = p_bearer->p_interface->packet_alloc(p_bearer, p_params);
+
+            alloc_result_log(p_bearer, result);
+
+            if (result == CORE_TX_ALLOC_SUCCESS)
+            {
+                m_packet.bearer_bitmap |= (1 << p_bearer->bearer_index);
+            }
         }
     }
 

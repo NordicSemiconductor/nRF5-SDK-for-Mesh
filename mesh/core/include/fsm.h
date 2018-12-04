@@ -41,7 +41,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define FSM_DEBUG 1
+#include "nrf_mesh_config_core.h"
 
 /**
  * @defgroup FSM Finite State Machine API
@@ -208,7 +208,7 @@ typedef struct
      */
     fsm_action_t             action;
 
-#if defined FSM_DEBUG
+#if FSM_DEBUG
     /** Pointer to the string with fsm name.
      */
     const char *             fsm_name;

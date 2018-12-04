@@ -36,30 +36,15 @@
  */
 #ifndef MESH_TIMER_H__
 #define MESH_TIMER_H__
+
 #include <stdint.h>
-#include <stdbool.h>
 
 /**
-* @defgroup TIMER HF Timer module abstraction
-* @ingroup MESH_CORE
-* Allocates timers and schedules PPI signals in PPI channels 8-10. Can also do callbacks at timeout.
-* @{
-*/
-
-/** First channel to use for timer PPI triggering */
-#define TIMER_PPI_CH_START  (8)
-#define TIMER_PPI_CH_STOP   (TIMER_PPI_CH_START + TIMER_INDEX_TIMESTAMP)
-/** Invalid timestamp */
-#define TIMER_TIMEOUT_INVALID (0xFFFFFFFF)
-
-/** Timer index for end of timeslot timing */
-#define TIMER_INDEX_TS_END      (0)
-/** Timer index for scheduler timing */
-#define TIMER_INDEX_SCHEDULER   (1)
-/** Timer index for radio timing */
-#define TIMER_INDEX_RADIO       (2)
-/** Timer index for getting timestamps */
-#define TIMER_INDEX_TIMESTAMP   (3)
+ * @defgroup TIMER Hardware dependent part of the timer scheduler and the system time
+ * @ingroup MESH_CORE
+ * Abstract timer API which is based on SDK app_timer (RTC).
+ * @{
+ */
 
 /** Get timestamp - ref, including rollover. */
 #define TIMER_DIFF(timestamp, reference) timer_diff(timestamp, reference)
@@ -80,24 +65,11 @@
 /** Timestamp type for all time-values */
 typedef uint32_t timestamp_t;
 
-/**
- * Attribute bitfield fields to apply to a timer callback.
- */
-typedef enum
-{
-    TIMER_ATTR_NONE             = 0x00, /**< No special attributes. */
-    TIMER_ATTR_TIMESLOT_LOCAL   = 0x01, /**< The timer should not be transferred to the next timeslot if it fails to fire within the current timeslot. */
-    TIMER_ATTR_SYNCHRONOUS      = 0x02, /**< The timer callback should be executed in TIMER0-IRQ context. Only applies to timers with callbacks. */
-} timer_attr_t;
-
 /** Callback type for callbacks at finished timers */
-typedef void(*timer_callback_t)(timestamp_t timestamp);
-
-/** Hardware event handler, should be called at all TIMER0 events. */
-void timer_event_handler(void);
+typedef void(* timer_callback_t)(timestamp_t);
 
 /**
- * Get the absolute difference between two timestamps, regardless of order.
+ * Get the absolute difference between two lf_timestamps, regardless of order.
  *
  * @param[in] time1 First timestamp to compare
  * @param[in] time2 Second timestamp to compare
@@ -117,95 +89,36 @@ static inline timestamp_t timer_diff(timestamp_t time1, timestamp_t time2)
 }
 
 /**
- * Order a timer with callback.
- *
- * @param[in] timer Timer index to register timeout on. Overrides any previous timeout on this index.
- * @param[in] time Timestamp at which the action should trigger.
- * @param[in] callback Function pointer to the callback function called when the timer triggers.
- * @param[in] attributes Timer attributes to apply to the timer event. May be used as a bitfield.
- *
- * @retval NRF_SUCCESS The callback was successfully scheduled.
- * @retval NRF_ERROR_INVALID_FLAGS The supplied attributes were invalid.
- * @retval NRF_ERROR_INVALID_PARAM The timer parameter was outside the range of the timer capture registers.
+ * Initialize SDK app timer. Create timer instances and run repeatable timer.
  */
-uint32_t timer_order_cb(uint8_t timer,
-                        timestamp_t time,
-                        timer_callback_t callback,
-                        timer_attr_t attributes);
+void timer_init(void);
 
 /**
- * Order a timer with callback and a PPI task.
+ * Return timestamp of the system time since initialization moment.
  *
- * @param[in] timer Timer index to register timeout on. Overrides any previous timeout on this index.
- * @param[in] time Timestamp at which the action should trigger.
- * @param[in] callback Function pointer to the callback function called when the timer triggers.
- * @param[in] p_task PPI task to trigger when the timer expires.
- * @param[in] attributes Timer attributes to apply to the timer event. May be used as a bitfield.
- *
- * @retval NRF_SUCCESS The callback and PPI task were successfully scheduled.
- * @retval NRF_ERROR_INVALID_FLAGS The supplied attributes were invalid.
- * @retval NRF_ERROR_INVALID_PARAM The timer parameter was outside the range of the timer capture registers.
+ * @returns timestamp in us.
  */
-uint32_t timer_order_cb_ppi(uint8_t timer,
-                            timestamp_t time,
-                            timer_callback_t callback,
-                            uint32_t* p_task,
-                            timer_attr_t attributes);
-
-/**
- * Order a timer with a PPI task.
- *
- * @param[in] timer Timer index to register timeout on. Overrides any previous timeout on this index.
- * @param[in] time Timestamp at which the action should trigger.
- * @param[in] p_task PPI task to trigger when the timer expires.
- * @param[in] attributes Timer attributes to apply to the timer event. May be used as a bitfield.
- *
- * @retval NRF_SUCCESS The PPI task was successfully scheduled.
- * @retval NRF_ERROR_INVALID_FLAGS The supplied attributes were invalid.
- * @retval NRF_ERROR_INVALID_PARAM The timer parameter was outside the range of the timer capture registers.
- */
-uint32_t timer_order_ppi(uint8_t timer,
-                         timestamp_t time,
-                         uint32_t* p_task,
-                         timer_attr_t attributes);
-
-/**
- * Abort timer with given index.
- *
- * @param[in] timer Index to abort.
- *
- * @retval NRF_SUCCESS The timer was successfully aborted.
- * @retval NRF_ERROR_INVALID_PARAM The timer parameter was outside the range of the timer capture registers.
- * @retval NRF_ERROR_NOT_FOUND The given timer wasn't scheduled.
- */
-uint32_t timer_abort(uint8_t timer);
-
-/**
-* Get current timestamp from HF timer. This timestamp is directly
-*   related to the time used to order timers, and may be used to order
-*   relative timers.
-*
-* @return 32bit timestamp relative to global epoch.
-*/
 timestamp_t timer_now(void);
 
 /**
-* Initialize timer hardware. Must be called at the beginning of each
-*   SD granted timeslot. Flushes all timer slots.
-*
-* @param[in] timeslot_start_time Timestamp for the start of the current
-*            timeslot.
-*/
-void timer_on_ts_begin(timestamp_t timeslot_start_time);
+ * Start rest timeout according to the provided timestamp.
+ * If timestamp has already expired then timer will start on minimum margin time
+ * (till 2 ticks = approximately 62us).
+ * Callback will be invoked after expiration
+ *
+ * @note Registered callback is invoked from RTC1 interrupt handler
+ *       with appropriate priority (differ to mesh stack priorities).
+ *
+ * @param[in] timestamp timestamp for calculation rest of time
+ * @param[in] cb        callback pointer
+ */
+void timer_start(timestamp_t timestamp, timer_callback_t cb);
 
 /**
-* Halt timer module operation. Must be called at the end of each
-*   SD granted timeslot.
-*
-* @param[in] timeslot_end_time Timestamp for the end of the current
-*            timeslot.
-*/
-void timer_on_ts_end(timestamp_t timeslot_end_time);
+ * Stop the ongoing timeout if it exists.
+ */
+void timer_stop(void);
 
 /** @} */
-#endif /* TIMER_H__ */
+
+#endif /* MESH_TIMER_H__ */

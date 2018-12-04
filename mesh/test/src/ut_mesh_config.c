@@ -81,10 +81,10 @@ typedef struct
     void * p_entry;
 } listener_params_t;
 
-MOCK_QUEUE_DEF(config_evt, nrf_mesh_evt_t);
-MOCK_QUEUE_DEF(entry_set, entry_set_params_t);
-MOCK_QUEUE_DEF(custom_load, custom_load_t);
-MOCK_QUEUE_DEF(listener, listener_params_t);
+MOCK_QUEUE_DEF(config_evt, nrf_mesh_evt_t, NULL);
+MOCK_QUEUE_DEF(entry_set, entry_set_params_t, NULL);
+MOCK_QUEUE_DEF(custom_load, custom_load_t, NULL);
+MOCK_QUEUE_DEF(listener, listener_params_t, NULL);
 
 mesh_config_file_params_t mesh_config_files[NRF_SECTION_ENTRIES];
 mesh_config_entry_params_t mesh_config_entries[NRF_SECTION_ENTRIES];

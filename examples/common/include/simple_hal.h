@@ -123,6 +123,13 @@ bool hal_led_pin_get(uint32_t pin);
  */
 void hal_led_blink_ms(uint32_t pin_mask, uint32_t delay_ms, uint32_t blink_count);
 
+/**
+ * Stops blinking the LEDs (previously started by @ref hal_led_blink_ms).
+ *
+ * @note Sets the LED mask from the @ref hal_led_blink_ms call to off.
+ */
+void hal_led_blink_stop(void);
+
 /** @} end of SIMPLE_HAL */
 
 

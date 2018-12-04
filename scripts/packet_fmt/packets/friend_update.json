@@ -1,0 +1,40 @@
+{
+    "__packet__": true,
+    "name": "friend_update",
+    "type": "absolute",
+    "module": "trs_control",
+    "packet_type": "packet_mesh_trs_control_packet_t",
+    "max_length": 6,
+    "fields": [
+        {
+            "name": "rfu",
+            "width":  6,
+            "doc": "reserved for future use",
+            "visible": false
+        },
+        {
+            "name": "iv_update_flag",
+            "width":  1,
+            "doc": "1 - IV Update active",
+            "visible": true
+        },
+        {
+            "name": "key_refresh_flag",
+            "width":  1,
+            "doc": "1 - in phase2",
+            "visible": true
+        },
+        {
+            "name": "iv_index",
+            "width":  32,
+            "doc": "current IV Index known by Friend node",
+            "visible": true
+        },
+        {
+            "name": "md",
+            "width":  8,
+            "doc": "indicator whether Friend Queue is empty or not",
+            "visible": true
+        }
+    ]
+}

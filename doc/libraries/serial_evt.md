@@ -384,7 +384,7 @@ _Prov Invite Received Parameters_
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
 `uint8_t`         | Context ID                              | 1     | 0      | Context ID of the provisioning link.
-`uint8_t`         | Attention Duration S                    | 1     | 1      | How long the primary element of the device identifies itself using the Attention Timer in seconds.
+`uint8_t`         | Attention Duration S                    | 1     | 1      | Time in seconds during which the device will identify itself using any means it can.
 
 ### Prov Start Received          {#prov-start-received}
 

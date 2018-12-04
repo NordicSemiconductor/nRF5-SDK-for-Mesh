@@ -143,10 +143,10 @@ typedef enum
     CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_GET = 0x802B,
     /** Opcode for the "Config Vendor Model Subscription List" message. */
     CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_LIST = 0x802C,
-    /** Opcode for the "Config Low Power Node PollTimeout Get" message. */
+    /** Opcode for the "Config Low Power node PollTimeout Get" message. */
     CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_GET = 0x802D,
-    /** Opcode for the "Config Low Power Node PollTimeout Status" message. */
-    CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_SET = 0x802E,
+    /** Opcode for the "Config Low Power node PollTimeout Status" message. */
+    CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_STATUS = 0x802E,
     /** Opcode for the "Heartbeat Publication Get" message. */
     CONFIG_OPCODE_HEARTBEAT_PUBLICATION_GET = 0x8038,
     /** Opcode for the "Heartbeat Publication Set" message. */

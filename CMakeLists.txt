@@ -6,8 +6,8 @@ if (NOT CMAKE_VERSION VERSION_LESS 3.9)
     cmake_policy(SET CMP0069 NEW)
 endif ()
 
-set(VERSION_MAJOR 2)
-set(VERSION_MINOR 2)
+set(VERSION_MAJOR 3)
+set(VERSION_MINOR 0)
 set(VERSION_BUGFIX 0)
 set(VERSION_SUFFIX "")
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUGFIX}${VERSION_SUFFIX}" CACHE STRING "" FORCE)
@@ -20,6 +20,7 @@ option(BUILD_HOST "Build for host (unit test build)" OFF)
 option(BUILD_EXAMPLES "Build all examples with default target." ON)
 
 option(EXPERIMENTAL_INSTABURST_ENABLED "Use experimental Instaburst feature." OFF)
+set(MESH_MEM_BACKEND "stdlib" CACHE STRING "Mesh dynamic memory manager backend")
 
 if (NOT BUILD_HOST)
     set(CMAKE_SYSTEM_NAME "Generic")

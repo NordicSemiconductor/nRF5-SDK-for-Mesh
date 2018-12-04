@@ -113,6 +113,8 @@ struct nrf_mesh_prov_ctx
     nrf_mesh_prov_oob_method_t oob_method;     /**< Chosen OOB authentication method. */
     nrf_mesh_prov_oob_caps_t capabilities;     /**< Node OOB and authentication capabilities. */
     nrf_mesh_prov_provisioning_data_t data;    /**< Provisioning data to send to the provisionee or received from the provisioner. */
+
+    uint8_t attention_duration_s;  /**< Time in seconds during which the device will identify itself using any means it can. */
 };
 /** @} */
 
@@ -195,11 +197,12 @@ uint32_t nrf_mesh_prov_generate_keys(uint8_t * p_public, uint8_t * p_private);
 /**
  * Provisions a device.
  *
- * @param[in,out] p_ctx         Pointer to a statically allocated provisioning context structure.
- * @param[in]     p_target_uuid Device UUID of the device that is to be provisioned.
- * @param[in]     p_data        Pointer to a structure containing the provisioning data for the
+ * @param[in,out] p_ctx                 Pointer to a statically allocated provisioning context structure.
+ * @param[in]     p_target_uuid         Device UUID of the device that is to be provisioned.
+ * @param[in]     attention_duration_s  Time in seconds during which the device will identify itself using any means it can.
+ * @param[in]     p_data                Pointer to a structure containing the provisioning data for the
  * device.
- * @param[in]     bearer        Which bearer to establish the provisioning link on.
+ * @param[in]     bearer                Which bearer to establish the provisioning link on.
  *
  * @retval NRF_SUCCESS             The provisioning process was started.
  * @retval NRF_ERROR_NULL          One or more parameters were NULL.
@@ -209,6 +212,7 @@ uint32_t nrf_mesh_prov_generate_keys(uint8_t * p_public, uint8_t * p_private);
  */
 uint32_t nrf_mesh_prov_provision(nrf_mesh_prov_ctx_t *                     p_ctx,
                                  const uint8_t *                           p_target_uuid,
+                                 uint8_t                                   attention_duration_s,
                                  const nrf_mesh_prov_provisioning_data_t * p_data,
                                  nrf_mesh_prov_bearer_type_t               bearer);
 

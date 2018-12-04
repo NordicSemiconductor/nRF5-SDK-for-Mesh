@@ -45,7 +45,7 @@
 #include "bearer_event.h"
 
 /**
- * @defgroup NRF_MESH_PROV_BEARER_GATT Provisioning over GATT Bearer (PB-GATT)
+ * @defgroup NRF_MESH_PROV_BEARER_GATT Provisioning over GATT Bearer (PB-GATT) (experimental)
  * @ingroup NRF_MESH_PROV_BEARER
  * @{
  *

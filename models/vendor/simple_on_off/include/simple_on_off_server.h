@@ -68,7 +68,7 @@ typedef bool (*simple_on_off_get_cb_t)(const simple_on_off_server_t * p_self);
  * @param[in] on_off Desired state
  * @returns @c true if the current state is On, @c false otherwise.
  */
-typedef bool (*simple_on_off_set_cb_t)(const simple_on_off_server_t * p_self, bool on_off);
+typedef bool (*simple_on_off_set_cb_t)(const simple_on_off_server_t * p_self, bool on);
 
 /** Simple OnOff Server state structure. */
 struct __simple_on_off_server

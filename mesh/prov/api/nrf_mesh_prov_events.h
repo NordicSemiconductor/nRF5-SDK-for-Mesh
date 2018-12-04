@@ -122,7 +122,7 @@ typedef struct
 {
     /** Provisioning context pointer. */
     nrf_mesh_prov_ctx_t * p_context;
-    /** How long the primary element of the device identifies itself using the Attention Timer in seconds. */
+    /** Time in seconds during which the device will identify itself using any means it can. */
     uint8_t attention_duration_s;
 } nrf_mesh_prov_evt_invite_received_t;
 

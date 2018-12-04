@@ -35,8 +35,6 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdlib.h>
-
 #include "access_loopback.h"
 #include "access_internal.h"
 #include "bearer_event.h"
@@ -47,6 +45,7 @@
 #include "nrf_mesh_defines.h"
 #include "nrf_error.h"
 #include "utils.h"
+#include "mesh_mem.h"
 
 typedef struct
 {
@@ -67,7 +66,7 @@ static bool access_loopback_process(void)
 
         access_incoming_handle(&p_item->rx_message);
         (void) list_remove(&mp_loopback_list_head, mp_loopback_list_head);
-        free(p_item); /*lint !e424 Inappropriate deallocation (free) for 'modified' data */
+        mesh_mem_free(p_item); /*lint !e424 Inappropriate deallocation (free) for 'modified' data */
     }
 
     return true;
@@ -86,7 +85,7 @@ void access_loopback_init(void)
 /*lint -save -e429 Custodial pointer p_item has not been freed or returned */
 uint32_t access_loopback_handle(access_loopback_request_t * p_req)
 {
-    access_loopback_item_t * p_item = malloc(sizeof(access_loopback_item_t) + p_req->length);
+    access_loopback_item_t * p_item = mesh_mem_alloc(sizeof(access_loopback_item_t) + p_req->length);
 
     if (NULL != p_item)
     {

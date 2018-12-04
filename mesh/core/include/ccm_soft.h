@@ -57,6 +57,9 @@
 /** Length of nonce. */
 #define CCM_NONCE_LENGTH (13)
 
+/** Longest MIC allowed. */
+#define CCM_MIC_LENGTH_MAX  (16)
+
 /**
  * Struct for passing AES-CCM encryption data.
  *

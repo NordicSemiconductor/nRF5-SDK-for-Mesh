@@ -34,324 +34,157 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <stddef.h>
 
 #include "timer.h"
 
-#include "bearer_event.h"
+#include "app_timer.h"
 #include "toolchain.h"
 #include "nrf_mesh_assert.h"
 
-#include "nrf_soc.h"
+#include "nordic_common.h"
 #include "nrf.h"
 
-#define TIMER_COMPARE_COUNT     (3)
+#define RTC_RESOLUTION        24
+#define IS_OVERFLOW_PENDING() (NRF_RTC1->EVENTS_OVRFLW == 1)
+/* Margin is required to prevent situation when written CC value is equal to COUNTER.
+ * Situation with equality will cause losing interrupt for the tail counting until next overflow. */
+#define PROTECTION_MARGIN_FOR_TIMER_START   2ul
+#define PROTECTION_MARGIN_FOR_OVFW_HANDLER  1ul
 
-/** Time from timeslot API starts the TIMER0 until we are sure we have had time to set all timeouts. */
-#define TIMER_TS_BEGIN_MARGIN_US    (120)
-/*****************************************************************************
-* Static globals
-*****************************************************************************/
-/** Bitfield for the attributes given to the timer */
-static timer_attr_t     m_attributes[TIMER_COMPARE_COUNT];
-/** Array of function pointers for callbacks for each timer. */
-static timer_callback_t m_callbacks[TIMER_COMPARE_COUNT];
-/** Array of PPI tasks to trigger on timeout. */
-static uint32_t*        mp_ppi_tasks[TIMER_COMPARE_COUNT];
-/** Timestamps set for each timeout.  */
-static timestamp_t      m_timeouts[TIMER_COMPARE_COUNT];
-/** Time from which the TIMER0 is started. */
-static timestamp_t      m_reference_time;
-/** Time captured at the end of the previous timeslot. */
-static timestamp_t      m_ts_end_time;
-/** Timeslot currently in progress. */
-static bool             m_is_in_ts;
-/** Timer mutex. */
-static uint32_t         m_timer_mut;
-/*****************************************************************************
-* Static functions
-*****************************************************************************/
-static void timer_set(uint8_t timer, timestamp_t timeout)
+#define TIMER_US_TO_TICKS(US)                              \
+            ((uint32_t)ROUNDED_DIV(                        \
+            (US) * (uint64_t)APP_TIMER_CLOCK_FREQ,         \
+            1000000ull * (APP_TIMER_CONFIG_RTC_FREQUENCY + 1)))
+
+#define TIMER_TICKS_TO_US(TICKS)                                         \
+            ((uint32_t)ROUNDED_DIV(                                      \
+            (TICKS) * 1000000ull * (APP_TIMER_CONFIG_RTC_FREQUENCY + 1), \
+            APP_TIMER_CLOCK_FREQ))
+
+static volatile uint32_t m_ovfw_counter;
+
+static volatile uint32_t m_ovfw_timer_counter;
+static volatile uint32_t m_tail_timer_counter;
+static timer_callback_t volatile mp_cb;
+
+extern bool is_app_timer_init(void);
+
+void nrf_mesh_timer_tail_handle(void)
 {
-    NRF_TIMER0->EVENTS_COMPARE[timer] = 0;
-    NRF_TIMER0->INTENSET  = (1u << (TIMER_INTENSET_COMPARE0_Pos + timer));
-    NRF_TIMER0->CC[timer] = timeout;
+    NRF_RTC1->EVTENCLR = RTC_EVTEN_COMPARE1_Msk;
+    NRF_RTC1->INTENCLR = RTC_EVTEN_COMPARE1_Msk;
+
+    NRF_MESH_ASSERT(mp_cb != NULL);
+    mp_cb(timer_now());
 }
 
-/** Implement mutex lock, the SD-mut is hidden behind SVC, and cannot be used in IRQ level <= 1.
-    While the mutex is locked, the timer is unable to receive timer interrupts, and the
-    timers may safely be changed */
-static inline void timer_mut_lock(void)
+void nrf_mesh_timer_ovfw_handle(void)
 {
-    _DISABLE_IRQS(m_timer_mut);
-}
+    uint32_t was_masked;
+    _DISABLE_IRQS(was_masked);
+    NRF_RTC1->EVENTS_OVRFLW = 0;
+    m_ovfw_counter++;
+    _ENABLE_IRQS(was_masked);
 
-/** Implement mutex unlock, the SD-mut is hidden behind SVC, and cannot be used in IRQ level <= 1 */
-static inline void timer_mut_unlock(void)
-{
-    _ENABLE_IRQS(m_timer_mut);
-}
-
-/*****************************************************************************
-* Interface functions
-*****************************************************************************/
-void timer_event_handler(void)
-{
-    for (uint32_t i = 0; i < TIMER_COMPARE_COUNT; ++i)
+    if (m_ovfw_timer_counter != 0)
     {
-        if (NRF_TIMER0->EVENTS_COMPARE[i] && (NRF_TIMER0->INTENSET & (1u << (TIMER_INTENCLR_COMPARE0_Pos + i))))
+        m_ovfw_timer_counter--;
+
+        if (m_ovfw_timer_counter == 0)
         {
-            timer_callback_t cb = m_callbacks[i];
-            NRF_MESH_ASSERT(cb != NULL);
-            m_callbacks[i] = NULL;
-            NRF_TIMER0->INTENCLR = (1u << (TIMER_INTENCLR_COMPARE0_Pos + i));
-            timestamp_t time_now = timer_now();
-            if (m_attributes[i] & TIMER_ATTR_SYNCHRONOUS)
+            if (m_tail_timer_counter > NRF_RTC1->COUNTER)
             {
-                cb(time_now);
+                _DISABLE_IRQS(was_masked);
+                NRF_RTC1->CC[1] = m_tail_timer_counter > NRF_RTC1->COUNTER + PROTECTION_MARGIN_FOR_OVFW_HANDLER ?
+                        m_tail_timer_counter : NRF_RTC1->COUNTER + PROTECTION_MARGIN_FOR_TIMER_START;
+                _ENABLE_IRQS(was_masked);
+                NRF_RTC1->EVTENSET = RTC_EVTEN_COMPARE1_Msk;
+                NRF_RTC1->INTENSET = RTC_INTENSET_COMPARE1_Msk;
             }
             else
             {
-                NRF_MESH_ASSERT(bearer_event_timer_post(cb, time_now) == NRF_SUCCESS);
+                NRF_MESH_ASSERT(mp_cb != NULL);
+                mp_cb(timer_now());
             }
-            NRF_TIMER0->EVENTS_COMPARE[i] = 0;
         }
     }
 }
 
-uint32_t timer_order_cb(uint8_t timer,
-                        timestamp_t time,
-                        timer_callback_t callback,
-                        timer_attr_t attributes)
+void timer_init(void)
 {
-    if (timer >= TIMER_COMPARE_COUNT)
+    if (!is_app_timer_init())
     {
-        return NRF_ERROR_INVALID_PARAM;
+        NRF_MESH_ERROR_CHECK(app_timer_init());
     }
-
-    if ((attributes & (TIMER_ATTR_SYNCHRONOUS | TIMER_ATTR_TIMESLOT_LOCAL)) != attributes)
-    {
-        return NRF_ERROR_INVALID_FLAGS;
-    }
-
-    timer_mut_lock();
-
-    m_callbacks[timer] = callback;
-    m_timeouts[timer] = time;
-    m_attributes[timer] = attributes;
-    mp_ppi_tasks[timer] = NULL;
-
-    if (m_is_in_ts)
-    {
-        timer_set(timer, TIMER_DIFF(time, m_reference_time));
-    }
-
-    timer_mut_unlock();
-
-    return NRF_SUCCESS;
-}
-
-uint32_t timer_order_cb_ppi(uint8_t timer,
-                            timestamp_t time,
-                            timer_callback_t callback,
-                            uint32_t* p_task,
-                            timer_attr_t attributes)
-{
-    if (timer >= TIMER_COMPARE_COUNT)
-    {
-        return NRF_ERROR_INVALID_PARAM;
-    }
-
-    if ((attributes & (TIMER_ATTR_SYNCHRONOUS | TIMER_ATTR_TIMESLOT_LOCAL)) != attributes)
-    {
-        return NRF_ERROR_INVALID_FLAGS;
-    }
-
-    timer_mut_lock();
-
-    m_callbacks[timer] = callback;
-    m_timeouts[timer] = time;
-    mp_ppi_tasks[timer] = p_task;
-    m_attributes[timer] = attributes;
-
-    if (m_is_in_ts)
-    {
-        timer_set(timer, TIMER_DIFF(time, m_reference_time));
-        /* Setup PPI */
-        NRF_PPI->CH[TIMER_PPI_CH_START + timer].EEP   = (uint32_t) &(NRF_TIMER0->EVENTS_COMPARE[timer]);
-        NRF_PPI->CH[TIMER_PPI_CH_START + timer].TEP   = (uint32_t) p_task;
-        NRF_PPI->CHENSET 			                  = (1 << (TIMER_PPI_CH_START + timer));
-    }
-
-    timer_mut_unlock();
-
-    return NRF_SUCCESS;
-}
-
-uint32_t timer_order_ppi(uint8_t timer, timestamp_t time, uint32_t* p_task, timer_attr_t attributes)
-{
-    if (timer >= TIMER_COMPARE_COUNT)
-    {
-        return NRF_ERROR_INVALID_PARAM;
-    }
-
-    if ((attributes & (TIMER_ATTR_TIMESLOT_LOCAL)) != attributes)
-    {
-        return NRF_ERROR_INVALID_FLAGS;
-    }
-
-    timer_mut_lock();
-
-    m_timeouts[timer] = time;
-    m_callbacks[timer] = NULL;
-    mp_ppi_tasks[timer] = p_task;
-    m_attributes[timer] = attributes;
-
-    if (m_is_in_ts)
-    {
-        NRF_TIMER0->INTENCLR = (1u << (TIMER_INTENSET_COMPARE0_Pos + timer));
-        NRF_TIMER0->CC[timer] = TIMER_DIFF(time, m_reference_time);
-        NRF_TIMER0->EVENTS_COMPARE[timer] = 0;
-
-        /* Setup PPI */
-        NRF_PPI->CH[TIMER_PPI_CH_START + timer].EEP   = (uint32_t) &(NRF_TIMER0->EVENTS_COMPARE[timer]);
-        NRF_PPI->CH[TIMER_PPI_CH_START + timer].TEP   = (uint32_t) p_task;
-        NRF_PPI->CHENSET 			                  = (1 << (TIMER_PPI_CH_START + timer));
-    }
-
-    timer_mut_unlock();
-
-    return NRF_SUCCESS;
-}
-
-uint32_t timer_abort(uint8_t timer)
-{
-    if (timer >= TIMER_COMPARE_COUNT)
-    {
-        return NRF_ERROR_INVALID_PARAM;
-    }
-
-    if (mp_ppi_tasks[timer] == NULL && m_callbacks[timer] == NULL)
-    {
-        return NRF_ERROR_NOT_FOUND;
-    }
-
-    timer_mut_lock();
-    if (timer < TIMER_COMPARE_COUNT)
-    {
-        m_callbacks[timer] = NULL;
-        m_attributes[timer] = TIMER_ATTR_NONE;
-        if (m_is_in_ts)
-        {
-            NRF_TIMER0->INTENCLR = (1 << (TIMER_INTENCLR_COMPARE0_Pos + timer));
-            NRF_PPI->CHENCLR = (1 << (TIMER_PPI_CH_START + timer));
-        }
-    }
-    timer_mut_unlock();
-
-    return NRF_SUCCESS;
 }
 
 timestamp_t timer_now(void)
 {
-    timer_mut_lock();
-    timestamp_t time = 0;
-    if (m_is_in_ts)
+    uint32_t was_masked;
+    uint32_t ovfw_counter;
+    uint32_t sample;
+
+    _DISABLE_IRQS(was_masked);
+    ovfw_counter = m_ovfw_counter;
+    sample = NRF_RTC1->COUNTER;
+    if (IS_OVERFLOW_PENDING())
     {
-        NRF_TIMER0->EVENTS_COMPARE[TIMER_INDEX_TIMESTAMP] = 0;
-        NRF_TIMER0->TASKS_CAPTURE[TIMER_INDEX_TIMESTAMP] = 1;
-        time = NRF_TIMER0->CC[TIMER_INDEX_TIMESTAMP] + m_reference_time;
+        sample = NRF_RTC1->COUNTER;
+        ovfw_counter++;
+    }
+    _ENABLE_IRQS(was_masked);
+
+    ovfw_counter <<= RTC_RESOLUTION;
+
+    return TIMER_TICKS_TO_US(ovfw_counter | sample);
+}
+
+void timer_start(timestamp_t timestamp, timer_callback_t cb)
+{
+    volatile uint32_t was_masked = 0ul;
+    NRF_MESH_ASSERT(cb != NULL);
+    mp_cb = cb;
+
+    timestamp_t time_now = timer_now();
+    timestamp_t time_diff = 0ul;
+    if (TIMER_OLDER_THAN(time_now, timestamp))
+    {
+        time_diff = timestamp - time_now;
+    }
+
+    uint32_t timeout_ticks = TIMER_US_TO_TICKS(time_diff);
+
+    _DISABLE_IRQS(was_masked);
+    uint32_t ticks_now = NRF_RTC1->COUNTER;
+
+    timeout_ticks = MAX(PROTECTION_MARGIN_FOR_TIMER_START, timeout_ticks);
+    if (timeout_ticks <= APP_TIMER_MAX_CNT_VAL - ticks_now)
+    {
+        NRF_RTC1->CC[1] = ticks_now + timeout_ticks;
+        NRF_RTC1->EVTENSET = RTC_EVTEN_COMPARE1_Msk;
+        NRF_RTC1->INTENSET = RTC_INTENSET_COMPARE1_Msk;
+        m_ovfw_timer_counter = 0;
+        m_tail_timer_counter = 0;
     }
     else
     {
-        /* return the end of the previous TS */
-        time = m_ts_end_time;
+        timeout_ticks -= (APP_TIMER_MAX_CNT_VAL - ticks_now);
+        m_ovfw_timer_counter = (timeout_ticks >> RTC_RESOLUTION) + 1;
+        m_tail_timer_counter = timeout_ticks & APP_TIMER_MAX_CNT_VAL;
     }
-    timer_mut_unlock();
-    return time;
+    _ENABLE_IRQS(was_masked);
 }
 
-void timer_on_ts_begin(timestamp_t timeslot_start_time)
+void timer_stop(void)
 {
-    /* executed in STACK_LOW */
+    NRF_RTC1->EVTENCLR = RTC_EVTEN_COMPARE1_Msk;
+    NRF_RTC1->INTENCLR = RTC_EVTEN_COMPARE1_Msk;
 
-    for (uint32_t i = 0; i < TIMER_COMPARE_COUNT; ++i)
-    {
+    m_ovfw_timer_counter = 0;
+    m_tail_timer_counter = 0;
+    mp_cb = NULL;
 
-#if !defined(HOST)
-        NRF_TIMER0->CC[i] = 0;
-        NRF_TIMER0->EVENTS_COMPARE[i] = 0;
-        (void) NRF_TIMER0->EVENTS_COMPARE[i];
-#endif
-
-        /* Timer already timed out, execute immediately. */
-        if (
-            TIMER_DIFF(m_timeouts[i], m_reference_time) <
-            TIMER_DIFF(timeslot_start_time + TIMER_TS_BEGIN_MARGIN_US, m_reference_time)
-           )
-        {
-            if (m_callbacks[i] != NULL)
-            {
-                timer_callback_t cb = m_callbacks[i];
-                m_callbacks[i] = NULL;
-                if (m_attributes[i] & TIMER_ATTR_SYNCHRONOUS)
-                {
-                    cb(timeslot_start_time);
-                }
-                else
-                {
-                    NRF_MESH_ASSERT(bearer_event_timer_post(cb, timeslot_start_time) == NRF_SUCCESS);
-                }
-            }
-            if (mp_ppi_tasks[i] != NULL)
-            {
-                /* trigger expired tasks */
-                *mp_ppi_tasks[i] = 1;
-                mp_ppi_tasks[i] = NULL;
-            }
-        }
-        else
-        {
-            /* reschedule timers to fit new reference */
-            if (m_callbacks[i] != NULL)
-            {
-                timer_set(i, TIMER_DIFF(m_timeouts[i], timeslot_start_time));
-            }
-        }
-    }
-
-    /* only enable interrupts if we're not locked. */
-    if (!m_timer_mut)
-    {
-#if !defined(HOST)
-        (void) NVIC_EnableIRQ(TIMER0_IRQn);
-#endif
-    }
-
-    m_reference_time = timeslot_start_time;
-    m_is_in_ts = true;
-}
-
-void timer_on_ts_end(timestamp_t timeslot_end_time)
-{
-    /* executed in STACK_LOW */
-    /* purge ts-local timers */
-    for (uint32_t i = 0; i < TIMER_COMPARE_COUNT; ++i)
-    {
-        if (m_attributes[i] & TIMER_ATTR_TIMESLOT_LOCAL)
-        {
-            m_attributes[i] = TIMER_ATTR_NONE;
-            m_callbacks[i] = NULL;
-            mp_ppi_tasks[i] = NULL;
-        }
-    }
-    m_ts_end_time = timeslot_end_time;
-    m_is_in_ts = false;
-
-#if !defined(HOST)
-    /* Kill any pending interrupts, to avoid softdevice triggering. */
-    NRF_TIMER0->INTENCLR = 0xFFFFFFFF;
-    (void) NVIC_ClearPendingIRQ(TIMER0_IRQn);
+#if defined(UNIT_TEST)
+    m_ovfw_counter = 0;
 #endif
 }
-

@@ -12,8 +12,10 @@ end box
 
 note over a: init_params defines UUID, core params\n and event callbacks
 ... Initialize ...
-a -> ah: mesh_softdevice_init(...)
-a -> ah: mesh_app_uuid_gen(...)
+a -> ah: ble_stack_init()
+a -> ah: gap_params_init()
+a -> ah: conn_params_init()
+a -> ah: mesh_app_uuid_gen()
 a -> c: mesh_stack_init(...)
 c -> core: Initialize: Mesh and Foundation models
 ... ...
@@ -42,6 +44,8 @@ else
     ... Wait for provisioning to complete ...
     core -> ah: Provisioning Events
     ah -> a: provisioning_complete_cb()
+    a -> ah: gap_params_init()
+    a -> ah: conn_params_init()
 end
 
 @enduml

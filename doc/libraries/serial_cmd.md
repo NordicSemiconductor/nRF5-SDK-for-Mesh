@@ -805,7 +805,7 @@ _The response has no parameters._
 
 _Opcode:_ `0x63`
 
-_Total length: 44 bytes_
+_Total length: 45 bytes_
 
 Start provisioning of a device. When a provisioning link has been successfully established, a _Provisioning Link Established_ event is received. If an error occurs, a _Provisioning Link Closed_ event is received. After a link has been established, a _Provisioning Capabilities Received_ event will be emitted upon receiving the peer node's OOB capabilities. To continue the provisioning process, a _Provisioning OOB Use_ command must be sent to select which kind of OOB authentication to use.
 
@@ -821,6 +821,7 @@ Type          | Name                                    | Size | Offset | Descri
 `uint16_t`    | Address                                 | 2    | 39     | Unicast address to assign to the device.
 `uint8_t`     | Iv Update Flag                          | 1    | 41     | IV update in progress flag.
 `uint8_t`     | Key Refresh Flag                        | 1    | 42     | Key refresh in progress flag.
+`uint8_t`     | Attention Duration S                    | 1    | 43     | Time in seconds during which the device will identify itself using any means it can.
 
 ### Response
 
@@ -2110,7 +2111,7 @@ Type          | Name                                    | Size | Offset | Descri
 
 _Opcode:_ `0xab`
 
-_Total length: 10..255 bytes_
+_Total length: 11..255 bytes_
 
 Send a mesh packet. The source address handle must represent a local unicast address.
 
@@ -2124,7 +2125,8 @@ Type          | Name                                    | Size | Offset | Descri
 `uint8_t`     | TTL                                     | 1    | 6      | Time To Live value to use in packet.
 `uint8_t`     | Force Segmented                         | 1    | 7      | Whether or not to force use of segmented message type for the transmission.
 `uint8_t`     | Transmic Size                           | 1    | 8      | Transport MIC size used enum. SMALL=0, LARGE=1, DEFAULT=2. LARGE may only be used with segmented packets.
-`uint8_t[245]` | Data                                    | 0..245 | 9      | Payload of the packet.
+`uint8_t`     | Friendship Credential Flag              | 1    | 9      | Control parameter for credentials used to publish messages from a model. 0 for master, 1 for friendship.
+`uint8_t[244]` | Data                                    | 0..244 | 10     | Payload of the packet.
 
 ### Response
 

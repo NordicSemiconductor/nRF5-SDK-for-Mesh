@@ -269,7 +269,7 @@ void test_prov_tx(void)
     /* Invite */
     prov_pdu_invite_t invite_pdu;
     invite_pdu.pdu_type = PROV_PDU_TYPE_INVITE;
-    invite_pdu.attention_duration = 0x29; //arbitrary 8 bit number
+    invite_pdu.attention_duration_s = 0x29; //arbitrary 8 bit number
     uint8_t confirmation_inputs[17];
     memset(confirmation_inputs, 0xFE, 17);
 

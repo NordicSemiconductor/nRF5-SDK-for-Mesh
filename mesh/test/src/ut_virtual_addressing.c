@@ -205,7 +205,7 @@ static void mock_enc_aes_ccm_decrypt_cb(ccm_soft_data_t* const p_ccm_data, bool*
     }
 }
 
-void test_general_walking_through_virtual_adresses(void)
+void test_general_walking_through_virtual_addresses(void)
 {
     packet_mesh_trs_packet_t trs_packet;
     nrf_mesh_rx_metadata_t rx_metadata;

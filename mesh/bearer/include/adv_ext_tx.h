@@ -93,7 +93,7 @@ typedef struct adv_ext_tx adv_ext_tx_t;
  * @param[in] timestamp Timestamp of the last packet in the chain in the transmitted Extended
  * advertisement event.
  */
-typedef void (*adv_ext_tx_callback_t)(adv_ext_tx_t * p_tx, const adv_ext_tx_event_t * p_tx_event, uint32_t timestamp);
+typedef void (*adv_ext_tx_callback_t)(adv_ext_tx_t * p_tx, const adv_ext_tx_event_t * p_tx_event, timestamp_t timestamp);
 
 /** Extended advertising instance configuration parameters. */
 typedef struct

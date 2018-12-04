@@ -39,7 +39,7 @@
 #include "nrf_mesh_assert.h"
 #include "nrf_mesh_config_bearer.h"
 #include "timeslot.h"
-#include "timer.h"
+#include "timeslot_timer.h"
 #include "toolchain.h"
 #include "nrf.h"
 #include "scanner.h"
@@ -47,8 +47,6 @@
 /*****************************************************************************
 * Local defines
 *****************************************************************************/
-/** Estimated maximum runtime of the bearer handler end-of-action post processing. */
-#define BEARER_ACTION_POST_PROCESS_TIME_US      (100)
 /** Minimum time window required for the scanner to start. */
 #define BEARER_SCANNER_MIN_TIME_US              (500)
 /*****************************************************************************
@@ -57,10 +55,11 @@
 static queue_t          m_action_queue; /**< Queue of actions to execute. */
 static volatile bool    m_stopped;      /**< Current state of the bearer handler. */
 static bearer_action_t* mp_action;      /**< Ongoing bearer action. */
-static timestamp_t      m_end_time;     /**< Latest end time for the ongoing action. */
+static ts_timestamp_t   m_end_time;     /**< Latest end time for the ongoing action. */
 static bool             m_scanner_is_active;
 static bool             m_action_ended; /**< The event end function has been called */
 static bool             m_in_callback; /**< In the callback. */
+static bearer_handler_stopped_cb_t m_stopped_callback; /**< Single fire stop callback to call when the bearer handler has been stopped */
 /*****************************************************************************
 * Static functions
 *****************************************************************************/
@@ -85,7 +84,7 @@ static void timer_irq_clear(void)
  *
  * @returns Device timestamp at the start of the timer.
  */
-static timestamp_t action_timer_start(void)
+static ts_timestamp_t action_timer_start(void)
 {
     DEBUG_PIN_BEARER_HANDLER_ON(DEBUG_PIN_BEARER_HANDLER_TIMER_SETUP);
 
@@ -99,9 +98,9 @@ static timestamp_t action_timer_start(void)
     BEARER_ACTION_TIMER->MODE = TIMER_MODE_MODE_Timer;
     BEARER_ACTION_TIMER->BITMODE = TIMER_BITMODE_BITMODE_16Bit;
 
-    NRF_PPI->CH[TIMER_PPI_CH_START + TIMER_INDEX_RADIO].EEP = (uint32_t) &BEARER_ACTION_TIMER->EVENTS_COMPARE[0];
-    NRF_PPI->CH[TIMER_PPI_CH_START + TIMER_INDEX_RADIO].TEP = (uint32_t) &NRF_TIMER0->TASKS_CAPTURE[TIMER_INDEX_RADIO];
-    NRF_PPI->CHENSET = (1UL << (TIMER_PPI_CH_START + TIMER_INDEX_RADIO));
+    NRF_PPI->CH[TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO].EEP = (uint32_t) &BEARER_ACTION_TIMER->EVENTS_COMPARE[0];
+    NRF_PPI->CH[TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO].TEP = (uint32_t) &NRF_TIMER0->TASKS_CAPTURE[TS_TIMER_INDEX_RADIO];
+    NRF_PPI->CHENSET = (1UL << (TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO));
 
     BEARER_ACTION_TIMER->TASKS_START = 1;
 
@@ -112,11 +111,11 @@ static timestamp_t action_timer_start(void)
 
     /* Cleanup */
     BEARER_ACTION_TIMER->EVENTS_COMPARE[0] = 0;
-    NRF_PPI->CHENCLR = (1UL << (TIMER_PPI_CH_START + TIMER_INDEX_RADIO));
+    NRF_PPI->CHENCLR = (1UL << (TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO));
 
     DEBUG_PIN_BEARER_HANDLER_OFF(DEBUG_PIN_BEARER_HANDLER_TIMER_SETUP);
 
-    return timeslot_start_time_get() + NRF_TIMER0->CC[TIMER_INDEX_RADIO] - BEARER_ACTION_TIMER->CC[0];
+    return NRF_TIMER0->CC[TS_TIMER_INDEX_RADIO] - BEARER_ACTION_TIMER->CC[0];
 }
 
 static void radio_irq_clear(void)
@@ -154,13 +153,13 @@ static void scanner_stop(void)
 static void end_handle(void)
 {
     /* Ensure the action didn't last too long: */
-    uint32_t time_now = timer_now();
+    ts_timestamp_t time_now = ts_timer_now();
     NRF_MESH_ASSERT(TIMER_OLDER_THAN(time_now, m_end_time));
 
     timeslot_state_lock(false);
 
 #ifdef BEARER_HANDLER_DEBUG
-    timestamp_t start_time = m_end_time - mp_action->duration_us;
+    ts_timestamp_t start_time = m_end_time - mp_action->duration_us;
     mp_action->debug.prev_duration_us = time_now - start_time;
     mp_action->debug.prev_margin_us = m_end_time - time_now;
 #endif
@@ -183,7 +182,7 @@ static void action_start(bearer_action_t* p_action)
     mp_action = p_action;
     radio_irq_clear();
 
-    const timestamp_t time_now = action_timer_start();
+    const ts_timestamp_t time_now = action_timer_start();
     m_end_time = time_now + mp_action->duration_us;
 
     m_action_ended = false;
@@ -214,9 +213,15 @@ static void action_switch(void)
             p_action = p_elem->p_data;
         }
 
-        const timestamp_t available_time = timeslot_remaining_time_get();
+        const ts_timestamp_t available_time = timeslot_remaining_time_get();
+        const ts_timestamp_t total_time = timeslot_length_get();
 
-        if (p_action && (p_action->duration_us + BEARER_ACTION_POST_PROCESS_TIME_US) < available_time)
+        if (p_action && (p_action->duration_us + BEARER_ACTION_POST_PROCESS_TIME_US) > total_time)
+        {
+            /* The current timeslot doesn't have space for this action, restart the timeslot to get a longer one. */
+            timeslot_restart(TIMESLOT_PRIORITY_HIGH);
+        }
+        else if (p_action && (p_action->duration_us + BEARER_ACTION_POST_PROCESS_TIME_US) < available_time)
         {
             scanner_stop();
 
@@ -227,8 +232,26 @@ static void action_switch(void)
         }
         else if (available_time > BEARER_SCANNER_MIN_TIME_US)
         {
-            scanner_start();
+            if (scanner_is_enabled())
+            {
+                scanner_start();
+            }
+            else
+            {
+                /* There's no scanner activity and no actions pending, stop the timeslot to save power. */
+                timeslot_stop();
+            }
         }
+    }
+}
+
+static void notify_stop(void)
+{
+    if (m_stopped_callback)
+    {
+        bearer_handler_stopped_cb_t stop_cb = m_stopped_callback;
+        m_stopped_callback = NULL;
+        stop_cb();
     }
 }
 
@@ -275,7 +298,7 @@ uint32_t bearer_handler_start(void)
     if (m_stopped)
     {
         m_stopped = false;
-        timeslot_trigger();
+        bearer_handler_wake_up();
     }
     else
     {
@@ -284,7 +307,7 @@ uint32_t bearer_handler_start(void)
     return status;
 }
 
-uint32_t bearer_handler_stop(void)
+uint32_t bearer_handler_stop(bearer_handler_stopped_cb_t cb)
 {
     uint32_t status = NRF_SUCCESS;
     if (m_stopped)
@@ -294,8 +317,16 @@ uint32_t bearer_handler_stop(void)
     else
     {
         /* Will stop the timeslot when the current action ends. */
+        m_stopped_callback = cb;
         m_stopped = true;
-        timeslot_trigger();
+        if (timeslot_session_is_active())
+        {
+            timeslot_trigger();
+        }
+        else
+        {
+            notify_stop();
+        }
     }
     return status;
 }
@@ -323,7 +354,7 @@ uint32_t bearer_handler_action_enqueue(bearer_action_t* p_action)
         queue_push(&m_action_queue, &p_action->queue_elem);
         if (!m_stopped && mp_action == NULL)
         {
-            timeslot_trigger();
+            bearer_handler_wake_up();
         }
         status = NRF_SUCCESS;
     }
@@ -337,29 +368,38 @@ uint32_t bearer_handler_action_fire(bearer_action_t* p_action)
     NRF_MESH_ASSERT(p_action->duration_us != 0);
     NRF_MESH_ASSERT(p_action->duration_us <= BEARER_ACTION_DURATION_MAX_US);
 
-    uint32_t status = NRF_SUCCESS;
-    uint32_t was_masked;
-    _DISABLE_IRQS(was_masked);
+    uint32_t status;
     if (m_stopped)
     {
         status = NRF_ERROR_INVALID_STATE;
     }
-    else if (!action_in_progress() && timeslot_is_in_ts() &&
-             (timeslot_remaining_time_get() >
-              p_action->duration_us + BEARER_ACTION_POST_PROCESS_TIME_US))
-    {
-        p_action->queue_elem.p_data = p_action;
-        queue_push(&m_action_queue, &p_action->queue_elem);
-        timeslot_trigger();
-    }
     else
     {
-        status = NRF_ERROR_BUSY;
+        if (action_in_progress())
+        {
+            status = NRF_ERROR_BUSY;
+        }
+        else
+        {
+            p_action->queue_elem.p_data = p_action;
+            queue_push(&m_action_queue, &p_action->queue_elem);
+            bearer_handler_wake_up();
+            status = NRF_SUCCESS;
+        }
     }
-    _ENABLE_IRQS(was_masked);
     return status;
 }
 
+void bearer_handler_wake_up(void)
+{
+    if (!m_stopped && (scanner_is_enabled() || action_in_progress()))
+    {
+        if (timeslot_start() != NRF_SUCCESS)
+        {
+            timeslot_trigger();
+        }
+    }
+}
 
 void bearer_handler_action_end(void)
 {
@@ -399,6 +439,11 @@ void bearer_handler_radio_irq_handler(void)
     {
         NRF_MESH_ASSERT(m_scanner_is_active);
         scanner_radio_irq_handler();
+
+        if (!scanner_is_enabled())
+        {
+            timeslot_stop();
+        }
     }
 }
 
@@ -431,6 +476,15 @@ void bearer_handler_on_ts_end(void)
     scanner_stop();
     timer_irq_clear();
     radio_irq_clear();
+    BEARER_ACTION_TIMER->TASKS_SHUTDOWN = 1;
 
     NVIC_DisableIRQ(BEARER_ACTION_TIMER_IRQn);
+}
+
+void bearer_handler_on_ts_session_closed(void)
+{
+    if (m_stopped)
+    {
+        notify_stop();
+    }
 }

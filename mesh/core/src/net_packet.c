@@ -245,6 +245,11 @@ uint32_t net_packet_decrypt(network_packet_metadata_t * p_net_metadata,
                     p_net_decrypted_packet != NULL &&
                     p_net_decrypted_packet != p_net_encrypted_packet);
 
+    if (net_packet_len < PACKET_MESH_NET_PDU_OFFSET || net_packet_len > PACKET_MESH_NET_MAX_SIZE)
+    {
+        return NRF_ERROR_INVALID_LENGTH;
+    }
+
     p_net_metadata->internal.iv_index = net_state_rx_iv_index_get(packet_mesh_net_ivi_get(p_net_encrypted_packet));
     p_net_metadata->p_security_material = NULL;
     uint8_t nid = packet_mesh_net_nid_get(p_net_encrypted_packet);

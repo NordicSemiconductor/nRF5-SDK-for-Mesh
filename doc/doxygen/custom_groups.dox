@@ -60,6 +60,9 @@
  *
  * Options are stored persistently.
  *
+ * @warning This API must be called in the same IRQ priority as the one used by the mesh stack
+ * (see @ref md_doc_introduction_mesh_interrupt_priorities).
+ *
  *
  *
  * @defgroup CORE_CONFIG             Core configuration

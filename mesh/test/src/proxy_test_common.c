@@ -80,7 +80,7 @@ static const nrf_mesh_evt_handler_t * mp_mesh_evt_handler;
 * Mocks
 *****************************************************************************/
 
-uint32_t timer_now(void)
+timestamp_t timer_now(void)
 {
     return 0;
 }

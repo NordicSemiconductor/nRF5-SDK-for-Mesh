@@ -38,24 +38,105 @@
 #ifndef NRF_MESH_CONFIG_EXAMPLES_H__
 #define NRF_MESH_CONFIG_EXAMPLES_H__
 
+#include "nrf_mesh_config_app.h"
+
 /**
- * @internal
- * @defgroup NRF_MESH_CONFIG_EXAMPLES nRF Mesh examples config
- * Configuration common to all Mesh examples.
+ * @defgroup NRF_MESH_CONFIG_EXAMPLES Application support module configuration
+ * @ingroup MESH_API_GROUP_APP_SUPPORT
+ * Configuration of the application support modules.
  * @{
  */
 
 /**
- * Clock configuration for Nordic development boards.
+ * @defgroup MESH_PROVISIONEE_CONFIG Provisionee support module configuration (mesh examples)
+ * Configuration for compile time. Part of the provisionee support module for mesh examples.
+ * @{
  */
-#if defined(S110)
-    #define DEV_BOARD_LF_CLK_CFG  NRF_CLOCK_LFCLKSRC_XTAL_20_PPM
-#elif NRF_SD_BLE_API_VERSION >= 5
-    #define DEV_BOARD_LF_CLK_CFG  {.source = NRF_CLOCK_LF_SRC_XTAL, .rc_ctiv = 0, .rc_temp_ctiv = 0, .accuracy = NRF_CLOCK_LF_ACCURACY_20_PPM}
-#else
-    #define DEV_BOARD_LF_CLK_CFG  {.source = NRF_CLOCK_LF_SRC_XTAL, .rc_ctiv = 0, .rc_temp_ctiv = 0, .xtal_accuracy = NRF_CLOCK_LF_XTAL_ACCURACY_20_PPM}
+
+/** Enable Advertising-based provisioning bearer, PB-ADV. */
+#ifndef MESH_PROVISIONEE_BEARER_ADV_ENABLED
+#define MESH_PROVISIONEE_BEARER_ADV_ENABLED 1
 #endif
 
-/** @} */
+/** @} end of MESH_PROVISIONEE_CONFIG */
+
+/**
+ * @defgroup RTT_INPUT_CONFIG RTT Input module configuration (mesh examples)
+ * Configuration for compile time. Part of the RTT Input module for mesh examples.
+ * @{
+ */
+
+/** Enable RTT Input support. */
+#ifndef RTT_INPUT_ENABLED
+#define RTT_INPUT_ENABLED 1
+#endif
+
+/** @} end of RTT_INPUT_CONFIG */
+
+/**
+ * @defgroup SIMPLE_HAL_CONFIG Simple Hardware Abstraction Layer configuration (mesh examples)
+ * Configuration for compile time. Part of the Simple Hardware Abstraction Layer for mesh examples.
+ * @{
+ */
+
+/** Enable support for LEDs. */
+#ifndef SIMPLE_HAL_LEDS_ENABLED
+#define SIMPLE_HAL_LEDS_ENABLED 1
+#endif
+
+/** @} end of SIMPLE_HAL_CONFIG */
+
+/**
+ * @defgroup BLE_SOFTDEVICE_SUPPORT_CONFIG BLE SoftDevice support module configuration
+ * @ingroup MESH_API_GROUP_APP_SUPPORT
+ * Configuration for compile time. Part of the BLE SoftDevice support module.
+ *
+ * @{
+ */
+
+/** GAP device name. */
+#ifndef GAP_DEVICE_NAME
+#define GAP_DEVICE_NAME                 "nRF5x Mesh Node"
+#endif
+
+/** Minimum acceptable connection interval. */
+#ifndef MIN_CONN_INTERVAL
+#define MIN_CONN_INTERVAL               MSEC_TO_UNITS(150,  UNIT_1_25_MS)
+#endif
+
+/** Maximum acceptable connection interval. */
+#ifndef MAX_CONN_INTERVAL
+#define MAX_CONN_INTERVAL               MSEC_TO_UNITS(250,  UNIT_1_25_MS)
+#endif
+
+/** Slave latency. */
+#ifndef SLAVE_LATENCY
+#define SLAVE_LATENCY                   0
+#endif
+
+/** Connection supervisory timeout (4 seconds). */
+#ifndef CONN_SUP_TIMEOUT
+#define CONN_SUP_TIMEOUT                MSEC_TO_UNITS(4000, UNIT_10_MS)
+#endif
+
+/** Time from initiating the event (connect or start of notification) to the first
+ * time sd_ble_gap_conn_param_update is called. */
+#ifndef FIRST_CONN_PARAMS_UPDATE_DELAY
+#define FIRST_CONN_PARAMS_UPDATE_DELAY  APP_TIMER_TICKS(100)
+#endif
+
+/** Time between each call to sd_ble_gap_conn_param_update after the first call. */
+#ifndef NEXT_CONN_PARAMS_UPDATE_DELAY
+#define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(2000)
+#endif
+
+/** Number of attempts before giving up the connection parameter negotiation. */
+#ifndef MAX_CONN_PARAMS_UPDATE_COUNT
+#define MAX_CONN_PARAMS_UPDATE_COUNT    3
+#endif
+
+/** @} end of BLE_SOFTDEVICE_SUPPORT_CONFIG */
+
+/** @} end of NRF_MESH_CONFIG_EXAMPLES */
 
 #endif /* NRF_MESH_CONFIG_EXAMPLES_H__ */

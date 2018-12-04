@@ -1,7 +1,5 @@
 # Provisioning process and APIs
 
-## Introduction
-
 Provisioning is used to provide new devices with the information they need to join
 a network. In the provisioning process, a new device is provided with a network key,
 an address, and a device key, which is a special key only used for private communication
@@ -10,7 +8,24 @@ after provisioning).
 
 A device can be either a provisioner (Provisioner role) or a provisionee (Node role).
 
-## Using the provisioning API
+**Table of contents**
+- [Using the provisioning API](@ref provisioning_using_API)
+- [Provisioning procedure](@ref provisioning_procedure)
+- [Initialization](@ref provisioning_initialization)
+- [Authentication](@ref provisioning_authentication)
+- [Provisionees](@ref provisioning_provisionees)
+- [Provisioners](@ref provisioning_provisioners)
+    - [Standalone provisioners](@ref provisioning_provisioners_standalone)
+    - [Serial provisioners](@ref provisioning_provisioners_serial)
+        - [ECDH offloading](@ref provisioning_provisioners_serial_ecdh)
+    - [Remote provisioning](@ref provisioning_remote)
+- [Errors](@ref provisioning_errors) 
+
+
+---
+
+
+## Using the provisioning API @anchor provisioning_using_API
 
 The provisioning API provides functions for setting up a provisioner and functions
 for setting up a provisionee. You can exclude code for one of the roles if your device
@@ -19,14 +34,22 @@ is not using it. To do so, link in only the code for the role that you want the 
 If a function is called that is not supported, because the functionality for that role
 has not been compiled into the library, an `NRF_ERROR_NOT_SUPPORTED` error is returned.
 
-## Provisioning procedure
+
+---
+
+
+## Provisioning procedure @anchor provisioning_procedure
 
 The following diagram illustrates the provisioning procedure, with all function
 calls, messages, and events added.
 
 ![Provisioning Procedure](img/provisioning.svg)
 
-## Initialization
+
+---
+
+
+## Initialization @anchor provisioning_initialization
 
 The initialization step is common for both the provisioner and the provisionee role.
 In both cases, a provisioning context must be set up. The context maintains the
@@ -53,7 +76,11 @@ Note that before using the provisioning stack, the SoftDevice and mesh stack mus
 be initialized and enabled. As a reference, see `mesh_init()` in the `main.c` file of
 the `light-switch\server` example or any other example exhibiting the node role.
 
-## Authentication
+
+---
+
+
+## Authentication @anchor provisioning_authentication
 
 The provisioning procedure provides several alternatives for out-of-band (OOB)
 authentication, which is used to verify that the device being provisioned is indeed
@@ -85,7 +112,11 @@ input from the user and provide this input to the provisioning stack by calling
 `::NRF_MESH_PROV_EVT_OUTPUT_REQUEST` event and should then display the provided data
 to the user.
 
-## Provisionees
+
+---
+
+
+## Provisionees @anchor provisioning_provisionees
 
 Provisionee behavior with static authentication is handled by the `mesh_provisionee_prov_start()`
 API function. However, it is also possible to manually handle provisioning using the provisioning
@@ -123,7 +154,11 @@ must take are as follows:
 
 ![Provisionee flowchart](img/provisionee_app_flowchart.svg)
 
-## Provisioners
+
+---
+
+
+## Provisioners @anchor provisioning_provisioners
 
 Provisioners are mesh nodes that are responsible for the configuration of other nodes
 in the network. Typically, provisioners contain a configuration client and
@@ -132,26 +167,19 @@ as lights or air conditioners. Provisioners are often a part of gateway devices,
 which are devices that provide a bridge between a mesh network and other networking
 technologies (such as the Internet).
 
-There are two main ways of setting up a provisioner: Running it
-as a standalone application or controlled by a host application
-via a serial interface.
+There are two main ways of setting up a provisioner:
+- running it as a standalone application ([standalone provisioners](@ref provisioning_provisioners_standalone)),
+- having it controlled by a host application through a serial interface ([serial provisioners](@ref provisioning_provisioners_serial)).
 
-_Standalone provisioners_ provide provisioning functionality without relying on
+### Standalone provisioners @anchor provisioning_provisioners_standalone
+
+Standalone provisioners provide provisioning functionality without relying on
 an external host. As such, a standalone provisioner must be able to store information about the
 provisioned nodes in the network, including their addresses and device keys,
 which is necessary for the provisioner to be able to configure the nodes.
 Because of the limited amount of memory available in embedded processors, using
 a standalone provisioner limits the amount of nodes that can be provisioned,
 placing a limit on the maximum size of the mesh network.
-
-_Serial provisioners_ use the serial interface to do provisioning, allowing a host
-controller to interact with a mesh network using an external microcontroller as a
-mesh "modem". In this case, the host controller stores information about the nodes
-on the network, freeing up RAM in the external microcontroller for other
-application-specific uses. In this case, the size of the mesh network is limited
-only by the resources available in the host machine.
-
-### Standalone provisioners
 
 The steps that a standalone provisioner application must take to provision a device are
 as follows:
@@ -178,7 +206,14 @@ as follows:
 
 ![Provisioner flowchart](img/provisioner_app_flowchart.svg)
 
-### Serial provisioners
+### Serial provisioners @anchor provisioning_provisioners_serial
+
+Serial provisioners use the serial interface to do provisioning, allowing a host
+controller to interact with a mesh network using an external microcontroller as a
+mesh "modem". In this case, the host controller stores information about the nodes
+on the network, freeing up RAM in the external microcontroller for other
+application-specific uses. In this case, the size of the mesh network is limited
+only by the resources available in the host machine.
 
 The steps to create a serial provisioner application are as follows:
 
@@ -191,7 +226,7 @@ under "Standalone provisioners", substituting API calls for
 [serial commands](@ref md_doc_libraries_serial_cmd) and events for
 [serial events](@ref md_doc_libraries_serial_evt).
 
-#### ECDH offloading
+#### ECDH offloading @anchor provisioning_provisioners_serial_ecdh
 
 ECDH (Elliptic Curve Diffie-Hellman) is a crytographic algorithm used to securely
 create a shared secret between two devices. It is used to create an encryption key,
@@ -206,7 +241,7 @@ secret, freeing up CPU resources in the target processor.
 ECDH offloading can be enabled by calling @ref mesh_opt_prov_ecdh_offloading_set while
 initializing the device.
 
-### Remote provisioning
+### Remote provisioning @anchor provisioning_remote
 
 Remote provisioning (PB-Remote) allows a provisioner to provision devices outside its
 radio range. This is done by using mesh nodes to relay provisioning messages to a node
@@ -218,7 +253,11 @@ The PB-Remote functionality is provided by the PB-Remote client and server model
 More information about remote provisioning and the remote provisioning models can be
 found in [the PB-Remote manual](@ref PB_REMOTE).
 
-## Errors
+
+---
+
+
+## Errors @anchor provisioning_errors
 
 If an error occurs in the provisioning procedure, the link is closed. An
 `::NRF_MESH_PROV_EVT_LINK_CLOSED` event is passed to the application. If an

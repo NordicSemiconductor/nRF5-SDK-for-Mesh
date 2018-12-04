@@ -593,6 +593,11 @@ void test_publication_get(void)
         dsm_appkey_handle_to_appkey_index_IgnoreArg_p_index();
         dsm_appkey_handle_to_appkey_index_ReturnThruPtr_p_index(&appkey_index);
 
+        bool flag = 1;
+        access_model_publish_friendship_credential_flag_get_ExpectAndReturn(model_handle, NULL, NRF_SUCCESS);
+        access_model_publish_friendship_credential_flag_get_IgnoreArg_p_flag();
+        access_model_publish_friendship_credential_flag_get_ReturnThruPtr_p_flag(&flag);
+
         uint8_t publish_ttl = 54;
         access_model_publish_ttl_get_ExpectAndReturn(model_handle, NULL, NRF_SUCCESS);
         access_model_publish_ttl_get_IgnoreArg_p_ttl();
@@ -625,7 +630,7 @@ void test_publication_get(void)
         TEST_ASSERT_EQUAL(message[i].element_address, p_reply->element_address);
         TEST_ASSERT_EQUAL(0x1234, p_reply->publish_address);
         TEST_ASSERT_EQUAL(appkey_index, p_reply->state.appkey_index);
-        TEST_ASSERT_EQUAL(0, p_reply->state.credential_flag); /* TODO: When friendship is supported, this flag can be used. */
+        TEST_ASSERT_EQUAL(flag, p_reply->state.credential_flag);
         TEST_ASSERT_EQUAL(0, p_reply->state.rfu);
         TEST_ASSERT_EQUAL(publish_ttl, p_reply->state.publish_ttl);
 
@@ -676,9 +681,11 @@ void test_publication_set(void)
         }
     };
 
+    bool credential_flag[2] = {0, 1};
 
     for (int i = 0; i < 2; ++i)
     {
+        messages[i].state.credential_flag = credential_flag[i];
         bool sig_model = !i;
 
         uint16_t element_index = 24;
@@ -709,6 +716,7 @@ void test_publication_set(void)
         access_model_publish_retransmit_set_ExpectAndReturn(model_handle, publish_retransmit, NRF_SUCCESS);
         access_model_publish_application_set_ExpectAndReturn(model_handle, appkey_handle, NRF_SUCCESS);
         access_model_publish_ttl_set_ExpectAndReturn(model_handle, messages[i].state.publish_ttl, NRF_SUCCESS);
+        access_model_publish_friendship_credential_flag_set_ExpectAndReturn(model_handle, credential_flag[i], NRF_SUCCESS);
         access_flash_config_store_Expect();
         /* The following functions are called when the server assembles the response packet: */
         access_model_id_get_ExpectAndReturn(model_handle, NULL, NRF_SUCCESS);
@@ -744,6 +752,10 @@ void test_publication_set(void)
         dsm_appkey_handle_to_appkey_index_IgnoreArg_p_index();
         dsm_appkey_handle_to_appkey_index_ReturnThruPtr_p_index(&appkey_index);
 
+        access_model_publish_friendship_credential_flag_get_ExpectAndReturn(model_handle, NULL, NRF_SUCCESS);
+        access_model_publish_friendship_credential_flag_get_IgnoreArg_p_flag();
+        access_model_publish_friendship_credential_flag_get_ReturnThruPtr_p_flag(&credential_flag[i]);
+
         access_model_publish_ttl_get_ExpectAndReturn(model_handle, NULL, NRF_SUCCESS);
         access_model_publish_ttl_get_IgnoreArg_p_ttl();
         access_model_publish_ttl_get_ReturnThruPtr_p_ttl(&messages[i].state.publish_ttl);
@@ -771,7 +783,7 @@ void test_publication_set(void)
         TEST_ASSERT_EQUAL(messages[i].element_address, p_reply->element_address);
         TEST_ASSERT_EQUAL(messages[i].publish_address, p_reply->publish_address);
         TEST_ASSERT_EQUAL(messages[i].state.appkey_index, p_reply->state.appkey_index);
-        TEST_ASSERT_EQUAL(0, p_reply->state.credential_flag); /* TODO: When friendship is supported, this flag can be used. */
+        TEST_ASSERT_EQUAL(credential_flag[i], p_reply->state.credential_flag);
         TEST_ASSERT_EQUAL(0, p_reply->state.rfu);
         TEST_ASSERT_EQUAL(messages[i].state.publish_ttl, p_reply->state.publish_ttl);
         TEST_ASSERT_EQUAL_HEX(messages[i].state.publish_period, p_reply->state.publish_period);
@@ -1307,6 +1319,40 @@ void test_subscription_add(void)
 
         const config_msg_subscription_status_t * p_reply = (const config_msg_subscription_status_t *) m_previous_reply.p_buffer;
         TEST_ASSERT_EQUAL(ACCESS_STATUS_SUCCESS, p_reply->status);
+        TEST_ASSERT_EQUAL(messages[i].element_address, p_reply->element_address);
+        TEST_ASSERT_EQUAL(messages[i].address, p_reply->address);
+
+        TEST_ASSERT_EQUAL_MEMORY(&messages[i].model_id, &p_reply->model_id, sizeof(config_model_id_t) - sig_model * sizeof(uint16_t));
+    }
+}
+
+void test_reject_all_nodes_addr_subscription_add(void)
+{
+    const config_msg_subscription_add_del_owr_t messages[1] =
+    {
+        {
+            .element_address = 0x1234,
+            .address = NRF_MESH_ALL_NODES_ADDR,
+            .model_id.sig.model_id = 0x4211,
+        }
+    };
+
+    for (int i = 0; i < 1; ++i)
+    {
+        bool sig_model = !i;
+
+        uint16_t element_index = 75;
+        EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(messages[i].element_address, element_index);
+
+        m_previous_reply_received = false;
+        send_message(CONFIG_OPCODE_MODEL_SUBSCRIPTION_ADD, (const uint8_t *) &messages[i], sizeof(messages[i]) - sig_model * sizeof(uint16_t));
+
+        TEST_ASSERT_TRUE(m_previous_reply_received);
+        VERIFY_REPLY_OPCODE(CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS);
+        TEST_ASSERT_EQUAL(sizeof(config_msg_subscription_status_t) - sig_model * sizeof(uint16_t), m_previous_reply.length);
+
+        const config_msg_subscription_status_t * p_reply = (const config_msg_subscription_status_t *) m_previous_reply.p_buffer;
+        TEST_ASSERT_EQUAL(ACCESS_STATUS_INVALID_ADDRESS, p_reply->status);
         TEST_ASSERT_EQUAL(messages[i].element_address, p_reply->element_address);
         TEST_ASSERT_EQUAL(messages[i].address, p_reply->address);
 
@@ -1937,3 +1983,26 @@ void test_network_transmit_get(void)
     TEST_ASSERT_EQUAL(TRANSMIT_COUNT, p_reply->network_transmit_count);
     TEST_ASSERT_EQUAL(INTERVAL_STEPS, p_reply->network_transmit_interval_steps);
 }
+
+void test_polltimeout_get(void)
+{
+    const uint16_t lpn_address = 0x1234;
+    const config_msg_low_power_node_polltimeout_get_t message = {lpn_address};
+
+    /* Invalid length testing */
+    send_message(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_GET, (const uint8_t *) &message, sizeof(message) + 1);
+    TEST_ASSERT_FALSE(m_previous_reply_received);
+
+    send_message(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_GET, (const uint8_t *) &message, sizeof(message));
+    TEST_ASSERT_TRUE(m_previous_reply_received);
+    VERIFY_REPLY_OPCODE(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_STATUS);
+
+    TEST_ASSERT_EQUAL(sizeof(config_msg_low_power_node_polltimeout_status_t), m_previous_reply.length);
+
+    const config_msg_low_power_node_polltimeout_status_t * p_reply =
+        (const config_msg_low_power_node_polltimeout_status_t *) m_previous_reply.p_buffer;
+    TEST_ASSERT_EQUAL(lpn_address, p_reply->lpn_address);
+    TEST_ASSERT_EQUAL(0, p_reply->msb_polltimeout);
+    TEST_ASSERT_EQUAL(0, p_reply->lsb_polltimeout);
+}
+

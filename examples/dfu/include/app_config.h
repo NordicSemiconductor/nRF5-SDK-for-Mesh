@@ -38,7 +38,12 @@
 #ifndef APP_CONFIG_H__
 #define APP_CONFIG_H__
 
-/* Override default sdk_config.h values. */
+/** Override default sdk_config.h values. */
+#define NRF_SDH_ENABLED 1
+#define NRF_SDH_BLE_ENABLED 1
+#define NRF_SDH_SOC_ENABLED 1
+
 #define APP_TIMER_ENABLED 1
+#define APP_TIMER_KEEPS_RTC_ACTIVE 1
 
 #endif /* APP_CONFIG_H__ */

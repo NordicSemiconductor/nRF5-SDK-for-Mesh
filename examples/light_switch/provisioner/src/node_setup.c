@@ -60,6 +60,7 @@
 #include "mesh_app_utils.h"
 
 #include "log.h"
+#include "nrf_mesh_assert.h"
 
 /* USER_NOTE: Add more steps here is you want to customize the nodes further. */
 /* Node setup steps */
@@ -144,7 +145,6 @@ static const config_steps_t server_config_steps[] =
 
 
 static uint16_t m_current_node_addr;
-static composition_data_t m_node_composition;
 static uint16_t m_retry_count;
 static client_send_retry_t m_send_timer;
 static const uint8_t * mp_appkey;
@@ -161,12 +161,30 @@ static const config_steps_t * mp_config_step = &m_idle_step;
 static node_setup_successful_cb_t m_node_setup_success_cb;
 static node_setup_failed_cb_t m_node_setup_failed_cb;
 static expected_status_list_t m_expected_status_list;
-static bool m_status_checked;
 
 /* Forward declaration */
 static void config_step_execute(void);
 
 /*************************************************************************************************/
+
+static void node_setup_state_clear(void)
+{
+    timer_sch_abort(&m_send_timer.timer);
+    mp_config_step = &m_idle_step;
+}
+
+static void node_setup_succeed(void)
+{
+    node_setup_state_clear();
+    m_node_setup_success_cb();
+}
+
+static void node_setup_fail(void)
+{
+    node_setup_state_clear();
+    m_node_setup_failed_cb();
+}
+
 /* Set expected status opcode and acceptable value of status codes */
 static void expected_status_set(uint32_t opcode, uint32_t n, const access_status_t * p_list)
 {
@@ -178,31 +196,20 @@ static void expected_status_set(uint32_t opcode, uint32_t n, const access_status
     m_expected_status_list.expected_opcode = opcode;
     m_expected_status_list.num_statuses = n;
     m_expected_status_list.p_statuses = p_list;
-    m_status_checked = false;
 }
 
-/* setup retry timer, if client model is busy sending a previous message */
-static void retry_on_fail(uint32_t ret_status)
+static void config_step_retry_schedule(void)
 {
-    if (ret_status == NRF_ERROR_BUSY && m_send_timer.count)
-    {
-        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Client busy, retrying ...\n");
-        config_client_pending_msg_cancel();
-        m_send_timer.timer.timestamp = timer_now() + MS_TO_US(CLIENT_BUSY_SEND_RETRY_DELAY_MS);
-        timer_sch_schedule(&m_send_timer.timer);
-        m_send_timer.count--;
-    }
-    else
-    {
-        ERROR_CHECK(ret_status);
-    }
+    NRF_MESH_ASSERT_DEBUG(m_send_timer.count > 0);
+    m_send_timer.count--;
+
+    timestamp_t next_timeout = timer_now() + MS_TO_US(CLIENT_BUSY_SEND_RETRY_DELAY_MS);
+    timer_sch_reschedule(&m_send_timer.timer, next_timeout);
 }
 
 /* Callback for the timer event */
 static void client_send_timer_cb(timestamp_t timestamp, void * p_context)
 {
-    timer_sch_abort(&m_send_timer.timer);
-
     /* retry the last step */
     config_step_execute();
 }
@@ -221,7 +228,6 @@ static status_check_t check_expected_status(uint16_t rx_opcode, const config_msg
         return STATUS_CHECK_UNEXPECTED_OPCODE;
     }
 
-    m_status_checked = true;
     switch (rx_opcode)
     {
         /* COMPOSITION_DATA_STATUS does not have a STATUS field */
@@ -320,7 +326,7 @@ static void setup_select_steps(uint16_t addr)
 /** Step execution function for the configuration state machine. */
 static void config_step_execute(void)
 {
-    uint32_t status;
+    uint32_t status = NRF_ERROR_INVALID_STATE;
     static uint16_t model_element_addr = 0;
 
     /* This example configures the provisioned nodes in the following way
@@ -341,7 +347,7 @@ static void config_step_execute(void)
         case NODE_SETUP_CONFIG_COMPOSITION_GET:
         {
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Getting composition data\n");
-            retry_on_fail(config_client_composition_data_get(0x00));
+            status = config_client_composition_data_get(0x00);
 
             expected_status_set(CONFIG_OPCODE_COMPOSITION_DATA_STATUS, 0, NULL);
             break;
@@ -351,7 +357,7 @@ static void config_step_execute(void)
         case NODE_SETUP_CONFIG_APPKEY_ADD:
         {
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Adding appkey\n");
-            retry_on_fail(config_client_appkey_add(NETKEY_INDEX, m_appkey_idx, mp_appkey));
+            status = config_client_appkey_add(NETKEY_INDEX, m_appkey_idx, mp_appkey);
 
             static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS, ACCESS_STATUS_KEY_INDEX_ALREADY_STORED};
             expected_status_set(CONFIG_OPCODE_APPKEY_STATUS, ARRAY_SIZE(exp_status), exp_status);
@@ -366,7 +372,7 @@ static void config_step_execute(void)
             model_id.company_id = ACCESS_COMPANY_ID_NONE;
             model_id.model_id = HEALTH_SERVER_MODEL_ID;
             uint16_t element_address = m_current_node_addr;
-            retry_on_fail(config_client_model_app_bind(element_address, m_appkey_idx, model_id));
+            status = config_client_model_app_bind(element_address, m_appkey_idx, model_id);
 
             static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
             expected_status_set(CONFIG_OPCODE_MODEL_APP_STATUS, ARRAY_SIZE(exp_status), exp_status);
@@ -381,7 +387,7 @@ static void config_step_execute(void)
             model_id.company_id = m_server_model_id.company_id;
             model_id.model_id = m_server_model_id.model_id;
             uint16_t element_address = m_current_node_addr;
-            retry_on_fail(config_client_model_app_bind(element_address, m_appkey_idx, model_id));
+            status = config_client_model_app_bind(element_address, m_appkey_idx, model_id);
 
             static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
             expected_status_set(CONFIG_OPCODE_MODEL_APP_STATUS, ARRAY_SIZE(exp_status), exp_status);
@@ -401,7 +407,6 @@ static void config_step_execute(void)
             model_id.model_id = m_client_model_id.model_id;
             uint16_t element_address = model_element_addr;
             status = config_client_model_app_bind(element_address, m_appkey_idx, model_id);
-            retry_on_fail(status);
 
             static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
             expected_status_set(CONFIG_OPCODE_MODEL_APP_STATUS, ARRAY_SIZE(exp_status), exp_status);
@@ -430,7 +435,7 @@ static void config_step_execute(void)
             pubstate.model_id.company_id = ACCESS_COMPANY_ID_NONE;
             pubstate.model_id.model_id = HEALTH_SERVER_MODEL_ID;
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Setting publication address for the health server to 0x%04x\n", pubstate.publish_address.value);
-            retry_on_fail(config_client_model_publication_set(&pubstate));
+            status = config_client_model_publication_set(&pubstate);
 
             static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
             expected_status_set(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, ARRAY_SIZE(exp_status), exp_status);
@@ -464,7 +469,7 @@ static void config_step_execute(void)
             pubstate.model_id.company_id = m_server_model_id.company_id;
             pubstate.model_id.model_id = m_server_model_id.model_id;
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Set: 0x%04x server pub addr: 0x%04x\n", m_server_model_id.model_id, pubstate.publish_address.value);
-            retry_on_fail(config_client_model_publication_set(&pubstate));
+            status = config_client_model_publication_set(&pubstate);
 
             static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
             expected_status_set(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, ARRAY_SIZE(exp_status), exp_status);
@@ -489,7 +494,7 @@ static void config_step_execute(void)
             access_model_id_t model_id;
             model_id.company_id = m_server_model_id.company_id;
             model_id.model_id = m_server_model_id.model_id;
-            retry_on_fail(config_client_model_subscription_add(element_address, address, model_id));
+            status = config_client_model_subscription_add(element_address, address, model_id);
 
             static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
             expected_status_set(CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS, ARRAY_SIZE(exp_status), exp_status);
@@ -502,7 +507,7 @@ static void config_step_execute(void)
             client_pub_state_set(&pubstate,
                                  m_current_node_addr + ELEMENT_IDX_ONOFF_CLIENT1,
                                  GROUP_ADDRESS_ODD);
-            retry_on_fail(config_client_model_publication_set(&pubstate));
+            status = config_client_model_publication_set(&pubstate);
 
             static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
             expected_status_set(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, ARRAY_SIZE(exp_status), exp_status);
@@ -515,7 +520,7 @@ static void config_step_execute(void)
             client_pub_state_set(&pubstate,
                                  m_current_node_addr + ELEMENT_IDX_ONOFF_CLIENT2,
                                  GROUP_ADDRESS_EVEN);
-            retry_on_fail(config_client_model_publication_set(&pubstate));
+            status = config_client_model_publication_set(&pubstate);
 
             static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS};
             expected_status_set(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS, ARRAY_SIZE(exp_status), exp_status);
@@ -525,6 +530,19 @@ static void config_step_execute(void)
         default:
             ERROR_CHECK(NRF_ERROR_NOT_FOUND);
             break;
+    }
+
+    if (status != NRF_SUCCESS)
+    {
+        config_client_pending_msg_cancel();
+        if (m_send_timer.count > 0)
+        {
+            config_step_retry_schedule();
+        }
+        else
+        {
+            node_setup_fail();
+        }
     }
 }
 
@@ -551,6 +569,37 @@ static void setup_config_client(uint16_t target_addr)
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Config client setup: devkey_handle:%d addr_handle:%d\n", devkey_handle, addr_handle);
 }
 
+static void config_client_msg_handle(const config_client_event_t * p_event,
+                                     uint16_t length)
+{
+    if (*mp_config_step == NODE_SETUP_IDLE || *mp_config_step == NODE_SETUP_DONE)
+    {
+        __LOG(LOG_SRC_APP, LOG_LEVEL_WARN, "Got unexpected config client message in state %u\n", *mp_config_step);
+        return;
+    }
+    else
+    {
+        status_check_t status = check_expected_status(p_event->opcode, p_event->p_msg);
+        if (status == STATUS_CHECK_PASS)
+        {
+            mp_config_step++;
+            m_send_timer.count = CLIENT_BUSY_SEND_RETRY_LIMIT;
+
+            if (*mp_config_step == NODE_SETUP_DONE)
+            {
+                node_setup_succeed();
+            }
+            else
+            {
+                config_step_execute();
+            }
+        }
+        else
+        {
+            node_setup_fail();
+        }
+    }
+}
 
 /*************************************************************************************************/
 /* Public functions */
@@ -563,13 +612,11 @@ void node_setup_config_client_event_process(config_client_event_type_t event_typ
                                         const config_client_event_t * p_event,
                                         uint16_t length)
 {
-    status_check_t status;
-
     if (event_type == CONFIG_CLIENT_EVENT_TYPE_TIMEOUT)
     {
         __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Acknowledged message status not received \n");
 
-        if (m_retry_count)
+        if (m_retry_count > 0)
         {
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Retry ...\n");
             m_retry_count--;
@@ -577,42 +624,13 @@ void node_setup_config_client_event_process(config_client_event_type_t event_typ
         }
         else
         {
-            mp_config_step = &m_idle_step;
-            m_node_setup_failed_cb();
+            node_setup_fail();
         }
     }
-    else if (event_type == CONFIG_CLIENT_EVENT_TYPE_MSG && *mp_config_step != NODE_SETUP_DONE
-             && m_status_checked == false)
+    else if (event_type == CONFIG_CLIENT_EVENT_TYPE_MSG)
     {
-        NRF_MESH_ASSERT(p_event != NULL);
-        status = check_expected_status(p_event->opcode, p_event->p_msg);
-        if (status == STATUS_CHECK_PASS)
-        {
-            /* Save composition data for later use */
-            if (p_event->opcode == CONFIG_OPCODE_COMPOSITION_DATA_STATUS)
-            {
-                m_node_composition.len  = length;
-                m_node_composition.composition.page_number = p_event->p_msg->composition_data_status.page_number;
-                memcpy(m_node_composition.composition.data, p_event->p_msg->composition_data_status.data, length - 1);
-            }
-
-            mp_config_step++;
-            if (*mp_config_step == NODE_SETUP_DONE)
-            {
-                mp_config_step = &m_idle_step;
-                m_node_setup_success_cb();
-            }
-            else
-            {
-                m_send_timer.count = CLIENT_BUSY_SEND_RETRY_LIMIT;
-                config_step_execute();
-            }
-        }
-        else if (status == STATUS_CHECK_FAIL)
-        {
-            mp_config_step = &m_idle_step;
-            m_node_setup_failed_cb();
-        }
+        NRF_MESH_ASSERT_DEBUG(p_event != NULL);
+        config_client_msg_handle(p_event, length);
     }
 }
 

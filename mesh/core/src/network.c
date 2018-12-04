@@ -60,7 +60,7 @@
 #include "heartbeat.h"
 #include "nrf_mesh_config_bearer.h"
 #include "mesh_opt_core.h"
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
 #include "proxy.h"
 #endif
 /********************
@@ -83,17 +83,20 @@ static uint32_t allocate_packet(network_tx_packet_buffer_t * p_buffer)
 
     const core_tx_alloc_params_t alloc_params =
     {
-        .role           = p_buffer->role,
-        .net_packet_len = m_core_tx_buffer_size_get(p_buffer->user_data.p_metadata,
-                                                    p_buffer->user_data.payload_len), /*lint !e446 Side effect in initializer */
-        .p_metadata     = p_buffer->user_data.p_metadata,
-        .token          = p_buffer->user_data.token
+        .role            = p_buffer->role,
+        .net_packet_len  = m_core_tx_buffer_size_get(p_buffer->user_data.p_metadata,
+                                                     p_buffer->user_data.payload_len), /*lint !e446 Side effect in initializer */
+        .p_metadata      = p_buffer->user_data.p_metadata,
+        .token           = p_buffer->user_data.token,
+        .bearer_selector = p_buffer->user_data.bearer_selector,
     };
 
     if (core_tx_packet_alloc(&alloc_params,
                              (uint8_t **) &p_net_packet) != 0)
     {
+#if MESH_FEATURE_RELAY_ENABLED
         if (p_buffer->role != CORE_TX_ROLE_RELAY)
+#endif
         {
             p_buffer->user_data.p_metadata->internal.iv_index = net_state_tx_iv_index_get();
             uint32_t status = net_state_seqnum_alloc(&p_buffer->user_data.p_metadata->internal.sequence_number);
@@ -122,6 +125,7 @@ static uint32_t allocate_packet(network_tx_packet_buffer_t * p_buffer)
  * @param[in,out] p_net_payload Payload of the network packet to relay.
  * @param[in] payload_len Length of the network payload.
  */
+#if MESH_FEATURE_RELAY_ENABLED
 static void packet_relay(network_packet_metadata_t * p_net_metadata,
                          const uint8_t * p_net_payload,
                          uint8_t payload_len)
@@ -132,6 +136,7 @@ static void packet_relay(network_packet_metadata_t * p_net_metadata,
     buffer.user_data.p_metadata = p_net_metadata;
     buffer.user_data.payload_len = payload_len;
     buffer.user_data.token = NRF_MESH_RELAY_TOKEN;
+    buffer.user_data.bearer_selector = CORE_TX_BEARER_TYPE_ALLOW_ALL;
     buffer.role = CORE_TX_ROLE_RELAY;
 
     if (allocate_packet(&buffer) == NRF_SUCCESS)
@@ -147,6 +152,7 @@ static void packet_relay(network_packet_metadata_t * p_net_metadata,
 
     p_net_metadata->ttl++; /* Revert the change (cannot affect the allocated packet) */
 }
+#endif /* MESH_FEATURE_RELAY_ENABLED */
 
 static bool metadata_is_valid(const network_packet_metadata_t * p_net_metadata)
 {
@@ -166,6 +172,7 @@ static bool metadata_is_valid(const network_packet_metadata_t * p_net_metadata)
  *
  * @returns Whether or not the packet represented by the metadata should be relayed.
  */
+#if MESH_FEATURE_RELAY_ENABLED
 static bool should_relay(const network_packet_metadata_t * p_metadata)
 {
     /* Relay feature must be enabled */
@@ -201,6 +208,8 @@ static bool should_relay(const network_packet_metadata_t * p_metadata)
     }
     return true;
 }
+#endif /* MESH_FEATURE_RELAY_ENABLED */
+
 /******************************
  * Public interface functions *
  ******************************/
@@ -224,7 +233,9 @@ void network_init(const nrf_mesh_init_params_t * p_init_params)
 void network_enable(void)
 {
     net_state_enable();
+#if !MESH_FEATURE_LPN_ENABLED
     net_beacon_enable();
+#endif
 }
 
 uint32_t network_packet_alloc(network_tx_packet_buffer_t * p_buffer)
@@ -291,7 +302,7 @@ uint32_t network_packet_in(const uint8_t * p_packet, uint32_t net_packet_len, co
     {
         NRF_MESH_ASSERT(net_metadata.p_security_material != NULL);
 
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
         proxy_net_packet_processed(&net_metadata, p_rx_metadata);
 #endif
 
@@ -306,10 +317,13 @@ uint32_t network_packet_in(const uint8_t * p_packet, uint32_t net_packet_len, co
                                      &net_metadata,
                                      p_rx_metadata);
 
+#if MESH_FEATURE_RELAY_ENABLED
         if (should_relay(&net_metadata))
         {
             packet_relay(&net_metadata, p_net_payload, payload_len);
         }
+#endif
+
         msg_cache_entry_add(net_metadata.src, net_metadata.internal.sequence_number);
     }
     return status;
@@ -324,6 +338,7 @@ uint32_t network_opt_set(nrf_mesh_opt_id_t id, const nrf_mesh_opt_t * p_opt)
 
     switch (id)
     {
+#if MESH_FEATURE_RELAY_ENABLED
         case NRF_MESH_OPT_NET_RELAY_RETRANSMIT_INTERVAL_MS:
         {
             mesh_opt_core_adv_t cfg;
@@ -347,10 +362,17 @@ uint32_t network_opt_set(nrf_mesh_opt_id_t id, const nrf_mesh_opt_t * p_opt)
         }
         case NRF_MESH_OPT_NET_RELAY_TX_POWER:
             return mesh_opt_core_tx_power_set(CORE_TX_ROLE_RELAY, (radio_tx_power_t) p_opt->opt.val);
+#else
+        case NRF_MESH_OPT_NET_RELAY_RETRANSMIT_INTERVAL_MS:
+        case NRF_MESH_OPT_NET_RELAY_ENABLE:
+        case NRF_MESH_OPT_NET_RELAY_RETRANSMIT_COUNT:
+        case NRF_MESH_OPT_NET_RELAY_TX_POWER:
+            return NRF_ERROR_NOT_FOUND;
+#endif
         case NRF_MESH_OPT_NET_NETWORK_TRANSMIT_INTERVAL_MS:
         {
             mesh_opt_core_adv_t cfg;
-            NRF_MESH_ERROR_CHECK(mesh_opt_core_adv_get(CORE_TX_ROLE_RELAY, &cfg));
+            NRF_MESH_ERROR_CHECK(mesh_opt_core_adv_get(CORE_TX_ROLE_ORIGINATOR, &cfg));
             cfg.tx_interval_ms = p_opt->opt.val;
             return mesh_opt_core_adv_set(CORE_TX_ROLE_ORIGINATOR, &cfg);
         }
@@ -377,6 +399,7 @@ uint32_t network_opt_get(nrf_mesh_opt_id_t id, nrf_mesh_opt_t * p_opt)
 
     switch (id)
     {
+#if MESH_FEATURE_RELAY_ENABLED
         case NRF_MESH_OPT_NET_RELAY_RETRANSMIT_INTERVAL_MS:
         {
             mesh_opt_core_adv_t cfg;
@@ -409,6 +432,13 @@ uint32_t network_opt_get(nrf_mesh_opt_id_t id, nrf_mesh_opt_t * p_opt)
             p_opt->len = sizeof(p_opt->opt.val);
             break;
         }
+#else
+        case NRF_MESH_OPT_NET_RELAY_RETRANSMIT_INTERVAL_MS:
+        case NRF_MESH_OPT_NET_RELAY_ENABLE:
+        case NRF_MESH_OPT_NET_RELAY_RETRANSMIT_COUNT:
+        case NRF_MESH_OPT_NET_RELAY_TX_POWER:
+            return NRF_ERROR_NOT_FOUND;
+#endif
         case NRF_MESH_OPT_NET_NETWORK_TRANSMIT_INTERVAL_MS:
         {
             mesh_opt_core_adv_t cfg;

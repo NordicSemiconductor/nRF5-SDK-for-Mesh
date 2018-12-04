@@ -166,41 +166,13 @@ uint32_t mesh_config_backend_read(mesh_config_entry_id_t id, uint8_t * p_entry, 
 
 void mesh_config_backend_read_all(mesh_config_backend_iterate_cb_t cb)
 {
-    uint8_t * p_entry;
-    uint32_t length;
-    mesh_config_entry_id_t entry_id;
-    mesh_config_backend_record_iterator_t iterator;
-
     NRF_MESH_ASSERT(cb != NULL);
-    memset(&iterator, 0, sizeof(mesh_config_backend_record_iterator_t));
 
     for (uint32_t itr = 0; itr < m_file_count; itr++)
     {
-        if (MESH_CONFIG_STRATEGY_NON_PERSISTENT == mp_files[itr].strategy)
+        if (MESH_CONFIG_STRATEGY_NON_PERSISTENT != mp_files[itr].strategy)
         {
-            continue;
-        }
-
-        while (true)
-        {
-            mesh_config_backend_record_iterate(mp_files[itr].p_backend_data,
-                                               &p_entry,
-                                               &length,
-                                               &iterator);
-
-            if (NULL == p_entry)
-            {
-                break;
-            }
-
-            entry_id.file = mp_files[itr].id;
-            entry_id.record = mp_files[itr].p_backend_data->curr_pos;
-
-            if (MESH_CONFIG_BACKEND_ITERATE_ACTION_STOP == cb(entry_id, p_entry, length))
-            {
-                memset(&iterator, 0, sizeof(mesh_config_backend_record_iterator_t));
-                return;
-            }
+            mesh_config_backend_records_read(mp_files[itr].p_backend_data, cb);
         }
     }
 }

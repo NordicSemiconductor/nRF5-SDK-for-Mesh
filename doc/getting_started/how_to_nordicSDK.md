@@ -1,26 +1,51 @@
-# Coexistence with nRF5 SDK BLE functionality
+# Integrating Mesh into nRF5 SDK examples
 
-**NOTE:**
-* nRF5 SDK coexistence is only tested with nRF5 SDK version 15.0.
-* nRF5 SDK version 15.0 does not support nRF51.
+You can either:
+- [include resources from nRF5 SDK in an existing mesh project](@ref coexistence_nrf5_sdk_in_mesh),
+- [include nRF5 SDK for Mesh functionalities in an nRF5 SDK example](@ref coexistence_mesh_in_nrf5_sdk).
 
-## nRF5 SDK integration
+See @ref md_doc_getting_started_how_to_build for information on how to download and install the nRF5 SDK.
 
-See @ref md_doc_getting_started_how_to_build for information on how to download and install
-the nRF5 SDK.
+@note
+* nRF5 SDK integration is only tested with nRF5 SDK version 15.2.
+* nRF5 SDK version 15.2 does not support nRF51.
 
-### Including nRF5 SDK in an nRF5 SDK for Mesh example
+## Dynamic memory @anchor coexistence_memory
+The mesh stack uses the @ref MESH_MEM interface for dynamic memory allocation. The default backend,
+`mesh_mem_stdlib.c`, uses the standard library `malloc()`, which requires a sufficiently large
+heap size to be defined. This behavior can be changed by replacing the backend with another
+memory manager.
 
-When using Segger Embedded Studio, resources from nRF5 SDK can be included
-in an existing mesh project by simply adding code files and include paths to the corresponding
+If you are using Segger Embedded Studio for building the application set the *Heap Size* to *8192* bytes in the
+*Project Options> Code> Runtime Memory Area* settings.
+
+## Concurrent SoftDevice and mesh activity @anchor coexistence_softdevice_mesh_activity
+By design, the SoftDevice activity is prioritized over mesh activity. Therefore, you should keep the
+connection and advertisement intervals used by the SoftDevice as large as possible when using
+Bluetooth low energy connections. If scanning, keep the scan intervals as long as possible, and the
+scan windows as short as possible. You should also reduce mesh activity while the SoftDevice is
+doing fast advertising and continue normal activity after a connection is established.
+
+---
+
+
+## Including nRF5 SDK in an nRF5 SDK for Mesh example @anchor coexistence_nrf5_sdk_in_mesh
+
+Depending on your toolchain:
+- When using Segger Embedded Studio, add code files and include paths to the corresponding
 SES project file.
-
-When building the nRF5 SDK for Mesh stack using CMake, resources from nRF5 SDK can be included
-by simply adding code files and include paths to the corresponding CMakeLists.txt file.
+- When building the nRF5 SDK for Mesh stack using CMake, add code files and include paths to the corresponding CMakeLists.txt file.
 The SDK_ROOT root symbol is used to refer to the nRF5 SDK installation folder
-(see e.g. CMakeLists.txt in the Light Switch Server example).
+(see e.g. `CMakeLists.txt` in the Light Switch Server example).
 
-### Including nRF5 SDK for Mesh functionality in an nRF5 SDK example
+### Examples
+See @ref md_examples_sdk_coexist_README examples to see how the nRF5 SDK features can be simultaneously used with nRF5 SDK for Mesh.
+
+
+---
+
+
+## Including nRF5 SDK for Mesh functionality in an nRF5 SDK example @anchor coexistence_mesh_in_nrf5_sdk
 
 Include the following source files from nRF5 SDK for Mesh in the nRF5 SDK example's project file:
 - All C files in `mesh/core/src`
@@ -38,7 +63,8 @@ Include the following source files from nRF5 SDK for Mesh in the nRF5 SDK exampl
 - `examples/common/src/assertion_handler_weak.c`
 - `examples/common/src/mesh_provisionee.c`
 
-**NOTE**: If various mesh features are not needed (like e.g. DFU), the corresponding files may simply be
+@note
+If various mesh features are not needed (like e.g. DFU), the corresponding files may simply be
 omitted from the project file. Then `examples/nrf_mesh_weak.c` must be added in their place to
 provide stubs for the missing API functions.
 
@@ -66,7 +92,8 @@ Add the following preprocessor symbols to the nRF5 SDK example's project file:
  - `NRF_MESH_LOG_ENABLE=NRF_LOG_USES_RTT` (because the logging in the mesh stack relies on RTT)
  - `CONFIG_APP_IN_CORE`
 
-**NOTE:** Examples using the `simple_hal` module in the mesh stack may need to be updated to use the
+@note
+Examples using the `simple_hal` module in the mesh stack may need to be updated to use the
 Nordic nRF5 SDK `bsp` module if integrated with the nRF5 SDK. It is possible to use both, but in
 this case `GPIOTE_IRQHandler` must be removed from one of them, and only one of the modules may
 register callback functions.
@@ -99,14 +126,15 @@ code block to `nrf_mesh_config_app.h`:
 #define FLASH_MANAGER_RECOVERY_PAGE_OFFSET_PAGES FDS_PHY_PAGES
 ```
 
-**NOTE:** If you are adding you own mesh functionality rather than working from an existing mesh
+@note
+If you are adding you own mesh functionality rather than working from an existing mesh
 example, you also need to add the file nrf_mesh_config_app.h. Copy it from the examples/templates
 folder in mesh stack repository into your project folder, and remove \c \#error message at the top
 of the file. Make other appropriate changes to the file content,
 like adjusting `ACCESS_ELEMENT_COUNT` and `ACCESS_MODEL_COUNT` to the required number of elements
 and models.
 
-#### nRF5 SDK NVM storage modules
+### nRF5 SDK NVM storage modules @anchor coexistence_mesh_in_nrf5_sdk_nvm
 Using nRF5 SDK modules such as `fstorage`, `pstorage`, or `ble_flash` for writing to flash may be
 problematic due to long `timeslot` events occupied by the mesh stack. Use the
 @ref md_doc_libraries_flash_manager module provided by the mesh stack instead.
@@ -161,7 +189,7 @@ The value of `x` depends on the configuration of the mesh stack and can be calcu
 
          (sizeof(fm_header_t) + sizeof(dsm_flash_entry_t))
 
-#### Estimated sizes
+### Estimated sizes @anchor coexistence_mesh_in_nrf5_sdk_sizes
 
 The following are estimated sizes based on the
 [Light switch server example](@ref md_examples_light_switch_README),
@@ -202,20 +230,3 @@ built using Keil v5 with optimization level `O3` for nRF52832.
 |Total page count           |     4 |
 
 
-### Heap size
-The transport layer uses *malloc()* for its operation. This behavior
-can be overridden using *transport_sar_mem_funcs_set()*, otherwise __HEAP_SIZE needs to be
-defined.
-
-If you are using SES for building the application set the *Heap Size* to *8192* bytes in the
-*Project Options> Code> Runtime Memory Area* settings.
-
-## Concurrent SoftDevice and mesh activity
-By design, the SoftDevice activity is prioritized over mesh activity. Therefore, you should keep the
-connection and advertisement intervals used by the SoftDevice as large as possible when using
-Bluetooth low energy connections. If scanning, keep the scan intervals as long as possible, and the
-scan windows as short as possible. You should also reduce mesh activity while the SoftDevice is
-doing fast advertising and continue normal activity after a connection is established.
-
-## Examples
-See @ref md_examples_sdk_coexist_README examples to see how the nRF5 SDK features can be simultaneously used with nRF5 SDK for Mesh.

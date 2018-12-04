@@ -61,9 +61,9 @@ typedef struct broadcast_params broadcast_params_t;
  * the callback.
  *
  * @param[in] p_broadcast The broadcast_params_t instance used in sending the packet.
- * @param[in] timestamp Timestamp of the last transmission in the event, in microseconds.
+ * @param[in] timestamp Timestamp of the last transmission in the event, in device time.
  */
-typedef void (*broadcast_complete_cb_t) (broadcast_params_t * p_broadcast, uint32_t timestamp);
+typedef void (*broadcast_complete_cb_t) (broadcast_params_t * p_broadcast, timestamp_t timestamp);
 
 /** Broadcast parameters used in providing the details of the packet to be sent and related
  * configuration info.
@@ -86,7 +86,7 @@ struct broadcast_params
 
 typedef struct
 {
-    uint32_t prev_tx_complete_app_time_us; /**< Time spent in the TX complete call on the previous run. */
+    ts_timestamp_t prev_tx_complete_app_time_us; /**< Time spent in the TX complete call on the previous run. */
 } broadcast_debug_t;
 
 /** A valid instance of the @c broadcast_t must be provided to the broadcast_send function. */

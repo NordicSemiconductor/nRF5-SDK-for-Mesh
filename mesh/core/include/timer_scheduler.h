@@ -38,6 +38,7 @@
 #define TIMER_SCHEDULER_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "timer.h"
 

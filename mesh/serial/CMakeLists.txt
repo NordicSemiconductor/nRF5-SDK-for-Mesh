@@ -15,6 +15,8 @@ set(SERIAL_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/serial_handler_app.c" CACHE INTERNAL "")
 
 set(SERIAL_INCLUDE_DIRS
+    "${SDK_ROOT}/modules/nrfx"
+    "${SDK_ROOT}/modules/nrfx/hal"
     "${CMAKE_CURRENT_SOURCE_DIR}/api"
     "${CMAKE_CURRENT_SOURCE_DIR}/include" CACHE INTERNAL "")
 

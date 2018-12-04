@@ -260,7 +260,7 @@ static void tx_complete_event(void * p_context)
     p_instaburst->p_tx_buf = NULL;
 }
 
-static void adv_ext_tx_callback(adv_ext_tx_t * p_tx, const adv_ext_tx_event_t * p_tx_event, uint32_t timestamp)
+static void adv_ext_tx_callback(adv_ext_tx_t * p_tx, const adv_ext_tx_event_t * p_tx_event, timestamp_t timestamp)
 {
     instaburst_tx_t * p_instaburst = PARENT_BY_FIELD_GET(instaburst_tx_t, adv_ext_tx, p_tx);
     p_instaburst->prev_tx_timestamp = timestamp;
@@ -268,7 +268,7 @@ static void adv_ext_tx_callback(adv_ext_tx_t * p_tx, const adv_ext_tx_event_t * 
     NRF_MESH_ERROR_CHECK(bearer_event_sequential_post(&p_instaburst->tx_complete_event));
 }
 
-static void broadcast_tx_callback(broadcast_params_t * p_broadcast, uint32_t timestamp)
+static void broadcast_tx_callback(broadcast_params_t * p_broadcast, timestamp_t timestamp)
 {
     instaburst_tx_t * p_instaburst = PARENT_BY_FIELD_GET(instaburst_tx_t, broadcast.params, p_broadcast);
     p_instaburst->prev_tx_timestamp = timestamp;

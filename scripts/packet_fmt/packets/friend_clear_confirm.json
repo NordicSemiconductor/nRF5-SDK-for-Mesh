@@ -1,0 +1,22 @@
+{
+    "__packet__": true,
+    "name": "friend_clear_confirm",
+    "type": "absolute",
+    "module": "trs_control",
+    "packet_type": "packet_mesh_trs_control_packet_t",
+    "max_length": 4,
+    "fields": [
+        {
+            "name": "lpn_address",
+            "width":  16,
+            "doc": "the unicast address of the Low Power node being removed",
+            "visible": true
+        },
+        {
+            "name": "lpn_counter",
+            "width":  16,
+            "doc": "LPN Counter of the corresponding Friend Clear message",
+            "visible": true
+        }
+    ]
+}

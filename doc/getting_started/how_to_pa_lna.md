@@ -1,4 +1,4 @@
-# How to add PA/LNA support
+# Adding PA/LNA support
 
 The nRF5 SDK for Mesh provides APIs for interfacing external Front End Modules (FEMs) to increase
 the range of Bluetooth Low Energy communication.
@@ -23,8 +23,8 @@ First, select unused GPIO pins that can be used by the PA/LNA module. For this e
 controlling the LNA and GPIO 24 for controlling the PA. Let's assume that the control signals
 required by the external hardware module are active high.
 
-The Mesh PA/LNA module uses the @link_52832_PPI <!--PPI: http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52832.ps.v1.1%2Fppi.html&anchor=concept_sxf_21l_1s -->
-and @link_52832_GPIOTE <!-- GPIOTE: http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52832.ps.v1.1%2Fgpiote.html&anchor=concept_knz_kww_lr -->
+The Mesh PA/LNA module uses the @link_52832_PPI <!--PPI: https://www.nordicsemi.com/-/media/DocLib/Other/Product_Spec/nRF52832PSv14.pdf -->
+and @link_52832_GPIOTE <!-- GPIOTE: https://www.nordicsemi.com/-/media/DocLib/Other/Product_Spec/nRF52832PSv14.pdf -->
 hardware modules to generate these signals.
 
 For this example, we choose the unused PPI channels 0 and 1, and GPIOTE channel 0.
@@ -63,7 +63,7 @@ device using `nrfjprog`.
 If you connect a logic analyzer to the GPIO pins 25 and 24, you should see them toggling.
 
 Observe that the unprovisioned device sends the unprovisioned node beacons every
-two seconds (@ref NRF_MESH_UNPROV_BEACON_INTERVAL_MS) and scans for the incoming provisioning
+two seconds (@ref NRF_MESH_PROV_BEARER_ADV_UNPROV_BEACON_INTERVAL_MS) and scans for the incoming provisioning
 invite for the rest of the time.
 
 ![GPIO waveforms after enabling PA/LNA module](img/pa-lna-waveform.png "GPIO waveforms after enabling PA/LNA module")

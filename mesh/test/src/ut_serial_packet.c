@@ -209,9 +209,10 @@ void test_cmd_mesh(void)
     cmd.payload.cmd.mesh.packet_send.dst_addr_handle = 0x7890;
     cmd.payload.cmd.mesh.packet_send.ttl = 0x56;
     cmd.payload.cmd.mesh.packet_send.transmic_size = 1;
+    cmd.payload.cmd.mesh.packet_send.friendship_credential_flag = false;
     for (uint32_t i = 0; i < 8; i++)
         cmd.payload.cmd.mesh.packet_send.data[i] = i;
-    TEST_PACKET_EQUAL(cmd, 18, 0xAB, 0x34, 0x12, 0xcd, 0xab, 0x90, 0x78, 0x56, 0x67, 0x01,
+    TEST_PACKET_EQUAL(cmd, 19, 0xAB, 0x34, 0x12, 0xcd, 0xab, 0x90, 0x78, 0x56, 0x67, 0x01, 0x00,
             0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07);
 }
 

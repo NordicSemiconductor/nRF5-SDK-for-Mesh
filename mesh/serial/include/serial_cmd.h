@@ -327,6 +327,7 @@ typedef struct __attribute((packed))
     uint16_t address;                         /**< Unicast address to assign to the device. */
     uint8_t  iv_update_flag;                  /**< IV update in progress flag. */
     uint8_t  key_refresh_flag;                /**< Key refresh in progress flag. */
+    uint8_t  attention_duration_s;            /**< Time in seconds during which the device will identify itself using any means it can. */
 } serial_cmd_prov_data_t;
 
 /** OOB method selection parameters. */
@@ -489,12 +490,13 @@ typedef struct __attribute((packed))
 /** Mesh packet send command parameters. */
 typedef struct __attribute((packed))
 {
-    uint16_t appkey_handle;   /**< Appkey or devkey handle to use for packet sending. Subnetwork will be picked automatically. */
-    uint16_t src_addr;        /**< Raw unicast address to use as source address. Must be in the range of local unicast addresses. */
-    uint16_t dst_addr_handle; /**< Handle of destination address to use in packet. */
-    uint8_t ttl;              /**< Time To Live value to use in packet. */
-    uint8_t force_segmented;  /**< Whether or not to force use of segmented message type for the transmission. */
-    uint8_t transmic_size;    /**< Transport MIC size used enum. SMALL=0, LARGE=1, DEFAULT=2. LARGE may only be used with segmented packets. */
+    uint16_t appkey_handle;             /**< Appkey or devkey handle to use for packet sending. Subnetwork will be picked automatically. */
+    uint16_t src_addr;                  /**< Raw unicast address to use as source address. Must be in the range of local unicast addresses. */
+    uint16_t dst_addr_handle;           /**< Handle of destination address to use in packet. */
+    uint8_t ttl;                        /**< Time To Live value to use in packet. */
+    uint8_t force_segmented;            /**< Whether or not to force use of segmented message type for the transmission. */
+    uint8_t transmic_size;              /**< Transport MIC size used enum. SMALL=0, LARGE=1, DEFAULT=2. LARGE may only be used with segmented packets. */
+    uint8_t friendship_credential_flag; /**< Control parameter for credentials used to publish messages from a model. 0 for master, 1 for friendship. */
     uint8_t data[NRF_MESH_SERIAL_PAYLOAD_MAXLEN - SERIAL_CMD_MESH_PACKET_SEND_OVERHEAD];    /**< Payload of the packet. */
 } serial_cmd_mesh_packet_send_t;
 

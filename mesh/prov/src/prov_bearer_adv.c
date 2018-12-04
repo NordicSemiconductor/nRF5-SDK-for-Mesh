@@ -58,6 +58,11 @@
 #include "prov_beacon.h"
 #include "prov_pdu.h"
 #include "bearer_event.h"
+#include "advertiser.h"
+#if MESH_FEATURE_LPN_ENABLED
+#include "scanner.h"
+#endif
+
 #if defined NRF_MESH_TEST_SHIM
 #include "test_instrument.h"
 #endif
@@ -212,7 +217,7 @@ static bearer_event_flag_t m_async_process_flag = BEARER_EVENT_FLAG_INVALID; /**
 *****************************************************************************/
 static void tx_retry_cb(timestamp_t timestamp, void * p_context);
 static void close_link(nrf_mesh_prov_bearer_adv_t * p_pb_adv, nrf_mesh_prov_link_close_reason_t reason);
-static void tx_complete_cb(advertiser_t * p_adv, nrf_mesh_tx_token_t token, uint32_t timestamp);
+static void tx_complete_cb(advertiser_t * p_adv, nrf_mesh_tx_token_t token, timestamp_t timestamp);
 
 static void prov_bearer_adv_link_close(prov_bearer_t * p_bearer, nrf_mesh_prov_link_close_reason_t close_reason);
 
@@ -423,7 +428,7 @@ static void send_unprov_beacon(nrf_mesh_prov_bearer_adv_t * p_pb_adv, const char
     NRF_MESH_ASSERT(p_packet != NULL);
     p_packet->config.repeats = ADVERTISER_REPEAT_INFINITE;
     p_packet->token = TX_TOKEN_UNPROV_BEACON;
-    advertiser_interval_set(&p_pb_adv->advertiser, NRF_MESH_UNPROV_BEACON_INTERVAL_MS);
+    advertiser_interval_set(&p_pb_adv->advertiser, NRF_MESH_PROV_BEARER_ADV_UNPROV_BEACON_INTERVAL_MS);
 
     advertiser_packet_send(&p_pb_adv->advertiser, p_packet);
 }
@@ -967,7 +972,7 @@ static void queue_empty_cb(nrf_mesh_prov_bearer_adv_t * p_pb_adv)
 
 
 /* Gets called from the radio IRQ context! */
-static void tx_complete_cb(advertiser_t * p_adv, nrf_mesh_tx_token_t token, uint32_t timestamp)
+static void tx_complete_cb(advertiser_t * p_adv, nrf_mesh_tx_token_t token, timestamp_t timestamp)
 {
     nrf_mesh_prov_bearer_adv_t * p_pb_adv = PARENT_BY_FIELD_GET(nrf_mesh_prov_bearer_adv_t, advertiser, p_adv);
 
@@ -1027,6 +1032,10 @@ static uint32_t prov_bearer_adv_listen(prov_bearer_t * p_bearer, const char * UR
     }
 
     init_bearer_structure(p_pb_adv, link_timeout_us);
+
+#if MESH_FEATURE_LPN_ENABLED
+    scanner_enable();
+#endif
 
     /* Set initial link values */
     p_pb_adv->link_id = 0;

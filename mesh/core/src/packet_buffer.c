@@ -182,7 +182,6 @@ static uint32_t m_prepare_for_reserve(packet_buffer_t * p_buffer, uint16_t lengt
             status = NRF_ERROR_NO_MEM;
         }
     }
-
     return status;
 }
 
@@ -222,11 +221,10 @@ void packet_buffer_flush(packet_buffer_t * p_buffer)
     NRF_MESH_ASSERT(m_get_packet(p_buffer, p_buffer->head)->packet_state !=
                     PACKET_BUFFER_MEM_STATE_RESERVED);
 
-    packet_buffer_packet_t * p_packet = m_get_packet(p_buffer, p_buffer->tail);
-    /* We're altering the popping here, and risk asserting if someone comes in and pops a packet
-     * while we're flushing. :( */
     uint32_t was_masked;
     _DISABLE_IRQS(was_masked);
+
+    packet_buffer_packet_t * p_packet = m_get_packet(p_buffer, p_buffer->tail);
     bool has_popped_packet = (p_packet->packet_state == PACKET_BUFFER_MEM_STATE_POPPED);
 
     if (has_popped_packet)
@@ -251,21 +249,22 @@ uint32_t packet_buffer_reserve(packet_buffer_t * const p_buffer, packet_buffer_p
     NRF_MESH_ASSERT(m_get_packet(p_buffer, p_buffer->head)->packet_state !=
                     PACKET_BUFFER_MEM_STATE_RESERVED);
 
-    uint32_t status = NRF_SUCCESS;
     if (length == 0 || length > m_max_packet_len_get(p_buffer))
     {
-        status = NRF_ERROR_INVALID_LENGTH;
-    }
-    else
-    {
-        /* Check if the packet buffer has enough space for the requested packet. */
-        status = m_prepare_for_reserve(p_buffer, length);
-        if (NRF_SUCCESS == status)
-        {
-            *pp_packet = m_reserve_packet(p_buffer, length);
-        }
+        return NRF_ERROR_INVALID_LENGTH;
     }
 
+    uint32_t was_masked;
+    _DISABLE_IRQS(was_masked);
+
+    /* Check if the packet buffer has enough space for the requested packet. */
+    uint32_t status = m_prepare_for_reserve(p_buffer, length);
+    if (NRF_SUCCESS == status)
+    {
+        *pp_packet = m_reserve_packet(p_buffer, length);
+    }
+
+    _ENABLE_IRQS(was_masked);
     return status;
 }
 
@@ -276,6 +275,11 @@ void packet_buffer_commit(packet_buffer_t * const p_buffer, packet_buffer_packet
     NRF_MESH_ASSERT(PACKET_BUFFER_MEM_STATE_RESERVED == p_packet->packet_state);
     NRF_MESH_ASSERT(p_packet->size >= length);
     NRF_MESH_ASSERT(0 < length);
+
+    /* Can end up asserting if a higher priority interrupt comes in and tries to pop twice after
+     * we've marked the current packet as committed and before we mark the next as free. */
+    uint32_t was_masked;
+    _DISABLE_IRQS(was_masked);
 
     p_packet->size         = length;
     p_packet->packet_state = PACKET_BUFFER_MEM_STATE_COMMITTED;
@@ -293,6 +297,8 @@ void packet_buffer_commit(packet_buffer_t * const p_buffer, packet_buffer_packet
 #if PACKET_BUFFER_DEBUG_MODE
     _GET_LR(p_packet->last_caller);
 #endif
+
+    _ENABLE_IRQS(was_masked);
 }
 
 uint32_t packet_buffer_pop(packet_buffer_t * const p_buffer, packet_buffer_packet_t ** pp_packet)
@@ -301,6 +307,10 @@ uint32_t packet_buffer_pop(packet_buffer_t * const p_buffer, packet_buffer_packe
     NRF_MESH_ASSERT(NULL != pp_packet);
 
     uint32_t status = NRF_SUCCESS;
+
+    uint32_t was_masked;
+    _DISABLE_IRQS(was_masked);
+
     packet_buffer_packet_t * p_packet = m_get_packet(p_buffer, p_buffer->tail);
 
     if (p_packet->packet_state == PACKET_BUFFER_MEM_STATE_PADDING)
@@ -323,6 +333,7 @@ uint32_t packet_buffer_pop(packet_buffer_t * const p_buffer, packet_buffer_packe
             break;
     }
 
+    _ENABLE_IRQS(was_masked);
     return status;
 }
 
@@ -330,17 +341,27 @@ bool packet_buffer_can_pop(packet_buffer_t * p_buffer)
 {
     NRF_MESH_ASSERT(NULL != p_buffer);
 
+    uint32_t was_masked;
+    _DISABLE_IRQS(was_masked);
+
     packet_buffer_packet_t * p_packet = m_get_packet(p_buffer, p_buffer->tail);
     if (p_packet->packet_state == PACKET_BUFFER_MEM_STATE_PADDING)
     {
         p_packet = m_get_next_packet(p_buffer, p_packet);
     }
-    return (p_packet->packet_state == PACKET_BUFFER_MEM_STATE_COMMITTED);
+    bool can_pop = (p_packet->packet_state == PACKET_BUFFER_MEM_STATE_COMMITTED);
+
+    _ENABLE_IRQS(was_masked);
+    return can_pop;
 }
 
 bool packet_buffer_packets_ready_to_pop(packet_buffer_t * p_buffer)
 {
     NRF_MESH_ASSERT(NULL != p_buffer);
+
+    uint32_t was_masked;
+    _DISABLE_IRQS(was_masked);
+
     /* get first non-popped packet */
     packet_buffer_packet_t * p_packet = m_get_packet(p_buffer, p_buffer->tail);
     while (p_packet->packet_state == PACKET_BUFFER_MEM_STATE_POPPED ||
@@ -348,13 +369,19 @@ bool packet_buffer_packets_ready_to_pop(packet_buffer_t * p_buffer)
     {
         p_packet = m_get_next_packet(p_buffer, p_packet);
     }
-    return (p_packet->packet_state == PACKET_BUFFER_MEM_STATE_COMMITTED);
+    bool ready_to_pop = (p_packet->packet_state == PACKET_BUFFER_MEM_STATE_COMMITTED);
+
+    _ENABLE_IRQS(was_masked);
+    return ready_to_pop;
 }
 
 void packet_buffer_free(packet_buffer_t * const p_buffer, packet_buffer_packet_t * const p_packet)
 {
     NRF_MESH_ASSERT(NULL != p_buffer);
     NRF_MESH_ASSERT(NULL != p_packet);
+
+    uint32_t was_masked;
+    _DISABLE_IRQS(was_masked);
 
     switch (p_packet->packet_state)
     {
@@ -368,8 +395,26 @@ void packet_buffer_free(packet_buffer_t * const p_buffer, packet_buffer_packet_t
             /* Only POPPED packets and RESERVED packets can be freed. */
             NRF_MESH_ASSERT(false);
     }
-
 #if PACKET_BUFFER_DEBUG_MODE
     _GET_LR(p_packet->last_caller);
 #endif
+
+    _ENABLE_IRQS(was_masked);
+}
+
+bool packet_buffer_is_empty(const packet_buffer_t * p_buffer)
+{
+    uint32_t was_masked;
+    _DISABLE_IRQS(was_masked);
+
+    packet_buffer_packet_t * p_packet = m_get_packet(p_buffer, p_buffer->tail);
+    if (p_packet->packet_state == PACKET_BUFFER_MEM_STATE_PADDING)
+    {
+        p_packet = m_get_next_packet(p_buffer, p_packet);
+    }
+
+    bool is_empty = (p_packet->packet_state == PACKET_BUFFER_MEM_STATE_FREE);
+
+    _ENABLE_IRQS(was_masked);
+    return is_empty;
 }

@@ -293,6 +293,20 @@ bool packet_buffer_packets_ready_to_pop(packet_buffer_t * p_buffer);
  */
 void packet_buffer_free(packet_buffer_t * const p_buffer, packet_buffer_packet_t * const p_packet);
 
+/**
+ * Check whether the packet buffer is completely empty.
+ *
+ * Returns true if there are no packets in states @ref PACKET_BUFFER_MEM_STATE_RESERVED,
+ * @ref PACKET_BUFFER_MEM_STATE_COMMITTED, or @ref PACKET_BUFFER_MEM_STATE_POPPED.
+ *
+ * @param[in] p_buffer The buffer to check.
+ *
+ * @retval true When the packet buffer is empty.
+ * @retval false When the packet buffer has some packets.
+ *
+ */
+bool packet_buffer_is_empty(const packet_buffer_t * p_buffer);
+
 /** @} */
 
 /** @} */

@@ -48,10 +48,12 @@
 #include "nrf_mesh_cmsis_mock_mock.h"
 #include "packet_buffer_mock.h"
 #include "radio_config_mock.h"
+#include "timeslot_timer_mock.h"
 #include "timer_mock.h"
 #include "timer_scheduler_mock.h"
 #include "timeslot_mock.h"
 #include "mesh_pa_lna_internal_mock.h"
+#include "bearer_handler_mock.h"
 
 /* Include module to be tested (to get access to internal state) */
 #include "../../bearer/src/scanner.c"
@@ -150,6 +152,7 @@ static void expect_lna_setup(void)
 void setUp(void)
 {
     packet_buffer_mock_Init();
+    timeslot_timer_mock_Init();
     timer_mock_Init();
     timer_scheduler_mock_Init();
     radio_config_mock_Init();
@@ -157,6 +160,7 @@ void setUp(void)
     nrf_mesh_cmsis_mock_mock_Init();
     filter_engine_mock_Init();
     mesh_pa_lna_internal_mock_Init();
+    bearer_handler_mock_Init();
 
     memset(&m_radio,  0, sizeof(NRF_RADIO_Type));
     memset(&m_ppi,    0, sizeof(NRF_PPI_Type));
@@ -174,6 +178,8 @@ void tearDown(void)
 {
     packet_buffer_mock_Verify();
     packet_buffer_mock_Destroy();
+    timeslot_timer_mock_Verify();
+    timeslot_timer_mock_Destroy();
     timer_mock_Verify();
     timer_mock_Destroy();
     timer_scheduler_mock_Verify();
@@ -188,6 +194,8 @@ void tearDown(void)
     filter_engine_mock_Destroy();
     mesh_pa_lna_internal_mock_Verify();
     mesh_pa_lna_internal_mock_Destroy();
+    bearer_handler_mock_Verify();
+    bearer_handler_mock_Destroy();
     scanner_reset();
 }
 
@@ -210,6 +218,7 @@ void test_enable_CONTINUOUS(void)
     timer_now_ExpectAndReturn(TIME_NOW);
     timer_sch_abort_Expect(&m_scanner.timer_window_end);
     timer_sch_reschedule_Expect(&m_scanner.timer_window_start, TIME_NOW);
+    bearer_handler_wake_up_Expect();
     scanner_enable();
     TEST_ASSERT_EQUAL(SCANNER_STATE_RUNNING, m_scanner.state);
 }
@@ -224,6 +233,7 @@ void test_enable_NOT_CONTINUOUS(void)
     timer_sch_reschedule_Expect(&m_scanner.timer_window_start, TIME_NOW);
     scanner_config_scan_time_set(MS_TO_US(BEARER_SCAN_INT_DEFAULT_MS) * 2,
                                  MS_TO_US(BEARER_SCAN_WINDOW_DEFAULT_MS));
+    bearer_handler_wake_up_Expect();
     scanner_enable();
     TEST_ASSERT_EQUAL(SCANNER_STATE_RUNNING, m_scanner.state);
 
@@ -460,10 +470,10 @@ void test_radio_start_NOT_IN_WINDOW(void)
                       m_radio.SHORTS);
     TEST_ASSERT_EQUAL(0, m_radio.EVENTS_ADDRESS);
     TEST_ASSERT_EQUAL((uint32_t) &NRF_RADIO->EVENTS_ADDRESS,
-                      m_ppi.CH[TIMER_PPI_CH_START + TIMER_INDEX_RADIO].EEP);
+                      m_ppi.CH[TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO].EEP);
     TEST_ASSERT_EQUAL((uint32_t) &NRF_TIMER0->TASKS_CAPTURE[SCANNER_TIMER_INDEX_TIMESTAMP],
-                      m_ppi.CH[TIMER_PPI_CH_START + TIMER_INDEX_RADIO].TEP);
-    TEST_ASSERT_EQUAL(1 << (TIMER_PPI_CH_START + TIMER_INDEX_RADIO), m_ppi.CHENSET);
+                      m_ppi.CH[TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO].TEP);
+    TEST_ASSERT_EQUAL(1 << (TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO), m_ppi.CHENSET);
     TEST_ASSERT_EQUAL(0, m_radio.TASKS_RXEN);
     TEST_ASSERT_EQUAL(0, m_radio.PACKETPTR);
     TEST_ASSERT_EQUAL(false, m_scanner.waiting_for_memory);
@@ -498,10 +508,10 @@ void test_radio_start_IN_WINDOW(void)
                       m_radio.SHORTS);
     TEST_ASSERT_EQUAL(0, m_radio.EVENTS_ADDRESS);
     TEST_ASSERT_EQUAL((uint32_t) &NRF_RADIO->EVENTS_ADDRESS,
-                      m_ppi.CH[TIMER_PPI_CH_START + TIMER_INDEX_RADIO].EEP);
+                      m_ppi.CH[TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO].EEP);
     TEST_ASSERT_EQUAL((uint32_t) &NRF_TIMER0->TASKS_CAPTURE[SCANNER_TIMER_INDEX_TIMESTAMP],
-                      m_ppi.CH[TIMER_PPI_CH_START + TIMER_INDEX_RADIO].TEP);
-    TEST_ASSERT_EQUAL(1 << (TIMER_PPI_CH_START + TIMER_INDEX_RADIO), m_ppi.CHENSET);
+                      m_ppi.CH[TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO].TEP);
+    TEST_ASSERT_EQUAL(1 << (TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO), m_ppi.CHENSET);
     TEST_ASSERT_EQUAL(1, m_radio.TASKS_RXEN);
     TEST_ASSERT_NOT_EQUAL(0, m_radio.PACKETPTR);
     TEST_ASSERT_EQUAL(false, m_scanner.waiting_for_memory);
@@ -531,10 +541,10 @@ void test_radio_start_IN_WINDOW_BUFFER_RESERVE_FAILED(void)
                       m_radio.SHORTS);
     TEST_ASSERT_EQUAL(0, m_radio.EVENTS_ADDRESS);
     TEST_ASSERT_EQUAL((uint32_t) &NRF_RADIO->EVENTS_ADDRESS,
-                      m_ppi.CH[TIMER_PPI_CH_START + TIMER_INDEX_RADIO].EEP);
+                      m_ppi.CH[TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO].EEP);
     TEST_ASSERT_EQUAL((uint32_t) &NRF_TIMER0->TASKS_CAPTURE[SCANNER_TIMER_INDEX_TIMESTAMP],
-                      m_ppi.CH[TIMER_PPI_CH_START + TIMER_INDEX_RADIO].TEP);
-    TEST_ASSERT_EQUAL(1 << (TIMER_PPI_CH_START + TIMER_INDEX_RADIO), m_ppi.CHENSET);
+                      m_ppi.CH[TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO].TEP);
+    TEST_ASSERT_EQUAL(1 << (TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO), m_ppi.CHENSET);
     TEST_ASSERT_EQUAL(0, m_radio.TASKS_RXEN);
     TEST_ASSERT_EQUAL(0, m_radio.PACKETPTR);
     TEST_ASSERT_EQUAL(true, m_scanner.waiting_for_memory);
@@ -641,13 +651,12 @@ void test_radio_irq_handler_END_EVENT_SUCCESSFUL(void)
     m_radio.RXMATCH     = RXMATCH_VALUE;
     m_radio.DATAWHITEIV = DATAWHITEIV_VALUE;
     m_radio.STATE       = RADIO_STATE_STATE_RxIdle;
+    m_timer0.CC[TS_TIMER_INDEX_RADIO] = TIME_NOW;
 
     p_scanner_packet->packet.header.length = 2;
 
-    NRF_TIMER0->CC[SCANNER_TIMER_INDEX_TIMESTAMP] = TIME_UNTIL_END_EVENT;
-
     /* Set up radio_handle_end_event() */
-    timeslot_start_time_get_ExpectAndReturn(TIME_NOW);
+    ts_timer_to_device_time_ExpectAndReturn(TIME_NOW, TIME_NOW + 100);
     packet_buffer_commit_Expect(&m_scanner.packet_buffer,
                                 m_scanner.p_buffer_packet,
                                 SCANNER_PACKET_OVERHEAD +
@@ -666,7 +675,7 @@ void test_radio_irq_handler_END_EVENT_SUCCESSFUL(void)
 
     /* Verify resulting state */
     TEST_ASSERT_EQUAL(0, m_radio.EVENTS_END);
-    TEST_ASSERT_EQUAL_UINT32(TIME_NOW + TIME_UNTIL_END_EVENT, p_scanner_packet->metadata.timestamp);
+    TEST_ASSERT_EQUAL_UINT32(TIME_NOW+100, p_scanner_packet->metadata.timestamp);
     TEST_ASSERT_EQUAL_UINT32(m_scanner.config.access_addresses[NRF_RADIO->RXMATCH], p_scanner_packet->metadata.access_addr);
     TEST_ASSERT_EQUAL_UINT8(DATAWHITEIV_VALUE & 0x3F, p_scanner_packet->metadata.channel);
     TEST_ASSERT_EQUAL_INT8(-RSSISAMPLE_VALUE, p_scanner_packet->metadata.rssi);
@@ -787,13 +796,12 @@ void test_radio_irq_handler_WINDOW_END_AFTER_RX(void)
     m_radio.RXMATCH     = RXMATCH_VALUE;
     m_radio.DATAWHITEIV = DATAWHITEIV_VALUE;
     m_radio.STATE       = RADIO_STATE_STATE_RxIdle;
+    m_timer0.CC[TS_TIMER_INDEX_RADIO] = TIME_NOW;
 
     p_scanner_packet->packet.header.length = 2;
 
-    NRF_TIMER0->CC[SCANNER_TIMER_INDEX_TIMESTAMP] = TIME_UNTIL_END_EVENT;
-
     /* Set up radio_handle_end_event() */
-    timeslot_start_time_get_ExpectAndReturn(TIME_NOW);
+    ts_timer_to_device_time_ExpectAndReturn(TIME_NOW, TIME_NOW + 100);
     packet_buffer_commit_Expect(&m_scanner.packet_buffer,
                                 m_scanner.p_buffer_packet,
                                 SCANNER_PACKET_OVERHEAD +
@@ -808,7 +816,7 @@ void test_radio_irq_handler_WINDOW_END_AFTER_RX(void)
 
     /* Verify resulting state */
     TEST_ASSERT_EQUAL(0, m_radio.EVENTS_END);
-    TEST_ASSERT_EQUAL_UINT32(TIME_NOW + TIME_UNTIL_END_EVENT, p_scanner_packet->metadata.timestamp);
+    TEST_ASSERT_EQUAL_UINT32(TIME_NOW+100, p_scanner_packet->metadata.timestamp);
     TEST_ASSERT_EQUAL_UINT32(m_scanner.config.access_addresses[NRF_RADIO->RXMATCH], p_scanner_packet->metadata.access_addr);
     TEST_ASSERT_EQUAL_UINT8(DATAWHITEIV_VALUE & 0x3F, p_scanner_packet->metadata.channel);
     TEST_ASSERT_EQUAL_INT8(-RSSISAMPLE_VALUE, p_scanner_packet->metadata.rssi);
@@ -849,6 +857,7 @@ void test_radio_irq_handler_CTX_ENABLE_WINDOW_START(void)
     timer_now_ExpectAndReturn(TIME_NOW);
     timer_sch_abort_Expect(&m_scanner.timer_window_end);
     timer_sch_reschedule_Expect(&m_scanner.timer_window_start, TIME_NOW);
+    bearer_handler_wake_up_Expect();
     scanner_enable();
 
     NVIC_SetPendingIRQ_Expect(RADIO_IRQn);

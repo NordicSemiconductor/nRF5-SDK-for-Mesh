@@ -90,26 +90,26 @@ static void exec_async(void)
     m_flag_cb();
 }
 
-static void timer_callback_call_abort(uint32_t timestamp, void * p_context)
+static void timer_callback_call_abort(timestamp_t timestamp, void * p_context)
 {
     TEST_ASSERT_NOT_NULL(p_context);
     timer_sch_abort((timer_event_t*) p_context);
 }
 
-static void timer_callback_call_reschedule(uint32_t timestamp, void * p_context)
+static void timer_callback_call_reschedule(timestamp_t timestamp, void * p_context)
 {
     TEST_ASSERT_NOT_NULL(p_context);
     timer_sch_reschedule((timer_event_t*) p_context, timestamp + 4000);
 }
 
-static void timer_callback_call_reschedule_earlier(uint32_t timestamp, void * p_context)
+static void timer_callback_call_reschedule_earlier(timestamp_t timestamp, void * p_context)
 {
     TEST_ASSERT_NOT_NULL(p_context);
     ((timer_event_t *) p_context)->cb = timer_sch_cb; /* change callback to avoid infinite recursion */
     timer_sch_reschedule((timer_event_t*) p_context, timestamp - 4000);
 }
 
-static void timer_callback_call_schedule(uint32_t timestamp, void * p_context)
+static void timer_callback_call_schedule(timestamp_t timestamp, void * p_context)
 {
     TEST_ASSERT_NOT_NULL(p_context);
     ((timer_event_t *) p_context)->timestamp += 4000;
@@ -129,14 +129,18 @@ static bool event_is_in_loop(timer_event_t * p_evt)
     return true;
 }
 /********************************/
-
-uint32_t timer_order_cb(uint8_t timer_index, timestamp_t timestamp, timer_callback_t cb, timer_attr_t attrs)
+void timer_init(void)
 {
-    TEST_ASSERT_EQUAL(1, timer_index);
-    TEST_ASSERT_EQUAL(TIMER_ATTR_SYNCHRONOUS, attrs);
+}
+
+void timer_stop(void)
+{
+}
+
+void timer_start(timestamp_t timestamp, timer_callback_t cb)
+{
     m_last_timer_order = timestamp;
     m_timer_cb = cb;
-    return m_ret_val;
 }
 
 timestamp_t timer_now(void)
@@ -261,6 +265,12 @@ void test_timer_sch_add(void)
     m_timer_cb(m_time_now);
     TEST_ASSERT_EQUAL(13, m_cb_count);
     TEST_ASSERT_EQUAL(m_time_now, m_last_timestamp);
+
+    /* Test events overflow */
+    for (uint32_t i = 0; i < UINT16_MAX + 1; i++)
+    {
+        timer_sch_reschedule(&evts[0], m_time_now + ((i + 1) *2));
+    }
 }
 
 void test_timer_sch_abort(void)

@@ -35,6 +35,7 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "nrf_mesh_config_prov.h"
 #include "nrf_mesh_prov_bearer_gatt.h"
 #include "mesh_gatt.h"
 #include "fsm.h"
@@ -48,7 +49,7 @@
  * FSM setup
  *******************************************************************************/
 
-
+/*lint -e123 */
 /* We differentiate the CONNECTED and LINK_ACTIVE states because the Client needs
  * to write our CCCD before we can start transmitting. */
 #define STATE_LIST  S_IDLE,                     \
@@ -192,6 +193,7 @@ static bool pb_gatt_fsm_guard(fsm_guard_id_t guard_id, void * p_data)
 {
     return pb_gatt_fsm_guards[guard_id](p_data);
 }
+/*lint +e123 */
 
 /*******************************************************************************
  * Type definitions
@@ -309,7 +311,9 @@ static void a_listen_start(void * p_context)
     memcpy(service_data.device_uuid, nrf_mesh_configure_device_uuid_get(), NRF_MESH_UUID_SIZE);
     service_data.oob_info = p_evt->oob_info;
 
-    mesh_adv_params_set(MESH_ADV_TIMEOUT_INFINITE, MESH_ADV_INTERVAL_DEFAULT);
+    mesh_adv_params_set(MESH_ADV_TIMEOUT_INFINITE,
+                        MSEC_TO_UNITS(NRF_MESH_PROV_BEARER_GATT_UNPROV_BEACON_INTERVAL_MS,
+                                      UNIT_0_625_MS));
     mesh_adv_data_set(NRF_MESH_PB_GATT_SERVICE_UUID,
                       (const uint8_t *) &service_data,
                       sizeof(service_data));
@@ -397,7 +401,7 @@ static void link_evt_send(void)
 {
     if (fsm_is_processing(&m_evt_prov_link.p_bearer_gatt->fsm))
     {
-        bearer_event_sequential_post(&m_evt_prov_link.p_bearer_gatt->bearer_event_seq);
+        (void) bearer_event_sequential_post(&m_evt_prov_link.p_bearer_gatt->bearer_event_seq);
     }
     else
     {

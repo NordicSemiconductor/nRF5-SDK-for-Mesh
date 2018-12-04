@@ -38,10 +38,9 @@ be retransmitted forever or until replaced by a different packet.
 ## Running the example
 
 To build the example, follow the instructions in
-[Building the Mesh Stack](@ref md_doc_getting_started_how_to_build). Refer to the *How to run examples*
-section in [Examples README](@ref md_examples_README) for the commands required to program a
-device using `nrfjprog`.
+[Building the Mesh Stack](@ref md_doc_getting_started_how_to_build). For commands required to program a device using `nrfjprog`,
+see the [Running examples using nrfjprog](@ref how_to_run_examples_nrfjprog) section on the @ref md_doc_getting_started_how_to_run_examples page.
 
 Once running, the example outputs all incoming packets over [RTT](@ref segger-rtt). Outgoing
-beacons can be observed with @link_nRFConnectDesktop<!--https://www.nordicsemi.com/eng/Products/Bluetooth-low-energy/nRF-Connect-for-desktop-->
-or @link_nRFConnectMobile<!--https://www.nordicsemi.com/eng/Products/Nordic-mobile-Apps/nRF-Connect-for-Mobile-->.
+beacons can be observed with @link_nRFConnectDesktop<!-- https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Connect-for-desktop -->
+or @link_nRFConnectMobile<!-- https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Connect-for-mobile -->.

@@ -215,7 +215,7 @@ uint32_t access_model_publish_period_get(access_model_handle_t handle,
 uint32_t access_model_subscription_add(access_model_handle_t handle, dsm_handle_t address_handle);
 
 /**
- * Remove a subscription from a model.
+ * Removes a subscription from a model.
  *
  * @param[in]  handle                   Access model handle.
  * @param[in]  address_handle           Address to remove from the model's subscription list.
@@ -258,7 +258,7 @@ uint32_t access_model_subscriptions_get(access_model_handle_t handle,
 uint32_t access_model_application_bind(access_model_handle_t handle, dsm_handle_t appkey_handle);
 
 /**
- * Unbind an application key from a model.
+ * Unbinds an application key from a model.
  *
  * @param[in]  handle                   Access model handle.
  * @param[in]  appkey_handle            Application handle to remove from the model.
@@ -289,7 +289,7 @@ uint32_t access_model_applications_get(access_model_handle_t handle,
 /**
  * Sets the application key to be used when publishing for the given model.
  *
- * @note       To "unbind" the application key, set appkey_handle to @ref DSM_HANDLE_INVALID.
+ * @note       To unbind the application key, set appkey_handle to @ref DSM_HANDLE_INVALID.
  *
  * @param[in]  handle                   Access model handle.
  * @param[in]  appkey_handle            Application handle to bind with model.
@@ -315,6 +315,29 @@ uint32_t access_model_publish_application_get(access_model_handle_t handle,
                                               dsm_handle_t * p_appkey_handle);
 
 /**
+ * Sets the friendship credentials flag value for the given model.
+ *
+ * @param[in]  handle  Access model handle.
+ * @param[in]  flag    New friendship credentials flag value.
+ *
+ * @retval     NRF_SUCCESS              Successfully set the default publication TTL value.
+ * @retval     NRF_ERROR_NOT_FOUND      Access handle invalid.
+ */
+uint32_t access_model_publish_friendship_credential_flag_set(access_model_handle_t handle, bool flag);
+
+/**
+ * Gets the friendship credentials flag value for the given model.
+ *
+ * @param[in]  handle  Access model handle.
+ * @param[in]  p_flag  Pointer to store the friendship credentials flag value.
+ *
+ * @retval NRF_SUCCESS                  Successfully retrived the friendship credentials flag value.
+ * @retval NRF_ERROR_NULL               NULL pointer given to function.
+ * @retval NRF_ERROR_NOT_FOUND          Access handle invalid.
+ */
+uint32_t access_model_publish_friendship_credential_flag_get(access_model_handle_t handle, bool * p_flag);
+
+/**
  * Sets the default publication TTL value for the given model.
  *
  * @param[in]  handle                   Access model handle.
@@ -332,7 +355,7 @@ uint32_t access_model_publish_ttl_set(access_model_handle_t handle, uint8_t ttl)
  * @param[in]  handle Access model handle.
  * @param[out] p_ttl  Pointer to store the default TTL value.
  *
- * @retval NRF_SUCCESS             Successfully stored the default publication TTL value.
+ * @retval NRF_SUCCESS             Successfully retrived the default publication TTL value.
  * @retval NRF_ERROR_NULL          NULL pointer given to function.
  * @retval NRF_ERROR_NOT_FOUND     Access handle invalid.
  */
@@ -365,6 +388,8 @@ uint32_t access_model_p_args_get(access_model_handle_t handle, void ** pp_args);
 /**
  * Allocates a subscription list for a model.
  *
+ * Allocating a subscription list for a model that already has one allocated results in Success and does not cause changes to the already allocated subscription list.
+ *
  * @param[in]  handle                   Model handle to allocate list for.
  *
  * @retval     NRF_SUCCESS              Successfully allocated subscription list.
@@ -376,20 +401,41 @@ uint32_t access_model_p_args_get(access_model_handle_t handle, void ** pp_args);
 uint32_t access_model_subscription_list_alloc(access_model_handle_t handle);
 
 /**
+ * De-allocates a subscription list for a model.
+ *
+ * This function is intended to be used during the initialization of the extended models.
+ * De-allocating a subscription list for a model that does not have any list allocated yet results in Success.
+ * It is not allowed to de-allocate the subscription list once the model-subscription list
+ * configuration is written in the flash or when access layer data is being stored to the flash.
+ *
+ * @param[in]  handle                   Model handle to de-allocate list for.
+ *
+ * @retval     NRF_SUCCESS              Successfully de-allocated subscription list.
+ * @retval     NRF_ERROR_NOT_FOUND      Access handle invalid.
+ * @retval     NRF_ERROR_FORBIDDEN      Subscription list is already allocated and stored in the
+ *                                      flash and cannot be de-allocated, or Access layer flash
+ *                                      operations are underway.
+ *
+ */
+uint32_t access_model_subscription_list_dealloc(access_model_handle_t handle);
+
+/**
  * Shares the subscription lists for two models.
  *
- * This function is used with models that operate on bound states and needs to share a single
- * subscription list. Only one of the models that shares a subscription list needs to allocate
- * the list.
+ * This function is used with models that operate on bound states and need to share a single
+ * subscription list. Subscription list of the `owner` will be shared with `other`. If the `other`
+ * model already has a subscription list allocated, this API will de-allocate it before sharing
+ * the list of the `owner`.
  *
  * @param[in]  owner                    The owner of the subscription list (the model handle that
- *                                      allocated it).
- * @param[in]  other                    The model that should share the owner's subscription list.
+ *                                      has allocated a subscription list).
+ * @param[in]  other                    The model that will share the owner's subscription list.
  *
  * @retval     NRF_SUCCESS              Successfully shared the subscription list.
  * @retval     NRF_ERROR_NOT_FOUND      Access handle invalid for one or more of the models.
- * @retval     NRF_ERROR_INVALID_STATE  Invalid parameter combination. Only the owner should have a
+ * @retval     NRF_ERROR_INVALID_STATE  Invalid parameter combination. The owner must have a
  *                                      subscription list allocated.
+ * @retval     NRF_ERROR_FORBIDDEN      If model configuration is stored in the flash and cannot be changed.
  */
 uint32_t access_model_subscription_lists_share(access_model_handle_t owner, access_model_handle_t other);
 

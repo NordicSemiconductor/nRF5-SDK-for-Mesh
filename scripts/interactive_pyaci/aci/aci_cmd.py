@@ -309,8 +309,10 @@ class Provision(CommandPacket):
             IV update in progress flag.
         key_refresh_flag : uint8_t
             Key refresh in progress flag.
+        attention_duration_s : uint8_t
+            Time in seconds during which the device will identify itself using any means it can.
     """
-    def __init__(self, context_id, target_uuid, network_key, network_key_index, iv_index, address, iv_update_flag, key_refresh_flag):
+    def __init__(self, context_id, target_uuid, network_key, network_key_index, iv_index, address, iv_update_flag, key_refresh_flag, attention_duration_s):
         __data = bytearray()
         __data += struct.pack("<B", context_id)
         __data += iterable_to_barray(target_uuid)
@@ -320,6 +322,7 @@ class Provision(CommandPacket):
         __data += struct.pack("<H", address)
         __data += struct.pack("<B", iv_update_flag)
         __data += struct.pack("<B", key_refresh_flag)
+        __data += struct.pack("<B", attention_duration_s)
         super(Provision, self).__init__(0x63, __data)
 
 
@@ -898,10 +901,13 @@ class PacketSend(CommandPacket):
         transmic_size : uint8_t
             Transport MIC size used enum. SMALL=0, LARGE=1, DEFAULT=2. LARGE may only be used with
             segmented packets.
-        data : uint8_t[245]
+        friendship_credentials_flag : uint8_t
+            Control parameter for credentials used to publish messages from a model. 0 for master,
+            1 for friendship.
+        data : uint8_t[244]
             Payload of the packet.
     """
-    def __init__(self, appkey_handle, src_addr, dst_addr_handle, ttl, force_segmented, transmic_size, data):
+    def __init__(self, appkey_handle, src_addr, dst_addr_handle, ttl, force_segmented, transmic_size, friendship_credential_flag, data):
         __data = bytearray()
         __data += struct.pack("<H", appkey_handle)
         __data += struct.pack("<H", src_addr)
@@ -909,6 +915,7 @@ class PacketSend(CommandPacket):
         __data += struct.pack("<B", ttl)
         __data += struct.pack("<B", force_segmented)
         __data += struct.pack("<B", transmic_size)
+        __data += struct.pack("<B", friendship_credential_flag)
         __data += iterable_to_barray(data)
         super(PacketSend, self).__init__(0xAB, __data)
 

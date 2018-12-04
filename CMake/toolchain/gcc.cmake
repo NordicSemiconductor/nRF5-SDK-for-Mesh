@@ -12,5 +12,5 @@ set(data_flags "-ffunction-sections -fdata-sections -fno-strict-aliasing -fno-bu
 set(warning_flags "-Wall -Wextra -Werror=implicit-function-declaration -Wno-format -Wno-unused-parameter -Wno-missing-field-initializers")
 
 set(CMAKE_C_FLAGS_INIT "--std=gnu99 ${data_flags} ${warning_flags} ${CMAKE_C_FLAGS_INIT}")
-set(CMAKE_C_FLAGS_DEBUG_INIT "-Og -g")
+set(CMAKE_C_FLAGS_DEBUG_INIT "-O0 -g")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "")

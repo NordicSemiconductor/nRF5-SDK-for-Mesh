@@ -42,18 +42,16 @@
 #include "nrf.h"
 #include "nrf_soc.h"
 
-#include "timer.h"
 #include "utils.h"
 #include "nrf_mesh_assert.h"
 #include "toolchain.h"
 #include "bearer_handler.h"
 #include "debug_pins.h"
+#include "event.h"
 
-/** Attributes to pass to the timer module when ordering the end timer callback. */
-#define TIMESLOT_END_TIMER_ATTRIBUTES    ((timer_attr_t) (TIMER_ATTR_SYNCHRONOUS | TIMER_ATTR_TIMESLOT_LOCAL))
-
-#define RTC_MAX_TIME_TICKS               (0x1000000)              /**< RTC-clock rollover time. */
-#define RTC_MAX_TIME_TICKS_MASK          (RTC_MAX_TIME_TICKS - 1) /**< RTC-clock rollover time mask. */
+#if NRF_MODULE_ENABLED(NRF_SDH)
+#include "nrf_sdh.h"
+#endif
 
 /** Worst case HFCLOCK drift allowed when running the Softdevice, according to
  * product specifications:
@@ -68,19 +66,17 @@
 #define TIMESLOT_REQ_EARLIEST_TIMEOUT_US (15000)
 #define TIMESLOT_EXTEND_TINY_US          (1000)                   /**< Length of a tiny increment to the timeslot, used to check whether we can get more time. */
 
-/** Time spent in the end timer handler. */
-#if defined(HOST)
-#define TIMESLOT_END_TIMER_OVERHEAD_US (0)
-#elif defined(NRF51)
-#define TIMESLOT_END_TIMER_OVERHEAD_US  (55)
-#elif defined(NRF52_SERIES)
-#define TIMESLOT_END_TIMER_OVERHEAD_US  (20)
-#else
-#error "Unknown platform"
-#endif
 /*****************************************************************************
 * Local type definitions
 *****************************************************************************/
+/** State of the timeslot radio session. */
+typedef enum
+{
+    TS_SESSION_STATE_CLOSED, /**< The timeslot radio session hasn't been opened */
+    TS_SESSION_STATE_OPEN, /**< The timeslot radio session is open, but not running. */
+    TS_SESSION_STATE_RUNNING, /**< The timeslot radio session is open and running. */
+} ts_session_state_t;
+
 /**
  * Types of forced command sent to the signal handler.
  */
@@ -89,18 +85,19 @@ typedef enum
     TS_FORCED_COMMAND_NONE,     /** No command for the signal handler. */
     TS_FORCED_COMMAND_STOP,     /** Stop the current timeslot, and don't order a new one. */
     TS_FORCED_COMMAND_RESTART,  /** Stop the current timeslot, and ordern a new one as early as possible */
+    TS_FORCED_COMMAND_RESTART_HIGH,  /** Stop the current timeslot, and ordern a new one with high priority as early as possible */
 } ts_forced_command_t;
 
 typedef struct
 {
-    timestamp_t                              length_us;             /**< Length of current timeslot in microseconds (including extensions). */
-    timestamp_t                              start_time_us;         /**< Start time for current timeslot in microseconds. */
+    ts_timestamp_t                           length_us;             /**< Length of current timeslot in microseconds (including extensions). */
     bool                                     in_callback;           /**< Code is in callback-context. */
     bool                                     in_progress;           /**< A timeslot is currently in progress. */
-    bool                                     count_slot_delta;      /**< Whether we should account for the time between timeslots when getting the start timer. */
+    bool                                     extend;                /**< Whether the timeslot should be extended or not. */
     uint32_t                                 extend_count;          /**< Number of extension attempts made this slot. */
     uint32_t                                 successful_extensions; /**< Number of successful extension attempts made this slot. */
     nrf_radio_signal_callback_return_param_t signal_ret_param;      /**< Return parameter for SD radio signal handler. */
+    ts_session_state_t                       session_state;         /**< State of the SD radio session */
 } timeslot_t;
 /*****************************************************************************
 * Static globals
@@ -109,12 +106,41 @@ static nrf_radio_request_t m_radio_request_earliest;  /**< Timeslot earliest req
 static timeslot_t          m_current_timeslot;        /**< Current timeslot's parameters. */
 static ts_forced_command_t m_timeslot_forced_command; /**< Forced command, checked in radio signal callback. */
 static bool                m_state_lock;              /**< State lock, prevents the timeslot from ending. */
+static uint32_t            m_ts_count;                /**< Number of timeslots since device started. */
 
 static uint32_t            m_lfclk_ppm;               /**< The set drift accuracy for the LF clock source. */
 /*****************************************************************************
 * Static Functions
 *****************************************************************************/
-static void end_timer_handler(timestamp_t timestamp);
+#if NRF_MODULE_ENABLED(NRF_SDH)
+static bool                m_sd_disable_pending;      /**< Someone is attempting to disable the softdevice, but we're waiting for our timeslot to end first. */
+static bool sdh_req_handler(nrf_sdh_req_evt_t request, void * p_context);
+
+NRF_SDH_REQUEST_OBSERVER(mesh_sdh_req_observer, 0) = {
+    .handler = sdh_req_handler,
+};
+
+static bool sdh_req_handler(nrf_sdh_req_evt_t request, void * p_context)
+{
+    /* The SDH asks us if we're ready to disable the softdevice. We should only allow it to do so if
+     * the timeslots are fully disabled to avoid state desync with the SD. */
+    if (request == NRF_SDH_EVT_DISABLE_REQUEST &&
+        m_current_timeslot.session_state != TS_SESSION_STATE_CLOSED)
+    {
+        if (m_current_timeslot.session_state == TS_SESSION_STATE_RUNNING)
+        {
+            timeslot_stop();
+        }
+        /* Note: If the current session state is OPEN, an IDLE SoC event is pending, and we'll
+         * eventually stop anyway. */
+        m_sd_disable_pending = true;
+        return false;
+    }
+    return true;
+}
+#endif
+
+static void end_timer_handler(ts_timestamp_t timestamp);
 
 /**
  * Get the amount of clock drift that must be accounted for when calculating
@@ -129,9 +155,9 @@ static inline uint32_t end_timer_drift_margin(const timeslot_t* p_timeslot)
 }
 
 /** Get the timeslot end timer timestamp. */
-static inline timestamp_t get_end_time(const timeslot_t* p_timeslot)
+static inline ts_timestamp_t get_end_time(const timeslot_t* p_timeslot)
 {
-    return (p_timeslot->start_time_us + p_timeslot->length_us - TIMESLOT_END_SAFETY_MARGIN_US -
+    return (p_timeslot->length_us - TIMESLOT_END_SAFETY_MARGIN_US -
             TIMESLOT_END_TIMER_OVERHEAD_US - end_timer_drift_margin(p_timeslot));
 }
 
@@ -142,49 +168,30 @@ static inline bool can_extend(const timeslot_t* p_timeslot)
             p_timeslot->signal_ret_param.params.extend.length_us >= TIMESLOT_EXTEND_LENGTH_MIN_US);
 }
 
-/**
- * At the start of each timeslot, we sample the RTC to see when the timeslot
- * was started. This function handles the timeslot start time setting with
- * wraparound.
- */
-static void start_time_update(timeslot_t* p_timeslot)
+static void radio_request_params_reset(void)
 {
-    static uint64_t s_last_rtc_value = 0;
-    uint32_t delta_time_us;
-    uint64_t rtc_time = NRF_RTC0->COUNTER;
-
-    if (p_timeslot->count_slot_delta)
-    {
-        p_timeslot->count_slot_delta = false;
-        delta_time_us = p_timeslot->length_us;
-    }
-    else
-    {
-        /* The RTC rolls over at 0x1000000, so we can't rely on the data type for rollover logic. */
-        delta_time_us = HAL_RTC_TICKS_TO_US((rtc_time - s_last_rtc_value + RTC_MAX_TIME_TICKS) & RTC_MAX_TIME_TICKS_MASK);
-    }
-
-    p_timeslot->start_time_us += delta_time_us;
-    s_last_rtc_value = rtc_time;
+    /* Reset the timeslot priority, so the next timeslot will default to normal */
+    m_radio_request_earliest.params.earliest.priority = NRF_RADIO_PRIORITY_NORMAL;
+    m_radio_request_earliest.params.earliest.length_us  = TIMESLOT_BASE_LENGTH_LONG_US;
+    m_radio_request_earliest.params.earliest.timeout_us = TIMESLOT_REQ_EARLIEST_TIMEOUT_US;
 }
-
 
 static void on_ts_begin(timeslot_t* p_timeslot)
 {
-    DEBUG_PIN_TIMESLOT_ON(DEBUG_PIN_TS_TIMESLOT_OPERATION);
     /* Stop ordering more extensions */
     p_timeslot->signal_ret_param.callback_action = NRF_RADIO_SIGNAL_CALLBACK_ACTION_NONE;
+
     p_timeslot->in_progress = true;
+    m_ts_count++;
 
     /* Notify listeners */
-    timer_on_ts_begin(p_timeslot->start_time_us);
+    ts_timer_on_ts_begin();
     bearer_handler_on_ts_begin();
 
     /* Order the timer that will cancel the timeslot. */
-    NRF_MESH_ERROR_CHECK(timer_order_cb(TIMER_INDEX_TS_END,
-                                        get_end_time(p_timeslot),
-                                        end_timer_handler,
-                                        TIMESLOT_END_TIMER_ATTRIBUTES));
+    NRF_MESH_ERROR_CHECK(ts_timer_order_cb(TS_TIMER_INDEX_TS_END,
+                                           get_end_time(p_timeslot),
+                                           end_timer_handler));
 }
 
 static void on_ts_end(timeslot_t* p_timeslot)
@@ -193,13 +200,13 @@ static void on_ts_end(timeslot_t* p_timeslot)
     if (p_timeslot->in_progress)
     {
         bearer_handler_on_ts_end();
-        timer_on_ts_end(get_end_time(p_timeslot));
+        ts_timer_on_ts_end(get_end_time(p_timeslot));
         p_timeslot->in_progress = false;
     }
 
     m_state_lock = false;
-    DEBUG_PIN_TIMESLOT_OFF(DEBUG_PIN_TS_TIMESLOT_OPERATION);
     DEBUG_PIN_TIMESLOT_OFF(DEBUG_PIN_TS_IN_TIMESLOT);
+    DEBUG_PIN_TIMESLOT_OFF(DEBUG_PIN_TS_HIGH_PRIORITY);
 }
 
 static void handle_forced_command(timeslot_t* p_timeslot)
@@ -208,9 +215,14 @@ static void handle_forced_command(timeslot_t* p_timeslot)
     {
         case TS_FORCED_COMMAND_STOP:
             p_timeslot->signal_ret_param.callback_action = NRF_RADIO_SIGNAL_CALLBACK_ACTION_END;
-            p_timeslot->count_slot_delta = true;
             break;
 
+        case TS_FORCED_COMMAND_RESTART_HIGH:
+            m_radio_request_earliest.params.earliest.priority = NRF_RADIO_PRIORITY_HIGH;
+            m_radio_request_earliest.params.earliest.length_us = NRF_RADIO_LENGTH_MAX_US;
+            m_radio_request_earliest.params.earliest.timeout_us = NRF_RADIO_EARLIEST_TIMEOUT_MAX_US;
+            p_timeslot->extend = false;
+            /* Fall-through */
         case TS_FORCED_COMMAND_RESTART:
             p_timeslot->signal_ret_param.callback_action = NRF_RADIO_SIGNAL_CALLBACK_ACTION_REQUEST_AND_END;
             p_timeslot->signal_ret_param.params.request.p_next = &m_radio_request_earliest;
@@ -232,26 +244,36 @@ static void handle_signal_start(timeslot_t* p_timeslot)
     p_timeslot->extend_count = 0;
     p_timeslot->successful_extensions = 0;
 
-    start_time_update(p_timeslot);
-
-    const timestamp_t prev_len = p_timeslot->length_us;
+    const ts_timestamp_t prev_len = p_timeslot->length_us;
     p_timeslot->length_us = m_radio_request_earliest.params.earliest.length_us;
 
-    /* Start by extending to fit the previous length. */
-    p_timeslot->signal_ret_param.callback_action = NRF_RADIO_SIGNAL_CALLBACK_ACTION_EXTEND;
-
-    /* If the previous slot was zero-length, extend as much as possible. */
-    uint32_t extend_len = (prev_len == 0) ? TIMESLOT_MAX_LENGTH_US : prev_len;
-    p_timeslot->signal_ret_param.params.extend.length_us = extend_len - p_timeslot->length_us;
-
-    /* If the base timeslot length is already at (approximately) the length of
-     * the previous timeslot, we attempt to extend by a tiny amount, to see if
-     * we can increase it just a little. This allows us to increase the
-     * timeslot when the boundaries grow. */
-    if (p_timeslot->signal_ret_param.params.extend.length_us < TIMESLOT_EXTEND_TINY_US || extend_len < p_timeslot->length_us)
+    if (p_timeslot->extend)
     {
-        p_timeslot->signal_ret_param.params.extend.length_us = TIMESLOT_EXTEND_TINY_US;
+        /* Start by extending to fit the previous length. */
+        p_timeslot->signal_ret_param.callback_action = NRF_RADIO_SIGNAL_CALLBACK_ACTION_EXTEND;
+
+        /* If the previous slot was zero-length, extend as much as possible. */
+        uint32_t extend_len = (prev_len == 0) ? TIMESLOT_MAX_LENGTH_US : prev_len;
+        p_timeslot->signal_ret_param.params.extend.length_us = extend_len - p_timeslot->length_us;
+
+        /* If the base timeslot length is already at (approximately) the length of
+        * the previous timeslot, we attempt to extend by a tiny amount, to see if
+        * we can increase it just a little. This allows us to increase the
+        * timeslot when the boundaries grow. */
+        if (p_timeslot->signal_ret_param.params.extend.length_us < TIMESLOT_EXTEND_TINY_US || extend_len < p_timeslot->length_us)
+        {
+            p_timeslot->signal_ret_param.params.extend.length_us = TIMESLOT_EXTEND_TINY_US;
+        }
     }
+    else
+    {
+        DEBUG_PIN_TIMESLOT_ON(DEBUG_PIN_TS_HIGH_PRIORITY);
+        on_ts_begin(p_timeslot);
+    }
+
+    radio_request_params_reset();
+    /* Default back to extending the next timeslot */
+    p_timeslot->extend = true;
 }
 
 static void handle_extend_end(timeslot_t* p_timeslot, bool success)
@@ -323,8 +345,13 @@ static void handle_extend_end(timeslot_t* p_timeslot, bool success)
 * Callback functions
 *****************************************************************************/
 
+#if !defined(_lint)
+/* Dummy implementation of the state listener, in case no one has implemented one. */
+void __attribute__((weak)) timeslot_state_listener(bool timeslot_active) {}
+#endif
+
 /** Timeslot end callback. */
-static void end_timer_handler(timestamp_t timestamp)
+static void end_timer_handler(ts_timestamp_t timestamp)
 {
     DEBUG_PIN_TIMESLOT_ON(DEBUG_PIN_TS_END_TIMER_HANDLER);
     m_current_timeslot.signal_ret_param.callback_action = NRF_RADIO_SIGNAL_CALLBACK_ACTION_REQUEST_AND_END;
@@ -353,15 +380,44 @@ void timeslot_sd_event_handler(uint32_t evt)
     switch (evt)
     {
         case NRF_EVT_RADIO_SESSION_IDLE:
-            NRF_MESH_ASSERT(sd_radio_session_close() == NRF_SUCCESS);
+            /* As the SD events aren't handled atomically, we could potentially run into this scenario:
+             * - stop the timeslot -> SESSION_IDLE event pending, session_state is OPEN
+             * - start the timeslot again from the same context -> session_state is RUNNING
+             * - The SESSION_IDLE event is handled.
+             * Closing the radio session now leads to unexpected behavior, as the user restarted
+             * the timeslot already, expecting it to remain active.
+             */
+            if (m_current_timeslot.session_state == TS_SESSION_STATE_OPEN)
+            {
+                NRF_MESH_ASSERT(sd_radio_session_close() == NRF_SUCCESS);
+            }
             break;
+
+        case NRF_EVT_RADIO_SESSION_CLOSED:
+        {
+            m_current_timeslot.session_state = TS_SESSION_STATE_CLOSED;
+
+#if NRF_MODULE_ENABLED(NRF_SDH)
+            if (m_sd_disable_pending)
+            {
+                m_sd_disable_pending = false;
+
+                /* If the nRF5 SDK NRF_SDH module is enabled, but its files aren't linked, the
+                 * linker will complain that this function doesn't exist. Either add the SDH-files
+                 * from the nRF5 SDK, or disable the SDH module. */
+                nrf_sdh_request_continue();
+            }
+#endif
+            bearer_handler_on_ts_session_closed();
+            break;
+        }
         case NRF_EVT_RADIO_SIGNAL_CALLBACK_INVALID_RETURN:
             NRF_MESH_ASSERT(false);
             break;
 
-        /* Our request for a long timeslot failed, let's try to re-order a
-         * short one. */
+        /* Try to re-order a short one timeslot to avoid the block */
         case NRF_EVT_RADIO_BLOCKED:
+            radio_request_params_reset();
             m_radio_request_earliest.params.earliest.length_us = TIMESLOT_BASE_LENGTH_SHORT_US;
             NRF_MESH_ASSERT(sd_radio_request(&m_radio_request_earliest) == NRF_SUCCESS);
             break;
@@ -406,7 +462,7 @@ static nrf_radio_signal_callback_return_param_t* radio_signal_callback(uint8_t s
             case NRF_RADIO_CALLBACK_SIGNAL_TYPE_TIMER0:
                 DEBUG_PIN_TIMESLOT_ON(DEBUG_PIN_TS_TIMER_HANDLER);
 
-                timer_event_handler();
+                ts_timer_event_handler();
                 DEBUG_PIN_TIMESLOT_ON(DEBUG_PIN_TS_SD_EVT_HANDLER);
                 bearer_handler_timer_irq_handler();
                 DEBUG_PIN_TIMESLOT_OFF(DEBUG_PIN_TS_SD_EVT_HANDLER);
@@ -422,8 +478,7 @@ static nrf_radio_signal_callback_return_param_t* radio_signal_callback(uint8_t s
     {
         /* As the forced command makes us exit the timeslot earlier than expected, we should get a real
         * timestamp for the length calculation. */
-        uint32_t time_now = timer_now();
-        m_current_timeslot.length_us = time_now - m_current_timeslot.start_time_us;
+        m_current_timeslot.length_us = ts_timer_now();
 
         /* The forced commands always ends the timeslot. */
         handle_forced_command(&m_current_timeslot);
@@ -433,6 +488,11 @@ static nrf_radio_signal_callback_return_param_t* radio_signal_callback(uint8_t s
         m_current_timeslot.signal_ret_param.callback_action == NRF_RADIO_SIGNAL_CALLBACK_ACTION_REQUEST_AND_END)
     {
         on_ts_end(&m_current_timeslot);
+    }
+
+    if (m_current_timeslot.signal_ret_param.callback_action == NRF_RADIO_SIGNAL_CALLBACK_ACTION_END)
+    {
+        m_current_timeslot.session_state = TS_SESSION_STATE_OPEN;
     }
 
     m_current_timeslot.in_callback = false;
@@ -459,34 +519,52 @@ void timeslot_init(uint32_t lfclk_accuracy_ppm)
     m_lfclk_ppm               = lfclk_accuracy_ppm;
     m_state_lock              = false;
     m_timeslot_forced_command = TS_FORCED_COMMAND_NONE;
+    m_ts_count = 0;
 
     m_current_timeslot.in_callback = false;
     m_current_timeslot.in_progress = false;
     m_current_timeslot.length_us = 0;
-    m_current_timeslot.count_slot_delta = true;
-    m_current_timeslot.start_time_us = 0;
+    m_current_timeslot.session_state = TS_SESSION_STATE_CLOSED;
+    m_current_timeslot.extend = true;
 }
 
 uint32_t timeslot_start(void)
 {
-    uint32_t status = sd_radio_session_open(radio_signal_callback);
-    if (status == NRF_SUCCESS)
+    switch (m_current_timeslot.session_state)
     {
-        status = sd_radio_request(&m_radio_request_earliest);
+        case TS_SESSION_STATE_CLOSED:
+            NRF_MESH_ERROR_CHECK(sd_radio_session_open(radio_signal_callback));
+            /* fallthrough */
+        case TS_SESSION_STATE_OPEN:
+            NRF_MESH_ERROR_CHECK(sd_radio_request(&m_radio_request_earliest));
+            m_current_timeslot.session_state = TS_SESSION_STATE_RUNNING;
+            break;
+
+        case TS_SESSION_STATE_RUNNING:
+            /* already started */
+            return NRF_ERROR_BUSY;
     }
-    return status;
+    return NRF_SUCCESS;
 }
 
 void timeslot_stop(void)
 {
-    m_timeslot_forced_command = TS_FORCED_COMMAND_STOP;
-    timeslot_trigger();
+    if (m_current_timeslot.session_state == TS_SESSION_STATE_RUNNING)
+    {
+        m_timeslot_forced_command = TS_FORCED_COMMAND_STOP;
+        timeslot_trigger();
+    }
 }
 
-void timeslot_restart(void)
+void timeslot_restart(timeslot_priority_t priority)
 {
-    m_timeslot_forced_command = TS_FORCED_COMMAND_RESTART;
-    timeslot_trigger();
+    if (m_current_timeslot.session_state == TS_SESSION_STATE_RUNNING)
+    {
+        m_timeslot_forced_command = (priority == TIMESLOT_PRIORITY_HIGH)
+                                        ? TS_FORCED_COMMAND_RESTART_HIGH
+                                        : TS_FORCED_COMMAND_RESTART;
+        timeslot_trigger();
+    }
 }
 
 void timeslot_state_lock(bool lock)
@@ -505,33 +583,34 @@ bool timeslot_end_is_pending(void)
 {
     return ((m_current_timeslot.signal_ret_param.callback_action ==
              NRF_RADIO_SIGNAL_CALLBACK_ACTION_REQUEST_AND_END) ||
+            (m_current_timeslot.signal_ret_param.callback_action ==
+             NRF_RADIO_SIGNAL_CALLBACK_ACTION_END) ||
             (m_timeslot_forced_command == TS_FORCED_COMMAND_STOP) ||
-            (m_timeslot_forced_command == TS_FORCED_COMMAND_RESTART));
+            (m_timeslot_forced_command == TS_FORCED_COMMAND_RESTART) ||
+            (m_timeslot_forced_command == TS_FORCED_COMMAND_RESTART_HIGH));
 }
 
-
-timestamp_t timeslot_start_time_get(void)
-{
-    return m_current_timeslot.start_time_us;
-}
-
-timestamp_t timeslot_end_time_get(void)
+ts_timestamp_t timeslot_end_time_get(void)
 {
     if (!m_current_timeslot.in_progress)
     {
         return 0;
     }
-
     return get_end_time(&m_current_timeslot);
 }
 
-timestamp_t timeslot_remaining_time_get(void)
+ts_timestamp_t timeslot_length_get(void)
+{
+    return m_current_timeslot.length_us;
+}
+
+ts_timestamp_t timeslot_remaining_time_get(void)
 {
     if (!m_current_timeslot.in_progress)
     {
         return 0;
     }
-    return timer_diff(get_end_time(&m_current_timeslot), timer_now());
+    return timer_diff(get_end_time(&m_current_timeslot), ts_timer_now());
 }
 
 bool timeslot_is_in_ts(void)
@@ -542,6 +621,16 @@ bool timeslot_is_in_ts(void)
 bool timeslot_is_in_cb(void)
 {
     return m_current_timeslot.in_callback;
+}
+
+bool timeslot_session_is_active(void)
+{
+    return (m_current_timeslot.session_state != TS_SESSION_STATE_CLOSED);
+}
+
+uint32_t timeslot_count_get(void)
+{
+    return m_ts_count;
 }
 
 void timeslot_trigger(void)

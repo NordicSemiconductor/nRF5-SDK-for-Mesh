@@ -114,12 +114,12 @@ typedef struct advertiser_t advertiser_t;
  * @param[in] token TX token, as set by the application.
  * @param[in] timestamp Timestamp of the last transmission of the packet, in microseconds.
  */
-typedef void (*advertiser_tx_complete_cb_t)(advertiser_t * p_adv, nrf_mesh_tx_token_t token, uint32_t timestamp);
+typedef void (*advertiser_tx_complete_cb_t)(advertiser_t * p_adv, nrf_mesh_tx_token_t token, timestamp_t timestamp);
 
 typedef struct
 {
     nrf_mesh_tx_token_t token; /**< TX token, set by the application. */
-    uint32_t timestamp; /**< Timestamp of the last transmission of the packet, in microseconds. */
+    timestamp_t timestamp; /**< Timestamp of the last transmission of the packet, in microseconds. */
 } advertiser_tx_complete_params_t;
 
 /** Single advertiser instance. */

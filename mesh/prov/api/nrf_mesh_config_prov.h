@@ -38,6 +38,10 @@
 #ifndef NRF_MESH_CONFIG_PROV_H__
 #define NRF_MESH_CONFIG_PROV_H__
 
+#ifdef CONFIG_APP_IN_CORE
+#include "nrf_mesh_config_app.h"
+#endif
+
 /**
  * @defgroup NRF_MESH_CONFIG_PROV Provisioning configuration
  * @ingroup MESH_API_GROUP_PROV
@@ -62,9 +66,19 @@
  * @{
  */
 
-/** Unprovisioned beacon default advertisement interval. */
-#ifndef NRF_MESH_UNPROV_BEACON_INTERVAL_MS
-#define NRF_MESH_UNPROV_BEACON_INTERVAL_MS 2000
+/** The default advertisement interval of the unprovisioned beacon. Meant for PB-ADV. */
+#ifndef NRF_MESH_PROV_BEARER_ADV_UNPROV_BEACON_INTERVAL_MS
+#define NRF_MESH_PROV_BEARER_ADV_UNPROV_BEACON_INTERVAL_MS 2000
+#endif
+
+/**
+ * The default advertisement interval of the unprovisioned beacon. Meant for PB-GATT.
+ *
+ * @warning If the advertisement interval is set to below 200 ms, the mesh will not be able to
+ * allocate sufficiently large timeslots for its persistent backend from the SoftDevice.
+ */
+#ifndef NRF_MESH_PROV_BEARER_GATT_UNPROV_BEACON_INTERVAL_MS
+#define NRF_MESH_PROV_BEARER_GATT_UNPROV_BEACON_INTERVAL_MS 200
 #endif
 
 /** Size of the buffer for the outgoing packet buffer for PB-ADV. */

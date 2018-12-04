@@ -50,11 +50,44 @@
  */
 
 /**
- * Provisioning complete callback.
+ * Provisioning complete callback type.
  *
- * This function is called to indicate that the device has been successfully provisioned.
+ * This callback is called to indicate that the device has been successfully provisioned.
  */
 typedef void (*mesh_provisionee_prov_complete_cb_t)(void);
+
+/**
+ * Start device identification callback type.
+ *
+ * This callback is called to indicate that the device can start identifying itself
+ * using any means it can to attract attention.
+ *
+ * @note This callback is called every time when the device is asked to start identifying
+ * itself.
+ *
+ * @param[in]   attention_duration_s    Time in seconds during which the device identifies
+ *                                      itself using any means it can.
+ */
+typedef void (*mesh_provisionee_prov_device_identification_start)(uint8_t attention_duration_s);
+
+/**
+ * Stop device identification callback type.
+ *
+ * This callback is called to indicate that the device should stop identifying itself.
+ *
+ * @note This callback is called only once per provisioning process.
+ */
+typedef void (*mesh_provisionee_prov_device_identification_stop)(void);
+
+/**
+ * Provisioning abort callback type.
+ *
+ * This callback is called if the provisioning process is aborted.
+ *
+ * @note This callback can be used to stop the device from identifying itself if the provisioning process is aborted
+ *       before @ref mesh_provisionee_prov_device_identification_stop is called.
+ */
+typedef void (*mesh_provisionee_prov_abort)(void);
 
 /**
  * Mesh stack configuration parameters.
@@ -75,6 +108,24 @@ typedef struct
      *       See @ref CONFIG_SERVER_EVENTS.
      */
     mesh_provisionee_prov_complete_cb_t prov_complete_cb;
+
+    /**
+     * Pointer to a function used to signal the device to start identifying itself.
+     * Can be set to @c NULL if not used.
+     */
+    mesh_provisionee_prov_device_identification_start prov_device_identification_start_cb;
+
+    /**
+     * Pointer to a function used to signal the device to stop identifying itself.
+     * Can be set to @c NULL if not used.
+     */
+    mesh_provisionee_prov_device_identification_stop prov_device_identification_stop_cb;
+
+    /**
+     * Pointer to a function used to signal the abort of the device provisioning
+     * procedure. Can be set to @c NULL if not used.
+     */
+    mesh_provisionee_prov_abort prov_abort_cb;
 
     /**
      * NULL-terminated device URI string.

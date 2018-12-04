@@ -98,7 +98,7 @@
 
 #define NRF_MESH_SECTION_FOR_EACH(section_name, data_type, variable)                               \
     for (data_type * variable = (data_type *) NRF_MESH_SECTION_START(section_name);                \
-         variable != (data_type *) NRF_MESH_SECTION_END(section_name);                             \
+         (intptr_t) variable != (intptr_t) NRF_MESH_SECTION_END(section_name);                         \
          variable++)
 
 /** @} */

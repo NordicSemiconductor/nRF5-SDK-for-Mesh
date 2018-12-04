@@ -64,7 +64,7 @@
 #include "scanner_mock.h"
 #include "timeslot_mock.h"
 #include "advertiser_mock.h"
-#include "packet_mgr_mock.h"
+#include "mesh_mem_mock.h"
 #include "core_tx_adv_mock.h"
 #include "ad_listener_mock.h"
 #include "heartbeat_mock.h"
@@ -129,7 +129,7 @@ static void initialize_mesh(nrf_mesh_init_params_t * p_init_params)
     advertiser_init_Expect();
     mesh_flash_init_Expect();
     heartbeat_init_Expect();
-    packet_mgr_init_Expect(p_init_params);
+    mesh_mem_init_Expect();
     mesh_config_init_Expect();
     bearer_handler_init_Expect();
     core_tx_adv_init_Expect();
@@ -183,7 +183,7 @@ void setUp(void)
     scanner_mock_Init();
     timeslot_mock_Init();
     advertiser_mock_Init();
-    packet_mgr_mock_Init();
+    mesh_mem_mock_Init();
     core_tx_adv_mock_Init();
     ad_listener_mock_Init();
     heartbeat_mock_Init();
@@ -242,8 +242,8 @@ void tearDown(void)
     timeslot_mock_Destroy();
     advertiser_mock_Verify();
     advertiser_mock_Destroy();
-    packet_mgr_mock_Verify();
-    packet_mgr_mock_Destroy();
+    mesh_mem_mock_Verify();
+    mesh_mem_mock_Destroy();
     core_tx_adv_mock_Verify();
     core_tx_adv_mock_Destroy();
     ad_listener_mock_Verify();
@@ -278,12 +278,12 @@ void test_enable_disable(void)
     bearer_handler_start_ExpectAndReturn(NRF_SUCCESS);
     scanner_enable_Expect();
     network_enable_Expect();
+    bearer_event_start_Expect();
     TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_enable());
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, nrf_mesh_enable());
 
 
-    bearer_handler_stop_ExpectAndReturn(NRF_SUCCESS);
-    scanner_disable_Expect();
+    bearer_handler_stop_ExpectAnyArgsAndReturn(NRF_SUCCESS);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_disable());
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, nrf_mesh_disable());
 }

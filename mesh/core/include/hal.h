@@ -83,7 +83,12 @@
 /** First address outside the device flash */
 #define DEVICE_FLASH_END_GET()    (NRF_FICR->CODESIZE * NRF_FICR->CODEPAGESIZE)
 
-#if defined(NRF52832)
+#if defined(NRF52810)
+/** Timer to erase a single flash page. */
+#define FLASH_TIME_TO_ERASE_PAGE_US         (85000)
+/** Timer to write a single flash word. */
+#define FLASH_TIME_TO_WRITE_ONE_WORD_US     (41)
+#elif defined(NRF52832)
 /** Timer to erase a single flash page. */
 #define FLASH_TIME_TO_ERASE_PAGE_US         (89700)
 /** Timer to write a single flash word. */

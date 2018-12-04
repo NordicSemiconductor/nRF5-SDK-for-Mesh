@@ -1,0 +1,64 @@
+{
+    "__packet__": true,
+    "name": "friend_request",
+    "type": "absolute",
+    "module": "trs_control",
+    "packet_type": "packet_mesh_trs_control_packet_t",
+    "max_length": 10,
+    "fields": [
+        {
+            "name": "rfu",
+            "width":  1,
+            "doc": "reserved for future use",
+            "visible": false
+        },
+        {
+            "name": "rssi_factor",
+            "width":  2,
+            "doc": "contribution of the RSSI measured by the Friend node",
+            "visible": true
+        },
+        {
+            "name": "receive_window_factor",
+            "width":  2,
+            "doc": "contribution of the Receive Window",
+            "visible": true
+        },
+        {
+            "name": "min_queue_size_log",
+            "width":  3,
+            "doc": "minimum Queue Size of messages on the Friend node",
+            "visible": true
+        },
+        {
+            "name": "receive_delay",
+            "width":  8,
+            "doc": "receive delay requested by the Low Power node",
+            "visible": true
+        },
+        {
+            "name": "poll_timeout",
+            "width":  24,
+            "doc": "initial value of the Poll Timeout",
+            "visible": true
+        },
+        {
+            "name": "previous_address",
+            "width":  16,
+            "doc": "unicast address of the previous Friend node",
+            "visible": true
+        },
+        {
+            "name": "num_elements",
+            "width":  8,
+            "doc": "number of elements in the Low Power node",
+            "visible": true
+        },
+        {
+            "name": "lpn_counter",
+            "width":  16,
+            "doc": "number of Friend Request messages sent",
+            "visible": true
+        }
+    ]
+}

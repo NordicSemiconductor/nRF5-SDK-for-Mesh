@@ -51,6 +51,7 @@
 #define FILE_SIZE  PAGE_SIZE
 #define RECORD_ID  1
 #define ENTRY_SIZE 20
+#define ENTRIES  64
 
 typedef enum
 {
@@ -72,6 +73,12 @@ static mesh_config_backend_file_t m_file =
 };
 static uint8_t m_entry[ENTRY_SIZE];
 static event_stage_t m_event_stage;
+static struct
+{
+    fm_handle_t handle;
+    uint32_t data_size;
+} m_flash_manager_entries[ENTRIES];
+static uint32_t m_records_read_cb_count;
 
 static void backend_event(const mesh_config_backend_evt_t * p_evt)
 {
@@ -130,11 +137,44 @@ static uint32_t flash_manager_add_cb(flash_manager_t * p_manager, const flash_ma
     return NRF_SUCCESS;
 }
 
+static uint32_t flash_manager_entries_read_cb(const flash_manager_t * p_manager,
+                                          const fm_handle_filter_t * p_filter,
+                                          flash_manager_read_cb_t read_cb,
+                                          void * p_args,
+                                          int calls)
+{
+    TEST_ASSERT_NOT_NULL(p_manager);
+    TEST_ASSERT_NOT_NULL(read_cb);
+    TEST_ASSERT_NULL(p_filter);
+    for (uint32_t i = 0; i < ARRAY_SIZE(m_flash_manager_entries); ++i)
+    {
+        uint8_t buffer[FLASH_MANAGER_ENTRY_MAX_SIZE];
+        fm_entry_t * p_entry = (fm_entry_t *) &buffer[0];
+        p_entry->header.len_words = CEIL_DIV(m_flash_manager_entries[i].data_size + sizeof(fm_entry_t), WORD_SIZE);
+        p_entry->header.handle = m_flash_manager_entries[i].handle;
+        TEST_ASSERT_EQUAL(FM_ITERATE_ACTION_CONTINUE, read_cb(p_entry, p_args));
+    }
+    return ARRAY_SIZE(m_flash_manager_entries);
+}
+
+static mesh_config_backend_iterate_action_t records_read_cb(mesh_config_entry_id_t id,
+                                                            const uint8_t * p_entry,
+                                                            uint32_t entry_len)
+{
+    TEST_ASSERT_EQUAL(FILE_ID, id.file);
+    TEST_ASSERT_EQUAL(m_flash_manager_entries[m_records_read_cb_count].handle, id.record);
+    TEST_ASSERT_EQUAL(ALIGN_VAL(m_flash_manager_entries[m_records_read_cb_count].data_size, WORD_SIZE), entry_len);
+    TEST_ASSERT_NOT_NULL(p_entry);
+    m_records_read_cb_count++;
+    return MESH_CONFIG_BACKEND_ITERATE_ACTION_CONTINUE;
+}
+
 void setUp(void)
 {
     flash_manager_mock_Init();
     event_mock_Init();
     access_config_mock_Init();
+    m_records_read_cb_count = 0;
 
     for (uint8_t itr = 0; itr < sizeof(m_entry); itr++)
     {
@@ -187,9 +227,11 @@ void test_record_write(void)
 
 void test_record_erase(void)
 {
-    fm_entry_t entry;
-
-    flash_manager_entry_get_ExpectAndReturn(&m_file.glue_data.flash_manager, m_file.curr_pos, &entry);
+    fm_handle_filter_t filter = {
+        .mask = 0xffff,
+        .match = m_file.curr_pos,
+    };
+    flash_manager_entry_count_get_ExpectAndReturn(&m_file.glue_data.flash_manager, &filter, 1);
     flash_manager_entry_invalidate_ExpectAndReturn(&m_file.glue_data.flash_manager, m_file.curr_pos, NRF_SUCCESS);
     mesh_config_backend_record_erase(&m_file);
 }
@@ -208,47 +250,39 @@ void test_record_read(void)
         p_data[itr] = 2 * itr;
     }
 
-    flash_manager_entry_get_ExpectAndReturn(&m_file.glue_data.flash_manager, m_file.curr_pos, (fm_entry_t *)p_fm_entry);
-    TEST_ASSERT_TRUE(NRF_SUCCESS == mesh_config_backend_record_read(&m_file, m_entry, &length));
-    TEST_ASSERT_EQUAL_MEMORY(m_entry, ((fm_entry_t *)p_fm_entry)->data, sizeof(m_entry));
 
-    ((fm_entry_t *)p_fm_entry)->header.len_words = (2 * length + sizeof(fm_header_t)) / WORD_SIZE;
-    flash_manager_entry_get_ExpectAndReturn(&m_file.glue_data.flash_manager, m_file.curr_pos, (fm_entry_t *)p_fm_entry);
+
+    flash_manager_entry_read_ExpectAndReturn(&m_file.glue_data.flash_manager, m_file.curr_pos, NULL, &length, NRF_SUCCESS);
+    flash_manager_entry_read_IgnoreArg_p_data();
+    flash_manager_entry_read_ReturnMemThruPtr_p_data(p_data, length);
+    TEST_ASSERT_TRUE(NRF_SUCCESS == mesh_config_backend_record_read(&m_file, m_entry, &length));
+    TEST_ASSERT_EQUAL_MEMORY(m_entry, p_data, sizeof(m_entry));
+
+    /* Read out invalid length */
+    uint32_t new_length = 2 * length;
+    flash_manager_entry_read_ExpectAndReturn(&m_file.glue_data.flash_manager, m_file.curr_pos, NULL, &length, NRF_SUCCESS);
+    flash_manager_entry_read_IgnoreArg_p_data();
+    flash_manager_entry_read_ReturnThruPtr_p_length(&new_length);
     TEST_ASSERT_TRUE(NRF_ERROR_INVALID_LENGTH == mesh_config_backend_record_read(&m_file, m_entry, &length));
 
-    flash_manager_entry_get_ExpectAndReturn(&m_file.glue_data.flash_manager, m_file.curr_pos, NULL);
+    flash_manager_entry_read_ExpectAndReturn(&m_file.glue_data.flash_manager, m_file.curr_pos, NULL, &length, NRF_ERROR_NOT_FOUND);
+    flash_manager_entry_read_IgnoreArg_p_data();
     TEST_ASSERT_TRUE(NRF_ERROR_NOT_FOUND == mesh_config_backend_record_read(&m_file, m_entry, &length));
 
     free(p_fm_entry);
 }
 
-void test_record_iterate(void)
+void test_records_read(void)
 {
-    uint8_t * p_data;
-    uint32_t length;
-    mesh_config_backend_record_iterator_t iterator =
+    // setup the mock entries:
+    for (uint32_t i = 0; i < ARRAY_SIZE(m_flash_manager_entries); ++i)
     {
-        .iterator.p_entry = NULL
-    };
-
-    uint8_t * p_fm_entry = malloc(sizeof(fm_entry_t) + sizeof(m_entry));
-
-    ((fm_entry_t *)p_fm_entry)->header.handle = 1;
-    ((fm_entry_t *)p_fm_entry)->header.len_words = (sizeof(m_entry) + sizeof(fm_header_t)) / WORD_SIZE;
-    m_file.curr_pos = 0;
-    flash_manager_entry_next_get_ExpectAndReturn(&m_file.glue_data.flash_manager, NULL, NULL, (fm_entry_t *)p_fm_entry);
-    mesh_config_backend_record_iterate(&m_file, &p_data, &length, &iterator);
-    TEST_ASSERT_TRUE(iterator.iterator.p_entry == (fm_entry_t *)p_fm_entry);
-    TEST_ASSERT_TRUE(p_data == (uint8_t *)(iterator.iterator.p_entry->data));
-    TEST_ASSERT_TRUE(length == sizeof(m_entry));
-    TEST_ASSERT_TRUE(m_file.curr_pos == 1);
-
-    flash_manager_entry_next_get_ExpectAndReturn(&m_file.glue_data.flash_manager, NULL, iterator.iterator.p_entry, NULL);
-    mesh_config_backend_record_iterate(&m_file, &p_data, &length, &iterator);
-    TEST_ASSERT_TRUE(p_data == NULL);
-    TEST_ASSERT_TRUE(length == 0);
-
-    free(p_fm_entry);
+        m_flash_manager_entries[i].handle = i;
+        m_flash_manager_entries[i].data_size = (i % ENTRY_SIZE) + 1;
+    }
+    flash_manager_entries_read_StubWithCallback(flash_manager_entries_read_cb);
+    mesh_config_backend_records_read(&m_file, records_read_cb);
+    TEST_ASSERT_EQUAL(ARRAY_SIZE(m_flash_manager_entries), m_records_read_cb_count);
 }
 
 void test_flashman_glue_events(void)

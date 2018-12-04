@@ -40,10 +40,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "net_packet.h"
+#include "nrf_mesh_config_core.h"
 
 /**
- * @defgroup PROXY GATT Proxy server
+ * @defgroup PROXY GATT Proxy server (experimental)
  * Implements the GATT Proxy role.
+ *
  * @{
  */
 

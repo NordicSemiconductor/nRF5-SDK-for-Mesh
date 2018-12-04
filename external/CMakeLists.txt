@@ -1,4 +1,5 @@
 if (NOT BUILD_HOST)
     add_subdirectory("rtt")
     add_subdirectory("micro-ecc")
+    add_subdirectory("app_timer")
 endif ()

@@ -45,17 +45,17 @@
 
 #include "timeslot_mock.h"
 #include "queue_mock.h"
-#include "timer_mock.h"
+#include "timeslot_timer_mock.h"
 #include "scanner_mock.h"
 #include "nrf_mesh_cmsis_mock_mock.h"
 
 #define DEFAULT_ACTION {action_start_cb, action_radio_irq_handler, NULL, 1000, NULL, {NULL, NULL}}
 
 static void* mp_expected_args;
-static timestamp_t m_time_now;
+static ts_timestamp_t m_time_now;
 static uint32_t m_expected_start_calls;
 static uint32_t m_expected_radio_irq_calls;
-static bool m_end_action;
+static uint32_t m_expected_stop_cb;static bool m_end_action;
 static NRF_RADIO_Type m_radio;
 static NRF_TIMER_Type m_action_timer;
 static NRF_TIMER_Type m_timeslot_timer;
@@ -65,11 +65,12 @@ NRF_TIMER_Type * NRF_TIMER2 = &m_action_timer;
 NRF_TIMER_Type * NRF_TIMER0 = &m_timeslot_timer;
 NRF_PPI_Type * NRF_PPI = &m_ppi;
 
+
 void setUp(void)
 {
     timeslot_mock_Init();
     queue_mock_Init();
-    timer_mock_Init();
+    timeslot_timer_mock_Init();
     scanner_mock_Init();
     nrf_mesh_cmsis_mock_mock_Init();
 
@@ -78,11 +79,13 @@ void setUp(void)
     mp_expected_args = NULL;
     m_end_action = false;
 
+    timeslot_length_get_IgnoreAndReturn(TIMESLOT_MAX_LENGTH_US);
     NVIC_SetPriority_Expect(BEARER_ACTION_TIMER_IRQn, 0);
     queue_init_Expect(NULL);
     queue_init_IgnoreArg_p_queue();
     bearer_handler_init();
-    timeslot_trigger_Expect();
+    scanner_is_enabled_ExpectAndReturn(true);
+    timeslot_start_ExpectAndReturn(NRF_SUCCESS);
     bearer_handler_start();
 }
 
@@ -92,15 +95,15 @@ void tearDown(void)
     timeslot_mock_Destroy();
     queue_mock_Verify();
     queue_mock_Destroy();
-    timer_mock_Verify();
-    timer_mock_Destroy();
+    timeslot_timer_mock_Verify();
+    timeslot_timer_mock_Destroy();
     scanner_mock_Verify();
     scanner_mock_Destroy();
     nrf_mesh_cmsis_mock_mock_Verify();
     nrf_mesh_cmsis_mock_mock_Destroy();
 }
 
-static void action_start_cb(timestamp_t start_time, void* p_args)
+static void action_start_cb(ts_timestamp_t start_time, void* p_args)
 {
     TEST_ASSERT_EQUAL(m_time_now, start_time);
     TEST_ASSERT_EQUAL(mp_expected_args, p_args);
@@ -123,16 +126,60 @@ static void action_radio_irq_handler(void* p_args)
     }
 }
 
+static void stop_cb(void)
+{
+    TEST_ASSERT_NOT_EQUAL(0, m_expected_stop_cb);
+    m_expected_stop_cb--;
+}
+
+/**
+ * We have a separate test case for verifying the wakeup logic, so this convenience function mirrors
+ * the wakeup function in the module to keep the other test cases focused on what they should be testing.
+ *
+ * @param[in] in_ts Whether we're currently in a timeslot
+ * @param[in] scanner_enabled Whether the scanner is enabled
+ * @param[in,out] p_queued_action The action at the head of the action queue (or NULL if the queue is empty)
+ */
+static void m_wake_up_expect(bool in_ts, bool scanner_enabled, bearer_action_t * p_queued_action)
+{
+    scanner_is_enabled_ExpectAndReturn(scanner_enabled);
+    if (!scanner_enabled)
+    {
+        queue_peek_ExpectAnyArgsAndReturn(p_queued_action ? &p_queued_action->queue_elem : NULL);
+    }
+
+    if (scanner_enabled || p_queued_action != NULL)
+    {
+        if (in_ts)
+        {
+            timeslot_start_ExpectAndReturn(NRF_ERROR_BUSY);
+            timeslot_trigger_Expect();
+        }
+        else
+        {
+            timeslot_start_ExpectAndReturn(NRF_SUCCESS);
+        }
+    }
+}
+
+static void reset_state(void)
+{
+    NVIC_SetPriority_Expect(BEARER_ACTION_TIMER_IRQn, 0);
+    queue_init_Expect(NULL);
+    queue_init_IgnoreArg_p_queue();
+    bearer_handler_init();
+    m_wake_up_expect(false, true, NULL);
+    bearer_handler_start();
+}
+
 static void m_queue_peek_fail(void)
 {
-    queue_peek_ExpectAndReturn(NULL, NULL);
-    queue_peek_IgnoreArg_p_queue();
+    queue_peek_ExpectAnyArgsAndReturn(NULL);
 }
 
 static void m_timer_setup_expect(uint32_t start_time)
 {
-    timeslot_start_time_get_ExpectAndReturn(start_time - 10);
-    NRF_TIMER0->CC[2] = 10 + 1;
+    NRF_TIMER0->CC[2] = start_time + 1;
     NVIC_ClearPendingIRQ_Expect(BEARER_ACTION_TIMER_IRQn);
 }
 
@@ -146,6 +193,7 @@ static void m_scanner_start_expect(uint32_t start_time)
     timeslot_end_is_pending_ExpectAndReturn(false);
     m_queue_peek_fail();
     timeslot_remaining_time_get_ExpectAndReturn(1000);
+    scanner_is_enabled_ExpectAndReturn(true);
     m_radio_irq_clear_expect();
     m_timer_setup_expect(start_time);
     scanner_radio_start_Expect(start_time);
@@ -153,7 +201,7 @@ static void m_scanner_start_expect(uint32_t start_time)
 
 static void m_action_end_expect(void)
 {
-    timer_now_ExpectAndReturn(m_time_now);
+    ts_timer_now_ExpectAndReturn(m_time_now);
     timeslot_state_lock_Expect(false);
 }
 
@@ -172,10 +220,8 @@ static void m_action_pop_Expect(bearer_action_t * p_action, uint32_t action_dura
 {
     p_action->queue_elem.p_data = p_action;
     p_action->duration_us = action_duration;
-    queue_peek_ExpectAndReturn(NULL, &p_action->queue_elem);
-    queue_peek_IgnoreArg_p_queue();
-    queue_pop_ExpectAndReturn(NULL, &p_action->queue_elem);
-    queue_pop_IgnoreArg_p_queue();
+    queue_peek_ExpectAnyArgsAndReturn(&p_action->queue_elem);
+    queue_pop_ExpectAnyArgsAndReturn(&p_action->queue_elem);
 }
 
 static void m_action_start_expect(bearer_action_t * p_action, uint32_t start_time, uint32_t duration)
@@ -197,14 +243,14 @@ void test_enqueue_action(void)
 
     queue_push_Expect(NULL, &action[0].queue_elem);
     queue_push_IgnoreArg_p_queue();
-    timeslot_trigger_Expect();
+    m_wake_up_expect(true, false, &action[0]);
     TEST_ASSERT_EQUAL_HEX32(NRF_SUCCESS, bearer_handler_action_enqueue(&action[0]));
     TEST_ASSERT_EQUAL_PTR(&action[0], action[0].queue_elem.p_data);
 
     /* Push a second action to ensure this doesn't break it */
     queue_push_Expect(NULL, &action[1].queue_elem);
     queue_push_IgnoreArg_p_queue();
-    timeslot_trigger_Expect();
+    m_wake_up_expect(true, false, &action[0]);
     TEST_ASSERT_EQUAL_HEX32(NRF_SUCCESS, bearer_handler_action_enqueue(&action[1]));
 
     /* Push the already enqueued action, should detect that it's already enqueued. */
@@ -214,7 +260,7 @@ void test_enqueue_action(void)
     action[2].duration_us = BEARER_ACTION_DURATION_MAX_US;
     queue_push_Expect(NULL, &action[2].queue_elem);
     queue_push_IgnoreArg_p_queue();
-    timeslot_trigger_Expect();
+    m_wake_up_expect(true, false, &action[0]);
     TEST_ASSERT_EQUAL_HEX32(NRF_SUCCESS, bearer_handler_action_enqueue(&action[2]));
 
     /* Test asserts: */
@@ -243,6 +289,7 @@ void test_signal_handler(void)
     m_queue_peek_fail();
     timeslot_remaining_time_get_ExpectAndReturn(5000);
     timeslot_end_is_pending_ExpectAndReturn(false);
+    scanner_is_enabled_ExpectAndReturn(true);
 
     bearer_handler_timer_irq_handler();
     scanner_mock_Verify();
@@ -392,31 +439,25 @@ void test_fire_action(void)
 
     /* Successful fire: */
     m_queue_peek_fail();
-    timeslot_is_in_ts_ExpectAndReturn(true);
-    timeslot_remaining_time_get_ExpectAndReturn(10000);
     queue_push_Expect(NULL, &action[0].queue_elem);
     queue_push_IgnoreArg_p_queue();
-    timeslot_trigger_Expect();
+    m_wake_up_expect(true, false, &action[0]);
     TEST_ASSERT_EQUAL_HEX32(NRF_SUCCESS, bearer_handler_action_fire(&action[0]));
     TEST_ASSERT_EQUAL_PTR(&action[0], action[0].queue_elem.p_data);
     TEST_ASSERT_EQUAL_HEX32(NRF_ERROR_INVALID_STATE, bearer_handler_action_enqueue(&action[0]));
 
     /* Failed because an action is already enqueued: */
-    queue_peek_ExpectAndReturn(NULL, &action[0].queue_elem);
-    queue_peek_IgnoreArg_p_queue();
+    queue_peek_ExpectAnyArgsAndReturn(&action[0].queue_elem);
     TEST_ASSERT_EQUAL_HEX32(NRF_ERROR_BUSY, bearer_handler_action_fire(&action[1]));
 
 
-    /* Failed because we're not in a timeslot: */
+    /* Pass even though we're not in a timeslot:
+     * Start the timeslot. */
     m_queue_peek_fail();
-    timeslot_is_in_ts_ExpectAndReturn(false);
-    TEST_ASSERT_EQUAL_HEX32(NRF_ERROR_BUSY, bearer_handler_action_fire(&action[1]));
-
-    /* Failed because we don't have enough time left in the timeslot: */
-    m_queue_peek_fail();
-    timeslot_is_in_ts_ExpectAndReturn(true);
-    timeslot_remaining_time_get_ExpectAndReturn(action[1].duration_us - 1);
-    TEST_ASSERT_EQUAL_HEX32(NRF_ERROR_BUSY, bearer_handler_action_fire(&action[1]));
+    queue_push_Expect(NULL, &action[1].queue_elem);
+    queue_push_IgnoreArg_p_queue();
+    m_wake_up_expect(false, false, &action[1]);
+    TEST_ASSERT_EQUAL_HEX32(NRF_SUCCESS, bearer_handler_action_fire(&action[1]));
 
     /* Start an action */
     m_time_now = 1234;
@@ -429,8 +470,7 @@ void test_fire_action(void)
 
     /* Failed because an event is already running: */
     /* doesn't matter if our other checkers are called */
-    queue_peek_IgnoreAndReturn(&action[1].queue_elem);
-    timeslot_is_in_ts_IgnoreAndReturn(true);
+    queue_peek_ExpectAnyArgsAndReturn(&action[1].queue_elem);
     TEST_ASSERT_EQUAL_HEX32(NRF_ERROR_BUSY, bearer_handler_action_fire(&action[1]));
 
     /* Test asserts: */
@@ -460,13 +500,7 @@ void test_ts_start_end(void)
     m_scanner_start_expect(m_time_now);
     bearer_handler_on_ts_begin();
 
-    /* Reset state */
-    NVIC_SetPriority_Expect(BEARER_ACTION_TIMER_IRQn, 0);
-    queue_init_Expect(NULL);
-    queue_init_IgnoreArg_p_queue();
-    bearer_handler_init();
-    timeslot_trigger_Expect();
-    bearer_handler_start();
+    reset_state();
 
     /* Start action if any in queue */
     m_time_now = 2000;
@@ -511,6 +545,7 @@ void test_ts_start_end(void)
     TEST_ASSERT_EQUAL(1, NRF_TIMER2->TASKS_STOP);
     TEST_ASSERT_EQUAL(1, NRF_TIMER2->TASKS_CLEAR);
     TEST_ASSERT_EQUAL(0xFFFFFFFF, NRF_RADIO->INTENCLR);
+    TEST_ASSERT_EQUAL(1, NRF_TIMER2->TASKS_SHUTDOWN);
 
     /* Call end again, should cause another clearing */
     timeslot_is_in_cb_ExpectAndReturn(true);
@@ -540,6 +575,14 @@ void test_radio_irq(void)
     /* forward interrupt to scanner */
     timeslot_is_in_cb_ExpectAndReturn(true);
     scanner_radio_irq_handler_Expect();
+    scanner_is_enabled_ExpectAndReturn(true);
+    bearer_handler_radio_irq_handler();
+
+    /* Again, but disable the scanner in the radio IRQ: Should stop the timeslot */
+    timeslot_is_in_cb_ExpectAndReturn(true);
+    scanner_radio_irq_handler_Expect();
+    scanner_is_enabled_ExpectAndReturn(false); //!
+    timeslot_stop_Expect();
     bearer_handler_radio_irq_handler();
 
     /* Start an action */
@@ -565,4 +608,156 @@ void test_radio_irq(void)
     timeslot_is_in_cb_ExpectAndReturn(true);
     TEST_NRF_MESH_ASSERT_EXPECT(bearer_handler_radio_irq_handler());
     TEST_ASSERT_EQUAL(0, m_expected_radio_irq_calls);
+}
+
+void test_start_timeslot_when_ordering_action(void)
+{
+    bearer_action_t action[3];
+    m_setup_actions(action, 3);
+
+    /* First, test waking up from inactive timeslots */
+
+    /* Inactive timeslot, inactive scanner */
+    queue_push_Expect(NULL, &action[0].queue_elem);
+    queue_push_IgnoreArg_p_queue();
+    m_wake_up_expect(false, false, &action[0]);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, bearer_handler_action_enqueue(&action[0]));
+
+    /* Inactive timeslot, active scanner */
+    queue_push_Expect(NULL, &action[1].queue_elem);
+    queue_push_IgnoreArg_p_queue();
+    scanner_is_enabled_ExpectAndReturn(true);
+    timeslot_start_ExpectAndReturn(NRF_SUCCESS);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, bearer_handler_action_enqueue(&action[1]));
+
+    /* Fail timeslot start, should cause trigger. */
+    queue_push_Expect(NULL, &action[2].queue_elem);
+    queue_push_IgnoreArg_p_queue();
+    scanner_is_enabled_ExpectAndReturn(true);
+    timeslot_start_ExpectAndReturn(NRF_ERROR_BUSY);
+    timeslot_trigger_Expect();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, bearer_handler_action_enqueue(&action[2]));
+}
+
+void test_stop_timeslot_when_inactive(void)
+{
+    bearer_action_t action[1];
+    m_setup_actions(action, 1);
+
+    /* Order scanner when it's enabled when starting the timeslot */
+    timeslot_is_in_cb_ExpectAndReturn(true);
+    NVIC_EnableIRQ_Expect(BEARER_ACTION_TIMER_IRQn);
+    NVIC_EnableIRQ_Expect(RADIO_IRQn);
+    m_scanner_start_expect(m_time_now);
+    bearer_handler_on_ts_begin();
+
+    reset_state();
+
+    /* Stop timeslot if there's nothing to do when starting the timeslot */
+    timeslot_is_in_cb_ExpectAndReturn(true);
+    NVIC_EnableIRQ_Expect(BEARER_ACTION_TIMER_IRQn);
+    NVIC_EnableIRQ_Expect(RADIO_IRQn);
+    timeslot_end_is_pending_ExpectAndReturn(false);
+    m_queue_peek_fail();
+    timeslot_remaining_time_get_ExpectAndReturn(1000);
+    scanner_is_enabled_ExpectAndReturn(false);
+    timeslot_stop_Expect();
+    bearer_handler_on_ts_begin();
+
+    /* Get timer IRQ with no events and a disabled scanner, should stop the timeslot */
+    timeslot_is_in_cb_ExpectAndReturn(true);
+    timeslot_end_is_pending_ExpectAndReturn(false);
+    m_queue_peek_fail();
+    timeslot_remaining_time_get_ExpectAndReturn(1000);
+    scanner_is_enabled_ExpectAndReturn(false);
+    timeslot_stop_Expect();
+
+    bearer_handler_timer_irq_handler();
+
+    /* Get timer IRQ with no events and an enabled scanner, should start the scanner */
+    timeslot_is_in_cb_ExpectAndReturn(true);
+    m_scanner_start_expect(m_time_now);
+
+    bearer_handler_timer_irq_handler();
+
+    reset_state();
+
+    /* Stop timeslot on action end if scanner is inactive */
+
+    // Trigger signal handler to start the current action:
+    m_time_now = 1234;
+    timeslot_is_in_cb_ExpectAndReturn(true);
+    m_action_start_expect(&action[0], m_time_now, 1000);
+
+    bearer_handler_timer_irq_handler();
+    TEST_ASSERT_EQUAL(0, m_expected_start_calls);
+
+    // Ending the action should stop the timeslot
+    m_action_end_expect();
+    timeslot_is_in_cb_ExpectAndReturn(true);
+    timeslot_end_is_pending_ExpectAndReturn(false);
+    m_queue_peek_fail();
+    timeslot_remaining_time_get_ExpectAndReturn(1000);
+    scanner_is_enabled_ExpectAndReturn(false); // !
+    timeslot_stop_Expect();
+
+    bearer_handler_action_end();
+}
+
+void test_timeslot_restart(void)
+{
+    bearer_action_t action[2];
+    m_setup_actions(action, 2);
+
+    // There's a bug in cmock where it requires ignore-functions to run at least once...
+    timeslot_mock_Init();
+
+    /** Wake up with event in queue that is too long to fit in the current timeslot, should restart the ts with high priority */
+    action[0].duration_us = 90000;
+    action[0].queue_elem.p_data = &action[0];
+    timeslot_is_in_cb_ExpectAndReturn(true);
+    timeslot_end_is_pending_ExpectAndReturn(false);
+    queue_peek_ExpectAnyArgsAndReturn(&action[0].queue_elem);
+    timeslot_remaining_time_get_ExpectAndReturn(40000);
+    timeslot_length_get_ExpectAndReturn(50000);
+    timeslot_restart_Expect(TIMESLOT_PRIORITY_HIGH);
+
+    bearer_handler_timer_irq_handler();
+
+}
+
+void test_stop_callback(void)
+{
+    /* Should wait for active ts session to end before calling callback */
+    timeslot_session_is_active_ExpectAndReturn(true);
+    timeslot_trigger_Expect();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, bearer_handler_stop(stop_cb));
+
+    m_expected_stop_cb = 1;
+    bearer_handler_on_ts_session_closed();
+    TEST_ASSERT_EQUAL(0, m_expected_stop_cb);
+
+    /* Already stopped */
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, bearer_handler_stop(stop_cb));
+
+    /* start it again */
+    scanner_is_enabled_ExpectAndReturn(true);
+    timeslot_start_ExpectAndReturn(NRF_SUCCESS);
+    bearer_handler_start();
+
+    /* Should call cb immediately if there's nothing going on */
+    timeslot_session_is_active_ExpectAndReturn(false);
+    m_expected_stop_cb = 1;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, bearer_handler_stop(stop_cb));
+    TEST_ASSERT_EQUAL(0, m_expected_stop_cb);
+
+    /* start it again */
+    scanner_is_enabled_ExpectAndReturn(true);
+    timeslot_start_ExpectAndReturn(NRF_SUCCESS);
+    bearer_handler_start();
+
+    /* Should allow NULL-callback */
+    timeslot_session_is_active_ExpectAndReturn(false);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, bearer_handler_stop(NULL));
+
 }

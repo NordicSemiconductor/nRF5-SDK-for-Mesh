@@ -48,6 +48,7 @@
 #include "nrf_mesh_utils.h"
 #include "nordic_common.h"
 
+#include "log.h"
 
 /** Opcode Handlers */
 

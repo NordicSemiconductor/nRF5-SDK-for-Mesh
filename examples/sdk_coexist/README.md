@@ -1,4 +1,4 @@
-# Coexistence with nRF5 SDK
+# Coexistence examples
 @anchor coex-examples
 
 These examples show how the nRF5 SDK for Mesh can be added to a standard BLE project from the nRF5 SDK.

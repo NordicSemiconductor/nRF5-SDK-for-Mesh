@@ -69,21 +69,28 @@
 #include "mesh_flash.h"
 #include "scanner.h"
 #include "ad_listener.h"
-#include "packet_mgr.h"
+#include "mesh_mem.h"
 #include "core_tx_adv.h"
 #include "core_tx_instaburst.h"
+#include "core_tx_lpn.h"
 #include "instaburst_rx.h"
 #include "heartbeat.h"
 #include "prov_bearer_adv.h"
 #include "mesh_config.h"
 #include "mesh_opt.h"
 
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
 #include "proxy.h"
-#endif  /* GATT_PROXY */
+#endif  /* MESH_FEATURE_GATT_PROXY_ENABLED */
 
-static bool m_is_enabled;
-static bool m_is_initialized;
+static enum
+{
+    MESH_STATE_UNINITIALIZED, /**< Uninitialized state. */
+    MESH_STATE_INITIALIZED,   /**< Initialized, but never enabled. */
+    MESH_STATE_ENABLED,       /**< Enabled state. */
+    MESH_STATE_DISABLING,     /**< Disabling in progress. */
+    MESH_STATE_DISABLED,      /**< Disabled by user. */
+} m_mesh_state;
 static nrf_mesh_rx_cb_t m_rx_cb;
 
 /** Unique Tx token. */
@@ -258,9 +265,21 @@ static bool instaburst_packet_process_cb(void)
 }
 #endif
 
+static void bearer_stopped_cb(void)
+{
+    if (m_mesh_state == MESH_STATE_DISABLING)
+    {
+        m_mesh_state = MESH_STATE_DISABLED;
+        const nrf_mesh_evt_t disabled = {
+            .type = NRF_MESH_EVT_DISABLED,
+        };
+        event_handle(&disabled);
+    }
+}
+
 uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
 {
-    if (m_is_initialized)
+    if (m_mesh_state != MESH_STATE_UNINITIALIZED)
     {
         return NRF_ERROR_INVALID_STATE;
     }
@@ -276,6 +295,8 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
     {
         return NRF_ERROR_INVALID_PARAM;
     }
+
+    mesh_mem_init();
 
     if (p_init_params->p_uuid != NULL)
     {
@@ -340,10 +361,12 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
 #else
     core_tx_adv_init();
 #endif
+#if MESH_FEATURE_LPN_ENABLED
+    core_tx_lpn_init();
+#endif
     network_init(p_init_params);
     transport_init(p_init_params);
     heartbeat_init();
-    packet_mgr_init(p_init_params);
 
 #if !defined(HOST)
     status = nrf_mesh_dfu_init();
@@ -356,78 +379,70 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
     (void) ad_listener_subscribe(&m_nrf_mesh_listener);
 
     m_rx_cb = NULL;
-    m_is_initialized = true;
+    m_mesh_state = MESH_STATE_INITIALIZED;
 
     return NRF_SUCCESS;
 }
 
 uint32_t nrf_mesh_enable(void)
 {
-    if (!m_is_initialized || m_is_enabled)
+    uint32_t status = NRF_ERROR_INVALID_STATE;
+    switch (m_mesh_state)
     {
-        return NRF_ERROR_INVALID_STATE;
-    }
-    else
-    {
-#if !defined(HOST)
-        NRF_MESH_ASSERT(timeslot_start() == NRF_SUCCESS);
+        case MESH_STATE_INITIALIZED:
+#if !MESH_FEATURE_LPN_ENABLED
+            scanner_enable();
 #endif
-        uint32_t status = bearer_handler_start();
-        if (status != NRF_SUCCESS)
-        {
-            return status;
-        }
-
-        scanner_enable();
-        network_enable();
+            network_enable();
 
 #if EXPERIMENTAL_INSTABURST_ENABLED
-        instaburst_rx_enable();
+            instaburst_rx_enable();
 #endif
 
 #if !defined(HOST)
-        status = nrf_mesh_dfu_enable();
-        if ((status != NRF_SUCCESS) && (status != NRF_ERROR_NOT_SUPPORTED))
-        {
-            __LOG(LOG_SRC_APP, LOG_LEVEL_WARN, "nrf_mesh_dfu_enable() failed [0x%X]\n",status);
-            return status;
-        }
+            status = nrf_mesh_dfu_enable();
+            if ((status != NRF_SUCCESS) && (status != NRF_ERROR_NOT_SUPPORTED))
+            {
+                __LOG(LOG_SRC_APP, LOG_LEVEL_WARN, "nrf_mesh_dfu_enable() failed [0x%X]\n",status);
+                return status;
+            }
 #endif
-
-        m_is_enabled = true;
-        return NRF_SUCCESS;
+            bearer_event_start();
+            /* fallthrough */
+        case MESH_STATE_DISABLED:
+        case MESH_STATE_DISABLING:
+            status = bearer_handler_start();
+            break;
+        default:
+            return NRF_ERROR_INVALID_STATE;
     }
+
+    if (status == NRF_SUCCESS)
+    {
+        m_mesh_state = MESH_STATE_ENABLED;
+    }
+    return status;
 }
 
 uint32_t nrf_mesh_disable(void)
 {
-    if (!m_is_enabled)
+    if (m_mesh_state != MESH_STATE_ENABLED)
     {
         return NRF_ERROR_INVALID_STATE;
     }
-    else
-    {
-        uint32_t status = bearer_handler_stop();
-        if (status != NRF_SUCCESS)
-        {
-            return status;
-        }
 
-        scanner_disable();
+    m_mesh_state = MESH_STATE_DISABLING;
+    /* This module owns the bearer handler start/stop process, and should never have called
+     * bearer_handler_stop if it was in an invalid state. The bearer handler will call our callback
+     * once it has been stopped (may be inline). */
+    NRF_MESH_ERROR_CHECK(bearer_handler_stop(bearer_stopped_cb));
 
-#if !defined(HOST)
-        timeslot_stop();
-#endif
-
-        m_is_enabled = false;
-        return NRF_SUCCESS;
-    }
+    return NRF_SUCCESS;
 }
 
 uint32_t nrf_mesh_packet_send(const nrf_mesh_tx_params_t * p_params,
                               uint32_t * const p_packet_reference)
 {
-    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG3, "%s\n",__func__);
     return transport_tx(p_params, p_packet_reference);
 }
 
@@ -464,7 +479,7 @@ void nrf_mesh_rx_cb_clear(void)
 
 void nrf_mesh_subnet_added(uint16_t net_key_index, const uint8_t * p_network_id)
 {
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
     proxy_subnet_added(net_key_index, p_network_id);
 #endif
 }

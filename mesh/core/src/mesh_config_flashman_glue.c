@@ -43,6 +43,12 @@
 #include "event.h"
 #include "utils.h"
 
+typedef struct
+{
+    mesh_config_backend_iterate_cb_t callback;
+    mesh_config_backend_file_t * p_file;
+} record_iterator_context_t;
+
 extern const void * access_flash_area_get(void);
 
 #define FLASH_TIME_PER_WORD_US        FLASH_TIME_TO_WRITE_ONE_WORD_US
@@ -64,6 +70,20 @@ static void flash_stable_cb(void)
     memset(&evt, 0, sizeof(nrf_mesh_evt_t));
     evt.type = NRF_MESH_EVT_FLASH_STABLE;
     event_handle(&evt);
+}
+
+static fm_iterate_action_t entry_read_cb(const fm_entry_t * p_entry, void * p_args)
+{
+    static const fm_iterate_action_t action_map[] = {
+        [MESH_CONFIG_BACKEND_ITERATE_ACTION_STOP] = FM_ITERATE_ACTION_STOP,
+        [MESH_CONFIG_BACKEND_ITERATE_ACTION_CONTINUE] = FM_ITERATE_ACTION_CONTINUE,
+    };
+    record_iterator_context_t * p_context = p_args;
+    p_context->p_file->curr_pos           = p_entry->header.handle;
+    mesh_config_entry_id_t id = MESH_CONFIG_ENTRY_ID(p_context->p_file->file_id, p_entry->header.handle);
+    uint32_t data_len = p_entry->header.len_words * WORD_SIZE - sizeof(fm_header_t);
+
+    return action_map[p_context->callback(id, (const uint8_t *) p_entry->data, data_len)];
 }
 
 static void write_complete_cb(const flash_manager_t * p_manager,
@@ -152,9 +172,11 @@ uint32_t mesh_config_backend_record_write(mesh_config_backend_file_t * p_file, c
 
 uint32_t mesh_config_backend_record_erase(mesh_config_backend_file_t * p_file)
 {
-    const fm_entry_t * p_entry = flash_manager_entry_get(&p_file->glue_data.flash_manager, p_file->curr_pos);
-
-    if (p_entry == NULL)
+    const fm_handle_filter_t filter = {
+        .mask = 0xffff,
+        .match = p_file->curr_pos,
+    };
+    if (flash_manager_entry_count_get(&p_file->glue_data.flash_manager, &filter) == 0)
     {
         return NRF_ERROR_NOT_FOUND;
     }
@@ -164,48 +186,32 @@ uint32_t mesh_config_backend_record_erase(mesh_config_backend_file_t * p_file)
 
 uint32_t mesh_config_backend_record_read(mesh_config_backend_file_t * p_file, uint8_t * p_data, uint32_t * p_length)
 {
-    const fm_entry_t * p_entry = flash_manager_entry_get(&p_file->glue_data.flash_manager, p_file->curr_pos);
+    uint32_t length = *p_length;
+    uint32_t status = flash_manager_entry_read(&p_file->glue_data.flash_manager, p_file->curr_pos, p_data, &length);
 
-    if (p_entry == NULL)
+    if (status != NRF_SUCCESS)
     {
         return NRF_ERROR_NOT_FOUND;
     }
 
-    uint32_t entry_byte_length = p_entry->header.len_words * WORD_SIZE - sizeof(fm_header_t);
-
-    if (*p_length < entry_byte_length)
+    if (length != ALIGN_VAL(*p_length, WORD_SIZE))
     {
-        *p_length = entry_byte_length;
+        *p_length = length;
         return NRF_ERROR_INVALID_LENGTH;
     }
-    else
-    {
-        *p_length = entry_byte_length;
-        memcpy(p_data, p_entry->data, *p_length);
-        return NRF_SUCCESS;
-    }
+    return NRF_SUCCESS;
 }
 
-void mesh_config_backend_record_iterate(mesh_config_backend_file_t * p_file,
-                                        uint8_t ** pp_data,
-                                        uint32_t * p_length,
-                                        mesh_config_backend_record_iterator_t * p_iter)
+void mesh_config_backend_records_read(mesh_config_backend_file_t * p_file,
+                                      mesh_config_backend_iterate_cb_t callback)
 {
-    p_iter->iterator.p_entry = (fm_entry_t *)flash_manager_entry_next_get(&p_file->glue_data.flash_manager,
-                                                                          NULL,
-                                                                          p_iter->iterator.p_entry);
-
-    if (NULL == p_iter->iterator.p_entry)
-    {
-        *pp_data = NULL;
-        *p_length = 0;
-    }
-    else
-    {
-        p_file->curr_pos = p_iter->iterator.p_entry->header.handle;
-        *pp_data = (uint8_t *)p_iter->iterator.p_entry->data;
-        *p_length = p_iter->iterator.p_entry->header.len_words * WORD_SIZE - sizeof(fm_header_t);
-    }
+    NRF_MESH_ASSERT(p_file != NULL);
+    NRF_MESH_ASSERT(callback != NULL);
+    record_iterator_context_t context = {
+        .callback = callback,
+        .p_file = p_file,
+    };
+    (void) flash_manager_entries_read(&p_file->glue_data.flash_manager, NULL, entry_read_cb, &context);
 }
 
 uint16_t mesh_config_record_size_calculate(uint16_t entry_size)

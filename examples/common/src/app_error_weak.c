@@ -35,6 +35,7 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "nrf.h"
 #include "app_error.h"
 #include "log.h"
 #include "mesh_app_utils.h"
@@ -51,6 +52,14 @@
                                                                                  PREGION[0], on whose address range the disallowed write access caused the
                                                                                  memory access fault. */
 
+#if defined(__GNUC__)
+#define REG_MAGIC_WORD_WRITE() do {__ASM volatile ("MOV R12, #0xDEAD\n"); } while (0)
+#elif defined(__CC_ARM)
+/* Not supported on ARMCC:
+ * http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.kui0097a/armcc_cihccdja.htm
+ */
+#endif
+
 
 static inline void sleep_forever(void)
 {
@@ -61,6 +70,9 @@ static inline void sleep_forever(void)
     /*lint -save -e438 -e550 Unsused variable irqs_masked */
     uint32_t irqs_masked __attribute__((unused));
     _DISABLE_IRQS(irqs_masked);
+#if defined(__GNUC__)
+    REG_MAGIC_WORD_WRITE();
+#endif
 
     /* NOTE: Using a volatile variable to avoid armcc removing infinite loop with no side-effect */
     static volatile bool wait = true;
@@ -89,6 +101,7 @@ __WEAK void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
         case NRF_FAULT_ID_SDK_ASSERT:
         {
             assert_info_t * p_info = (assert_info_t *)info;
+            UNUSED_VARIABLE(p_info);
             __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Mesh assert at 0x%08x (%s:%u)\n",
                                                 pc,
                                                 p_info->p_file_name,
@@ -98,6 +111,7 @@ __WEAK void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
         case NRF_FAULT_ID_SDK_ERROR:
         {
             error_info_t * p_info = (error_info_t *)info;
+            UNUSED_VARIABLE(p_info);
             __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Mesh error %u at 0x%08x (%s:%u)\n",
                                                 p_info->err_code,
                                                 pc,

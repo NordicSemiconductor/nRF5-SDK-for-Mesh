@@ -47,6 +47,78 @@
  */
 
 
+#define PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_ADDRESS0_OFFSET   (0)       /**< Offset to the trs_control_friend_clear_lpn_address field (0).*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_ADDRESS1_OFFSET   (1)       /**< Offset to the trs_control_friend_clear_lpn_address field (1).*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_COUNTER0_OFFSET   (2)       /**< Offset to the trs_control_friend_clear_lpn_counter field (0).*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_COUNTER1_OFFSET   (3)       /**< Offset to the trs_control_friend_clear_lpn_counter field (1).*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_ADDRESS0_OFFSET   (0)       /**< Offset to the trs_control_friend_clear_confirm_lpn_address field (0).*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_ADDRESS1_OFFSET   (1)       /**< Offset to the trs_control_friend_clear_confirm_lpn_address field (1).*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_COUNTER0_OFFSET   (2)       /**< Offset to the trs_control_friend_clear_confirm_lpn_counter field (0).*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_COUNTER1_OFFSET   (3)       /**< Offset to the trs_control_friend_clear_confirm_lpn_counter field (1).*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_RECEIVE_WINDOW_OFFSET   (0)       /**< Offset to the trs_control_friend_offer_receive_window field.*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_QUEUE_SIZE_OFFSET   (1)       /**< Offset to the trs_control_friend_offer_queue_size field.*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_SUBSCRIPTION_LIST_SIZE_OFFSET   (2)       /**< Offset to the trs_control_friend_offer_subscription_list_size field.*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_RSSI_OFFSET   (3)       /**< Offset to the trs_control_friend_offer_rssi field.*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_FRIEND_COUNTER0_OFFSET   (4)       /**< Offset to the trs_control_friend_offer_friend_counter field (0).*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_FRIEND_COUNTER1_OFFSET   (5)       /**< Offset to the trs_control_friend_offer_friend_counter field (1).*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_POLL_FSN_OFFSET   (0)       /**< Offset to the trs_control_friend_poll_fsn field.*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_POLL_FSN_MASK     (0x01)    /**< Mask for trs_control_friend_poll_fsn field. */
+#define PACKET_MESH_TRS_CONTROL_FRIEND_POLL_FSN_MASK_INV (0xFE)    /**< Inverse mask for trs_control_friend_poll_fsn field. */
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RSSI_FACTOR_OFFSET   (0)       /**< Offset to the trs_control_friend_request_rssi_factor field.*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RSSI_FACTOR_MASK     (0x60)    /**< Mask for trs_control_friend_request_rssi_factor field. */
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RSSI_FACTOR_MASK_INV (0x9F)    /**< Inverse mask for trs_control_friend_request_rssi_factor field. */
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RECEIVE_WINDOW_FACTOR_OFFSET   (0)       /**< Offset to the trs_control_friend_request_receive_window_factor field.*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RECEIVE_WINDOW_FACTOR_MASK     (0x18)    /**< Mask for trs_control_friend_request_receive_window_factor field. */
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RECEIVE_WINDOW_FACTOR_MASK_INV (0xE7)    /**< Inverse mask for trs_control_friend_request_receive_window_factor field. */
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_MIN_QUEUE_SIZE_LOG_OFFSET   (0)       /**< Offset to the trs_control_friend_request_min_queue_size_log field.*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_MIN_QUEUE_SIZE_LOG_MASK     (0x07)    /**< Mask for trs_control_friend_request_min_queue_size_log field. */
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_MIN_QUEUE_SIZE_LOG_MASK_INV (0xF8)    /**< Inverse mask for trs_control_friend_request_min_queue_size_log field. */
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RECEIVE_DELAY_OFFSET   (1)       /**< Offset to the trs_control_friend_request_receive_delay field.*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_POLL_TIMEOUT0_OFFSET   (2)       /**< Offset to the trs_control_friend_request_poll_timeout field (0).*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_POLL_TIMEOUT1_OFFSET   (3)       /**< Offset to the trs_control_friend_request_poll_timeout field (1).*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_POLL_TIMEOUT2_OFFSET   (4)       /**< Offset to the trs_control_friend_request_poll_timeout field (2).*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_PREVIOUS_ADDRESS0_OFFSET   (5)       /**< Offset to the trs_control_friend_request_previous_address field (0).*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_PREVIOUS_ADDRESS1_OFFSET   (6)       /**< Offset to the trs_control_friend_request_previous_address field (1).*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_NUM_ELEMENTS_OFFSET   (7)       /**< Offset to the trs_control_friend_request_num_elements field.*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_LPN_COUNTER0_OFFSET   (8)       /**< Offset to the trs_control_friend_request_lpn_counter field (0).*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_LPN_COUNTER1_OFFSET   (9)       /**< Offset to the trs_control_friend_request_lpn_counter field (1).*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_TRANSACTION_NUMBER_OFFSET   (0)       /**< Offset to the trs_control_friend_sublist_add_remove_transaction_number field.*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_CONFIRM_TRANSACTION_NUMBER_OFFSET   (0)       /**< Offset to the trs_control_friend_sublist_confirm_transaction_number field.*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_UPDATE_FLAG_OFFSET   (0)       /**< Offset to the trs_control_friend_update_iv_update_flag field.*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_UPDATE_FLAG_MASK     (0x02)    /**< Mask for trs_control_friend_update_iv_update_flag field. */
+#define PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_UPDATE_FLAG_MASK_INV (0xFD)    /**< Inverse mask for trs_control_friend_update_iv_update_flag field. */
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_KEY_REFRESH_FLAG_OFFSET   (0)       /**< Offset to the trs_control_friend_update_key_refresh_flag field.*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_KEY_REFRESH_FLAG_MASK     (0x01)    /**< Mask for trs_control_friend_update_key_refresh_flag field. */
+#define PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_KEY_REFRESH_FLAG_MASK_INV (0xFE)    /**< Inverse mask for trs_control_friend_update_key_refresh_flag field. */
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX0_OFFSET   (1)       /**< Offset to the trs_control_friend_update_iv_index field (0).*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX1_OFFSET   (2)       /**< Offset to the trs_control_friend_update_iv_index field (1).*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX2_OFFSET   (3)       /**< Offset to the trs_control_friend_update_iv_index field (2).*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX3_OFFSET   (4)       /**< Offset to the trs_control_friend_update_iv_index field (3).*/
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_MD_OFFSET   (5)       /**< Offset to the trs_control_friend_update_md field.*/
+
 #define PACKET_MESH_TRS_CONTROL_HEARTBEAT_INIT_TTL_OFFSET   (0)       /**< Offset to the trs_control_heartbeat_init_ttl field.*/
 #define PACKET_MESH_TRS_CONTROL_HEARTBEAT_INIT_TTL_MASK     (0x7F)    /**< Mask for trs_control_heartbeat_init_ttl field. */
 #define PACKET_MESH_TRS_CONTROL_HEARTBEAT_INIT_TTL_MASK_INV (0x80)    /**< Inverse mask for trs_control_heartbeat_init_ttl field. */
@@ -134,6 +206,22 @@
 #define PACKET_MESH_TRS_SEG_SEGN_MASK     (0x1F)    /**< Mask for trs_seg_segn field. */
 #define PACKET_MESH_TRS_SEG_SEGN_MASK_INV (0xE0)    /**< Inverse mask for trs_seg_segn field. */
 
+#define PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_SIZE (4) /**< Size of trs control friend clear packet. */
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_SIZE (4) /**< Size of trs control friend clear confirm packet. */
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_SIZE (6) /**< Size of trs control friend offer packet. */
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_POLL_SIZE (1) /**< Size of trs control friend poll packet. */
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_SIZE (10) /**< Size of trs control friend request packet. */
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_SIZE (11) /**< Size of trs control friend sublist add remove packet. */
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_CONFIRM_SIZE (1) /**< Size of trs control friend sublist confirm packet. */
+
+#define PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_SIZE (6) /**< Size of trs control friend update packet. */
+
 #define PACKET_MESH_TRS_CONTROL_HEARTBEAT_SIZE (3) /**< Size of trs control heartbeat packet. */
 
 #define PACKET_MESH_NET_PDU_OFFSET (9) /**< Offset of net packet PDU. */
@@ -157,7 +245,7 @@
 #define PACKET_MESH_TRS_UNSEG_ACCESS_MAX_SIZE (16) /**< Max size of an unsegmented transport access message. */
 #define PACKET_MESH_TRS_UNSEG_CONTROL_PDU_MAX_SIZE (11) /**< Max PDU size of an unsegmented transport control message. */
 #define PACKET_MESH_TRS_UNSEG_CONTROL_MAX_SIZE (12) /**< Max size of an unsegmented transport control message. */
-#define PACKET_MESH_TRS_UNSEG_PDU_OFFSET (1) /**< Offset of trs unseg packet PDU. */
+#define PACKET_MESH_TRS_UNSEG_PDU_OFFSET (1) /**< Offset of trs unseg packet PDU. */ 
 
 /**
  * Packet type for net packet.
@@ -180,8 +268,8 @@ typedef struct
  */
 typedef struct
 {
-    uint8_t pdu[6];
-} packet_mesh_trs_control_packet_t;
+    uint8_t pdu[11];
+} packet_mesh_trs_control_packet_t; 
 
 /**
  * Gets the net payload pointer.
@@ -213,6 +301,516 @@ static inline const uint8_t * packet_mesh_trs_unseg_payload_get(const packet_mes
     return &p_pkt->pdu[PACKET_MESH_TRS_UNSEG_PDU_OFFSET];
 }
 /**
+ * Gets the the unicast address of the Low Power node being removed.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the the unicast address of the Low Power node being removed.
+ */
+static inline uint16_t packet_mesh_trs_control_friend_clear_lpn_address_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_ADDRESS0_OFFSET] << 8) | 
+            p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_ADDRESS1_OFFSET]);
+}
+
+/**
+ * Sets the the unicast address of the Low Power node being removed.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the the unicast address of the Low Power node being removed.
+ */
+static inline void packet_mesh_trs_control_friend_clear_lpn_address_set(packet_mesh_trs_control_packet_t * p_pkt, uint16_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_ADDRESS0_OFFSET] = (val >> 8) & 0xFF;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_ADDRESS1_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the LPN Counter of new relationship.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the LPN Counter of new relationship.
+ */
+static inline uint16_t packet_mesh_trs_control_friend_clear_lpn_counter_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_COUNTER0_OFFSET] << 8) | 
+            p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_COUNTER1_OFFSET]);
+}
+
+/**
+ * Sets the LPN Counter of new relationship.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the LPN Counter of new relationship.
+ */
+static inline void packet_mesh_trs_control_friend_clear_lpn_counter_set(packet_mesh_trs_control_packet_t * p_pkt, uint16_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_COUNTER0_OFFSET] = (val >> 8) & 0xFF;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_COUNTER1_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the the unicast address of the Low Power node being removed.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the the unicast address of the Low Power node being removed.
+ */
+static inline uint16_t packet_mesh_trs_control_friend_clear_confirm_lpn_address_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_ADDRESS0_OFFSET] << 8) | 
+            p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_ADDRESS1_OFFSET]);
+}
+
+/**
+ * Sets the the unicast address of the Low Power node being removed.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the the unicast address of the Low Power node being removed.
+ */
+static inline void packet_mesh_trs_control_friend_clear_confirm_lpn_address_set(packet_mesh_trs_control_packet_t * p_pkt, uint16_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_ADDRESS0_OFFSET] = (val >> 8) & 0xFF;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_ADDRESS1_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the LPN Counter of the corresponding Friend Clear message.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the LPN Counter of the corresponding Friend Clear message.
+ */
+static inline uint16_t packet_mesh_trs_control_friend_clear_confirm_lpn_counter_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_COUNTER0_OFFSET] << 8) | 
+            p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_COUNTER1_OFFSET]);
+}
+
+/**
+ * Sets the LPN Counter of the corresponding Friend Clear message.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the LPN Counter of the corresponding Friend Clear message.
+ */
+static inline void packet_mesh_trs_control_friend_clear_confirm_lpn_counter_set(packet_mesh_trs_control_packet_t * p_pkt, uint16_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_COUNTER0_OFFSET] = (val >> 8) & 0xFF;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_COUNTER1_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the Receive Window supported by the Friend node.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the Receive Window supported by the Friend node.
+ */
+static inline uint8_t packet_mesh_trs_control_friend_offer_receive_window_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_RECEIVE_WINDOW_OFFSET];
+}
+
+/**
+ * Sets the Receive Window supported by the Friend node.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the Receive Window supported by the Friend node.
+ */
+static inline void packet_mesh_trs_control_friend_offer_receive_window_set(packet_mesh_trs_control_packet_t * p_pkt, uint8_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_RECEIVE_WINDOW_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the Queue Size available on the Friend node.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the Queue Size available on the Friend node.
+ */
+static inline uint8_t packet_mesh_trs_control_friend_offer_queue_size_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_QUEUE_SIZE_OFFSET];
+}
+
+/**
+ * Sets the Queue Size available on the Friend node.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the Queue Size available on the Friend node.
+ */
+static inline void packet_mesh_trs_control_friend_offer_queue_size_set(packet_mesh_trs_control_packet_t * p_pkt, uint8_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_QUEUE_SIZE_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the size of the Subscription List supported by the Friend node for the Low Power node.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the size of the Subscription List supported by the Friend node for the Low Power node.
+ */
+static inline uint8_t packet_mesh_trs_control_friend_offer_subscription_list_size_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_SUBSCRIPTION_LIST_SIZE_OFFSET];
+}
+
+/**
+ * Sets the size of the Subscription List supported by the Friend node for the Low Power node.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the size of the Subscription List supported by the Friend node for the Low Power node.
+ */
+static inline void packet_mesh_trs_control_friend_offer_subscription_list_size_set(packet_mesh_trs_control_packet_t * p_pkt, uint8_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_SUBSCRIPTION_LIST_SIZE_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the RSSI measured by the Friend node.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the RSSI measured by the Friend node.
+ */
+static inline uint8_t packet_mesh_trs_control_friend_offer_rssi_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_RSSI_OFFSET];
+}
+
+/**
+ * Sets the RSSI measured by the Friend node.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the RSSI measured by the Friend node.
+ */
+static inline void packet_mesh_trs_control_friend_offer_rssi_set(packet_mesh_trs_control_packet_t * p_pkt, uint8_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_RSSI_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the number of sent Friend Offer messages.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the number of sent Friend Offer messages.
+ */
+static inline uint16_t packet_mesh_trs_control_friend_offer_friend_counter_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_FRIEND_COUNTER0_OFFSET] << 8) | 
+            p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_FRIEND_COUNTER1_OFFSET]);
+}
+
+/**
+ * Sets the number of sent Friend Offer messages.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the number of sent Friend Offer messages.
+ */
+static inline void packet_mesh_trs_control_friend_offer_friend_counter_set(packet_mesh_trs_control_packet_t * p_pkt, uint16_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_FRIEND_COUNTER0_OFFSET] = (val >> 8) & 0xFF;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_FRIEND_COUNTER1_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the Friend Sequence Number.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the Friend Sequence Number.
+ */
+static inline uint8_t packet_mesh_trs_control_friend_poll_fsn_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_POLL_FSN_OFFSET] & PACKET_MESH_TRS_CONTROL_FRIEND_POLL_FSN_MASK) > 0);
+}
+
+/**
+ * Sets the Friend Sequence Number.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the Friend Sequence Number.
+ */
+static inline void packet_mesh_trs_control_friend_poll_fsn_set(packet_mesh_trs_control_packet_t * p_pkt, uint8_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_POLL_FSN_OFFSET] &= PACKET_MESH_TRS_CONTROL_FRIEND_POLL_FSN_MASK_INV;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_POLL_FSN_OFFSET] |= (val & PACKET_MESH_TRS_CONTROL_FRIEND_POLL_FSN_MASK);
+}
+
+/**
+ * Gets the contribution of the RSSI measured by the Friend node.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the contribution of the RSSI measured by the Friend node.
+ */
+static inline uint8_t packet_mesh_trs_control_friend_request_rssi_factor_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RSSI_FACTOR_OFFSET] & PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RSSI_FACTOR_MASK)>> 5 );
+}
+
+/**
+ * Sets the contribution of the RSSI measured by the Friend node.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the contribution of the RSSI measured by the Friend node.
+ */
+static inline void packet_mesh_trs_control_friend_request_rssi_factor_set(packet_mesh_trs_control_packet_t * p_pkt, uint8_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RSSI_FACTOR_OFFSET] &= PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RSSI_FACTOR_MASK_INV;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RSSI_FACTOR_OFFSET] |= (val << 5) & PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RSSI_FACTOR_MASK;
+}
+
+/**
+ * Gets the contribution of the Receive Window.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the contribution of the Receive Window.
+ */
+static inline uint8_t packet_mesh_trs_control_friend_request_receive_window_factor_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RECEIVE_WINDOW_FACTOR_OFFSET] & PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RECEIVE_WINDOW_FACTOR_MASK)>> 3 );
+}
+
+/**
+ * Sets the contribution of the Receive Window.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the contribution of the Receive Window.
+ */
+static inline void packet_mesh_trs_control_friend_request_receive_window_factor_set(packet_mesh_trs_control_packet_t * p_pkt, uint8_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RECEIVE_WINDOW_FACTOR_OFFSET] &= PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RECEIVE_WINDOW_FACTOR_MASK_INV;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RECEIVE_WINDOW_FACTOR_OFFSET] |= (val << 3) & PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RECEIVE_WINDOW_FACTOR_MASK;
+}
+
+/**
+ * Gets the minimum Queue Size of messages on the Friend node.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the minimum Queue Size of messages on the Friend node.
+ */
+static inline uint8_t packet_mesh_trs_control_friend_request_min_queue_size_log_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return (p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_MIN_QUEUE_SIZE_LOG_OFFSET] & PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_MIN_QUEUE_SIZE_LOG_MASK);
+}
+
+/**
+ * Sets the minimum Queue Size of messages on the Friend node.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the minimum Queue Size of messages on the Friend node.
+ */
+static inline void packet_mesh_trs_control_friend_request_min_queue_size_log_set(packet_mesh_trs_control_packet_t * p_pkt, uint8_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_MIN_QUEUE_SIZE_LOG_OFFSET] &= PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_MIN_QUEUE_SIZE_LOG_MASK_INV;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_MIN_QUEUE_SIZE_LOG_OFFSET] |= (val & PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_MIN_QUEUE_SIZE_LOG_MASK);
+}
+
+/**
+ * Gets the receive delay requested by the Low Power node.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the receive delay requested by the Low Power node.
+ */
+static inline uint8_t packet_mesh_trs_control_friend_request_receive_delay_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RECEIVE_DELAY_OFFSET];
+}
+
+/**
+ * Sets the receive delay requested by the Low Power node.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the receive delay requested by the Low Power node.
+ */
+static inline void packet_mesh_trs_control_friend_request_receive_delay_set(packet_mesh_trs_control_packet_t * p_pkt, uint8_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_RECEIVE_DELAY_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the initial value of the Poll Timeout.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the initial value of the Poll Timeout.
+ */
+static inline uint32_t packet_mesh_trs_control_friend_request_poll_timeout_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_POLL_TIMEOUT0_OFFSET] << 16) | 
+            (p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_POLL_TIMEOUT1_OFFSET] << 8) |
+            p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_POLL_TIMEOUT2_OFFSET]);
+}
+
+/**
+ * Sets the initial value of the Poll Timeout.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the initial value of the Poll Timeout.
+ */
+static inline void packet_mesh_trs_control_friend_request_poll_timeout_set(packet_mesh_trs_control_packet_t * p_pkt, uint32_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_POLL_TIMEOUT0_OFFSET] = (val >> 16) & 0xFF;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_POLL_TIMEOUT1_OFFSET] = (val >> 8) & 0xFF;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_POLL_TIMEOUT2_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the unicast address of the previous Friend node.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the unicast address of the previous Friend node.
+ */
+static inline uint16_t packet_mesh_trs_control_friend_request_previous_address_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_PREVIOUS_ADDRESS0_OFFSET] << 8) | 
+            p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_PREVIOUS_ADDRESS1_OFFSET]);
+}
+
+/**
+ * Sets the unicast address of the previous Friend node.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the unicast address of the previous Friend node.
+ */
+static inline void packet_mesh_trs_control_friend_request_previous_address_set(packet_mesh_trs_control_packet_t * p_pkt, uint16_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_PREVIOUS_ADDRESS0_OFFSET] = (val >> 8) & 0xFF;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_PREVIOUS_ADDRESS1_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the number of elements in the Low Power node.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the number of elements in the Low Power node.
+ */
+static inline uint8_t packet_mesh_trs_control_friend_request_num_elements_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_NUM_ELEMENTS_OFFSET];
+}
+
+/**
+ * Sets the number of elements in the Low Power node.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the number of elements in the Low Power node.
+ */
+static inline void packet_mesh_trs_control_friend_request_num_elements_set(packet_mesh_trs_control_packet_t * p_pkt, uint8_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_NUM_ELEMENTS_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the number of Friend Request messages sent.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the number of Friend Request messages sent.
+ */
+static inline uint16_t packet_mesh_trs_control_friend_request_lpn_counter_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_LPN_COUNTER0_OFFSET] << 8) | 
+            p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_LPN_COUNTER1_OFFSET]);
+}
+
+/**
+ * Sets the number of Friend Request messages sent.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the number of Friend Request messages sent.
+ */
+static inline void packet_mesh_trs_control_friend_request_lpn_counter_set(packet_mesh_trs_control_packet_t * p_pkt, uint16_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_LPN_COUNTER0_OFFSET] = (val >> 8) & 0xFF;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_LPN_COUNTER1_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the number for identifying a transaction.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the number for identifying a transaction.
+ */
+static inline uint8_t packet_mesh_trs_control_friend_sublist_add_remove_transaction_number_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_TRANSACTION_NUMBER_OFFSET];
+}
+
+/**
+ * Sets the number for identifying a transaction.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the number for identifying a transaction.
+ */
+static inline void packet_mesh_trs_control_friend_sublist_add_remove_transaction_number_set(packet_mesh_trs_control_packet_t * p_pkt, uint8_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_TRANSACTION_NUMBER_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the number for identifying a transaction.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the number for identifying a transaction.
+ */
+static inline uint8_t packet_mesh_trs_control_friend_sublist_confirm_transaction_number_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_CONFIRM_TRANSACTION_NUMBER_OFFSET];
+}
+
+/**
+ * Sets the number for identifying a transaction.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the number for identifying a transaction.
+ */
+static inline void packet_mesh_trs_control_friend_sublist_confirm_transaction_number_set(packet_mesh_trs_control_packet_t * p_pkt, uint8_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_CONFIRM_TRANSACTION_NUMBER_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the 1 - IV Update active.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the 1 - IV Update active.
+ */
+static inline uint8_t packet_mesh_trs_control_friend_update_iv_update_flag_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_UPDATE_FLAG_OFFSET] & PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_UPDATE_FLAG_MASK) > 0);
+}
+
+/**
+ * Sets the 1 - IV Update active.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the 1 - IV Update active.
+ */
+static inline void packet_mesh_trs_control_friend_update_iv_update_flag_set(packet_mesh_trs_control_packet_t * p_pkt, uint8_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_UPDATE_FLAG_OFFSET] &= PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_UPDATE_FLAG_MASK_INV;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_UPDATE_FLAG_OFFSET] |= (val << 1) & PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_UPDATE_FLAG_MASK;
+}
+
+/**
+ * Gets the 1 - in phase2.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the 1 - in phase2.
+ */
+static inline uint8_t packet_mesh_trs_control_friend_update_key_refresh_flag_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_KEY_REFRESH_FLAG_OFFSET] & PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_KEY_REFRESH_FLAG_MASK) > 0);
+}
+
+/**
+ * Sets the 1 - in phase2.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the 1 - in phase2.
+ */
+static inline void packet_mesh_trs_control_friend_update_key_refresh_flag_set(packet_mesh_trs_control_packet_t * p_pkt, uint8_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_KEY_REFRESH_FLAG_OFFSET] &= PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_KEY_REFRESH_FLAG_MASK_INV;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_KEY_REFRESH_FLAG_OFFSET] |= (val & PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_KEY_REFRESH_FLAG_MASK);
+}
+
+/**
+ * Gets the current IV Index known by Friend node.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the current IV Index known by Friend node.
+ */
+static inline uint32_t packet_mesh_trs_control_friend_update_iv_index_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX0_OFFSET] << 24) | 
+            (p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX1_OFFSET] << 16) |
+            (p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX2_OFFSET] << 8) |
+            p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX3_OFFSET]);
+}
+
+/**
+ * Sets the current IV Index known by Friend node.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the current IV Index known by Friend node.
+ */
+static inline void packet_mesh_trs_control_friend_update_iv_index_set(packet_mesh_trs_control_packet_t * p_pkt, uint32_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX0_OFFSET] = (val >> 24) & 0xFF;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX1_OFFSET] = (val >> 16) & 0xFF;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX2_OFFSET] = (val >> 8) & 0xFF;
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX3_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the indicator whether Friend Queue is empty or not.
+ * @param[in] p_pkt Packet pointer.
+ * @returns Value of the indicator whether Friend Queue is empty or not.
+ */
+static inline uint8_t packet_mesh_trs_control_friend_update_md_get(const packet_mesh_trs_control_packet_t * p_pkt)
+{
+    return p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_MD_OFFSET];
+}
+
+/**
+ * Sets the indicator whether Friend Queue is empty or not.
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     val   Value of the indicator whether Friend Queue is empty or not.
+ */
+static inline void packet_mesh_trs_control_friend_update_md_set(packet_mesh_trs_control_packet_t * p_pkt, uint8_t val)
+{
+    p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_MD_OFFSET] = val & 0xFF;
+}
+
+/**
  * Gets the initial TTL used when sending the message.
  * @param[in] p_pkt Packet pointer.
  * @returns Value of the initial TTL used when sending the message.
@@ -240,7 +838,7 @@ static inline void packet_mesh_trs_control_heartbeat_init_ttl_set(packet_mesh_tr
  */
 static inline uint16_t packet_mesh_trs_control_heartbeat_features_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_HEARTBEAT_FEATURES0_OFFSET] << 8) |
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_HEARTBEAT_FEATURES0_OFFSET] << 8) | 
             p_pkt->pdu[PACKET_MESH_TRS_CONTROL_HEARTBEAT_FEATURES1_OFFSET]);
 }
 
@@ -346,7 +944,7 @@ static inline void packet_mesh_net_ttl_set(packet_mesh_net_packet_t * p_pkt, uin
  */
 static inline uint32_t packet_mesh_net_seq_get(const packet_mesh_net_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_NET_SEQ0_OFFSET] << 16) |
+    return ((p_pkt->pdu[PACKET_MESH_NET_SEQ0_OFFSET] << 16) | 
             (p_pkt->pdu[PACKET_MESH_NET_SEQ1_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_NET_SEQ2_OFFSET]);
 }
@@ -370,7 +968,7 @@ static inline void packet_mesh_net_seq_set(packet_mesh_net_packet_t * p_pkt, uin
  */
 static inline uint16_t packet_mesh_net_src_get(const packet_mesh_net_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_NET_SRC0_OFFSET] << 8) |
+    return ((p_pkt->pdu[PACKET_MESH_NET_SRC0_OFFSET] << 8) | 
             p_pkt->pdu[PACKET_MESH_NET_SRC1_OFFSET]);
 }
 
@@ -392,7 +990,7 @@ static inline void packet_mesh_net_src_set(packet_mesh_net_packet_t * p_pkt, uin
  */
 static inline uint16_t packet_mesh_net_dst_get(const packet_mesh_net_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_NET_DST0_OFFSET] << 8) |
+    return ((p_pkt->pdu[PACKET_MESH_NET_DST0_OFFSET] << 8) | 
             p_pkt->pdu[PACKET_MESH_NET_DST1_OFFSET]);
 }
 
@@ -435,7 +1033,7 @@ static inline void packet_mesh_trs_control_segack_obo_set(packet_mesh_trs_contro
  */
 static inline uint16_t packet_mesh_trs_control_segack_seqzero_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
-    return (((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_SEQZERO0_OFFSET] & PACKET_MESH_TRS_CONTROL_SEGACK_SEQZERO0_MASK) << 6) |
+    return (((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_SEQZERO0_OFFSET] & PACKET_MESH_TRS_CONTROL_SEGACK_SEQZERO0_MASK) << 6) | 
             ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_SEQZERO1_OFFSET] & PACKET_MESH_TRS_CONTROL_SEGACK_SEQZERO1_MASK) >> 2));
 }
 
@@ -459,7 +1057,7 @@ static inline void packet_mesh_trs_control_segack_seqzero_set(packet_mesh_trs_co
  */
 static inline uint32_t packet_mesh_trs_control_segack_block_ack_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_BLOCK_ACK0_OFFSET] << 24) |
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_BLOCK_ACK0_OFFSET] << 24) | 
             (p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_BLOCK_ACK1_OFFSET] << 16) |
             (p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_BLOCK_ACK2_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_BLOCK_ACK3_OFFSET]);
@@ -590,7 +1188,7 @@ static inline void packet_mesh_trs_seg_szmic_set(packet_mesh_trs_packet_t * p_pk
  */
 static inline uint16_t packet_mesh_trs_seg_seqzero_get(const packet_mesh_trs_packet_t * p_pkt)
 {
-    return (((p_pkt->pdu[PACKET_MESH_TRS_SEG_SEQZERO0_OFFSET] & PACKET_MESH_TRS_SEG_SEQZERO0_MASK) << 6) |
+    return (((p_pkt->pdu[PACKET_MESH_TRS_SEG_SEQZERO0_OFFSET] & PACKET_MESH_TRS_SEG_SEQZERO0_MASK) << 6) | 
             ((p_pkt->pdu[PACKET_MESH_TRS_SEG_SEQZERO1_OFFSET] & PACKET_MESH_TRS_SEG_SEQZERO1_MASK) >> 2));
 }
 

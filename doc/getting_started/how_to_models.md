@@ -12,7 +12,21 @@ This guide presents the basics of how to create new models. You may implement yo
 vendor-specific model which will enable your devices to provide custom states and behaviors not
 covered by the already defined standard models.
 
-## Implementing models with the mesh stack
+For the list of available Mesh Model APIs, see \ref MESH_API_GROUP_MODELS in the API Reference section.
+
+**Table of contents**
+- [Implementing models with the mesh stack](@ref creating_models_implementing)
+    - [Publication](@ref creating_models_publication)
+    - [Subscription](@ref creating_models_subscription)
+- [Example: A vendor-specific Simple OnOff model](@ref creating_models_example)
+    - [The server model](@ref creating_models_example_server)
+    - [The client model](@ref creating_models_example_client)
+
+
+---
+
+
+## Implementing models with the mesh stack @anchor creating_models_implementing
 
 To implement a model, you must take the following basic steps:
 
@@ -32,7 +46,7 @@ To implement a model, you must take the following basic steps:
   the @link_btsig_spec<!-- https://www.bluetooth.com/specifications/mesh-specifications -->,
   for more information and examples.
 
-### Publication
+### Publication @anchor creating_models_publication
 
 Sending messages from models is done via publication. Each model has a publish address. Publication
 of messages can be periodic or one-shot, and published messages can be sent to either
@@ -48,25 +62,31 @@ published from a client model instead of relying on an external provisioner (in 
 cases, the application containing the client *is* the provisioner). For this purpose,
 the API function `access_model_publish_address_set()` is provided.
 
-### Subscription
+### Subscription @anchor creating_models_subscription
 
 Subscriptions allow models to listen for incoming messages from specific addresses.
 This can be used to listen to, for example, periodic messages published from sensor nodes.
 To allow a model to subscribe to an address, you first need to allocate a subscription
 list, using the `access_model_subscription_list_alloc()` API function.
 
-Note that when using a client model, it is not required to subscribe to the address you
+@note
+When using a client model, it is not required to subscribe to the address you
 are sending messages to in order to receive replies to those messages. Subscriptions are
 only used to receive unsolicited messages from nodes.
 
-## An example: A vendor-specific Simple OnOff model
+
+---
+
+
+## Example: A vendor-specific Simple OnOff model @anchor creating_models_example
 
 The following sections of this guide show how to implement a vendor-specific Simple OnOff model
 that can be used to turn something (such as a light bulb, heater, or washing machine) on or off.
 
-> **Important**: The Mesh Model Specification specifies a model called the "Generic OnOff Model",
-> which should be used in real applications using the mesh. However, the example model described in
-> this guide is simpler and serves as a nice introductory example for creating a custom mesh model.
+@note
+The Mesh Model Specification specifies a model called the "Generic OnOff Model",
+which should be used in real applications using the mesh. However, the example model described in
+this guide is simpler and serves as a nice introductory example for creating a custom mesh model.
 
 A mesh application is specified using a client-server architecture, where client and server
 models use publish/subscribe mechanism to communicate with each other. Therefore, the intended
@@ -107,12 +127,14 @@ to check the error codes returned from all API functions to prevent easily avoid
 from entering your application.
 
 If you want to explore a complete model implementation using the same basic layout as described
-in this guide, take a look at the @ref md_models_vendor_simple_on_off_README implementation
-in `models/vendor/simple_on_off`.
+in this guide, take a look at the `models/vendor/simple_on_off` directory.
 In addition, if you want to see it integrated into a complete application, take a look at
 the @ref md_examples_light_switch_README in the `examples/light_switch` directory.
 
-### The server model
+### The server model @anchor creating_models_example_server
+
+The behavior of the simple OnOff server is very simple and illustrated by the following message chart.
+![Simple OnOff behavior](img/simple_on_off_model.png "Simple OnOff behavior")
 
 When the OnOff server receives SET and GET messages, it calls a callback function provided
 by the application and shares/requests the data through callback function parameters. For this,
@@ -282,7 +304,7 @@ You now have the basic skeleton of a simple OnOff server model, which can be exp
 or tweaked to produce more complex server models. See `models/vendor/simple_on_off/` for the
 complete code of this model.
 
-### The client model
+### The client model @anchor creating_models_example_client
 
 The client model is used to interact with the corresponding server model. It sends
 SET and GET messages and processes incoming status replies. The client model sends messages using
@@ -537,6 +559,5 @@ uint32_t simple_on_off_client_init(simple_on_off_client_t * p_client, uint16_t e
 }
 ```
 The client is now complete, and you should be able to use it to turn something
-on or off by communicating with the server node! For the complete implementation,
-see @ref SIMPLE_ON_OFF_MODEL.
+on or off by communicating with the server node!
 

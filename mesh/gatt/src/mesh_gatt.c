@@ -37,6 +37,9 @@
 
 #include "mesh_gatt.h"
 
+#include "nrf_mesh_config_core.h"
+#if MESH_FEATURE_GATT_ENABLED
+
 #include <stdint.h>
 #include "ble_hci.h"
 #include "ble_gatt.h"
@@ -159,6 +162,14 @@ static void mesh_gatt_pdu_send(uint16_t conn_index)
     hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
 
     uint32_t err_code = sd_ble_gatts_hvx(p_conn->conn_handle, &hvx_params);
+
+    /* There might be a system attributes missing event pending. Set it and try again. */
+    if (err_code == BLE_ERROR_GATTS_SYS_ATTR_MISSING)
+    {
+        NRF_MESH_ERROR_CHECK(sd_ble_gatts_sys_attr_set(p_conn->conn_handle, NULL, 0, 0));
+        err_code = sd_ble_gatts_hvx(p_conn->conn_handle, &hvx_params);
+    }
+
     if (err_code == NRF_ERROR_INVALID_STATE)
     {
         /* If we're not able to transmit. The client might have disabled notifications. */
@@ -666,7 +677,8 @@ void mesh_gatt_packet_discard(uint16_t conn_index, const uint8_t * p_packet)
     NRF_MESH_ASSERT(m_gatt.connections[conn_index].conn_handle != BLE_CONN_HANDLE_INVALID);
 
     mesh_gatt_proxy_pdu_t * p_proxy_pdu = PARENT_BY_FIELD_GET(mesh_gatt_proxy_pdu_t, pdu, p_packet);
-    packet_buffer_packet_t * p_buf_packet = PARENT_BY_FIELD_GET(packet_buffer_packet_t, packet, p_proxy_pdu);
+    mesh_gatt_proxy_buffer_t * p_proxy_buffer = PARENT_BY_FIELD_GET(mesh_gatt_proxy_buffer_t, pdu, p_proxy_pdu);
+    packet_buffer_packet_t * p_buf_packet = PARENT_BY_FIELD_GET(packet_buffer_packet_t, packet, p_proxy_buffer);
     packet_buffer_free(&m_gatt.connections[conn_index].tx.packet_buffer, p_buf_packet);
 }
 
@@ -727,7 +739,8 @@ void mesh_gatt_on_ble_evt(const ble_evt_t * p_ble_evt, void * p_context)
         /* TODO: The following events should be handled by an SDK module/the application. */
         case BLE_GATTS_EVT_SYS_ATTR_MISSING:
         {
-            NRF_MESH_ERROR_CHECK(sd_ble_gatts_sys_attr_set(p_ble_evt->evt.gatts_evt.conn_handle, NULL, 0, 0));
+            /* This call might have been called already as a result of a failing gatts call, ignore the error code. */
+            (void) sd_ble_gatts_sys_attr_set(p_ble_evt->evt.gatts_evt.conn_handle, NULL, 0, 0);
             break;
         }
 
@@ -770,3 +783,5 @@ void mesh_gatt_on_ble_evt(const ble_evt_t * p_ble_evt, void * p_context)
             break;
     }
 }
+
+#endif /* MESH_FEATURE_GATT_ENABLED */

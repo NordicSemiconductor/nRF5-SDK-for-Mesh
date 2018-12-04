@@ -109,10 +109,10 @@ uint32_t mesh_pa_lna_gpiote_enable(const mesh_pa_lna_gpiote_params_t * p_params)
     {
         return NRF_ERROR_NULL;
     }
-    if ((p_params->ppi_ch_id_set >= TIMER_PPI_CH_START &&
-         p_params->ppi_ch_id_set <= TIMER_PPI_CH_STOP) ||
-        (p_params->ppi_ch_id_clr >= TIMER_PPI_CH_START &&
-         p_params->ppi_ch_id_clr <= TIMER_PPI_CH_STOP) ||
+    if ((p_params->ppi_ch_id_set >= TS_TIMER_PPI_CH_START &&
+         p_params->ppi_ch_id_set <= TS_TIMER_PPI_CH_STOP) ||
+        (p_params->ppi_ch_id_clr >= TS_TIMER_PPI_CH_START &&
+         p_params->ppi_ch_id_clr <= TS_TIMER_PPI_CH_STOP) ||
         (p_params->ppi_ch_id_set >= ARRAY_SIZE(NRF_PPI->CH)) ||
         (p_params->ppi_ch_id_clr >= ARRAY_SIZE(NRF_PPI->CH)) ||
         (p_params->ppi_ch_id_set == p_params->ppi_ch_id_clr) ||

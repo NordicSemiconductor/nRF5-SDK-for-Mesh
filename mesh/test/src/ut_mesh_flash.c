@@ -42,7 +42,7 @@
 #include "nrf_flash_mock.h"
 #include "bearer_event.h"
 #include "bearer_handler_mock.h"
-#include "timer_mock.h"
+#include "timeslot_timer_mock.h"
 #include "bl_if.h"
 #include "utils.h"
 #include "test_assert.h"
@@ -89,7 +89,7 @@ void setUp(void)
     m_end_expect_users[1].user = MESH_FLASH_USER_DFU;
     m_delayed_flag_event = false;
     nrf_flash_mock_Init();
-    timer_mock_Init();
+    timeslot_timer_mock_Init();
     bearer_handler_mock_Init();
 }
 
@@ -98,8 +98,8 @@ void tearDown(void)
     mesh_flash_reset();
     nrf_flash_mock_Verify();
     nrf_flash_mock_Destroy();
-    timer_mock_Verify();
-    timer_mock_Destroy();
+    timeslot_timer_mock_Verify();
+    timeslot_timer_mock_Destroy();
     bearer_handler_mock_Verify();
     bearer_handler_mock_Destroy();
 }
@@ -380,7 +380,7 @@ void test_execute_write(void)
                 current_time += test_vector[i].process_time_overhead + (words * test_vector[i].time_per_word);
                 if (words_remaining > 0)
                 {
-                    timer_now_ExpectAndReturn(current_time);
+                    ts_timer_now_ExpectAndReturn(current_time);
                 }
             }
             bearer_handler_action_end_Expect();
@@ -490,7 +490,7 @@ void test_execute_erase(void)
                 current_time += test_vector[i].process_time_overhead + (pages * test_vector[i].time_per_page);
                 if (pages_remaining > 0)
                 {
-                    timer_now_ExpectAndReturn(current_time);
+                    ts_timer_now_ExpectAndReturn(current_time);
                 }
             }
             bearer_handler_action_end_Expect();

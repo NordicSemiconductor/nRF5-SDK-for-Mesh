@@ -41,8 +41,9 @@
 #include <stdbool.h>
 
 #include "nrf.h"
-#include "timer.h"
+#include "timeslot_timer.h"
 #include "nrf_mesh.h"
+#include "toolchain.h"
 
 /**
  * @defgroup TIMESLOT Timeslot handler
@@ -70,6 +71,30 @@
  * considered too insignificant to be worth the overhead. */
 #define TIMESLOT_EXTEND_LENGTH_MIN_US (3800UL)
 
+#if defined(HOST)
+/** Time spent inside the end-timer handler. */
+#define TIMESLOT_END_TIMER_OVERHEAD_US (0)
+/** Time required to start up the timeslot. */
+#define TIMESLOT_STARTUP_OVERHEAD_US  (0)
+#elif defined(NRF51)
+/** Time spent inside the end-timer handler. */
+#define TIMESLOT_END_TIMER_OVERHEAD_US  (55)
+/** Time required to start up the timeslot. */
+#define TIMESLOT_STARTUP_OVERHEAD_US  (450)
+#elif defined(NRF52_SERIES)
+/** Time spent inside the end-timer handler. */
+#define TIMESLOT_END_TIMER_OVERHEAD_US  (20)
+/** Time required to start up the timeslot. */
+#define TIMESLOT_STARTUP_OVERHEAD_US  (200)
+#endif
+
+/** Priority to use when ordering timeslots. */
+typedef enum
+{
+    TIMESLOT_PRIORITY_LOW,
+    TIMESLOT_PRIORITY_HIGH,
+} timeslot_priority_t;
+
 /**
  * Event handler for softdevice events.
  *
@@ -86,6 +111,8 @@ void timeslot_init(uint32_t lfclk_accuracy_ppm);
 
 /**
  * Start ordering timeslots.
+ *
+ * @warning Calling this function when interrupts are disabled causes HardFault.
  *
  * @retval NRF_SUCCESS The timeslot was successfully ordered.
  * @retval NRF_ERROR_BUSY There is already a timeslot session in progress.
@@ -105,8 +132,10 @@ void timeslot_stop(void);
  *
  * @note The restart action will not execute until any ongoing timeslot state
  * locks have been lifted.
+ *
+ * @param[in] priority Priority to order the new timeslot with.
  */
-void timeslot_restart(void);
+void timeslot_restart(timeslot_priority_t priority);
 
 /**
  * Lock the current timeslot state, preventing the timeslot from ending from
@@ -125,23 +154,19 @@ void timeslot_state_lock(bool lock);
 bool timeslot_end_is_pending(void);
 
 /**
- * Get the timestamp for the start of the current timeslot, or the previous, if
- * not currently in a timeslot.
- *
- * @note The start of the first timeslot is regarded the epoch, that all other
- * timestamps are relative to.
- *
- * @return The start time of the latest timeslot in microseconds.
- */
-timestamp_t timeslot_start_time_get(void);
-
-/**
  * Get the timestamp for the projected end of the current timeslot.
  *
  * @return The projected end of the current timeslot, or 0 if not in a
  * timeslot.
  */
-timestamp_t timeslot_end_time_get(void);
+ts_timestamp_t timeslot_end_time_get(void);
+
+/**
+ * Get the expected length of the current timeslot.
+ *
+ * @returns The expected length of the current timeslot.
+ */
+ts_timestamp_t timeslot_length_get(void);
 
 /**
  * Get the remaining time of the current timeslot.
@@ -149,7 +174,7 @@ timestamp_t timeslot_end_time_get(void);
  * @return The remaining time of the current timeslot, or 0 if not in a
  * timeslot.
  */
-timestamp_t timeslot_remaining_time_get(void);
+ts_timestamp_t timeslot_remaining_time_get(void);
 
 /**
  * Get whether the framework is currently in a timeslot.
@@ -164,6 +189,29 @@ bool timeslot_is_in_ts(void);
  * @return Whether the framework is currently in the timeslot signal callback.
  */
 bool timeslot_is_in_cb(void);
+
+/**
+ * Get whether the timeslot session is active.
+ *
+ * The timeslot session is considered active if the Softdevice radio session is open. It does not
+ * mean that a timeslot is currently in progress.
+ *
+ * Changes in this state can be observed by implementing the @ref timeslot_state_listener.
+ *
+ * @retval true The timeslot session is active.
+ * @retval false The timeslot session is not active.
+ */
+bool timeslot_session_is_active(void);
+
+/**
+ * Get the number of timeslots that have been started since the device started.
+ *
+ * @note The count is not protected from rollover, and comparisons between two timeslot count
+ * numbers should consider rollovers.
+ *
+ * @returns The number of timeslots since we started the device.
+ */
+uint32_t timeslot_count_get(void);
 
 /**
  * Trigger the timeslot signal handler.

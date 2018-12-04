@@ -65,6 +65,21 @@
 #define EXPECTED_IDENTITY_KEY   { 0x84, 0x39, 0x6c, 0x43, 0x5a, 0xc4, 0x85, 0x60,\
                                   0xb5, 0x96, 0x53, 0x85, 0x25, 0x3e, 0x21, 0x0c }
 
+/* Sample data from section 8.1.3 and 8.1.4 */
+#define FND_NETWORK_KEY                 { 0xf7, 0xa2, 0xa4, 0x4f, 0x8e, 0x8a, 0x80, 0x29, \
+                                          0x06, 0x4f, 0x17, 0x3d, 0xdc, 0x1e, 0x2b, 0x00 }
+
+#define FND_EXPECTED_NID                (0x73)
+#define FND_EXPECTED_ENCRYPTION_KEY     { 0x11, 0xef, 0xec, 0x06, 0x42, 0x77, 0x49, 0x92, \
+                                         0x51, 0x0f, 0xb5, 0x92, 0x96, 0x46, 0xdf, 0x49 }
+#define FND_EXPECTED_PRIVACY_KEY        { 0xd4, 0xd7, 0xcc, 0x0d, 0xfa, 0x77, 0x2d, 0x83, \
+                                         0x6a, 0x8d, 0xf9, 0xdf, 0x55, 0x10, 0xd7, 0xa7 }
+
+#define LPN_ADDRESS                     (0x0203)
+#define FND_ADDRESS                     (0x0405)
+#define LPN_COUNTER                     (0x0607)
+#define FND_COUNTER                     (0x0809)
+
 /*****************************************************************************
 * Setup functions
 *****************************************************************************/
@@ -106,6 +121,26 @@ void test_network_secmat(void)
     const uint8_t expected_encryption_key[NRF_MESH_KEY_SIZE] = EXPECTED_ENCRYPTION_KEY;
     const uint8_t expected_privacy_key[NRF_MESH_KEY_SIZE] = EXPECTED_PRIVACY_KEY;
     TEST_ASSERT_EQUAL_HEX8(EXPECTED_NID, secmat.nid);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_encryption_key, secmat.encryption_key, NRF_MESH_KEY_SIZE);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_privacy_key, secmat.privacy_key, NRF_MESH_KEY_SIZE);
+}
+
+void test_network_friendship_secmat(void)
+{
+    const uint8_t key[NRF_MESH_KEY_SIZE] = FND_NETWORK_KEY;
+    nrf_mesh_network_secmat_t secmat;
+    nrf_mesh_keygen_friendship_secmat_params_t secmat_params;
+
+    secmat_params.lpn_address = LPN_ADDRESS;
+    secmat_params.friend_address = FND_ADDRESS;
+    secmat_params.lpn_counter = LPN_COUNTER;
+    secmat_params.friend_counter = FND_COUNTER;
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_keygen_friendship_secmat(key, &secmat_params, &secmat));
+
+    const uint8_t expected_encryption_key[NRF_MESH_KEY_SIZE] = FND_EXPECTED_ENCRYPTION_KEY;
+    const uint8_t expected_privacy_key[NRF_MESH_KEY_SIZE] = FND_EXPECTED_PRIVACY_KEY;
+    TEST_ASSERT_EQUAL_HEX8(FND_EXPECTED_NID, secmat.nid);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_encryption_key, secmat.encryption_key, NRF_MESH_KEY_SIZE);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_privacy_key, secmat.privacy_key, NRF_MESH_KEY_SIZE);
 }

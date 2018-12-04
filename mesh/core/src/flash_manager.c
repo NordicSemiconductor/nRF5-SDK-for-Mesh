@@ -93,6 +93,13 @@ typedef struct
     } params;
 } action_t;
 
+typedef struct
+{
+    void * p_buffer;
+    uint32_t * p_length;
+    uint32_t status;
+} entry_copy_args_t;
+
 static packet_buffer_t m_action_queue;
 static uint8_t         m_action_queue_buffer[ACTION_QUEUE_BUFFER_LENGTH] __attribute__((aligned(WORD_SIZE)));
 
@@ -115,6 +122,26 @@ static flash_manager_queue_empty_cb_t m_queue_empty_cb;
 static inline void schedule_processing(void)
 {
     bearer_event_flag_set(m_processing_flag);
+}
+
+static fm_iterate_action_t iterate_callback_entry_copy(const fm_entry_t * p_entry, void * p_args)
+{
+    entry_copy_args_t * p_copy = p_args;
+
+    uint32_t entry_len = p_entry->header.len_words * WORD_SIZE - sizeof(fm_header_t);
+    if (ALIGN_VAL(*p_copy->p_length, WORD_SIZE) != entry_len)
+    {
+        p_copy->status = NRF_ERROR_INVALID_LENGTH;
+    }
+    else
+    {
+        p_copy->status = NRF_SUCCESS;
+        memcpy(p_copy->p_buffer, p_entry->data, *p_copy->p_length);
+    }
+
+    *p_copy->p_length = entry_len;
+
+    return FM_ITERATE_ACTION_STOP;
 }
 
 /**
@@ -281,24 +308,30 @@ static uint32_t flash_area_build(flash_manager_t * p_manager)
 
 static uint32_t recover_seal(flash_manager_t * p_manager)
 {
-    uint32_t status = NRF_SUCCESS;
+    NRF_MESH_ASSERT_DEBUG(!flash_manager_defragging(p_manager));
+
     p_manager->internal.p_seal = get_last_entry(p_manager);
     if (p_manager->internal.p_seal == NULL)
     {
-        /* The area only contained metadata. */
-        p_manager->internal.p_seal = get_first_entry(p_manager->config.p_area);
+        const fm_entry_t * p_first = get_first_entry(p_manager->config.p_area);
+
+        if (p_first->header.handle == HANDLE_BLANK)
+        {
+            /* The area only contained metadata. */
+            p_manager->internal.p_seal = p_first;
+        }
     }
     else if (p_manager->internal.p_seal->header.handle != HANDLE_SEAL)
     {
         /* The last entry isn't a seal, so we power cycled in the middle of
-         * writing an entry to the area. Invalidate this entry if necessary,
-         * and add a seal after it.
-         */
+        * writing an entry to the area. Invalidate this entry if necessary,
+        * and add a seal after it.
+        */
         action_t * p_action = reserve_action_buffer(ACTION_BUFFER_SIZE_NO_PARAMS);
 
         if (p_action == NULL)
         {
-            status = NRF_ERROR_NO_MEM;
+            return NRF_ERROR_NO_MEM;
         }
         else
         {
@@ -309,7 +342,7 @@ static uint32_t recover_seal(flash_manager_t * p_manager)
             schedule_processing();
         }
     }
-    return status;
+    return NRF_SUCCESS;
 }
 
 /** If the last entry is a duplicate of another entry, we should invalidate its duplicate, as it
@@ -317,6 +350,7 @@ static uint32_t recover_seal(flash_manager_t * p_manager)
  */
 static uint32_t invalidate_duplicate_of_last_entry(flash_manager_t * p_manager)
 {
+    NRF_MESH_ASSERT_DEBUG(!flash_manager_defragging(p_manager));
     uint32_t status = NRF_SUCCESS;
     /* get the last entry before the seal */
     const fm_entry_t * p_entry = get_first_entry(p_manager->config.p_area);
@@ -500,6 +534,16 @@ static fm_result_t execute_action_replace(action_t * p_action)
     const fm_entry_t * p_old_entry = entry_get(get_first_entry(p_action->p_manager->config.p_area),
                                                get_area_end(p_action->p_manager->config.p_area),
                                                p_action->params.entry_data.entry.header.handle);
+
+    /* If we were defragging during a power loss, we won't be recovering the seal at the end, as we
+     * won't know which manager we're dealing with. */
+    if (p_action->p_manager->internal.p_seal == NULL)
+    {
+        p_action->p_manager->internal.p_seal =
+            entry_get(get_first_entry(p_action->p_manager->config.p_area),
+                      get_area_end(p_action->p_manager->config.p_area),
+                      HANDLE_SEAL);
+    }
 
     const flash_manager_page_t * p_next_page =
         (const flash_manager_page_t *) (PAGE_START_ALIGN(p_action->p_manager->internal.p_seal) + PAGE_SIZE);
@@ -782,12 +826,21 @@ uint32_t flash_manager_add(flash_manager_t * p_manager,
 
     if (flash_area_is_valid(p_manager))
     {
-        p_manager->internal.invalid_bytes = get_invalid_bytes(p_manager->config.p_area, p_manager->config.page_count);
-        status = recover_seal(p_manager);
-        if (status == NRF_SUCCESS)
+        /* All bets are off for seal and invalid bytes calculation during defragmentation. If defrag
+         * is running for this area, the seal and invalid bytes count will be reinstated at the end of the procedure. */
+        if (flash_manager_defragging(p_manager))
         {
-            p_manager->internal.state = FM_STATE_READY;
-            status = invalidate_duplicate_of_last_entry(p_manager);
+            p_manager->internal.state = FM_STATE_DEFRAG;
+        }
+        else
+        {
+            p_manager->internal.invalid_bytes = get_invalid_bytes(p_manager->config.p_area, p_manager->config.page_count);
+            status = recover_seal(p_manager);
+            if (status == NRF_SUCCESS)
+            {
+                p_manager->internal.state = FM_STATE_READY;
+                status = invalidate_duplicate_of_last_entry(p_manager);
+            }
         }
     }
     else
@@ -835,6 +888,38 @@ const fm_entry_t * flash_manager_entry_get(const flash_manager_t * p_manager, fm
                      handle);
 }
 
+uint32_t flash_manager_entry_read(const flash_manager_t * p_manager,
+                                  fm_handle_t handle,
+                                  void * p_data,
+                                  uint32_t * p_length)
+{
+    if (p_manager == NULL || p_data == NULL || p_length == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+    if (!handle_represents_data(handle))
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+    if (p_manager->internal.state != FM_STATE_READY && p_manager->internal.state != FM_STATE_DEFRAG)
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+
+    const fm_handle_filter_t filter = {
+        .mask  = 0xFFFF,
+        .match = handle,
+    };
+    entry_copy_args_t args = {
+        .p_length = p_length,
+        .p_buffer = p_data,
+        .status = NRF_ERROR_NOT_FOUND, // Will be overwritten by the callback if an entry is found
+    };
+    (void) flash_manager_entries_read(p_manager, &filter, iterate_callback_entry_copy, &args);
+
+    return args.status;
+}
+
 const fm_entry_t * flash_manager_entry_next_get(const flash_manager_t * p_manager,
         const fm_handle_filter_t * p_filter,
         const fm_entry_t * p_start)
@@ -875,27 +960,79 @@ const fm_entry_t * flash_manager_entry_next_get(const flash_manager_t * p_manage
     }
 }
 
+uint32_t flash_manager_entries_read(const flash_manager_t * p_manager, const fm_handle_filter_t * p_filter, flash_manager_read_cb_t read_cb, void * p_args)
+{
+    NRF_MESH_ASSERT(p_manager != NULL);
+
+    mesh_flash_set_suspended(true);
+
+    // first draft at something that considers defrag:
+    const flash_manager_recovery_area_t * p_recovery_area = flash_manager_defrag_recovery_page_get();
+    fm_iterate_action_t action = FM_ITERATE_ACTION_CONTINUE;
+    uint32_t entries_read = 0;
+
+    for (uint32_t page_index = 0;
+         (page_index < p_manager->config.page_count && action == FM_ITERATE_ACTION_CONTINUE);
+         ++page_index)
+    {
+        const flash_manager_page_t * p_page = &p_manager->config.p_area[page_index];
+        const void * p_end = p_page + 1;
+
+        /* As the recovery page can contain entries from the pages following the one it's backing
+         * up, we can have duplicates. We should skip these duplicates to avoid reporting them twice. */
+        if (p_page == p_recovery_area->p_storage_page)
+        {
+            p_end = &p_recovery_area->data[ARRAY_SIZE(p_recovery_area->data)];
+
+            /* Find the first data entry on the next page, and see if it's duplicated on the
+             * recovery page. If it is, that'll be the first entry we skip on the recovery. */
+            if (page_index + 1 != p_manager->config.page_count)
+            {
+                const flash_manager_page_t * p_next_page = p_page + 1;
+                const fm_entry_t * p_first_on_next_page = get_first_entry(p_next_page);
+                if (!handle_represents_data(p_first_on_next_page->header.handle))
+                {
+                    p_first_on_next_page = get_next_data_entry(p_first_on_next_page, p_next_page + 1);
+                }
+
+                if (p_first_on_next_page)
+                {
+                    const fm_entry_t * p_first_duplicate =
+                        entry_get(get_first_entry((const flash_manager_page_t *) p_recovery_area->data),
+                                  p_end,
+                                  p_first_on_next_page->header.handle);
+
+                    p_end = (p_first_duplicate != NULL) ? p_first_duplicate : p_end;
+                }
+            }
+
+            p_page = (const flash_manager_page_t *) p_recovery_area->data;
+        }
+
+        for (const fm_entry_t * p_it = get_first_entry(p_page);
+             ((intptr_t) p_it < (intptr_t) p_end && action == FM_ITERATE_ACTION_CONTINUE);
+             p_it = get_next_entry(p_it))
+        {
+            if (handle_matches_filter(p_it->header.handle, p_filter))
+            {
+                entries_read++;
+                if (read_cb != NULL)
+                {
+                    action = read_cb(p_it, p_args);
+                }
+            }
+        }
+    }
+
+    mesh_flash_set_suspended(false);
+    return entries_read;
+}
+
 uint32_t flash_manager_entry_count_get(const flash_manager_t *    p_manager,
                                        const fm_handle_filter_t * p_filter)
 {
     NRF_MESH_ASSERT(p_manager != NULL);
-    if (p_manager->internal.state != FM_STATE_READY)
-    {
-        return 0;
-    }
-    const fm_entry_t * p_entry = get_first_entry(p_manager->config.p_area);
-    const fm_entry_t * p_end   = get_area_end(p_manager->config.p_area);
-    uint32_t count = 0;
-    while (p_entry->header.handle != HANDLE_SEAL &&
-            p_entry < p_end)
-    {
-        if (handle_matches_filter(p_entry->header.handle, p_filter))
-        {
-            count++;
-        }
-        p_entry = get_next_entry(p_entry);
-    }
-    return count;
+    return flash_manager_entries_read(p_manager, p_filter, NULL, NULL);
 }
 
 fm_entry_t * flash_manager_entry_alloc(flash_manager_t * p_manager,
@@ -979,7 +1116,7 @@ void flash_manager_mem_listener_register(fm_mem_listener_t * p_listener)
 
 bool flash_manager_is_stable(void)
 {
-    return (!packet_buffer_can_pop(&m_action_queue) && !flash_manager_defrag_is_running());
+    return (packet_buffer_is_empty(&m_action_queue) && !flash_manager_defrag_is_running());
 }
 
 void flash_manager_on_defrag_end(flash_manager_t * p_manager)

@@ -80,7 +80,7 @@ class Opcode(object):
     def serialize(self):
         if self.company_id:
             return (value_to_barray(self.opcode, 1) +
-                    value_to_barray(self.company_id, 2, big_endian=True))
+                    value_to_barray(self.company_id, 2, big_endian=False))
         else:
             return value_to_barray(self.opcode, self.length, big_endian=True)
 
@@ -105,6 +105,7 @@ def opcode_from_message_get(data):
     elif format_bits == Opcode.FORMAT_2BYTE and len(data) >= 2:
         return bytearray(data[0:2])
     elif format_bits == Opcode.FORMAT_3BYTE and len(data) >= 3:
+        data[1], data[2] = data[2], data[1]
         return bytearray(data[0:3])
     else:
         return None
@@ -127,6 +128,8 @@ class Model(object):
     DEFAULT_TTL = 8
     DEFAULT_FORCE_SEGMENTED = False
     DEFAULT_TRANSMIC_SIZE = 0
+    # Use master security materials by default
+    DEFAULT_CREDENTIALS_FLAG = 0
 
     def __init__(self, opcode_and_handler_tuple_list):
         self.handlers = {}
@@ -142,6 +145,7 @@ class Model(object):
         self.ttl = self.DEFAULT_TTL
         self.force_segmented = self.DEFAULT_FORCE_SEGMENTED
         self.transmic_size = self.DEFAULT_TRANSMIC_SIZE
+        self.friendship_credentials_flag = self.DEFAULT_CREDENTIALS_FLAG
 
     def publish_set(self, key_handle, address_handle):
         """Sets the publication state for the model.
@@ -173,6 +177,7 @@ class Model(object):
                            self.ttl,
                            self.force_segmented,
                            self.transmic_size,
+                           self.friendship_credentials_flag,
                            message))
 
 

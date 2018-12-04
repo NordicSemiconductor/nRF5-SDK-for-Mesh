@@ -133,6 +133,7 @@ static struct
     uint8_t * p_buffer;
     uint32_t retval;
     uint32_t calls;
+    core_tx_bearer_type_t bearer;
     network_tx_packet_buffer_t * p_tx_buffer;
 } m_expect_network_packet_alloc;
 static uint32_t network_packet_alloc_callback(network_tx_packet_buffer_t * p_buf, int calls)
@@ -141,6 +142,7 @@ static uint32_t network_packet_alloc_callback(network_tx_packet_buffer_t * p_buf
 
     TEST_ASSERT_EQUAL(m_expect_network_packet_alloc.payload_len, p_buf->user_data.payload_len);
     TEST_ASSERT_EQUAL(m_expect_network_packet_alloc.tx_token, p_buf->user_data.token);
+    TEST_ASSERT_EQUAL(m_expect_network_packet_alloc.bearer, p_buf->user_data.bearer_selector);
 
     TEST_ASSERT_NOT_NULL(p_buf->user_data.p_metadata);
     TEST_ASSERT_EQUAL_HEX16(m_expect_network_packet_alloc.net_meta.src, p_buf->user_data.p_metadata->src);
@@ -299,6 +301,7 @@ void test_control_tx(void)
     control_packet.reliable           = false;
     control_packet.src                = 0x0002;
     control_packet.ttl                = 9;
+    control_packet.bearer_selector    = CORE_TX_BEARER_TYPE_LOW_POWER;
 
     m_expect_network_packet_alloc.calls                        = 1;
     m_expect_network_packet_alloc.net_meta.control_packet      = true;
@@ -309,10 +312,52 @@ void test_control_tx(void)
     m_expect_network_packet_alloc.payload_len                  = 1 + control_packet.data_len;
     m_expect_network_packet_alloc.tx_token                     = TX_TOKEN;
     m_expect_network_packet_alloc.p_buffer                     = network_packet_buffer;
+    m_expect_network_packet_alloc.bearer                       = control_packet.bearer_selector;
 
     network_packet_alloc_StubWithCallback(network_packet_alloc_callback);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_control_tx(&control_packet, TX_TOKEN));
 
     TEST_ASSERT_EQUAL_HEX8(control_packet.opcode, network_packet_buffer[0]); /* opcode */
     TEST_ASSERT_EQUAL_HEX8_ARRAY(control_packet_buffer, &network_packet_buffer[1], control_packet.data_len); /* payload */
+}
+
+void test_duplicate_sar_tx(void)
+{
+    expect_init();
+    transport_init(NULL);
+    nrf_mesh_network_secmat_t net_secmat;
+    nrf_mesh_application_secmat_t app_secmat;
+
+    uint8_t buffer[PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE - PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE];
+
+    nrf_mesh_tx_params_t tx_params;
+    tx_params.data_len           = sizeof(buffer);
+    tx_params.dst.p_virtual_uuid = NULL;
+    tx_params.dst.value          = 0x0001;
+    tx_params.dst.type           = NRF_MESH_ADDRESS_TYPE_UNICAST;
+    tx_params.p_data             = buffer;
+    tx_params.security_material.p_net = &net_secmat;
+    tx_params.security_material.p_app = &app_secmat;
+    tx_params.force_segmented    = true;
+    tx_params.src                = 0x0002;
+    tx_params.ttl                = 9;
+    tx_params.transmic_size      = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
+
+    net_state_iv_index_lock_Ignore();
+    enc_nonce_generate_Ignore();
+    enc_aes_ccm_encrypt_Ignore();
+    timer_now_IgnoreAndReturn(0);
+    timer_sch_reschedule_Ignore();
+
+    network_tx_packet_buffer_t packet_buffer;
+    packet_mesh_net_packet_t net_buffer;
+    packet_buffer.p_payload = net_buffer.pdu;
+    network_packet_alloc_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    network_packet_alloc_ReturnMemThruPtr_p_buffer(&packet_buffer, sizeof(packet_buffer));
+    network_packet_send_Expect(&packet_buffer);
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_tx(&tx_params, NULL));
+
+    // Allocating again with the same src+dst should result in FORBIDDEN:
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, transport_tx(&tx_params, NULL));
 }

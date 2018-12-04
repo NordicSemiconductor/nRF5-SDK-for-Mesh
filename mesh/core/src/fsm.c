@@ -166,7 +166,7 @@ static bool fsm_transition_perform_try(fsm_t * p_fsm,
         // check transition guard condition
         if (!(*p_guard)(p_transition->guard_id, p_data))
         {
-#if defined FSM_DEBUG
+#if FSM_DEBUG
             __LOG(LOG_SRC_FSM, LOG_LEVEL_INFO, "%s: G: %s\n", p_fsm->fsm_const_desc->fsm_name,
                   p_fsm->fsm_const_desc->guard_lookup[p_transition->guard_id]);
 #endif
@@ -181,7 +181,7 @@ static bool fsm_transition_perform_try(fsm_t * p_fsm,
         p_action = p_fsm->fsm_const_desc->action;
         NRF_MESH_ASSERT(p_action != NULL);
 
-#if defined FSM_DEBUG
+#if FSM_DEBUG
         __LOG(LOG_SRC_FSM, LOG_LEVEL_INFO, "%s: A: %s\n", p_fsm->fsm_const_desc->fsm_name,
               p_fsm->fsm_const_desc->action_lookup[p_transition->action_id]);
 #endif
@@ -195,7 +195,7 @@ static bool fsm_transition_perform_try(fsm_t * p_fsm,
         /* If any event causes a change in state, we shouldn't be in a recursive state. */
         NRF_MESH_ASSERT(p_fsm->recursion_protection == 1);
 
-#if defined FSM_DEBUG
+#if FSM_DEBUG
         __LOG(LOG_SRC_FSM, LOG_LEVEL_INFO, "%s: state %s -> %s\n", p_fsm->fsm_const_desc->fsm_name,
               p_fsm->fsm_const_desc->state_lookup[p_fsm->current_state],
               p_fsm->fsm_const_desc->state_lookup[p_transition->new_state_id]);
@@ -218,7 +218,13 @@ void fsm_init(fsm_t * p_fsm, const fsm_const_descriptor_t * p_fsm_const)
     p_fsm->current_state        = p_fsm_const->initial_state;
     p_fsm->recursion_protection = 0;
 
-#if defined FSM_DEBUG
+#if FSM_DEBUG
+    NRF_MESH_ASSERT(p_fsm_const->fsm_name       != NULL);
+    NRF_MESH_ASSERT(p_fsm_const->action_lookup  != NULL);
+    NRF_MESH_ASSERT(p_fsm_const->guard_lookup   != NULL);
+    NRF_MESH_ASSERT(p_fsm_const->event_lookup   != NULL);
+    NRF_MESH_ASSERT(p_fsm_const->state_lookup   != NULL);
+
     __LOG(LOG_SRC_FSM, LOG_LEVEL_INFO, "%s: init\n", p_fsm->fsm_const_desc->fsm_name);
 #endif
 
@@ -228,7 +234,7 @@ void fsm_init(fsm_t * p_fsm, const fsm_const_descriptor_t * p_fsm_const)
 void fsm_event_post(fsm_t * p_fsm, fsm_event_id_t event_id, void * p_data)
 {
     NRF_MESH_ASSERT(p_fsm != NULL);
-#if defined FSM_DEBUG
+#if FSM_DEBUG
     __LOG(LOG_SRC_FSM, LOG_LEVEL_INFO, "%s: E: %s\n", p_fsm->fsm_const_desc->fsm_name,
           p_fsm->fsm_const_desc->event_lookup[event_id]);
 #endif

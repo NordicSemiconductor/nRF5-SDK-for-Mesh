@@ -43,6 +43,7 @@
 
 #include "nrf_mesh_defines.h"
 #include "nrf_mesh_config_core.h"
+#include "nordic_common.h"
 
 
 #if defined(HOST)
@@ -69,6 +70,9 @@
  *   used when `log_callback_stdout` is passed to `__LOG_INIT()`.
  * @{
  */
+
+/** Maximum number of array elements to print in the @ref __LOG_XB macro. */
+#define LOG_ARRAY_LEN_MAX   128
 
 /**
  * @defgroup LOG_SOURCES Log sources
@@ -178,14 +182,14 @@ void log_init(uint32_t mask, uint32_t level, log_callback_t callback);
 void log_set_callback(log_callback_t callback);
 
 /**
- * Gets a timestamp for use with the log functions.
+ * Gets a timestamp to use with the log functions.
  *
- * When compiling for target, this is the current value of the RTC0 counter. If
- * compiling for a Linux host, this is the value of the system realtime clock in µs.
+ * When compiling for target, the timestamp is the current value of the RTC1 counter. If
+ * compiling for a Linux host, the timestamp is the value of the system real-time clock in µs.
  *
- * On Windows hosts, this function will return 0.
+ * On Windows hosts, this function returns 0.
  *
- * @return A timestamp for use with the log functions.
+ * @return A timestamp to use with the log functions.
  */
 static inline uint32_t log_timestamp_get(void)
 {
@@ -198,7 +202,7 @@ static inline uint32_t log_timestamp_get(void)
         return 0;
     #endif
 #else
-    return NRF_RTC0->COUNTER;
+    return NRF_RTC1->COUNTER;
 #endif
 }
 
@@ -264,10 +268,11 @@ void log_vprintf(uint32_t dbg_level, const char * p_filename, uint16_t line, uin
  * @param[in] len    Length of array (in bytes)
  */
 #define __LOG_XB(source, level, msg, array, array_len)                      \
-    if ((source & g_log_dbg_msk) && (level <= g_log_dbg_lvl))           \
+    if ((source & g_log_dbg_msk) && (level <= g_log_dbg_lvl))               \
     {                                                                       \
-        unsigned _array_len = (array_len);                                  \
-        char array_text[_array_len * 2 + 1];                                \
+        unsigned _array_len = array_len;                                    \
+        _array_len = MIN(_array_len, LOG_ARRAY_LEN_MAX);                    \
+        char array_text[LOG_ARRAY_LEN_MAX * 2 + 1];                         \
         for(unsigned _i = 0; _i < _array_len; ++_i)                         \
         {                                                                   \
             extern const char * g_log_hex_digits;                           \

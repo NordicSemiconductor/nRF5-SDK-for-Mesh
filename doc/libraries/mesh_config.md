@@ -1,16 +1,32 @@
-# Mesh config
+# Mesh configuration
 
-Mesh config is a mesh submodule designed to abstract and simplify persistent key-value storage.
+Mesh configuration is a mesh submodule designed to abstract and simplify persistent key-value storage.
 It provides a high-level API with swappable storage backends that can be used to store mesh and
 application state.
 
-## Overview
+**Table of contents**
+- [Overview](@ref mesh_config_overview)
+    - [State owners](@ref mesh_config_overview_state_owners)
+    - [Change listeners](@ref mesh_config_overview_change_listeners)
+    - [Backends](@ref mesh_config_overview_backends)
+- [Information flow](@ref mesh_config_information_flow)
+    - [Loading from persistent storage](@ref mesh_config_information_flow_loading)
+    - [Setting a value](@ref mesh_config_information_flow_setting_value)
+    - [Getting a value](@ref mesh_config_information_flow_getting_value)
+- [Usage in the mesh](@ref mesh_config_usage_mesh)
+- [Usage in the application](@ref mesh_config_usage_app)
+
+
+---
+
+
+## Overview @anchor mesh_config_overview
 
 The mesh config module organizes data in files, where each file has a set of records. A mesh
 config entry is uniquely identified by a file/record pair, and it can represent any
 immutable structure with a predefined size.
 
-### State owners
+### State owners @anchor mesh_config_overview_state_owners
 
 An entry is owned by a *state owner* module in the user-space. The state owner holds the entry
 structure and is responsible for sanitizing and storing the live representation of the value. It
@@ -29,7 +45,7 @@ with the deletion, only observe it.
 The state owner may choose to reject values it considers invalid by returning an error code from its
 `setter` callback.
 
-### Change listeners
+### Change listeners @anchor mesh_config_overview_change_listeners
 
 In some cases, other modules need to passively listen to changes to a specific entry.
 For instance, the internal mesh Heartbeat module needs to know when the Proxy feature is enabled, as
@@ -39,7 +55,10 @@ unwanted coupling between modules, and to reduce this, the mesh config module pr
 the state owner. Any module can register a listener for any entry and is then notified of any
 state changes after they have been sanitized by the state owner.
 
-### Backends
+@note It is allowed to enable or disable any interrupts available for the application inside
+`setter`/`getter`/`deleter` or listener callbacks only by means of the @link_SoftDevice_NVIC.
+
+### Backends @anchor mesh_config_overview_backends
 
 The mesh config module is designed to work on top of any key-value storage backend. In the initial
 version of mesh config, the only supported backend is the @ref FLASH_MANAGER, but support for other
@@ -47,16 +66,20 @@ backends is planned for future releases.
 
 The mesh config backend API is considered internal and should never be called directly.
 
-## Information flow
+
+---
+
+
+## Information flow @anchor mesh_config_information_flow
 
 All user interaction with the mesh config module should go through the mesh_config API. Manipulating
 the live value directly causes the mesh config module to fall out of sync.
 
-### Loading from persistent storage
+### Loading from persistent storage @anchor mesh_config_information_flow_loading
 
 ![Loading](img/mesh_config_load.svg)
 
-### Setting a value
+### Setting a value @anchor mesh_config_information_flow_setting_value
 
 ![Storing](img/mesh_config_save.svg)
 
@@ -65,11 +88,15 @@ The entry should only be considered safely stored after the mesh config module e
 @ref NRF_MESH_EVT_CONFIG_STABLE event. The user can also call @ref mesh_config_is_busy to determine
 whether the live values are in sync with the persistent storage.
 
-### Getting a value
+### Getting a value @anchor mesh_config_information_flow_getting_value
 
 ![Reading](img/mesh_config_get.svg)
 
-## Usage in the mesh
+
+---
+
+
+## Usage in the mesh @anchor mesh_config_usage_mesh
 
 The mesh config module is used internally in the mesh to store options (through the @ref MESH_OPT
 API) as well as runtime state. The mesh reserves the following file IDs:
@@ -83,7 +110,10 @@ API) as well as runtime state. The mesh reserves the following file IDs:
 | `0x0004`- `0x000F` | -           | Reserved for future use.
 
 
-## Usage in the application
+---
+
+
+## Usage in the application @anchor mesh_config_usage_app
 
 The application may use the mesh config module to store their own state. To do this, first declare
 a mesh config file with a unique file ID using the @ref MESH_CONFIG_FILE macro:

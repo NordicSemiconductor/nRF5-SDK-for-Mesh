@@ -70,7 +70,7 @@ static inline bool is_tx_complete_event_pending(advertiser_t * p_adv)
 }
 
 /* This is in highest priority: Called by radio_irq_handler in broadcast.c */
-static void broadcast_complete_cb(broadcast_params_t * p_broadcast, uint32_t timestamp)
+static void broadcast_complete_cb(broadcast_params_t * p_broadcast, timestamp_t timestamp)
 {
     /* Find the owner of this broadcast */
     advertiser_t * p_adv = PARENT_BY_FIELD_GET(advertiser_t, broadcast.params, p_broadcast);
@@ -201,6 +201,7 @@ static void schedule_broadcast(advertiser_t * p_adv)
 static void timeout_event(timestamp_t timestamp, void * p_context)
 {
     advertiser_t * p_adv = (advertiser_t *) p_context;
+    p_adv->timer.interval = 0;
 
     if (p_adv->enabled)
     {
@@ -226,10 +227,6 @@ static void timeout_event(timestamp_t timestamp, void * p_context)
         {
             setup_next_timeout(&p_adv->timer, p_adv->config.advertisement_interval_us);
         }
-    }
-    else
-    {
-        p_adv->timer.interval = 0;
     }
 }
 

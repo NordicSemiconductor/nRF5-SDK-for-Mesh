@@ -36,6 +36,9 @@
  */
 #include "proxy.h"
 
+#include "nrf_mesh_config_core.h"
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+
 #include "proxy_config_packet.h"
 #include "proxy_filter.h"
 #include "core_tx.h"
@@ -57,6 +60,10 @@
 #include "mesh_config_entry.h"
 #include "mesh_opt_gatt.h"
 
+#if MESH_GATT_PROXY_NODE_IDENTITY_DURATION_MS > 60000
+#error The MESH_GATT_PROXY_NODE_IDENTITY_DURATION_MS shall not be greater than 60,000 ms
+#endif
+
 #define PROXY_UUID_SERVICE 0x1828
 #define PROXY_UUID_CHAR_TX 0x2ade
 #define PROXY_UUID_CHAR_RX 0x2add
@@ -65,9 +72,6 @@
 #define PROXY_ADV_DATA_NODE_ID_RAND_SIZE 8
 
 #define ADV_TIMEOUT_INFINITE (0)
-
-#define ADV_NODE_ID_TIMEOUT_MS           SEC_TO_MS(60)
-#define ADV_NETWORK_ID_TIMEOUT_MS        ADV_TIMEOUT_INFINITE
 
 #define ADV_NETWORK_ITERATE_INTERVAL_US     SEC_TO_US(10)
 
@@ -615,9 +619,13 @@ static void gatt_evt_handler(const mesh_gatt_evt_t * p_evt, void * p_context)
             __LOG(LOG_SRC_BEARER, LOG_LEVEL_INFO, "TX complete\n");
             if (p_evt->params.tx_complete.pdu_type == MESH_GATT_PDU_TYPE_NETWORK_PDU)
             {
+#if MESH_FEATURE_RELAY_ENABLED
                 core_tx_role_t role = (p_evt->params.tx_complete.token == NRF_MESH_RELAY_TOKEN)
                                           ? CORE_TX_ROLE_RELAY
                                           : CORE_TX_ROLE_ORIGINATOR;
+#else
+                core_tx_role_t role = CORE_TX_ROLE_ORIGINATOR;
+#endif
 
                 core_tx_complete(&p_connection->bearer,
                                  role,
@@ -693,7 +701,7 @@ static void adv_data_set(void)
     }
 }
 
-static void adv_timer_handler(uint32_t timeout, void * p_context)
+static void adv_timer_handler(timestamp_t timeout, void * p_context)
 {
     adv_net_iterate();
     adv_data_set();
@@ -701,8 +709,6 @@ static void adv_timer_handler(uint32_t timeout, void * p_context)
 
 static void adv_start(proxy_adv_type_t proxy_adv_type, bool interleave_networks)
 {
-    uint32_t timeout = ((proxy_adv_type == PROXY_ADV_TYPE_NETWORK_ID) ? ADV_NETWORK_ID_TIMEOUT_MS
-                                                                      : ADV_NODE_ID_TIMEOUT_MS);
     m_advertising.type = proxy_adv_type;
 
     if (m_advertising.running)
@@ -720,7 +726,19 @@ static void adv_start(proxy_adv_type_t proxy_adv_type, bool interleave_networks)
         timer_sch_abort(&m_advertising.timer);
     }
 
-    mesh_adv_params_set(timeout, (MESH_GATT_PROXY_ADV_INT_MS * 1000) / 625);
+    if (proxy_adv_type == PROXY_ADV_TYPE_NETWORK_ID)
+    {
+        mesh_adv_params_set(MESH_ADV_TIMEOUT_INFINITE,
+                            MSEC_TO_UNITS(MESH_GATT_PROXY_NETWORK_ID_ADV_INT_MS,
+                                          UNIT_0_625_MS));
+    }
+    else
+    {
+        mesh_adv_params_set(MESH_GATT_PROXY_NODE_IDENTITY_DURATION_MS,
+                            MSEC_TO_UNITS(MESH_GATT_PROXY_NODE_IDENTITY_ADV_INT_MS,
+                                          UNIT_0_625_MS));
+    }
+
     adv_data_set();
     mesh_adv_start();
     m_advertising.running = true;
@@ -1002,3 +1020,5 @@ uint32_t mesh_opt_gatt_proxy_get(bool * p_enabled)
 {
     return mesh_config_entry_get(MESH_OPT_GATT_PROXY_EID, p_enabled);
 }
+
+#endif /* MESH_FEATURE_GATT_PROXY_ENABLED */

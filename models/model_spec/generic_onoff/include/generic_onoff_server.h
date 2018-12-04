@@ -56,11 +56,11 @@
 typedef struct __generic_onoff_server_t generic_onoff_server_t;
 
 /**
- * Callback type for Generic OnOff Set/Set Unacknowledged message
+ * Callback type for Generic OnOff Set/Set Unacknowledged message.
  *
- * @param[in]     p_self                   Pointer to the model structure
- * @param[in]     p_meta                   Access metadata for the received message
- * @param[in]     p_in                     Pointer to the input parameters for the user application
+ * @param[in]     p_self                   Pointer to the model structure.
+ * @param[in]     p_meta                   Access metadata for the received message.
+ * @param[in]     p_in                     Pointer to the input parameters for the user application.
  * @param[in]     p_in_transition          Pointer to transition parameters, if present in the incoming message,
  *                                         otherwise set to null.
  * @param[out]    p_out                    Pointer to store the output parameters from the user application.
@@ -74,18 +74,18 @@ typedef void (*generic_onoff_state_set_cb_t)(const generic_onoff_server_t * p_se
                                              generic_onoff_status_params_t * p_out);
 
 /**
- * Callback type for Generic OnOff Get message
+ * Callback type for Generic OnOff Get message.
  *
- * @param[in]     p_self                   Pointer to the model structure
- * @param[in]     p_meta                   Access metadata for the received message
- * @param[out]    p_out                    Pointer to store the output parameters from the user application
+ * @param[in]     p_self                   Pointer to the model structure.
+ * @param[in]     p_meta                   Access metadata for the received message.
+ * @param[out]    p_out                    Pointer to store the output parameters from the user application.
  */
 typedef void (*generic_onoff_state_get_cb_t)(const generic_onoff_server_t * p_self,
                                              const access_message_rx_meta_t * p_meta,
                                              generic_onoff_status_params_t * p_out);
 
 /**
- * Transaction callbacks for the OnOff state
+ * Transaction callbacks for the OnOff state.
  */
 typedef struct
 {
@@ -94,60 +94,63 @@ typedef struct
 } generic_onoff_server_state_cbs_t;
 
 /**
- * OnOff server callback list
+ * OnOff server callback list.
  */
 typedef struct
 {
-    /** Callbacks for the OnOff state */
+    /** Callbacks for the OnOff state. */
     generic_onoff_server_state_cbs_t onoff_cbs;
 } generic_onoff_server_callbacks_t;
 
 /**
- * User provided settings and callbacks for the model instance
+ * User provided settings and callbacks for the model instance.
  */
 typedef struct
 {
-    /** If server should force outgoing messages as segmented messages */
+    /** If server should force outgoing messages as segmented messages. */
     bool force_segmented;
-    /** TransMIC size used by the outgoing server messages. See @ref nrf_mesh_transmic_size_t */
+    /** TransMIC size used by the outgoing server messages. See @ref nrf_mesh_transmic_size_t. */
     nrf_mesh_transmic_size_t transmic_size;
 
-    /** Callback list */
+    /** Callback list. */
     const generic_onoff_server_callbacks_t * p_callbacks;
 } generic_onoff_server_settings_t;
 
 /**  */
 struct __generic_onoff_server_t
 {
-    /** Model handle assigned to this instance */
+    /** Model handle assigned to this instance. */
     access_model_handle_t model_handle;
-    /** Tid tracker structure */
+    /** Tid tracker structure. */
     tid_tracker_t tid_tracker;
 
-    /** Model settings and callbacks for this instance */
+    /** Model settings and callbacks for this instance. */
     generic_onoff_server_settings_t settings;
 };
 
 /**
- * Initializes Generic On Off server.
+ * Initializes Generic OnOff server.
  *
- * @note This function should only be called _once_.
  * @note The server handles the model allocation and adding.
  *
- * @param[in]     p_server             Generic On Off server context pointer.
- * @param[in]     element_index            Element index to add the model
+ * @param[in]     p_server                 Generic OnOff server context pointer.
+ * @param[in]     element_index            Element index to add the model to.
  *
+ * @retval   NRF_SUCCESS    If the model is initialized successfully.
+ * @returns  Other appropriate error codes on failure.
  */
 uint32_t generic_onoff_server_init(generic_onoff_server_t * p_server, uint8_t element_index);
 
 /**
- * Publishes unsolicited Status message
+ * Publishes unsolicited Status message.
  *
- * This API can be used to send unsolicited messages to report updated state value as a result of local action.
+ * This function can be used to send unsolicited messages to report the updated state value as a result of local action.
  *
  * @param[in]     p_server                 Status server context pointer.
- * @param[in]     p_params                 Message parameters
+ * @param[in]     p_params                 Message parameters.
  *
+ * @retval   NRF_SUCCESS   If the message is published successfully.
+ * @returns  Other appropriate error codes on failure.
  */
 uint32_t generic_onoff_server_status_publish(generic_onoff_server_t * p_server, const generic_onoff_status_params_t * p_params);
 

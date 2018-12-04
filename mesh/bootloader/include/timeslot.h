@@ -89,13 +89,6 @@ void timeslot_restart(void);
 uint32_t timeslot_resume(void);
 
 /**
- * Get the timestamp sampled at the beginning of the timeslot.
- *
- * @return The start of the current timeslot.
- */
-timestamp_t timeslot_start_time_get(void);
-
-/**
  * Get the timestamp for the projected end of the current timeslot.
  *
  * @return The projected end of the current timeslot.

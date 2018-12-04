@@ -38,9 +38,10 @@
 #define MESH_OPT_GATT_H__
 
 /**
- * @defgroup MESH_OPT_GATT GATT runtime configuration options
+ * @defgroup MESH_OPT_GATT GATT runtime configuration options (experimental)
  * @ingroup MESH_OPT
  * Runtime configuration for Mesh GATT functionality
+ *
  * @{
  */
 

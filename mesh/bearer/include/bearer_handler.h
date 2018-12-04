@@ -39,9 +39,11 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "timer.h"
+#include "timeslot_timer.h"
 #include "queue.h"
 #include "nrf_mesh_config_bearer.h"
+#include "nrf_soc.h"
+#include "timeslot.h"
 
 /**
  * @defgroup BEARER_HANDLER Bearer context handler
@@ -50,8 +52,10 @@
  * @{
  */
 
+/** Estimated maximum runtime of the bearer handler end-of-action postprocessing. */
+#define BEARER_ACTION_POST_PROCESS_TIME_US      (100)
 /** Maximal duration of a single bearer action. */
-#define BEARER_ACTION_DURATION_MAX_US  (100000)
+#define BEARER_ACTION_DURATION_MAX_US  (NRF_RADIO_LENGTH_MAX_US - BEARER_ACTION_POST_PROCESS_TIME_US - TIMESLOT_STARTUP_OVERHEAD_US - TIMESLOT_END_TIMER_OVERHEAD_US)
 
 #define BEARER_ACTION_TIMER             CONCAT_2(NRF_TIMER, BEARER_ACTION_TIMER_INDEX)
 #define BEARER_ACTION_TIMER_IRQn        CONCAT_3(TIMER, BEARER_ACTION_TIMER_INDEX, _IRQn)
@@ -70,7 +74,7 @@
  * and can be used freely throughout the action.
  * @param[in] p_args Argument pointer, as specified by the caller.
  */
-typedef void (*bearer_start_cb_t)(timestamp_t start_time, void* p_args);
+typedef void (*bearer_start_cb_t)(ts_timestamp_t start_time, void* p_args);
 
 /**
  * Radio interrupt handler function.
@@ -92,8 +96,8 @@ typedef void (*bearer_timer_irq_handler_t)(void* p_args);
 #ifdef BEARER_HANDLER_DEBUG
 typedef struct
 {
-    timestamp_t prev_duration_us;
-    timestamp_t prev_margin_us;
+    ts_timestamp_t prev_duration_us;
+    ts_timestamp_t prev_margin_us;
     uint32_t event_count;
 } bearer_action_debug_t;
 #endif
@@ -109,7 +113,7 @@ typedef struct
     bearer_start_cb_t          start_cb;          /**< Start of action-callback for the action. */
     bearer_radio_irq_handler_t radio_irq_handler; /**< Radio interrupt handler for the action. */
     bearer_timer_irq_handler_t timer_irq_handler; /**< Timer interrupt handler for the action. */
-    timestamp_t                duration_us;       /**< Upper limit on action execution time in microseconds. Must be lower than @ref BEARER_ACTION_DURATION_MAX_US.*/
+    ts_timestamp_t             duration_us;       /**< Upper limit on action execution time in microseconds. Must be lower than @ref BEARER_ACTION_DURATION_MAX_US.*/
     void*                      p_args;            /**< Arguments pointer provided to the callbacks. */
 
 #ifdef BEARER_HANDLER_DEBUG
@@ -119,6 +123,8 @@ typedef struct
     queue_elem_t               queue_elem;        /**< Linked list queue element, set and used by the module. */
 } bearer_action_t;
 
+/** Callback type being called once the bearer handler has been stopped. */
+typedef void (*bearer_handler_stopped_cb_t)(void);
 
 /** Initialize the bearer handler. */
 void bearer_handler_init(void);
@@ -139,11 +145,13 @@ uint32_t bearer_handler_start(void);
  * @note The bearer handler will finish any ongoing actions before stopping.
  * @warning Requires that the bearer_handler_init function has been called.
  *
+ * @param[in] cb Stop callback called once the bearer handler has come to rest, or NULL.
+ *
  * @retval NRF_SUCCESS Successfully stopped the bearer handler. All radio
- * activity will be suspended.
+ * activity will be suspended, and the callback will be called.
  * @retval NRF_ERROR_INVALID_STATE The bearer handler is already stopped.
  */
-uint32_t bearer_handler_stop(void);
+uint32_t bearer_handler_stop(bearer_handler_stopped_cb_t cb);
 
 /**
  * Enqueue a single bearer action. The action will go to the back of the action
@@ -161,6 +169,14 @@ uint32_t bearer_handler_stop(void);
  * @retval NRF_ERROR_INVALID_STATE The action is already in the queue, and will be executed as soon as possible.
  */
 uint32_t bearer_handler_action_enqueue(bearer_action_t* p_action);
+
+
+/**
+ * Wake up the bearer handler.
+ *
+ * Makes the bearer handler start a timeslot if there's any activity pending.
+ */
+void bearer_handler_wake_up(void);
 
 /**
  * Fire a single bearer action immediately. If something is blocking the
@@ -211,6 +227,13 @@ void bearer_handler_on_ts_begin(void);
 void bearer_handler_on_ts_end(void);
 
 /**
+ * Timeslot session closed handler. Called by the timeslot handler module.
+ *
+ * @warning Should only be called by the timeslot module.
+ */
+void bearer_handler_on_ts_session_closed(void);
+
+/**
  * Radio IRQ handler. Called by the timeslot handler module.
  *
  * @warning Should only be called by the timeslot module.
@@ -223,6 +246,7 @@ void bearer_handler_radio_irq_handler(void);
  * @warning Should only be called by the timeslot module.
  */
 void bearer_handler_timer_irq_handler(void);
+
 
 /** @} */
 

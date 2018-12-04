@@ -461,7 +461,7 @@ def as_packet_fmt(dct):
 
 def json_reads():
     jdata = []
-    for path in glob.glob("packet_fmt/packets/*.json"):
+    for path in glob.glob("scripts/packet_fmt/packets/*.json"):
         with open(path, "r") as f:
             jdata += [json.load(f, object_hook=as_packet_fmt)]
 

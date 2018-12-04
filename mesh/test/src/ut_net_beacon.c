@@ -117,7 +117,7 @@ static uint32_t m_info_count;
 static uint32_t m_info_index;
 static timer_sch_callback_t m_timer_cb;
 static uint32_t m_rand_value;
-static uint32_t m_time_now;
+static timestamp_t m_time_now;
 static advertiser_t * mp_adv;
 static advertiser_tx_complete_cb_t m_tx_complete_cb;
 

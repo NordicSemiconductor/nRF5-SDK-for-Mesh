@@ -155,8 +155,7 @@ static void send_fault_status(health_server_t * p_server, uint16_t opcode, const
         p_fault_array = &p_server->registered_faults; /*lint !e545 Suspicious use of '&' */
     }
 
-    uint8_t message_buffer[sizeof(health_msg_fault_status_t)
-        + bitfield_popcount(*p_fault_array, HEALTH_SERVER_FAULT_ARRAY_SIZE)];
+    uint8_t message_buffer[sizeof(health_msg_fault_status_t) + HEALTH_SERVER_FAULT_ARRAY_SIZE];
     health_msg_fault_status_t * p_pdu = (health_msg_fault_status_t *) message_buffer;
 
     p_pdu->test_id = p_server->previous_test_id;
@@ -174,7 +173,7 @@ static void send_fault_status(health_server_t * p_server, uint16_t opcode, const
     {
         .opcode = ACCESS_OPCODE_SIG(opcode),
         .p_buffer = message_buffer,
-        .length = sizeof(message_buffer),  /*lint !e569 Loss of precision from the sizeof() operator */
+        .length = ((uintptr_t) &p_pdu->fault_array[current_index] - (uintptr_t) &message_buffer[0]),
         .force_segmented = false,
         .transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT,
         .access_token = nrf_mesh_unique_token_get()

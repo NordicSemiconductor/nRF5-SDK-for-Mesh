@@ -9,7 +9,21 @@ devices in the mesh network to receive the update at the same time.
 The bootloader supports DFU transfers occurring while the application is running, significantly
 reducing application downtime during updates.
 
-## Key parameters
+**Table of contents**
+- [Key parameters](@ref bootloader_key_parameters)
+- [Compatibility](@ref bootloader_compatibility)
+- [Requirements](@ref bootloader_requirements)
+- [Usage](@ref bootloader_usage)
+- [DFU Signing](@ref bootloader_dfu_signing)
+- [Side-by-side DFU](@ref bootloader_side_side_dfu)
+    - [The shared DFU module](@ref bootloader_side_side_dfu_shared)
+- [Limitations](@ref bootloader_limitations)
+
+
+---
+
+
+## Key parameters @anchor bootloader_key_parameters
 
 The bootloader is limited to 22 kilobytes flash and 768 bytes RAM. In addition to the 22 kilobytes
 flash, the bootloader reserves the two last pages of the flash. This means that the total size of
@@ -17,18 +31,30 @@ the bootloader is 32 kilobytes for the nRF52-series and 24 kilobytes for the nRF
 The actual size of the bootloader depends on whether it is compiled with the serial (UART)
 transport in addition to toolchain and optimization settings.
 
-## Compatibility
+
+---
+
+
+## Compatibility @anchor bootloader_compatibility
 
 The mesh bootloader supports all devices in the nRF51-series as well as nRF52832.
 
-## Requirements
+
+---
+
+
+## Requirements @anchor bootloader_requirements
 See [The toolchain document](@ref md_doc_getting_started_how_to_toolchain) for the required tools
 for building and using the bootloader. Pre-compiled variants of the bootloader are available in
 the `bin/` folder. Building the bootloader is only supported with the CMake build system and can
 be enabled with the `BUILD_BOOTLOADER` CMake option. Be aware that the bootloader must be built
 with `CMAKE_BUILD_TYPE` equal to `MinSizeRel` for it to fit within its flash size requirement.
 
-## Usage
+
+---
+
+
+## Usage @anchor bootloader_usage
 
 To get started with the Mesh-DFU, see the
 [DFU Quick start guide](@ref md_doc_getting_started_dfu_quick_start). It is recommended that all
@@ -41,7 +67,11 @@ device, all devices in the network may receive any firmware updates over the
 mesh. All update packets are flooded across the mesh, and all devices in the
 network are updated at the same time.
 
-## DFU Signing
+
+---
+
+
+## DFU Signing @anchor bootloader_dfu_signing
 
 The mesh-bootloader allows for signed DFU transfers, using 256 bit ECDSA. Signing DFUs prevents
 attackers from hijacking a device by flashing their own firmware to it. While not enforced, it
@@ -54,7 +84,11 @@ verify a signature added to the end of signed firmwares. Under no circumstance s
 signing key be shared with a third party or be present in the device firmware. You may choose to
 use a single signing key for each application, or use the same key for all applications.
 
-## Side-by-side DFU
+
+---
+
+
+## Side-by-side DFU @anchor bootloader_side_side_dfu
 
 The mesh bootloader is capable of receiving and relaying DFU transfers while the application is
 running. When a transfer has finished, the DFU module goes idle, and notifies the application of
@@ -66,7 +100,7 @@ update.
 The bootloader is also capable of operating without an application, as a recovery mechanism from
 a faulty application.
 
-### The shared DFU module
+### The shared DFU module @anchor bootloader_side_side_dfu_shared
 
 Since the DFU operation is the same whether the device is operating in application or bootloader
 mode, the DFU module in the bootloader has been separated from the rest of it, and is made
@@ -75,7 +109,11 @@ where the application is expected to reserve some RAM for it, without linking it
 Access to the DFU module goes through a single entry point, which is located by the application side
 framework upon initialization.
 
-## Limitations
+
+---
+
+
+## Limitations @anchor bootloader_limitations
 
 A couple of limitations to the bootloader applies:
 

@@ -60,7 +60,7 @@ static mesh_config_file_params_t m_file[NUMBER_OF_FILES];
 static mesh_config_backend_file_t m_backend_file[NUMBER_OF_FILES];
 static uint16_t m_file_size_table[NUMBER_OF_FILES];
 static uint8_t m_data;
-static uint32_t m_read_all_counter;
+static uint32_t m_read_callback_counter;
 
 static void entry_table_create(void)
 {
@@ -142,53 +142,16 @@ static uint32_t mesh_config_backend_record_read_cb(mesh_config_backend_file_t * 
     return NRF_SUCCESS;
 }
 
-static void mesh_config_backend_record_iterate_cb(mesh_config_backend_file_t * p_file,
-                                                  uint8_t ** pp_data,
-                                                  uint32_t * p_length,
-                                                  mesh_config_backend_record_iterator_t * p_iterator,
-                                                  int cmock_num_calls)
+static mesh_config_backend_iterate_action_t dummy_read_callback(mesh_config_entry_id_t id, const uint8_t * p_entry, uint32_t entry_len)
 {
-    TEST_ASSERT_NOT_NULL(p_file);
-    TEST_ASSERT_NOT_NULL(pp_data);
-    TEST_ASSERT_NOT_NULL(p_length);
-    TEST_ASSERT_NOT_NULL(p_iterator);
-    TEST_ASSERT_TRUE(0ul != *p_length);
-
-    if (m_read_all_counter < TABLE_SIZE && m_entry_table[m_read_all_counter].p_id->file == p_file->file_id)
-    {
-        p_file->curr_pos = m_entry_table[m_read_all_counter].p_id->record;
-        *pp_data = (uint8_t *)&m_entry_table[m_read_all_counter];
-        *p_length = m_entry_table[m_read_all_counter].max_count * m_entry_table[m_read_all_counter].entry_size;
-    }
-    else
-    {
-        *pp_data = NULL;
-    }
-}
-
-static mesh_config_backend_iterate_action_t continuing_custom_cb(mesh_config_entry_id_t id, const uint8_t * p_entry, uint32_t entry_len)
-{
-    TEST_ASSERT_TRUE(m_entry_table[m_read_all_counter].p_id->file == id.file);
-    TEST_ASSERT_TRUE(m_entry_table[m_read_all_counter].p_id->record == id.record);
-    TEST_ASSERT_TRUE(p_entry == (uint8_t *)&m_entry_table[m_read_all_counter]);
-    TEST_ASSERT_TRUE(entry_len == (uint32_t)(m_entry_table[m_read_all_counter].max_count * m_entry_table[m_read_all_counter].entry_size));
-
-    m_read_all_counter++;
+    /* Will never actually get called by the mesh_config_backend module, just here to provide something to feed the lower API with */
     return MESH_CONFIG_BACKEND_ITERATE_ACTION_CONTINUE;
-}
-
-static mesh_config_backend_iterate_action_t stopping_custom_cb(mesh_config_entry_id_t id, const uint8_t * p_entry, uint32_t entry_len)
-{
-    (void)id;
-    (void)p_entry;
-    (void)entry_len;
-
-    return MESH_CONFIG_BACKEND_ITERATE_ACTION_STOP;
 }
 
 void setUp(void)
 {
     mesh_config_backend_glue_mock_Init();
+    m_read_callback_counter = 0;
 
     entry_table_create();
 }
@@ -304,20 +267,17 @@ void test_read_all_negative(void)
     TEST_NRF_MESH_ASSERT_EXPECT(mesh_config_backend_read_all(NULL));
 }
 
-void test_read_all_continuing_positive(void)
+/**
+ * The read all function is just a wrapper on the lower backend that calls its read for every file,
+ * so no need to check the lower callback behavior.
+ */
+void test_read_all_positive(void)
 {
-    mesh_config_backend_record_iterate_StubWithCallback(mesh_config_backend_record_iterate_cb);
-    mesh_config_backend_read_all(continuing_custom_cb);
-    TEST_ASSERT_TRUE(m_read_all_counter == TABLE_SIZE);
-}
-
-void test_read_all_stopping_positive(void)
-{
-    uint8_t * p_data = &m_data;
-    uint8_t ** pp_data = &p_data;
-    mesh_config_backend_record_iterate_ExpectAnyArgs();
-    mesh_config_backend_record_iterate_ReturnThruPtr_pp_data(pp_data);
-    mesh_config_backend_read_all(stopping_custom_cb);
+    for (uint32_t i = 0; i < NUMBER_OF_FILES; ++i)
+    {
+        mesh_config_backend_records_read_Expect(m_file[i].p_backend_data, dummy_read_callback);
+    }
+    mesh_config_backend_read_all(dummy_read_callback);
 }
 
 void test_power_down_time(void)

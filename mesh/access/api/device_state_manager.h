@@ -674,22 +674,44 @@ uint32_t dsm_appkey_get_all(dsm_handle_t subnet_handle, mesh_key_index_t * p_key
 /** @} end of DEVICE_STATE_MANAGER_KEYS */
 
 /**
- * Retrieves the necessary security material for sending a mesh packet.
+ * Retrieves the necessary application and master network security material for sending a mesh packet.
  *
- * It is possible to set the @c subnet_handle to @ref DSM_HANDLE_INVALID value. In this case the DSM will
+ * It is possible to set the @c subnet_handle to @ref DSM_HANDLE_INVALID value. In this case, the DSM will
  * try to find the network key bound to the application key.
  *
  * @param[in] subnet_handle The subnet handle of the network key used in the transmission.
  * @param[in] app_handle The application handle of the application key used in the transmission.
- * @param[in, out] p_secmat Pointer to the structure for the security material for a mesh packet.
+ * @param[in, out] p_secmat Pointer to the structure for the application and master network security
+ * material for a mesh packet.
  *
- * @retval NRF_SUCCESS The @c p_secmat has been successfully populated by all the network and
- * application security material requested.
+ * @retval NRF_SUCCESS The requested network and application security materials successfully
+ * populated the @c p_secmat.
  * @retval NRF_ERROR_NOT_FOUND The given application handle is not valid.
  * @retval NRF_ERROR_NULL An unexpected NULL pointer is given.
  * @retval NRF_ERROR_INVALID_STATE There are no allocated subnets.
  */
 uint32_t dsm_tx_secmat_get(dsm_handle_t subnet_handle, dsm_handle_t app_handle, nrf_mesh_secmat_t * p_secmat);
+
+#if MESH_FEATURE_LPN_ENABLED
+/**
+ * Retrieves the necessary application and friendship network security material for sending a mesh packet.
+ *
+ * It is possible to set the @c subnet_handle to @ref DSM_HANDLE_INVALID value. In this case, the DSM will
+ * try to find the network key bound to the application key.
+ *
+ * @param[in] subnet_handle The subnet handle of the network key used in the transmission.
+ * @param[in] app_handle The application handle of the application key used in the transmission.
+ * @param[in, out] p_secmat Pointer to the structure for the application and friendship network security 
+ * material for a mesh packet.
+ *
+ * @retval NRF_SUCCESS The requested network and application security materials successfully
+ * populated the @c p_secmat.
+ * @retval NRF_ERROR_NOT_FOUND The given application handle is not valid.
+ * @retval NRF_ERROR_NULL An unexpected NULL pointer is given.
+ * @retval NRF_ERROR_INVALID_STATE There are no allocated subnets.
+ */
+uint32_t dsm_tx_friendship_secmat_get(dsm_handle_t subnet_handle, dsm_handle_t app_handle, nrf_mesh_secmat_t * p_secmat);
+#endif
 
 /**
  * Retrieves the necessary info for sending a mesh network beacon packet.
@@ -719,7 +741,7 @@ uint32_t dsm_beacon_info_get(dsm_handle_t subnet_handle,
 uint32_t dsm_proxy_identity_get(dsm_handle_t subnet_handle, const uint8_t ** pp_identity);
 
 /**
- * Retrives the network security material from the given netkey index.
+ * Retrives the master network security material from the given netkey index.
  *
  * @param[in]  net_key_index    Netkey index for which security material will be retrived.
  * @param[out] pp_net           Pointer to a variable where the security material pointer is stored.

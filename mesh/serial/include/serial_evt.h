@@ -175,7 +175,7 @@ typedef struct __attribute((packed))
 typedef struct __attribute((packed))
 {
     uint8_t context_id;             /**< Context ID of the provisioning link. */
-    uint8_t attention_duration_s;   /**< How long the primary element of the device identifies itself using the Attention Timer in seconds. */
+    uint8_t attention_duration_s;   /**< Time in seconds during which the device will identify itself using any means it can. */
 } serial_evt_prov_invite_received_t;
 
 /** Provisioning start event. */

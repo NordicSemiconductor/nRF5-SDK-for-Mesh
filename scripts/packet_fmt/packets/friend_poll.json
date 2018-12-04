@@ -1,0 +1,22 @@
+{
+    "__packet__": true,
+    "name": "friend_poll",
+    "type": "absolute",
+    "module": "trs_control",
+    "packet_type": "packet_mesh_trs_control_packet_t",
+    "max_length": 1,
+    "fields": [
+        {
+            "name": "padding",
+            "width":  7,
+            "doc": "zeroes, all other values are prohibited",
+            "visible": false
+        },
+        {
+            "name": "fsn",
+            "width":  1,
+            "doc": "Friend Sequence Number",
+            "visible": true
+        }
+    ]
+}

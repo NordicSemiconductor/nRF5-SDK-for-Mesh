@@ -1,5 +1,7 @@
 # Serial example
 
+@note This example is not supported by the nRF52810 Series.
+
 This example implements the serial interface for the mesh stack. It can be used
 unaltered as connectivity firmware for mesh devices. You can also modify the example
 to provide additional functionality.
@@ -31,9 +33,8 @@ serial command.
 ## Running the example
 
 To build the example, follow the instructions in
-[Building the Mesh Stack](@ref md_doc_getting_started_how_to_build). Refer to the *How to run examples*
-section in [Examples README](@ref md_examples_README) for the commands required to program a
-device using `nrfjprog`.
+[Building the Mesh Stack](@ref md_doc_getting_started_how_to_build). For commands required to program a device using `nrfjprog`,
+see the [Running examples using nrfjprog](@ref how_to_run_examples_nrfjprog) section on the @ref md_doc_getting_started_how_to_run_examples page.
 
 Go to the [Interactive PyACI documentation](@ref md_scripts_interactive_pyaci_README) to
 get started with the serial interface.

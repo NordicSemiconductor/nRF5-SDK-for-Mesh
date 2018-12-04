@@ -24,5 +24,5 @@ The example is intended to replace the Light Switch Client when running the Ligh
 - Program the Light Switch example devices as described in the @ref md_examples_light_switch_README, except for replacing the Light Switch Client with `examples\ble_peripheral\ble_app_uart_coexist\pca10040\s132\ses\Output\Release\Exe\ble_app_uart_pca10040_s132.hex`.
 - Run the two coexisting examples in parallel or in sequence:
     - Run the Light Switch example as described in @ref md_examples_light_switch_README.
-    - Run the ble_app_uart example as described in the nRF5 SDK documentation.
+    - Run the @link_ble_app_uart_example example as described in the nRF5 SDK documentation.
         - Write the hexadecimal ascii codes equivalent to one of the digits (1, 2, 3, or 4) in the UART RX characteristic to simulate a button press.

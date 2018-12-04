@@ -136,7 +136,7 @@
 
 /** Number of flags available for allocation. */
 #ifndef BEARER_EVENT_FLAG_COUNT
-#define BEARER_EVENT_FLAG_COUNT     9
+#define BEARER_EVENT_FLAG_COUNT     10
 #endif
 
 /** @} end of MESH_CONFIG_BEARER_EVENT */

@@ -81,11 +81,11 @@ bool prov_packet_length_valid(const uint8_t * p_buffer, uint16_t length)
     return valid;
 }
 
-uint32_t prov_tx_invite(prov_bearer_t * p_bearer, uint8_t attention_duration, uint8_t * p_confirmation_inputs)
+uint32_t prov_tx_invite(prov_bearer_t * p_bearer, uint8_t attention_duration_s, uint8_t * p_confirmation_inputs)
 {
     prov_pdu_invite_t pdu;
     pdu.pdu_type = PROV_PDU_TYPE_INVITE;
-    pdu.attention_duration = attention_duration;
+    pdu.attention_duration_s = attention_duration_s;
 
     /* Copy PDU contents (excluding PDU type) into the confirmation inputs: */
     memcpy(p_confirmation_inputs + PROV_CONFIRM_INPUTS_INVITE_OFFSET, ((const uint8_t *) &pdu) + 1, sizeof(prov_pdu_invite_t) - 1);

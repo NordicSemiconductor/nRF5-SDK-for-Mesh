@@ -59,7 +59,7 @@
 #define CLIENT_BUSY_SEND_RETRY_LIMIT     (3)
 
 /** Delay after which config client message will be re-sent if client model is busy */
-#define CLIENT_BUSY_SEND_RETRY_DELAY_MS  (500)
+#define CLIENT_BUSY_SEND_RETRY_DELAY_MS  (5000)
 
 /**
  * @defgroup NODE_SETUP_CALLBACKS User application callback prototypes for node setup module

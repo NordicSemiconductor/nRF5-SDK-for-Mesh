@@ -58,7 +58,6 @@
 #include "provisioner_helper.h"
 #include "node_setup.h"
 #include "mesh_app_utils.h"
-#include "mesh_softdevice_init.h"
 
 /* Models */
 #include "config_client.h"
@@ -73,6 +72,7 @@
 #include "light_switch_example_common.h"
 #include "example_network_config.h"
 #include "nrf_mesh_config_examples.h"
+#include "ble_softdevice_support.h"
 #include "example_common.h"
 
 #define APP_NETWORK_STATE_ENTRY_HANDLE (0x0001)
@@ -171,16 +171,17 @@ static void app_flash_manager_add(void)
 
 static bool load_app_data(void)
 {
-    flash_manager_wait();
-    const fm_entry_t * p_entry = flash_manager_entry_get(&m_flash_manager, APP_NETWORK_STATE_ENTRY_HANDLE);
-    if (p_entry == NULL)
+    uint32_t length = sizeof(m_nw_state);
+    uint32_t status = flash_manager_entry_read(&m_flash_manager,
+                                               APP_NETWORK_STATE_ENTRY_HANDLE,
+                                               &m_nw_state,
+                                               &length);
+    if (status != NRF_SUCCESS)
     {
         memset(&m_nw_state, 0x00, sizeof(m_nw_state));
-        return false;
     }
 
-    memcpy(&m_nw_state, p_entry->data, sizeof(m_nw_state));
-    return true;
+    return (status == NRF_SUCCESS);
 }
 
 static uint32_t store_app_data(void)
@@ -416,7 +417,6 @@ static void app_mesh_core_event_cb (const nrf_mesh_evt_t * p_evt)
             break;
 
         default:
-            __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Unhandled Mesh Event: %d \n", p_evt->type);
             break;
     }
 }
@@ -531,6 +531,7 @@ static void mesh_init(void)
         .p_dev_data = &m_dev_handles,
         .p_nw_data = &m_nw_state,
         .netkey_idx = NETKEY_INDEX,
+        .attention_duration_s = ATTENTION_DURATION_S,
         .p_data_store_cb  = app_data_store_cb,
         .p_prov_success_cb = app_prov_success_cb,
         .p_prov_failed_cb = app_prov_failed_cb
@@ -567,9 +568,9 @@ static void initialize(void)
     ERROR_CHECK(hal_buttons_init(button_event_handler));
 #endif
 
+    ble_stack_init();
+
     /* Mesh Init */
-    nrf_clock_lf_cfg_t lfc_cfg = DEV_BOARD_LF_CLK_CFG;
-    ERROR_CHECK(mesh_softdevice_init(lfc_cfg));
     mesh_init();
 }
 
@@ -587,12 +588,13 @@ static void app_start(void)
 static void start(void)
 {
     rtt_input_enable(app_rtt_input_handler, RTT_INPUT_POLL_PERIOD_MS);
-    ERROR_CHECK(nrf_mesh_enable());
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "<start> \n");
 
 #if (!PERSISTENT_STORAGE)
     app_start();
 #endif
+
+    ERROR_CHECK(nrf_mesh_enable());
 
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
@@ -601,7 +603,7 @@ static void start(void)
 int main(void)
 {
     initialize();
-    execution_start(start);
+    start();
 
     for (;;)
     {

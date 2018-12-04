@@ -43,6 +43,7 @@
 #include "packet_buffer.h"
 #include "nrf_mesh_config_core.h"
 #include "queue.h"
+#include "toolchain.h"
 #include "bearer_event.h"
 
 /**
@@ -240,6 +241,27 @@ typedef struct
     void * p_args; /**< Arguments pointer, set by the user and returned in the callback. */
 } fm_mem_listener_t;
 
+/** Action returned from the read callback, determining whether to continue the iteration. */
+typedef enum
+{
+    FM_ITERATE_ACTION_STOP, /**< Stop iterating through the entries. */
+    FM_ITERATE_ACTION_CONTINUE, /**< Continue iterating through the entries. */
+} fm_iterate_action_t;
+
+/**
+ * Entry read callback type.
+ *
+ * @see flash_manager_entries_read
+ *
+ * @param[in] p_entry A pointer to the flash entry that is read.
+ * @param[in,out] p_args The @c p_args pointer that was passed to the @ref
+ * flash_manager_entries_read function.
+ *
+ * @retval FM_ITERATE_ACTION_STOP Tell the caller to stop iterating through the entries.
+ * @retval FM_ITERATE_ACTION_CONTINUE Tell the caller to continue iterating through the entries.
+ */
+typedef fm_iterate_action_t (*flash_manager_read_cb_t)(const fm_entry_t * p_entry, void * p_args);
+
 /** @} */
 
 /**
@@ -282,18 +304,53 @@ uint32_t flash_manager_remove(flash_manager_t * p_manager);
 /**
  * Get a pointer to the entry with the given index.
  *
+ * @deprecated Deprecated in favor of @ref flash_manager_entry_read, which works in the defrag state.
+ *
  * @param[in] p_manager Flash manager to operate on.
  * @param[in] handle Entry handle to search for.
  *
  * @returns The flash entry with the given index, or NULL if no such entry exists.
  */
-const fm_entry_t * flash_manager_entry_get(const flash_manager_t * p_manager, fm_handle_t handle);
+_DEPRECATED const fm_entry_t * flash_manager_entry_get(const flash_manager_t * p_manager, fm_handle_t handle);
+
+/**
+ * Read out the contents of the entry with the given handle.
+ *
+ * Will copy the entry into the @p p_data buffer, up to the size of the buffer.
+ *
+ * @note The entry length is stored in words, so entries whose size is not word-aligned will get
+ * their @p p_length parameter adjusted even if they are technically the right size. If the there's
+ * a mismatch between @p p_length and the stored length that can't have been caused by the word
+ * alignment, the function will return @c NRF_ERROR_INVALID_LENGTH.
+ *
+ * @param[in] p_manager Flash manager to operate on.
+ * @param[in] handle Entry handle to search for.
+ * @param[in,out] p_data Buffer to copy entry data into. The buffer must at least be as long as
+ * indicated by the initial value of @c p_length.
+ * @param[in,out] p_length Pointer to a variable that holds the length of the given entry in bytes.
+ * Will be changed to reflect the actual length of the entry with the given handle.
+ *
+ * @retval NRF_SUCCESS The entry was found, its data was successfully copied into the @p p_data
+ * buffer, and @p p_length was changed to reflect the actual length.
+ * @retval NRF_ERROR_INVALID_STATE The flash manager is not in a readable state.
+ * @retval NRF_ERROR_NULL At least one parameter was NULL.
+ * @retval NRF_ERROR_INVALID_PARAMETER The given handle isn't valid.
+ * @retval NRF_ERROR_NOT_FOUND The given handle doesn't exist in the manager.
+ * @retval NRF_ERROR_INVALID_LENGTH The word aligned value of @p p_length does not match the entry
+ * length. @p p_length has been changed to indicate the correct length.
+ */
+uint32_t flash_manager_entry_read(const flash_manager_t * p_manager,
+                                  fm_handle_t handle,
+                                  void * p_data,
+                                  uint32_t * p_length);
 
 /**
  * Get the next entry matching the given filter.
  *
  * @note The entries will be returned in the order they're stored in, not by index. It's
  * recommended to reset the @p p_start pointer if any changes are made to the area.
+ *
+ * @deprecated Deprecated in favor of @ref flash_manager_entries_read, which works in the defrag state.
  *
  * @param[in] p_manager Flash manager to operate on.
  * @param[in] p_filter Filter to apply to search, or NULL if not filter should be applied.
@@ -305,15 +362,37 @@ const fm_entry_t * flash_manager_entry_get(const flash_manager_t * p_manager, fm
  * @returns The next entry from @p p_start matching the given filter, or NULL if no such entry exists
  * in the given flash manager.
  */
-const fm_entry_t * flash_manager_entry_next_get(const flash_manager_t * p_manager,
+_DEPRECATED const fm_entry_t * flash_manager_entry_next_get(const flash_manager_t * p_manager,
         const fm_handle_filter_t * p_filter,
         const fm_entry_t * p_start);
+
+
+/**
+ * Read out flash manager entries.
+ *
+ * Iterates through the given flash manager's area and passes each entry to the read callback.
+ * Freezes flash operations to avoid manipulating the data through defrag or other procedures.
+ *
+ * @note The order in which the entries are passed to the read callback isn't guaranteed to be the
+ * same as the order they're stored in.
+ *
+ * @param[in] p_manager Flash manager to operate on.
+ * @param[in] p_filter Filter to apply to search, or @c NULL to pass all entries to the read callback.
+ * @param[in] read_cb Read callback called for every entry that fits the filter, or @c NULL.
+ * @param[in,out] p_args Argument pointer that will be passed to the read callback.
+ *
+ * @returns The number of entries read out to the read_cb.
+ */
+uint32_t flash_manager_entries_read(const flash_manager_t * p_manager,
+                                    const fm_handle_filter_t * p_filter,
+                                    flash_manager_read_cb_t read_cb,
+                                    void * p_args);
 
 /**
  * Get the number of entries matching the given filter.
  *
  * @param[in] p_manager Flash manager to operate on.
- * @param[in] p_filter Filter to apply to search, or NULL if not filter should be applied.
+ * @param[in] p_filter Filter to apply to search, or @c NULL to count all entries.
  *
  * @returns The number of entries matching the given filter.
  */

@@ -44,16 +44,17 @@
 #include "app_timer.h"
 
 /* Core */
+#include "nrf_mesh_config_core.h"
 #include "nrf_mesh_configure.h"
 #include "nrf_mesh.h"
 #include "mesh_stack.h"
 #include "device_state_manager.h"
 #include "access_config.h"
+#include "proxy.h"
 
 /* Provisioning and configuration */
 #include "mesh_provisionee.h"
 #include "mesh_app_utils.h"
-#include "mesh_softdevice_init.h"
 
 /* Models */
 #include "generic_onoff_server.h"
@@ -68,8 +69,10 @@
 #include "nrf_mesh_config_examples.h"
 #include "light_switch_example_common.h"
 #include "app_onoff.h"
+#include "ble_softdevice_support.h"
 
 #define ONOFF_SERVER_0_LED          (BSP_LED_0)
+#define APP_ONOFF_ELEMENT_INDEX     (0)
 
 static bool m_device_provisioned;
 
@@ -104,8 +107,9 @@ static void app_onoff_server_get_cb(const app_onoff_server_t * p_server, bool * 
 
 static void app_model_init(void)
 {
-    /* Instantiate onoff server on element index 0 */
-    ERROR_CHECK(app_onoff_init(&m_onoff_server_0, 0));
+    /* Instantiate onoff server on element index APP_ONOFF_ELEMENT_INDEX */
+    ERROR_CHECK(app_onoff_init(&m_onoff_server_0, APP_ONOFF_ELEMENT_INDEX));
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App OnOff Model Handle: %d\n", m_onoff_server_0.server.model_handle);
 }
 
 /*************************************************************************************************/
@@ -146,8 +150,18 @@ static void button_event_handler(uint32_t button_number)
         case 3:
         {
             /* Clear all the states to reset the node. */
-            mesh_stack_config_clear();
-            node_reset();
+            if (mesh_stack_is_device_provisioned())
+            {
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+                (void) proxy_stop();
+#endif
+                mesh_stack_config_clear();
+                node_reset();
+            }
+            else
+            {
+                __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "The device is unprovisioned. Resetting has no effect.\n");
+            }
             break;
         }
 
@@ -165,14 +179,35 @@ static void app_rtt_input_handler(int key)
     }
 }
 
+static void device_identification_start_cb(uint8_t attention_duration_s)
+{
+    hal_led_mask_set(LEDS_MASK, false);
+    hal_led_blink_ms(BSP_LED_2_MASK  | BSP_LED_3_MASK, 
+                     LED_BLINK_ATTENTION_INTERVAL_MS, 
+                     LED_BLINK_ATTENTION_COUNT(attention_duration_s));
+}
+
+static void provisioning_aborted_cb(void)
+{
+    hal_led_blink_stop();
+}
+
 static void provisioning_complete_cb(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
+
+#if MESH_FEATURE_GATT_ENABLED
+    /* Restores the application parameters after switching from the Provisioning
+     * service to the Proxy  */
+    gap_params_init();
+    conn_params_init();
+#endif
 
     dsm_local_unicast_address_t node_address;
     dsm_local_unicast_addresses_get(&node_address);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
 
+    hal_led_blink_stop();
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
 }
@@ -202,7 +237,7 @@ static void mesh_init(void)
 
 static void initialize(void)
 {
-    __LOG_INIT(LOG_SRC_APP | LOG_SRC_ACCESS, LOG_LEVEL_INFO, LOG_CALLBACK_DEFAULT);
+    __LOG_INIT(LOG_SRC_APP | LOG_SRC_ACCESS | LOG_SRC_BEARER, LOG_LEVEL_INFO, LOG_CALLBACK_DEFAULT);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- BLE Mesh Light Switch Server Demo -----\n");
 
     ERROR_CHECK(app_timer_init());
@@ -212,15 +247,19 @@ static void initialize(void)
     ERROR_CHECK(hal_buttons_init(button_event_handler));
 #endif
 
-    nrf_clock_lf_cfg_t lfc_cfg = DEV_BOARD_LF_CLK_CFG;
-    ERROR_CHECK(mesh_softdevice_init(lfc_cfg));
+    ble_stack_init();
+
+#if MESH_FEATURE_GATT_ENABLED
+    gap_params_init();
+    conn_params_init();
+#endif
+
     mesh_init();
 }
 
 static void start(void)
 {
     rtt_input_enable(app_rtt_input_handler, RTT_INPUT_POLL_PERIOD_MS);
-    ERROR_CHECK(mesh_stack_start());
 
     if (!m_device_provisioned)
     {
@@ -229,13 +268,19 @@ static void start(void)
         {
             .p_static_data    = static_auth_data,
             .prov_complete_cb = provisioning_complete_cb,
+            .prov_device_identification_start_cb = device_identification_start_cb,
+            .prov_device_identification_stop_cb = NULL,
+            .prov_abort_cb = provisioning_aborted_cb,
             .p_device_uri = NULL
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }
 
     const uint8_t *p_uuid = nrf_mesh_configure_device_uuid_get();
+    UNUSED_VARIABLE(p_uuid);
     __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "Device UUID ", p_uuid, NRF_MESH_UUID_SIZE);
+
+    ERROR_CHECK(mesh_stack_start());
 
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
@@ -244,7 +289,7 @@ static void start(void)
 int main(void)
 {
     initialize();
-    execution_start(start);
+    start();
 
     for (;;)
     {

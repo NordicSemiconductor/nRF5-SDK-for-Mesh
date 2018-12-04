@@ -56,7 +56,6 @@
 /* Provisioning and configuration */
 #include "mesh_provisionee.h"
 #include "mesh_app_utils.h"
-#include "mesh_softdevice_init.h"
 
 /* Models */
 #include "generic_onoff_client.h"
@@ -296,8 +295,6 @@ void mesh_main_initialize(void)
 
 void mesh_main_start(void)
 {
-    ERROR_CHECK(mesh_stack_start());
-
     if (!m_device_provisioned)
     {
         static const uint8_t static_auth_data[NRF_MESH_KEY_SIZE] = STATIC_AUTH_DATA;
@@ -305,6 +302,9 @@ void mesh_main_start(void)
         {
             .p_static_data    = static_auth_data,
             .prov_complete_cb = provisioning_complete_cb,
+            .prov_device_identification_start_cb = NULL,
+            .prov_device_identification_stop_cb = NULL,
+            .prov_abort_cb = NULL,
             .p_device_uri = NULL
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
@@ -313,4 +313,6 @@ void mesh_main_start(void)
     const uint8_t *p_uuid = nrf_mesh_configure_device_uuid_get();
     NRF_LOG_INFO("Device UUID");
     NRF_LOG_RAW_HEXDUMP_INFO(p_uuid, NRF_MESH_UUID_SIZE);
+
+    ERROR_CHECK(mesh_stack_start());
 }

@@ -373,9 +373,25 @@ static void handle_cmd_packet_send(const serial_packet_t * p_cmd)
         }
         else
         {
-            status = dsm_tx_secmat_get(DSM_HANDLE_INVALID,
-                                       p_cmd->payload.cmd.mesh.packet_send.appkey_handle,
-                                       &tx_params.security_material);
+#if MESH_FEATURE_LPN_ENABLED
+            status = NRF_ERROR_NOT_FOUND;
+            if (p_cmd->payload.cmd.mesh.packet_send.friendship_credential_flag)
+            {
+                status = dsm_tx_friendship_secmat_get(DSM_HANDLE_INVALID, p_cmd->payload.cmd.mesh.packet_send.appkey_handle,
+                                                      &tx_params.security_material);
+            }
+
+            /* The Mesh Profile Specification v1.0, Section 4.2.2.4:
+             *
+             * When Publish Friendship Credential Flag is set to 1 and the friendship security material is
+             * not available, the master security material shall be used. */
+            if (NRF_ERROR_NOT_FOUND == status)
+#endif
+            {
+                status = dsm_tx_secmat_get(DSM_HANDLE_INVALID,
+                                           p_cmd->payload.cmd.mesh.packet_send.appkey_handle,
+                                           &tx_params.security_material);
+            }
             if (status == NRF_SUCCESS)
             {
                 tx_params.src       = p_cmd->payload.cmd.mesh.packet_send.src_addr;

@@ -60,7 +60,7 @@
 #include "mesh_opt_core.h"
 #include "mesh_config_listener.h"
 #include "mesh_config_entry.h"
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
 #include "mesh_opt_gatt.h"
 #endif
 
@@ -101,9 +101,6 @@ static void heartbeat_subscription_timer_cb(timestamp_t timestamp, void * p_cont
 static void heartbeat_publication_timer_cb(timestamp_t timestamp, void * p_context);
 static void heartbeat_opcode_handle(const transport_control_packet_t * p_control_packet,
                                     const nrf_mesh_rx_metadata_t *     p_rx_metadata);
-static void heartbeat_relay_listener_cb(mesh_config_change_reason_t reason,
-                                        mesh_config_entry_id_t id,
-                                        const void * p_entry);
 static void heartbeat_publication_count_decrement(void);
 
 /** Transport handler for the Heartbeat opcode */
@@ -111,11 +108,17 @@ static const transport_control_packet_handler_t cp_handler = {
     .opcode = TRANSPORT_CONTROL_OPCODE_HEARTBEAT, .callback = heartbeat_opcode_handle
 };
 
+#if MESH_FEATURE_RELAY_ENABLED
+static void heartbeat_relay_listener_cb(mesh_config_change_reason_t reason,
+                                        mesh_config_entry_id_t id,
+                                        const void * p_entry);
+
 MESH_CONFIG_LISTENER(m_heartbeat_relay_listener,
                      MESH_OPT_CORE_ADV_EID,
                      heartbeat_relay_listener_cb);
+#endif /* MESH_FEATURE_RELAY_ENABLED */
 
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
 static void heartbeat_proxy_listener_cb(mesh_config_change_reason_t reason,
                                         mesh_config_entry_id_t id,
                                         const void * p_entry);
@@ -123,7 +126,7 @@ static void heartbeat_proxy_listener_cb(mesh_config_change_reason_t reason,
 MESH_CONFIG_LISTENER(m_heartbeat_proxy_listener,
                      MESH_OPT_GATT_PROXY_EID,
                      heartbeat_proxy_listener_cb);
-#endif /* GATT_PROXY */
+#endif /* MESH_FEATURE_GATT_PROXY_ENABLED */
 
 
 /*****************************************************************************
@@ -210,15 +213,16 @@ static void heartbeat_meta_prepare(transport_control_packet_t *             p_tx
     // Network security material must be always valid. This should never assert.
     NRF_MESH_ASSERT(p_pub_info->p_net_secmat != NULL);
 
-    p_tx->opcode       = TRANSPORT_CONTROL_OPCODE_HEARTBEAT;
-    p_tx->reliable     = false;
-    p_tx->src          = p_pub_info->local_address;
-    p_tx->dst.value    = m_heartbeat_publication.dst;
-    p_tx->dst.type     = nrf_mesh_address_type_get(m_heartbeat_publication.dst);
-    p_tx->p_net_secmat = p_pub_info->p_net_secmat;
-    p_tx->p_data       = p_pdu;
-    p_tx->data_len     = pdu_len;
-    p_tx->ttl          = m_heartbeat_publication.ttl;
+    p_tx->opcode          = TRANSPORT_CONTROL_OPCODE_HEARTBEAT;
+    p_tx->reliable        = false;
+    p_tx->src             = p_pub_info->local_address;
+    p_tx->dst.value       = m_heartbeat_publication.dst;
+    p_tx->dst.type        = nrf_mesh_address_type_get(m_heartbeat_publication.dst);
+    p_tx->p_net_secmat    = p_pub_info->p_net_secmat;
+    p_tx->p_data          = p_pdu;
+    p_tx->data_len        = pdu_len;
+    p_tx->ttl             = m_heartbeat_publication.ttl;
+    p_tx->bearer_selector = CORE_TX_BEARER_TYPE_ALLOW_ALL;
 }
 
 static uint32_t heartbeat_send(heartbeat_publication_information_t * p_hb_pub_info)
@@ -337,6 +341,7 @@ static void heartbeat_core_evt_cb(const nrf_mesh_evt_t * p_evt)
     }
 }
 
+#if MESH_FEATURE_RELAY_ENABLED || MESH_FEATURE_GATT_PROXY_ENABLED
 static void heartbeat_on_feature_change_trigger(uint16_t hb_trigger)
 {
     if ((m_heartbeat_publication.features & hb_trigger) &&
@@ -347,6 +352,7 @@ static void heartbeat_on_feature_change_trigger(uint16_t hb_trigger)
         m_hb_pending_feat_msg = true;
     }
 }
+#endif /* MESH_FEATURE_RELAY_ENABLED || MESH_FEATURE_GATT_PROXY_ENABLED */
 
 static void heartbeat_publication_count_decrement(void)
 {
@@ -360,6 +366,7 @@ static void heartbeat_publication_count_decrement(void)
  * State listener functions
  *****************************************************************************/
 
+#if MESH_FEATURE_RELAY_ENABLED
 static void heartbeat_relay_listener_cb(mesh_config_change_reason_t reason,
                                         mesh_config_entry_id_t id,
                                         const void * p_entry)
@@ -374,8 +381,9 @@ static void heartbeat_relay_listener_cb(mesh_config_change_reason_t reason,
         heartbeat_on_feature_change_trigger(HEARTBEAT_TRIGGER_TYPE_RELAY);
     }
 }
+#endif /* MESH_FEATURE_RELAY_ENABLED */
 
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
 static void heartbeat_proxy_listener_cb(mesh_config_change_reason_t reason,
                                         mesh_config_entry_id_t id,
                                         const void * p_entry)
@@ -388,7 +396,7 @@ static void heartbeat_proxy_listener_cb(mesh_config_change_reason_t reason,
         heartbeat_on_feature_change_trigger(HEARTBEAT_TRIGGER_TYPE_PROXY);
     }
 }
-#endif /* GATT_PROXY */
+#endif /* MESH_FEATURE_GATT_PROXY_ENABLED */
 
 /*****************************************************************************
  * Mesh Config wrapper functions

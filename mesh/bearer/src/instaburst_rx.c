@@ -34,6 +34,7 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 #include "instaburst_rx.h"
 #include "scanner.h"
 #include "adv_ext_packet.h"
@@ -45,6 +46,7 @@
 #include "instaburst_internal.h"
 #include "nrf_mesh_config_bearer.h"
 #include "mesh_pa_lna_internal.h"
+
 /*****************************************************************************
 * Local defines
 *****************************************************************************/
@@ -54,9 +56,9 @@
 #define M_TIMER_INDEX_LNA  2
 #define M_TIMER_INDEX_ADDR_TIMESTAMP   M_TIMER_INDEX_RADIO_DISABLE /**< Timestamp index must be the same as the stop index, to disable the stop when a packet is received. */
 /* PPI indexes used for radio timing: */
-#define PPI_INDEX_RADIO_START           (TIMER_PPI_CH_START)
-#define PPI_INDEX_TIMESTAMP             (TIMER_PPI_CH_START + 1)
-#define PPI_INDEX_RADIO_DISABLE            (TIMER_PPI_CH_START + 2)
+#define PPI_INDEX_RADIO_START           (TS_TIMER_PPI_CH_START)
+#define PPI_INDEX_TIMESTAMP             (TS_TIMER_PPI_CH_START + 1)
+#define PPI_INDEX_RADIO_DISABLE         (TS_TIMER_PPI_CH_START + 2)
 
 /* Debug PPI indexes */
 #define PPI_INDEX_DEBUG_READY 2
@@ -93,12 +95,12 @@ typedef struct
     struct
     {
         nrf_mesh_instaburst_event_id_t id; /**< Event ID for the current event. */
-        uint32_t action_start_time; /**< Timestamp marking when the action started. */
-        uint32_t rx_time; /**< RX time of the initial pointer packet. */
+        ts_timestamp_t action_start_time; /**< Timestamp marking when the action started. */
         /** Data for the current packet in the current advertising event. */
         struct
         {
-            uint32_t start_time;
+            ts_timestamp_t start_time; /**< Time to start receiving the packet */
+            uint32_t timeslot_index; /**< Index of the timeslot when the packet starts */
             adv_ext_time_offset_unit_t offset_unit;
             uint8_t channel;
             uint8_t index_in_event;
@@ -158,7 +160,7 @@ static inline uint32_t rx_buffer_len_get(uint8_t data_len)
     return offsetof(instaburst_rx_packet_internal_t, buffer.data) + data_len;
 }
 
-static void aux_ptr_handle(const adv_ext_header_aux_ptr_t * p_aux_ptr, uint32_t packet_address_timestamp, radio_mode_t rx_radio_mode)
+static void aux_ptr_handle(const adv_ext_header_aux_ptr_t * p_aux_ptr, ts_timestamp_t packet_address_timestamp, radio_mode_t rx_radio_mode)
 {
     DEBUG_PIN_INSTABURST_ON(DEBUG_PIN_INSTABURST_GOT_ADV_EXT);
 
@@ -170,6 +172,7 @@ static void aux_ptr_handle(const adv_ext_header_aux_ptr_t * p_aux_ptr, uint32_t 
          * preamble start on the packet it's pointing to. */
         m_instaburst.event.packet.start_time = packet_address_timestamp + p_aux_ptr->time_offset_us -
                                                RADIO_ADDR_EVT_DELAY(rx_radio_mode);
+        m_instaburst.event.packet.timeslot_index = timeslot_count_get();
         m_instaburst.event.packet.channel = p_aux_ptr->channel_index;
 
         order_rx(p_aux_ptr);
@@ -183,7 +186,7 @@ static void aux_ptr_handle(const adv_ext_header_aux_ptr_t * p_aux_ptr, uint32_t 
     DEBUG_PIN_INSTABURST_OFF(DEBUG_PIN_INSTABURST_GOT_ADV_EXT);
 }
 
-static void scanner_rx_cb(const scanner_packet_t * p_scanner_packet)
+static void scanner_rx_cb(const scanner_packet_t * p_scanner_packet, ts_timestamp_t rx_timestamp_ts)
 {
     if (m_instaburst.state == INSTABURST_RX_STATE_IDLE &&
         p_scanner_packet->packet.header.type == BLE_PACKET_TYPE_ADV_EXT &&
@@ -207,7 +210,6 @@ static void scanner_rx_cb(const scanner_packet_t * p_scanner_packet)
 
                 if (!instaburst_event_id_cache_has_value(&m_instaburst.event.id))
                 {
-                    m_instaburst.event.rx_time               = p_scanner_packet->metadata.timestamp;
                     m_instaburst.event.packet.index_in_event = 0;
 
                     adv_ext_header_aux_ptr_t aux_ptr;
@@ -216,7 +218,7 @@ static void scanner_rx_cb(const scanner_packet_t * p_scanner_packet)
                                                 (adv_ext_header_data_t *) &aux_ptr) == NRF_SUCCESS)
                     {
                         aux_ptr_handle(&aux_ptr,
-                                       p_scanner_packet->metadata.timestamp,
+                                       rx_timestamp_ts,
                                        RADIO_MODE_BLE_1MBIT);
                     }
                 }
@@ -225,14 +227,21 @@ static void scanner_rx_cb(const scanner_packet_t * p_scanner_packet)
     }
 }
 
-static void action_start(timestamp_t start_time, void * p_args)
+static void action_start(ts_timestamp_t start_time, void * p_args)
 {
     DEBUG_PIN_INSTABURST_ON(DEBUG_PIN_INSTABURST_START);
     DEBUG_PIN_INSTABURST_ON(DEBUG_PIN_INSTABURST_IN_ACTION);
 
     m_instaburst.event.action_start_time = start_time;
 
-    if (packet_buffer_reserve(&m_instaburst.packet_buffer,
+    /* The aux ptr timestamp is only valid within the timeslot it was captured in, as the ts_timer
+     * is reset at the beginning of every timeslot. We should abort the action if we're in a
+     * different timeslot than we were when we captured the timestamp, as the reference is no longer
+     * valid. */
+    bool in_same_timeslot = (m_instaburst.event.packet.timeslot_index == timeslot_count_get());
+
+    if (in_same_timeslot &&
+        packet_buffer_reserve(&m_instaburst.packet_buffer,
                               &m_instaburst.p_rx_buf,
                               rx_buffer_len_get(ADV_EXT_PACKET_LEN_MAX)) == NRF_SUCCESS)
     {
@@ -262,7 +271,7 @@ static void action_start(timestamp_t start_time, void * p_args)
 
         NRF_RADIO->INTENSET = RADIO_INTENSET_DISABLED_Msk;
 
-        if (TIMER_OLDER_THAN(m_instaburst.event.packet.start_time, timer_now() + START_TIME_OVERHEAD_US))
+        if (TIMER_OLDER_THAN(m_instaburst.event.packet.start_time, ts_timer_now() + START_TIME_OVERHEAD_US))
         {
             /* Can't make it in time */
             DEBUG_PIN_INSTABURST_ON(DEBUG_PIN_INSTABURST_TOO_SLOW);
@@ -287,17 +296,17 @@ static void action_start(timestamp_t start_time, void * p_args)
              */
 
             /* Start ramping up the radio in time to go active right before the earliest announced time. */
-            uint32_t rampup_start_time = m_instaburst.event.packet.start_time - RADIO_RAMPUP_TIME - AUX_PACKET_RX_MARGIN_US;
+            ts_timestamp_t rampup_start_time = m_instaburst.event.packet.start_time - RADIO_RAMPUP_TIME - AUX_PACKET_RX_MARGIN_US;
 
             /* According to the Bluetooth 5.0 specification, the sender of an extended advertisement
              * event is allowed to start sending anywhere inside the indicated timestep,
              * i.e. from start_time to start_time + offset_unit. Account for this, as well as for
              * the delay of the ADDR event and a safety margin.
              */
-            uint32_t last_addr_time = m_instaburst.event.packet.start_time +
-                                      m_instaburst.event.packet.offset_unit +
-                                      RADIO_ADDR_EVT_DELAY(m_instaburst.event.packet.radio_mode) +
-                                      AUX_PACKET_RX_MARGIN_US;
+            ts_timestamp_t last_addr_time =
+                m_instaburst.event.packet.start_time + m_instaburst.event.packet.offset_unit +
+                RADIO_ADDR_EVT_DELAY(m_instaburst.event.packet.radio_mode) +
+                AUX_PACKET_RX_MARGIN_US;
 
             BEARER_ACTION_TIMER->CC[M_TIMER_INDEX_RADIO_START]   = rampup_start_time - m_instaburst.event.action_start_time;
             BEARER_ACTION_TIMER->CC[M_TIMER_INDEX_RADIO_DISABLE] = last_addr_time - m_instaburst.event.action_start_time;
@@ -324,11 +333,17 @@ static void action_start(timestamp_t start_time, void * p_args)
 
             /* Ensure that the timer order above was scheduled in time. If this fails, we were
              * locking IRQs for too long, delaying packet processing. */
-            NRF_MESH_ASSERT(TIMER_OLDER_THAN(timer_now(), rampup_start_time));
+            NRF_MESH_ASSERT(TIMER_OLDER_THAN(ts_timer_now(), rampup_start_time));
         }
     }
     else
     {
+#if INSTABURST_RX_DEBUG
+        if (!in_same_timeslot)
+        {
+            m_instaburst.stats[m_instaburst.event.packet.channel].switched_timeslot++;
+        }
+#endif
         m_instaburst.state = INSTABURST_RX_STATE_IDLE;
         DEBUG_PIN_INSTABURST_OFF(DEBUG_PIN_INSTABURST_IN_ACTION);
         bearer_handler_action_end();
@@ -421,7 +436,7 @@ static void radio_irq_handler(void * p_args)
 
     if (has_more)
     {
-        uint32_t addr_rx_timestamp = m_instaburst.event.action_start_time + BEARER_ACTION_TIMER->CC[M_TIMER_INDEX_ADDR_TIMESTAMP];
+        ts_timestamp_t addr_rx_timestamp = m_instaburst.event.action_start_time + BEARER_ACTION_TIMER->CC[M_TIMER_INDEX_ADDR_TIMESTAMP];
 
         aux_ptr_handle(&aux_ptr, addr_rx_timestamp, m_instaburst.event.packet.radio_mode);
     }

@@ -168,8 +168,10 @@ void enc_k2(const uint8_t * p_netkey, const uint8_t * p_p, uint16_t length_p,
             nrf_mesh_network_secmat_t * p_output)
 {
     NRF_MESH_ASSERT(p_netkey != NULL && p_p != NULL && p_output != NULL);
+    NRF_MESH_ASSERT(length_p >= ENC_K2_P_VALUE_MINLEN);
+    NRF_MESH_ASSERT(length_p <= ENC_K2_P_VALUE_MAXLEN);
 
-    uint8_t tmp[NRF_MESH_KEY_SIZE + length_p + 1];
+    uint8_t tmp[NRF_MESH_KEY_SIZE + ENC_K2_P_VALUE_MAXLEN + 1];
     const uint8_t salt_input[] = ENC_K2_SALT_INPUT;
     enc_s1(salt_input, sizeof(salt_input), tmp);
 

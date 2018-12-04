@@ -1,4 +1,4 @@
-# DFU quick start guide
+# Configuring DFU
 
 A Device Firmware Update (DFU) is the process of updating the firmware on a mesh device. The
 following guide offers step-by-step instructions on how to prepare and program the DFU example
@@ -17,38 +17,42 @@ interfaced over the serial port, while the other receives the DFU from the first
 mesh. To specify which device to use in which context, add the `-s <serial-number>` option for each
 call to the `nrfjprog` command, where `<serial-number>` is the Segger ID of your device. This will
 make `nrfjprog` execute its operations on the specified device only.
-- The @link_ic_nrfutil <!--nrfutil: http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.tools/dita/tools/nrfutil/nrfutil_intro.html-->
-tool that is required to transfer the firmware image is available at
-@link_nrfutil_github<!--https://github.com/NordicSemiconductor/pc-nrfutil/tree/mesh_dfu-->. The
+- The @link_ic_nrfutil <!--https://www.nordicsemi.com/DocLib/Content/User_Guides/nrfutil/latest/UG/nrfutil/nrfutil_intro --> tool that is required to transfer the firmware image is available at
+@link_nrfutil_github<!--https://github.com/NordicSemiconductor/pc-nrfutil/tree/mesh_dfu -->. The
 tool is open source.
 
-  > **Important:** The master branch of the pc-nrfutil repository does not contain the additional
-  > code that is needed to handle a mesh DFU. To use the tool with mesh DFU, use the `mesh_dfu`
-  > branch as mentioned above. See the tool's documentation for more information about installation
-  > and prerequisites.
+@note
+The master branch of the pc-nrfutil repository does not contain the additional
+code that is needed to handle a mesh DFU. To use the tool with mesh DFU, use the `mesh_dfu`
+branch as mentioned above. See the tool's documentation for more information about installation
+and prerequisites.
+
 - Make sure to use the correct precompiled bootloader for your chip variant (nRF51/nRF52, xxAA,
 xxAB, xxAC). These variants have different flash and RAM sizes, as specified in the Product
-Specification for @link_ic_nRF51PS <!--nRF51: http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.nrf51/dita/nrf51/pdflinks/51822_ps.html-->
-and @link_ic_nRF52832PS<!--nRF52832: http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.nrf52/dita/nrf52/chips/nrf52832_ps.html-->.
+Specification for @link_ic_nRF51PS <!--https://www.nordicsemi.com/-/media/DocLib/Other/Product_Spec/nRF51822PSv33.pdf --> and @link_ic_nRF52832PS<!--https://www.nordicsemi.com/-/media/DocLib/Other/Product_Spec/nRF52832PSv14.pdf -->.
 - This guide also assumes that you have built the mesh stack for your device by following the steps
 outlined in [Building the mesh stack](@ref md_doc_getting_started_how_to_build).
 - Ensure that `intelhex` package is installed for your python installation.
 
 
-## Steps
+## Configuration process @anchor dfu_configuration
 
-1. Optional: Generate a signing key file with nrfutil.
-2. Optional: Paste the public key from nrfutil into your device page.
-3. Generate a DFU archive with nrfutil, giving arguments that match the device page.
-4. Generate a HEX version of your device page with the tool in `tools/dfu`.
-5. Erase all chip memory (including the UICR) on all devices.
-6. Flash the SoftDevice on all devices.
-7. Flash the serial bootloader on all devices.
-8. Flash the first application on all devices.
-9. Flash the device page on all devices.
-10. Transfer the DFU archive over serial with nrfutil.
+Complete the following steps to start using the mesh DFU:
 
-### 1. Optional: Generate a signing key file with nrfutil
+1. [Optional: Generate a signing key file with nrfutil.]( @ref dfu_configuration_step1)
+2. [Optional: Paste the public key from nrfutil into your device page.]( @ref dfu_configuration_step2)
+3. [Generate a DFU archive with nrfutil, giving arguments that match the device page.]( @ref dfu_configuration_step3)
+4. [Generate a HEX version of your device page with the tool in `tools/dfu`.]( @ref dfu_configuration_step4)
+5. [Erase all chip memory (including the UICR) on all devices.]( @ref dfu_configuration_step5)
+6. [Flash the SoftDevice on all devices.]( @ref dfu_configuration_step6)
+7. [Flash the serial bootloader on all devices.]( @ref dfu_configuration_step7)
+8. [Flash the first application on all devices.]( @ref dfu_configuration_step8)
+9. [Flash the device page on all devices.]( @ref dfu_configuration_step9)
+10. [Transfer the DFU archive over serial with nrfutil.]( @ref dfu_configuration_step10)
+
+You can check [troubleshooting](@ref dfu_configuration_troubleshooting) to verify that the bootloader is working correctly.
+
+### Step 1. Optional: Generate a signing key file with nrfutil @anchor dfu_configuration_step1
 
 DFU images can be signed to ensure they stem from a trusted source. If you want to use this
 signature verification functionality, you need a signing key. The nrfutil tool can be used to
@@ -63,7 +67,7 @@ be shared with trusted sources, and if it is lost, you would also lose authoriza
 updates to your devices in the future. The only way to recover from the loss of the private key
 is to reflash the device manually.
 
-### 2. Optional: Add the public key from nrfutil to your device page
+### Step 2. Optional: Add the public key from nrfutil to your device page @anchor dfu_configuration_step2
 
 Now that you have a private key, you can generate the public key for it:
 
@@ -116,7 +120,7 @@ The company ID works as a namespace for application IDs in the mesh DFU.
 This way, any company with an assigned company ID may safely use any application ID
 for their products, without risking an application ID conflict.
 
-### 3. Generate a DFU file with nrfutil
+### Step 3. Generate a DFU file with nrfutil @anchor dfu_configuration_step3
 
 To do a DFU transfer, you must create a DFU archive. The DFU archive is a zip file that contains
 the application binary along with some metadata.
@@ -141,12 +145,12 @@ Use the `nrfutil` tool to generate the DFU archive matching your SoftDevice requ
 - For nRF52:
 
   ```
-  mesh-sdk$ nrfutil dfu genpkg --application bin/blinky/blinky_nrf52832_xxAA_s132_6.0.0.hex \
+  mesh-sdk$ nrfutil dfu genpkg --application bin/blinky/blinky_nrf52832_xxAA_s132_6.1.0.hex \
       --company-id 0x00000059 \
       --application-id 1 \
       --application-version 2 \
       --key-file private_key.txt \
-      --sd-req 0x009D \
+      --sd-req 0x00AF \
       --mesh dfu_test.zip
   ```
 
@@ -163,7 +167,7 @@ The example commands use the Nordic Semiconductor company ID, so make sure you u
 instead. Also note that the application version is set to 2. A device will only accept application
 transfers that match its current company and application IDs and have a higher version number.
 
-### 4. Generate a HEX version of your device page
+### Step 4. Generate a HEX version of your device page @anchor dfu_configuration_step4
 
 In the same folder as the example device page file (`tools/dfu`), there is a Python script called
 `device_page_generator.py` that should be used to generate device pages (works for both Python 2.7
@@ -178,18 +182,18 @@ parameters will make the device reject the transfer, as its own firmware ID won'
 in the transfer.
 
 For example, run the following command from inside the `tools/dfu` folder to generate a device
-page hex file for an NRF52 Series device using s132 SoftDevice version 6.0.0:
+page hex file for an NRF52 Series device using s132 SoftDevice version 6.1.0:
 
 For nRF52:
 
   ```
-  dfu$ python device_page_generator.py -d nrf52832_xxAA -sd "s132_6.0.0"
+  dfu$ python device_page_generator.py -d nrf52832_xxAA -sd "s132_6.1.0"
   ```
 
 This creates a device page .hex file in the `tools\dfu\bin` folder. This file
 will be used in step 9.
 
-### 5. Erase all chip memory (including UICR) on all devices
+### Step 5. Erase all chip memory (including UICR) on all devices @anchor dfu_configuration_step5
 
 Use nrfjprog (available on @link_nordicsemi<!--http://www.nordicsemi.com/-->) to erase all previous
 data on your device (including UICR):
@@ -198,9 +202,10 @@ data on your device (including UICR):
 mesh-sdk$ nrfjprog --eraseall
 ```
 
-### 6. Flash the SoftDevice on all devices
+### Step 6. Flash the SoftDevice on all devices @anchor dfu_configuration_step6
 
-> **Important:** Steps 6-9 must be executed in order.
+@note
+Steps 6-9 must be executed in order.
 
 SoftDevices for nRF51 and nRF52 are located in the `bin/softdevice` folder.
 
@@ -208,13 +213,13 @@ SoftDevices for nRF51 and nRF52 are located in the `bin/softdevice` folder.
 mesh-sdk$ nrfjprog --program bin/softdevice/<SoftDevice HEX file>
 ```
 
-For example, to flash S132 SoftDevice v6.0.0, run the following command:
+For example, to flash S132 SoftDevice v6.1.0, run the following command:
 
 ```
-mesh-sdk$ nrfjprog --program bin/softdevice/s132_nrf52_6.0.0_softdevice.hex --chiperase
+mesh-sdk$ nrfjprog --program bin/softdevice/s132_nrf52_6.1.0_softdevice.hex --chiperase
 ```
 
-### 7. Flash the serial bootloader on all devices
+### Step 7. Flash the serial bootloader on all devices @anchor dfu_configuration_step7
 
 Flash the precompiled bootloader with serial support to your device using nrfjprog.
 You can find precompiled versions of the bootloader under `bin/`. The bootloader version must
@@ -238,9 +243,10 @@ mesh-sdk$ nrfjprog --program bin/bootloader/gccarmemb/mesh_bootloader_serial_gcc
 ```
 
 
-### 8. Flash the first application on all devices
+### Step 8. Flash the first application on all devices @anchor dfu_configuration_step8
 
-> **Note:** This step assumes that you have built the mesh examples with CMake as described in
+@note
+This step assumes that you have built the mesh examples with CMake as described in
 [Building the mesh stack](@ref md_doc_getting_started_how_to_build). If you have built them with
 Segger Embedded Studio, you can flash the DFU example directly from the IDE, as described in the
 build-guide, and move on to step 9.
@@ -249,21 +255,21 @@ To be able to do Device Firmware Updates, you must flash an application that
 supports DFU. The DFU example application can be found in `examples/dfu/`.
 
 From your build folder, flash the DFU example application HEX file matching your chip version and
-SoftDevice to your device, for example `build/examples/dfu/dfu_nrf52832_xxAA_s132_6.0.0.hex`
-if your device is an `nRF52832_xxAA` with s132 SoftDevice v6.0.0.
+SoftDevice to your device, for example `build/examples/dfu/dfu_nrf52832_xxAA_s132_6.1.0.hex`
+if your device is an `nRF52832_xxAA` with s132 SoftDevice v6.1.0.
 
 Flash the file with the following command:
 
 ```
-mesh-sdk$ nrfjprog --program build/examples/dfu/dfu_nrf52832_xxAA_s132_6.0.0.hex
+mesh-sdk$ nrfjprog --program build/examples/dfu/dfu_nrf52832_xxAA_s132_6.1.0.hex
 ```
 
-### 9. Flash the device page on all devices
+### Step 9. Flash the device page on all devices @anchor dfu_configuration_step9
 
 Flash the device page HEX file that you generated in step 4 to the devices:
 
 ```
-mesh-sdk$ nrfjprog --program tools/dfu/bin/device_page_nrf52832_xxAA_s132_6.0.0.hex
+mesh-sdk$ nrfjprog --program tools/dfu/bin/device_page_nrf52832_xxAA_s132_6.1.0.hex
 ```
 
 Then reset the device to start the application:
@@ -274,9 +280,10 @@ nrfjprog --reset
 After reset, observe that for every development kit that you programmed, all user LEDs are OFF.
 At this point you have everything ready for performing the DFU over the mesh.
 
-### 10. Transfer the DFU archive over serial with nrfutil
+### Step 10. Transfer the DFU archive over serial with nrfutil @anchor dfu_configuration_step10
 
-> **Important:** Close all running instances of nRFgo Studio before you continue. If running, nRFgo
+@note
+Close all running instances of nRFgo Studio before you continue. If running, nRFgo
 Studio might cause problems with the reset procedure for the nRF51.
 
 Now we come to the interesting part: Doing the DFU! First, figure out to which COM port your serial
@@ -297,8 +304,9 @@ nrfutil dfu serial -pkg dfu_test.zip -p <COM port> -b 115200 -fc --mesh
 
 A progress bar should pop up, and the transfer should take a couple of minutes.
 
-> **NOTE:** To get more verbose output, you can add `--verbose` before any other arguments as follows:
-> `nrfutil --verbose dfu serial -pkg dfu_test.zip -p <COM port> -b 115200 -fc --mesh`.
+@note
+To get more verbose output, you can add `--verbose` before any other arguments as follows:
+`nrfutil --verbose dfu serial -pkg dfu_test.zip -p <COM port> -b 115200 -fc --mesh`.
 
 When finished, the bootloader should switch to the application and one user LED should start blinking on each kit.
 Note that you cannot do the DFU twice with the same DFU archive, because the application version in
@@ -308,7 +316,7 @@ reject any attempt to transfer the same firmware again.
 To try another DFU, re-run steps 3 and 10 with an increased version number, for example
 `--application-version 3`, and use the new zip file to do the DFU again.
 
-## Troubleshooting: Verifying your bootloader with the bootloader_verify.py script
+## Troubleshooting: Verifying your bootloader with the bootloader_verify.py script @anchor dfu_configuration_troubleshooting
 
 To verify that the bootloader is working correctly, run the bootloader verification script located
 in `tools/dfu`. Note that it requires the @link_pyserial <!--pyserial package: https://pypi.python.org/pypi/pyserial-->

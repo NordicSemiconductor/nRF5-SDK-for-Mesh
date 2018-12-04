@@ -105,22 +105,19 @@ uint32_t mesh_config_backend_record_erase(mesh_config_backend_file_t * p_file);
  * @returns Any other error on failure.
  */
 uint32_t mesh_config_backend_record_read(mesh_config_backend_file_t * p_file, uint8_t * p_data, uint32_t * p_length);
-
 /**
- * Iterates the records in the file.
+ * Iterates through the records in the file.
  *
- * @note The function reads the records since begin till the end of the file.
- *       If all records were read then pp_data is NULL.
+ * Calls the callback for every record in the file.
  *
- * @param[in]  p_file Pointer to the file descriptor.
- * @param[out] pp_data Pointer to the read data buffer.
- * @param[out] p_length Pointer to the actual data size.
- * @param[in,out] p_iterator Record iterator in the file.
+ * @note The function reads the records from the beginning to the end of the file.
+ *       If all records were read, then @c pp_data is @c NULL.
+ *
+ * @param[in] p_file Pointer to the file descriptor.
+ * @param[in] callback Callback function to call on every entry.
  */
-void mesh_config_backend_record_iterate(mesh_config_backend_file_t * p_file,
-                                        uint8_t ** pp_data,
-                                        uint32_t * p_length,
-                                        mesh_config_backend_record_iterator_t * p_iterator);
+void mesh_config_backend_records_read(mesh_config_backend_file_t * p_file,
+                                      mesh_config_backend_iterate_cb_t callback);
 
 /**
  * Calculates allocated place in bytes for the entry.

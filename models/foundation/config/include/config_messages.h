@@ -585,6 +585,20 @@ typedef struct __attribute((packed))
     uint16_t subscriptions[];   /**< Subscription list. */
 } config_msg_vendor_model_subscription_list_t;
 
+/** Message format for the Low Power node PollTimeout Get message */
+typedef struct __attribute((packed))
+{
+    uint16_t lpn_address;       /**< The unicast address of the Low Power node */
+} config_msg_low_power_node_polltimeout_get_t;
+
+/** Message format for the Low Power node PollTimeout Status message */
+typedef struct __attribute((packed))
+{
+    uint16_t lpn_address;       /**< The unicast address of the Low Power node */
+    uint8_t  msb_polltimeout;   /**< Most significant byte of the polltimeout timer of the Low Power node */
+    uint16_t lsb_polltimeout;   /**< Lower significant bytes of the polltimeout timer of the Low Power node */
+} config_msg_low_power_node_polltimeout_status_t;
+
 /*lint -align_max(pop) */
 /** @} */
 

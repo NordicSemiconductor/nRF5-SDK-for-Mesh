@@ -9,7 +9,6 @@ set(MESH_CORE_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/flash_manager_defrag.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/fifo.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/nrf_flash.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/packet_mgr.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/net_state.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_flash.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/nrf_mesh_utils.c"
@@ -23,6 +22,7 @@ set(MESH_CORE_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/nrf_mesh_opt.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_opt.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/timeslot.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/timeslot_timer.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/bearer_event.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/enc.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/network.c"
@@ -45,6 +45,9 @@ set(MESH_CORE_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/fsm.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_config_backend.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_config_flashman_glue.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/lpn.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core_tx_lpn.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_lpn_subman.c"
 
     # uri.c is not in use.
     # It is an optional feature to include
@@ -52,6 +55,10 @@ set(MESH_CORE_SOURCE_FILES
     # as in Bluetooth CSSv6 Ch. 1.18.
     # "${CMAKE_CURRENT_SOURCE_DIR}/src/uri.c"
     )
+
+set(MESH_CORE_INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/api
+    ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 if (EXPERIMENTAL_INSTABURST_ENABLED)
     set(MESH_CORE_SOURCE_FILES ${MESH_CORE_SOURCE_FILES}
@@ -61,6 +68,27 @@ else()
         "${CMAKE_CURRENT_SOURCE_DIR}/src/core_tx_adv.c")
 endif()
 
+if (MESH_MEM_BACKEND STREQUAL "stdlib")
+    set(MESH_CORE_SOURCE_FILES ${MESH_CORE_SOURCE_FILES}
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_mem_stdlib.c")
+elseif (MESH_MEM_BACKEND STREQUAL "packet_mgr")
+    set(MESH_CORE_SOURCE_FILES ${MESH_CORE_SOURCE_FILES}
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_mem_packet_mgr.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/packet_mgr.c")
+
+elseif (MESH_MEM_BACKEND STREQUAL "mem_manager")
+    set(MESH_CORE_SOURCE_FILES ${MESH_CORE_SOURCE_FILES}
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_mem_mem_manager.c"
+        "${SDK_ROOT}/components/libraries/mem_manager/mem_manager.c")
+    set(MESH_CORE_INCLUDE_DIRS
+        ${MESH_CORE_INCLUDE_DIRS}
+        "${SDK_ROOT}/components/libraries/experimental_log"
+        "${SDK_ROOT}/components/libraries/experimental_log/src"
+        "${SDK_ROOT}/components/libraries/mem_manager")
+
+else ()
+    message(FATAL_ERROR "Unknown mesh_mem backend \"${MESH_MEM_BACKEND}\"")
+endif ()
 
 # Can only save to cache once without using 'FORCE' modifier
 set(MESH_CORE_SOURCE_FILES ${MESH_CORE_SOURCE_FILES} CACHE INTERNAL "")
@@ -72,6 +100,7 @@ if (MESH_CORE_LIB_BUILD_ENABLED)
         ${CMAKE_CURRENT_SOURCE_DIR}/api
         ${${SOFTDEVICE}_INCLUDE_DIRS}
         ${${PLATFORM}_INCLUDE_DIRS}
+        ${${nRF5_SDK_VERSION}_INCLUDE_DIRS}
         ${CMAKE_SOURCE_DIR}/external/rtt/include
 
         ${SDK_ROOT}/components/libraries/util
@@ -103,10 +132,6 @@ if (MESH_CORE_LIB_BUILD_ENABLED)
         ${${SOFTDEVICE}_DEFINES})
 endif()
 
-set(MESH_CORE_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/api
-    ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
 if (NRF_MESH_TEST_BUILD)
     set(MESH_CORE_INCLUDE_DIRS ${MESH_CORE_INCLUDE_DIRS} "${CMAKE_SOURCE_DIR}/mesh/test/include" )
 endif()
@@ -122,6 +147,7 @@ set(lint_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/api
     ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../access/api
+    ${CMAKE_CURRENT_SOURCE_DIR}/../test/include
     ${CMAKE_SOURCE_DIR}/examples/templates
     ${CMAKE_SOURCE_DIR}/external/rtt/include
     ${${SOFTDEVICE}_INCLUDE_DIRS}

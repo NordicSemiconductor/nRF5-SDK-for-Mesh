@@ -1,0 +1,40 @@
+{
+    "__packet__": true,
+    "name": "friend_offer",
+    "type": "absolute",
+    "module": "trs_control",
+    "packet_type": "packet_mesh_trs_control_packet_t",
+    "max_length": 6,
+    "fields": [
+        {
+            "name": "receive_window",
+            "width":  8,
+            "doc": "Receive Window supported by the Friend node",
+            "visible": true
+        },
+        {
+            "name": "queue_size",
+            "width":  8,
+            "doc": "Queue Size available on the Friend node",
+            "visible": true
+        },
+        {
+            "name": "subscription_list_size",
+            "width":  8,
+            "doc": "size of the Subscription List supported by the Friend node for the Low Power node",
+            "visible": true
+        },
+        {
+            "name": "rssi",
+            "width":  8,
+            "doc": "RSSI measured by the Friend node",
+            "visible": true
+        },
+        {
+            "name": "friend_counter",
+            "width":  16,
+            "doc": "number of sent Friend Offer messages",
+            "visible": true
+        }
+    ]
+}

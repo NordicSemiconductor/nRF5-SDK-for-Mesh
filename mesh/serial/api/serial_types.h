@@ -56,7 +56,7 @@
 /** Invalid key index. */
 #define SERIAL_EVT_KEY_INDEX_INVALID                    (0xFF)
 /** Mesh packet send command overhead. */
-#define SERIAL_CMD_MESH_PACKET_SEND_OVERHEAD            (9)
+#define SERIAL_CMD_MESH_PACKET_SEND_OVERHEAD            (10)
 
 /** @} */
 

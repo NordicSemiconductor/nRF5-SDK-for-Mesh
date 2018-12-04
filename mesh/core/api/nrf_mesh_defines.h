@@ -64,6 +64,9 @@
 /** Maximum possible segmented payload size (octets). */
 #define NRF_MESH_SEG_PAYLOAD_SIZE_MAX (380)
 
+/** Maximum possible upper transport PDU (payload + MIC) size (octets). */
+#define NRF_MESH_UPPER_TRANSPORT_PDU_SIZE_MAX (384)
+
 /** Maximum useful access unsegmented payload size (octets). */
 #define NRF_MESH_UNSEG_PAYLOAD_SIZE_MAX (11)
 
@@ -141,7 +144,7 @@
 #if defined(NRF51)
 #define NRF_MESH_IRQ_PRIORITY_LOWEST              (3)
 #else
-#define NRF_MESH_IRQ_PRIORITY_LOWEST              (7)
+#define NRF_MESH_IRQ_PRIORITY_LOWEST              (6)
 #endif
 
 /** @} end of MESH_DEFINES_API */

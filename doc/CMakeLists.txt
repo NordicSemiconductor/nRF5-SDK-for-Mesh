@@ -76,6 +76,14 @@ add_custom_target(doc_online
     COMMENT "Generating online Doxygen documentation..." VERBATIM
     )
 
+# Copy output files in the right structure
+
+add_custom_target(doc_doclib
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/infocenter/html ${CMAKE_CURRENT_BINARY_DIR}/doclib/html/SDK_Doc/Mesh_SDK/v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUGFIX}
+)
+
+add_dependencies(doc_doclib doc_online)
+
 # Add dependencies for the serial documentation:
 add_dependencies(doc serial_doc_markdown)
 add_dependencies(doc_online serial_doc_markdown)

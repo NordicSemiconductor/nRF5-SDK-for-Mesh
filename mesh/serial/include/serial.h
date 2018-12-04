@@ -57,7 +57,7 @@
  */
 
 /** Serial API version. */
-#define SERIAL_API_VERSION 8
+#define SERIAL_API_VERSION 9
 
 /**
  * Initializes the serial interface abstraction layer.

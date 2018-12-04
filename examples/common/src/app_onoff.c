@@ -46,7 +46,7 @@
 #include "log.h"
 #include "app_timer.h"
 
-/** This sample implementation shows how model behaviour requirements of Generic OnOff server can
+/** This sample implementation shows how the model behavior requirements of Generic OnOff server can
  * be implemented.
  */
 

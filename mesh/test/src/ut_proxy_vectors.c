@@ -226,7 +226,7 @@ void test_adv_net_id(void)
                                       m_service_data_net_id.expected_service_data,
                                       m_service_data_net_id.expected_len,
                                       m_service_data_net_id.expected_len);
-    mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_ADV_INT_MS * 1000) / 625);
+    mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_NETWORK_ID_ADV_INT_MS * 1000) / 625);
     mesh_adv_start_Expect();
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(true));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_start());
@@ -244,7 +244,7 @@ void test_adv_node_id(void)
                                       m_service_data_node_id.expected_service_data,
                                       m_service_data_node_id.expected_len,
                                       m_service_data_node_id.expected_len);
-    mesh_adv_params_set_Expect(60*1000, (MESH_GATT_PROXY_ADV_INT_MS * 1000) / 625);
+    mesh_adv_params_set_Expect(MESH_GATT_PROXY_NODE_IDENTITY_DURATION_MS, (MESH_GATT_PROXY_NODE_IDENTITY_ADV_INT_MS * 1000) / 625);
     mesh_adv_start_Expect();
     nrf_mesh_key_refresh_phase_t kr_phase = NRF_MESH_KEY_REFRESH_PHASE_0;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_node_id_enable(&m_service_data_node_id.beacon_info, kr_phase));

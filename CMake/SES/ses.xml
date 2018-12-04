@@ -28,6 +28,7 @@
       linker_section_placement_macros="FLASH_PH_START={{"0x%x" % (platform["config"]["flash_start"])}};FLASH_PH_SIZE={{(target["flash"].size)}};RAM_PH_START={{"0x%x" % (platform["config"]["ram_start"])}};RAM_PH_SIZE={{(target["ram"].size)}};FLASH_START={{(target["flash"].start)}};RAM_START={{(target["ram"].start)}}"
       linker_section_placements_segments="FLASH RX {{"0x%x" % (platform["config"]["flash_start"])}} {{(target["flash"].size)}};RAM RWX {{"0x%x" % (platform["config"]["ram_start"])}} {{(target["ram"].size)}}"
       project_directory=""
+      macros="CMSIS_CONFIG_TOOL=$(SDK_ROOT:{{sdk_default_path}})/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar"
       project_type="Executable" />
 
     {% for group in target["groups"] %}<folder Name="{{ group.name }}">{% for file in group.files %}

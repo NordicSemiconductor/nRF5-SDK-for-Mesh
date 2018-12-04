@@ -79,65 +79,23 @@ extern void app_error_handler(uint32_t error_code, uint32_t line_number, const u
 extern nrf_nvic_state_t nrf_nvic_state;
 #endif
 
-typedef void (*execution_start_cb_t)(void);
-
-#if defined S140
-#include "nrf_soc.h"
 /**
- * Checks the current interrupt priority of the softdevice event interrupt.
- * In case the priority is not the lowest one the assertion is generated.
+ * Generates a 16-byte number using @link_device_id <!-- DEVICEID-0:   --> and the given prefix bytes.
  *
- * @note The function is required only for S140 v6.0.0
- *       since it has the priority issue at the moment
- */
-static inline void softdevice_irq_priority_checker(void)
-{
-    uint32_t priority = 0ul;
-
-    ERROR_CHECK(sd_nvic_GetPriority(SD_EVT_IRQn, &priority));
-    if (priority != NRF_MESH_IRQ_PRIORITY_LOWEST)
-    {
-        ERROR_CHECK(NRF_ERROR_INTERNAL);
-    }
-}
-#endif
-
-/**
- * Run function for starting dynamic behavior.
+ * @warning This function only generates a 16-byte number for demonstration purposes.
+ * The UUID for the end product must be generated according to the format specified in RFC4122.
  *
- * Unless the application event handling is running in thread mode, there is a risk of race
- * conditions if events are processed while running the start function in thread mode. This
- * function will prevent this by disabling all application level interrupts while running the start
- * function.
+ * @param[out] p_uuid_dest      Pointer to the buffer storing the 16-byte number. This buffer must have
+ * 								byte length of @ref NRF_MESH_UUID_SIZE.
  *
- * @param[in]  execution_start_callback  Function for starting dynamic bahavior.
- */
-static inline void execution_start(execution_start_cb_t execution_start_callback)
-{
-    uint8_t is_nested;
-    ERROR_CHECK(sd_nvic_critical_region_enter(&is_nested));
-    execution_start_callback();
-    ERROR_CHECK(sd_nvic_critical_region_exit(is_nested));
-}
-
-
-/**
- * Generates a UUID using DEVICE ID and given prefix bytes
- *
- * @note: This function merely generates a 128 bit unique number for a purpose of demonstration.
- * The UUID for the end product should be generated as per the format specified in ITU-T Rec. X.667.
- *
- * @param[out] p_uuid_dest      Pointer to buffer storing the UUID. This buffer must be @ref
- *                              NRF_MESH_UUID_SIZE bytes long.
- *
- * @param[in]  p_uuid_prefix    Array of bytes that will be used as first of the UUID.
+ * @param[in]  p_uuid_prefix    Array of bytes to be used as prefix for the 16-byte number.
  * @param[in]  uuid_prefix_len  Length of the array pointed by `p_uuid_prefix`. Maximum value of
- *                              this parameter can be (@ref NRF_MESH_UUID_SIZE/2). If value of this
- *                              parameter is less than (@ref NRF_MESH_UUID_SIZE/2), remaining bytes
+ *                              this parameter can be @ref NRF_MESH_UUID_SIZE/2. If value of this
+ *                              parameter is less than @ref NRF_MESH_UUID_SIZE/2, the remaining bytes
  *                              will be filled with zeros.
  *
- * @retval NRF_SUCCESS               UUID is generated successfully.
- * @retval NRF_ERROR_INVALID_LENGTH  Supplied uuid_prefix_len is greater than @ref NRF_MESH_UUID_SIZE/2.
+ * @retval NRF_SUCCESS               The 16-byte number is generated successfully.
+ * @retval NRF_ERROR_INVALID_LENGTH  The supplied `uuid_prefix_len` is greater than @ref NRF_MESH_UUID_SIZE/2.
  *
  */
 uint32_t mesh_app_uuid_gen(uint8_t * p_uuid_dest, const uint8_t * p_uuid_prefix, uint8_t uuid_prefix_len);

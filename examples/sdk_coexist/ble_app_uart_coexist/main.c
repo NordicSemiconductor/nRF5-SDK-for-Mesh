@@ -93,8 +93,8 @@
 
 #define APP_ADV_DURATION                BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED       /**< Disable advertising timeout. */
 
-#define MIN_CONN_INTERVAL               MSEC_TO_UNITS(20, UNIT_1_25_MS)             /**< Minimum acceptable connection interval (20 ms), Connection interval uses 1.25 ms units. */
-#define MAX_CONN_INTERVAL               MSEC_TO_UNITS(75, UNIT_1_25_MS)             /**< Maximum acceptable connection interval (75 ms), Connection interval uses 1.25 ms units. */
+#define MIN_CONN_INTERVAL               MSEC_TO_UNITS(150,  UNIT_1_25_MS)           /**< Minimum acceptable connection interval. */
+#define MAX_CONN_INTERVAL               MSEC_TO_UNITS(250,  UNIT_1_25_MS)           /**< Maximum acceptable connection interval. */
 #define SLAVE_LATENCY                   0                                           /**< Slave latency. */
 #define CONN_SUP_TIMEOUT                MSEC_TO_UNITS(4000, UNIT_10_MS)             /**< Connection supervisory timeout (4 seconds), Supervision Timeout uses 10 ms units. */
 #define FIRST_CONN_PARAMS_UPDATE_DELAY  APP_TIMER_TICKS(5000)                       /**< Time from initiating event (connect or start of notification) to first time sd_ble_gap_conn_param_update is called (5 seconds). */
@@ -520,7 +520,11 @@ void uart_event_handle(app_uart_evt_t * p_event)
             UNUSED_VARIABLE(app_uart_get(&data_array[index]));
             index++;
 
-            if ((data_array[index - 1] == '\n') || (index >= (m_ble_nus_max_data_len)))
+            if ((data_array[index - 1] == '\n') ||
+                (data_array[index - 1] == '\r') ||
+                (index >= m_ble_nus_max_data_len))
+            {
+                if (index > 1)
             {
                 NRF_LOG_DEBUG("Ready to send data over BLE NUS");
                 NRF_LOG_HEXDUMP_DEBUG(data_array, index);
@@ -529,16 +533,13 @@ void uart_event_handle(app_uart_evt_t * p_event)
                 {
                     uint16_t length = (uint16_t)index;
                     err_code = ble_nus_data_send(&m_nus, data_array, &length, m_conn_handle);
-                    if ( (err_code != NRF_ERROR_INVALID_STATE) && (err_code != NRF_ERROR_BUSY) &&
+                        if ((err_code != NRF_ERROR_INVALID_STATE) &&
+                            (err_code != NRF_ERROR_RESOURCES) &&
                          (err_code != NRF_ERROR_NOT_FOUND) )
                     {
                         APP_ERROR_CHECK(err_code);
                     }
-                } while (err_code == NRF_ERROR_BUSY);
-
-                if ((data_array[0] >= '1') && (data_array[0] <= '4'))
-                {
-                    mesh_main_button_event_handler(data_array[0] - '1');
+                    } while (err_code == NRF_ERROR_RESOURCES);
                 }
 
                 index = 0;
@@ -702,7 +703,7 @@ int main(void)
     // Start execution.
     NRF_LOG_INFO("Debug logging for UART over RTT started.");
     advertising_start();
-    execution_start(mesh_main_start);
+    mesh_main_start();
 
     // Enter main loop.
     for (;;)

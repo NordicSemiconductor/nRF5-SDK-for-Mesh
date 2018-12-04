@@ -207,12 +207,24 @@ class Retransmit(object):
     INTERVAL_STEPS_MAX = 31
     INTERVAL_STEP_SIZE = 1
 
-    def __init__(self, count, interval_steps=0):
+    def __init__(self, count, interval_steps=None, interval=None):
+        """If neither `interval_steps` nor `interval` is set, `interval_steps` will default to zero.
+        If `interval` and not `interval_steps` is set, the `interval_steps` is calculated from the
+        `interval`.
+        """
+
         if self.COUNT_MIN <= count <= self.COUNT_MAX:
             self.count = count
         else:
             raise ValueError("Count %d is not in range [%d, %d]" % (
                 count, self.COUNT_MIN, self.COUNT_MAX))
+
+        # if interval is set (e.g. load from DB) we calculate the interval_steps from it
+        if interval and (interval_steps == None):
+            interval_steps = round(interval / self.INTERVAL_STEP_SIZE) - 1
+        elif interval_steps == None:
+            interval_steps = 0
+
         if self.INTERVAL_STEPS_MIN <= interval_steps <= self.INTERVAL_STEPS_MAX:
             self.interval_steps = interval_steps
         else:

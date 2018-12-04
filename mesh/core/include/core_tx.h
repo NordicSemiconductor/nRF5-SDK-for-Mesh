@@ -58,7 +58,10 @@
 typedef enum
 {
     CORE_TX_ROLE_ORIGINATOR, /**< The packet originated in this device. */
+
+#if MESH_FEATURE_RELAY_ENABLED
     CORE_TX_ROLE_RELAY, /**< The packet came from a different device and is being relayed. */
+#endif
 
     CORE_TX_ROLE_COUNT /**< Number of roles available, not a valid role itself. */
 } core_tx_role_t;
@@ -71,6 +74,13 @@ typedef enum
     CORE_TX_BEARER_TYPE_GATT_CLIENT,
     CORE_TX_BEARER_TYPE_FRIEND,
     CORE_TX_BEARER_TYPE_LOW_POWER,
+
+    /**
+     * Allow all bearers, for use with @ref core_tx_alloc_params_t::bearer_selector.
+     *
+     * @note Set to @c INVALID to avoid having two meta types. They don't make sense in the same contexts anyway.
+     */
+    CORE_TX_BEARER_TYPE_ALLOW_ALL = CORE_TX_BEARER_TYPE_INVALID,
 } core_tx_bearer_type_t;
 
 /** Parameter structure for @ref core_tx_packet_alloc(). */
@@ -80,6 +90,7 @@ typedef struct
     uint32_t net_packet_len; /**< Requited network packet length. */
     const network_packet_metadata_t * p_metadata; /*< Network packet metadata to pass to bearer for allocation decision. */
     nrf_mesh_tx_token_t token; /**< TX token used to identify the packet in the TX complete callback. */
+    core_tx_bearer_type_t bearer_selector; /**< The bearer on which the outgoing packets are to be sent on. Alternatively, use CORE_TX_BEARER_TYPE_ALLOW_ALL to allow allocation to all bearers. */
 } core_tx_alloc_params_t;
 
 /** Bitmap type representing multiple bearers. */

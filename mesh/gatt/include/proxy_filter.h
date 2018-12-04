@@ -42,7 +42,7 @@
 #include "nrf_mesh_config_core.h"
 
 /**
- * @defgroup PROXY_FILTER Proxy filters
+ * @defgroup PROXY_FILTER Proxy filters (experimental)
  * @ingroup PROXY
  * The proxy filter is a list of short-addresses the proxy server maintains for its proxy client to
  * reduce the required throughput.

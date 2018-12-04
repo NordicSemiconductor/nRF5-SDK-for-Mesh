@@ -54,6 +54,12 @@
  * @{
  */
 
+
+/** Shortest allowed P value in the K2 key derivation procedure. */
+#define ENC_K2_P_VALUE_MINLEN   1
+/** Longest allowed P value in the K2 key derivation procedure. */
+#define ENC_K2_P_VALUE_MAXLEN   16
+
 /**
  * Nonce types.
  */
@@ -197,7 +203,8 @@ void enc_k1(const uint8_t * p_ikm, const uint8_t ikm_length, const uint8_t * p_s
  * Network key material derivation function `k2`.
  *
  * @param[in]  p_netkey   Pointer to a buffer containing the 128 bit network key.
- * @param[in]  p_p        Pointer to a buffer containing the 8 bit or longer P value.
+ * @param[in]  p_p        Pointer to a buffer containing the P value. The required minimum byte length
+ * is @ref ENC_K2_P_VALUE_MINLEN, and the length cannot exceed @ref ENC_K2_P_VALUE_MAXLEN bytes.
  * @param[in]  length_p   Length of the P value.
  * @param[out] p_output   Pointer to a buffer where the derived key material is stored.
  */

@@ -151,6 +151,16 @@ class ConfigurationClient(Model):
         self._tmp_address = None
         super(ConfigurationClient, self).__init__(self.opcodes)
 
+    @staticmethod
+    def _unpack_key_ind(packed_keys):
+        keys = []
+        if packed_keys:
+            pairs_cnt, single_cnt = (len(packed_keys) // 3, len(packed_keys) % 3 // 2)
+            keys = [k for i in range(pairs_cnt) for k in mt.KeyIndex.unpack(packed_keys[i * 3:(i + 1) * 3])]
+            if single_cnt > 0:
+                keys.append(mt.KeyIndex.unpack(packed_keys[3 * pairs_cnt:])[0])
+        return keys
+
     def composition_data_get(self, page_number=0x00):
         self.send(self._COMPOSITION_DATA_GET, bytearray([page_number]))
 
@@ -188,8 +198,10 @@ class ConfigurationClient(Model):
         self.previous_command = "delete"
         self.send(self._APPKEY_DELETE, key24)
 
-    def appkey_get(self):
-        self.send(self._APPKEY_GET)
+    def appkey_get(self, netkey_index=0):
+        message = bytearray()
+        message += mt.KeyIndex.pack(netkey_index)
+        self.send(self._APPKEY_GET, message)
 
     def netkey_add(self, netkey_index=0):
         key = self.prov_db.find_netkey(netkey_index)
@@ -500,9 +512,7 @@ class ConfigurationClient(Model):
         status = AccessStatus(status)
         self.logger.info("Appkey list status: %s", status)
         if status == AccessStatus.SUCCESS:
-            appkeys = struct.unpack("<" + "H" * (len(message.data[3:]) // 2),
-                                    message.data[3:])
-            appkeys = [mt.KeyIndex(k) for k in appkeys]
+            appkeys = ConfigurationClient._unpack_key_ind(message.data[3:])
             node = self.node_get(message.meta["src"])
 
             # Add newly discovered keys
@@ -522,7 +532,7 @@ class ConfigurationClient(Model):
                              message.meta["src"], appkeys)
 
     def __beacon_status_handler(self, opcode, message):
-        state = struct.unpack("<B", message.data)
+        state = struct.unpack("<B", message.data)[0]
         state = bool(state)
         node = self.node_get(message.meta["src"])
         node.secure_network_beacon = mt.FeatureState(state)
@@ -531,21 +541,21 @@ class ConfigurationClient(Model):
                          "on" if state else "off")
 
     def __default_ttl_status_handler(self, opcode, message):
-        ttl = struct.unpack("<B", message.data)
+        ttl = struct.unpack("<B", message.data)[0]
         node = self.node_get(message.meta["src"])
         node.default_TTL = mt.TTL(ttl)
         self.db_save()
         self.logger.info("Default TTL: %d", ttl)
 
     def __friend_status_handler(self, opcode, message):
-        state = struct.unpack("<B", message)
+        state = struct.unpack("<B", message.data)[0]
         node = self.node_get(message.meta["src"])
         node.features.friend = mt.FeatureState(state)
         self.db_save()
         self.logger.info("Friend state: %r", state)
 
     def __gatt_proxy_status_handler(self, opcode, message):
-        state = struct.unpack("<B", message)
+        state = struct.unpack("<B", message.data)[0]
         node = self.node_get(message.meta["src"])
         node.features.proxy = mt.FeatureState(state)
         self.db_save()
@@ -598,14 +608,14 @@ class ConfigurationClient(Model):
 
     def __network_transmit_status_handler(self, opcode, message):
         node = self.node_get(message.meta["src"])
-        node.network_transmit = mt.NetworkRetransmit.unpack(message.data[0])
+        node.network_transmit = mt.NetworkTransmit.unpack(message.data[0])
         self.db_save()
         self.logger.info("Network transmit state: %r", node.network_transmit)
 
     def __relay_status_handler(self, opcode, message):
         state, retransmit = struct.unpack("<BB", message.data)
         node = self.node_get(message.meta["src"])
-        node.relay_retransmit = mt.NetworkRetransmit.unpack(retransmit)
+        node.relay_retransmit = mt.RelayRetransmit.unpack(retransmit)
         node.features.relay = mt.FeatureState(state)
         self.db_save()
         self.logger.info(
@@ -656,7 +666,7 @@ class ConfigurationClient(Model):
         if status == AccessStatus.SUCCESS:
             node = self.node_get(message.meta["src"])
             if netkey_index not in node.net_keys:
-                node.netKeys.append(netkey_index)
+                node.net_keys.append(netkey_index)
             self.db_save()
             self.logger.info("Added subnet %d to node %04x",
                              netkey_index, message.meta["src"])
@@ -664,10 +674,7 @@ class ConfigurationClient(Model):
     def __netkey_list_handler(self, opcode, message):
         node = self.node_get(message.meta["src"])
         if len(message.data) > 0:
-            netkeys = struct.unpack("<" + "H" * (len(message.data) // 2),
-                                    message.data)
-            netkeys = [mt.KeyIndex(i) for i in netkeys]
-            node.net_keys = netkeys
+            node.net_keys = ConfigurationClient._unpack_key_ind(message.data)
             self.db_save()
         self.logger.info("Node %04x has subnets %r",
                          message.meta["src"], node.net_keys)
@@ -696,13 +703,7 @@ class ConfigurationClient(Model):
         status = AccessStatus(status)
         self.logger.info("SIG Model App List status: %s", status)
         if status == AccessStatus.SUCCESS:
-            if len(message.data) > 5:
-                appkeys = struct.unpack("<" + "H" * (len(message.data[5:]) // 2),
-                                        message.data[5:])
-                appkeys = [mt.KeyIndex(i) for i in appkeys]
-            else:
-                appkeys = []
-
+            appkeys = ConfigurationClient._unpack_key_ind(message.data[5:])
             model = self.model_get(element_address, mt.ModelId(model_id))
             model.bind = appkeys
             self.db_save()
@@ -734,13 +735,7 @@ class ConfigurationClient(Model):
         status = AccessStatus(status)
         self.logger.info("SIG Model App List status: %s", status)
         if status == AccessStatus.SUCCESS:
-            if len(message.data) > 7:
-                appkeys = struct.unpack("<" + "H" * (len(message.data[7:]) // 2),
-                                        message.data[7:])
-                appkeys = [mt.KeyIndex(i) for i in appkeys]
-            else:
-                appkeys = []
-
+            appkeys = ConfigurationClient._unpack_key_ind(message.data[7:])
             model = self.model_get(element_address,
                                    mt.ModelId(model_id=model_id,
                                               company_id=company_id))

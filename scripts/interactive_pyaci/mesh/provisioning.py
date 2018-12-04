@@ -209,7 +209,7 @@ class Provisioner(ProvDevice):
         super(Provisioner, self).__init__(
             interactive_device, context_id, auth_data, self.__event_handler,
             enable_event_filter)
-        self.__address = self.iaci.local_unicast_adress_start
+        self.__address = self.iaci.local_unicast_address_start
         self.unprov_list = []
         self.prov_db = None
         self.__session_data = {}
@@ -246,7 +246,7 @@ class Provisioner(ProvDevice):
         """Stops scanning for unprovisioned beacons-"""
         self.iaci.send(cmd.ScanStop())
 
-    def provision(self, uuid=None, key_index=0, name="", context_id=0):
+    def provision(self, uuid=None, key_index=0, name="", context_id=0, attention_duration_s=0):
         """Starts provisioning of the given unprovisioned device.
 
         Parameters:
@@ -259,6 +259,8 @@ class Provisioner(ProvDevice):
                 Name to give the device (stored in the database)
             conext-id:
                 Provisioning context ID to use. Normally no reason to change.
+            attention_duration_s : uint8_t
+                Time in seconds during which the device will identify itself using any means it can.
         """
         if not uuid:
             uuid = self.unprov_list.pop(0)
@@ -286,7 +288,8 @@ class Provisioner(ProvDevice):
                                      self.prov_db.iv_index,
                                      self.__next_free_address,
                                      self.prov_db.iv_update,
-                                     netkey.phase > 0))
+                                     netkey.phase > 0,
+                                     attention_duration_s))
 
         self.__session_data["UUID"] = uuid
         self.__session_data["name"] = name

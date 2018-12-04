@@ -61,9 +61,9 @@
 #include "rtt_input.h"
 #include "mesh_app_utils.h"
 #include "mesh_stack.h"
-#include "mesh_softdevice_init.h"
+#include "ble_softdevice_support.h"
 #include "nrf_mesh_config_examples.h"
-
+#include "example_common.h"
 
 /**
  * Static authentication data. This data must match the data provided to the provisioner node.
@@ -75,10 +75,7 @@
 #define UNPROV_START_ADDRESS     (0x1337)
 #define PROVISIONER_ADDRESS      (0x0001)
 #define RTT_INPUT_POLL_PERIOD_MS (100)
-
-#define LED_BLINK_INTERVAL_MS    (200)
-#define LED_BLINK_CNT_START      (2)
-#define LED_BLINK_CNT_PROV       (4)
+#define ATTENTION_DURATION_S     (5)
 
 typedef enum
 {
@@ -141,7 +138,7 @@ static void start_provisioning(const uint8_t * p_uuid, nrf_mesh_prov_bearer_type
             .flags.key_refresh = false
         };
 
-    ERROR_CHECK(nrf_mesh_prov_provision(&m_prov_ctx, p_uuid, &prov_data, bearer_type));
+    ERROR_CHECK(nrf_mesh_prov_provision(&m_prov_ctx, p_uuid, ATTENTION_DURATION_S, &prov_data, bearer_type));
 }
 
 static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
@@ -357,16 +354,17 @@ static void initialize(void)
     ERROR_CHECK(app_timer_init());
     hal_leds_init();
 
-    nrf_clock_lf_cfg_t lfc_cfg = DEV_BOARD_LF_CLK_CFG;
-    ERROR_CHECK(mesh_softdevice_init(lfc_cfg));
+    ble_stack_init();
+
     mesh_init();
 }
 
 static void start(void)
 {
-    ERROR_CHECK(mesh_stack_start());
     rtt_input_enable(user_input_handler, RTT_INPUT_POLL_PERIOD_MS);
     provisioner_start();
+
+    ERROR_CHECK(mesh_stack_start());
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, USAGE_STRING);
 
@@ -377,7 +375,7 @@ static void start(void)
 int main(void)
 {
     initialize();
-    execution_start(start);
+    start();
 
     for (;;)
     {

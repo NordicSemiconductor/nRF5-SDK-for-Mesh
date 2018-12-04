@@ -47,6 +47,7 @@
 #include "event_mock.h"
 #include "flash_manager_mock.h"
 #include "nrf_mesh_events.h"
+#include "manual_mock_queue.h"
 
 /*****************************************************************************
 * Defines
@@ -70,6 +71,7 @@ static uint32_t m_flash_buffer[16];
 static bool m_did_dummy_seqnum_block_alloc;
 static fm_mem_listener_t * mp_listeners[MEMORY_LISTENERS_MAX];
 static nrf_mesh_evt_handler_cb_t m_evt_handler;
+MOCK_QUEUE_DEF(fm_entries_read, fm_entry_t *, NULL);
 /*****************************************************************************
 * Mocks
 *****************************************************************************/
@@ -135,6 +137,25 @@ static void flash_manager_mem_listener_register_callback(fm_mem_listener_t * p_l
 
 }
 
+static uint32_t flash_manager_entries_read_callback(const flash_manager_t * p_manager,
+                                    const fm_handle_filter_t * p_filter,
+                                    flash_manager_read_cb_t read_cb,
+                                    void * p_args,
+                                    int calls)
+{
+    TEST_ASSERT_NOT_NULL(p_manager);
+    TEST_ASSERT_NOT_NULL(read_cb);
+    uint32_t i = 0;
+    while (fm_entries_read_Pending())
+    {
+        fm_entry_t * p_entry;
+        fm_entries_read_Consume(&p_entry);
+        TEST_ASSERT_EQUAL(FM_ITERATE_ACTION_CONTINUE, read_cb(p_entry, p_args));
+        i++;
+    }
+    return i;
+}
+
 void fire_mem_listeners(void)
 {
     for (uint32_t i = 0; i < MEMORY_LISTENERS_MAX; i++)
@@ -173,6 +194,7 @@ void setUp(void)
 
     flash_manager_recovery_page_get_ExpectAndReturn(&m_flash_pages[1]);
     flash_manager_add_StubWithCallback(flash_manager_add_callback);
+    flash_manager_entries_read_StubWithCallback(flash_manager_entries_read_callback);
 
     net_state_init();
     net_state_enable();
@@ -245,9 +267,8 @@ void expect_flash_load(uint32_t iv_index, uint32_t seqnum, bool in_iv_update)
     p_seqnum_entry->header.handle = 1;
     p_seqnum_entry->header.len_words = 2;
     p_seqnum_entry->data[0] = seqnum;
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, NULL, p_iv_entry);
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, p_iv_entry, p_seqnum_entry);
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, p_seqnum_entry, NULL);
+    fm_entries_read_Expect(&p_iv_entry);
+    fm_entries_read_Expect(&p_seqnum_entry);
     expect_flash_seqnum(seqnum + NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
 }
 
@@ -831,9 +852,8 @@ void test_flash_recover(void)
     p_seqnum_entry->header.handle = 1;
     p_seqnum_entry->header.len_words = 2;
     p_seqnum_entry->data[0] = 0x2000;
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, NULL, p_seqnum_entry);
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, p_seqnum_entry, p_iv_entry);
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, p_iv_entry, NULL);
+    fm_entries_read_Expect(&p_seqnum_entry);
+    fm_entries_read_Expect(&p_iv_entry);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
 
     net_state_recover_from_flash();
@@ -847,9 +867,8 @@ void test_flash_recover(void)
     /* Find IV index entry after sequence number entry, but be in IVU state. We should then adopt the sequence number */
 
     p_iv_entry->data[1] = NET_STATE_IV_UPDATE_IN_PROGRESS;
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, NULL, p_seqnum_entry);
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, p_seqnum_entry, p_iv_entry);
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, p_iv_entry, NULL);
+    fm_entries_read_Expect(&p_seqnum_entry);
+    fm_entries_read_Expect(&p_iv_entry);
     expect_flash_seqnum(0x2000 + NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
 
     net_state_recover_from_flash();
@@ -861,8 +880,7 @@ void test_flash_recover(void)
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
     flash_manager_mock_Verify();
     /* Only find seqnum data, ignore it */
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, NULL, p_seqnum_entry);
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, p_seqnum_entry, NULL);
+    fm_entries_read_Expect(&p_seqnum_entry);
     expect_flash_iv_data(0, false);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
 
@@ -875,8 +893,7 @@ void test_flash_recover(void)
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
 
     /* Only find IV index data, ignore it. */
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, NULL, p_iv_entry);
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, p_iv_entry, NULL);
+    fm_entries_read_Expect(&p_iv_entry);
     expect_flash_iv_data(0, false);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
 
@@ -889,7 +906,6 @@ void test_flash_recover(void)
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
 
     /* Don't find any data. */
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, NULL, NULL);
     expect_flash_iv_data(0, false);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
 
@@ -981,11 +997,12 @@ void test_flash_failures(void)
 
     /* Unexpected flash data */
     static uint32_t buffer[7];
-    fm_entry_t * p_useless_noise = (fm_entry_t *) &buffer[0];
+    fm_entry_t * p_useless_noise1 = (fm_entry_t *) &buffer[0];
+    fm_entry_t * p_useless_noise2 = (fm_entry_t *) &buffer[0];
     fm_entry_t * p_seqnum_entry = (fm_entry_t *) &buffer[2];
     fm_entry_t * p_iv_entry = (fm_entry_t *) &buffer[4];
-    p_useless_noise[0].header.handle = 0x1234;
-    p_useless_noise[1].header.handle = 0x19ab;
+    p_useless_noise1->header.handle = 0x1234;
+    p_useless_noise2->header.handle = 0x19ab;
     p_iv_entry->header.handle = 2;
     p_iv_entry->header.len_words = 3;
     p_iv_entry->data[0] = 0x1000;
@@ -993,12 +1010,11 @@ void test_flash_failures(void)
     p_seqnum_entry->header.handle = 1;
     p_seqnum_entry->header.len_words = 2;
     p_seqnum_entry->data[0] = 0x2000;
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, NULL, &p_useless_noise[0]);
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, &p_useless_noise[0], &p_useless_noise[1]);
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, &p_useless_noise[1], p_seqnum_entry);
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, p_seqnum_entry, p_iv_entry);
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, p_iv_entry, &p_useless_noise[1]);
-    flash_manager_entry_next_get_ExpectAndReturn(mp_manager, NULL, &p_useless_noise[1], NULL);
+    fm_entries_read_Expect(&p_useless_noise1);
+    fm_entries_read_Expect(&p_useless_noise2);
+    fm_entries_read_Expect(&p_seqnum_entry);
+    fm_entries_read_Expect(&p_iv_entry);
+    fm_entries_read_Expect(&p_useless_noise1);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
 
     net_state_recover_from_flash();

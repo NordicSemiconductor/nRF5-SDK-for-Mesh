@@ -1,0 +1,16 @@
+{
+    "__packet__": true,
+    "name": "friend_sublist_confirm",
+    "type": "absolute",
+    "module": "trs_control",
+    "packet_type": "packet_mesh_trs_control_packet_t",
+    "max_length": 1,
+    "fields": [
+        {
+            "name": "transaction_number",
+            "width":  8,
+            "doc": "number for identifying a transaction",
+            "visible": true
+        }
+    ]
+}

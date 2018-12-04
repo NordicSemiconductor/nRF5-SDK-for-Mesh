@@ -103,6 +103,8 @@ typedef struct
     network_stats_data_stored_t * p_nw_data;
     /** key index for default netkey */
     uint16_t netkey_idx;
+    /** Time in seconds during which the device to be provisioned will identify itself using any means it can */
+    uint8_t attention_duration_s;
     /** Application should perform the required application specific data storage in this callback */
     prov_helper_data_store_cb_t p_data_store_cb;
     /** Application callback to be called when provisioning succeeds */

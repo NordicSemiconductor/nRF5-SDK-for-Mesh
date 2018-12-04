@@ -57,7 +57,10 @@ static struct
 
 
 static uint8_t m_originator_adv_packet_buffer[CORE_TX_QUEUE_BUFFER_SIZE_ORIGINATOR];
+
+#if MESH_FEATURE_RELAY_ENABLED
 static uint8_t m_relay_adv_packet_buffer[CORE_TX_QUEUE_BUFFER_SIZE_RELAY];
+#endif
 
 static core_tx_alloc_result_t packet_alloc(core_tx_bearer_t * p_bearer, const core_tx_alloc_params_t * p_params);
 static void packet_send(core_tx_bearer_t * p_bearer, const uint8_t * p_packet, uint32_t packet_length);
@@ -342,12 +345,15 @@ void core_tx_adv_init(void)
                              sizeof(m_originator_adv_packet_buffer));
     advertiser_enable(&m_bearer_roles[CORE_TX_ROLE_ORIGINATOR].advertiser);
 
+#if MESH_FEATURE_RELAY_ENABLED
     m_bearer_roles[CORE_TX_ROLE_RELAY].adv_tx_count = CORE_TX_REPEAT_RELAY_DEFAULT;
     advertiser_instance_init(&m_bearer_roles[CORE_TX_ROLE_RELAY].advertiser,
                              NULL,
                              m_relay_adv_packet_buffer,
                              sizeof(m_relay_adv_packet_buffer));
     advertiser_enable(&m_bearer_roles[CORE_TX_ROLE_RELAY].advertiser);
+#endif
+
     core_tx_bearer_add(&m_bearer, &m_interface, CORE_TX_BEARER_TYPE_ADV);
     advertiser_address_default_get(&m_default_adv_addr);
 }

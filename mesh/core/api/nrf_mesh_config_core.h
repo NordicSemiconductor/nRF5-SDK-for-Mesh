@@ -139,6 +139,11 @@
 #define CORE_TX_REPEAT_RELAY_DEFAULT 1
 #endif
 
+/** Relay feature */
+#ifndef MESH_FEATURE_RELAY_ENABLED
+#define MESH_FEATURE_RELAY_ENABLED (1)
+#endif
+
 /** @} end of MESH_CONFIG_CORE_TX */
 
 /**
@@ -297,7 +302,11 @@
  * @defgroup MESH_CONFIG_TRANSPORT Transport layer configuration
  * @{
  */
-/** Maximum number of concurrent transport SAR sessions, shared by RX and TX. */
+/**
+ * Maximum number of concurrent transport SAR sessions.
+ *
+ * One context is reserved for RX when @ref MESH_FEATURE_LPN_ENABLED is defined.
+ */
 #ifndef TRANSPORT_SAR_SESSIONS_MAX
 #define TRANSPORT_SAR_SESSIONS_MAX (4)
 #endif
@@ -315,6 +324,11 @@
 /** @} end of MESH_CONFIG_TRANSPORT */
 /**
  * @defgroup MESH_CONFIG_PACMAN Packet manager configuration
+ *
+ * @note These configuration parameters are only relevant when the `mesh_mem_packet_mgr.c` is used
+ * as the dynamic memory backend. The default is the `mesh_mem_stdlib.c` backend. Its memory pool
+ * size is directly controlled by the heap size.
+ *
  * @{
  */
 
@@ -431,15 +445,18 @@
  * @{
  */
 
-/** GATT feature, should only be enabled in combination with linking GATT files. */
-#ifndef MESH_FEATURE_GATT
-#define MESH_FEATURE_GATT 0
+/** PB-GATT feature. To be enabled only in combination with linking GATT files. */
+#ifndef MESH_FEATURE_PB_GATT_ENABLED
+#define MESH_FEATURE_PB_GATT_ENABLED 0
 #endif
 
-/** GATT proxy feature, should only be enabled in combination with linking GATT proxy files. */
-#ifndef GATT_PROXY
-#define GATT_PROXY 0
+/** GATT proxy feature. To be enabled only in combination with linking GATT proxy files. */
+#ifndef MESH_FEATURE_GATT_PROXY_ENABLED
+#define MESH_FEATURE_GATT_PROXY_ENABLED 0
 #endif
+
+/** Indicates if any of GATT-related features is enabled. */
+#define MESH_FEATURE_GATT_ENABLED (MESH_FEATURE_GATT_PROXY_ENABLED || MESH_FEATURE_PB_GATT_ENABLED)
 
 /** Maximum number of addresses in the GATT proxy address filter, per connection. */
 #ifndef MESH_GATT_PROXY_FILTER_ADDR_COUNT
@@ -447,13 +464,31 @@
 #endif
 
 /**
- * Advertisement interval for Mesh GATT proxy advertisements.
- *
- * @warning If the advertisement interval is set below 200 ms, the mesh will not be able to
- * allocate sufficiently large timeslots from the SoftDevice for its persistent backend.
+ * Advertisement interval for Mesh GATT Proxy Network ID advertisements.
  */
-#ifndef MESH_GATT_PROXY_ADV_INT_MS
-#define MESH_GATT_PROXY_ADV_INT_MS 2000
+#ifndef MESH_GATT_PROXY_NETWORK_ID_ADV_INT_MS
+#define MESH_GATT_PROXY_NETWORK_ID_ADV_INT_MS 2000
+#endif
+
+/**
+ * Advertisement interval for Mesh GATT Proxy Node Identity advertisements.
+ *
+ * The Node Identity beacon is used by the Provisioner to identify a specific node with Proxy
+ * support. The beacon is automatically advertised after the node has been provisioned,
+ * if the node supports the Proxy feature.
+ */
+#ifndef MESH_GATT_PROXY_NODE_IDENTITY_ADV_INT_MS
+#define MESH_GATT_PROXY_NODE_IDENTITY_ADV_INT_MS 200
+#endif
+
+/**
+ * Duration of the Mesh GATT Proxy Node Identity advertisements.
+ *
+ * @note The duration of the Node Identity advertisements shall not be greater than 60.
+ * See the requirement in the Mesh Profile specification v1.0, section 7.2.2.2.3.
+ */
+#ifndef MESH_GATT_PROXY_NODE_IDENTITY_DURATION_MS
+#define MESH_GATT_PROXY_NODE_IDENTITY_DURATION_MS 60000
 #endif
 
 /** Number of network beacons to cache in proxy to limit impact on GATT link bandwidth */
@@ -481,6 +516,39 @@
 
 
 /** @} end of MESH_CONFIG_ACCESS */
+
+/**
+ * @defgroup MESH_CONFIG_FSM Finite State Machine configuration
+ * @{
+ */
+
+/** Set to 1 to enable debug mode for the Finite State Machine. */
+#ifndef FSM_DEBUG
+#define FSM_DEBUG (0)
+#endif
+
+/** @} end of MESH_CONFIG_FSM */
+
+/**
+ * @defgroup MESH_CONFIG_FRIENDSHIP Friendship configuration defines
+ * @{
+ */
+
+/** LPN feature */
+#ifndef MESH_FEATURE_LPN_ENABLED
+#define MESH_FEATURE_LPN_ENABLED 0
+#endif
+
+/**
+ * Number of friendship credentials to be supported by the mesh stack.
+ *
+ * @note Shall be set to 1 if LPN feature is enabled
+ */
+#ifndef MESH_FRIENDSHIP_CREDENTIALS
+#define MESH_FRIENDSHIP_CREDENTIALS 1
+#endif
+
+/** @} end of MESH_CONFIG_FRIENDSHIP */
 
 /** @} end of NRF_MESH_CONFIG_CORE */
 

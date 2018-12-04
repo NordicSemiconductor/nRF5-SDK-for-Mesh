@@ -65,6 +65,8 @@
 #define ELEMENT_IDX_ONOFF_CLIENT1       (1)
 #define ELEMENT_IDX_ONOFF_CLIENT2       (2)
 
+#define ATTENTION_DURATION_S (5)
+
 #define PROVISIONER_RETRY_COUNT  (2)
 
 /** @} end of LIGHT_SWT_V2 */

@@ -57,14 +57,17 @@
 /**
  * Starts provisioning of a device.
  *
- * @param[in,out] p_ctx    Pointer to the provisioning context structure.
- * @param[in]     p_uuid   Pointer to the UUID for the device that is to be provisioned.
- * @param[in]     p_data   Pointer to the provisioning data structure for the device
+ * @param[in,out] p_ctx                 Pointer to the provisioning context structure.
+ * @param[in]     p_uuid                Pointer to the UUID for the device that is to be provisioned.
+ * @param[in]     attention_duration_s  Time in seconds during which the device will identify itself using any means it can.
+ * @param[in]     p_data                Pointer to the provisioning data structure for the device
  *
  * @retval NRF_SUCCESS   The provisioning process was successfully started for the specified device.
  */
 uint32_t prov_provisioner_provision(nrf_mesh_prov_ctx_t * p_ctx,
-            const uint8_t * p_uuid, const nrf_mesh_prov_provisioning_data_t * p_data);
+                                    const uint8_t * p_uuid,
+                                    uint8_t attention_duration_s,
+                                    const nrf_mesh_prov_provisioning_data_t * p_data);
 
 /**
  * Specifies which out-of-band mechanism to use for authentication.

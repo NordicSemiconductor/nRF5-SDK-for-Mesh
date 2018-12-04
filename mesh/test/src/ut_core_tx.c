@@ -220,17 +220,23 @@ void test_alloc(void)
         core_tx_role_t role;
         uint8_t size;
         bool expect_success;
+        core_tx_bearer_type_t bearer;
         bool successful_alloc[2];
+        bool calls_alloc[2];
     } vector[] = {
-        {CORE_TX_ROLE_ORIGINATOR, 12, true, {true, true}},
-        {CORE_TX_ROLE_ORIGINATOR, 12, true, {true, false}},
-        {CORE_TX_ROLE_ORIGINATOR, 12, true, {false, true}},
-        {CORE_TX_ROLE_ORIGINATOR, 12, true, {false, false}},
-        {CORE_TX_ROLE_ORIGINATOR, 0, true, {true, true}},
+        {CORE_TX_ROLE_ORIGINATOR, 12, true, CORE_TX_BEARER_TYPE_ALLOW_ALL,            {true, true},   {true, true}},
+        {CORE_TX_ROLE_ORIGINATOR, 12, true, CORE_TX_BEARER_TYPE_ALLOW_ALL,            {true, false},  {true, true}},
+        {CORE_TX_ROLE_ORIGINATOR, 12, true, CORE_TX_BEARER_TYPE_ALLOW_ALL,            {false, true},  {true, true}},
+        {CORE_TX_ROLE_ORIGINATOR, 12, true, CORE_TX_BEARER_TYPE_ALLOW_ALL,            {false, false}, {true, true}},
+        {CORE_TX_ROLE_ORIGINATOR, 0, true, CORE_TX_BEARER_TYPE_ALLOW_ALL,             {true, true},   {true, true}},
         {3, 12, false},
-        {CORE_TX_ROLE_RELAY, 12, true, {true, true}},
-        {CORE_TX_ROLE_ORIGINATOR, 29, true, {true, true}},
+        {CORE_TX_ROLE_RELAY, 12, true, CORE_TX_BEARER_TYPE_ALLOW_ALL,                 {true, true},   {true, true}},
+        {CORE_TX_ROLE_ORIGINATOR, 29, true, CORE_TX_BEARER_TYPE_ALLOW_ALL,            {true, true},   {true, true}},
         {CORE_TX_ROLE_ORIGINATOR, 30, false}, /* Invalid length */
+        {CORE_TX_ROLE_ORIGINATOR, 12, true, CORE_TX_BEARER_TYPE_FRIEND,         {true, true},   {false, false}},
+        {CORE_TX_ROLE_ORIGINATOR, 12, true, CORE_TX_BEARER_TYPE_GATT_SERVER,    {true, true},   {false, true}},
+        {CORE_TX_ROLE_ORIGINATOR, 12, true, CORE_TX_BEARER_TYPE_ADV,            {true, true},   {true, false}},
+        {CORE_TX_ROLE_ORIGINATOR, 12, true, CORE_TX_BEARER_TYPE_ADV,            {false, false}, {true, false}},
     };
 
     uint8_t * p_packet = NULL;
@@ -242,37 +248,51 @@ void test_alloc(void)
     for (uint32_t i = 0; i < ARRAY_SIZE(vector); ++i)
     {
         network_packet_metadata_t metadata;
-        core_tx_alloc_params_t params = {.role           = vector[i].role,
-                                         .net_packet_len = vector[i].size,
-                                         .p_metadata     = &metadata,
+        core_tx_alloc_params_t params = {.role              = vector[i].role,
+                                         .net_packet_len    = vector[i].size,
+                                         .p_metadata        = &metadata,
+                                         .bearer_selector   = vector[i].bearer,
                                          .token = ((vector[i].role == CORE_TX_ROLE_RELAY) ? NRF_MESH_RELAY_TOKEN
-                                                                                          : TOKEN)};
+                                                                                          : TOKEN)
+                                                                                          };
         p_packet                      = NULL;
 
         if (vector[i].expect_success)
         {
-            EXPECT_ALLOC(&m_bearer, &params, vector[i].successful_alloc[0] ? CORE_TX_ALLOC_SUCCESS : 0x1234);
-            EXPECT_ALLOC(&bearer,   &params, vector[i].successful_alloc[1] ? CORE_TX_ALLOC_SUCCESS : 0xABCD);
+            if (vector[i].calls_alloc[0])
+            {
+                EXPECT_ALLOC(&m_bearer, &params, vector[i].successful_alloc[0] ? CORE_TX_ALLOC_SUCCESS : 0x1234);
+            }
+            if (vector[i].calls_alloc[1])
+            {
+                EXPECT_ALLOC(&bearer,   &params, vector[i].successful_alloc[1] ? CORE_TX_ALLOC_SUCCESS : 0xABCD);
+            }
 
             core_tx_bearer_bitmap_t result = core_tx_packet_alloc(&params, &p_packet);
             if (vector[i].successful_alloc[0] || vector[i].successful_alloc[1])
             {
-                TEST_ASSERT_EQUAL((vector[i].successful_alloc[0] << 0) | (vector[i].successful_alloc[1] << 1), result);
-                TEST_ASSERT_NOT_NULL(p_packet);
+                TEST_ASSERT_EQUAL(((vector[i].successful_alloc[0] && vector[i].calls_alloc[0]) << 0) |
+                                  ((vector[i].successful_alloc[1] && vector[i].calls_alloc[1]) << 1),
+                                  result);
 
-                /* Do an alloc again, should assert without side effects. */
-                TEST_NRF_MESH_ASSERT_EXPECT(core_tx_packet_alloc(&params, &p_packet));
+                if (result != 0)
+                {
+                    TEST_ASSERT_NOT_NULL(p_packet);
 
-                /* Can't allocate again without discarding the previous packet */
-                if (vector[i].successful_alloc[0])
-                {
-                    EXPECT_DISCARD(&m_bearer);
+                    /* Do an alloc again, should assert without side effects. */
+                    TEST_NRF_MESH_ASSERT_EXPECT(core_tx_packet_alloc(&params, &p_packet));
+
+                    /* Can't allocate again without discarding the previous packet */
+                    if (vector[i].successful_alloc[0] && vector[i].calls_alloc[0])
+                    {
+                        EXPECT_DISCARD(&m_bearer);
+                    }
+                    if (vector[i].successful_alloc[1] && vector[i].calls_alloc[1])
+                    {
+                        EXPECT_DISCARD(&bearer);
+                    }
+                    core_tx_packet_discard();
                 }
-                if (vector[i].successful_alloc[1])
-                {
-                    EXPECT_DISCARD(&bearer);
-                }
-                core_tx_packet_discard();
             }
             else
             {

@@ -87,7 +87,7 @@ static bool m_tx_complete_evt_expect;
 static bool m_connected_evt_expect;
 static bool m_disconnected_evt_expect;
 static bool m_tx_ready_evt_expect;
-
+static uint32_t m_hvx_return;
 /*******************************************************************************
  * Helper functions / macros
  ******************************************************************************/
@@ -235,7 +235,10 @@ static void disconnect(uint16_t conn_handle)
 static uint32_t sd_ble_gatts_hvx_cb(uint16_t conn_handle, ble_gatts_hvx_params_t const * p_hvx_params, int num_calls)
 {
     expected_pdu_check(p_hvx_params->p_data, *p_hvx_params->p_len);
-    return NRF_SUCCESS;
+    uint32_t status = m_hvx_return;
+    // reset the status:
+    m_hvx_return = NRF_SUCCESS;
+    return status;
 }
 
 static void m_gatt_evt_handler(const mesh_gatt_evt_t * p_evt, void * p_context)
@@ -294,6 +297,7 @@ void setUp(void)
     timer_scheduler_mock_Init();
     ble_gatts_mock_Init();
     ble_gap_mock_Init();
+    m_hvx_return = NRF_SUCCESS;
 }
 
 void tearDown(void)
@@ -369,7 +373,7 @@ void test_disconnect_event(void)
     disconnect(0);
 }
 
-void test_alloc_successfull(void)
+void test_alloc(void)
 {
     test_gatt_init();
     uint8_t * p_packet = mesh_gatt_packet_alloc(0, MESH_GATT_PDU_TYPE_PROV_PDU, MESH_GATT_PROXY_PDU_MAX_SIZE, TX_TOKEN);
@@ -380,12 +384,26 @@ void test_alloc_successfull(void)
 
     p_packet = mesh_gatt_packet_alloc(0, MESH_GATT_PDU_TYPE_PROV_PDU, MESH_GATT_PROXY_PDU_MAX_SIZE, TX_TOKEN);
     TEST_ASSERT_NOT_NULL(p_packet);
+
+    TEST_NRF_MESH_ASSERT_EXPECT(mesh_gatt_packet_alloc(0, MESH_GATT_PDU_TYPE_PROV_PDU, MESH_GATT_PROXY_PDU_MAX_SIZE + 1, TX_TOKEN));
+    TEST_NRF_MESH_ASSERT_EXPECT(mesh_gatt_packet_alloc(NRF_SDH_BLE_TOTAL_LINK_COUNT, MESH_GATT_PDU_TYPE_PROV_PDU, MESH_GATT_PROXY_PDU_MAX_SIZE, TX_TOKEN));
 }
 
-void test_alloc_too_big(void)
+void test_discard(void)
 {
     test_gatt_init();
-    TEST_NRF_MESH_ASSERT_EXPECT(mesh_gatt_packet_alloc(0, MESH_GATT_PDU_TYPE_PROV_PDU, MESH_GATT_PROXY_PDU_MAX_SIZE + 1, TX_TOKEN));
+
+    connected_evt_expect();
+    connect(0);
+
+    uint8_t * p_packet = mesh_gatt_packet_alloc(0, MESH_GATT_PDU_TYPE_PROV_PDU, MESH_GATT_PROXY_PDU_MAX_SIZE, TX_TOKEN);
+    TEST_ASSERT_NOT_NULL(p_packet);
+
+    mesh_gatt_packet_discard(0, p_packet);
+
+    TEST_NRF_MESH_ASSERT_EXPECT(mesh_gatt_packet_discard(0, NULL));
+    TEST_NRF_MESH_ASSERT_EXPECT(mesh_gatt_packet_discard(1, p_packet));
+    TEST_NRF_MESH_ASSERT_EXPECT(mesh_gatt_packet_discard(NRF_SDH_BLE_TOTAL_LINK_COUNT, p_packet));
 }
 
 void test_send_segmented_sample_data(void)
@@ -437,6 +455,29 @@ void test_send_single_segment(void)
     sd_ble_gatts_hvx_StubWithCallback(sd_ble_gatts_hvx_cb);
 
     EXPECT_PDU({MESH_GATT_PDU_TYPE_PROV_PDU, 0xca, 0xfe, 0xba, 0xbe});
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_gatt_packet_send(0, p_packet));
+
+    tx_complete_evt_expect();
+    tx_complete_evt_send();
+}
+
+void test_hvx_sys_attr_missing(void)
+{
+    test_gatt_init();
+
+    connected_evt_expect();
+    connect(0);
+
+    const uint8_t PDU[] = {0xca, 0xfe, 0xba, 0xbe};
+    uint8_t * p_packet = mesh_gatt_packet_alloc(0, MESH_GATT_PDU_TYPE_PROV_PDU, sizeof(PDU), TX_TOKEN);
+    memcpy(p_packet, PDU, sizeof(PDU));
+
+    m_hvx_return = BLE_ERROR_GATTS_SYS_ATTR_MISSING;
+    sd_ble_gatts_hvx_StubWithCallback(sd_ble_gatts_hvx_cb);
+    sd_ble_gatts_sys_attr_set_ExpectAndReturn(0, NULL, 0, 0, NRF_SUCCESS);
+
+    EXPECT_PDU({MESH_GATT_PDU_TYPE_PROV_PDU, 0xca, 0xfe, 0xba, 0xbe}); // one for the error
+    EXPECT_PDU({MESH_GATT_PDU_TYPE_PROV_PDU, 0xca, 0xfe, 0xba, 0xbe}); // one for the successful retry
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_gatt_packet_send(0, p_packet));
 
     tx_complete_evt_expect();

@@ -37,13 +37,41 @@
 #ifndef EXAMPLE_COMMON_H__
 #define EXAMPLE_COMMON_H__
 
+#include "sdk_config.h"
+
 #define RTT_INPUT_POLL_PERIOD_MS    (100)
 
-#define LED_BLINK_INTERVAL_MS       (200)
-#define LED_BLINK_SHORT_INTERVAL_MS (50)
-#define LED_BLINK_CNT_START         (2)
-#define LED_BLINK_CNT_RESET         (3)
-#define LED_BLINK_CNT_PROV          (4)
-#define LED_BLINK_CNT_NO_REPLY      (6)
+#define LED_BLINK_INTERVAL_MS           (200)
+#define LED_BLINK_SHORT_INTERVAL_MS     (50)
+#define LED_BLINK_CNT_START             (2)
+#define LED_BLINK_CNT_RESET             (3)
+#define LED_BLINK_CNT_PROV              (4)
+#define LED_BLINK_CNT_NO_REPLY          (6)
+#define LED_BLINK_CNT_ERROR             (6)
+
+/* An interval larger than half a second might not show LED blinking effect. */
+#define LED_BLINK_ATTENTION_INTERVAL_MS (50)
+#define LED_BLINK_ATTENTION_COUNT(s)    (((s) * 500) / LED_BLINK_ATTENTION_INTERVAL_MS)
+
+/**
+ * Clock configuration for Nordic development boards.
+ */
+#if defined(S110)
+    #define DEV_BOARD_LF_CLK_CFG  NRF_CLOCK_LFCLKSRC_XTAL_20_PPM
+#elif NRF_SD_BLE_API_VERSION >= 5
+    #define DEV_BOARD_LF_CLK_CFG  { \
+        .source = NRF_SDH_CLOCK_LF_SRC, \
+        .rc_ctiv = NRF_SDH_CLOCK_LF_RC_CTIV, \
+        .rc_temp_ctiv = NRF_SDH_CLOCK_LF_RC_TEMP_CTIV, \
+        .accuracy = NRF_SDH_CLOCK_LF_ACCURACY \
+    }
+#else
+    #define DEV_BOARD_LF_CLK_CFG  { \
+        .source = NRF_CLOCK_LF_SRC_XTAL, \
+        .rc_ctiv = 0, \
+        .rc_temp_ctiv = 0, \
+        .xtal_accuracy = NRF_CLOCK_LF_XTAL_ACCURACY_20_PPM \
+    }
+#endif
 
 #endif /* EXAMPLE_COMMON_H__ */

@@ -45,8 +45,8 @@
 
 #define ADV_EXT_TIMER_INDEX_TIMESTAMP       (0) /**< Timer index used to control radio timing. */
 #define ADV_EXT_TIMER_INDEX_PA              (1) /**< Timer index used to control power amplifier. */
-#define ADV_EXT_TIMER_INDEX_RADIO_TRIGGER   (TIMER_INDEX_RADIO) /**< Timer index used to control radio timing. */
-#define ADV_EXT_PPI_CH                      (TIMER_PPI_CH_START + TIMER_INDEX_RADIO) /**< PPI channel used to trigger timer capture */
+#define ADV_EXT_TIMER_INDEX_RADIO_TRIGGER   (TS_TIMER_INDEX_RADIO) /**< Timer index used to control radio timing. */
+#define ADV_EXT_PPI_CH                      (TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO) /**< PPI channel used to trigger timer capture */
 
 /* Timing */
 #define OFFSET_TIME_STEP_US    (ADV_EXT_TIME_OFFSET_UNIT_30us) /**< Offset unit used in all AuxPtr packets */
@@ -109,12 +109,12 @@ static struct
     uint8_t adv_index;
     uint8_t packet_index;
     adv_ext_tx_packet_t * p_tx_packet;
-    uint32_t start_time;
+    ts_timestamp_t start_time;
 } m_tx_session;
 
 /** Time to start radio TX for the current auxiliary packet, as reported in the Aux Ptr pointing to
  * the packet. */
-static uint32_t m_tx_time;
+static ts_timestamp_t m_tx_time;
 
 /** Advertisement channels for the EXT IND packets. */
 static const uint8_t m_adv_channels[] = NRF_MESH_ADV_CHAN_ALL;
@@ -314,7 +314,7 @@ static void setup_aux(adv_ext_tx_t * p_tx)
     mesh_pa_lna_setup_stop();
 
     /* Verify that we were able to service the TX in time */
-    NRF_MESH_ASSERT(TIMER_OLDER_THAN(timer_now(), txen_trigger_time + m_tx_session.start_time));
+    NRF_MESH_ASSERT(TIMER_OLDER_THAN(ts_timer_now(), txen_trigger_time + m_tx_session.start_time));
 
     if (last_in_chain)
     {
@@ -327,7 +327,7 @@ static void setup_aux(adv_ext_tx_t * p_tx)
     }
 }
 
-static void action_start(timestamp_t start_time, void * p_args)
+static void action_start(ts_timestamp_t start_time, void * p_args)
 {
     DEBUG_PIN_INSTABURST_ON(DEBUG_PIN_INSTABURST_START);
     DEBUG_PIN_INSTABURST_ON(DEBUG_PIN_INSTABURST_IN_ACTION);
@@ -395,10 +395,10 @@ static void radio_irq_handler(void * p_args)
             p_tx->p_tx_event = NULL;
             if (p_tx->config.callback != NULL)
             {
-                uint32_t header_start_time =
+                ts_timestamp_t header_start_time =
                     m_tx_time + RADIO_ADDR_EVT_DELAY(p_tx->config.radio_config.radio_mode);
-
-                p_tx->config.callback(p_tx, p_tx_event, header_start_time);
+                /* Report the TX complete with a device timestamp, not a timeslot timestamp */
+                p_tx->config.callback(p_tx, p_tx_event, ts_timer_to_device_time(header_start_time));
             }
             break;
         }

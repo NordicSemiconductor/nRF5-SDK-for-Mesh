@@ -35,6 +35,7 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "nrf_mesh_prov_bearer_adv.h"
 #include "prov_bearer_adv.h"
 #include "nrf_mesh_prov.h"
 #include "log.h"
@@ -504,7 +505,7 @@ static void listen_start(prov_bearer_t * p_bearer)
 
     advertiser_enable_Expect(&p_bearer_adv->advertiser);
     prov_beacon_unprov_build_ExpectAndReturn(&p_bearer_adv->advertiser, NULL, 0, &m_packet);
-    advertiser_interval_set_Expect(&p_bearer_adv->advertiser, NRF_MESH_UNPROV_BEACON_INTERVAL_MS);
+    advertiser_interval_set_Expect(&p_bearer_adv->advertiser, NRF_MESH_PROV_BEARER_ADV_UNPROV_BEACON_INTERVAL_MS);
     advertiser_packet_send_Expect(&p_bearer_adv->advertiser, &m_packet);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, prov_bearer_adv_listen(p_bearer, NULL, 0, NRF_MESH_PROV_LINK_TIMEOUT_MIN_US));
     TEST_ASSERT_EQUAL(ADVERTISER_REPEAT_INFINITE, m_packet.config.repeats);

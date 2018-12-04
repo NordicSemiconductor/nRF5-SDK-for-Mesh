@@ -125,23 +125,26 @@ struct __generic_dtt_server_t
 /**
  * Initializes Generic Default Transition Time server.
  *
- * @note This function should only be called _once_.
  * @note The server handles the model allocation and adding.
  *
  * @param[in]     p_server                 Generic Default Transition Time server context pointer.
- * @param[in]     element_index            Element index to add the model
+ * @param[in]     element_index            Element index to add the model to.
  *
+ * @retval   NRF_SUCCESS    If the model is initialized successfully.
+ * @returns  Other appropriate error codes on failure.
  */
 uint32_t generic_dtt_server_init(generic_dtt_server_t * p_server, uint8_t element_index);
 
 /**
- * Publishes unsolicited Status message
+ * Publishes unsolicited Status message.
  *
- * This API can be used to send unsolicited messages to report updated state value as a result of local action.
+ * This function can be used to send unsolicited messages to report updated state value as a result of local action.
  *
  * @param[in]     p_server                 Status server context pointer.
- * @param[in]     p_params                 Message parameters
+ * @param[in]     p_params                 Message parameters.
  *
+ * @retval   NRF_SUCCESS   If the message is published successfully.
+ * @returns  Other appropriate error codes on failure.
  */
 uint32_t generic_dtt_server_status_publish(generic_dtt_server_t * p_server, const generic_dtt_status_params_t * p_params);
 

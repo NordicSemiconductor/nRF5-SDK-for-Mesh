@@ -50,7 +50,7 @@
  * @defgroup MODEL_CONFIG Model layer configuration parameters
  */
 
-/** Acknowledged message transaction timeout
+/** Define for acknowledging message transaction timeout.
  * @note Mesh Profile Specification v1.0 recommends this to be minimum 60s.
  */
 #define MODEL_ACKNOWLEDGED_TRANSACTION_TIMEOUT  (SEC_TO_US(10))
@@ -72,9 +72,6 @@
 /** Device version identifier */
 #define DEVICE_VERSION_ID (0x0000)
 
-/** Supported features of the device. @see config_feature_bit_t */
-#define DEVICE_FEATURES (CONFIG_FEATURE_RELAY_BIT)
-
 /** @} end of DEVICE_CONFIG */
 
 /**
@@ -90,23 +87,23 @@
 /**
  * The number of models in the application.
  *
- * @note This value has to be greater than two to fit the configuration and health models,
- * plus the number of models needed by the application.
+ * @note To fit the configuration and health models, this value must equal at least
+ * the number of models needed by the application plus two.
  */
 #define ACCESS_MODEL_COUNT (2)
 
 /**
  * The number of elements in the application.
  *
- * @warning If the application is to support multiple _instances_ of the _same_ model, they cannot
- * belong in the same element and a separate element is needed for the new instance.
+ * @warning If the application is to support _multiple instances_ of the _same_ model, these instances
+ * cannot be in the same element and a separate element is needed for each new instance of the same model.
  */
 #define ACCESS_ELEMENT_COUNT (1)
 
 /**
  * The number of allocated subscription lists for the application.
  *
- * @note The application should set this number to @ref ACCESS_MODEL_COUNT minus the number of
+ * @note This value must equal @ref ACCESS_MODEL_COUNT minus the number of
  * models operating on shared states.
  */
 #define ACCESS_SUBSCRIPTION_LIST_COUNT (ACCESS_MODEL_COUNT)
@@ -117,11 +114,11 @@
 #define ACCESS_FLASH_PAGE_COUNT (1)
 
 /**
- * @defgroup ACCESS_RELIABLE_CONFIG Access reliable transfer configuration
+ * @defgroup ACCESS_RELIABLE_CONFIG Configuration of access layer reliable transfer
  * @{
  */
 
-/** Number of allowed parallel transfers (size of internal context pool). */
+/** Number of the allowed parallel transfers (size of the internal context pool). */
 #define ACCESS_RELIABLE_TRANSFER_COUNT (ACCESS_MODEL_COUNT)
 
 /** @} end of ACCESS_RELIABLE_CONFIG */
@@ -137,15 +134,15 @@
  */
 /** Maximum number of subnetworks. */
 #define DSM_SUBNET_MAX                                  (4)
-/** Maximum number of applications */
+/** Maximum number of applications. */
 #define DSM_APP_MAX                                     (8)
-/** Maximum number of device keys */
+/** Maximum number of device keys. */
 #define DSM_DEVICE_MAX                                  (1)
 /** Maximum number of virtual addresses. */
 #define DSM_VIRTUAL_ADDR_MAX                            (8)
 /** Maximum number of non-virtual addresses. */
 #define DSM_NONVIRTUAL_ADDR_MAX                         (16)
-/** Number of flash pages reserved for the DSM storage */
+/** Number of flash pages reserved for the DSM storage. */
 #define DSM_FLASH_PAGE_COUNT                            (1)
 /** @} end of DSM_CONFIG */
 

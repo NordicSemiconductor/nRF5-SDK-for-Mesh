@@ -51,9 +51,9 @@
 #define LNA_SETUP_OVERHEAD_US 6
 #endif
 
-#define SCANNER_TIMER_INDEX_TIMESTAMP   (TIMER_INDEX_RADIO)
+#define SCANNER_TIMER_INDEX_TIMESTAMP   (TS_TIMER_INDEX_RADIO)
 #define SCANNER_TIMER_INDEX_LNA_SETUP   (1)
-#define SCANNER_PPI_CH                  (TIMER_PPI_CH_START + TIMER_INDEX_RADIO)
+#define SCANNER_PPI_CH                  (TS_TIMER_PPI_CH_START + TS_TIMER_INDEX_RADIO)
 #define SCANNER_TIMER_LNA_INTERRUPT_Msk (1UL << (TIMER_INTENSET_COMPARE0_Pos + SCANNER_TIMER_INDEX_LNA_SETUP))
 
 /** Scanner packet overhead (i.e. size of packet if length is 0). */
@@ -101,7 +101,6 @@ typedef struct
     packet_buffer_t          packet_buffer;
     uint8_t                  packet_buffer_data[SCANNER_BUFFER_SIZE];
     scanner_rx_callback_t    rx_callback;
-    timestamp_t              action_start_time;
 } scanner_t;
 
 /*****************************************************************************
@@ -263,7 +262,8 @@ static void radio_handle_end_event(void)
         p_packet->metadata.access_addr = m_scanner.config.access_addresses[NRF_RADIO->RXMATCH];
         /* The 6 lowest bit of the datawhite IV is the same as the channel number in BLE: */
         p_packet->metadata.channel = NRF_RADIO->DATAWHITEIV & 0x3F;
-        p_packet->metadata.timestamp = timeslot_start_time_get() + NRF_TIMER0->CC[SCANNER_TIMER_INDEX_TIMESTAMP];
+        ts_timestamp_t rx_timestamp_ts = NRF_TIMER0->CC[SCANNER_TIMER_INDEX_TIMESTAMP];
+        p_packet->metadata.timestamp = ts_timer_to_device_time(rx_timestamp_ts);
 
         memcpy(p_packet->metadata.adv_addr.addr, p_packet->packet.addr, BLE_GAP_ADDR_LEN);
         p_packet->metadata.adv_addr.addr_type = p_packet->packet.header.addr_type;
@@ -273,7 +273,7 @@ static void radio_handle_end_event(void)
 
         if (m_scanner.rx_callback != NULL)
         {
-            m_scanner.rx_callback(p_packet);
+            m_scanner.rx_callback(p_packet, rx_timestamp_ts);
         }
 
         packet_buffer_commit(&m_scanner.packet_buffer,
@@ -389,13 +389,12 @@ static void radio_setup_next_operation(void)
 * Bearer handler callback functions
 *****************************************************************************/
 
-void scanner_radio_start(timestamp_t start_time)
+void scanner_radio_start(ts_timestamp_t start_time)
 {
     DEBUG_PIN_SCANNER_ON(DEBUG_PIN_SCANNER_START);
     DEBUG_PIN_SCANNER_ON(DEBUG_PIN_SCANNER_IN_ACTION);
     m_scanner.has_radio_context = true;
     m_scanner.is_radio_cfg_pending = false;
-    m_scanner.action_start_time = start_time;
     radio_configure();
 
     if (m_scanner.state == SCANNER_STATE_RUNNING &&
@@ -510,6 +509,7 @@ void scanner_enable(void)
     {
         schedule_timers();
         m_scanner.state = SCANNER_STATE_RUNNING;
+        bearer_handler_wake_up();
     }
 }
 

@@ -171,13 +171,13 @@ ec = 0
 eList = errorList()
 server_devices = []
 
-provisioner_hex52832 = find_file(os.path.join(cwd, "bin"), 'light_switch_provisioner_nrf52832_xxAA_s132_6.0.0_merged_sd.hex')[0]
-client_hex52832 = find_file(os.path.join(cwd, "bin"), "light_switch_client_nrf52832_xxAA_s132_6.0.0_merged_sd.hex")[0]
-server_hex52832 = find_file(os.path.join(cwd, "bin"), "light_switch_server_nrf52832_xxAA_s132_6.0.0_merged_sd.hex")[0]
+provisioner_hex52832 = find_file(os.path.join(cwd, "bin"), 'light_switch_provisioner_nrf52832_xxAA_s132_6.1.0_merged_sd.hex')[0]
+client_hex52832 = find_file(os.path.join(cwd, "bin"), "light_switch_client_nrf52832_xxAA_s132_6.1.0_merged_sd.hex")[0]
+server_hex52832 = find_file(os.path.join(cwd, "bin"), "light_switch_server_nrf52832_xxAA_s132_6.1.0_merged_sd.hex")[0]
 
-provisioner_hex52840 = find_file(cwd, 'light_switch_provisioner_nrf52840_xxAA_s140_6.0.0_merged_sd.hex')[0]
-client_hex52840 = find_file(cwd, "light_switch_client_nrf52840_xxAA_s140_6.0.0_merged_sd.hex")[0]
-server_hex52840 = find_file(cwd, "light_switch_server_nrf52840_xxAA_s140_6.0.0_merged_sd.hex")[0]
+provisioner_hex52840 = find_file(cwd, 'light_switch_provisioner_nrf52840_xxAA_s140_6.1.0_merged_sd.hex')[0]
+client_hex52840 = find_file(cwd, "light_switch_client_nrf52840_xxAA_s140_6.1.0_merged_sd.hex")[0]
+server_hex52840 = find_file(cwd, "light_switch_server_nrf52840_xxAA_s140_6.1.0_merged_sd.hex")[0]
 
 # All files must be valid
 for f in [provisioner_hex52832, client_hex52832, server_hex52832, provisioner_hex52840, client_hex52840, server_hex52840]:

@@ -45,6 +45,7 @@
 #include "nrf_mesh_serial.h"
 #include "nrf_mesh_assert.h"
 #include "nrf_mesh_defines.h"
+#include "nrf_gpio.h"
 
 #define UART_IRQ_LEVEL NRF_MESH_IRQ_PRIORITY_LOWEST
 
@@ -72,14 +73,11 @@ uint32_t serial_uart_init(serial_uart_rx_cb_t rx_cb, serial_uart_tx_cb_t tx_cb)
     m_char_tx_cb = tx_cb;
 
     /* Set up GPIOs: */
-    NRF_GPIO->DIRCLR = (1 << RX_PIN_NUMBER);
-    NRF_GPIO->DIRCLR = (1 << CTS_PIN_NUMBER);
-    NRF_GPIO->PIN_CNF[RX_PIN_NUMBER] = GPIO_PIN_CNF_PULL_Msk;
-    NRF_GPIO->PIN_CNF[CTS_PIN_NUMBER] = GPIO_PIN_CNF_PULL_Msk;
-
-    NRF_GPIO->OUTSET = (1 << TX_PIN_NUMBER);
-    NRF_GPIO->DIRSET = (1 << TX_PIN_NUMBER);
-    NRF_GPIO->DIRSET = (1 << RTS_PIN_NUMBER);
+    nrf_gpio_cfg_input(RX_PIN_NUMBER, NRF_GPIO_PIN_PULLUP);
+    nrf_gpio_cfg_input(CTS_PIN_NUMBER, NRF_GPIO_PIN_PULLUP);
+    nrf_gpio_cfg_output(TX_PIN_NUMBER);
+    nrf_gpio_pin_set(TX_PIN_NUMBER);
+    nrf_gpio_cfg_output(RTS_PIN_NUMBER);
 
     /* Initialize UART hardware: */
     NRF_UART0->PSELTXD = TX_PIN_NUMBER;

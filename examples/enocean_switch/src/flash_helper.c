@@ -129,21 +129,18 @@ void app_flash_init(void)
 
 uint32_t app_flash_data_load(fm_handle_t entry_handle, void * p_data, uint8_t length)
 {
-    flash_manager_wait();
-    const fm_entry_t * p_entry = flash_manager_entry_get(&m_flash_manager, entry_handle);
-    if (p_entry == NULL)
+    uint32_t read_len = length;
+
+    uint32_t status = flash_manager_entry_read(&m_flash_manager, entry_handle, p_data, &read_len);
+    if (status != NRF_SUCCESS)
     {
         memset(p_data, 0x00, length);
-        return NRF_ERROR_NOT_FOUND;
     }
-
-    memcpy(p_data, p_entry->data, length);
-    return NRF_SUCCESS;
+    return status;
 }
 
 uint32_t app_flash_data_store(fm_handle_t entry_handle, const void * p_data, uint8_t length)
 {
-    flash_manager_wait();
     fm_entry_t * p_entry = flash_manager_entry_alloc(&m_flash_manager, entry_handle, length);
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Storing data\n");

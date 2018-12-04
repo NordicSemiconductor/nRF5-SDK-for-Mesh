@@ -47,6 +47,9 @@
 #define NRF_SDH_BLE_GATT_MAX_MTU_SIZE (69)
 #define APP_TIMER_CONFIG_RTC_FREQUENCY (0)
 
+#define APP_TIMER_ENABLED               1
+#define APP_TIMER_KEEPS_RTC_ACTIVE      1
+
 #endif /* SDK_CONFIG_H__ */
 
 

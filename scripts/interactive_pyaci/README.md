@@ -1,4 +1,4 @@
-# Interactive PyACI
+# Interactive PyACI script
 
 The Interactive Python Application Controller Interface (PyACI) (`interactive_pyaci.py`) can be used to
 interactively control devices running the mesh stack and the serial interface. The script opens
@@ -15,8 +15,22 @@ to make serial devices talk to each other over mesh.
 - The @subpage md_scripts_interactive_pyaci_doc_demo_configuration
 tutorial demonstrates how to use the serial interface to provision and configure a mesh network.
 
+**Table of contents**
+- [Prerequisites](@ref serial_prerequisites)
+- [Using the interface](@ref serial_using_the_interface)
+    - [Windows](@ref serial_using_the_interface_win)
+    - [Ubuntu/Linux](@ref serial_using_the_interface_ubuntu)
+    - [Other options](@ref serial_using_the_interface_other)
+- [About the interface](@ref serial_about_interface)
+    - [Commands and events](@ref serial_about_interface_commands)
+    - [Getting help](@ref serial_about_interface_help)
+- [Miscellaneous](@ref serial_miscellaneous)
 
-## Prerequisites
+
+---
+
+
+## Prerequisites @anchor serial_prerequisites
 
 The interactive console is written for <a href="https://www.python.org/downloads/" target="_blank">Python 3</a>.
 To install the required packages, move to the `scripts/interactive_pyaci` directory
@@ -24,6 +38,9 @@ and install the requirements using `pip`:
 
     nrf5_sdk_for_mesh$ cd scripts/interactive_pyaci
     interactive_pyaci$ pip install -r requirements.txt
+
+
+---
 
 
 ## Using the interface @anchor serial_using_the_interface
@@ -35,13 +52,13 @@ To start the serial interface, run the following command in the directory of the
 Where `<COM>` is the COM port of the device you're connecting to. You may specify to multiple COM ports separated
 by a space. Note that COM port names are *case sensitive*.
 
-### Windows
+### Windows @anchor serial_using_the_interface_win
 
 On Windows, the COM port is on the form `COM12`. To identify the correct COM port, open up the "Device Manager"
 (`Run -> devmgmt.msc`) and connect the device. Your device should appear under "Ports (COM & LPT)".
 
 
-### Ubuntu/Linux
+### Ubuntu/Linux @anchor serial_using_the_interface_ubuntu
 On Ubuntu/Linux and similar systems, the COM port is usually on the form `/dev/tty*`, e.g., `/dev/ttyACM0`.
 To identify the correct COM port, you can use `dmesg`. Connect the device and run:
 
@@ -62,9 +79,9 @@ you could also use this command:
 
     $ dmesg | grep -C 3 SEGGER
 
-> This command requires 'sudo' when accessing /dev/tty* devices.
+@note This command requires 'sudo' when accessing /dev/tty* devices.
 
-### Other options
+### Other options @anchor serial_using_the_interface_other
 
 Calling the script with the `-h` option will give you information about the other options.
 
@@ -88,7 +105,10 @@ Calling the script with the `-h` option will give you information about the othe
                             3=Info, 4=Debug
 
 
-## About the interface
+---
+
+
+## About the interface @anchor serial_about_interface
 
 The interface consists of the following files:
 
@@ -126,18 +146,20 @@ The interface consists of the following files:
     ├── README.md                         # The README you're reading now
     └── requirements.tx                   # Python pip requirements file
 
-> **Important:** `aci/aci_cmd.py` and `aci/aci_evt.py` are auto-generated from the C header files of the serial
-> interface with the `tools/serial_doc` scripts. To re-generate the files, build the `serial_pyaci` target
-> (requires a CMake based setup).
+
+@note
+`aci/aci_cmd.py` and `aci/aci_evt.py` are auto-generated from the C header files of the serial
+interface with the `tools/serial_doc` scripts. To re-generate the files, build the `serial_pyaci` target
+(requires a CMake based setup).
 
 
-### Commands and Events
+### Commands and events @anchor serial_about_interface_commands
 
 Commands available in the interface can be found in `aci/aci_cmd.py`. They are imported through the
 `cmd` namespace, e.g., `cmd.Echo`. Similarly, available events are found in `aci/aci_evt.py` and
 available in the `evt` namespace, e.g., `evt.MeshMessageReceivedSubscription`.
 
-### Getting help
+### Getting help @anchor serial_about_interface_help
 
 To read the documentation for one of the commands, events, functions or anything else,
 enter a `?` before or after the object and press `<enter>`. E.g., for the
@@ -170,7 +192,11 @@ will complete the command packet object.
 
 For more details about the commands, see the [serial commands documentation](@ref md_doc_libraries_serial_cmd).
 
-## Miscellaneous
+
+---
+
+
+## Miscellaneous @anchor serial_miscellaneous
 
 As with the normal Python shell, you can do more complex scripting, e.g.:
 

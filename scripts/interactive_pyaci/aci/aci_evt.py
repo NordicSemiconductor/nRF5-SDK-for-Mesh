@@ -412,7 +412,7 @@ class ProvInviteReceived(EventPacket):
         context_id : uint8_t
             Context ID of the started provisioning link.
         attention_duration_s: uint8_t
-            How long the primary element of the device identifies itself using the Attention Timer in seconds.
+            Time in seconds during which the device will identify itself using any means it can.
     """
     def __init__(self, raw_data):
         __data = {}

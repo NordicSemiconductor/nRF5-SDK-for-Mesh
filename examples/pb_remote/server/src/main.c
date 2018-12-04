@@ -57,10 +57,11 @@
 
 #include "mesh_app_utils.h"
 #include "mesh_stack.h"
-#include "mesh_softdevice_init.h"
 #include "mesh_provisionee.h"
 #include "nrf_mesh_config_examples.h"
 #include "nrf_mesh_configure.h"
+#include "example_common.h"
+#include "ble_softdevice_support.h"
 
 #include "app_timer.h"
 
@@ -71,10 +72,6 @@
 
 #define REMOTE_SERVER_ELEMENT_INDEX (0)
 #define PROVISIONER_ADDRESS         (0x0001)
-
-#define LED_BLINK_INTERVAL_MS       (200)
-#define LED_BLINK_CNT_START         (2)
-#define LED_BLINK_CNT_PROV          (4)
 
 typedef enum
 {
@@ -96,9 +93,23 @@ static void models_init_cb(void)
     ERROR_CHECK(pb_remote_server_init(&m_remote_server, REMOTE_SERVER_ELEMENT_INDEX));
 }
 
+static void device_identification_start_cb(uint8_t attention_duration_s)
+{
+    hal_led_mask_set(LEDS_MASK, false);
+    hal_led_blink_ms(BSP_LED_2_MASK  | BSP_LED_3_MASK,
+                     LED_BLINK_ATTENTION_INTERVAL_MS,
+                     LED_BLINK_ATTENTION_COUNT(attention_duration_s));
+}
+
+static void provisioning_aborted_cb(void)
+{
+    hal_led_blink_stop();
+}
+
 static void provisioning_complete_cb(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
+    hal_led_blink_stop();
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
     /* TODO: This should be handled by the configuration server model. */
@@ -137,15 +148,13 @@ static void initialize(void)
     ERROR_CHECK(app_timer_init());
     hal_leds_init();
 
-    nrf_clock_lf_cfg_t lfc_cfg = DEV_BOARD_LF_CLK_CFG;
-    ERROR_CHECK(mesh_softdevice_init(lfc_cfg));
+    ble_stack_init();
+
     mesh_init();
 }
 
 static void start(void)
 {
-    ERROR_CHECK(mesh_stack_start());
-
     if (!m_device_provisioned)
     {
         static const uint8_t static_auth_data[NRF_MESH_KEY_SIZE] = STATIC_AUTH_DATA;
@@ -153,13 +162,19 @@ static void start(void)
         {
             .p_static_data    = static_auth_data,
             .prov_complete_cb = provisioning_complete_cb,
+            .prov_device_identification_start_cb = device_identification_start_cb,
+            .prov_device_identification_stop_cb = NULL,
+            .prov_abort_cb = provisioning_aborted_cb,
             .p_device_uri = NULL
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }
 
     const uint8_t *p_uuid = nrf_mesh_configure_device_uuid_get();
+    UNUSED_VARIABLE(p_uuid);
     __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "Device UUID ", p_uuid, NRF_MESH_UUID_SIZE);
+
+    ERROR_CHECK(mesh_stack_start());
 
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
@@ -168,7 +183,7 @@ static void start(void)
 int main(void)
 {
     initialize();
-    execution_start(start);
+    start();
 
     for (;;)
     {

@@ -1,4 +1,4 @@
-# Serial interface
+# Serial interface library
 
 The serial interface to the mesh stack provides a way for external devices to
 interact with a device running the mesh stack via a serial port. The interface
@@ -13,7 +13,7 @@ ready to receive commands from the host.
 
 The serial frame format is 8n1, 115200 baud with hardware flow control enabled.
 
-## Serial Packet Format
+## Serial Packet Format @anchor serial_interface_packet_format
 
 All serial packets, commands, responses, and events are encapsulated in serial
 packets following the format detailed in the table below. All multi-byte values
@@ -27,7 +27,7 @@ Length        |          1   | Length of the serial command, response, or event.
 Opcode        |          1   | Opcode of the serial command, response, or event.
 Payload       |          0-n | Parameters or data of the command.
 
-## Details
+## Details @anchor serial_interface_details
 
 A detailed overview over all serial commands and events can be found in
 @subpage md_doc_libraries_serial_cmd and @subpage md_doc_libraries_serial_evt.
@@ -35,7 +35,7 @@ A detailed overview over all serial commands and events can be found in
 The Mesh serial interface uses a set of status codes to communicate the result of a command. A list of potential status codes can
 be found here: @subpage md_doc_libraries_serial_status.
 
-## Evaluation
+## Evaluation @anchor serial_interface_evaluation
 
 There is an interactive Python script for communicating with a device running the serial interface.
-Read the @subpage md_scripts_interactive_pyaci_README README to get started.
+Read the @ref md_scripts_interactive_pyaci_README to get started.

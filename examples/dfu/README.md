@@ -1,5 +1,7 @@
 # DFU example
 
+@note This example is not supported by the nRF52810 Series.
+
 This Device Firmware Update (DFU) example illustrates how to create an application that can be updated
 over the mesh. It shows the general setup and how to handle the relevant events.
 

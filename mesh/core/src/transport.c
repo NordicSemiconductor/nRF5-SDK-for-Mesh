@@ -38,7 +38,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
-#include <stdlib.h>
 
 #include <nrf_error.h>
 
@@ -59,6 +58,12 @@
 #include "nrf_mesh_utils.h"
 #include "nrf_mesh_externs.h"
 #include "packet_mesh.h"
+#include "mesh_mem.h"
+
+#if MESH_FEATURE_LPN_ENABLED
+#include "mesh_lpn.h"
+#include "mesh_lpn_internal.h"
+#endif
 
 /*********************
  * Local definitions *
@@ -82,6 +87,7 @@ NRF_MESH_STATIC_ASSERT(NRF_MESH_SEG_PAYLOAD_SIZE_MAX == TRANSPORT_SAR_SEGMENT_CO
                        PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE);
 /* Checks whether the maximum unsegmented access payload is according to 3.7.3 Access payload */
 NRF_MESH_STATIC_ASSERT(NRF_MESH_UNSEG_PAYLOAD_SIZE_MAX == PACKET_MESH_TRS_UNSEG_ACCESS_PDU_MAX_SIZE - PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE);
+NRF_MESH_STATIC_ASSERT(TRANSPORT_SAR_SESSIONS_MAX > 1);
 
 /*********************
  * Local types *
@@ -132,6 +138,7 @@ typedef struct
     network_packet_metadata_t net;
     const nrf_mesh_application_secmat_t * p_security_material;
     nrf_mesh_tx_token_t token;
+    core_tx_bearer_type_t tx_bearer_selector; /**< The bearer on which the outgoing packets are to be sent on. */
 } transport_packet_metadata_t;
 
 /**
@@ -151,6 +158,16 @@ typedef enum
     SAR_ACK_STATE_TIMER_ACTIVE, /**< Timer is waiting to fire */
     SAR_ACK_STATE_PENDING /**< An ack packet should be sent at the first opportunity. */
 } sar_ack_state_t;
+
+#if MESH_FEATURE_LPN_ENABLED
+typedef enum
+{
+    SAR_TIMEOUT_STATE_IDLE,
+    SAR_TIMEOUT_STATE_ACTIVE,
+    SAR_TIMEOUT_STATE_WAIT_POLL_COMPLETE
+} sar_timeout_state_t;
+#endif
+
 /**
  * Transport SAR PDU structure.
  *
@@ -161,6 +178,9 @@ typedef struct
     transport_packet_metadata_t metadata;
     /** Timer used to resend or abort the SAR session. */
     timer_event_t timer_event;
+#if MESH_FEATURE_LPN_ENABLED
+    sar_timeout_state_t timeout_state;
+#endif
     /** Transport SAR session header. */
     struct
     {
@@ -214,10 +234,9 @@ typedef struct
 
 static transport_config_t m_trs_config;
 static trs_sar_ctx_t m_trs_sar_sessions[TRANSPORT_SAR_SESSIONS_MAX];
-
-static transport_sar_alloc_t    m_sar_alloc;   /**< Allocation function for SAR packets. */
-static transport_sar_release_t  m_sar_release; /**< Release function for SAR packets. */
-
+#if MESH_FEATURE_LPN_ENABLED
+static uint8_t m_trs_sar_lpn_buffer[NRF_MESH_UPPER_TRANSPORT_PDU_SIZE_MAX];
+#endif
 static uint32_t m_sar_session_cache_head;
 static completed_sar_session_t m_sar_session_cache[TRANSPORT_SAR_RX_CACHE_LEN];
 
@@ -233,6 +252,13 @@ static uint32_t m_control_packet_consumer_count;
 static void ack_timeout(timestamp_t timestamp, void * p_context);
 static void retry_timeout(timestamp_t timestamp, void * p_context);
 static void abort_timeout(timestamp_t timestamp, void * p_context);
+
+#if MESH_FEATURE_LPN_ENABLED
+static bool sar_payload_is_heap_allocated(trs_sar_ctx_t * p_sar_ctx)
+{
+    return ((intptr_t) p_sar_ctx->payload != (intptr_t) &m_trs_sar_lpn_buffer[0]);
+}
+#endif
 
 static inline uint32_t block_ack_full(transport_packet_metadata_t * p_metadata)
 {
@@ -342,26 +368,53 @@ static void sar_rx_session_mark_as_handled(const transport_packet_metadata_t * p
 /**
  * Allocate the given SAR context with the given parameters.
  *
- * @param[in,out] p_sar_ctx SAR context
  * @param[in] p_metadata Metadata to use in the context.
  * @param[in] session_type Type of session.
  * @param[in] length Length of SAR data, including MIC.
  *
- * @returns Whether the allocation was successful.
+ * @returns pointer to allocated context if successful. NULL otherwise.
  */
-static bool sar_ctx_alloc(trs_sar_ctx_t * p_sar_ctx,
-                          const transport_packet_metadata_t * p_metadata,
-                          trs_sar_session_t session_type,
-                          uint32_t length)
+static trs_sar_ctx_t * sar_ctx_alloc(const transport_packet_metadata_t * p_metadata,
+                                     trs_sar_session_t session_type,
+                                     uint32_t length)
 {
-    NRF_MESH_ASSERT(session_type == TRS_SAR_SESSION_RX ||
-                    session_type == TRS_SAR_SESSION_TX);
-    NRF_MESH_ASSERT(p_sar_ctx->payload == NULL);
-    p_sar_ctx->payload = m_sar_alloc(length);
-    if (p_sar_ctx->payload == NULL)
+    NRF_MESH_ASSERT_DEBUG(session_type == TRS_SAR_SESSION_RX ||
+                          session_type == TRS_SAR_SESSION_TX);
+    NRF_MESH_ASSERT_DEBUG(length <= NRF_MESH_UPPER_TRANSPORT_PDU_SIZE_MAX);
+
+    trs_sar_ctx_t * p_sar_ctx = NULL;
+    uint32_t i = 0;
+#if MESH_FEATURE_LPN_ENABLED
+    /* Reserve one session for RX if LPN is enabled. */
+    if (session_type == TRS_SAR_SESSION_TX)
     {
-        return false;
+        i = 1;
     }
+#endif
+    for (; i < TRANSPORT_SAR_SESSIONS_MAX; ++i)
+    {
+        if (m_trs_sar_sessions[i].session.session_type == TRS_SAR_SESSION_INACTIVE)
+        {
+            p_sar_ctx = &m_trs_sar_sessions[i];
+#if MESH_FEATURE_LPN_ENABLED
+            if (i == 0)
+            {
+                p_sar_ctx->payload = m_trs_sar_lpn_buffer;
+            }
+            else
+#endif
+            {
+                p_sar_ctx->payload = mesh_mem_alloc(length);
+            }
+            break;
+        }
+    }
+
+    if (p_sar_ctx == NULL || p_sar_ctx->payload == NULL)
+    {
+        return NULL;
+    }
+
     memcpy(&p_sar_ctx->metadata, p_metadata, sizeof(transport_packet_metadata_t));
     p_sar_ctx->session.block_ack = 0;
     p_sar_ctx->session.length = length;
@@ -397,17 +450,31 @@ static bool sar_ctx_alloc(trs_sar_ctx_t * p_sar_ctx,
     /* The IV index should stay the same for the duration of the session. */
     net_state_iv_index_lock(true);
     p_sar_ctx->session.session_type = session_type;
-    return true;
+    return p_sar_ctx;
 }
 
 static void sar_ctx_free(trs_sar_ctx_t * p_sar_ctx)
 {
-    m_sar_release(p_sar_ctx->payload);
-    timer_sch_abort(&p_sar_ctx->timer_event);
-    if (p_sar_ctx->session.session_type == TRS_SAR_SESSION_RX)
+#if MESH_FEATURE_LPN_ENABLED
+    if (sar_payload_is_heap_allocated(p_sar_ctx))
+#endif
+    {
+        mesh_mem_free(p_sar_ctx->payload);
+    }
+
+    /* Abort any ongoing timers. Timers may or may not be running depending on whether we're
+     * entering, exiting or in a friendship. */
+    if (timer_sch_is_scheduled(&p_sar_ctx->timer_event))
+    {
+        timer_sch_abort(&p_sar_ctx->timer_event);
+    }
+
+    if (p_sar_ctx->session.session_type == TRS_SAR_SESSION_RX &&
+        timer_sch_is_scheduled(&p_sar_ctx->session.params.rx.ack_timer))
     {
         timer_sch_abort(&p_sar_ctx->session.params.rx.ack_timer);
     }
+
     memset(p_sar_ctx, 0, sizeof(trs_sar_ctx_t));
     p_sar_ctx->session.session_type = TRS_SAR_SESSION_INACTIVE;
 
@@ -464,17 +531,18 @@ static void tx_retry_timer_reset(trs_sar_ctx_t * p_sar_ctx)
 {
     NRF_MESH_ASSERT(p_sar_ctx->session.session_type == TRS_SAR_SESSION_TX);
 
-    if (p_sar_ctx->metadata.net.dst.type == NRF_MESH_ADDRESS_TYPE_UNICAST)
-    {
-        p_sar_ctx->timer_event.interval = tx_retry_timer_delay_get(p_sar_ctx->metadata.net.ttl);
-    }
-    else
-    {
-        /* For non-unicast addresses, we're not going to get any acknowledgements, so there's no
-         * point in scaling the retry interval according to TTL. */
-        p_sar_ctx->timer_event.interval = tx_retry_timer_delay_get(0);
-    }
-    timer_sch_reschedule(&p_sar_ctx->timer_event, timer_now() + p_sar_ctx->timer_event.interval);
+    uint32_t next_timeout = timer_now();
+
+    /* For non-unicast addresses, we're not going to get any acknowledgements, so there's no
+     * point in scaling the retry interval according to TTL. */
+    next_timeout += ((p_sar_ctx->metadata.net.dst.type == NRF_MESH_ADDRESS_TYPE_UNICAST) ?
+                     tx_retry_timer_delay_get(p_sar_ctx->metadata.net.ttl) :
+                     tx_retry_timer_delay_get(0));
+
+#if MESH_FEATURE_LPN_ENABLED
+    p_sar_ctx->timeout_state = SAR_TIMEOUT_STATE_ACTIVE;
+#endif
+    timer_sch_reschedule(&p_sar_ctx->timer_event, next_timeout);
 }
 
 static void trs_packet_header_build(const transport_packet_metadata_t * p_metadata, packet_mesh_trs_packet_t * p_packet)
@@ -511,6 +579,7 @@ static uint32_t upper_trs_packet_alloc(transport_packet_metadata_t * p_metadata,
     p_net_buf->user_data.payload_len = header_len + transport_data_len;
     p_net_buf->user_data.p_metadata = &p_metadata->net;
     p_net_buf->user_data.token = p_metadata->token;
+    p_net_buf->user_data.bearer_selector = p_metadata->tx_bearer_selector;
     uint32_t status = network_packet_alloc(p_net_buf);
     if (status == NRF_SUCCESS)
     {
@@ -552,6 +621,7 @@ static uint32_t sar_ack_send(const transport_packet_metadata_t * p_metadata, uin
         control_packet.p_net_secmat       = p_metadata->net.p_security_material;
         control_packet.reliable           = false;
         control_packet.src                = p_metadata->net.dst.value;
+        control_packet.bearer_selector    = p_metadata->tx_bearer_selector;
         if (p_metadata->net.ttl == 0)
         {
             /* Respond with TTL=0 to TTL=0 messages. (Mesh Profile Specification v1.0, section 3.5.2.3) */
@@ -572,9 +642,39 @@ static uint32_t sar_ack_send(const transport_packet_metadata_t * p_metadata, uin
     return status;
 }
 
+static void sar_tx_session_end(trs_sar_ctx_t * p_sar_ctx)
+{
+    /* We're out of retries. Should give up. */
+    if (p_sar_ctx->metadata.net.dst.type == NRF_MESH_ADDRESS_TYPE_UNICAST)
+    {
+        sar_ctx_cancel(p_sar_ctx, NRF_MESH_SAR_CANCEL_REASON_RETRY_OVER);
+    }
+    else
+    {
+        /* For non-unicast addresses, timing out is considered a successful way to end, as there
+         * are no acknowledgments. */
+        sar_ctx_tx_complete(p_sar_ctx);
+    }
+}
+
+static void sar_tx_session_continue(trs_sar_ctx_t * p_sar_ctx)
+{
+    if (p_sar_ctx->session.params.tx.retries > 0)
+    {
+        p_sar_ctx->session.params.tx.retries--;
+        p_sar_ctx->session.params.tx.start_index = 0;
+        /* Set bearer flag to trigger sending of remaining segments. */
+        bearer_event_flag_set(m_sar_process_flag);
+    }
+    else
+    {
+        sar_tx_session_end(p_sar_ctx);
+    }
+}
+
 static trs_sar_ctx_t * sar_active_tx_ctx_get(transport_packet_metadata_t * p_metadata, uint16_t seq_zero)
 {
-    for (int i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; i++)
+    for (uint32_t i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; i++)
     {
         if (m_trs_sar_sessions[i].session.session_type == TRS_SAR_SESSION_TX &&
             m_trs_sar_sessions[i].metadata.net.src == p_metadata->net.dst.value &&
@@ -589,7 +689,7 @@ static trs_sar_ctx_t * sar_active_tx_ctx_get(transport_packet_metadata_t * p_met
 
 static trs_sar_ctx_t * sar_active_rx_ctx_get(transport_packet_metadata_t * p_metadata)
 {
-    for (int i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; i++)
+    for (uint32_t i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; i++)
     {
         if (m_trs_sar_sessions[i].session.session_type == TRS_SAR_SESSION_RX &&
             m_trs_sar_sessions[i].metadata.net.src == p_metadata->net.src)
@@ -597,50 +697,84 @@ static trs_sar_ctx_t * sar_active_rx_ctx_get(transport_packet_metadata_t * p_met
             return &m_trs_sar_sessions[i];
         }
     }
-
     return NULL;
 }
 
-static trs_sar_ctx_t * sar_rx_ctx_create(transport_packet_metadata_t * p_metadata)
+
+#if MESH_FEATURE_LPN_ENABLED
+static void sar_rx_ctx_cancel_all(nrf_mesh_sar_session_cancel_reason_t reason)
 {
-    uint32_t total_length = (p_metadata->segmentation.last_segment + 1) *
-                            TRANSPORT_SAR_PDU_LEN(p_metadata->net.control_packet);
-
-    if (total_length > TRANSPORT_SAR_PACKET_MAX_SIZE(p_metadata->net.control_packet))
+    for (uint32_t i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; i++)
     {
-        __LOG(LOG_SRC_TRANSPORT, LOG_LEVEL_ERROR, "Invalid length: %u\n", total_length);
-        return NULL;
-    }
-
-
-    /* Check if the packet is part of an ongoing transaction. */
-    for (int i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; ++i)
-    {
-        if (m_trs_sar_sessions[i].session.session_type == TRS_SAR_SESSION_INACTIVE)
+        if (m_trs_sar_sessions[i].session.session_type == TRS_SAR_SESSION_RX)
         {
-            if (!sar_ctx_alloc(&m_trs_sar_sessions[i], p_metadata, TRS_SAR_SESSION_RX, total_length))
-            {
-                break;
-            }
-
-            return &m_trs_sar_sessions[i];
+            sar_ctx_cancel(&m_trs_sar_sessions[i], reason);
         }
     }
-
-    return NULL;
 }
+
+static void sar_tx_pending_retries_send(void)
+{
+    for (uint32_t i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; i++)
+    {
+        if (m_trs_sar_sessions[i].session.session_type == TRS_SAR_SESSION_TX &&
+            m_trs_sar_sessions[i].timeout_state == SAR_TIMEOUT_STATE_WAIT_POLL_COMPLETE)
+        {
+            sar_tx_session_continue(&m_trs_sar_sessions[i]);
+        }
+    }
+}
+
+static void mesh_evt_handler(const nrf_mesh_evt_t * p_evt)
+{
+    switch (p_evt->type)
+    {
+        case NRF_MESH_EVT_LPN_FRIEND_POLL_COMPLETE:
+            sar_rx_ctx_cancel_all(NRF_MESH_SAR_CANCEL_REASON_LPN_RX_NOT_COMPLETE);
+            sar_tx_pending_retries_send();
+            break;
+
+        case NRF_MESH_EVT_FRIENDSHIP_TERMINATED:
+            sar_rx_ctx_cancel_all(NRF_MESH_SAR_CANCEL_REASON_FRIENDSHIP_TERMINATED);
+            /* TODO: If the DST is unicast and we're not scanning ~100%, we might want to cancel any
+             * ongoing TX sessions (MBTLE-2825).  */
+            sar_tx_pending_retries_send();
+            break;
+
+        case NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED:
+            sar_rx_ctx_cancel_all(NRF_MESH_SAR_CANCEL_REASON_FRIENDSHIP_ESTABLISHED);
+            break;
+
+        default:
+            break;
+    }
+}
+#endif  /* MESH_FEATURE_LPN_ENABLED */
 
 static void trs_sar_seg_packet_in(const uint8_t * p_segment_payload,
                                   uint32_t segment_len,
                                   transport_packet_metadata_t * p_metadata,
                                   const nrf_mesh_rx_metadata_t * p_rx_metadata)
 {
+#if MESH_FEATURE_LPN_ENABLED
+    bool is_in_friendship = mesh_lpn_is_in_friendship();
+#endif
+
     /* Find ongoing session by src. */
     trs_sar_ctx_t * p_sar_ctx = sar_active_rx_ctx_get(p_metadata);
     if (NULL != p_sar_ctx)
     {
         if (p_metadata->segmentation.seq_zero < p_sar_ctx->metadata.segmentation.seq_zero)
         {
+#if MESH_FEATURE_LPN_ENABLED
+            if (is_in_friendship)
+            {
+                /* The Friend node should only send us segments for complete transactions. However, if
+                 * the Friend misbehaves, all we can do is ignore the segment. */
+                __LOG(LOG_SRC_TRANSPORT, LOG_LEVEL_WARN,
+                      "Invalid segment from Friend (seqzero: %d)\n", p_metadata->segmentation.seq_zero);
+            }
+#endif
             return;
         }
 
@@ -650,40 +784,85 @@ static void trs_sar_seg_packet_in(const uint8_t * p_segment_payload,
             p_sar_ctx = NULL;
         }
     }
-
-    /* Look for session in the cache */
-    completed_sar_session_t * p_completed_session = sar_rx_session_previously_handled(p_metadata);
-    if (NULL != p_completed_session)
+#if MESH_FEATURE_LPN_ENABLED
+    else if (is_in_friendship)
     {
-        if (p_completed_session->successful)
+        /* The Friend node should prevent the scenario where we're starting a new session whilst
+         * still receiving another one, but we'll cancel anything ongoing to be sure. */
+        sar_rx_ctx_cancel_all(NRF_MESH_SAR_CANCEL_PEER_STARTED_ANOTHER_SESSION);
+    }
+    else
+#endif
+    {
+        /* If we're not in a friendship, but we're receiving PDUs, we should behave as normal. In a
+         * friendship, the Friend node should do all our acknowledgments for us. */
+
+        /* Look for session in the cache */
+        completed_sar_session_t * p_completed_session = sar_rx_session_previously_handled(p_metadata);
+        if (NULL != p_completed_session)
         {
-            /* Already successfully processed this session. */
-            (void) sar_ack_send(p_metadata, block_ack_full(p_metadata));
+            if (p_completed_session->successful)
+            {
+                /* Already successfully processed this session. */
+                (void) sar_ack_send(p_metadata, block_ack_full(p_metadata));
+            }
+            return;
         }
-        return;
     }
 
     /* Create session */
     if (NULL == p_sar_ctx)
     {
-        p_sar_ctx = sar_rx_ctx_create(p_metadata);
+        uint32_t total_length = ((p_metadata->segmentation.last_segment + 1) *
+                                 TRANSPORT_SAR_PDU_LEN(p_metadata->net.control_packet));
+        if (total_length > TRANSPORT_SAR_PACKET_MAX_SIZE(p_metadata->net.control_packet))
+        {
+            __LOG(LOG_SRC_TRANSPORT, LOG_LEVEL_ERROR, "Invalid length: %u\n", total_length);
+            return;
+        }
+
+        p_sar_ctx = sar_ctx_alloc(p_metadata, TRS_SAR_SESSION_RX, total_length);
+
         if (p_sar_ctx == NULL)
         {
-            /* Send block ack=0 to indicate failure to receive. Transport is out of resources. */
-            (void) sar_ack_send(p_metadata, 0);
-            m_send_sar_cancel_event(NRF_MESH_INITIAL_TOKEN, NRF_MESH_SAR_CANCEL_REASON_NO_MEM);
+#if MESH_FEATURE_LPN_ENABLED
+            if (is_in_friendship)
+            {
+                /* We must assure that we always have room to receive a SAR message when in a
+                 * friendship. */
+                NRF_MESH_ASSERT_DEBUG(false);
+            }
+            else
+#endif
+            {
+                /* Send block ack=0 to indicate failure to receive. Transport is out of resources. */
+                (void) sar_ack_send(p_metadata, 0);
+                m_send_sar_cancel_event(NRF_MESH_INITIAL_TOKEN, NRF_MESH_SAR_CANCEL_REASON_NO_MEM);
+            }
+
             return;
         }
     }
 
     __LOG(LOG_SRC_TRANSPORT, LOG_LEVEL_INFO, "Got segment %u\n", p_metadata->segmentation.segment_offset);
 
-    /* Reset timers, even if we already received this segment. */
-    rx_incomplete_timer_reset(p_sar_ctx);
-
-    /* Only ACK if sent to unicast address. */
+#if MESH_FEATURE_LPN_ENABLED
+    /* In a friendship, the Friend shall put segments in its Friend Queue when the message has been
+     * fully received/assembled (ref. Mesh Profile v1.0, sec. 3.5.5). If we still have an active RX
+     * context on NRF_MESH_EVT_LPN_FRIEND_POLL_COMPLETE, we regard the session as failed. Thus no
+     * need to start the incomplete timer. */
+    if (!is_in_friendship)
+#endif
+    {
+        /* Reset timers, even if we already received this segment. */
+        rx_incomplete_timer_reset(p_sar_ctx);
+    }
     if (p_sar_ctx->metadata.net.dst.type == NRF_MESH_ADDRESS_TYPE_UNICAST &&
-        p_sar_ctx->session.params.rx.ack_state == SAR_ACK_STATE_IDLE) /* The ack timer should not be reset once it's running */
+        p_sar_ctx->session.params.rx.ack_state == SAR_ACK_STATE_IDLE
+#if MESH_FEATURE_LPN_ENABLED
+        && !is_in_friendship
+#endif
+        )
     {
         ack_timer_reset(p_sar_ctx);
     }
@@ -717,15 +896,21 @@ static void trs_sar_seg_packet_in(const uint8_t * p_segment_payload,
 
     if (p_sar_ctx->session.block_ack == block_ack_full(&p_sar_ctx->metadata))
     {
-        /* Release and ack regardless of whether upper layer succeeds */
-        p_sar_ctx->session.params.rx.ack_state = SAR_ACK_STATE_PENDING;
-        uint32_t ack_status = sar_ack_send(&p_sar_ctx->metadata, p_sar_ctx->session.block_ack);
+        uint32_t ack_status = NRF_SUCCESS;
+#if MESH_FEATURE_LPN_ENABLED
+        if (!is_in_friendship)
+#endif
+        {
+            /* Release and ack regardless of whether upper layer succeeds */
+            p_sar_ctx->session.params.rx.ack_state = SAR_ACK_STATE_PENDING;
+            ack_status = sar_ack_send(&p_sar_ctx->metadata, p_sar_ctx->session.block_ack);
+        }
 
         /* All packets have arrived */
         upper_transport_packet_in(p_sar_ctx->payload,
-                                p_sar_ctx->session.length,
-                                &p_sar_ctx->metadata,
-                                p_rx_metadata);
+                                  p_sar_ctx->session.length,
+                                  &p_sar_ctx->metadata,
+                                  p_rx_metadata);
 
         if (ack_status == NRF_SUCCESS)
         {
@@ -832,6 +1017,7 @@ static uint32_t transport_metadata_from_tx_params(transport_packet_metadata_t * 
     p_metadata->net.src = p_tx_params->src;
     p_metadata->net.ttl = p_tx_params->ttl;
     p_metadata->token = p_tx_params->tx_token;
+    p_metadata->tx_bearer_selector = CORE_TX_BEARER_TYPE_ALLOW_ALL;
 
     return NRF_SUCCESS;
 }
@@ -861,6 +1047,7 @@ static void transport_metadata_from_control_tx_params(
     p_metadata->net.src                 = p_tx_params->src;
     p_metadata->net.p_security_material = p_tx_params->p_net_secmat;
     p_metadata->net.ttl                 = p_tx_params->ttl;
+    p_metadata->tx_bearer_selector      = p_tx_params->bearer_selector;
 
     p_metadata->token = tx_token;
 }
@@ -898,7 +1085,7 @@ static uint32_t unsegmented_packet_tx(transport_packet_metadata_t * p_metadata,
     return status;
 }
 
-static bool sar_segment_send(trs_sar_ctx_t * p_sar_ctx, uint32_t segment_index)
+static uint32_t sar_segment_send(trs_sar_ctx_t * p_sar_ctx, uint32_t segment_index)
 {
     uint32_t segment_len = TRANSPORT_SAR_PDU_LEN(p_sar_ctx->metadata.net.control_packet);
     uint32_t payload_offset = segment_len * segment_index;
@@ -942,19 +1129,29 @@ static bool sar_segment_send(trs_sar_ctx_t * p_sar_ctx, uint32_t segment_index)
         network_packet_send(&net_buf);
     }
 
-    return (status == NRF_SUCCESS);
+    return status;
 }
 
 /**
  * Send SAR segments.
  *
- * @param[in,out] p_sar_ctx SAR context to send segments of.
+ * @param[in,out] p_sar_ctx       SAR context to send segments of.
+ * @param[out]    p_segment_count Number of segments successfully sent. Ignored if NULL.
  *
- * @returns Number of segments sent.
+ * @retval NRF_SUCCESS Successfully sent all (remaining) segments.
+ * @retval NRF_ERROR_NO_MEM No memory to sent all segments.
+ * @return Other returns from lower layers. E.g., the network layer may disallow segment allocation
+ * because there are no sequence number(s) available.
  */
-static uint32_t trs_sar_packet_out(trs_sar_ctx_t * p_sar_ctx)
+static uint32_t trs_sar_packet_out(trs_sar_ctx_t * p_sar_ctx, uint32_t * p_segment_count)
 {
-    uint32_t sent_segments = 0;
+    uint32_t status = NRF_SUCCESS;
+
+    if (p_segment_count != NULL)
+    {
+        *p_segment_count = 0;
+    }
+
     /* Starts at start_index if, e.g., there was no memory available last round. */
     for (uint8_t i = p_sar_ctx->session.params.tx.start_index;
          i <= p_sar_ctx->metadata.segmentation.last_segment;
@@ -963,10 +1160,15 @@ static uint32_t trs_sar_packet_out(trs_sar_ctx_t * p_sar_ctx)
         if ((p_sar_ctx->session.block_ack & (1u << i)) == 0)
         {
             /* packet hasn't been acked yet */
-            if (sar_segment_send(p_sar_ctx, i))
+            status = sar_segment_send(p_sar_ctx, i);
+            if (status == NRF_SUCCESS)
             {
-                sent_segments++;
-                /* Set the start index to the next packet, so we know where to pick up in case of failure: */
+                if (p_segment_count != NULL)
+                {
+                    *p_segment_count = *p_segment_count + 1 ;
+                }
+                /* Set the start index to the next packet, so we know where to pick up in case
+                 * of failure: */
                 p_sar_ctx->session.params.tx.start_index = i + 1;
             }
             else
@@ -975,7 +1177,8 @@ static uint32_t trs_sar_packet_out(trs_sar_ctx_t * p_sar_ctx)
             }
         }
     }
-    return sent_segments;
+
+    return status;
 }
 
 static uint32_t segmented_packet_tx(const transport_packet_metadata_t * p_metadata,
@@ -987,41 +1190,52 @@ static uint32_t segmented_packet_tx(const transport_packet_metadata_t * p_metada
     {
         return NRF_ERROR_INVALID_LENGTH;
     }
-    trs_sar_ctx_t * p_sar_ctx = NULL;
-    uint32_t was_masked;
-    _DISABLE_IRQS(was_masked); //TODO: Can this be changed to bearer_event_critical_section, or removed all-together?
-    for (int i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; ++i)
+
+    /* According to the Mesh Profile Specification v1.0 Section 3.6.4.1, we should only ever send one
+     * transport SAR packet at the same time between a given source and destination. Return FORBIDDEN if
+     * there's a SAR session in progress with the same parameters. */
+    for (uint32_t i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; ++i)
     {
-        if (m_trs_sar_sessions[i].session.session_type == TRS_SAR_SESSION_INACTIVE)
+        if (m_trs_sar_sessions[i].session.session_type == TRS_SAR_SESSION_TX &&
+            m_trs_sar_sessions[i].metadata.net.src == p_metadata->net.src &&
+            m_trs_sar_sessions[i].metadata.net.dst.value == p_metadata->net.dst.value)
         {
-            p_sar_ctx = &m_trs_sar_sessions[i];
-            break;
+            return NRF_ERROR_INVALID_STATE;
         }
     }
-    _ENABLE_IRQS(was_masked);
 
+    trs_sar_ctx_t * p_sar_ctx = sar_ctx_alloc(p_metadata, TRS_SAR_SESSION_TX, packet_length);
     if (p_sar_ctx == NULL)
     {
         return NRF_ERROR_NO_MEM;
     }
-    if (sar_ctx_alloc(p_sar_ctx, p_metadata, TRS_SAR_SESSION_TX, packet_length))
+
+    memcpy(p_sar_ctx->payload, p_payload, payload_len);
+
+    uint32_t sent_segments = 0;
+    uint32_t status = trs_sar_packet_out(p_sar_ctx, &sent_segments);
+    if (status == NRF_SUCCESS ||
+        status == NRF_ERROR_NO_MEM)
     {
-        memcpy(p_sar_ctx->payload, p_payload, payload_len);
+        /* For NRF_ERROR_NO_MEM we assume there will be more memory available on the next
+         * TX_COMPLETE event. */
+        if (sent_segments > 0)
+        {
+            tx_retry_timer_reset(p_sar_ctx);
+        }
 
         __LOG_XB(LOG_SRC_TRANSPORT,
-                LOG_LEVEL_INFO,
-                "TX:SAR packet",
-                p_sar_ctx->payload,
-                p_sar_ctx->session.length);
-
-        (void) trs_sar_packet_out(p_sar_ctx);/* Ignore return, as we'll reset the retry timer regardless. */
-        tx_retry_timer_reset(p_sar_ctx);
+                 LOG_LEVEL_INFO,
+                 "TX:SAR packet",
+                 p_sar_ctx->payload,
+                 p_sar_ctx->session.length);
 
         return NRF_SUCCESS;
     }
     else
     {
-        return NRF_ERROR_NO_MEM;
+        sar_ctx_free(p_sar_ctx);
+        return status;
     }
 }
 
@@ -1034,9 +1248,29 @@ static void trs_sar_tx_process(void)
     {
         if (m_trs_sar_sessions[i].session.session_type == TRS_SAR_SESSION_TX)
         {
-            if (trs_sar_packet_out(&m_trs_sar_sessions[i]) != 0)
+            uint32_t sent_segments = 0;
+            uint32_t status = trs_sar_packet_out(&m_trs_sar_sessions[i], &sent_segments);
+
+            /* Assume that there will be available memory on the next TX_COMPLETE event. */
+            if (status == NRF_ERROR_NO_MEM || sent_segments != 0)
             {
                 tx_retry_timer_reset(&m_trs_sar_sessions[i]);
+            }
+        }
+    }
+}
+
+static void trs_sar_rx_pending_ack_send(trs_sar_ctx_t * p_sar_ctx)
+{
+    if (p_sar_ctx->session.session_type == TRS_SAR_SESSION_RX &&
+        p_sar_ctx->session.params.rx.ack_state == SAR_ACK_STATE_PENDING)
+    {
+        if (sar_ack_send(&p_sar_ctx->metadata, p_sar_ctx->session.block_ack) == NRF_SUCCESS)
+        {
+            p_sar_ctx->session.params.rx.ack_state = SAR_ACK_STATE_IDLE;
+            if (p_sar_ctx->session.block_ack == block_ack_full(&p_sar_ctx->metadata))
+            {
+                sar_ctx_rx_complete(p_sar_ctx);
             }
         }
     }
@@ -1046,18 +1280,7 @@ static void trs_sar_rx_process(void)
 {
     for (uint32_t i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; ++i)
     {
-        if (m_trs_sar_sessions[i].session.session_type == TRS_SAR_SESSION_RX &&
-            m_trs_sar_sessions[i].session.params.rx.ack_state == SAR_ACK_STATE_PENDING)
-        {
-            if (sar_ack_send(&m_trs_sar_sessions[i].metadata, m_trs_sar_sessions[i].session.block_ack) == NRF_SUCCESS)
-            {
-                m_trs_sar_sessions[i].session.params.rx.ack_state = SAR_ACK_STATE_IDLE;
-                if (m_trs_sar_sessions[i].session.block_ack == block_ack_full(&m_trs_sar_sessions[i].metadata))
-                {
-                    sar_ctx_rx_complete(&m_trs_sar_sessions[i]);
-                }
-            }
-        }
+        trs_sar_rx_pending_ack_send(&m_trs_sar_sessions[i]);
     }
 }
 
@@ -1157,6 +1380,7 @@ static uint32_t upper_trs_packet_decrypt(transport_packet_metadata_t * p_metadat
 
 static void transport_metadata_build(const packet_mesh_trs_packet_t * p_transport_packet,
                                      const network_packet_metadata_t * p_net_metadata,
+                                     const nrf_mesh_rx_metadata_t * p_rx_metadata,
                                      transport_packet_metadata_t * p_trs_metadata)
 {
     memcpy(&p_trs_metadata->net, p_net_metadata, sizeof(network_packet_metadata_t));
@@ -1189,6 +1413,18 @@ static void transport_metadata_build(const packet_mesh_trs_packet_t * p_transpor
     }
     /* Not enough information to populate the secmat yet. */
     p_trs_metadata->p_security_material = NULL;
+
+    /* Map RX source to the TX bearer we should use to send responses */
+    static const core_tx_bearer_type_t rx_source_to_tx_bearer[] = {
+        [NRF_MESH_RX_SOURCE_SCANNER]    = CORE_TX_BEARER_TYPE_ADV,
+        [NRF_MESH_RX_SOURCE_GATT]       = CORE_TX_BEARER_TYPE_GATT_SERVER,
+        [NRF_MESH_RX_SOURCE_FRIEND]     = CORE_TX_BEARER_TYPE_ADV,
+        [NRF_MESH_RX_SOURCE_LOW_POWER]  = CORE_TX_BEARER_TYPE_FRIEND,
+        [NRF_MESH_RX_SOURCE_INSTABURST] = CORE_TX_BEARER_TYPE_ADV,
+        [NRF_MESH_RX_SOURCE_LOOPBACK]   = CORE_TX_BEARER_TYPE_INVALID,
+    };
+    NRF_MESH_ASSERT(p_rx_metadata->source < ARRAY_SIZE(rx_source_to_tx_bearer));
+    p_trs_metadata->tx_bearer_selector = rx_source_to_tx_bearer[p_rx_metadata->source];
 }
 
 static void segack_packet_in(const packet_mesh_trs_control_packet_t * p_trs_control_packet,
@@ -1229,7 +1465,9 @@ static void segack_packet_in(const packet_mesh_trs_control_packet_t * p_trs_cont
              * shall reset the segment transmission timer and retransmit all unacknowledged Lower
              * Transport PDUs." */
              p_sar_ctx->session.params.tx.start_index = 0;
-             (void) trs_sar_packet_out(p_sar_ctx); /* Ignore return, as we'll reset the retry timer regardless. */
+
+             /* We reset the timer regardless here => ignore the return. */
+             (void) trs_sar_packet_out(p_sar_ctx, NULL);
              tx_retry_timer_reset(p_sar_ctx);
         }
     }
@@ -1270,14 +1508,15 @@ static void transport_control_packet_in(const packet_mesh_trs_control_packet_t *
             if (callback != NULL)
             {
                 transport_control_packet_t control_packet;
-                control_packet.opcode       = p_metadata->type.control.opcode;
-                control_packet.p_net_secmat = p_metadata->net.p_security_material;
-                control_packet.src          = p_metadata->net.src;
-                control_packet.dst          = p_metadata->net.dst;
-                control_packet.ttl          = p_metadata->net.ttl;
-                control_packet.p_data       = p_trs_control_packet;
-                control_packet.data_len     = control_packet_len;
-                control_packet.reliable     = p_metadata->segmented;
+                control_packet.opcode          = p_metadata->type.control.opcode;
+                control_packet.p_net_secmat    = p_metadata->net.p_security_material;
+                control_packet.src             = p_metadata->net.src;
+                control_packet.dst             = p_metadata->net.dst;
+                control_packet.ttl             = p_metadata->net.ttl;
+                control_packet.p_data          = p_trs_control_packet;
+                control_packet.data_len        = control_packet_len;
+                control_packet.reliable        = p_metadata->segmented;
+                control_packet.bearer_selector = p_metadata->tx_bearer_selector;
                 callback(&control_packet, p_rx_metadata);
             }
             break;
@@ -1360,25 +1599,17 @@ static void retry_timeout(timestamp_t timestamp, void * p_context)
 {
     trs_sar_ctx_t * p_sar_ctx = p_context;
     NRF_MESH_ASSERT(p_sar_ctx->session.session_type == TRS_SAR_SESSION_TX);
-    if (p_sar_ctx->session.params.tx.retries == 0)
+
+#if MESH_FEATURE_LPN_ENABLED
+    if (mesh_lpn_is_in_friendship())
     {
-        /* We're out of retries. Should give up. */
-        if (p_sar_ctx->metadata.net.dst.type == NRF_MESH_ADDRESS_TYPE_UNICAST)
-        {
-            sar_ctx_cancel(p_sar_ctx, NRF_MESH_SAR_CANCEL_REASON_RETRY_OVER);
-        }
-        else
-        {
-            /* For non-unicast addresses, timing out is considered a successful way to end, as there
-             * are no acknowledgments. */
-            sar_ctx_tx_complete(p_sar_ctx);
-        }
+        mesh_lpn_friend_poll(0);
+        p_sar_ctx->timeout_state = SAR_TIMEOUT_STATE_WAIT_POLL_COMPLETE;
     }
     else
+#endif
     {
-        p_sar_ctx->session.params.tx.retries--;
-        p_sar_ctx->session.params.tx.start_index = 0;
-        (void) trs_sar_packet_out(p_sar_ctx);/* Ignore return, as the timer will be rescheduled regardless. */
+        sar_tx_session_continue(p_sar_ctx);
     }
 }
 
@@ -1416,6 +1647,9 @@ static uint32_t upper_transport_tx(transport_packet_metadata_t * p_metadata, con
 
     if (p_metadata->segmented)
     {
+        /* TODO: If LPN is enabled, but we're not in a friendship, we may prohibit sending segmented
+         * messages to unicast destinations -- as we're not able to receive the ACKs
+         * (MBTLE-2825). */
         return segmented_packet_tx(p_metadata, p_data, data_len);
     }
     else
@@ -1423,13 +1657,12 @@ static uint32_t upper_transport_tx(transport_packet_metadata_t * p_metadata, con
         return unsegmented_packet_tx(p_metadata, p_data, data_len);
     }
 }
+
 /**************
  * Public API *
  **************/
 void transport_init(const nrf_mesh_init_params_t * p_init_params)
 {
-    transport_sar_mem_funcs_reset();
-
     memset(&m_trs_sar_sessions[0], 0, sizeof(m_trs_sar_sessions));
 
     replay_cache_init();
@@ -1450,31 +1683,10 @@ void transport_init(const nrf_mesh_init_params_t * p_init_params)
 
     core_tx_complete_cb_set(tx_complete);
 
-}
-
-uint32_t transport_sar_mem_funcs_set(transport_sar_alloc_t alloc_func, transport_sar_release_t release_func)
-{
-    if ((alloc_func == NULL) != (release_func == NULL)) /*lint !e731 Boolean arguments to equal/not equal operator */
-    {
-        /* Both functions must be NULL or non-NULL, but not a mix of both. */
-        return NRF_ERROR_NULL;
-    }
-    else if (alloc_func == NULL && release_func == NULL)
-    {
-        transport_sar_mem_funcs_reset();
-        return NRF_SUCCESS;
-    }
-    uint32_t was_masked;
-    _DISABLE_IRQS(was_masked);
-    m_sar_alloc = alloc_func;
-    m_sar_release = release_func;
-    _ENABLE_IRQS(was_masked);
-    return NRF_SUCCESS;
-}
-
-void transport_sar_mem_funcs_reset(void)
-{
-    NRF_MESH_ERROR_CHECK(transport_sar_mem_funcs_set(malloc, free));
+#if MESH_FEATURE_LPN_ENABLED
+    static nrf_mesh_evt_handler_t s_mesh_evt_handler = {.evt_cb = mesh_evt_handler};
+    nrf_mesh_evt_handler_add(&s_mesh_evt_handler);
+#endif
 }
 
 uint32_t transport_packet_in(const packet_mesh_trs_packet_t * p_packet,
@@ -1488,6 +1700,14 @@ uint32_t transport_packet_in(const packet_mesh_trs_packet_t * p_packet,
     {
         return NRF_ERROR_NULL;
     }
+
+#if MESH_FEATURE_LPN_ENABLED
+    /* Notify the LPN about a successfully decrypted network PDU. It should be notified before
+     * checking the replay cache as it means that the Friend Poll got a reply and the LPN can cancel
+     * the radio scanning -- given the correct friendship credentials.
+     */
+    mesh_lpn_rx_notify(p_net_metadata);
+#endif
 
     /* nrf_mesh_rx_address_get requires a clean address structure on the first call. */
     nrf_mesh_address_t dst_addr;
@@ -1525,7 +1745,7 @@ uint32_t transport_packet_in(const packet_mesh_trs_packet_t * p_packet,
     }
 
     transport_packet_metadata_t trs_metadata;
-    transport_metadata_build(p_packet, p_net_metadata, &trs_metadata);
+    transport_metadata_build(p_packet, p_net_metadata, p_rx_metadata, &trs_metadata);
     /* Insert the lookup-address in case it's different from the one in p_net_metadata. */
     trs_metadata.net.dst = dst_addr;
 

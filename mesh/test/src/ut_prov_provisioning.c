@@ -132,6 +132,8 @@
 
 #define PROVISIONEE_NUM_ELEMENTS 1
 
+#define TEST_ATTENTION_DURATION_S 60
+
 typedef union
 {
      prov_pdu_invite_t pdu_invite;
@@ -254,6 +256,7 @@ static void provisionee_event_handler(const nrf_mesh_prov_evt_t * p_evt)
                 const nrf_mesh_prov_evt_invite_received_t * p_invite = &p_evt->params.invite_received;
 
                 TEST_ASSERT_TRUE(&m_provisionee_ctx == p_invite->p_context);
+                TEST_ASSERT_EQUAL_UINT8(TEST_ATTENTION_DURATION_S, p_invite->attention_duration_s);
 
                 provisionee_invite_rx_happened = true;
             }
@@ -375,7 +378,7 @@ void test_oob_authentication(void)
     prov_tx_capabilities_StubWithCallback(tx_caps_cb);
     prov_packet_length_valid_IgnoreAndReturn(true);
     m_prov_pdu.pdu_invite.pdu_type =PROV_PDU_TYPE_INVITE;
-    m_prov_pdu.pdu_invite.attention_duration = 0;
+    m_prov_pdu.pdu_invite.attention_duration_s = TEST_ATTENTION_DURATION_S;
     m_provisionee_ctx.capabilities.algorithms = NRF_MESH_PROV_ALGORITHM_FIPS_P256EC;
     m_provisionee_ctx.capabilities.num_elements = 1;
     m_provisionee_ctx.capabilities.pubkey_type = NRF_MESH_PROV_OOB_PUBKEY_TYPE_OOB;
@@ -401,6 +404,7 @@ void test_oob_authentication(void)
     /* 2.1 Initialization */
     TEST_ASSERT_EQUAL_UINT32(NRF_SUCCESS, prov_provisioner_provision(&m_provisioner_ctx,
                                                                      uuid,
+                                                                     0,
                                                                      &prov_data_stub));
     /* 2.2 Start listening */
     prov_tx_invite_IgnoreAndReturn(NRF_SUCCESS);
@@ -467,7 +471,7 @@ void test_disallow_public_key_oob_when_not_supported(void)
     prov_tx_capabilities_StubWithCallback(tx_caps_cb);
     prov_packet_length_valid_IgnoreAndReturn(true);
     m_prov_pdu.pdu_invite.pdu_type = PROV_PDU_TYPE_INVITE;
-    m_prov_pdu.pdu_invite.attention_duration = 0;
+    m_prov_pdu.pdu_invite.attention_duration_s = TEST_ATTENTION_DURATION_S;
 
     m_provisionee_ctx.capabilities.algorithms = NRF_MESH_PROV_ALGORITHM_FIPS_P256EC;
     m_provisionee_ctx.capabilities.num_elements = 1;

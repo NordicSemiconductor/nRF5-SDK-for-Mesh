@@ -40,7 +40,18 @@
 #include "nrf_error.h"
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
+#include "utils.h"
 
+/* See Section 3.8.6.3.1 in Mesh Profile Specification v1.0 */
+typedef struct __attribute((packed))
+{
+    uint8_t p0;
+    uint16_t lpn_address;
+    uint16_t friend_address;
+    uint16_t lpn_counter;
+    uint16_t friend_counter;
+} friendship_p_t;
 
 uint32_t nrf_mesh_keygen_aid(const uint8_t * p_appkey, uint8_t * p_aid)
 {
@@ -62,6 +73,23 @@ uint32_t nrf_mesh_keygen_network_secmat(const uint8_t * p_netkey, nrf_mesh_netwo
     /* See Section 3.8.5.3.1 in Mesh Profile Specification v1.0 */
     const uint8_t p = 0;
     enc_k2(p_netkey, &p, sizeof(p), p_secmat);
+    return NRF_SUCCESS;
+}
+
+uint32_t nrf_mesh_keygen_friendship_secmat(const uint8_t * p_netkey, const nrf_mesh_keygen_friendship_secmat_params_t * p_params, nrf_mesh_network_secmat_t * p_secmat)
+{
+    if (NULL == p_netkey || NULL == p_params  || NULL == p_secmat)
+    {
+        return NRF_ERROR_NULL;
+    }
+
+    friendship_p_t p;
+    p.p0 = 0x01;
+    p.lpn_address = LE2BE16(p_params->lpn_address);
+    p.friend_address = LE2BE16(p_params->friend_address);
+    p.lpn_counter = LE2BE16(p_params->lpn_counter);
+    p.friend_counter = LE2BE16(p_params->friend_counter);
+    enc_k2(p_netkey, (const uint8_t *) &p, sizeof(p), p_secmat);
     return NRF_SUCCESS;
 }
 

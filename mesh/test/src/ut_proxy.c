@@ -224,7 +224,7 @@ void test_adv_net_id(void)
     memcpy(&service_data[1], beacon_info.secmat.net_id, 8);
 
     mesh_adv_data_set_Expect(0x1828, service_data, sizeof(service_data));
-    mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_ADV_INT_MS * 1000) / 625);
+    mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_NETWORK_ID_ADV_INT_MS * 1000) / 625);
     mesh_adv_start_Expect();
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(true));
@@ -259,7 +259,7 @@ void test_adv_node_id(void)
     memcpy(&service_data[9], random_data, 8);
 
     mesh_adv_data_set_Expect(0x1828, service_data, sizeof(service_data));
-    mesh_adv_params_set_Expect(60*1000, (MESH_GATT_PROXY_ADV_INT_MS * 1000) / 625);
+    mesh_adv_params_set_Expect(60*1000, (MESH_GATT_PROXY_NODE_IDENTITY_ADV_INT_MS * 1000) / 625);
     mesh_adv_start_Expect();
 
     nrf_mesh_key_refresh_phase_t kr_phase = NRF_MESH_KEY_REFRESH_PHASE_0;
@@ -575,7 +575,7 @@ void test_disconnect(void)
     memcpy(&service_data[1], beacon_info.secmat.net_id, 8);
 
     mesh_adv_data_set_Expect(0x1828, service_data, sizeof(service_data));
-    mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_ADV_INT_MS * 1000) / 625);
+    mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_NETWORK_ID_ADV_INT_MS * 1000) / 625);
     mesh_adv_start_Expect();
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(true));
@@ -587,7 +587,7 @@ void test_disconnect(void)
     // should resume advertising
     timer_sch_reschedule_ExpectAnyArgs();
     mesh_adv_data_set_Expect(0x1828, service_data, sizeof(service_data));
-    mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_ADV_INT_MS * 1000) / 625);
+    mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_NETWORK_ID_ADV_INT_MS * 1000) / 625);
     mesh_adv_start_Expect();
 
     disconnect(0);
@@ -620,7 +620,7 @@ void test_enable_get_set(void)
     memcpy(&service_data[1], beacon_info.secmat.net_id, 8);
 
     mesh_adv_data_set_Expect(0x1828, service_data, sizeof(service_data));
-    mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_ADV_INT_MS * 1000) / 625);
+    mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_NETWORK_ID_ADV_INT_MS * 1000) / 625);
     mesh_adv_start_Expect();
 
     timer_sch_reschedule_ExpectAnyArgs();

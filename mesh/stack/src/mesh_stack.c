@@ -47,7 +47,7 @@
 #include "mesh_config.h"
 #include "mesh_config_backend_glue.h"
 
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
 #include "proxy.h"
 #endif
 
@@ -110,7 +110,7 @@ uint32_t mesh_stack_init(const mesh_stack_init_params_t * p_init_params,
 
     bool is_provisioned = mesh_stack_is_device_provisioned();
 
-#if GATT_PROXY
+#if MESH_FEATURE_GATT_PROXY_ENABLED
     if (is_provisioned)
     {
         proxy_init();
@@ -129,16 +129,15 @@ uint32_t mesh_stack_start(void)
 {
     /* If the device is provisioned, the proxy state is automatically recovered from flash when
      * mesh_config loads the configuration. */
-    uint32_t status = nrf_mesh_enable();
-#if GATT_PROXY
-    if (status == NRF_SUCCESS &&
-        mesh_stack_is_device_provisioned() &&
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    if (mesh_stack_is_device_provisioned() &&
         proxy_is_enabled())
     {
         (void) proxy_start();
     }
 #endif
-    return status;
+
+    return nrf_mesh_enable();
 }
 
 uint32_t mesh_stack_provisioning_data_store(const nrf_mesh_prov_provisioning_data_t * p_prov_data,
@@ -256,4 +255,9 @@ uint32_t mesh_stack_persistence_flash_usage(const uint32_t ** pp_start, uint32_t
     *p_length = 0;
 #endif
     return NRF_SUCCESS;
+}
+
+health_server_t * mesh_stack_health_server_get(void)
+{
+    return &m_health_server;
 }

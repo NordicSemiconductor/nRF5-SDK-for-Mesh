@@ -47,10 +47,11 @@
 #include "advertiser.h"
 #include "mesh_app_utils.h"
 #include "mesh_stack.h"
-#include "mesh_softdevice_init.h"
+#include "ble_softdevice_support.h"
 #include "mesh_provisionee.h"
 #include "nrf_mesh_config_examples.h"
 #include "app_timer.h"
+#include "example_common.h"
 
 #if defined(NRF51) && defined(NRF_MESH_STACK_DEPTH)
 #include "stack_depth.h"
@@ -59,11 +60,6 @@
 
 #define STATIC_AUTH_DATA        {0x6E, 0x6F, 0x72, 0x64, 0x69, 0x63, 0x5F, 0x65, 0x78, 0x61, 0x6D, 0x70, 0x6C, 0x65, 0x5F, 0x31}
 #define ADVERTISER_BUFFER_SIZE  (64)
-
-#define LED_BLINK_INTERVAL_MS   (200)
-#define LED_BLINK_CNT_START     (2)
-#define LED_BLINK_CNT_RESET     (3)
-#define LED_BLINK_CNT_PROV      (4)
 
 /** Single advertiser instance. May periodically transmit one packet at a time. */
 static advertiser_t m_advertiser;
@@ -150,6 +146,19 @@ static void config_server_evt_cb(const config_server_evt_t * p_evt)
     }
 }
 
+static void device_identification_start_cb(uint8_t attention_duration_s)
+{
+    hal_led_mask_set(LEDS_MASK, false);
+    hal_led_blink_ms(BSP_LED_2_MASK  | BSP_LED_3_MASK, 
+                     LED_BLINK_ATTENTION_INTERVAL_MS, 
+                     LED_BLINK_ATTENTION_COUNT(attention_duration_s));
+}
+
+static void provisioning_aborted_cb(void)
+{
+    hal_led_blink_stop();
+}
+
 static void provisioning_complete_cb(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
@@ -158,7 +167,7 @@ static void provisioning_complete_cb(void)
     dsm_local_unicast_addresses_get(&node_address);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
 
-
+    hal_led_blink_stop();
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
 }
@@ -192,8 +201,8 @@ static void initialize(void)
     __LOG_INIT(LOG_SRC_APP, LOG_LEVEL_INFO, log_callback_rtt);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Bluetooth Mesh Beacon Example -----\n");
 
-    nrf_clock_lf_cfg_t lfc_cfg = DEV_BOARD_LF_CLK_CFG;
-    ERROR_CHECK(mesh_softdevice_init(lfc_cfg));
+    ble_stack_init();
+
     mesh_init();
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Initialization complete!\n");
@@ -201,8 +210,6 @@ static void initialize(void)
 
 static void start(void)
 {
-    ERROR_CHECK(mesh_stack_start());
-
     if (!m_device_provisioned)
     {
         static const uint8_t static_auth_data[NRF_MESH_KEY_SIZE] = STATIC_AUTH_DATA;
@@ -210,11 +217,16 @@ static void start(void)
         {
             .p_static_data    = static_auth_data,
             .prov_complete_cb = provisioning_complete_cb,
+            .prov_device_identification_start_cb = device_identification_start_cb,
+            .prov_device_identification_stop_cb = NULL,
+            .prov_abort_cb = provisioning_aborted_cb,
             .p_device_uri = NULL
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }
     adv_start();
+
+    ERROR_CHECK(mesh_stack_start());
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Bluetooth Mesh Beacon example started!\n");
 
@@ -225,7 +237,7 @@ static void start(void)
 int main(void)
 {
     initialize();
-    execution_start(start);
+    start();
 
     for (;;)
     {

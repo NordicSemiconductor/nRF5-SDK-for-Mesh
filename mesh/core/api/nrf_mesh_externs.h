@@ -41,6 +41,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "nrf_mesh.h"
+#include "nrf_mesh_keygen.h"
 
 /**
  * @internal
@@ -51,7 +52,18 @@
  */
 
 /**
- * Request of network security material.
+ * Requests primary network security material for a specific device address.
+ *
+ * @note This function is implemented by the Device State Manager module.
+ *
+ * @param[in] owner_addr Unicast address of the device that will get the primary network key.
+ * @param[out] pp_secmat Double pointer that will contain the primary network key
+ * for the given address, or NULL if not found.
+ */
+extern void nrf_mesh_primary_net_secmat_get(uint16_t owner_addr, const nrf_mesh_network_secmat_t ** pp_secmat);
+
+/**
+ * Requests network security material.
  * This function is expected to iterate, starting from the @c pp_secmat, if it points to a valid
  * security material.
  *
@@ -68,7 +80,7 @@ extern void nrf_mesh_net_secmat_next_get(uint8_t nid, const nrf_mesh_network_sec
             const nrf_mesh_network_secmat_t ** pp_secmat_secondary);
 
 /**
- * Request of application security material.
+ * Requests application security material.
  * This function is expected to iterate, starting from the @c pp_app_secmat, if
  * it points to a valid security material.
  *
@@ -83,7 +95,7 @@ extern void nrf_mesh_app_secmat_next_get(const nrf_mesh_network_secmat_t * p_net
         uint8_t aid, const nrf_mesh_application_secmat_t ** pp_app_secmat);
 
 /**
- * Request of device key security material for a specific device address.
+ * Requests device key security material for a specific device address.
  *
  * @note This function is implemented by the Device State Manager module.
  *
@@ -94,7 +106,7 @@ extern void nrf_mesh_app_secmat_next_get(const nrf_mesh_network_secmat_t * p_net
 extern void nrf_mesh_devkey_secmat_get(uint16_t owner_addr, const nrf_mesh_application_secmat_t ** pp_devkey_secmat);
 
 /**
- * Request of beacon info structures.
+ * Requests beacon info structures.
  * This function is expected to iterate, starting from the @c
  * pp_beacon_info, if it points to a valid beacon info structure.
  *
@@ -134,6 +146,31 @@ extern bool nrf_mesh_rx_address_get(uint16_t raw_address, nrf_mesh_address_t * p
  * @param[out] p_addr_count Outputs the number of addresses allocated.
  */
 extern void nrf_mesh_unicast_address_get(uint16_t * p_addr_start, uint16_t * p_addr_count);
+
+/**
+ * Sets friendship security credentials.
+ *
+ * @note Only invoked if @ref MESH_FEATURE_LPN_ENABLED is set.
+ *
+ * @param[in] p_net The network security material.
+ * @param[in] p_secmat_params The friendship security credentials
+ *
+ * @returns NRF_SUCCESS
+ * @returns NRF_ERROR_NOT_FOUND if subnetwork for specified network secmat has not been found
+ * @returns NRF_ERROR_NO_MEM No more friendship credentials can be added
+ */
+extern uint32_t nrf_mesh_friendship_secmat_params_set(const nrf_mesh_network_secmat_t * p_net, const nrf_mesh_keygen_friendship_secmat_params_t *p_secmat_params);
+
+/**
+ * Requests friendship network security material for a Low Power node address.
+ *
+ * @note This function is implemented by the Device State Manager module.
+ *
+ * @param[in] lpn_addr   Unicast address of the Low Power node that will get the friendship network key.
+ * @param[out] pp_secmat Double pointer that will contain the friendship network key
+ * for the given address, or NULL if not found.
+ */
+extern void nrf_mesh_friendship_secmat_get(uint16_t lpn_addr, const nrf_mesh_network_secmat_t ** pp_secmat);
 
 /** @} end of NRF_MESH_EXTERNS */
 

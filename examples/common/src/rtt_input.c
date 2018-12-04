@@ -36,12 +36,16 @@
  */
 
 #include "rtt_input.h"
+#include "nrf_mesh_config_examples.h"
+
 #include <stdlib.h>
 #include "SEGGER_RTT.h"
 #include "nrf_mesh_defines.h"
 #include "app_timer.h"
 #include "mesh_app_utils.h"
 #include "hal.h"
+
+#if RTT_INPUT_ENABLED
 
 static rtt_input_handler_t m_rtt_input_handler;
 
@@ -76,3 +80,5 @@ void rtt_input_disable(void)
     ERROR_CHECK(app_timer_stop(m_rtt_timer));
     m_rtt_input_handler = NULL;
 }
+
+#endif /* RTT_INPUT_ENABLED */

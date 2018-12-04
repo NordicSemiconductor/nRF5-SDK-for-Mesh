@@ -206,7 +206,7 @@ static inline uint32_t beacon_interval_in_seconds(const nrf_mesh_beacon_tx_info_
  *
  * @param[in] time_now Current time.
  */
-static void beacon_tx(uint32_t time_now)
+static void beacon_tx(timestamp_t time_now)
 {
     nrf_mesh_key_refresh_phase_t kr_phase;
 
@@ -265,12 +265,12 @@ static void beacon_tx(uint32_t time_now)
     }
 }
 
-static void beacon_tx_timeout(uint32_t timestamp, void * p_context)
+static void beacon_tx_timeout(timestamp_t timestamp, void * p_context)
 {
     beacon_tx(timestamp);
 }
 
-static void tx_complete_cb(advertiser_t * p_adv, nrf_mesh_tx_token_t token, uint32_t timestamp)
+static void tx_complete_cb(advertiser_t * p_adv, nrf_mesh_tx_token_t token, timestamp_t timestamp)
 {
     beacon_tx(timer_now());
 }

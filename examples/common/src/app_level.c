@@ -260,6 +260,9 @@ static void a_transition_start(void * p_data)
     {
         abs_delta = abs(p_server->state.params.set.required_delta);
     }
+
+    NRF_MESH_ASSERT_DEBUG(abs_delta > 0);
+
     transition_time_us = MS_TO_US((uint64_t) p_server->state.transition_time_ms);
     transition_step_us = transition_time_us/abs_delta;
 
@@ -339,30 +342,23 @@ static bool g_set_transition(void * p_data)
 {
     app_level_server_t * p_server = (app_level_server_t *) p_data;
 
-    bool result = false;
-
     switch (p_server->state.transition_type)
     {
         /* Requirement: If transition time is not within valid range, do not start the transition. */
         case TRANSITION_SET:
-        /* fall-through */
+            return (p_server->state.transition_time_ms > 0 && p_server->state.params.move.required_move != 0);
         case TRANSITION_DELTA_SET:
-            result = (p_server->state.transition_time_ms > 0);
-        break;
+            return (p_server->state.transition_time_ms > 0 && p_server->state.params.set.required_delta != 0);
 
         /* Requirement: If transition time is not within valid range, or given move level (delta level)
         is zero, do not start the transition. */
         case TRANSITION_MOVE_SET:
-            result = (p_server->state.transition_time_ms > 0 &&
-                      p_server->state.transition_time_ms != MODEL_TRANSITION_TIME_INVALID &&
-                      p_server->state.params.move.required_move != 0);
-        break;
-
+            return (p_server->state.transition_time_ms > 0 &&
+                    p_server->state.transition_time_ms != MODEL_TRANSITION_TIME_INVALID &&
+                    p_server->state.params.move.required_move != 0);
         default:
-        break;
+            return false;
     }
-
-    return (result);
 }
 
 static bool g_transition_complete(void * p_data)
@@ -645,4 +641,3 @@ uint32_t app_level_init(app_level_server_t * p_server, uint8_t element_index)
 
     return status;
 }
-

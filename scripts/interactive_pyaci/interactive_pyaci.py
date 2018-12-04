@@ -113,7 +113,7 @@ class Interactive(object):
     DEFAULT_SUBNET_KEY = bytearray([0xBB] * 16)
     DEFAULT_VIRTUAL_ADDRESS = bytearray([0xCC] * 16)
     DEFAULT_STATIC_AUTH_DATA = bytearray([0xDD] * 16)
-    DEFAULT_LOCAL_UNICAST_ADRESS_START = 0x0001
+    DEFAULT_LOCAL_UNICAST_ADDRESS_START = 0x0001
     CONFIG = ApplicationConfig(
         header_path=os.path.join(os.path.dirname(sys.argv[0]),
                                  ("../../examples/serial/include/"
@@ -131,12 +131,12 @@ class Interactive(object):
 
         # Increment the local unicast address range
         # for the next Interactive instance
-        self.local_unicast_adress_start = (
-            self.DEFAULT_LOCAL_UNICAST_ADRESS_START)
-        Interactive.DEFAULT_LOCAL_UNICAST_ADRESS_START += (
+        self.local_unicast_address_start = (
+            self.DEFAULT_LOCAL_UNICAST_ADDRESS_START)
+        Interactive.DEFAULT_LOCAL_UNICAST_ADDRESS_START += (
             self.CONFIG.ACCESS_ELEMENT_COUNT)
 
-        self.access = access.Access(self, self.local_unicast_adress_start,
+        self.access = access.Access(self, self.local_unicast_address_start,
                                     self.CONFIG.ACCESS_ELEMENT_COUNT)
         self.model_add = self.access.model_add
 
@@ -166,7 +166,7 @@ class Interactive(object):
         self.send(cmd.SubnetAdd(0, bytearray(self.DEFAULT_SUBNET_KEY)))
         self.send(cmd.AppkeyAdd(0, 0, bytearray(self.DEFAULT_APP_KEY)))
         self.send(cmd.AddrLocalUnicastSet(
-            self.local_unicast_adress_start,
+            self.local_unicast_address_start,
             self.CONFIG.ACCESS_ELEMENT_COUNT))
 
     def __event_handler(self, event):

@@ -87,6 +87,7 @@ typedef struct
     uint32_t no_rx; /**< Number of times the module started RX on time, but failed detecting any incoming packets. */
     uint32_t invalid_offset; /**< Number of packets dropped due to unsupported offset times. */
     uint32_t busy; /**< Number of packets dropped because the scanner was busy. */
+    uint32_t switched_timeslot; /**< Number of packets dropped because the timeslot ended before we could handle it. */
 } instaburst_rx_stats_t;
 
 /**

@@ -46,6 +46,22 @@
  * This model implements the message based interface required to
  * set the 1 bit value on the server.
  *
+ * This implementation of a simple OnOff model can be used to switch things
+ * on or off by manipulating a single on/off state. The intention of this model
+ * is to have a simple example model that can be used as a baseline for constructing
+ * your own model.
+ *
+ * Do not confuse the simple OnOff model with the Generic OnOff Model specified
+ * in the Mesh Model Specification v1.0. The Generic OnOff Model provides additional
+ * features such as control over when and for how long the transition between
+ * the on/off state should be performed.
+ *
+ * @note When the server has a publish address set (as in the light switch example),
+ * the server will publish its state to its publish address every time its state changes.
+ *
+ * For more information about creating models, see
+ * @ref md_doc_getting_started_how_to_models.
+ *
  * Model Identification
  * @par
  * Company ID: @ref SIMPLE_ON_OFF_COMPANY_ID

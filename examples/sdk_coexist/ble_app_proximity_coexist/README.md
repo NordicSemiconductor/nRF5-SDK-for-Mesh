@@ -24,4 +24,4 @@ The example is intended to replace the Light Switch Client when running the Ligh
 > Note: Ensure that the device flash is completely erased before programing this example. Otherwise Flash Data Storage module will not work correctly.
 - Run the two coexisting examples in parallel or in sequence:
     - Run the Light Switch example as described in @ref md_examples_light_switch_README.
-    - Run the ble_app_proximity example as described in the nRF5 SDK documentation.
+    - Run the @link_ble_app_proximity_example example as described in the nRF5 SDK documentation.

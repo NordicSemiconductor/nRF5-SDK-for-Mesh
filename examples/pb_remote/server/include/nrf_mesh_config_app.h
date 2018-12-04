@@ -50,7 +50,7 @@
  * @defgroup MODEL_CONFIG Model layer configuration parameters
  */
 
-/** Acknowledged message transaction timeout
+/** Define for acknowledging message transaction timeout.
  * @note Mesh Profile Specification v1.0 recommends this to be minimum 60s.
  */
 #define MODEL_ACKNOWLEDGED_TRANSACTION_TIMEOUT  (SEC_TO_US(10))
@@ -66,14 +66,11 @@
 /** Device company identifier. */
 #define DEVICE_COMPANY_ID (ACCESS_COMPANY_ID_NONE)
 
-/** Device product identifier*/
+/** Device product identifier. */
 #define DEVICE_PRODUCT_ID (0x0000)
 
-/** Device version identifier */
+/** Device version identifier. */
 #define DEVICE_VERSION_ID (0x0000)
-
-/** Supported features of the device. @see config_feature_bit_t */
-#define DEVICE_FEATURES (CONFIG_FEATURE_RELAY_BIT)
 
 /** @} end of DEVICE_CONFIG */
 
@@ -117,11 +114,11 @@
 #define ACCESS_FLASH_PAGE_COUNT (1)
 
 /**
- * @defgroup ACCESS_RELIABLE_CONFIG Access reliable transfer configuration
+ * @defgroup ACCESS_RELIABLE_CONFIG Configuration of access layer reliable transfer 
  * @{
  */
 
-/** Number of allowed parallel transfers (size of internal context pool). */
+/** Number of the allowed parallel transfers (size of the internal context pool). */
 #define ACCESS_RELIABLE_TRANSFER_COUNT (ACCESS_MODEL_COUNT)
 
 /** @} end of ACCESS_RELIABLE_CONFIG */
@@ -145,7 +142,7 @@
 #define DSM_VIRTUAL_ADDR_MAX                            (1)
 /** Maximum number of non-virtual addresses. */
 #define DSM_NONVIRTUAL_ADDR_MAX                         (4)
-/** Number of flash pages reserved for the DSM storage */
+/** Number of flash pages reserved for the DSM storage. */
 #define DSM_FLASH_PAGE_COUNT                            (1)
 /** @} end of DSM_CONFIG */
 

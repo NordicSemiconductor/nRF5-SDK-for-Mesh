@@ -42,6 +42,9 @@
  * @defgroup MESH_OPT Mesh options API
  * Provides a consistent toplevel API for runtime configuration options.
  *
+ * @warning This API must be called in the same IRQ priority as the one used by the mesh stack
+ * (see @ref md_doc_introduction_mesh_interrupt_priorities).
+ *
  * Options are stored persistently on every change.
  * @{
  */

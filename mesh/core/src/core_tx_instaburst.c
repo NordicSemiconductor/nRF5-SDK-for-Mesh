@@ -341,11 +341,13 @@ void core_tx_instaburst_init(void)
     /* For consistency, disable the relay callback for instaburst too */
     instaburst_config.callback = NULL;
 
+#if MESH_FEATURE_RELAY_ENABLED
     instaburst_tx_instance_init(&m_instaburst[CORE_TX_ROLE_RELAY],
                              &instaburst_config,
                              m_relay_instaburst_packet_buffer,
                              sizeof(m_relay_instaburst_packet_buffer));
     instaburst_tx_enable(&m_instaburst[CORE_TX_ROLE_RELAY]);
+#endif
 
     core_tx_bearer_add(&m_bearer, &m_interface, CORE_TX_BEARER_TYPE_ADV);
 }

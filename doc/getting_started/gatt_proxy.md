@@ -1,4 +1,4 @@
-# GATT provisioning and Proxy
+# GATT provisioning and Proxy (experimental)
 
 Provisioning over GATT<sup><a href="#fn:1">1</a></sup> and the Proxy protocol<sup><a
 href="#fn:2">2</a></sup> are optional features that allow a device without support for the
@@ -6,7 +6,7 @@ advertising bearer to provision and/or communicate with the mesh network through
 GATT interface.
 
 A device does not need to support both the GATT provisioning bearer (PB-GATT) and the Proxy feature,
-but in the Light switch proxy example applications, both are supported by default. The sequence
+but in the Light Switch example applications, both are supported by default. The sequence
 diagram below shows how a device is provisioned over GATT and then transitions to being a GATT Proxy
 server.
 
@@ -26,14 +26,15 @@ its GATT database to comply with the following requirement from the Mesh Profile
 The reset is done by the helper module `mesh_provisionee.c`. To reset the database, the SoftDevice
 is disabled and re-enabled. This means that any application service or setting needs to be
 re-initialized after provisioning. This is done in the `prov_complete_cb()` callback from
-`mesh_provisionee.h`. For example, in the Light switch proxy server example:
+`mesh_provisionee.h`. For example, in the Light Switch server example:
 
 ```c
 static void provisioning_complete_cb(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
 
-    /* Restores the application parameters after switching from the Provisioning service to the Proxy  */
+    /* Restores the application parameters after switching from the Provisioning
+     * service to the Proxy  */
     gap_params_init();
     conn_params_init();
     // ...
@@ -61,16 +62,12 @@ GATT support in mesh is provided through the following source files:
   - Required for both PB-GATT and GATT Proxy support.
 
 
-Furthermore, there are two defines, @ref MESH_FEATURE_GATT and @ref GATT_PROXY, that control the inclusion
+Furthermore, there are two defines, @ref MESH_FEATURE_PB_GATT_ENABLED and @ref MESH_FEATURE_GATT_PROXY_ENABLED, that control the inclusion
 of GATT related code in other sources. For example, the Configuration server
-(`models/foundation/src/config_server.c`) behaves diffently when @ref GATT_PROXY is supported.
-@ref MESH_FEATURE_GATT controls inclusion of _all_ GATT related code in
-`examples/common/src/mesh_provisionee.c`, whereas @ref GATT_PROXY controls the GATT Proxy feature
+(`models/foundation/src/config_server.c`) behaves diffently when @ref MESH_FEATURE_GATT_PROXY_ENABLED is supported.
+@ref MESH_FEATURE_PB_GATT_ENABLED controls inclusion of _all_ GATT related code in
+`examples/common/src/mesh_provisionee.c`, whereas @ref MESH_FEATURE_GATT_PROXY_ENABLED controls the GATT Proxy feature
 specifically.
-
-In the proxy examples, these macros are enabled as compile-time definitions. That means that they are
-set in the example's `CMakeLists.txt` or in the "Preprocessor Definitions" in the SEGGER Embedded
-Studio project.
 
 ---
 

@@ -70,6 +70,7 @@
 #define ACCESS_INTERNAL_STATE_OUTDATED  (1 << 1)
 #define ACCESS_INTERNAL_STATE_RESTORED  (1 << 2)
 #define ACCESS_INTERNAL_STATE_ALLOCATED_SET(INTERNAL_STATE) (INTERNAL_STATE |= ACCESS_INTERNAL_STATE_ALLOCATED)
+#define ACCESS_INTERNAL_STATE_ALLOCATED_CLR(INTERNAL_STATE) (INTERNAL_STATE &= ~ACCESS_INTERNAL_STATE_ALLOCATED)
 #define ACCESS_INTERNAL_STATE_OUTDATED_SET(INTERNAL_STATE)  (INTERNAL_STATE |= ACCESS_INTERNAL_STATE_OUTDATED)
 #define ACCESS_INTERNAL_STATE_OUTDATED_CLR(INTERNAL_STATE)  (INTERNAL_STATE &= ~ACCESS_INTERNAL_STATE_OUTDATED)
 #define ACCESS_INTERNAL_STATE_RESTORED_SET(INTERNAL_STATE)  (INTERNAL_STATE |= ACCESS_INTERNAL_STATE_RESTORED)
@@ -129,6 +130,8 @@ typedef struct
     uint16_t element_index;
     /** Subscription list for a model.*/
     uint16_t subscription_pool_index;
+    /** Friendship credentials flag */
+    bool friendship_credential_flag;
     /** This model's TTL value for each published packet */
     uint8_t publish_ttl;
     /** Number of steps and step resolution for the publication functionality. */

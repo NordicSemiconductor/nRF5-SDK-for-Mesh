@@ -41,9 +41,7 @@
 #include <stdbool.h>
 
 /**
- * @defgroup APP_SPECIFIC_DEFINES Application-specific definitions
- *
- * Application-specific macro definitions are provided here.
+ * @defgroup APP_SPECIFIC_DEFINES Application-specific macro definitions
  *
  * @{
  */
@@ -66,7 +64,18 @@
  */
 
 /** Override default sdk_config.h values. */
+
+/** Configuration for the BLE SoftDevice support module to be enabled. */
+#define NRF_SDH_ENABLED 1
+#define NRF_SDH_BLE_ENABLED 1
+#define NRF_SDH_SOC_ENABLED 1
+#define NRF_SDH_BLE_GATT_MAX_MTU_SIZE 69
+#define NRF_SDH_BLE_PERIPHERAL_LINK_COUNT 1
+#define NRF_SDH_BLE_SERVICE_CHANGED 1
+#define NRF_BLE_CONN_PARAMS_ENABLED 1
+
 #define APP_TIMER_ENABLED 1
+#define APP_TIMER_KEEPS_RTC_ACTIVE 1
 
 /** Enable APP PWM, PWM0, and TIMER1 */
 #define APP_PWM_ENABLED 1

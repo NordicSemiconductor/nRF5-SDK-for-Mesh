@@ -322,7 +322,9 @@ void serial_handler_prov_pkt_in(const serial_packet_t * p_incoming)
                 if (status == NRF_SUCCESS)
                 {
                     status = nrf_mesh_prov_provision(&m_prov_contexts[p_incoming->payload.cmd.prov.data.context_id],
-                                                     p_incoming->payload.cmd.prov.data.target_uuid, &prov_data, NRF_MESH_PROV_BEARER_ADV);
+                                                     p_incoming->payload.cmd.prov.data.target_uuid,
+                                                     p_incoming->payload.cmd.prov.data.attention_duration_s,
+                                                     &prov_data, NRF_MESH_PROV_BEARER_ADV);
                 }
             }
             else
