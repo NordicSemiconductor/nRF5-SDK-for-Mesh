@@ -45,11 +45,13 @@ void toolchain_init_irqs(void);
     #define _DISABLE_IRQS(_was_masked) _was_masked = 0; __disable_irq()
     #define _ENABLE_IRQS(_was_masked) (void) _was_masked; __enable_irq()
     #define _DEPRECATED
+    #define _UNUSED
 #elif defined(UNIT_TEST)
     #define _DISABLE_IRQS(_was_masked) (void)_was_masked /* avoid "not used" warning */
     #define _ENABLE_IRQS(_was_masked)
     #define _GET_LR(lr) lr = (uint32_t) __builtin_return_address(0);
     #define _DEPRECATED
+    #define _UNUSED __attribute__((unused))
 #elif defined(MTT_TEST)
     #include <pthread.h>
     extern pthread_mutex_t irq_mutex;
@@ -70,6 +72,8 @@ void toolchain_init_irqs(void);
 
     /** Mark a function, variable or type as deprecated. */
     #define _DEPRECATED __attribute__((deprecated))
+    /** Mark a function, variable, or type as potentially unused. */
+    #define _UNUSED __attribute__((unused))
 #elif defined(__GNUC__)
 /** Disable all interrupts and get whether it was masked. */
     #define _DISABLE_IRQS(_was_masked) do{ \
@@ -85,6 +89,8 @@ void toolchain_init_irqs(void);
 
     /** Mark a function, variable or type as deprecated. */
     #define _DEPRECATED __attribute__((deprecated))
+    /** Mark a function, variable, or type as potentially unused. */
+    #define _UNUSED __attribute__((unused))
 #endif
 
 /*Segger embedded studio originally has offsetof macro which cannot be used in macros (like STATIC_ASSERT).

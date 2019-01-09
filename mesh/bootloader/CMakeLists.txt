@@ -6,8 +6,10 @@ option(BUILD_BOOTLOADER OFF "Build the Mesh Bootloader?")
 
 if (BUILD_BOOTLOADER)
     if (NOT CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
-        message("WARNING: Build type is \"${CMAKE_BUILD_TYPE}\". "
-            "The bootloader might not fit with this configuration.")
+        message(STATUS "Build type is \"${CMAKE_BUILD_TYPE}\". "
+            "The bootloader must be compiled with \"MinSizeRel\" in order to fit.")
+        set(CMAKE_BUILD_TYPE "MinSizeRel")
+        message(STATUS "Bootloader Build type is now \"${CMAKE_BUILD_TYPE}\". ")
     endif ()
 
     option(BOOTLOADER_DEBUG_ENABLE OFF

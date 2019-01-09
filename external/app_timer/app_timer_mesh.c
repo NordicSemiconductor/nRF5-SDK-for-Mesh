@@ -151,6 +151,7 @@ static uint8_t                       m_ticks_elapsed_q_read_ind;                
 static uint8_t                       m_ticks_elapsed_q_write_ind;               /**< Timer internal elapsed ticks queue write index. */
 static bool                          m_rtc1_running;                            /**< Boolean indicating if RTC1 is running. */
 static bool                          m_is_timer_init;                           /**< Boolean indicating if app timer has been already initialized. */
+static bool                          m_check_timeout;                           /**< Boolean indicating if the check for timeouts is scheduled. */
 
 #if APP_TIMER_WITH_PROFILER
 static uint8_t                       m_max_user_op_queue_utilization;           /**< Maximum observed timer user operations queue utilization. */
@@ -353,6 +354,7 @@ static bool timer_list_remove(timer_node_t * p_timer)
  */
 static void timer_timeouts_check_sched(void)
 {
+    m_check_timeout = true;
     NVIC_SetPendingIRQ(RTC1_IRQn);
 }
 
@@ -900,9 +902,10 @@ __WEAK void nrf_mesh_timer_ovfw_handle(void)
 void RTC1_IRQHandler(void)
 {
     // Clear all events (also unexpected ones)
-    if (NRF_RTC1->EVENTS_COMPARE[0] == 1)
+    if (NRF_RTC1->EVENTS_COMPARE[0] == 1 || m_check_timeout)
     {
         NRF_RTC1->EVENTS_COMPARE[0] = 0;
+        m_check_timeout = false;
         // Check for expired timers
         timer_timeouts_check();
     }

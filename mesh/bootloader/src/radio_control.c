@@ -164,7 +164,7 @@ static void setup_event(radio_event_t* p_evt)
         NRF_RADIO->TXPOWER  = p_evt->tx_power;
         NRF_RADIO->TASKS_TXEN = 1;
         m_radio_state = RADIO_STATE_TX;
-        
+
     }
     else
     {
@@ -311,6 +311,7 @@ void radio_disable(void)
     NRF_RADIO->SHORTS = 0;
     NRF_RADIO->INTENCLR = 0xFFFFFFFF;
     NRF_RADIO->TASKS_DISABLE = 1;
+    NRF_RADIO->PACKETPTR = 0;
     m_radio_state = RADIO_STATE_DISABLED;
     DEBUG_RADIO_SET_STATE(PIN_RADIO_STATE_IDLE);
 }

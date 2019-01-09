@@ -568,6 +568,7 @@ void test_packet_out(void)
         network_tx_packet_buffer_t net_packet_buffer;
         net_packet_buffer.user_data.p_metadata = &test_vector.metadata;
         net_packet_buffer.user_data.payload_len = test_vector.lengths.transport;
+        net_packet_buffer.user_data.role = CORE_TX_ROLE_ORIGINATOR;
 
         memcpy(&m_core_tx_buffer.pdu[9],
                test_vector.p_transport_packet,
@@ -595,6 +596,7 @@ void test_packet_out(void)
         net_packet_buffer.user_data.p_metadata = &test_vector.metadata;
         net_packet_buffer.user_data.p_metadata->p_security_material = &test_network;
         net_packet_buffer.user_data.payload_len = test_vector.lengths.transport;
+        net_packet_buffer.user_data.role = CORE_TX_ROLE_ORIGINATOR;
 
         TEST_ASSERT_EQUAL(NRF_ERROR_NO_MEM, network_packet_alloc(&net_packet_buffer));
     }

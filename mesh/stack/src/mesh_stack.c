@@ -182,9 +182,15 @@ uint32_t mesh_stack_provisioning_data_store(const nrf_mesh_prov_provisioning_dat
 
 void mesh_stack_config_clear(void)
 {
+    mesh_config_clear();
     access_clear();
     dsm_clear();
     net_state_reset();
+    // invoking of the function was moved to the top.
+    // It causes assertion with the flash manager substates
+    // it is known issue MBTLE-1972
+    // TODO Return this string back after flash manager fixing
+    // mesh_config_clear();
 }
 
 bool mesh_stack_is_device_provisioned(void)

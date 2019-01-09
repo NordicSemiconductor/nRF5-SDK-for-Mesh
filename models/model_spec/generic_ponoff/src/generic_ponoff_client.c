@@ -111,27 +111,21 @@ uint32_t generic_ponoff_client_init(generic_ponoff_client_t * p_client, uint8_t 
         p_client->settings.timeout = MODEL_ACKNOWLEDGED_TRANSACTION_TIMEOUT;
     }
 
-    /* Initialize parent model instances - Generic OnOff client */
-    status = generic_onoff_client_init(&p_client->generic_onoff_cli, element_index);
+    access_model_add_params_t add_params =
+    {
+        .model_id = ACCESS_MODEL_SIG(GENERIC_PONOFF_CLIENT_MODEL_ID),
+        .element_index = element_index,
+        .p_opcode_handlers = &m_opcode_handlers[0],
+        .opcode_count = ARRAY_SIZE(m_opcode_handlers),
+        .p_args = p_client,
+        .publish_timeout_cb = p_client->settings.p_callbacks->periodic_publish_cb
+    };
+
+    status = access_model_add(&add_params, &p_client->model_handle);
 
     if (status == NRF_SUCCESS)
     {
-        access_model_add_params_t add_params =
-        {
-            .model_id = ACCESS_MODEL_SIG(GENERIC_PONOFF_CLIENT_MODEL_ID),
-            .element_index = element_index,
-            .p_opcode_handlers = &m_opcode_handlers[0],
-            .opcode_count = ARRAY_SIZE(m_opcode_handlers),
-            .p_args = p_client,
-            .publish_timeout_cb = p_client->settings.p_callbacks->periodic_publish_cb
-        };
-
-        status = access_model_add(&add_params, &p_client->model_handle);
-    }
-
-    if (status == NRF_SUCCESS)
-    {
-        status = access_model_subscription_lists_share(p_client->model_handle, p_client->generic_onoff_cli.model_handle);
+        status = access_model_subscription_list_alloc(p_client->model_handle);
     }
 
     return status;

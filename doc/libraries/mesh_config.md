@@ -35,9 +35,10 @@ provides access to the live value through a `setter`/`getter`/`deleter` interfac
 There is no requirement that the state owner must keep the live value in RAM, but it must be able to produce the
 value on the mesh config module's request atomically. The live value should never be altered outside
 the state owner's `setter` callback, and the `getter` callback should always return the value set
-in the previous `setter` callback. The state owner can specify a default value to use if the entry
-has not been set. If no default value is defined, attempts to read the value will result in an error
-until the value has been set or loaded from persistent storage.
+in the previous `setter` callback. The state owner can specify that the entry has a default value
+to use if the user hasn't explicitly set the entry. If the entry doesn't have a default value,
+attempts to read the value will result in an error until the value has been set or loaded from
+persistent storage.
 
 The state owner is notified of deleted entries through the `deleter` callback. It cannot interfere
 with the deletion, only observe it.
@@ -135,7 +136,7 @@ The value is a uint32_t, configured to only accept values below 10000, with the 
 #define APP_ENTRY_ID    MESH_CONFIG_ENTRY_ID(0x0010, 0x0001)
 
 /* Live RAM representation of the value */
-static uint32_t m_live_value;
+static uint32_t m_live_value = 5000;
 
 
 static uint32_t app_entry_setter(mesh_config_entry_id_t id, const void * p_entry)
@@ -157,10 +158,6 @@ static void app_entry_getter(mesh_config_entry_id_t id, void * p_entry)
     *p_value = m_live_value;
 }
 
-
-/* Default value used if the setter hasn't been called: */
-static const uint32_t m_default_value = 5000;
-
 MESH_CONFIG_ENTRY(m_app_entry,
                   APP_ENTRY_ID,
                   1, // The entry is singular
@@ -168,7 +165,7 @@ MESH_CONFIG_ENTRY(m_app_entry,
                   app_entry_setter,
                   app_entry_getter,
                   NULL, // No need for a delete callback
-                  &m_default_value);
+                  true); // There is a default value
 ```
 
 The config entry is registered automatically, and the user may set and get the value:

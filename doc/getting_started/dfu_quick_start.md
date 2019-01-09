@@ -1,9 +1,17 @@
-# Configuring DFU
+# Configuring DFU over Mesh
 
 A Device Firmware Update (DFU) is the process of updating the firmware on a mesh device. The
 following guide offers step-by-step instructions on how to prepare and program the DFU example
 application, create a DFU file that contains example firmware, and transfer it. This guide should
 make it easy to use the mesh DFU to transfer any firmware to any device on the mesh network.
+
+The mesh DFU supports two modes:
+- side-by-side DFU that transfers the new firmware in the background while the application is running
+and reports to the application when the transfer is done. The application can then flash the new firmware when ready.
+- bootloader DFU, in which the application is not running and the bootloader takes care of the transfer.
+This mode is primarily meant as a fallback mechanism, in case the application malfunctions.
+
+The DFU example included in the nRF SDK for Mesh demonstrates the side-by-side mode DFU.
 
 To perform DFU transfers over mesh, use a customized version of the `nrfutil` tool. This tool sends
 the DFU packets to one device over serial interface. This device then stores these

@@ -45,6 +45,7 @@
 
 /* Core */
 #include "nrf_mesh_config_core.h"
+#include "nrf_mesh_gatt.h"
 #include "nrf_mesh.h"
 #include "nrf_mesh_events.h"
 #include "nrf_mesh_assert.h"
@@ -433,7 +434,7 @@ static void provisioning_complete_cb(void)
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
 
 #if MESH_FEATURE_GATT_ENABLED
-    /* Restores the application parameters after switching from the Provisioning 
+    /* Restores the application parameters after switching from the Provisioning
      * service to the Proxy  */
     gap_params_init();
     conn_params_init();
@@ -459,15 +460,11 @@ static void app_rtt_input_handler(int key)
 
 static void mesh_init(void)
 {
-    uint8_t dev_uuid[NRF_MESH_UUID_SIZE];
-    uint8_t node_uuid_prefix[NODE_UUID_PREFIX_LEN] = CLIENT_NODE_UUID_PREFIX;
-
-    ERROR_CHECK(mesh_app_uuid_gen(dev_uuid, node_uuid_prefix, NODE_UUID_PREFIX_LEN));
     mesh_stack_init_params_t init_params =
     {
         .core.irq_priority       = NRF_MESH_IRQ_PRIORITY_LOWEST,
         .core.lfclksrc           = DEV_BOARD_LF_CLK_CFG,
-        .core.p_uuid             = dev_uuid,
+        .core.p_uuid             = NULL,
         .models.models_init_cb   = models_init_cb,
         .models.config_server_cb = config_server_evt_cb
     };
@@ -544,14 +541,10 @@ static void start(void)
             .prov_device_identification_start_cb = device_identification_start_cb,
             .prov_device_identification_stop_cb = NULL,
             .prov_abort_cb = provisioning_aborted_cb,
-            .p_device_uri = NULL
+            .p_device_uri = EX_URI_ENOCEAN
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }
-
-    const uint8_t *p_uuid = nrf_mesh_configure_device_uuid_get();
-    UNUSED_VARIABLE(p_uuid);
-    __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "Device UUID ", p_uuid, NRF_MESH_UUID_SIZE);
 
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
@@ -559,6 +552,8 @@ static void start(void)
 #if !PERSISTENT_STORAGE
     app_start();
 #endif
+
+    mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());
 
     ERROR_CHECK(mesh_stack_start());
 }

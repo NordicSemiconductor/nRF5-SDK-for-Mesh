@@ -84,11 +84,6 @@
 /* Required for the provisioner helper module */
 static network_dsm_handles_data_volatile_t m_dev_handles;
 static network_stats_data_stored_t m_nw_state;
-
-static const uint8_t m_client_uuid_filter[COMMON_UUID_PREFIX_LEN] = {COMMON_CLIENT_UUID};
-static const uint8_t m_server_uuid_filter[COMMON_UUID_PREFIX_LEN] = {COMMON_SERVER_UUID};
-static uint8_t m_current_uuid[NRF_MESH_UUID_SIZE];
-static prov_helper_uuid_filter_t m_exp_uuid;
 static bool m_node_prov_setup_started;
 
 /* Forward declarations */
@@ -243,6 +238,23 @@ static void app_data_store_cb(void)
     ERROR_CHECK(store_app_data());
 }
 
+static const char * server_uri_index_select(const char * p_client_uri)
+{
+    if (strcmp(p_client_uri, EX_URI_LS_CLIENT) == 0 || strcmp(p_client_uri, EX_URI_ENOCEAN) == 0)
+    {
+        return EX_URI_LS_SERVER;
+    }
+    else if (strcmp(p_client_uri, EX_URI_DM_CLIENT) == 0)
+    {
+        return EX_URI_DM_SERVER;
+    }
+
+    __LOG(LOG_SRC_APP, LOG_LEVEL_ASSERT, "Invalid client URI index.\n");
+    NRF_MESH_ASSERT(false);
+
+    return NULL;
+}
+
 /*****************************************************************************/
 /**** Configuration process related callbacks ****/
 
@@ -258,10 +270,10 @@ static void app_config_successful_cb(void)
 
     if (m_nw_state.configured_devices < (SERVER_NODE_COUNT + CLIENT_NODE_COUNT))
     {
-        m_exp_uuid.p_uuid = m_server_uuid_filter;
-        m_exp_uuid.length = COMMON_UUID_PREFIX_LEN;
+        static const char * uri_list[1];
+        uri_list[0] = server_uri_index_select(m_nw_state.p_client_uri);
         prov_helper_provision_next_device(PROVISIONER_RETRY_COUNT, m_nw_state.next_device_address,
-                                          &m_exp_uuid, &m_current_uuid[0]);
+                                           uri_list, ARRAY_SIZE(uri_list));
         prov_helper_scan_start();
 
         hal_led_pin_set(APP_PROVISIONING_LED, 1);
@@ -287,6 +299,8 @@ static void app_prov_success_cb(void)
 
     hal_led_pin_set(APP_PROVISIONING_LED, 0);
     hal_led_pin_set(APP_CONFIGURATION_LED, 1);
+
+    ERROR_CHECK(store_app_data());
 }
 
 static void app_prov_failed_cb(void)
@@ -352,31 +366,34 @@ static void check_network_state(void)
         {
             /* Execute configuration */
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Waiting for provisioned node to be configured ...\n");
+
             node_setup_start(m_nw_state.last_device_address, PROVISIONER_RETRY_COUNT,
-                            m_nw_state.appkey, APPKEY_INDEX, &m_current_uuid[0]);
+                            m_nw_state.appkey, APPKEY_INDEX, m_nw_state.p_client_uri);
 
             hal_led_pin_set(APP_CONFIGURATION_LED, 1);
         }
         else if (m_nw_state.provisioned_devices == 0)
         {
-            /* Start provisioning - First provision the client with known UUID */
-            m_exp_uuid.p_uuid = m_client_uuid_filter;
-            m_exp_uuid.length = COMMON_UUID_PREFIX_LEN;
+            /* Start provisioning - First provision the client with known URI hash */
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Waiting for Client node to be provisioned ...\n");
+
+            static const char * uri_list[] = {EX_URI_LS_CLIENT, EX_URI_ENOCEAN, EX_URI_DM_CLIENT};
             prov_helper_provision_next_device(PROVISIONER_RETRY_COUNT, m_nw_state.next_device_address,
-                                              &m_exp_uuid, &m_current_uuid[0]);
+                                              uri_list, ARRAY_SIZE(uri_list));
             prov_helper_scan_start();
 
             hal_led_pin_set(APP_PROVISIONING_LED, 1);
         }
         else if (m_nw_state.provisioned_devices < (SERVER_NODE_COUNT + CLIENT_NODE_COUNT))
         {
-            /* Start provisioning - rest of the devices */
-            m_exp_uuid.p_uuid = m_server_uuid_filter;
-            m_exp_uuid.length = COMMON_UUID_PREFIX_LEN;
+            /* Start provisioning - rest of the devices, depending on the client that was provisioned. */
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Waiting for Server node to be provisioned ...\n");
+
+            static const char * uri_list[1];
+            uri_list[0] = server_uri_index_select(m_nw_state.p_client_uri);
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Server URI index: %d\n",  uri_list[0]);
             prov_helper_provision_next_device(PROVISIONER_RETRY_COUNT, m_nw_state.next_device_address,
-                                              &m_exp_uuid, &m_current_uuid[0]);
+                                               uri_list, ARRAY_SIZE(uri_list));
             prov_helper_scan_start();
 
             hal_led_pin_set(APP_PROVISIONING_LED, 1);
@@ -558,7 +575,7 @@ static void mesh_init(void)
 
 static void initialize(void)
 {
-    __LOG_INIT(LOG_SRC_APP | LOG_SRC_ACCESS, LOG_LEVEL_DBG1, LOG_CALLBACK_DEFAULT);
+    __LOG_INIT(LOG_SRC_APP | LOG_SRC_ACCESS, LOG_LEVEL_INFO, LOG_CALLBACK_DEFAULT);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- BLE Mesh Light Switch Provisioner Demo -----\n");
 
     ERROR_CHECK(app_timer_init());

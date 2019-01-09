@@ -241,22 +241,78 @@ uint32_t nrf_mesh_prov_oob_use(nrf_mesh_prov_ctx_t *      p_ctx,
 /**
  * Provides out-of-band authentication data input to the provisioning stack.
  *
+ * When replying to an @ref NRF_MESH_PROV_EVT_INPUT_REQUEST
+ * and acting as a **provisionee**, the @ref nrf_mesh_prov_input_action_t
+ * determines how @p p_data will be formatted.
+ *
+ * @p p_data must be a pointer to a `uint32_t` number that contains the authentication
+ * data and @p size must be identical to @ref nrf_mesh_prov_evt_input_request_t::size
+ * when the input is one of the following:
+ *
+ * - @ref nrf_mesh_prov_input_action_t::NRF_MESH_PROV_INPUT_ACTION_PUSH,
+ * - @ref nrf_mesh_prov_input_action_t::NRF_MESH_PROV_INPUT_ACTION_TWIST, or
+ * - @ref nrf_mesh_prov_input_action_t::NRF_MESH_PROV_INPUT_ACTION_ENTER_NUMBER.
+ *
+ * When the input action is
+ * @ref nrf_mesh_prov_input_action_t::NRF_MESH_PROV_INPUT_ACTION_ENTER_STRING,
+ * @p p_data must be an array of alphanumeric uppercase
+ * ASCII values of @p size . That is, with values in the ranges
+ * 'A'-'Z' or '0'-'9'.
+ *
+ * When replying to an @ref NRF_MESH_PROV_EVT_INPUT_REQUEST
+ * and acting as a **provisioner**, the @ref nrf_mesh_prov_output_action_t
+ * determines how @p p_data will be formatted.
+ *
+ * @p p_data must be a pointer to a `uint32_t` number that contains the authentication
+ * data and @p size must be identical to @ref nrf_mesh_prov_evt_input_request_t::size
+ * when the input is one of the following:
+ *
+ * - @ref nrf_mesh_prov_output_action_t::NRF_MESH_PROV_OUTPUT_ACTION_BLINK,
+ * - @ref nrf_mesh_prov_output_action_t::NRF_MESH_PROV_OUTPUT_ACTION_BEEP,
+ * - @ref nrf_mesh_prov_output_action_t::NRF_MESH_PROV_OUTPUT_ACTION_VIBRATE, or
+ * - @ref nrf_mesh_prov_output_action_t::NRF_MESH_PROV_OUTPUT_ACTION_DISPLAY_NUMERIC.
+ *
+ * When the output action is
+ * @ref nrf_mesh_prov_output_action_t::NRF_MESH_PROV_OUTPUT_ACTION_ALPHANUMERIC
+ * @p p_data must be an array of alphanumeric uppercase
+ * ASCII values of @p size . That is, with values in the ranges
+ * 'A'-'Z' or '0'-'9'.
+ *
  * @param[in,out] p_ctx Pointer to a statically allocated provisioning context structure.
  * @param[in] p_data    Pointer to an array of authentication data. The size of this array should
  *                      match the size of the data requested in the request event for @ref
  *                      NRF_MESH_PROV_EVT_INPUT_REQUEST, or be 16 bytes for a
  *                      @ref NRF_MESH_PROV_EVT_STATIC_REQUEST event. The maximum size of the data is
  *                      16 bytes.
- * @param[in] size      Size of the array provided in @c p_data.
+ * @param[in] size      Size according to @ref nrf_mesh_prov_evt_input_request_t::size.
  *
  * @retval NRF_SUCCESS              The authentication data was accepted by the provisioning system.
  * @retval NRF_ERROR_INVALID_STATE  Authentication data was provided even though it was not
  *                                  requested by the current provisioning context.
  * @retval NRF_ERROR_INVALID_LENGTH The size of the authentication data was invalid.
+ * @retval NRF_ERROR_INVALID_DATA   The provided data did not meet the requirements
+ *                                  corresponding to the requested data.
  */
 uint32_t nrf_mesh_prov_auth_data_provide(nrf_mesh_prov_ctx_t * p_ctx,
                                          const uint8_t *       p_data,
                                          uint8_t               size);
+/**
+ * Provides out-of-band authentication number to the provisioning stack.
+ *
+ * This function is a simple wrapper for the @ref nrf_mesh_prov_auth_data_provide()
+ * API.
+ *
+ * @param[in,out] p_ctx  Provisioning context pointer.
+ * @param[in]     number Number displayed by the peer device.
+ *
+ * @return Inherits the returns from @ref nrf_mesh_prov_auth_data_provide().
+ */
+static inline uint32_t nrf_mesh_prov_oob_number_provide(nrf_mesh_prov_ctx_t * p_ctx,
+                                                        uint32_t number)
+{
+    /* Input sanitation is done by nrf_mesh_prov_auth_data_provide() */
+    return nrf_mesh_prov_auth_data_provide(p_ctx, (const uint8_t *) &number, p_ctx->oob_size);
+}
 
 /**
  * Provides the shared secret to the provisioning stack after running a requested ECDH calculation.

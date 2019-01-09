@@ -79,6 +79,18 @@
 #define APP_TIMER_ENABLED 1
 #define APP_TIMER_KEEPS_RTC_ACTIVE 1
 
+/** Configuration for the BLE DFU support module to be enabled. */
+#define FDS_ENABLED 1
+#define NRF_BLE_GATT_ENABLED 1
+#define NRF_DFU_BLE_BUTTONLESS_SUPPORTS_BONDS 0
+#define NRF_DFU_TRANSPORT_BLE 1
+#define NRF_FSTORAGE_ENABLED 1
+#define NRF_PWR_MGMT_ENABLED 1
+#define NRF_PWR_MGMT_CONFIG_AUTO_SHUTDOWN_RETRY 1
+#define NRF_SDH_BLE_SERVICE_CHANGED 1
+#define NRF_SDH_BLE_VS_UUID_COUNT 1
+#define PEER_MANAGER_ENABLED 1
+
 /** @} end of APP_SDK_CONFIG */
 
 #endif /* APP_CONFIG_H__ */

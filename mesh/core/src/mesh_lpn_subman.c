@@ -66,12 +66,10 @@
  */
 
 #define LPN_SUBMAN_PDU_RETRY_COUNT                  (2)
-#define LPN_SUBMAN_ADDRESS_LIST_SIZE                (DSM_NONVIRTUAL_ADDR_MAX + DSM_VIRTUAL_ADDR_MAX)
+#define LPN_SUBMAN_ADDRESS_LIST_SIZE                (DSM_NONVIRTUAL_ADDR_MAX + DSM_VIRTUAL_ADDR_MAX + 1 /* HEARTBEAT SUBSCRIPTION */)
 
 #define TRANSACTION_NUMBER_GET(_pkt)                (packet_mesh_trs_control_friend_sublist_add_remove_transaction_number_get(_pkt))
 #define TRANSACTION_NUMBER_SET(_pkt, _value)        (packet_mesh_trs_control_friend_sublist_add_remove_transaction_number_set(_pkt, _value))
-
-#define MAX_ADDRESSES_IN_PDU(_len)                  (_len/2)
 
 #define SUBMAN_INDEX_INVALID                        (0xFFFF)
 
@@ -88,12 +86,6 @@ typedef struct
     uint16_t raw_addr;
     entry_state_flag_t flag;
 } lpn_subman_address_t;
-
-typedef struct __attribute((packed))
-{
-    uint8_t transaction_number;
-    uint16_t addr_list[MAX_ADDRESSES_IN_PDU(PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_SIZE)];
-} friend_sublist_add_rem_msg_t;
 
 /* Forward declarations */
 static void subman_lpn_event_handler(const nrf_mesh_evt_t * p_evt);
@@ -189,24 +181,23 @@ static uint16_t subman_address_exist(uint16_t address)
 
 static bool subman_next_pdu_create(transport_control_opcode_t opcode)
 {
-    if (m_addr_list == NULL)
-    {
-        return false;
-    }
+    TRANSACTION_NUMBER_SET(&m_transport_pdu, m_current_transaction_number);
 
-    uint16_t length = 0;
-    friend_sublist_add_rem_msg_t * p_pdu = (friend_sublist_add_rem_msg_t *) &m_transport_pdu.pdu[0];
+    uint16_t length = PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_ADDRESS_LIST0_OFFSET;
+    uint32_t packet_addr_index = 0;
 
-    p_pdu->transaction_number = m_current_transaction_number;
-    length++;
-
-    for (int32_t i = 0; i < LPN_SUBMAN_ADDRESS_LIST_SIZE; i++)
+    for (int32_t i = 0;
+         (i < LPN_SUBMAN_ADDRESS_LIST_SIZE &&
+          packet_addr_index < PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_ADDRESS_LIST_MAX_COUNT);
+         i++)
     {
         if (entry_is_used_not_synced(i) &&
             ((opcode == TRANSPORT_CONTROL_OPCODE_FRIEND_SUBSCRIPTION_LIST_ADD &&  is_entry_for_add(i)) ||
              (opcode == TRANSPORT_CONTROL_OPCODE_FRIEND_SUBSCRIPTION_LIST_REMOVE &&  is_entry_for_rem(i))))
         {
-            p_pdu->addr_list[length/2] = LE2BE16(m_addr_list[i].raw_addr);
+            packet_mesh_trs_control_friend_sublist_add_remove_address_list_set(&m_transport_pdu,
+                                                                               packet_addr_index++,
+                                                                               m_addr_list[i].raw_addr);
             length += sizeof(m_addr_list[0].raw_addr);
 
             if (is_entry_for_add(i))
@@ -217,18 +208,13 @@ static bool subman_next_pdu_create(transport_control_opcode_t opcode)
             {
                 entry_clear_all(i);
             }
-
-            if (length >= PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_SIZE)
-            {
-                break;
-            }
         }
     }
 
    m_transport_ctrl_pkt.opcode = opcode;
    m_transport_ctrl_pkt.data_len = length;
 
-   return (length > 1);
+   return (packet_addr_index > 0);
 }
 
 static void pdu_send_if_not_sending_but_established(transport_control_opcode_t opcode)

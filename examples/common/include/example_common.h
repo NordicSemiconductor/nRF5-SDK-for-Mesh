@@ -38,6 +38,7 @@
 #define EXAMPLE_COMMON_H__
 
 #include "sdk_config.h"
+#include "uri.h"
 
 #define RTT_INPUT_POLL_PERIOD_MS    (100)
 
@@ -73,5 +74,25 @@
         .xtal_accuracy = NRF_CLOCK_LF_XTAL_ACCURACY_20_PPM \
     }
 #endif
+
+/** Uniform Resource Identifiers (URIs) for the examples.
+ *
+ *
+ * @note Replace the example URI strings with the desired URIs for the end products. The URI strings
+ * should be coded as specified in the Bluetooth Core Specification Supplement v6, section 1.18.
+ */
+#define EX_URI_BEACON       URI_SCHEME_EXAMPLE "URI for Beacon example"
+#define EX_URI_DFU          URI_SCHEME_EXAMPLE "URI for DFU example"
+#define EX_URI_ENOCEAN      URI_SCHEME_EXAMPLE "URI for Enocean example"
+#define EX_URI_DM_CLIENT    URI_SCHEME_EXAMPLE "URI for Dimming Client example"
+#define EX_URI_DM_SERVER    URI_SCHEME_EXAMPLE "URI for Dimming Server example"
+#define EX_URI_LPN          URI_SCHEME_EXAMPLE "URI for LPN example"
+#define EX_URI_LS_CLIENT    URI_SCHEME_EXAMPLE "URI for LS Client example"
+#define EX_URI_LS_SERVER    URI_SCHEME_EXAMPLE "URI for LS Server example"
+#define EX_URI_PBR_CLIENT   URI_SCHEME_EXAMPLE "URI for PB Remote Client example"
+#define EX_URI_PBR_SERVER   URI_SCHEME_EXAMPLE "URI for PB Remote Server example"
+#define EX_URI_SERIAL       URI_SCHEME_EXAMPLE "URI for Serial example"
+
+
 
 #endif /* EXAMPLE_COMMON_H__ */

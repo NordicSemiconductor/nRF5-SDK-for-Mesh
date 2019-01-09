@@ -360,6 +360,10 @@ static void handle_cmd_packet_send(const serial_packet_t * p_cmd)
 {
     nrf_mesh_tx_params_t tx_params;
     memset(&tx_params, 0, sizeof(tx_params));
+
+    serial_evt_cmd_rsp_data_packet_send_t rsp;
+    rsp.token = nrf_mesh_unique_token_get();
+
     uint32_t status = dsm_address_get(p_cmd->payload.cmd.mesh.packet_send.dst_addr_handle, &tx_params.dst);
     if (status == NRF_SUCCESS)
     {
@@ -408,11 +412,13 @@ static void handle_cmd_packet_send(const serial_packet_t * p_cmd)
                     tx_params.p_data = NULL;
                     tx_params.data_len = 0;
                 }
+                tx_params.tx_token = rsp.token;
+
                 status = nrf_mesh_packet_send(&tx_params, NULL);
             }
         }
     }
-    serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, NULL, 0);
+    serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, (uint8_t *) &rsp, sizeof(rsp));
 }
 
 static void handle_cmd_clear(const serial_packet_t * p_cmd)
@@ -529,6 +535,15 @@ static void serial_handler_mesh_evt_handle(const nrf_mesh_evt_t* p_evt)
                 p_serial_evt->opcode = SERIAL_OPCODE_EVT_MESH_KEY_REFRESH_NOTIFICATION;
                 p_serial_evt->payload.evt.mesh.key_refresh.netkey_index = p_evt->params.key_refresh.subnet_index;
                 p_serial_evt->payload.evt.mesh.key_refresh.phase = p_evt->params.key_refresh.phase;
+                serial_tx(p_serial_evt);
+            }
+            break;
+        case NRF_MESH_EVT_TX_COMPLETE:
+            status = serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_mesh_tx_complete_t), &p_serial_evt);
+            if (status == NRF_SUCCESS)
+            {
+                p_serial_evt->opcode = SERIAL_OPCODE_EVT_MESH_TX_COMPLETE;
+                p_serial_evt->payload.evt.mesh.tx_complete.token = p_evt->params.tx_complete.token;
                 serial_tx(p_serial_evt);
             }
             break;

@@ -91,7 +91,7 @@
 
 #define SERIAL_OPCODE_EVT_MESH_MESSAGE_RECEIVED_UNICAST      (0xD0) /**< Params: @ref serial_evt_mesh_message_received_t */
 #define SERIAL_OPCODE_EVT_MESH_MESSAGE_RECEIVED_SUBSCRIPTION (0xD1) /**< Params: @ref serial_evt_mesh_message_received_t */
-#define SERIAL_OPCODE_EVT_MESH_TX_COMPLETE                   (0xD2) /**< Params: None. */
+#define SERIAL_OPCODE_EVT_MESH_TX_COMPLETE                   (0xD2) /**< Params: @ref serial_evt_mesh_tx_complete_t */
 #define SERIAL_OPCODE_EVT_MESH_IV_UPDATE_NOTIFICATION        (0xD3) /**< Params: @ref serial_evt_mesh_iv_update_t */
 #define SERIAL_OPCODE_EVT_MESH_KEY_REFRESH_NOTIFICATION      (0xD4) /**< Params: @ref serial_evt_mesh_key_refresh_t */
 #define SERIAL_OPCODE_EVT_MESH_SAR_FAILED                    (0xD7) /**< Params: None. */
@@ -292,6 +292,12 @@ typedef struct __attribute((packed))
     uint8_t  data[SERIAL_EVT_MESH_MESSAGE_RECEIVED_DATA_MAXLEN];
 } serial_evt_mesh_message_received_t;
 
+/** Mesh TX complete event. */
+typedef struct __attribute((packed))
+{
+    nrf_mesh_tx_token_t token; /**< TX token for the completed packet. */
+} serial_evt_mesh_tx_complete_t;
+
 /** Mesh IV update event parameters. */
 typedef struct __attribute((packed))
 {
@@ -309,6 +315,7 @@ typedef struct __attribute((packed))
 typedef union __attribute((packed))
 {
     serial_evt_mesh_message_received_t  message_received; /**< Message received parameters. */
+    serial_evt_mesh_tx_complete_t       tx_complete;      /**< TX complete parameters. */
     serial_evt_mesh_iv_update_t         iv_update;        /**< IV update parameters. */
     serial_evt_mesh_key_refresh_t       key_refresh;      /**< Key refresh parameters. */
 } serial_evt_mesh_t;

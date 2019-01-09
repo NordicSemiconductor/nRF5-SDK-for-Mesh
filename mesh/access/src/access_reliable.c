@@ -434,7 +434,7 @@ uint32_t access_model_reliable_publish(const access_reliable_t * p_reliable)
     else
     {
         status = access_model_publish(p_reliable->model_handle, &p_reliable->message);
-        if (NRF_SUCCESS == status || NRF_ERROR_NO_MEM == status)
+        if (NRF_SUCCESS == status || NRF_ERROR_NO_MEM == status || NRF_ERROR_INVALID_STATE == status)
         {
             /** @todo If we get @c NRF_ERROR_NO_MEM, we could be even "smarter" and retry in @ref
              * ACCESS_RELIABLE_RETRY_DELAY scaled based on advertising intervals or something.

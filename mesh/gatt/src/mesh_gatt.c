@@ -37,7 +37,7 @@
 
 #include "mesh_gatt.h"
 
-#include "nrf_mesh_config_core.h"
+#include "nrf_mesh_gatt.h"
 #if MESH_FEATURE_GATT_ENABLED
 
 #include <stdint.h>
@@ -87,7 +87,6 @@ typedef struct __attribute((packed))
 #if defined(UNIT_TEST) || defined(_lint)
 extern mesh_gatt_t m_gatt;
 #else
-#include "nrf_mesh_gatt.h"
 #include "nrf_sdh_ble.h"
 static mesh_gatt_t m_gatt;
 NRF_SDH_BLE_OBSERVER(m_gatt_obs, NRF_MESH_GATT_BLE_OBSERVER_PRIO, mesh_gatt_on_ble_evt, &m_gatt);
@@ -524,9 +523,21 @@ static void exchange_mtu_req_handle(const ble_evt_t * p_ble_evt)
                                          MESH_GATT_MTU_SIZE_MAX),
                                      BLE_GATT_ATT_MTU_DEFAULT);
 
-        NRF_MESH_ERROR_CHECK(
-            sd_ble_gatts_exchange_mtu_reply(p_ble_evt->evt.gatts_evt.conn_handle, server_rx_mtu));
-        m_gatt.connections[conn_index].effective_mtu = server_rx_mtu - MESH_GATT_WRITE_OVERHEAD;
+        uint32_t status = sd_ble_gatts_exchange_mtu_reply(p_ble_evt->evt.gatts_evt.conn_handle, server_rx_mtu);
+
+        if (status == NRF_SUCCESS)
+        {
+            m_gatt.connections[conn_index].effective_mtu = server_rx_mtu - MESH_GATT_WRITE_OVERHEAD;
+        }
+        else
+        {
+            __LOG(LOG_SRC_INTERNAL,
+                  LOG_LEVEL_WARN,
+                  "Got %#x on exchange_mtu_reply with client mtu %u and server mtu %u\n",
+                  status,
+                  client_rx_mtu,
+                  server_rx_mtu);
+        }
     }
 }
 

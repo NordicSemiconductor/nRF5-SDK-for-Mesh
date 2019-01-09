@@ -64,6 +64,13 @@
 /** Maximum key index allowed. */
 #define DSM_KEY_INDEX_MAX   (NRF_MESH_GLOBAL_KEY_INDEX_MAX)
 
+/** The highest number of appkeys allowed on the device. */
+#define DSM_APP_MAX_LIMIT   (247)
+/** The highest number of subnets allowed on the device. */
+#define DSM_SUBNET_MAX_LIMIT (252)
+/** The highest number of addresses (virtual and group) allowed on the device. */
+#define DSM_ADDR_MAX_LIMIT  (185)
+
 /** @} */
 
 /**
@@ -699,10 +706,10 @@ uint32_t dsm_tx_secmat_get(dsm_handle_t subnet_handle, dsm_handle_t app_handle, 
  * It is possible to set the @c subnet_handle to @ref DSM_HANDLE_INVALID value. In this case, the DSM will
  * try to find the network key bound to the application key.
  *
- * @param[in] subnet_handle The subnet handle of the network key used in the transmission.
- * @param[in] app_handle The application handle of the application key used in the transmission.
- * @param[in, out] p_secmat Pointer to the structure for the application and friendship network security 
- * material for a mesh packet.
+ * @param[in] subnet_handle Subnet handle of the network key used in the transmission.
+ * @param[in] app_handle Application handle of the application key used in the transmission.
+ * @param[in, out] p_secmat Pointer to the structure for the application and network security
+ * material of the current friendship.
  *
  * @retval NRF_SUCCESS The requested network and application security materials successfully
  * populated the @c p_secmat.

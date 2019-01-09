@@ -294,6 +294,12 @@ typedef struct __attribute((packed))
     uint8_t data[SERIAL_EVT_CMD_RSP_DATA_MAXLEN - sizeof(uint8_t)]; /**< Command response data specific to each model. */
 } serial_evt_cmd_rsp_data_model_cmd_t;
 
+/** Command response to @ref SERIAL_OPCODE_CMD_MESH_PACKET_SEND with information about the sent packet. */
+typedef struct __attribute((packed))
+{
+    nrf_mesh_tx_token_t token; /**< TX Token assigned to the packet. Can be used to resolve which packet a @ref SERIAL_OPCODE_EVT_MESH_TX_COMPLETE event refers to. */
+} serial_evt_cmd_rsp_data_packet_send_t;
+
 /** Command response packet. */
 typedef struct __attribute((packed))
 {
@@ -331,6 +337,7 @@ typedef struct __attribute((packed))
         serial_evt_cmd_rsp_data_elem_models_get_t      model_handles;  /**< Element's list of model handles. */
         serial_evt_cmd_rsp_data_models_get_t           model_ids;      /**< All the available models.*/
         serial_evt_cmd_rsp_data_model_init_t           model_init;     /**< Reserved handle for the initialized model instance. */
+        serial_evt_cmd_rsp_data_packet_send_t          packet_send;    /**< Information about the sent packet. */
 
     } data; /**< Optional command response data. */
 } serial_evt_cmd_rsp_t;

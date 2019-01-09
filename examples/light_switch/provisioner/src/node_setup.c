@@ -55,6 +55,7 @@
 
 #include "provisioner_helper.h"
 #include "node_setup.h"
+#include "example_common.h"
 #include "example_network_config.h"
 #include "light_switch_example_common.h"
 #include "mesh_app_utils.h"
@@ -149,9 +150,6 @@ static uint16_t m_retry_count;
 static client_send_retry_t m_send_timer;
 static const uint8_t * mp_appkey;
 static uint16_t m_appkey_idx;
-static prov_helper_uuid_filter_t m_uuid_filter = {.p_uuid = NULL, .length = NODE_UUID_PREFIX_LEN};
-static const uint8_t m_client_filter[NODE_UUID_PREFIX_LEN] = CLIENT_NODE_UUID_PREFIX;
-static const uint8_t m_server_filter[NODE_UUID_PREFIX_LEN] = SERVER_NODE_UUID_PREFIX;
 static access_model_id_t m_client_model_id;
 static access_model_id_t m_server_model_id;
 
@@ -594,7 +592,7 @@ static void config_client_msg_handle(const config_client_event_t * p_event,
                 config_step_execute();
             }
         }
-        else
+        else if (status == STATUS_CHECK_FAIL)
         {
             node_setup_fail();
         }
@@ -638,7 +636,7 @@ void node_setup_config_client_event_process(config_client_event_type_t event_typ
  * Begins the node setup process.
  */
 void node_setup_start(uint16_t address, uint8_t  retry_cnt, const uint8_t * p_appkey,
-                      uint16_t appkey_idx, const uint8_t * p_current_uuid)
+                      uint16_t appkey_idx, const char * p_client_uri)
 {
     if (*mp_config_step != NODE_SETUP_IDLE)
     {
@@ -653,24 +651,20 @@ void node_setup_start(uint16_t address, uint8_t  retry_cnt, const uint8_t * p_ap
     m_appkey_idx = appkey_idx;
 
     /* The filter match will decide, which model pairs to pick up */
-    if (address == UNPROV_START_ADDRESS)
-    {
-        m_uuid_filter.p_uuid = m_client_filter;
-    }
-    else
-    {
-        m_uuid_filter.p_uuid = m_server_filter;
-    }
-
-    if (uuid_filter_compare(p_current_uuid, &m_uuid_filter))
+    if (strcmp(p_client_uri, EX_URI_LS_CLIENT) == 0 || strcmp(p_client_uri, EX_URI_ENOCEAN) == 0)
     {
         m_client_model_id.model_id = GENERIC_ONOFF_CLIENT_MODEL_ID;
         m_server_model_id.model_id = GENERIC_ONOFF_SERVER_MODEL_ID;
     }
-    else
+    else if (strcmp(p_client_uri, EX_URI_DM_CLIENT) == 0)
     {
         m_client_model_id.model_id = GENERIC_LEVEL_CLIENT_MODEL_ID;
         m_server_model_id.model_id = GENERIC_LEVEL_SERVER_MODEL_ID;
+    }
+    else
+    {
+        __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Invalid client URI identifier.\n");
+        NRF_MESH_ASSERT(false);
     }
 
     m_client_model_id.company_id = ACCESS_COMPANY_ID_NONE;

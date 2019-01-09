@@ -43,6 +43,7 @@
 #include "nrf_mesh_dfu_types.h"
 #include "list.h"
 #include "mesh_config.h"
+#include "heartbeat.h"
 
 /**
  * @defgroup NRF_MESH_EVENTS Mesh events
@@ -68,6 +69,8 @@ typedef enum
     NRF_MESH_EVT_NET_BEACON_RECEIVED,
     /** A heartbeat message is received. */
     NRF_MESH_EVT_HB_MESSAGE_RECEIVED,
+    /** The heartbeat subscription parameters changed. */
+    NRF_MESH_EVT_HB_SUBSCRIPTION_CHANGE,
     /** DFU request for this node to be the relay of a transfer. */
     NRF_MESH_EVT_DFU_REQ_RELAY,
     /** DFU request for this node to be the source of a transfer. */
@@ -192,6 +195,15 @@ typedef struct
      * the metadata represents the last packet. */
     uint16_t src;
 } nrf_mesh_evt_hb_message_t;
+
+/** Parameters for changes to the heartbeat subscription state. */
+typedef struct
+{
+    /** Old subscription state, or NULL if heartbeat subscriptions were disabled before the change. */
+    const heartbeat_subscription_state_t * p_old;
+    /** New subscription state, or NULL if heartbeat subscriptions are disabled. */
+    const heartbeat_subscription_state_t * p_new;
+} nrf_mesh_evt_hb_subscription_change_t;
 
 /**
  * Transmission complete event structure.
@@ -433,6 +445,8 @@ typedef struct
         nrf_mesh_evt_net_beacon_received_t      net_beacon;
         /** HB message received/sent event. */
         nrf_mesh_evt_hb_message_t               hb_message;
+        /** HB subscription state changed. */
+        nrf_mesh_evt_hb_subscription_change_t   hb_subscription_change;
 
         /** DFU event. */
         nrf_mesh_evt_dfu_t                      dfu;

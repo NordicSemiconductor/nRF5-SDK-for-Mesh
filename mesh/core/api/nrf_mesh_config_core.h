@@ -445,18 +445,10 @@
  * @{
  */
 
-/** PB-GATT feature. To be enabled only in combination with linking GATT files. */
-#ifndef MESH_FEATURE_PB_GATT_ENABLED
-#define MESH_FEATURE_PB_GATT_ENABLED 0
-#endif
-
 /** GATT proxy feature. To be enabled only in combination with linking GATT proxy files. */
 #ifndef MESH_FEATURE_GATT_PROXY_ENABLED
 #define MESH_FEATURE_GATT_PROXY_ENABLED 0
 #endif
-
-/** Indicates if any of GATT-related features is enabled. */
-#define MESH_FEATURE_GATT_ENABLED (MESH_FEATURE_GATT_PROXY_ENABLED || MESH_FEATURE_PB_GATT_ENABLED)
 
 /** Maximum number of addresses in the GATT proxy address filter, per connection. */
 #ifndef MESH_GATT_PROXY_FILTER_ADDR_COUNT

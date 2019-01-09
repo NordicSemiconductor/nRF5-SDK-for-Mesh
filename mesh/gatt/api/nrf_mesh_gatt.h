@@ -37,6 +37,12 @@
 #ifndef NRF_MESH_GATT_H__
 #define NRF_MESH_GATT_H__
 
+#include "nrf_mesh_config_core.h"
+#include "nrf_mesh_config_prov.h"
+
 #define NRF_MESH_GATT_BLE_OBSERVER_PRIO 2 // TODO: Move to nrf_mesh_config_core.h
+
+/** Indicates whether any of GATT-related features is enabled. */
+#define MESH_FEATURE_GATT_ENABLED (MESH_FEATURE_GATT_PROXY_ENABLED || MESH_FEATURE_PB_GATT_ENABLED)
 
 #endif /* NRF_MESH_GATT_H__ */

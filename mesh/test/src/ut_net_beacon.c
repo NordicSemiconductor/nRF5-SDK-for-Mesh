@@ -545,6 +545,7 @@ void test_beacon_state_change(void)
     /* Disable the beacon while running: */
     timer_sch_abort_Expect(NULL);
     timer_sch_abort_IgnoreArg_p_timer_evt();
+    advertiser_disable_ExpectAnyArgs();
     set_state = false;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, m_net_beacon_enable_params.callbacks.setter(entry_id, &set_state));
     m_net_beacon_enable_params.callbacks.getter(entry_id, &get_state);

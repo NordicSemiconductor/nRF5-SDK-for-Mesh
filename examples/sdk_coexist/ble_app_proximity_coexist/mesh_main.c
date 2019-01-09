@@ -271,15 +271,11 @@ static void models_init_cb(void)
 
 void mesh_init(void)
 {
-    uint8_t dev_uuid[NRF_MESH_UUID_SIZE];
-    uint8_t node_uuid_prefix[NODE_UUID_PREFIX_LEN] = CLIENT_NODE_UUID_PREFIX;
-
-    ERROR_CHECK(mesh_app_uuid_gen(dev_uuid, node_uuid_prefix, NODE_UUID_PREFIX_LEN));
     mesh_stack_init_params_t init_params =
     {
         .core.irq_priority       = NRF_MESH_IRQ_PRIORITY_LOWEST,
         .core.lfclksrc           = DEV_BOARD_LF_CLK_CFG,
-        .core.p_uuid             = dev_uuid,
+        .core.p_uuid             = NULL,
         .models.models_init_cb   = models_init_cb,
         .models.config_server_cb = config_server_evt_cb
     };
@@ -305,7 +301,7 @@ void mesh_main_start(void)
             .prov_device_identification_start_cb = NULL,
             .prov_device_identification_stop_cb = NULL,
             .prov_abort_cb = NULL,
-            .p_device_uri = NULL
+            .p_device_uri = EX_URI_LS_CLIENT
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }

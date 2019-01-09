@@ -47,6 +47,7 @@
 #include "timer_scheduler.h"
 
 #include "access_config.h"
+#include "utils.h"
 
 #define ATTENTION_TIMER_INTERVAL 1000000u
 #define FAST_PERIOD_DIVISOR_MAX  15
@@ -404,7 +405,15 @@ static void divide_publish_interval(access_publish_resolution_t input_resolution
     if (ms100_value < 10)
     {
         *p_output_resolution = ACCESS_PUBLISH_RESOLUTION_100MS;
-        *p_output_steps = ms100_value;
+        if (input_steps == 0)
+        {
+            *p_output_steps = 0;
+        }
+        else
+        {
+            /* Avoid accidentally disabling publishing by dividing by too high a number */
+            *p_output_steps = MAX(1, ms100_value);
+        }
     }
     else if (ms100_value < 100)
     {

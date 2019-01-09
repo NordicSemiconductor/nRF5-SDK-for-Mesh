@@ -46,9 +46,9 @@
 /**
  * @defgroup MESH_STACK Mesh stack
  *
- * High level initialization API for the mesh stack
+ * High level management API for the mesh stack
  *
- * Functions for initializing and starting all mesh stack modules, including foundation models.
+ * Functions for initializing and managing all mesh stack modules, including foundation models.
  * @{
  */
 

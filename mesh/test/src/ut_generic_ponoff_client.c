@@ -228,8 +228,7 @@ static void helper_call_opcode_handler(access_model_handle_t handle, const acces
 static void helper_expect_for_model_init_success(void)
 {
     access_model_add_StubWithCallback(access_model_add_mock);
-    generic_onoff_client_init_ExpectAnyArgsAndReturn(NRF_SUCCESS);
-    access_model_subscription_lists_share_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    access_model_subscription_list_alloc_ExpectAnyArgsAndReturn(NRF_SUCCESS);
 }
 
 static void helper_init_model_context_and_expectations(void)

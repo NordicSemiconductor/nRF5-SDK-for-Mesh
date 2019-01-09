@@ -48,6 +48,8 @@
 #include "nrf_mesh_configure.h"
 #include "nrf_mesh.h"
 
+#if MESH_FEATURE_PB_ADV_ENABLED
+
 #include "log.h"
 #include "packet.h"
 #include "rand.h"
@@ -152,6 +154,7 @@ NRF_MESH_STATIC_ASSERT(PROV_BEARER_ADV_PACKET_CONTINUATION_PAYLOAD_MAXLEN == 23)
 
 #define PB_ADV_TRANSACTION_NUMBER_PROVISIONER_START  (0x00) /**< Initial value of provisioner transaction number. */
 #define PB_ADV_TRANSACTION_NUMBER_PROVISIONEE_START  (0x80) /**< Initial value of provisionee transaction number. */
+#define PB_ADV_TRANSACTION_NUMBER_ROLLOVER_MASK      (0x7f) /**< Mask applied when rolling over transaction numbers. */
 /*****************************************************************************
 * Local type declarations
 *****************************************************************************/
@@ -323,6 +326,17 @@ static inline uint8_t transaction_total_segment_count_get(uint32_t total_length)
          - PROV_BEARER_ADV_PACKET_START_PAYLOAD_MAXLEN
          + PROV_BEARER_ADV_PACKET_CONTINUATION_PAYLOAD_MAXLEN)
         / PROV_BEARER_ADV_PACKET_CONTINUATION_PAYLOAD_MAXLEN;
+}
+
+/**
+ * According to The Mesh Profile Specification v1.0, Section 5.2.1, transaction numbers are
+ * split into two domains at 0x80, and transaction numbers that are 0x7f should roll over to
+ * 0, while transaction numbers that are at 0xff should roll over to 0x80.
+ */
+static inline uint8_t transaction_number_increment(uint8_t transaction_number)
+{
+    return (transaction_number & ~PB_ADV_TRANSACTION_NUMBER_ROLLOVER_MASK) |
+           ((transaction_number + 1) & PB_ADV_TRANSACTION_NUMBER_ROLLOVER_MASK);
 }
 
 static inline void reset_adv_int(nrf_mesh_prov_bearer_adv_t * p_pb_adv)
@@ -624,7 +638,7 @@ static void prov_buffer_tx(nrf_mesh_prov_bearer_adv_t * p_pb_adv)
     }
 }
 
-static void prov_buffer_rx(nrf_mesh_prov_bearer_adv_t * p_pb_adv, prov_bearer_adv_buffer_t * p_buf, uint8_t transaction_number)
+static void prov_buffer_rx(nrf_mesh_prov_bearer_adv_t * p_pb_adv, prov_bearer_adv_buffer_t * p_buf)
 {
     NRF_MESH_ASSERT(p_buf->state == PROV_BEARER_ADV_BUF_STATE_RX);
 
@@ -637,7 +651,7 @@ static void prov_buffer_rx(nrf_mesh_prov_bearer_adv_t * p_pb_adv, prov_bearer_ad
 
         /* Prepare for next transaction */
         p_buf->finished_segments = 0;
-        p_pb_adv->transaction_in = transaction_number + 1;
+        p_pb_adv->transaction_in = transaction_number_increment(p_pb_adv->transaction_in);
 
         /* Copy the buffer to stack, to avoid having a TX call in the
          * callback overwrite the RX data. This could probably be avoided
@@ -668,7 +682,7 @@ static void handle_transaction_start_packet(nrf_mesh_prov_bearer_adv_t * p_pb_ad
 {
     if (p_pb_adv->buffer.state == PROV_BEARER_ADV_BUF_STATE_UNUSED)
     {
-        if (p_packet->transaction_number >= p_pb_adv->transaction_in)
+        if (p_packet->transaction_number == p_pb_adv->transaction_in)
         {
             /* finished_segments, which is used in handle_transaction_continuation_packet
                 is 8-bits hence we are limited to receiving a maximum of 7 segments. */
@@ -690,7 +704,7 @@ static void handle_transaction_start_packet(nrf_mesh_prov_bearer_adv_t * p_pb_ad
                 if (p_pb_adv->buffer.length == payload_length)
                 {
                     /* Single segment message */
-                    prov_buffer_rx(p_pb_adv, &p_pb_adv->buffer, p_packet->transaction_number);
+                    prov_buffer_rx(p_pb_adv, &p_pb_adv->buffer);
                 }
             }
         }
@@ -753,7 +767,7 @@ static void handle_transaction_continuation_packet(nrf_mesh_prov_bearer_adv_t * 
                 if (p_pb_adv->buffer.finished_segments + 1 == (1 << transaction_total_segment_count_get(p_pb_adv->buffer.length)))
                 {
                     /* All segments received. */
-                    prov_buffer_rx(p_pb_adv, &p_pb_adv->buffer, p_packet->transaction_number);
+                    prov_buffer_rx(p_pb_adv, &p_pb_adv->buffer);
                 }
             }
         }
@@ -791,7 +805,7 @@ static void handle_transaction_ack_packet(nrf_mesh_prov_bearer_adv_t * p_pb_adv,
         advertiser_flush(&p_pb_adv->advertiser);
 
         /* Bump our transaction number, as this one's finished. */
-        p_pb_adv->transaction_out++;
+        p_pb_adv->transaction_out = transaction_number_increment(p_pb_adv->transaction_out);
         p_pb_adv->buffer.state = PROV_BEARER_ADV_BUF_STATE_UNUSED;
 
         reset_timeout_timer(p_pb_adv);
@@ -1238,3 +1252,5 @@ void prov_bearer_adv_packet_in(const uint8_t * p_data, uint8_t data_len, const n
             break;
     }
 }
+
+#endif /* MESH_FEATURE_PB_ADV_ENABLED */

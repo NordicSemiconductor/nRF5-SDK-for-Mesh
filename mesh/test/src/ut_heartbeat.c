@@ -50,9 +50,8 @@
 #include "transport_mock.h"
 #include "config_server_mock.h"
 #include "nrf_mesh_externs_mock.h"
-#include "mesh_config_entry_mock.h"
+#include "test_helper.h"
 
-#include "mesh_config_entry.h"
 #include "mesh_config_listener.h"
 #include "mesh_opt_core.h"
 #include "mesh_opt_gatt.h"
@@ -100,9 +99,6 @@ static nrf_mesh_evt_t m_tx_complete_evt = {
 static uint32_t m_timer_sch_reschedule_stub_cnt;
 static uint32_t m_exp_timer_sch_reschedule_stub_cnt;
 
-static uint32_t m_event_handler_add_stub_cnt;
-static uint32_t m_exp_event_handler_add_stub_cnt;
-
 static const transport_control_packet_t * mp_transport_control_tx_p_params;
 static nrf_mesh_tx_token_t m_tcp_tx_token;
 static uint32_t m_transport_control_tx_stub_cnt;
@@ -126,7 +122,7 @@ static nrf_mesh_network_secmat_t m_net_secmat =
 static timer_event_t * mp_timer_event;
 static timestamp_t m_expected_timeout;
 
-static heartbeat_publication_state_t * mp_hb_pub;
+static const heartbeat_publication_state_t * mp_hb_pub;
 
 extern mesh_config_listener_t m_heartbeat_relay_listener;
 extern mesh_config_listener_t m_heartbeat_proxy_listener;
@@ -181,8 +177,9 @@ static uint32_t transport_control_packet_consumer_add_stub(const transport_contr
 /** Just copy the given data into local nrf_mesh_evt_handler_t variable */
 static void event_handler_add_stub(nrf_mesh_evt_handler_t * p_handler_params, int count)
 {
+    TEST_ASSERT_NOT_NULL(p_handler_params);
+    TEST_ASSERT_NOT_NULL(p_handler_params->evt_cb);
     m_event_handler.evt_cb = p_handler_params->evt_cb;
-    m_event_handler_add_stub_cnt++;
 }
 
 /** Trigger the callback from local structure */
@@ -205,6 +202,14 @@ static uint32_t ut_mock_config_server_hb_pub_params_get_ret_not_found(heartbeat_
     return NRF_ERROR_NOT_FOUND;
 }
 
+uint32_t mesh_config_entry_set(mesh_config_entry_id_t entry_id, const void * p_data)
+{
+    TEST_ASSERT_EQUAL(MESH_OPT_CORE_FILE_ID, entry_id.file);
+    TEST_ASSERT_EQUAL(MESH_OPT_CORE_HB_PUBLICATION_RECORD, entry_id.record);
+    extern const mesh_config_entry_params_t m_heartbeat_publication_params;
+    return m_heartbeat_publication_params.callbacks.setter(entry_id, p_data);
+}
+
 /*****************************************************************************/
 /** Helper functions */
 
@@ -213,14 +218,6 @@ static void helper_ut_check_timer_sch_reschedule_called(void)
     m_exp_timer_sch_reschedule_stub_cnt++;
     TEST_ASSERT_EQUAL(m_exp_timer_sch_reschedule_stub_cnt, m_timer_sch_reschedule_stub_cnt);
 }
-
-static void helper_ut_check_event_handler_add_called(void)
-{
-    m_exp_event_handler_add_stub_cnt++;
-    TEST_ASSERT_EQUAL(m_exp_event_handler_add_stub_cnt, m_event_handler_add_stub_cnt);
-}
-
-
 
 static transport_control_packet_t helper_create_hb_control_packet(
                                   uint16_t src,
@@ -251,15 +248,9 @@ static transport_control_packet_t helper_create_hb_control_packet(
 
 static void helper_do_heartbeat_init(hb_pub_info_getter_t p_getter)
 {
-    static bool hb_init_done = false;
-
-    if (!hb_init_done)
-    {
-        transport_control_packet_consumer_add_StubWithCallback(transport_control_packet_consumer_add_stub);
-        heartbeat_init();
-
-        hb_init_done = true;
-    }
+    transport_control_packet_consumer_add_StubWithCallback(transport_control_packet_consumer_add_stub);
+    event_handler_add_StubWithCallback(event_handler_add_stub);
+    heartbeat_init();
 
     // Always set the callbacks, tester can change them if required.
     heartbeat_public_info_getter_register(p_getter);
@@ -276,29 +267,6 @@ static void helper_ut_check_transport_control_tx_stub_called(void)
     TEST_ASSERT_EQUAL(m_exp_transport_control_tx_stub_cnt, m_transport_control_tx_stub_cnt);
 }
 
-static void helper_heartbeat_publication_set(uint16_t dst, uint32_t count, uint32_t period, uint8_t ttl,
-                                      uint16_t features, uint16_t netkey_index)
-{
-    mp_hb_pub->dst = dst;
-    mp_hb_pub->count = count;
-    mp_hb_pub->period = period;
-    mp_hb_pub->ttl = ttl;
-    mp_hb_pub->features = features;
-    mp_hb_pub->netkey_index = netkey_index;
-}
-
-static void feature_states_reset(void)
-{
-    const mesh_opt_core_adv_t entry = {.enabled = false, .tx_count = 1, .tx_interval_ms = 20};
-    m_heartbeat_relay_listener.callback(MESH_CONFIG_CHANGE_REASON_SET,
-                                        MESH_OPT_CORE_ADV_ROLE_TO_ENTRY_ID(CORE_TX_ROLE_RELAY),
-                                        &entry);
-
-    m_heartbeat_proxy_listener.callback(MESH_CONFIG_CHANGE_REASON_SET,
-                                             MESH_OPT_GATT_PROXY_EID,
-                                             &entry.enabled);
-}
-
 /*****************************************************************************/
 /** Setup / Tear down */
 void setUp(void)
@@ -310,19 +278,13 @@ void setUp(void)
     nrf_mesh_opt_mock_Init();
     transport_mock_Init();
     nrf_mesh_externs_mock_Init();
-    mesh_config_entry_mock_Init();
 
     mp_hb_pub = heartbeat_publication_get();
     TEST_ASSERT_NOT_NULL(mp_hb_pub);
-    memset(mp_hb_pub, 0, sizeof(heartbeat_publication_state_t));
-    feature_states_reset();
 
     // clean local cb counters
     m_timer_sch_reschedule_stub_cnt   = 0;
     m_exp_timer_sch_reschedule_stub_cnt   = 0;
-
-    m_event_handler_add_stub_cnt    = 0;
-    m_exp_event_handler_add_stub_cnt  = 0;
 
     m_transport_control_tx_stub_cnt = 0;
     m_exp_transport_control_tx_stub_cnt = 0;
@@ -342,8 +304,6 @@ void tearDown(void)
     nrf_mesh_opt_mock_Destroy();
     nrf_mesh_externs_mock_Verify();
     nrf_mesh_externs_mock_Destroy();
-    mesh_config_entry_mock_Verify();
-    mesh_config_entry_mock_Destroy();
 }
 
 
@@ -360,73 +320,128 @@ void test_heartbeat_init(void)
 }
 
 /** Test setting of the heartbeat pubication state */
-void test_heartbeat_publication_state_updated(void)
+void test_heartbeat_publication_set(void)
 {
+    // create a reference for the expected disabled publication state (all zeros):
     // TEST: Publication timer aborts if DST == UNASSIGNED
-    mp_hb_pub->dst          = UT_ADDRESS_UNASSIGNED_SAMPLE;
-    mp_hb_pub->count        = 10;
-    mp_hb_pub->period       = 60;
-    mp_hb_pub->ttl          = 0x7F;
-    mp_hb_pub->features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
-    mp_hb_pub->netkey_index = 0;
+    heartbeat_publication_state_t hb_pub;
+    hb_pub.dst          = UT_ADDRESS_UNASSIGNED_SAMPLE;
+    hb_pub.count        = 10;
+    hb_pub.period       = 60;
+    hb_pub.ttl          = 0x7F;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0;
     timer_sch_abort_ExpectAnyArgs();
-    mesh_config_entry_set_ExpectAndReturn(MESH_OPT_CORE_HB_PUBLICATION_EID, mp_hb_pub, NRF_SUCCESS);
-    heartbeat_publication_state_updated();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+    // Should erase count, period and TTL according to section 4.4.1.2.15
+    hb_pub.count = 0;
+    hb_pub.period = 0;
+    hb_pub.ttl = 0;
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
 
     // TEST: Publication timer aborts if count == 0x0000
-    mp_hb_pub->dst          = UT_ADDRESS_UNICAST_SAMPLE;
-    mp_hb_pub->count        = 0x0000;
-    mp_hb_pub->period       = 60;
-    mp_hb_pub->ttl          = 0x7F;
-    mp_hb_pub->features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
-    mp_hb_pub->netkey_index = 0;
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = 0x0000;
+    hb_pub.period       = 60;
+    hb_pub.ttl          = 0x7F;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0;
     timer_sch_abort_ExpectAnyArgs();
-    mesh_config_entry_set_ExpectAndReturn(MESH_OPT_CORE_HB_PUBLICATION_EID, mp_hb_pub, NRF_SUCCESS);
-    heartbeat_publication_state_updated();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+    hb_pub.period       = 0; // expect it to reset period if it can't run periodic publication
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
 
     // TEST: Publication timer aborts if period == 0x0000
-    mp_hb_pub->dst          = UT_ADDRESS_UNICAST_SAMPLE;
-    mp_hb_pub->count        = 10;
-    mp_hb_pub->period       = 0x0000;
-    mp_hb_pub->ttl          = 0x7F;
-    mp_hb_pub->features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
-    mp_hb_pub->netkey_index = 0;
-    helper_heartbeat_publication_set(UT_ADDRESS_UNICAST_SAMPLE, 10, 0x0000, 0x7F,
-                                     HEARTBEAT_TRIGGER_TYPE_RELAY, 0);
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = 10;
+    hb_pub.period       = 0x0000;
+    hb_pub.ttl          = 0x7F;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0;
 
     timer_sch_abort_ExpectAnyArgs();
-    mesh_config_entry_set_ExpectAndReturn(MESH_OPT_CORE_HB_PUBLICATION_EID, mp_hb_pub, NRF_SUCCESS);
-    heartbeat_publication_state_updated();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+    hb_pub.count        = 0; // expect it to reset period if it can't run periodic publication
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
 
     // TEST: When valid publication params are provided,
-    mp_hb_pub->dst          = UT_ADDRESS_UNICAST_SAMPLE;
-    mp_hb_pub->count        = 10;
-    mp_hb_pub->period       = 60;
-    mp_hb_pub->ttl          = 0x7F;
-    mp_hb_pub->features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
-    mp_hb_pub->netkey_index = 0;
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = 10;
+    hb_pub.period       = 60;
+    hb_pub.ttl          = 0x7F;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0;
     timer_now_ExpectAndReturn(TIME_0);
-    RESCHEDULE_EXPECT(TIME_0 + SEC_TO_US(mp_hb_pub->period));
-    event_handler_add_StubWithCallback(event_handler_add_stub);
-    mesh_config_entry_set_ExpectAndReturn(MESH_OPT_CORE_HB_PUBLICATION_EID, mp_hb_pub, NRF_SUCCESS);
-    heartbeat_publication_state_updated();
+    RESCHEDULE_EXPECT(TIME_0);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
 
-    helper_ut_check_event_handler_add_called();
+    // TEST: When count is "infinite"
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = HEARTBEAT_INF_COUNT;
+    hb_pub.period       = 60;
+    hb_pub.ttl          = 0x7F;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0;
+    timer_now_ExpectAndReturn(TIME_0);
+    RESCHEDULE_EXPECT(TIME_0);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
 
     // TEST: When period is longer than HEARTBEAT_PUBLISH_SUB_INTERVAL_S seconds
-    mp_hb_pub->dst          = UT_ADDRESS_UNICAST_SAMPLE;
-    mp_hb_pub->count        = 10;
-    mp_hb_pub->period       = HEARTBEAT_PUBLISH_SUB_INTERVAL_S+1;
-    mp_hb_pub->ttl          = 0x7F;
-    mp_hb_pub->features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
-    mp_hb_pub->netkey_index = 0;
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = 10;
+    hb_pub.period       = HEARTBEAT_PUBLISH_SUB_INTERVAL_S+1;
+    hb_pub.ttl          = 0x7F;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0;
     timer_now_ExpectAndReturn(TIME_0);
-    RESCHEDULE_EXPECT(TIME_0 + SEC_TO_US(HEARTBEAT_PUBLISH_SUB_INTERVAL_S));
-    event_handler_add_StubWithCallback(event_handler_add_stub);
-    mesh_config_entry_set_ExpectAndReturn(MESH_OPT_CORE_HB_PUBLICATION_EID, mp_hb_pub, NRF_SUCCESS);
-    heartbeat_publication_state_updated();
+    RESCHEDULE_EXPECT(TIME_0);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
 
-    helper_ut_check_event_handler_add_called();
+    /* Test parameter sanitation */
+    const heartbeat_publication_state_t prev_valid_state = hb_pub;
+
+    // TEST: When TTL is invalid
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = 10;
+    hb_pub.period       = 60;
+    hb_pub.ttl          = 0x80;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0;
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, heartbeat_publication_set(&hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(prev_valid_state, *heartbeat_publication_get()); // no change
+
+    // TEST: When period is too long
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = 10;
+    hb_pub.period       = HEARTBEAT_MAX_PERIOD + 1;
+    hb_pub.ttl          = 0x7f;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0xffff;
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, heartbeat_publication_set(&hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(prev_valid_state, *heartbeat_publication_get()); // no change
+
+    // TEST: When dst is invalid
+    hb_pub.dst          = 0x8000; // virtual addr
+    hb_pub.count        = 10;
+    hb_pub.period       = 60;
+    hb_pub.ttl          = 0x7f;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0xffff;
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, heartbeat_publication_set(&hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(prev_valid_state, *heartbeat_publication_get()); // no change
+
+    // TEST: When count is too high
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = HEARTBEAT_MAX_COUNT + 1;
+    hb_pub.period       = 60;
+    hb_pub.ttl          = 0x7f;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0xffff;
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, heartbeat_publication_set(&hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(prev_valid_state, *heartbeat_publication_get()); // no change
 }
 
 void test_heartbeat_subscription_set(void)
@@ -439,7 +454,7 @@ void test_heartbeat_subscription_set(void)
     // TEST: Valid inputs
     m_ut_hb_sub.src        = UT_ADDRESS_UNICAST_SAMPLE;
     m_ut_hb_sub.dst        = UT_ADDRESS_UNICAST_SAMPLE;
-    m_ut_hb_sub.count      = 0x0000;
+    m_ut_hb_sub.count      = 0x1234;
     m_ut_hb_sub.period     = 0x1000;
     m_ut_hb_sub.min_hops   = 0x11;
     m_ut_hb_sub.max_hops   = 0x50;
@@ -447,16 +462,20 @@ void test_heartbeat_subscription_set(void)
     timer_sch_reschedule_ExpectAnyArgs();
     nrf_mesh_unicast_address_get_ExpectAnyArgs();
     nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
+    heartbeat_subscription_state_t new_state = m_ut_hb_sub;
+    new_state.min_hops = 0x7f;
+    new_state.max_hops = 0x00;
+    new_state.count    = 0x0000;
+    nrf_mesh_evt_t change_evt = {
+        .type = NRF_MESH_EVT_HB_SUBSCRIPTION_CHANGE,
+        .params.hb_subscription_change = {
+            .p_old = NULL,
+            .p_new = &new_state,
+        }
+    };
+    event_handle_Expect(&change_evt);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
-
-    heartbeat_subscription_state_t * sub_state;
-    sub_state = (heartbeat_subscription_state_t *) heartbeat_subscription_get();
-    TEST_ASSERT_EQUAL(sub_state->src, m_ut_hb_sub.src);
-    TEST_ASSERT_EQUAL(sub_state->dst, m_ut_hb_sub.dst);
-    TEST_ASSERT_EQUAL(sub_state->count, 0x0000);
-    TEST_ASSERT_EQUAL(sub_state->period, m_ut_hb_sub.period);
-    TEST_ASSERT_EQUAL(sub_state->min_hops, 0x7F);
-    TEST_ASSERT_EQUAL(sub_state->max_hops, 0x00);
+    TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(new_state, *heartbeat_subscription_get());
 
     // TEST: Invalid input - period is greater than HEARTBEAT_MAX_PERIOD
     m_ut_hb_sub.src        = UT_ADDRESS_UNICAST_SAMPLE;
@@ -511,10 +530,16 @@ void test_heartbeat_subscription_set(void)
     timer_sch_abort_ExpectAnyArgs();
     nrf_mesh_unicast_address_get_ExpectAnyArgs();
     nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
+    heartbeat_subscription_state_t old_state = *heartbeat_subscription_get();
+    change_evt.params.hb_subscription_change.p_old = &old_state;
+    new_state = m_ut_hb_sub;
+    new_state.src = NRF_MESH_ADDR_UNASSIGNED;
+    new_state.dst = NRF_MESH_ADDR_UNASSIGNED;
+    new_state.min_hops = old_state.min_hops;
+    new_state.max_hops = old_state.max_hops;
+    event_handle_Expect(&change_evt);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
-    TEST_ASSERT_EQUAL(sub_state->src, 0x0000);
-    TEST_ASSERT_EQUAL(sub_state->dst, 0x0000);
-    TEST_ASSERT_EQUAL(sub_state->period, 0x0000);
+    TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(new_state, *heartbeat_subscription_get());
 
     m_ut_hb_sub.src        = UT_ADDRESS_UNASSIGNED_SAMPLE;
     m_ut_hb_sub.dst        = UT_ADDRESS_UNICAST_SAMPLE;
@@ -526,10 +551,10 @@ void test_heartbeat_subscription_set(void)
     timer_sch_abort_ExpectAnyArgs();
     nrf_mesh_unicast_address_get_ExpectAnyArgs();
     nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
+    change_evt.params.hb_subscription_change.p_old = NULL;
+    event_handle_Expect(&change_evt);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
-    TEST_ASSERT_EQUAL(sub_state->src, 0x0000);
-    TEST_ASSERT_EQUAL(sub_state->dst, 0x0000);
-    TEST_ASSERT_EQUAL(sub_state->period, 0x0000);
+    TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(new_state, *heartbeat_subscription_get());
 
     m_ut_hb_sub.src        = UT_ADDRESS_UNICAST_SAMPLE;
     m_ut_hb_sub.dst        = UT_ADDRESS_UNASSIGNED_SAMPLE;
@@ -541,10 +566,10 @@ void test_heartbeat_subscription_set(void)
     timer_sch_abort_ExpectAnyArgs();
     nrf_mesh_unicast_address_get_ExpectAnyArgs();
     nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
+    change_evt.params.hb_subscription_change.p_old = NULL;
+    event_handle_Expect(&change_evt);
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
-    TEST_ASSERT_EQUAL(sub_state->src, 0x0000);
-    TEST_ASSERT_EQUAL(sub_state->dst, 0x0000);
-    TEST_ASSERT_EQUAL(sub_state->period, 0x0000);
+    TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(new_state, *heartbeat_subscription_get());
 }
 
 /** This test will setup the pending heartbeat message and call the heartbeat_core_evt_cb to test
@@ -557,20 +582,21 @@ void test_heartbeat_core_evt_cb_indirect_feat_change(void)
     helper_do_heartbeat_init(ut_mock_config_server_hb_pub_params_get_ret_success);
 
     // Setup publication state to known values, without periodic trigger
-    mp_hb_pub->dst          = UT_ADDRESS_UNICAST_SAMPLE;
-    mp_hb_pub->count        = init_hb_count;
-    mp_hb_pub->period       = 0x0000;            // this must be zero
-    mp_hb_pub->ttl          = 0x7F;
-    mp_hb_pub->features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
-    mp_hb_pub->netkey_index = 0;
+    heartbeat_publication_state_t hb_pub;
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = init_hb_count;
+    hb_pub.period       = 0x0000;            // this must be zero
+    hb_pub.ttl          = 0x7F;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0;
     timer_sch_abort_ExpectAnyArgs();
-    mesh_config_entry_set_ExpectAndReturn(MESH_OPT_CORE_HB_PUBLICATION_EID, mp_hb_pub, NRF_SUCCESS);
-    heartbeat_publication_state_updated();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
 
     // TEST: Valid behaviour on change in the feature state that is enabled.
 
+    transport_control_tx_StubWithCallback(transport_control_tx_stub);
     // request heartbeat message due to change in feature state
-    event_handler_add_StubWithCallback(event_handler_add_stub);
     const mesh_opt_core_adv_t entry = {.enabled = true, .tx_count = 1, .tx_interval_ms = 20};
     m_heartbeat_relay_listener.callback(MESH_CONFIG_CHANGE_REASON_SET,
                                         MESH_OPT_CORE_ADV_ROLE_TO_ENTRY_ID(CORE_TX_ROLE_RELAY),
@@ -578,35 +604,91 @@ void test_heartbeat_core_evt_cb_indirect_feat_change(void)
 
     // trigger core_evt_cb, to de-register event handler
     packet_mesh_trs_control_packet_t expected_pdu;
-
-    transport_control_tx_StubWithCallback(transport_control_tx_stub);
-    event_handler_remove_ExpectAnyArgs();
-    event_handle_stub(&m_tx_complete_evt);
     TEST_ASSERT_EQUAL(1, m_transport_control_tx_stub_cnt);
-    expected_pdu.pdu[0] = mp_hb_pub->ttl;
+    expected_pdu.pdu[0] = hb_pub.ttl;
     expected_pdu.pdu[1] = 0x00;
     expected_pdu.pdu[2] = HEARTBEAT_TRIGGER_TYPE_RELAY;
 
     // Test the generated message, and ensure that count is not decremented
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_pdu.pdu, m_generated_hb_pdu.pdu, m_generated_hb_pdu_len);
-    TEST_ASSERT_EQUAL(init_hb_count, mp_hb_pub->count);
+    TEST_ASSERT_EQUAL(init_hb_count, hb_pub.count);
 
     /* Test additional trigger */
-    mp_hb_pub->features |= HEARTBEAT_TRIGGER_TYPE_PROXY;
+    hb_pub.features |= HEARTBEAT_TRIGGER_TYPE_PROXY;
+    timer_sch_abort_ExpectAnyArgs();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+
     m_heartbeat_proxy_listener.callback(MESH_CONFIG_CHANGE_REASON_SET,
                                              MESH_OPT_GATT_PROXY_EID,
                                              &entry.enabled);
-    event_handler_remove_ExpectAnyArgs();
-    event_handle_stub(&m_tx_complete_evt);
     TEST_ASSERT_EQUAL(2, m_transport_control_tx_stub_cnt);
-    expected_pdu.pdu[0] = mp_hb_pub->ttl;
+    expected_pdu.pdu[0] = hb_pub.ttl;
     expected_pdu.pdu[1] = 0x00;
     expected_pdu.pdu[2] = HEARTBEAT_TRIGGER_TYPE_RELAY | HEARTBEAT_TRIGGER_TYPE_PROXY;
 
     // Test the generated message, and ensure that count is not decremented
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_pdu.pdu, m_generated_hb_pdu.pdu, m_generated_hb_pdu_len);
-    TEST_ASSERT_EQUAL(init_hb_count, mp_hb_pub->count);
+    TEST_ASSERT_EQUAL(init_hb_count, hb_pub.count);
 
+}
+
+/** Test that the publication is able to recover from errors in transport_tx by using TX_COMPLETE */
+void test_transport_tx_error_recover(void)
+{
+    helper_do_heartbeat_init(ut_mock_config_server_hb_pub_params_get_ret_success);
+    timer_now_IgnoreAndReturn(TIME_0);
+
+    // Setup publication state to known values, with periodic trigger
+    heartbeat_publication_state_t hb_pub;
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = 1;
+    hb_pub.period       = 0x0010;
+    hb_pub.ttl          = 0x7F;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0;
+    RESCHEDULE_EXPECT(TIME_0); // should fire a publication right away
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
+
+    // transport rejects the packet:
+    transport_control_tx_ExpectAnyArgsAndReturn(NRF_ERROR_NO_MEM);
+    helper_call_registered_timer_cb(TIME_0);
+    // Counter is decremented on timeout:
+    TEST_ASSERT_EQUAL(hb_pub.count - 1, heartbeat_publication_get()->count);
+
+    // will retry on TX COMPLETE. Reject it this time as well.
+    transport_control_tx_ExpectAnyArgsAndReturn(NRF_ERROR_NO_MEM);
+    event_handle_stub(&m_tx_complete_evt);
+    // Counter is not decremented in the retry:
+    TEST_ASSERT_EQUAL(hb_pub.count - 1, heartbeat_publication_get()->count);
+
+    // will retry on TX COMPLETE. This time it works
+    transport_control_tx_StubWithCallback(transport_control_tx_stub);
+    event_handle_stub(&m_tx_complete_evt);
+    // Counter is not decremented in the retry:
+    TEST_ASSERT_EQUAL(hb_pub.count - 1, heartbeat_publication_get()->count);
+    TEST_ASSERT_EQUAL(m_transport_control_tx_stub_cnt, 1);
+
+
+    /* The same for feature-triggered actions: */
+    transport_control_tx_StubWithCallback(NULL);
+    const mesh_opt_core_adv_t entry = {.enabled = true, .tx_count = 1, .tx_interval_ms = 20};
+
+    // transport rejects the packet:
+    transport_control_tx_ExpectAnyArgsAndReturn(NRF_ERROR_NO_MEM);
+    m_heartbeat_relay_listener.callback(MESH_CONFIG_CHANGE_REASON_SET,
+                                        MESH_OPT_CORE_ADV_ROLE_TO_ENTRY_ID(CORE_TX_ROLE_RELAY),
+                                        &entry);
+    // will retry on TX COMPLETE. Reject it this time as well.
+    transport_control_tx_ExpectAnyArgsAndReturn(NRF_ERROR_NO_MEM);
+    event_handle_stub(&m_tx_complete_evt);
+
+    // will retry on TX COMPLETE. This time it works
+    transport_control_tx_StubWithCallback(transport_control_tx_stub);
+    event_handle_stub(&m_tx_complete_evt);
+    // Counter is not decremented in the retry:
+    TEST_ASSERT_EQUAL(hb_pub.count - 1, heartbeat_publication_get()->count);
+    TEST_ASSERT_EQUAL(m_transport_control_tx_stub_cnt, 2);
 }
 
 /** This test will setup the pending heartbeat message and call the heartbeat_core_evt_cb to test
@@ -618,56 +700,54 @@ void test_heartbeat_core_evt_cb_indirect_pub_change(void)
 
     helper_do_heartbeat_init(ut_mock_config_server_hb_pub_params_get_ret_success);
 
-    // Setup publication state to known values, without periodic trigger
-    mp_hb_pub->dst          = UT_ADDRESS_UNICAST_SAMPLE;
-    mp_hb_pub->count        = init_hb_count;
-    mp_hb_pub->period       = 0x0010;
-    mp_hb_pub->ttl          = 0x7F;
-    mp_hb_pub->features     = 0x0000;      // this must be zero for this test
-    mp_hb_pub->netkey_index = 0;
+    // Setup publication state to known values, with periodic trigger
+    heartbeat_publication_state_t hb_pub;
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = init_hb_count;
+    hb_pub.period       = 0x0010;
+    hb_pub.ttl          = 0x7F;
+    hb_pub.features     = 0x0000;      // this must be zero for this test
+    hb_pub.netkey_index = 0;
 
     // TEST: Valid behaviour of queing up a message for immediate sending on next TX complete.
 
     // request heartbeat message due to change in publication state
-    timer_now_ExpectAndReturn(TIME_0);
-    RESCHEDULE_EXPECT(TIME_0 + SEC_TO_US(mp_hb_pub->period));
-    event_handler_add_StubWithCallback(event_handler_add_stub);
-    mesh_config_entry_set_ExpectAndReturn(MESH_OPT_CORE_HB_PUBLICATION_EID, mp_hb_pub, NRF_SUCCESS);
-    heartbeat_publication_state_updated();
-
-    helper_ut_check_event_handler_add_called();
-
-    // trigger core_evt_cb, to de-register event handler
-    packet_mesh_trs_control_packet_t expected_pdu;
     transport_control_tx_StubWithCallback(transport_control_tx_stub);
-    event_handler_remove_ExpectAnyArgs();
-    event_handle_stub(&m_tx_complete_evt);
+    timer_now_ExpectAndReturn(TIME_0);
+    RESCHEDULE_EXPECT(TIME_0);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
+    TEST_ASSERT_NOT_NULL(mp_timer_event);
+
+    // trigger scheduled timeout to send the packet
+    helper_call_registered_timer_cb(TIME_0);
+    packet_mesh_trs_control_packet_t expected_pdu;
     TEST_ASSERT_EQUAL(m_transport_control_tx_stub_cnt, 1);
-    expected_pdu.pdu[0] = mp_hb_pub->ttl;
+    expected_pdu.pdu[0] = hb_pub.ttl;
     expected_pdu.pdu[1] = 0x00;
     expected_pdu.pdu[2] = 0x00;
 
     // Test the generated message, and ensure that count is not decremented
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_pdu.pdu, m_generated_hb_pdu.pdu, m_generated_hb_pdu_len);
-    TEST_ASSERT_EQUAL(init_hb_count - 1, mp_hb_pub->count);
+    TEST_ASSERT_EQUAL(init_hb_count - 1, heartbeat_publication_get()->count);
 }
 
-void test_heartbeat_on_feature_change_trigger(void)
+void test_heartbeat_on_feature_change_reject(void)
 {
-    uint8_t     init_hb_count = 10;
-
     helper_do_heartbeat_init(ut_mock_config_server_hb_pub_params_get_ret_success);
+    transport_control_tx_StubWithCallback(transport_control_tx_stub);
 
     // Setup publication state to known values, without periodic trigger
-    mp_hb_pub->dst          = UT_ADDRESS_UNICAST_SAMPLE;
-    mp_hb_pub->count        = init_hb_count;
-    mp_hb_pub->period       = 0x0000;            // this must be zero
-    mp_hb_pub->ttl          = 0x7F;
-    mp_hb_pub->features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
-    mp_hb_pub->netkey_index = 0;
+    heartbeat_publication_state_t hb_pub;
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = 0;
+    hb_pub.period       = 0x0000;            // this must be zero
+    hb_pub.ttl          = 0x7F;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0;
     timer_sch_abort_ExpectAnyArgs();
-    mesh_config_entry_set_ExpectAndReturn(MESH_OPT_CORE_HB_PUBLICATION_EID, mp_hb_pub, NRF_SUCCESS);
-    heartbeat_publication_state_updated();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
 
     // Test1: DO NOT Trigger on HEARTBEAT_TRIGGER_TYPE_PROXY
     // request heartbeat message due to change in feature state
@@ -676,19 +756,17 @@ void test_heartbeat_on_feature_change_trigger(void)
                                              MESH_OPT_GATT_PROXY_EID,
                                              &enabled);
 
-    // emulate TX_COMPLETE event
-    // No functions are expected to be called, since HB is not triggered internally
-    event_handler_remove_ExpectAnyArgs();
-    event_handle_stub(&m_tx_complete_evt);
-    TEST_ASSERT_EQUAL(m_transport_control_tx_stub_cnt, 0);
-    TEST_ASSERT_EQUAL(init_hb_count, mp_hb_pub->count);
-
-
     // TODO: Test2: DO NOT Trigger on HEARTBEAT_TRIGGER_TYPE_FRIEND
     // request heartbeat message due to change in feature state
 
-    // TODO: Test3: DO NOT Trigger on HEARTBEAT_TRIGGER_TYPE_LPN
+    // Test3: DO NOT Trigger on HEARTBEAT_TRIGGER_TYPE_LPN
     // request heartbeat message due to change in feature state
+    nrf_mesh_evt_t friendship_evt = {
+        .type = NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED,
+    };
+    event_handle_stub(&friendship_evt);
+    // No functions are expected to be called, since HB is not triggered internally
+    TEST_ASSERT_EQUAL(m_transport_control_tx_stub_cnt, 0);
 }
 
 /** Indirect TEST: Timed trigger (publication) functionality test */
@@ -699,74 +777,59 @@ void test_heartbeat_functionality_periodic_publish_short(void)
 
     helper_do_heartbeat_init(ut_mock_config_server_hb_pub_params_get_ret_success);
 
-    const mesh_opt_core_adv_t entry = {.enabled = true, .tx_count = 1, .tx_interval_ms = 20};
-    m_heartbeat_relay_listener.callback(MESH_CONFIG_CHANGE_REASON_SET,
-                                        MESH_OPT_CORE_ADV_ROLE_TO_ENTRY_ID(CORE_TX_ROLE_RELAY),
-                                        &entry);
-
     // Setup valid publication params for short publication period
-    mp_hb_pub->dst          = UT_ADDRESS_UNICAST_SAMPLE;
-    mp_hb_pub->count        = init_pub_cnt;
-    mp_hb_pub->period       = init_pub_per;
-    mp_hb_pub->ttl          = 0x7F;
-    mp_hb_pub->features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
-    mp_hb_pub->netkey_index = 0;
+    heartbeat_publication_state_t hb_pub;
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = init_pub_cnt;
+    hb_pub.period       = init_pub_per;
+    hb_pub.ttl          = 0x7F;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0;
     timer_now_ExpectAndReturn(TIME_0);
-    RESCHEDULE_EXPECT(TIME_0 + SEC_TO_US(mp_hb_pub->period));
-    event_handler_add_StubWithCallback(event_handler_add_stub);
-    mesh_config_entry_set_ExpectAndReturn(MESH_OPT_CORE_HB_PUBLICATION_EID, mp_hb_pub, NRF_SUCCESS);
-    heartbeat_publication_state_updated();
-
-    helper_ut_check_event_handler_add_called();
-
+    RESCHEDULE_EXPECT(TIME_0);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
 
     // TEST: When valid publication params are provided,
-    timestamp_t timestamp = TIME_0 + SEC_TO_US(mp_hb_pub->period);
+    timestamp_t timestamp = TIME_0;
 
 
     // Send 10 heartbeats
     for (uint16_t i = 0; i < init_pub_cnt ; i++)
     {
         transport_control_tx_StubWithCallback(transport_control_tx_stub);
-        RESCHEDULE_EXPECT(timestamp + SEC_TO_US(mp_hb_pub->period));
 
-        if (i == init_pub_cnt - 1)
-        {
-            timer_sch_abort_ExpectAnyArgs();
-        }
         mp_timer_event->cb(timestamp, mp_timer_event->p_context);
         helper_ut_check_transport_control_tx_stub_called();
-        timestamp += SEC_TO_US(mp_hb_pub->period);
+        timestamp += SEC_TO_US(hb_pub.period);
+        TEST_ASSERT_EQUAL(SEC_TO_US(init_pub_per), mp_timer_event->interval);
     }
 
-    // on 11th call, nothing should happen and timer_sch_abort should be called
-    timer_sch_abort_ExpectAnyArgs();
+    // on 11th call, nothing should happen and the interval should be set to 0
     mp_timer_event->cb(timestamp, mp_timer_event->p_context);
+    TEST_ASSERT_EQUAL(0, mp_timer_event->interval);
 
     // TEST: If config server callback fails to return publication information, timer should abort
     // Setup valid publication params for short publication period
-    mp_hb_pub->dst          = UT_ADDRESS_UNICAST_SAMPLE;
-    mp_hb_pub->count        = init_pub_cnt;
-    mp_hb_pub->period       = init_pub_per;
-    mp_hb_pub->ttl          = 0x7F;
-    mp_hb_pub->features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
-    mp_hb_pub->netkey_index = 0;
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = init_pub_cnt;
+    hb_pub.period       = init_pub_per;
+    hb_pub.ttl          = 0x7F;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0;
     timer_now_ExpectAndReturn(TIME_0);
-    RESCHEDULE_EXPECT(TIME_0 + SEC_TO_US(mp_hb_pub->period));
-    event_handler_add_StubWithCallback(event_handler_add_stub);
-    mesh_config_entry_set_ExpectAndReturn(MESH_OPT_CORE_HB_PUBLICATION_EID, mp_hb_pub, NRF_SUCCESS);
-    heartbeat_publication_state_updated();
-
-    helper_ut_check_event_handler_add_called();
+    RESCHEDULE_EXPECT(TIME_0);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
 
     // replace the mock callback to return ERROR_NOT_FOUND
     helper_do_heartbeat_init(ut_mock_config_server_hb_pub_params_get_ret_not_found);
 
-    timestamp = TIME_0 + SEC_TO_US(mp_hb_pub->period);
+    timestamp = TIME_0 + SEC_TO_US(hb_pub.period);
 
     // try to send heartbeat by triggering publication timer cb
-    timer_sch_abort_ExpectAnyArgs();
     mp_timer_event->cb(timestamp, mp_timer_event->p_context);
+    TEST_ASSERT_EQUAL(0, mp_timer_event->interval);
 }
 
 /** Indirect TEST: Timed trigger (publication) functionality test, when period is longer
@@ -774,70 +837,56 @@ void test_heartbeat_functionality_periodic_publish_short(void)
  */
 void test_heartbeat_functionality_periodic_publish_long(void)
 {
-    uint32_t init_pub_cnt = 2;
-    uint32_t init_pub_per = HEARTBEAT_PUBLISH_SUB_INTERVAL_S + 1;
+    uint32_t init_pub_cnt = 3;
+    uint32_t init_pub_per = HEARTBEAT_PUBLISH_SUB_INTERVAL_S + 100;
     uint32_t mult = (init_pub_per/HEARTBEAT_PUBLISH_SUB_INTERVAL_S) + ((init_pub_per % HEARTBEAT_PUBLISH_SUB_INTERVAL_S) ? 1 : 0);
     timestamp_t timestamp;
 
     helper_do_heartbeat_init(ut_mock_config_server_hb_pub_params_get_ret_success);
+    transport_control_tx_StubWithCallback(transport_control_tx_stub);
 
-    const mesh_opt_core_adv_t entry = {.enabled = true, .tx_count = 1, .tx_interval_ms = 20};
-    m_heartbeat_relay_listener.callback(MESH_CONFIG_CHANGE_REASON_SET,
-                                        MESH_OPT_CORE_ADV_ROLE_TO_ENTRY_ID(CORE_TX_ROLE_RELAY),
-                                        &entry);
-
-    // Setup valid publication params for short publication period
-    mp_hb_pub->dst          = UT_ADDRESS_UNICAST_SAMPLE;
-    mp_hb_pub->count        = init_pub_cnt;
-    mp_hb_pub->period       = init_pub_per;
-    mp_hb_pub->ttl          = 0x7F;
-    mp_hb_pub->features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
-    mp_hb_pub->netkey_index = 0;
+    // Setup valid publication params for long publication period
+    heartbeat_publication_state_t hb_pub;
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = init_pub_cnt;
+    hb_pub.period       = init_pub_per;
+    hb_pub.ttl          = 0x7F;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_RELAY;
+    hb_pub.netkey_index = 0;
     timer_now_ExpectAndReturn(TIME_0);
-    RESCHEDULE_EXPECT(TIME_0 + SEC_TO_US(HEARTBEAT_PUBLISH_SUB_INTERVAL_S));
-    timestamp = TIME_0 + SEC_TO_US(HEARTBEAT_PUBLISH_SUB_INTERVAL_S);
-    event_handler_add_StubWithCallback(event_handler_add_stub);
-    mesh_config_entry_set_ExpectAndReturn(MESH_OPT_CORE_HB_PUBLICATION_EID, mp_hb_pub, NRF_SUCCESS);
-    heartbeat_publication_state_updated();
-
-    helper_ut_check_event_handler_add_called();
-
+    RESCHEDULE_EXPECT(TIME_0);
+    timestamp = TIME_0;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
 
     // TEST: When valid publication params are provided,
+    mp_timer_event->cb(timestamp, mp_timer_event->p_context);
+    helper_ut_check_transport_control_tx_stub_called();
+    TEST_ASSERT_EQUAL(SEC_TO_US(HEARTBEAT_PUBLISH_SUB_INTERVAL_S), mp_timer_event->interval);
 
     // Send 10 heartbeats
-    for (uint16_t i = 0; i < init_pub_cnt * mult ; i++)
+    for (uint16_t i = 0; i < (init_pub_cnt - 1) * mult; i++)
     {
-        // timer_now_ExpectAndReturn(TIME_1);
-        if (((i % mult) == 1))
+        bool expect_publish = ((i % mult) == 1);
+        if (expect_publish)
         {
-            transport_control_tx_StubWithCallback(transport_control_tx_stub);
-
-            // Add slight jitter (+ i) to timestamp, to ensure that logic works even if timestamps are
-            // slighly further than expected
-            RESCHEDULE_EXPECT(timestamp + SEC_TO_US(HEARTBEAT_PUBLISH_SUB_INTERVAL_S) + i);
-
-            if (i == (init_pub_cnt * mult) - 1)
-            {
-                timer_sch_abort_ExpectAnyArgs();
-            }
-
-            mp_timer_event->cb(timestamp + i, mp_timer_event->p_context);
-            timestamp += SEC_TO_US(HEARTBEAT_PUBLISH_SUB_INTERVAL_S) + i;
+            mp_timer_event->cb(timestamp, mp_timer_event->p_context);
+            timestamp += SEC_TO_US(HEARTBEAT_PUBLISH_SUB_INTERVAL_S);
             helper_ut_check_transport_control_tx_stub_called();
+            TEST_ASSERT_EQUAL(SEC_TO_US(HEARTBEAT_PUBLISH_SUB_INTERVAL_S), mp_timer_event->interval);
         }
         else
         {
             // add slight delta
-            RESCHEDULE_EXPECT(timestamp + SEC_TO_US(mp_hb_pub->period % HEARTBEAT_PUBLISH_SUB_INTERVAL_S));
             mp_timer_event->cb(timestamp, mp_timer_event->p_context);
-            timestamp += (SEC_TO_US(mp_hb_pub->period % HEARTBEAT_PUBLISH_SUB_INTERVAL_S));
+            timestamp += (SEC_TO_US(hb_pub.period % HEARTBEAT_PUBLISH_SUB_INTERVAL_S));
+            TEST_ASSERT_EQUAL(SEC_TO_US(hb_pub.period % HEARTBEAT_PUBLISH_SUB_INTERVAL_S), mp_timer_event->interval);
         }
     }
 
-    // Nothing should happen for this callback and timer_sch_abort should be called again
-    timer_sch_abort_ExpectAnyArgs();
+    // Nothing should happen for this callback and interval should be set to zero.
     mp_timer_event->cb(timestamp, mp_timer_event->p_context);
+    TEST_ASSERT_EQUAL(0, mp_timer_event->interval);
 }
 
 /** Indirect TEST: Check functioning of the opcode handler */
@@ -861,6 +910,7 @@ void test_heartbeat_opcode_handle(void)
     timer_sch_reschedule_ExpectAnyArgs();
     nrf_mesh_unicast_address_get_ExpectAnyArgs();
     nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
+    event_handle_ExpectAnyArgs();
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
 
     //Test1: HB message are ignored when not subscribed to given src/dst
@@ -896,6 +946,7 @@ void test_heartbeat_opcode_handle(void)
     timer_sch_reschedule_ExpectAnyArgs();
     nrf_mesh_unicast_address_get_ExpectAnyArgs();
     nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
+    event_handle_ExpectAnyArgs();
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
 
     nrf_mesh_evt_t evt = {
@@ -917,6 +968,7 @@ void test_heartbeat_opcode_handle(void)
     RESCHEDULE_EXPECT(TIME_0 + SEC_TO_US(HEARTBEAT_SUBSCRIPTION_TIMER_GRANULARITY_S));
     nrf_mesh_unicast_address_get_ExpectAnyArgs();
     nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
+    event_handle_ExpectAnyArgs();
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
     helper_ut_check_timer_sch_reschedule_called();
 
@@ -935,6 +987,7 @@ void test_heartbeat_opcode_handle(void)
     m_transport_hb_opcode_handler.callback(&control_packet, NULL);
 
     // Ensure timer aborts, on the last callback
+    event_handle_ExpectAnyArgs();
     timer_sch_abort_ExpectAnyArgs();
     helper_call_registered_timer_cb(TIMESTAMP_DONT_CARE);
 
@@ -950,6 +1003,7 @@ void test_heartbeat_opcode_handle(void)
     RESCHEDULE_EXPECT(TIME_0 + SEC_TO_US(HEARTBEAT_SUBSCRIPTION_TIMER_GRANULARITY_S));
     nrf_mesh_unicast_address_get_ExpectAnyArgs();
     nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
+    event_handle_ExpectAnyArgs();
     TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
     helper_ut_check_timer_sch_reschedule_called();
 
@@ -961,4 +1015,110 @@ void test_heartbeat_opcode_handle(void)
     control_packet = helper_create_hb_control_packet (hb_src, hb_dst, hb_rx_ttl, hb_init_ttl | 0x80, hb_features);
     event_handle_Expect(&evt);
     m_transport_hb_opcode_handler.callback(&control_packet, NULL);
+}
+
+void test_subscription_change_on_timeout(void)
+{
+    helper_do_heartbeat_init(ut_mock_config_server_hb_pub_params_get_ret_success);
+
+    // Reset subscription state, src and dst are UNASSIGNED, and period is zero
+    m_ut_hb_sub.src = UT_ADDRESS_UNICAST_SAMPLE2;
+    m_ut_hb_sub.dst = UT_ADDRESS_UNICAST_SAMPLE3;
+    m_ut_hb_sub.period = 3;
+    timer_now_ExpectAndReturn(TIME_0);
+    timer_sch_reschedule_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ExpectAnyArgs();
+    nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&m_ut_hb_sub.dst);
+    event_handle_ExpectAnyArgs(); // this is already checked in test_heartbeat_subscription_set
+    TEST_ASSERT_EQUAL(heartbeat_subscription_set(&m_ut_hb_sub), NRF_SUCCESS);
+
+    // advance the time by triggering timer callback.
+    for (uint32_t i = 0; i < m_ut_hb_sub.period; i++ )
+    {
+        helper_call_registered_timer_cb(TIMESTAMP_DONT_CARE);
+    }
+
+    // Ensure change is reported when subscription stops
+
+    nrf_mesh_evt_t sub_stop_evt = {
+        .type = NRF_MESH_EVT_HB_SUBSCRIPTION_CHANGE,
+        .params.hb_subscription_change = {
+            .p_old = heartbeat_subscription_get(),
+            .p_new = NULL,
+        }
+    };
+    event_handle_Expect(&sub_stop_evt);
+    timer_sch_abort_ExpectAnyArgs();
+    helper_call_registered_timer_cb(TIMESTAMP_DONT_CARE);
+}
+
+/** When publish is loaded from flash, it shall discard all timing-related settings. */
+void test_publish_load(void)
+{
+    extern const mesh_config_entry_params_t m_heartbeat_publication_params;
+    timer_now_IgnoreAndReturn(TIME_0);
+
+    // load disabled heartbeat, shouldn't do anything.
+    helper_do_heartbeat_init(ut_mock_config_server_hb_pub_params_get_ret_success);
+    heartbeat_publication_state_t hb_pub = {
+        .dst = NRF_MESH_ADDR_UNASSIGNED
+    };
+    timer_sch_abort_ExpectAnyArgs(); // always stops the timer, even if it's redundant.
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, m_heartbeat_publication_params.callbacks.setter(MESH_OPT_CORE_HB_PUBLICATION_EID, &hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
+
+    // load heartbeat with volatile periodic parameter values, should not resume periodic publishing.
+    helper_do_heartbeat_init(ut_mock_config_server_hb_pub_params_get_ret_success);
+    hb_pub.dst = 1;
+    hb_pub.count = 14; // not 0 and not infinite
+    hb_pub.period = 1;
+    hb_pub.ttl = 50;
+    hb_pub.features = 0;
+    hb_pub.netkey_index = 0;
+    timer_sch_abort_ExpectAnyArgs(); // always stops the timer, even if it's redundant.
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, m_heartbeat_publication_params.callbacks.setter(MESH_OPT_CORE_HB_PUBLICATION_EID, &hb_pub));
+    // should have reset the periodic publish parameters:
+    hb_pub.count = 0;
+    hb_pub.period = 0;
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
+
+    // load heartbeat with volatile parameter values, but valid dst and features.
+    helper_do_heartbeat_init(ut_mock_config_server_hb_pub_params_get_ret_success);
+    hb_pub.dst = 1;
+    hb_pub.count = 14; // not 0 and not infinite
+    hb_pub.period = 1;
+    hb_pub.ttl = 50;
+    hb_pub.features = HEARTBEAT_TRIGGER_TYPE_RELAY | HEARTBEAT_TRIGGER_TYPE_PROXY;
+    hb_pub.netkey_index = 0;
+    timer_sch_abort_ExpectAnyArgs(); // always stops the timer, even if it's redundant.
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, m_heartbeat_publication_params.callbacks.setter(MESH_OPT_CORE_HB_PUBLICATION_EID, &hb_pub));
+    // should have reset the periodic publish parameters:
+    hb_pub.count = 0;
+    hb_pub.period = 0;
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
+
+    // load heartbeat with non-volatile parameter values, should start periodic publishing
+    helper_do_heartbeat_init(ut_mock_config_server_hb_pub_params_get_ret_success);
+    hb_pub.dst = 1;
+    hb_pub.count = HEARTBEAT_INF_COUNT;
+    hb_pub.period = 1;
+    hb_pub.ttl = 50;
+    hb_pub.features = 0;
+    hb_pub.netkey_index = 0;
+    timer_sch_reschedule_ExpectAnyArgs();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, m_heartbeat_publication_params.callbacks.setter(MESH_OPT_CORE_HB_PUBLICATION_EID, &hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
+
+    // load heartbeat with invalid parameters, should ignore. No need to test all invalid parameters, as that's done in test_heartbeat_publication_set.
+    helper_do_heartbeat_init(ut_mock_config_server_hb_pub_params_get_ret_success);
+    hb_pub.dst = 1;
+    hb_pub.count = HEARTBEAT_INF_COUNT;
+    hb_pub.period = 1;
+    hb_pub.ttl = 255; // invalid
+    hb_pub.features = 0;
+    hb_pub.netkey_index = 0;
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, m_heartbeat_publication_params.callbacks.setter(MESH_OPT_CORE_HB_PUBLICATION_EID, &hb_pub));
+    memset(&hb_pub, 0, sizeof(hb_pub)); // expect it to stay at initial value
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
+
 }

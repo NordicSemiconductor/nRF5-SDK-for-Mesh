@@ -343,7 +343,7 @@ void test_iv_user_initiated(void)
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
     m_skip_minutes(1);
 
-    event_handle_Ignore();
+    event_handle_ExpectAnyArgs();
     expect_flash_iv_data(current_iv_index + 1, true);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_update_start());
     notify_flash_write_complete(mp_expected_iv_data_flash_buffer);
@@ -365,7 +365,7 @@ void test_iv_user_initiated(void)
     (18 mins of  drift deducted) */
     m_skip_minutes(48*60-18);
     /* skip one more, and the IV Update should finish */
-    event_handle_Ignore();
+    event_handle_ExpectAnyArgs();
     expect_flash_iv_data(current_iv_index, false);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
     m_skip_minutes(1);
@@ -442,7 +442,7 @@ void test_iv_seqnum_initiated(void)
     TEST_ASSERT_EQUAL((uint32_t)(current_iv_index-1), net_state_rx_iv_index_get(1));
 
     /* One more seqnum alloc and we should automatically start iv update. */
-    event_handle_Ignore();
+    event_handle_ExpectAnyArgs();
     expect_flash_iv_data(current_iv_index + 1, true);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
@@ -460,7 +460,7 @@ void test_iv_seqnum_initiated(void)
      * beacon with IV Update Flag set to Normal Operation and iv index using the new index). */
     m_skip_minutes(96*60 + 3);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
-    event_handle_Ignore();
+    event_handle_ExpectAnyArgs();
 
     expect_flash_iv_data(current_iv_index, false);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
@@ -516,7 +516,7 @@ void test_iv_lock(void)
     TEST_ASSERT_EQUAL((uint32_t)(current_iv_index-1), net_state_rx_iv_index_get(1));
 
     /* Unlock should start the iv-update since we have depleted our seq no and spent 96 hours */
-    event_handle_Ignore();
+    event_handle_ExpectAnyArgs();
     net_state_iv_index_lock(false);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
     current_iv_index++;
@@ -561,7 +561,7 @@ void test_iv_beacons(void)
     TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
     TEST_ASSERT_EQUAL(2, seqnum);
     /* A timer event after the limit has passed will trigger the state change */
-    event_handle_Ignore();
+    event_handle_ExpectAnyArgs();
     expect_flash_iv_data(current_iv_index + 1, true);
     m_skip_minutes(1);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
@@ -590,7 +590,7 @@ void test_iv_beacons(void)
     TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
     TEST_ASSERT_EQUAL(5, seqnum);
     /* A timer event after the limit has passed will trigger the state change */
-    event_handle_Ignore();
+    event_handle_ExpectAnyArgs();
     expect_flash_iv_data(current_iv_index, false);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
     m_skip_minutes(1);
@@ -614,13 +614,13 @@ void test_iv_beacons(void)
     TEST_ASSERT_EQUAL(1, seqnum);
 
     /* Some other node is behind on its updates and gets ignored */
-    event_handle_Ignore();
+    event_handle_ExpectAnyArgs();
     expect_flash_iv_data(current_iv_index + 1, true);
     beacon_rx(current_iv_index, true, false);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
 
     /* The other guy starts before we do */
-    event_handle_Ignore();
+    event_handle_ExpectAnyArgs();
 
     beacon_rx(current_iv_index+1, true, false);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
@@ -642,7 +642,7 @@ void test_iv_beacons(void)
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
 
     /* The other guy is way ahead of us for some reason */
-    event_handle_Ignore();
+    event_handle_ExpectAnyArgs();
     expect_flash_iv_data(current_iv_index+10, false);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
     beacon_rx(current_iv_index+10, false, false);
@@ -690,7 +690,7 @@ void test_iv_beacons(void)
     TEST_ASSERT_EQUAL(3, seqnum);
 
     /* Do a recovery with the IV update flag set */
-    event_handle_Ignore();
+    event_handle_ExpectAnyArgs();
     expect_flash_iv_data(current_iv_index+11, false);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
     beacon_rx(current_iv_index + 11, true, false);
@@ -713,7 +713,7 @@ void test_iv_beacons(void)
     TEST_ASSERT_EQUAL(current_iv_index, net_state_beacon_iv_index_get());
     TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
     TEST_ASSERT_EQUAL(1, seqnum);
-    event_handle_Ignore();
+    event_handle_ExpectAnyArgs();
     expect_flash_iv_data(current_iv_index+NETWORK_IV_RECOVERY_LIMIT, false);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
     beacon_rx(current_iv_index + NETWORK_IV_RECOVERY_LIMIT, false, false);
@@ -766,7 +766,6 @@ void test_iv_testmode(void)
     /* Already in iv update state */
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, net_state_iv_update_start());
     /* We get a beacon with normal state, should switch despite the time limit not being met */
-    event_handle_Ignore();
     expect_flash_iv_data(current_iv_index, false);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
     beacon_rx(current_iv_index, false, false);
@@ -786,7 +785,6 @@ void test_iv_testmode(void)
     net_state_iv_index_lock(true);
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, net_state_iv_update_start());
     net_state_iv_index_lock(false);
-    event_handle_Ignore();
     expect_flash_iv_data(current_iv_index+1, true);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_update_start());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
@@ -1090,6 +1088,7 @@ void test_iv_index_set(void)
     const uint32_t TEST_IV_INDEX = 1542;
     expect_flash_iv_data(TEST_IV_INDEX, true);
     expect_flash_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);
+    event_handle_ExpectAnyArgs();
     TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_set(TEST_IV_INDEX, true));
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, net_state_iv_index_set(0, false));
 

@@ -394,6 +394,7 @@ uint32_t nrf_mesh_enable(void)
             scanner_enable();
 #endif
             network_enable();
+            transport_enable();
 
 #if EXPERIMENTAL_INSTABURST_ENABLED
             instaburst_rx_enable();

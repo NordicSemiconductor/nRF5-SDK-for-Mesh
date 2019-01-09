@@ -3,11 +3,12 @@
 This page contains all the notes for the major and minor production releases of the nRF5 SDK for Mesh.
 
 **Table of contents**
-- **NEW** [BLE Mesh v3.0.0](@ref release_notes_300)
-	- [New features and highlights](@ref release_notes_300_highlights)
-	- [Changes](@ref release_notes_300_changes)
-	- [Bugfixes](@ref release_notes_300_bugfixes)
-	- [Known issues and limitations](@ref release_notes_300_known_issues)
+- [BLE Mesh v3.1.0](@ref release_notes_310)
+    - [New features and highlights](@ref release_notes_310_highlights)
+	- [Changes](@ref release_notes_310_changes)
+	- [Bugfixes](@ref release_notes_310_bugfixes)
+	- [Known issues and limitations](@ref release_notes_310_known_issues)
+- [BLE Mesh v3.0.0](@ref release_notes_300)
 - [BLE Mesh v2.2.0](@ref release_notes_220)
 - [BLE Mesh v2.1.1](@ref release_notes_211)
 - [BLE Mesh v2.0.0](@ref release_notes_200)
@@ -23,6 +24,75 @@ This page contains all the notes for the major and minor production releases of 
 - [BLE Mesh v0.7.7](@ref release_notes_077)
 
 Check [Migration guide](@ref md_MIGRATION_GUIDE) for mandatory changes to your projects caused by the release of new features and updates.
+
+---
+
+## BLE Mesh v3.1.0 @anchor release_notes_310
+
+This is a minor feature release. In addition to several minor and major bugfixes, it brings DFU support for the LPN example,
+publish re-transmission support in the access layer, improvements in the heartbeat module, and a major rework of example documentation.
+
+As part of this release, several files have been modified. See [Migration guide](@ref migration_300_added_removed) for details and update your projects accordingly.
+
+### New features and highlights @anchor release_notes_310_highlights
+- Added Device Firmware Upgrade (DFU) support for the LPN example. You can now upgrade the LPN device firmware using the solution from nRF5 SDK.
+    - For more information, see @ref md_examples_experimental_lpn_README and a new standalone page: @ref md_examples_experimental_lpn_dfu_ble.
+- Implemented publish re-transmission support in the access layer. You can now re-transmit published messages according to the Publish Retransmit
+Count and the Publish Retransmit Interval Steps states.
+
+### Changes @anchor release_notes_310_changes
+
+#### Identifier changes
+- Updated example UUIDs. See the [Migration guide](@ref migration_310_uuid_update) page for details and required changes.
+- Implemented URI hash usage. All examples now advertise the URI hash in the unprovisioned device beacon, and static provisioner example uses this URI hash during the provisioning process.
+
+#### Heartbeat module improvements
+- The subscription address no longer needs to be owned by any model.
+- Moved parameter sanitation from configuration server to Heartbeat.
+- Heartbeat now can trigger when friendship is established.
+- Fixed upper boundary of publication count value.
+
+#### OOB-related updates
+- Added better checking of OOB authentication data in @ref nrf_mesh_prov_auth_data_provide(). See [Migration guide](@ref migration_310_oob_error_checking) page for details and required changes.
+- Added new API @ref nrf_mesh_prov_oob_number_provide() for convenience when using a numerical provisioning OOB method.
+
+#### Documentation
+- Reworked documentation pages for @ref md_examples_README.
+    - All pages now follow the same layout, which makes them more readable. This new structure is similar to the nRF5 SDK examples.
+    - Contents of the pages have been reviewed and updated.
+    - Remote provisioning client and server examples are now described on one page: @ref md_examples_pb_remote_README.
+- Edited the @ref md_doc_introduction_mesh_compatibility page structure for clarity.
+- Expanded information about [interacting with examples using SEGGER RTT Viewer](@ref segger-rtt).
+
+#### Other changes
+- Implemented stricter rules for transaction number handling in PB-ADV to avoid unexpected behavior when paired with misbehaving nodes. See [Migration guide](@ref migration_310_pb-adv_change) page for details and required changes.
+- Added support for clearing the state in mesh config.
+- Added upper boundaries to the number of keys, models, and addresses to avoid unexpected behavior when configuration messages exceed maximum access layer message size.
+- Simplified Generic Power OnOff client initialization API. See [Migration guide](@ref migration_310_onoff_api) for details and required changes.
+- Made replay protection more flexible and cut its RAM requirements by half.
+    
+
+### Bugfixes @anchor release_notes_310_bugfixes
+
+#### Low Power node bugfixes
+- Fixed a bug that would cause the LPN to terminate friendship after getting 5 data packets in a row.
+- Added missing PB-ADV bearer in the LPN example compilation unit. See [Migration guide](@ref migration_310_pb-adv_change) for details.
+
+#### Other bugfixes
+- Fixed issues related to beaconing interval calculation for secure network beacons.
+- Fixed a bug that would cause the relay and originator packets to have the same repeat count by default. They now have different repeat counts once again.
+- Fixed a bug with the serial interface. It now propagates the SERIAL_OPCODE_EVT_MESH_TX_COMPLETE events as advertised.
+- Fixed a bug in the app_timer that caused the LEDs to stop blinking.
+- Fixed an assert when setting the GATT proxy state in the configuration server with the same value twice.
+- Fixed a bug with the Health Server attention state. It no longer disables publication if the fast intervals are shorter than 100 ms.
+- Fixed the incorrect scaling of advertisement timeout interval parameter provided to the `mesh_adv_params_set()` API.
+- Fixed the light switch provisioner example. Invalid packets no longer cause the light switch server configuration to fail.
+
+
+### Known issues and limitations @anchor release_notes_310_known_issues
+- Stack applies only 20 seconds delay if secure network beacons from the other devices are transmitted unevenly.
+- Due to a bug in the GNU ARM Embedded Toolchain `8-2018-q4-major` release, building with CMake on Windows is not working correctly when you use this latest version. A warning note was added to @ref md_doc_getting_started_how_to_toolchain. 
+
 
 ---
 

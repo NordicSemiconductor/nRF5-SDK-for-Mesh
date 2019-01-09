@@ -2142,7 +2142,12 @@ Potential status codes:
 
 - `INVALID_LENGTH`
 
-_The response has no parameters._
+_Packet Send Response Parameters:_
+
+Type          | Name                                    | Size | Offset | Description
+--------------|-----------------------------------------|------|--------|------------
+`nrf_mesh_tx_token_t` | Token                                   | 4    | 0      | TX Token assigned to the packet. Can be used to resolve which packet a @ref SERIAL_OPCODE_EVT_MESH_TX_COMPLETE event refers to.
+
 
 ### Bluetooth Mesh State Clear {#bluetooth-mesh-state-clear}
 

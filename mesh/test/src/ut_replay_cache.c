@@ -44,84 +44,187 @@
 
 #include "replay_cache.h"
 #include "nrf_mesh_config_core.h"
+#include "nrf_mesh_events.h"
 
-#define SRC_BASE   0x0100
-#define SEQNO_BASE 0x0000
-#define IVI_BASE   0x0
+#define ADDR_BASE   1000
+
+static nrf_mesh_evt_handler_cb_t m_evt_handler;
+static uint32_t m_iv_index;
+
+static void do_iv_update(uint32_t new_iv_index)
+{
+    m_iv_index = new_iv_index;
+    const nrf_mesh_evt_t evt = {
+        .type = NRF_MESH_EVT_IV_UPDATE_NOTIFICATION, // don't really care about the params.
+    };
+    m_evt_handler(&evt);
+}
+
+void nrf_mesh_evt_handler_add(nrf_mesh_evt_handler_t * p_evt_handler)
+{
+    TEST_ASSERT_NOT_NULL(p_evt_handler);
+    TEST_ASSERT_NOT_NULL(p_evt_handler->evt_cb);
+    m_evt_handler = p_evt_handler->evt_cb;
+}
+
+uint32_t net_state_beacon_iv_index_get(void)
+{
+    return m_iv_index;
+}
 
 void setUp(void)
 {
+    m_iv_index = 0;
     replay_cache_init();
+    TEST_ASSERT_NOT_NULL(m_evt_handler);
+    replay_cache_enable();
 }
 
 void tearDown(void)
 {
+    replay_cache_clear();
 }
 
-void test_cache(void)
+void test_add(void)
 {
-    uint8_t ivi = IVI_BASE;
-
-    for (int i = 0; i < REPLAY_CACHE_ENTRIES; ++i)
+    for (uint32_t i = 0; i < REPLAY_CACHE_ENTRIES; ++i)
     {
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_add(SRC_BASE + i,
-                                                        SEQNO_BASE,
-                                                        ivi));
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_add(ADDR_BASE + i, 0, 0));
+        TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE + i, 0, 0));
+        TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE + i, 1, 0)); //seqnum too high
+    }
+    /* We've filled the list */
+    TEST_ASSERT_EQUAL(NRF_ERROR_NO_MEM, replay_cache_add(ADDR_BASE + REPLAY_CACHE_ENTRIES, 0, 0));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE + REPLAY_CACHE_ENTRIES, 0, 0));
+
+    /* We can safely add the same entries again (with higher seqnums) */
+    for (uint32_t i = 0; i < REPLAY_CACHE_ENTRIES; ++i)
+    {
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_add(ADDR_BASE + i, 1, 0));
+        TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE + i, 0, 0)); // we also have lower seqnums
+        TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE + i, 1, 0));
+        TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE + i, 2, 0)); //seqnum too high
+    }
+}
+
+void test_iv_update(void)
+{
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_add(ADDR_BASE, 1, 0));
+
+    // Update to IV index = 1, should keep the entries around and not change behavior.
+    do_iv_update(1);
+    TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE, 0, 0)); // we also have lower seqnums
+    TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE, 1, 0));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 2, 0)); // same IV index, higher seqnum
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 0, 1)); // higher IV index, lower seqnum
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 1, 1)); // higher IV index, same seqnum
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 2, 1)); // higher IV index, higher seqnum
+
+    // add an entry with current iv index
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_add(ADDR_BASE, 1, 1));
+
+    TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE, 0, 0)); // we also have lower iv indexes
+    TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE, 1, 0)); // we also have lower iv indexes
+    TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE, 0, 1)); // same IV index, lower seqnum
+    TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE, 1, 1)); // same IV index, same seqnum
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 2, 1)); // same IV index, higher seqnum
+
+    // fill the replay cache with IV index = 0 messages
+    uint16_t addr = ADDR_BASE + 1;
+    while (replay_cache_add(addr, 1, 0) == NRF_SUCCESS)
+    {
+        TEST_ASSERT_TRUE(replay_cache_has_elem(addr, 1, 0));
+        addr++;
+    }
+    TEST_ASSERT_EQUAL(ADDR_BASE + REPLAY_CACHE_ENTRIES, addr);
+
+    /* Update to IV index = 2. Should discard all IV index == 0 entries, as we can't receive on those
+     * anymore (IVI bit can only let us receive packets with current IV index or current IV index - 1) */
+    do_iv_update(2);
+    for (uint32_t i = ADDR_BASE + 1; i <= addr; ++i)
+    {
+        TEST_ASSERT_FALSE(replay_cache_has_elem(i, 1, 0));
     }
 
-    /* Cache full. */
-    TEST_ASSERT_EQUAL(NRF_ERROR_NO_MEM, replay_cache_add(SRC_BASE + REPLAY_CACHE_ENTRIES,
-                                                         SEQNO_BASE,
-                                                         ivi));
+    // We're still keeping the IV index = 1 entry, as that's still eligible for RX:
+    TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE, 1, 1));
 
-    replay_cache_on_iv_update();
-
-    /* Update IV index bit... */
-    ivi = (ivi + 1) & 0x01;
-    for (int i = 0; i < REPLAY_CACHE_ENTRIES; ++i)
+    // fill the replay cache with IV index = 2 messages
+    addr = ADDR_BASE + 1;
+    while (replay_cache_add(addr, 1, 2) == NRF_SUCCESS)
     {
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_add(SRC_BASE + i,
-                                                        SEQNO_BASE,
-                                                        ivi));
+        TEST_ASSERT_TRUE(replay_cache_has_elem(addr, 1, 2));
+        addr++;
+    }
+    TEST_ASSERT_EQUAL(ADDR_BASE + REPLAY_CACHE_ENTRIES, addr);
+
+    /* Update to IV index = 10. Should discard all entries, as they're all on old IV indexes */
+    do_iv_update(10);
+    for (uint32_t i = ADDR_BASE; i <= addr; ++i)
+    {
+        TEST_ASSERT_FALSE(replay_cache_has_elem(i, 1, 1));
     }
 
-    /* Cache full. */
-    TEST_ASSERT_EQUAL(NRF_ERROR_NO_MEM, replay_cache_add(SRC_BASE + REPLAY_CACHE_ENTRIES,
-                                                         SEQNO_BASE,
-                                                         ivi));
+    // Test rollover on short-version of IV index:
 
-    for (int i = 0; i < REPLAY_CACHE_ENTRIES; ++i)
+    /* Add an entry with IV index 0xffff */
+    do_iv_update(0xffff);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_add(ADDR_BASE, 1, 0xffff));
+
+    // roll the IV index over to 0x10000, the short version of this IV index is 0x0000.
+    do_iv_update(0x10000);
+    // should still know the entry, as it's just 1 less than the current IV index:
+    TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE, 0, 0xffff));
+    TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE, 1, 0xffff));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 1, 0x10000)); // IV index too high
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 2, 0xffff)); // seqnum too high
+
+    // Add an entry on the right IV index
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_add(ADDR_BASE, 1, 0x10000));
+
+    /* Bump the IV index to 0x20001, the short version of this IV index is 0x0001 (and could therefore
+     * have been a valid number), but we should discard all entries, as they're really out of range. */
+    do_iv_update(0x20001);
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 0, 0x10000));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 1, 0x10000));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 1, 0x20000));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 2, 0x20000));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 1, 0x20001));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 2, 0x20001));
+
+    // Add an entry on the right IV index
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_add(ADDR_BASE, 1, 0x20001));
+
+    /* Bump the IV index to 0x55555, the short version of this IV index is 0x0001 (and could therefore
+     * have been a valid number), but we should discard all entries, as they're really out of range. */
+    do_iv_update(0x55555);
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 0, 0x10000));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 1, 0x10000));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 1, 0x20000));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 2, 0x20000));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 1, 0x20001));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 2, 0x20001));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 2, 0x55554));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 1, 0x55555));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(ADDR_BASE, 2, 0x55555));
+}
+
+void test_clear(void)
+{
+    uint16_t addr = ADDR_BASE;
+    while (replay_cache_add(addr, 1, 0) == NRF_SUCCESS)
     {
-        TEST_ASSERT_EQUAL(true, replay_cache_has_elem(SRC_BASE + i,
-                                                          SEQNO_BASE,
-                                                          ivi));
+        TEST_ASSERT_TRUE(replay_cache_has_elem(addr, 1, 0));
+        addr++;
+    }
+    TEST_ASSERT_EQUAL(ADDR_BASE + REPLAY_CACHE_ENTRIES, addr);
 
-        TEST_ASSERT_EQUAL(false, replay_cache_has_elem(SRC_BASE + i,
-                                                          SEQNO_BASE + 1,
-                                                          ivi));
+    replay_cache_clear();
+    for (uint32_t i = ADDR_BASE; i <= addr; ++i)
+    {
+        TEST_ASSERT_FALSE(replay_cache_has_elem(i, 1, 1));
     }
 
-    /* Update IV index. Should still get matches on old index. */
-    replay_cache_on_iv_update();
-    for (int i = 0; i < REPLAY_CACHE_ENTRIES; ++i)
-    {
-        TEST_ASSERT_EQUAL(true, replay_cache_has_elem(SRC_BASE + i,
-                                                      SEQNO_BASE,
-                                                      ivi));
-
-        TEST_ASSERT_EQUAL(false, replay_cache_has_elem(SRC_BASE + i,
-                                                          SEQNO_BASE + 1,
-                                                          ivi));
-    }
-
-    /* Update IV index bit... */
-    ivi = (ivi + 1) & 0x01;
-
-    /* Should be able to add entries with the updated bit now. */
-    for (int i = 0; i < REPLAY_CACHE_ENTRIES; ++i)
-    {
-        TEST_ASSERT_EQUAL(false, replay_cache_has_elem(SRC_BASE + i,
-                                                       SEQNO_BASE,
-                                                       ivi));
-    }
+    // should be space for new entries again:
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_add(addr, 1, 0));
 }

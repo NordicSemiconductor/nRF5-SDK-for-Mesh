@@ -39,7 +39,7 @@
 
 /* Module configuration */
 #include "nrf_mesh_config_examples.h"
-#include "nrf_mesh_config_core.h"
+#include "nrf_mesh_gatt.h"
 #include "sdk_config.h"
 
 /* nRF5 SDK */

@@ -7,6 +7,7 @@ add_executable(${target}
     "${CMAKE_SOURCE_DIR}/mesh/stack/src/mesh_stack.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_provisionee.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/simple_hal.c"
+    "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_app_utils.c"
     ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${ACCESS_SOURCE_FILES}
     ${SERIAL_SOURCE_FILES}
@@ -75,6 +76,7 @@ add_executable(${target}
     "${CMAKE_SOURCE_DIR}/mesh/stack/src/mesh_stack.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_provisionee.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/simple_hal.c"
+    "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_app_utils.c"
     ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${ACCESS_SOURCE_FILES}
     ${CONFIG_SERVER_SOURCE_FILES}

@@ -47,6 +47,8 @@
 #include "simple_hal.h"
 #include "app_timer.h"
 #include "example_common.h"
+#include "mesh_app_utils.h"
+#include "nrf_mesh_configure.h"
 
 #ifndef NRF_MESH_SERIAL_ENABLE
 #define NRF_MESH_SERIAL_ENABLE 1
@@ -234,7 +236,7 @@ static void start(void)
             .prov_device_identification_start_cb = NULL,
             .prov_device_identification_stop_cb = NULL,
             .prov_abort_cb = NULL,
-            .p_device_uri = NULL
+            .p_device_uri = EX_URI_DFU
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }
@@ -243,6 +245,8 @@ static void start(void)
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Enabling serial interface...\n");
     ERROR_CHECK(nrf_mesh_serial_enable());
 #endif
+
+    mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());
 
     ERROR_CHECK(mesh_stack_start());
 

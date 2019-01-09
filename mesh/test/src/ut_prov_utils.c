@@ -572,3 +572,39 @@ void test_options(void)
     TEST_ASSERT_EQUAL_HEX32(NRF_SUCCESS, prov_utils_opt_set(NRF_MESH_OPT_PROV_ECDH_OFFLOADING, &opt_in));
     TEST_ASSERT_EQUAL(false, prov_utils_use_ecdh_offloading());
 }
+
+void test_is_alphanumeric(void)
+{
+    static const unsigned char alphanumeric[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    TEST_ASSERT_EQUAL(true,
+                      prov_utils_auth_data_is_alphanumeric(
+                          alphanumeric, sizeof(alphanumeric) - 1));
+
+
+    bool valid_input_values[UINT8_MAX] = {0}; /* False */
+    for (uint32_t i = 0; i < sizeof(alphanumeric) - 1; ++i)
+    {
+        valid_input_values[alphanumeric[i]] = true;
+    }
+
+    for (uint8_t i = 0; i < UINT8_MAX; ++i)
+    {
+        TEST_ASSERT_EQUAL(valid_input_values[i],
+                          prov_utils_auth_data_is_alphanumeric(&i, 1));
+    }
+}
+
+void test_is_number(void)
+{
+    uint32_t three_digits = 123;
+    uint32_t eight_digits = 12345678;
+    TEST_ASSERT_EQUAL(false, prov_utils_auth_data_is_valid_number((const uint8_t *) &three_digits, 2));
+    TEST_ASSERT_EQUAL(false, prov_utils_auth_data_is_valid_number((const uint8_t *) &three_digits, 1));
+    TEST_ASSERT_EQUAL(true, prov_utils_auth_data_is_valid_number((const uint8_t *) &three_digits, 3));
+    TEST_ASSERT_EQUAL(true, prov_utils_auth_data_is_valid_number((const uint8_t *) &three_digits, 4));
+
+    TEST_ASSERT_EQUAL(false, prov_utils_auth_data_is_valid_number((const uint8_t *) &eight_digits, 4));
+    TEST_ASSERT_EQUAL(true, prov_utils_auth_data_is_valid_number((const uint8_t *) &eight_digits, 8));
+
+}

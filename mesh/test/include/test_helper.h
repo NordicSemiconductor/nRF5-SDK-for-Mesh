@@ -82,7 +82,6 @@
 } while (0)
 #define TEST_ASSERT_EQUAL_transport_control_packet_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_transport_control_packet_t(expected, actual, __LINE__, "")
 
-
 #define UNITY_TEST_ASSERT_EQUAL_network_packet_metadata_t(expected, actual, line, message) do { \
         UNITY_TEST_ASSERT_EQUAL_HEX16((expected).src, (actual).src, line, message); \
         UNITY_TEST_ASSERT_EQUAL_HEX16((expected).dst.value, (actual).dst.value, line, message); \
@@ -93,6 +92,30 @@
         UNITY_TEST_ASSERT_EQUAL_PTR((expected).p_security_material, (actual).p_security_material, line, message); \
     } while (0)
 #define TEST_ASSERT_EQUAL_network_packet_metadata_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_network_packet_metadata_t(expected, actual, __LINE__, "")
+
+#define UNITY_TEST_ASSERT_EQUAL_heartbeat_publication_state_t(expected, actual, line, message)                              \
+    do                                                                                                                      \
+    {                                                                                                                       \
+        UNITY_TEST_ASSERT_EQUAL_HEX16((expected).dst, (actual).dst, line, "publication::dst");                              \
+        UNITY_TEST_ASSERT_EQUAL_UINT32((expected).count, (actual).count, line, "publication::count");                       \
+        UNITY_TEST_ASSERT_EQUAL_UINT32((expected).period, (actual).period, line, "publication::period");                    \
+        UNITY_TEST_ASSERT_EQUAL_UINT8((expected).ttl, (actual).ttl, line, "publication::ttl");                              \
+        UNITY_TEST_ASSERT_EQUAL_HEX16((expected).features, (actual).features, line, "publication::features");               \
+        UNITY_TEST_ASSERT_EQUAL_UINT16((expected).netkey_index, (actual).netkey_index, line, "publication::netkey_index");  \
+    } while (0)
+#define TEST_ASSERT_EQUAL_heartbeat_publication_state_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_heartbeat_publication_state_t(expected, actual, __LINE__, "")
+
+#define UNITY_TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(expected, actual, line, message)                      \
+    do                                                                                                               \
+    {                                                                                                                \
+        UNITY_TEST_ASSERT_EQUAL_HEX16((expected).src, (actual).src, line, "subscription::src");                      \
+        UNITY_TEST_ASSERT_EQUAL_HEX16((expected).dst, (actual).dst, line, "subscription::dst");                      \
+        UNITY_TEST_ASSERT_EQUAL_UINT32((expected).count, (actual).count, line, "subscription::count");               \
+        UNITY_TEST_ASSERT_EQUAL_UINT32((expected).period, (actual).period, line, "subscription::period");            \
+        UNITY_TEST_ASSERT_EQUAL_UINT16((expected).min_hops, (actual).min_hops, line, "subscription::min_hops");      \
+        UNITY_TEST_ASSERT_EQUAL_UINT16((expected).max_hops, (actual).max_hops, line, "subscription::max_hops");      \
+    } while (0)
+#define TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(expected, actual, __LINE__, "")
 
 /**
  * nrf_mesh_evt_t. Only the events that are actually used are included, will assert if you try to
@@ -180,6 +203,42 @@
             case NRF_MESH_EVT_DISABLED:                                                            \
                 /* No parameters */                                                                \
                 break;                                                                             \
+            case NRF_MESH_EVT_HB_SUBSCRIPTION_CHANGE:                                              \
+                if ((expected).params.hb_subscription_change.p_old == NULL)                        \
+                {                                                                                  \
+                    UNITY_TEST_ASSERT_NULL((actual).params.hb_subscription_change.p_old,           \
+                                           line,                                                   \
+                                           message);                                               \
+                }                                                                                  \
+                else                                                                               \
+                {                                                                                  \
+                    UNITY_TEST_ASSERT_NOT_NULL((actual).params.hb_subscription_change.p_old,       \
+                                               line,                                               \
+                                               message);                                           \
+                    UNITY_TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(                        \
+                        *(expected).params.hb_subscription_change.p_old,                           \
+                        *(actual).params.hb_subscription_change.p_old,                             \
+                        line,                                                                      \
+                        message);                                                                  \
+                }                                                                                  \
+                if ((expected).params.hb_subscription_change.p_new == NULL)                        \
+                {                                                                                  \
+                    UNITY_TEST_ASSERT_NULL((actual).params.hb_subscription_change.p_new,           \
+                                           line,                                                   \
+                                           message);                                               \
+                }                                                                                  \
+                else                                                                               \
+                {                                                                                  \
+                    UNITY_TEST_ASSERT_NOT_NULL((actual).params.hb_subscription_change.p_new,       \
+                                               line,                                               \
+                                               message);                                           \
+                    UNITY_TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(                        \
+                        *(expected).params.hb_subscription_change.p_new,                           \
+                        *(actual).params.hb_subscription_change.p_new,                             \
+                        line,                                                                      \
+                        message);                                                                  \
+                }                                                                                  \
+                break;                                                                             \
             default:                                                                               \
             {                                                                                      \
                 char error_msg[256];                                                               \
@@ -188,8 +247,8 @@
                 break;                                                                             \
             }                                                                                      \
         }                                                                                          \
-    \
-} while (0)
+                                                                                                   \
+    } while (0)
 #define TEST_ASSERT_EQUAL_nrf_mesh_evt_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_nrf_mesh_evt_t(expected, actual, __LINE__, "")
 
 

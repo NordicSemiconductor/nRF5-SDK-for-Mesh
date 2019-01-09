@@ -45,6 +45,8 @@
 #include "mesh_opt_core.h"
 
 #include "nrf_mesh_config_examples.h"
+#include "nrf_mesh_config_prov.h"
+#include "nrf_mesh_gatt.h"
 
 #if MESH_FEATURE_PB_GATT_ENABLED
 #include "nrf_sdh.h"
@@ -63,11 +65,11 @@ static bool                        m_doing_gatt_reset;
 static nrf_mesh_prov_bearer_gatt_t m_prov_bearer_gatt;
 #endif  /* MESH_FEATURE_PB_GATT_ENABLED */
 
-#if MESH_PROVISIONEE_BEARER_ADV_ENABLED
+#if MESH_FEATURE_PB_ADV_ENABLED
 static nrf_mesh_prov_bearer_adv_t m_prov_bearer_adv;
 #endif
 
-#if !MESH_PROVISIONEE_BEARER_ADV_ENABLED && !MESH_FEATURE_PB_GATT_ENABLED
+#if !MESH_FEATURE_PB_ADV_ENABLED && !MESH_FEATURE_PB_GATT_ENABLED
 #error "At least one provisioning bearer shall be enabled"
 #endif
 
@@ -178,7 +180,7 @@ static uint32_t provisionee_start(void)
 {
     uint32_t bearers = 0;
 
-#if MESH_PROVISIONEE_BEARER_ADV_ENABLED
+#if MESH_FEATURE_PB_ADV_ENABLED
     bearers = NRF_MESH_PROV_BEARER_ADV;
 #endif
 
@@ -283,7 +285,7 @@ uint32_t mesh_provisionee_prov_start(const mesh_provisionee_start_params_t * p_s
                                        m_private_key,
                                        &prov_caps, prov_evt_handler));
 
-#if MESH_PROVISIONEE_BEARER_ADV_ENABLED
+#if MESH_FEATURE_PB_ADV_ENABLED
     RETURN_ON_ERROR(nrf_mesh_prov_bearer_add(
                         &m_prov_ctx,
                         nrf_mesh_prov_bearer_adv_interface_get(&m_prov_bearer_adv)));

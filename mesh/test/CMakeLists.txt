@@ -79,6 +79,7 @@ set(compile_options
     "-DNRF_MESH_LOG_ENABLE=1"
     "-DLOG_CALLBACK_DEFAULT=log_callback_stdout"
     "-DUNIT_TEST=1"
+    "-DCMOCK_MEM_DYNAMIC" # CMock allocates memory on heap to avoid resource limit
     "-DINTERNAL_EVT_ENABLE=0")
 
 target_sources(unit_test_common PUBLIC
@@ -658,14 +659,15 @@ set(access_srcs
     ../core/src/log.c
     ../core/src/fifo.c
     ../core/src/list.c
-    ../core/src/mesh_mem_stdlib.c
     ../core/src/queue.c
     ${CMOCK_BIN}/device_state_manager_mock.c
     ${CMOCK_BIN}/flash_manager_mock.c
     ${CMOCK_BIN}/nrf_mesh_mock.c
     ${CMOCK_BIN}/nrf_mesh_events_mock.c
     ${CMOCK_BIN}/nrf_mesh_utils_mock.c
+    ${CMOCK_BIN}/mesh_mem_mock.c
     ${CMOCK_BIN}/access_publish_mock.c
+    ${CMOCK_BIN}/access_publish_retransmission_mock.c
     ${CMOCK_BIN}/access_reliable_mock.c
     ${CMOCK_BIN}/bearer_event_mock.c
     ${CMOCK_BIN}/event_mock.c
@@ -702,6 +704,19 @@ set(access_publish_srcs
     )
 add_unit_test(access_publish "${access_publish_srcs}" "${include_directories}" "${compile_options}")
 
+set(access_publish_retransmission_srcs
+    src/ut_access_publish_retransmission.c
+    ${CMAKE_SOURCE_DIR}/mesh/core/src/log.c
+    ${CMOCK_BIN}/mesh_mem_mock.c
+    ${CMOCK_BIN}/timer_scheduler_mock.c
+    ${CMOCK_BIN}/access_internal_mock.c
+    ../access/src/access_publish_retransmission.c
+    ../core/src/queue.c
+    )
+set(access_publish_retransmission_defines
+    -DACCESS_MODEL_COUNT=3)
+add_unit_test(access_publish_retransmission "${access_publish_retransmission_srcs}" "${include_directories}" "${compile_options};${access_publish_retransmission_defines}")
+
 set(config_client_srcs
     src/ut_config_client.c
     ../core/src/mesh_mem_stdlib.c
@@ -736,7 +751,7 @@ set(config_server_srcs
     ${CMOCK_BIN}/mesh_stack_mock.c
     ${CMOCK_BIN}/nrf_mesh_mock.c
     )
-add_unit_test(config_server "${config_server_srcs}" "${include_directories}" "${compile_options};-DACCESS_ELEMENT_COUNT=1024;-DACCESS_SUBSCRIPTION_LIST_COUNT=3;-DFRIEND_FEATURE")
+add_unit_test(config_server "${config_server_srcs}" "${include_directories}" "${compile_options};-DACCESS_ELEMENT_COUNT=64;-DACCESS_SUBSCRIPTION_LIST_COUNT=3;-DFRIEND_FEATURE")
 
 set(composition_data_srcs
     src/ut_composition_data.c
@@ -771,6 +786,7 @@ set(device_state_manager_srcs
     ${CMOCK_BIN}/mesh_opt_core_mock.c
     ${CMOCK_BIN}/mesh_lpn_internal_mock.c
     ${CMOCK_BIN}/mesh_lpn_mock.c
+    ${CMOCK_BIN}/heartbeat_mock.c
     )
 set(device_state_manager_defines
     -DMESH_FEATURE_LPN_ENABLED=1
@@ -951,7 +967,6 @@ set(heartbeat_srcs
     ${CMOCK_BIN}/transport_mock.c
     ${CMOCK_BIN}/config_server_mock.c
     ${CMOCK_BIN}/nrf_mesh_externs_mock.c
-    ${CMOCK_BIN}/mesh_config_entry_mock.c
     ../core/src/log.c
     )
 add_unit_test(heartbeat "${heartbeat_srcs}" "${include_directories}" "${compile_options};-DMESH_FEATURE_GATT_PROXY_ENABLED=1")
@@ -984,6 +999,7 @@ set(mesh_gatt_srcs
     src/ut_mesh_gatt.c
     ../gatt/src/mesh_gatt.c
     ../core/src/packet_buffer.c
+    ../core/src/log.c
     ${CMOCK_BIN}/ble_gatts_mock.c
     ${CMOCK_BIN}/ble_gap_mock.c
     ${CMOCK_BIN}/timer_scheduler_mock.c

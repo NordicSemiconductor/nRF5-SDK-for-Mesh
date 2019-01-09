@@ -580,6 +580,8 @@ static uint32_t upper_trs_packet_alloc(transport_packet_metadata_t * p_metadata,
     p_net_buf->user_data.p_metadata = &p_metadata->net;
     p_net_buf->user_data.token = p_metadata->token;
     p_net_buf->user_data.bearer_selector = p_metadata->tx_bearer_selector;
+    p_net_buf->user_data.role = CORE_TX_ROLE_ORIGINATOR;
+
     uint32_t status = network_packet_alloc(p_net_buf);
     if (status == NRF_SUCCESS)
     {
@@ -1689,6 +1691,11 @@ void transport_init(const nrf_mesh_init_params_t * p_init_params)
 #endif
 }
 
+void transport_enable(void)
+{
+    replay_cache_enable();
+}
+
 uint32_t transport_packet_in(const packet_mesh_trs_packet_t * p_packet,
                              uint32_t trs_packet_len,
                              const network_packet_metadata_t * p_net_metadata,
@@ -1724,7 +1731,7 @@ uint32_t transport_packet_in(const packet_mesh_trs_packet_t * p_packet,
 
     if (replay_cache_has_elem(p_net_metadata->src,
                               p_net_metadata->internal.sequence_number,
-                              p_net_metadata->internal.iv_index & NETWORK_IVI_MASK))
+                              p_net_metadata->internal.iv_index))
     {
         __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_PACKET_DROPPED,
                               PACKET_DROPPED_REPLAY_CACHE,
@@ -1735,7 +1742,7 @@ uint32_t transport_packet_in(const packet_mesh_trs_packet_t * p_packet,
 
     status = replay_cache_add(p_net_metadata->src,
                               p_net_metadata->internal.sequence_number,
-                              p_net_metadata->internal.iv_index & NETWORK_IVI_MASK);
+                              p_net_metadata->internal.iv_index);
     if (status != NRF_SUCCESS)
     {
         m_send_replay_cache_full_event(p_net_metadata->src,

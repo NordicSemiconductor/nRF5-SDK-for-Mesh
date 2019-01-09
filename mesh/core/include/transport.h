@@ -154,6 +154,11 @@ typedef struct
 void transport_init(const nrf_mesh_init_params_t * p_init_params);
 
 /**
+ * Enables the transport layer.
+ */
+void transport_enable(void);
+
+/**
  * Function for passing packets from the network layer to the transport layer.
  *
  * @param[in] p_packet Pointer to the transport packet.

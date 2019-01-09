@@ -949,6 +949,8 @@ void mesh_lpn_rx_notify(const network_packet_metadata_t * p_net_metadata)
         m_lpn.fsn++;
     }
 
+    m_lpn.poll_attempts_count = MESH_LPN_POLL_RETRY_COUNT + 1;
+
     fsm_event_post(&m_lpn_fsm, E_NETWORK_RX, NULL);
 }
 

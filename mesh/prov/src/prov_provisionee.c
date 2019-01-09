@@ -121,7 +121,7 @@ static uint32_t handle_prov_start(nrf_mesh_prov_ctx_t * p_ctx, const uint8_t * p
         p_pdu->public_key >= NRF_MESH_PROV_PUBLIC_KEY_PROHIBITED ||
         p_pdu->auth_method >= NRF_MESH_PROV_OOB_METHOD_PROHIBITED)
     {
-    	return NRF_ERROR_INVALID_DATA;
+        return NRF_ERROR_INVALID_DATA;
     }
 
     if (p_pdu->public_key == NRF_MESH_PROV_PUBLIC_KEY_OOB &&
@@ -554,7 +554,7 @@ static void prov_provisionee_cb_link_established(prov_bearer_t * p_bearer)
             (void) p_tmp_bearer->p_interface->listen_stop(p_tmp_bearer);
         }
     }
-    
+
     p_ctx->state = NRF_MESH_PROV_STATE_INVITE;
     nrf_mesh_prov_evt_t app_event;
     app_event.type = NRF_MESH_PROV_EVT_LINK_ESTABLISHED;
@@ -603,20 +603,9 @@ uint32_t prov_provisionee_auth_data(nrf_mesh_prov_ctx_t * p_ctx, const uint8_t *
         return NRF_ERROR_INVALID_STATE;
     }
 
-    if (size > PROV_AUTH_LEN || size != p_ctx->oob_size) /* TODO: I'm pretty sure we that's not how oob size works. */
-    {
-        return NRF_ERROR_INVALID_LENGTH;
-    }
-
     uint32_t retval = NRF_SUCCESS;
-
-    /* Add zero-padding to the authentication data: */
-    memset(&p_ctx->auth_value[size], 0, sizeof(p_ctx->auth_value) - size);
-    memcpy(p_ctx->auth_value, p_data, size);
-
     if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_OOB_INPUT)
     {
-    	utils_reverse_array(p_ctx->auth_value, sizeof(p_ctx->auth_value));
         retval = prov_tx_input_complete(p_ctx->p_active_bearer);
         if (NRF_SUCCESS != retval)
         {

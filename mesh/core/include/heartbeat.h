@@ -88,7 +88,7 @@
 #define HEARTBEAT_MAX_PERIOD     (1u << (HEARTBEAT_MAX_PERIOD_LOG - 1))
 #define HEARTBEAT_INVALID_PERIOD (0xFFFFFFFF)
 
-#define HEARTBEAT_MAX_COUNT_LOG  (0x11)
+#define HEARTBEAT_MAX_COUNT_LOG  (0x10)
 #define HEARTBEAT_MAX_COUNT      (1u << (HEARTBEAT_MAX_COUNT_LOG - 1))
 #define HEARTBEAT_INF_COUNT      (0xFFFF)
 #define HEARTBEAT_INF_COUNT_LOG  (0xFF)
@@ -163,9 +163,20 @@ void heartbeat_init(void);
 
 /**
  * Gets the value of the internal heartbeat publication state.
- * @returns Returns a pointer to the heartbeat publication state.
+ *
+ * @returns A pointer to the heartbeat publication state.
  */
-heartbeat_publication_state_t * heartbeat_publication_get(void);
+const heartbeat_publication_state_t * heartbeat_publication_get(void);
+
+/**
+ * Sets the value of the internal heartbeat publication state.
+ *
+ * @param[in] p_publication_state New publication state parameters.
+ *
+ * @retval NRF_SUCCESS The heartbeat publication parameters were successfully updated.
+ * @retval NRF_ERROR_INVALID_PARAM One or more of the parameters in @p p_publication_state were invalid.
+ */
+uint32_t heartbeat_publication_set(const heartbeat_publication_state_t * p_publication_state);
 
 /**
  * Sets the value of internal heartbeat subscription state.
@@ -183,11 +194,6 @@ uint32_t heartbeat_subscription_set(const heartbeat_subscription_state_t * p_hb_
  * @returns Returns a pointer to the heartbeat publication state.
  */
 const heartbeat_subscription_state_t * heartbeat_subscription_get(void);
-
-/**
- * Notifies the heartbeat module about changes in the heartbeat publication state.
- */
-void heartbeat_publication_state_updated(void);
 
 /** @} */
 

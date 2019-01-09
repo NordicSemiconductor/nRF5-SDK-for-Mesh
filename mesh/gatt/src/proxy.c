@@ -1009,7 +1009,7 @@ MESH_CONFIG_ENTRY(mesh_opt_gatt_proxy,
                   proxy_set,
                   proxy_get,
                   NULL,
-                  &m_enabled);
+                  true);
 
 uint32_t mesh_opt_gatt_proxy_set(bool enabled)
 {

@@ -48,19 +48,6 @@
  */
 
 /**
- * @defgroup MESH_PROVISIONEE_CONFIG Provisionee support module configuration (mesh examples)
- * Configuration for compile time. Part of the provisionee support module for mesh examples.
- * @{
- */
-
-/** Enable Advertising-based provisioning bearer, PB-ADV. */
-#ifndef MESH_PROVISIONEE_BEARER_ADV_ENABLED
-#define MESH_PROVISIONEE_BEARER_ADV_ENABLED 1
-#endif
-
-/** @} end of MESH_PROVISIONEE_CONFIG */
-
-/**
  * @defgroup RTT_INPUT_CONFIG RTT Input module configuration (mesh examples)
  * Configuration for compile time. Part of the RTT Input module for mesh examples.
  * @{
@@ -136,6 +123,21 @@
 #endif
 
 /** @} end of BLE_SOFTDEVICE_SUPPORT_CONFIG */
+
+/**
+ * @defgroup DFU_SUPPORT_CONFIG BLE DFU support module configuration
+ * @ingroup MESH_API_GROUP_APP_SUPPORT
+ * Configuration for compile time. Part of the BLE DFU support module.
+ *
+ * @{
+ */
+
+/** Enable BLE DFU support module. */
+#ifndef BLE_DFU_SUPPORT_ENABLED
+#define BLE_DFU_SUPPORT_ENABLED 0
+#endif
+
+/** @} end of DFU_SUPPORT_CONFIG */
 
 /** @} end of NRF_MESH_CONFIG_EXAMPLES */
 

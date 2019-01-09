@@ -766,7 +766,7 @@
                         "status": [
                             "SUCCESS", "ERROR_DATA_SIZE", "ERROR_REJECTED", "ERROR_INVALID_PARAMETER"
                         ],
-                        "params": ""
+                        "params": "cmd_rsp_data_packet_send"
                     }
                 },
                 {

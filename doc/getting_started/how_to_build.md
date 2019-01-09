@@ -6,16 +6,17 @@ Before you start building, remember to set up the mesh development environment f
 **Table of contents**
 - [Building with SEGGER Embedded Studio](@ref how_to_build_segger)
 	- [First time setup](@ref how_to_build_segger_setup)
-	- [Compiling and building with SES](@ref how_to_build_segger_compiling_building)
+	- [Building with SES](@ref how_to_build_segger_compiling_building)
 - [Building with CMake](@ref how_to_build_cmake)
 	- [Generating build files](@ref how_to_build_cmake_generating)
 		- [Customization](@ref how_to_build_cmake_generating_customization)
 	- [Building the stack and examples](@ref how_to_build_cmake_building)
 	- [Generating SEGGER Embedded Studio project files](@ref how_to_build_cmake_generating_SES)
-	- [Useful CMake command line options](@ref how_to_build_cmake_command_line)
-	- [Creating a new build target](@ref how_to_build_cmake_creating_target)
-	- [Building documentation](@ref how_to_build_cmake_docs)
-	- [Building and running unit tests (host)](@ref how_to_build_cmake_unit_tests)
+	- [Additional CMake options](@ref how_to_build_cmake_optional)
+        - [Useful CMake command line options](@ref how_to_build_cmake_command_line)
+        - [Creating a new build target](@ref how_to_build_cmake_creating_target)
+        - [Building documentation](@ref how_to_build_cmake_docs)
+        - [Building and running unit tests (host)](@ref how_to_build_cmake_unit_tests)
 
 
 ---
@@ -35,9 +36,6 @@ You can either:
 folder.
 - Set the `SDK_ROOT` macro to a custom nRF5 SDK instance.
 
-To set the `SDK_ROOT` macro from the command line to wherever the nRF5 SDK is, type:
-`set SDK_ROOT=<path_to_nRF5_SDK_instance>`.
-
 To set the `SDK_ROOT` macro manually in SEGGER Embedded Studio:
 1. Go to **Tools -> Options**.
 2. Select **Building**.
@@ -53,18 +51,15 @@ be found.
 For more info on SEGGER Embedded Studio macros, see the @link_seggerstudio_macros <!--SES Project macros: https://studio.segger.com/ide_project_macros.htm -->page.
 
 
-### Compiling and building with SES @anchor how_to_build_segger_compiling_building
+### Building with SES @anchor how_to_build_segger_compiling_building
 
-To build with SEGGER Embedded Studio, open one of the project files located in the `examples/` folder,
+To build an example with SEGGER Embedded Studio:
+1. Open the desired project file located in the `examples/` folder,
 for instance `examples/light_switch/client/light_switch_client_nrf52832_xxAA_s132_6_1_0.emProject`.
+2. Go to **Build -> Build < name of the emProject file>**, for instance **Build light_switch_client_nrf52832_xxAA_s132_6.1.0**.
+3. Wait for the compilation to finish.
 
-To compile an example:
-1. Go to **Build -> Build light_switch_client_nrf52832_xxAA_s132_6.1.0**. 
-2. Wait for the compilation to finish.
-3. Erase the device using **Target -> Erase all**.
-4. Run the example with **Debug -> Go**. This downloads the matching SoftDevice and the compiled example and starts the debugger.
-
-When the download is complete select **Debug -> Go** again to start the code execution.
+You can now [run the example using SEGGER Embedded Studio](@ref how_to_run_examples_ses).
 
 
 ---
@@ -103,6 +98,11 @@ Example use:
      build $ ninja flash_light_switch_server_nrf52832_xxAA_s132_6.1.0
 
 
+The following steps are mandatory when building with CMake:
+- [Generating build files](@ref how_to_build_cmake_generating)
+- [Building the stack and examples](@ref how_to_build_cmake_building)
+- [Generating SEGGER Embedded Studio project files](@ref how_to_build_cmake_generating_SES)
+
 
 ### Generating build files @anchor how_to_build_cmake_generating
 
@@ -137,7 +137,7 @@ a valid `BOARD` and `SOFTDEVICE` combination for each given platform.
 
     build$ cmake -G Ninja -DTOOLCHAIN=<toolchain> -DPLATFORM=<platform> ..
 
-	
+
 Possible options for the `toolchain` and `platform`:
 
 - `toolchain`
@@ -173,7 +173,7 @@ To see a list of available build targets, run the following command:
 **Example:** To build a specific target from this list with the current platform `nrf52832_xxAA` and the `s132_6.1.0` SoftDevice, run:
 
 	ninja light_switch_server_nrf52832_xxAA_s132_6.1.0
-	
+
 
 CMake generates Ninja build files in the folder in which CMake is run,
 so all targets must be built from that directory. In other words, in-directory building is not supported
@@ -192,8 +192,16 @@ based on the current settings.
 
     cmake -G Ninja -DGENERATE_SES_PROJECTS=ON -DPLATFORM=nrf52832_xxAA -DSOFTDEVICE=s132_6.1.0 ..
 
-	
-### Useful CMake command line options @anchor how_to_build_cmake_command_line
+
+### Additional CMake options @anchor how_to_build_cmake_optional
+
+The following procedures can be useful when working with CMake:
+- [Useful CMake command line options](@ref how_to_build_cmake_command_line)
+- [Creating a new build target](@ref how_to_build_cmake_creating_target)
+- [Building documentation](@ref how_to_build_cmake_docs)
+- [Building and running unit tests (host)](@ref how_to_build_cmake_unit_tests)
+
+#### Useful CMake command line options @anchor how_to_build_cmake_command_line
 
 CMake allows you to generate project files in release or debug configurations. To do so,
 use the `-DCMAKE_BUILD_TYPE` option:
@@ -205,7 +213,7 @@ use the `-DCMAKE_BUILD_TYPE` option:
 The default build type is `Debug` if the CMake project is a Git repository (contains a `.git` directory).
 Otherwise, it is set to `RelWithDebInfo`.
 
-### Creating a new build target @anchor how_to_build_cmake_creating_target
+#### Creating a new build target @anchor how_to_build_cmake_creating_target
 
 To create a new build target:
 
@@ -217,7 +225,7 @@ To create a new build target:
         build $ ninja my_app
 
 
-### Building documentation @anchor how_to_build_cmake_docs
+#### Building documentation @anchor how_to_build_cmake_docs
 
 @note
 Building documentation requires additional command line tools.
@@ -230,7 +238,7 @@ To build all documentation (API documentation and internal documentation), call 
 The Doxygen documentation is generated in `<build folder>/doc/offline/html`.
 
 
-### Building and running unit tests (host) @anchor how_to_build_cmake_unit_tests
+#### Building and running unit tests (host) @anchor how_to_build_cmake_unit_tests
 
 @note
 Building unit tests is optional and requires additional tools.
@@ -241,32 +249,32 @@ To build units tests:
 1. Enter the `nrf5_sdk_for_mesh` directory and make a new build directory, for example `build_host`:
 
 		nrf5_sdk_for_mesh $ mkdir -p build_host && cd build_host
-	
+
 2. Set the option `BUILD_HOST` to `ON` and `CMAKE_BUILD_TYPE` to `Debug`:
 
 		build_host $ cmake -G Ninja -DBUILD_HOST=ON -DCMAKE_BUILD_TYPE=Debug ..
-	
+
 	@note
 	- CMake is set up to look for CMock in the directory above the `nrf5_sdk_for_mesh` folder. If it is _not_ located next to the mesh folder, you can specify its path by passing `-DCMOCK_ROOT=<dir/cmock>`.
 	- If a different version of Unity is used than the one included as a submodule in CMock, you can specify its path by passing `-DUNITY_ROOT=<dir/unity>`.
 	- All paths given to CMake must use forward slashes ('/') as directory separators.
-	
+
 3. Build all the unit tests with ninja:
 
 		build_host $ ninja
 
-	
 
-	
+
+
 **Running unit tests**<br>
 To run the tests, you can either:
 - run `ctest` (bundled with CMake):
-	
+
 		build_host $ ctest # Run all unit tests
 
 - call `ninja test` in the build directory:
 
 		build_host $ ninja test
-    
 
-	
+
+

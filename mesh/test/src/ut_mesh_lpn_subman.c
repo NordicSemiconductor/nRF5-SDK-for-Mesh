@@ -48,7 +48,7 @@
 #include "nrf_mesh_mock.h"
 #include "packet_mesh.h"
 
-#define LPN_SUBMAN_ADDRESS_LIST_SIZE_MAX    (DSM_NONVIRTUAL_ADDR_MAX + DSM_VIRTUAL_ADDR_MAX)
+#define LPN_SUBMAN_ADDRESS_LIST_SIZE_MAX    (DSM_NONVIRTUAL_ADDR_MAX + DSM_VIRTUAL_ADDR_MAX + 1)
 
 typedef enum
 {

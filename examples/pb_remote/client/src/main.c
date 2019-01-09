@@ -64,6 +64,7 @@
 #include "ble_softdevice_support.h"
 #include "nrf_mesh_config_examples.h"
 #include "example_common.h"
+#include "nrf_mesh_configure.h"
 
 /**
  * Static authentication data. This data must match the data provided to the provisioner node.
@@ -363,6 +364,8 @@ static void start(void)
 {
     rtt_input_enable(user_input_handler, RTT_INPUT_POLL_PERIOD_MS);
     provisioner_start();
+
+    mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());
 
     ERROR_CHECK(mesh_stack_start());
 

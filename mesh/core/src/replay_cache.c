@@ -40,77 +40,147 @@
 #include "nrf_mesh_defines.h"
 #include "nrf_mesh_config_core.h"
 #include "replay_cache.h"
+#include "utils.h"
+#include "net_state.h"
+#include "nrf_mesh_events.h"
 
 typedef struct
 {
-    uint32_t seqno : NETWORK_SEQNUM_BITS;
+    uint32_t seqnum;
     uint16_t src;
+
+    /**
+     * Lowest 16 bits of the iv index. Kept short to prevent spending another 4 bytes for each entry.
+     *
+     * As the network layer will only receive packets on the current IV index or the current IV index - 1,
+     * we can always extrapolate the full IV index from this and the current IV index. Every time the
+     * current IV index is updated, we purge old entries, so there's no chance of a double rollover.
+     */
+    uint16_t iv_index;
 } replay_cache_entry_t;
 
-/**
- * @todo Get memory from elsewhere...
- */
-static replay_cache_entry_t m_replay_cache[2][REPLAY_CACHE_ENTRIES];
+static uint32_t m_current_iv_index;
+static replay_cache_entry_t m_replay_cache[REPLAY_CACHE_ENTRIES];
+static uint32_t m_entry_count;
 
-static uint8_t m_cache_index = 0;
+/**
+ * Reconstruct the IV index from the entry's trimmed value and the current IV index.
+ *
+ * As it's not possible to receive on entries with a higher IV index than the current, we can assume
+ * that the entries with a higher masked IV index have rolled over.
+ *
+ * @param[in] p_entry Entry to get IV index of.
+ *
+ * @returns The IV index of @p p_entry.
+ */
+static inline uint32_t iv_index_get(const replay_cache_entry_t * p_entry)
+{
+    uint16_t masked_iv_index = (uint16_t)(m_current_iv_index & UINT16_MAX);
+
+    /* We should have purged the entry if it's not one of iv index or iv index - 1 */
+    NRF_MESH_ASSERT_DEBUG(masked_iv_index == p_entry->iv_index ||
+                          masked_iv_index == (uint16_t)(p_entry->iv_index + 1));
+
+    /* If we the entry's lower 16 bits are higher than our current lower 16 bits, it means that we've rolled over */
+    uint32_t upper_bits = ((p_entry->iv_index <= masked_iv_index) ? m_current_iv_index : (m_current_iv_index - 1));
+
+    return (upper_bits & ~UINT16_MAX) + p_entry->iv_index;
+}
+
+static void on_iv_update(void)
+{
+    /* The IV index in the IV_UPDATE_NOTIFICATION represents the IV index we should use when
+     * sending. To get the actual network IV index value, we'll need to get it from net_state: */
+    uint32_t new_iv_index = net_state_beacon_iv_index_get();
+
+    for (uint32_t i = 0; i < m_entry_count; )
+    {
+        uint32_t iv_index = iv_index_get(&m_replay_cache[i]);
+
+        /* According to the Mesh Profile Specification v1.0 Section 3.10.5, we can only receive
+         * on the current IV index and current IV index - 1. If an entry is older than this,
+         * there's no point in keeping it, as we'll never receive a packet that doesn't qualify. */
+        if (iv_index != new_iv_index && iv_index != (new_iv_index - 1))
+        {
+            // copy the last entry to this one and reduce count, wiping this entry while avoiding holes:
+            m_replay_cache[i] = m_replay_cache[--m_entry_count];
+        }
+        else
+        {
+            // Should only iterate if we're on an already processed entry:
+            ++i;
+        }
+    }
+    m_current_iv_index = new_iv_index;
+}
+
+static void evt_handler(const nrf_mesh_evt_t * p_evt)
+{
+    if (p_evt->type == NRF_MESH_EVT_IV_UPDATE_NOTIFICATION)
+    {
+        on_iv_update();
+    }
+}
 
 void replay_cache_init(void)
 {
+    static nrf_mesh_evt_handler_t event_handler = {.evt_cb = evt_handler};
+    nrf_mesh_evt_handler_add(&event_handler);
+
     replay_cache_clear();
 }
 
-uint32_t replay_cache_add(uint16_t src, uint32_t seqno, uint8_t ivi)
+void replay_cache_enable(void)
 {
-    for (uint_fast8_t i = 0; i < REPLAY_CACHE_ENTRIES; ++i)
-    {
-        if (m_replay_cache[ivi][i].src == 0)
-        {
-            /* Free slot! */
-            m_replay_cache[ivi][i].seqno = seqno;
-            m_replay_cache[ivi][i].src   = src;
-            return NRF_SUCCESS;
-        }
+    m_current_iv_index = net_state_beacon_iv_index_get();
+}
 
-        if (m_replay_cache[ivi][i].src == src)
+uint32_t replay_cache_add(uint16_t src, uint32_t seqnum, uint32_t iv_index)
+{
+    for (uint_fast8_t i = 0; i < m_entry_count; ++i)
+    {
+        if (m_replay_cache[i].src == src)
         {
-            /* Free slot! */
-            m_replay_cache[ivi][i].seqno = seqno;
+            m_replay_cache[i].iv_index = (uint16_t) iv_index;
+            m_replay_cache[i].seqnum = seqnum;
             return NRF_SUCCESS;
         }
+    }
+
+    if (m_entry_count < REPLAY_CACHE_ENTRIES)
+    {
+        m_replay_cache[m_entry_count].src = src;
+        m_replay_cache[m_entry_count].iv_index = (uint16_t) iv_index;
+        m_replay_cache[m_entry_count].seqnum = seqnum;
+        m_entry_count++;
+        return NRF_SUCCESS;
     }
 
     return NRF_ERROR_NO_MEM;
 }
 
 
-bool replay_cache_has_elem(uint16_t src, uint32_t seqno, uint8_t ivi)
+bool replay_cache_has_elem(uint16_t src, uint32_t seqnum, uint32_t iv_index)
 {
-    for (uint_fast8_t i = 0; i < REPLAY_CACHE_ENTRIES; ++i)
+    for (uint_fast8_t i = 0; i < m_entry_count; ++i)
     {
-        if (m_replay_cache[ivi][i].src == src)
+        if (m_replay_cache[i].src == src)
         {
-            if (m_replay_cache[ivi][i].seqno < seqno)
-            {
-                return false;
-            }
+            uint32_t entry_iv_index = iv_index_get(&m_replay_cache[i]);
 
-            return true;
+            /* According to Mesh Profile Specification v1.0 Section 3.8.8, we should discard packets
+             * coming IV indexes lower than a previous packet from the same source as well as
+             * packets on the same IV index with lower sequence numbers. */
+            return ((iv_index == entry_iv_index && m_replay_cache[i].seqnum >= seqnum) ||
+                    (entry_iv_index > iv_index));
         }
     }
 
-    /* Not to be added to cache unless successful application decrypt! */
     return false;
-}
-
-void replay_cache_on_iv_update(void)
-{
-    /* Clear old index */
-    m_cache_index = (m_cache_index + 1) & 0x01;
-    memset(m_replay_cache[m_cache_index], 0, sizeof(m_replay_cache[0]));
 }
 
 void replay_cache_clear(void)
 {
+    m_entry_count = 0;
     memset(m_replay_cache, 0, sizeof(m_replay_cache));
-    m_cache_index = 0;
 }

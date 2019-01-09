@@ -73,13 +73,13 @@
 #define HEARTBEAT_PUBLISH_SUB_INTERVAL_S (1800)
 #define HEARTBEAT_SUBSCRIPTION_TIMER_GRANULARITY_S (1)
 
-
-static bool m_heartbeat_init_done;
 static heartbeat_subscription_state_t m_heartbeat_subscription;
 static heartbeat_publication_state_t m_heartbeat_publication;
 
-static bool m_hb_pending_pub_msg;
-static bool m_hb_pending_feat_msg;
+static bool m_publish_pending;
+/** Flag indicating whether we've configured the publish parameters since the device started or not.
+ * Used to determine what to do with the publish count. */
+static bool m_publish_is_loaded;
 
 static struct
 {
@@ -89,70 +89,57 @@ static struct
 
 static timer_event_t m_subscription_timer;
 static uint8_t m_latched_features;
-
-/* Static callback functions*/
 static nrf_mesh_evt_handler_t m_hb_core_evt_handler;
-
 static hb_pub_info_getter_t mp_getter;
-
-/** Forward declarations */
-static uint32_t heartbeat_send(heartbeat_publication_information_t * p_hb_pub_info);
-static void heartbeat_subscription_timer_cb(timestamp_t timestamp, void * p_context);
-static void heartbeat_publication_timer_cb(timestamp_t timestamp, void * p_context);
-static void heartbeat_opcode_handle(const transport_control_packet_t * p_control_packet,
-                                    const nrf_mesh_rx_metadata_t *     p_rx_metadata);
-static void heartbeat_publication_count_decrement(void);
-
-/** Transport handler for the Heartbeat opcode */
-static const transport_control_packet_handler_t cp_handler = {
-    .opcode = TRANSPORT_CONTROL_OPCODE_HEARTBEAT, .callback = heartbeat_opcode_handle
-};
-
-#if MESH_FEATURE_RELAY_ENABLED
-static void heartbeat_relay_listener_cb(mesh_config_change_reason_t reason,
-                                        mesh_config_entry_id_t id,
-                                        const void * p_entry);
-
-MESH_CONFIG_LISTENER(m_heartbeat_relay_listener,
-                     MESH_OPT_CORE_ADV_EID,
-                     heartbeat_relay_listener_cb);
-#endif /* MESH_FEATURE_RELAY_ENABLED */
-
-#if MESH_FEATURE_GATT_PROXY_ENABLED
-static void heartbeat_proxy_listener_cb(mesh_config_change_reason_t reason,
-                                        mesh_config_entry_id_t id,
-                                        const void * p_entry);
-
-MESH_CONFIG_LISTENER(m_heartbeat_proxy_listener,
-                     MESH_OPT_GATT_PROXY_EID,
-                     heartbeat_proxy_listener_cb);
-#endif /* MESH_FEATURE_GATT_PROXY_ENABLED */
-
 
 /*****************************************************************************
  * Static internal functions
  *****************************************************************************/
 
-static inline bool is_publication_running(void)
-{
-    return (m_heartbeat_publication.dst   != NRF_MESH_ADDR_UNASSIGNED &&
-            m_heartbeat_publication.count != 0x0000);
-}
-
-static inline bool can_publish_feature_change(void)
+static inline bool publish_is_enabled(void)
 {
     return m_heartbeat_publication.dst != NRF_MESH_ADDR_UNASSIGNED;
 }
 
-static void heartbeat_restart_publication(void)
+static inline bool periodic_publication_is_running(void)
 {
-    m_publication_timer.remaining_time_s = m_heartbeat_publication.period;
-    uint32_t next_timeout = MIN(m_heartbeat_publication.period, HEARTBEAT_PUBLISH_SUB_INTERVAL_S);
-
-    timer_sch_reschedule(&m_publication_timer.timer,
-                         timer_now() + SEC_TO_US(next_timeout));
+    return (publish_is_enabled() && m_heartbeat_publication.count != 0x0000);
 }
 
+static void periodic_publication_start(void)
+{
+    uint32_t delay_seconds;
+
+    /* The first message should be sent as soon as possible when setting the publication state. If
+     * the starting comes because of a load from persistent storage, we'll start it after a delay. */
+    if (m_publish_is_loaded)
+    {
+        delay_seconds = MIN(m_heartbeat_publication.period, HEARTBEAT_PUBLISH_SUB_INTERVAL_S);
+        m_publication_timer.remaining_time_s = m_heartbeat_publication.period - delay_seconds; // set the value for the next timeout now
+    }
+    else
+    {
+        m_publication_timer.remaining_time_s = 0;
+        delay_seconds = 0;
+    }
+
+    timer_sch_reschedule(&m_publication_timer.timer, timer_now() + SEC_TO_US(delay_seconds));
+}
+
+static void periodic_publication_stop(void)
+{
+    m_heartbeat_publication.count = 0;
+    m_heartbeat_publication.period = 0;
+    timer_sch_abort(&m_publication_timer.timer);
+}
+
+static void publication_count_decrement(void)
+{
+    if ((m_heartbeat_publication.count != 0) && (m_heartbeat_publication.count != HEARTBEAT_INF_COUNT))
+    {
+        m_heartbeat_publication.count--;
+    }
+}
 /*****************************************************************************/
 /* << RX path functions >> */
 
@@ -230,8 +217,6 @@ static uint32_t heartbeat_send(heartbeat_publication_information_t * p_hb_pub_in
     transport_control_packet_t       tx_params;
     packet_mesh_trs_control_packet_t hb_pdu;
 
-    NRF_MESH_ASSERT(m_heartbeat_publication.count != 0 || m_heartbeat_publication.features);
-
     memset(hb_pdu.pdu, 0, PACKET_MESH_TRS_CONTROL_HEARTBEAT_SIZE);
     packet_mesh_trs_control_heartbeat_init_ttl_set(&hb_pdu, m_heartbeat_publication.ttl);
     packet_mesh_trs_control_heartbeat_features_set(&hb_pdu, m_latched_features);
@@ -241,124 +226,104 @@ static uint32_t heartbeat_send(heartbeat_publication_information_t * p_hb_pub_in
     return (transport_control_tx(&tx_params, NRF_MESH_HEARTBEAT_TOKEN));
 }
 
-/** Callback for the subscription timer. this callback triggers every second. As per
+static void heartbeat_publish(void)
+{
+    if (publish_is_enabled())
+    {
+        heartbeat_publication_information_t hb_pub_info;
+        NRF_MESH_ASSERT(NULL != mp_getter);
+        if (mp_getter(&hb_pub_info) == NRF_SUCCESS)
+        {
+            m_publish_pending = (heartbeat_send(&hb_pub_info) != NRF_SUCCESS);
+        }
+    }
+}
+
+/**
+ * Callback for the subscription timer. this callback triggers every second. As per
  * Mesh Profile Specification v1.0, section 4.2.18.4, node shall report the remaining time.
- *
- * For this call, p_context must be &m_heartbeat_subscription.period
- * */
+ */
 static void heartbeat_subscription_timer_cb(timestamp_t timestamp, void * p_context)
 {
-    uint32_t * p_sub_period = p_context;
-
-    if (*p_sub_period < HEARTBEAT_SUBSCRIPTION_TIMER_GRANULARITY_S)
+    if (m_heartbeat_subscription.period < HEARTBEAT_SUBSCRIPTION_TIMER_GRANULARITY_S)
     {
         timer_sch_abort(&m_subscription_timer);
-        *p_sub_period = 0;
+        m_heartbeat_subscription.period = 0;
+
+        const nrf_mesh_evt_t change_evt = {
+            .type = NRF_MESH_EVT_HB_SUBSCRIPTION_CHANGE,
+            .params.hb_subscription_change = {
+                .p_old = &m_heartbeat_subscription,
+                .p_new = NULL,
+            }
+        };
+        event_handle(&change_evt);
     }
     else
     {
-        *p_sub_period -= HEARTBEAT_SUBSCRIPTION_TIMER_GRANULARITY_S;
+        m_heartbeat_subscription.period -= HEARTBEAT_SUBSCRIPTION_TIMER_GRANULARITY_S;
     }
 }
 
 /** Callback for publication timer. If publication period is greater than
  * HEARTBEAT_PUBLISH_SUB_INTERVAL_S seconds, this callback triggers every
  * HEARTBEAT_PUBLISH_SUB_INTERVAL_S seconds, else it triggers after publication period.
- *
- * The callback parameter p_context points to the m_heartbeat_publication.period.
  */
 static void heartbeat_publication_timer_cb(timestamp_t timestamp, void * p_context)
 {
-    heartbeat_publication_information_t     hb_pub_info;
-
-    /* Publish heartbeat if it is time to publish. Stop sending heartbeats if mp_getter fails */
-    NRF_MESH_ASSERT(NULL != mp_getter);
-    if (mp_getter(&hb_pub_info) == NRF_SUCCESS)
+    if (!periodic_publication_is_running())
     {
-        NRF_MESH_ASSERT(m_publication_timer.remaining_time_s > 0);
-
-        m_publication_timer.remaining_time_s -=
-                MIN(MIN(m_heartbeat_publication.period, HEARTBEAT_PUBLISH_SUB_INTERVAL_S), m_publication_timer.remaining_time_s);
-
-        if (m_publication_timer.remaining_time_s == 0 && is_publication_running() > 0)
-        {
-            if (heartbeat_send(&hb_pub_info) == NRF_SUCCESS)
-            {
-                heartbeat_publication_count_decrement();
-            }
-            m_publication_timer.remaining_time_s = m_heartbeat_publication.period;
-        }
-
-        if (m_heartbeat_publication.count > 0)
-        {
-            timer_sch_reschedule(&m_publication_timer.timer,
-                                 timestamp +
-                                 SEC_TO_US(MIN(m_publication_timer.remaining_time_s, HEARTBEAT_PUBLISH_SUB_INTERVAL_S)));
-        }
-        else
-        {
-            timer_sch_abort(&m_publication_timer.timer);
-        }
+        m_publication_timer.timer.interval = 0;
+        return;
     }
-    else
+
+    if (m_publication_timer.remaining_time_s == 0)
     {
-        timer_sch_abort(&m_publication_timer.timer);
+        publication_count_decrement();
+        heartbeat_publish();
+        /* Reset timer */
+        m_publication_timer.remaining_time_s = m_heartbeat_publication.period;
+    }
+
+    /* Prepare for next timeout: */
+    uint32_t interval_seconds = MIN(m_publication_timer.remaining_time_s, HEARTBEAT_PUBLISH_SUB_INTERVAL_S);
+    m_publication_timer.timer.interval = SEC_TO_US(interval_seconds);
+    m_publication_timer.remaining_time_s -= interval_seconds;
+}
+
+_UNUSED static void on_feature_update(uint16_t feature, bool enabled)
+{
+    if (enabled == !(feature & m_latched_features))
+    {
+        m_latched_features ^= feature; // the guard above makes sure that we'll only xor if the value is changed
+        if (m_heartbeat_publication.features & feature)
+        {
+            heartbeat_publish();
+        }
     }
 }
 
 /** Event handler callback sends the pending triggered message on the TX complete */
 static void heartbeat_core_evt_cb(const nrf_mesh_evt_t * p_evt)
 {
-    if (p_evt->type == NRF_MESH_EVT_TX_COMPLETE)
+    switch (p_evt->type)
     {
-        heartbeat_publication_information_t hb_pub_info;
-
-        /* Get the latest value of the heartbeat publication information.
-         * dst and count may get modified, re-check for validity */
-        NRF_MESH_ASSERT(NULL != mp_getter);
-        if ((mp_getter(&hb_pub_info) == NRF_SUCCESS))
-        {
-            if (m_hb_pending_pub_msg && is_publication_running())
+        case NRF_MESH_EVT_TX_COMPLETE:
+            if (m_publish_pending)
             {
-                if (heartbeat_send(&hb_pub_info) == NRF_SUCCESS)
-                {
-                    heartbeat_publication_count_decrement();
-                }
+                heartbeat_publish();
             }
-
-            if (m_hb_pending_feat_msg && can_publish_feature_change())
-            {
-                (void) heartbeat_send(&hb_pub_info);
-            }
-        }
-
-        // De-register core event handler for TX complete to prevent unnecessary
-        // triggering of this cb.
-        event_handler_remove(&m_hb_core_evt_handler);
-
-        m_hb_pending_pub_msg = false;
-        m_hb_pending_feat_msg = false;
-    }
-}
-
-#if MESH_FEATURE_RELAY_ENABLED || MESH_FEATURE_GATT_PROXY_ENABLED
-static void heartbeat_on_feature_change_trigger(uint16_t hb_trigger)
-{
-    if ((m_heartbeat_publication.features & hb_trigger) &&
-        can_publish_feature_change())
-    {
-        // Set internal flag to trigger heartbeat on next tx complete event
-        event_handler_add(&m_hb_core_evt_handler);
-        m_hb_pending_feat_msg = true;
-    }
-}
-#endif /* MESH_FEATURE_RELAY_ENABLED || MESH_FEATURE_GATT_PROXY_ENABLED */
-
-static void heartbeat_publication_count_decrement(void)
-{
-    if ((m_heartbeat_publication.count != 0) && (m_heartbeat_publication.count != HEARTBEAT_INF_COUNT))
-    {
-        m_heartbeat_publication.count--;
+            break;
+#if MESH_FEATURE_LPN_ENABLED
+        case NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED:
+            on_feature_update(HEARTBEAT_TRIGGER_TYPE_LPN, true);
+            break;
+        case NRF_MESH_EVT_FRIENDSHIP_TERMINATED:
+            on_feature_update(HEARTBEAT_TRIGGER_TYPE_LPN, false);
+            break;
+#endif
+        default:
+            break;
     }
 }
 
@@ -374,13 +339,13 @@ static void heartbeat_relay_listener_cb(mesh_config_change_reason_t reason,
     const mesh_opt_core_adv_t * p_relay = p_entry;
     const core_tx_role_t role = MESH_OPT_CORE_ADV_ENTRY_ID_TO_ROLE(id);
     if (role == CORE_TX_ROLE_RELAY &&
-        reason == MESH_CONFIG_CHANGE_REASON_SET &&
-        p_relay->enabled != ((m_latched_features & HEARTBEAT_TRIGGER_TYPE_RELAY) > 0))
+        reason == MESH_CONFIG_CHANGE_REASON_SET)
     {
-        m_latched_features ^= HEARTBEAT_TRIGGER_TYPE_RELAY;
-        heartbeat_on_feature_change_trigger(HEARTBEAT_TRIGGER_TYPE_RELAY);
+        on_feature_update(HEARTBEAT_TRIGGER_TYPE_RELAY, p_relay->enabled);
     }
 }
+
+MESH_CONFIG_LISTENER(m_heartbeat_relay_listener, MESH_OPT_CORE_ADV_EID, heartbeat_relay_listener_cb);
 #endif /* MESH_FEATURE_RELAY_ENABLED */
 
 #if MESH_FEATURE_GATT_PROXY_ENABLED
@@ -389,13 +354,13 @@ static void heartbeat_proxy_listener_cb(mesh_config_change_reason_t reason,
                                         const void * p_entry)
 {
     const bool * p_enabled = p_entry;
-    if (reason == MESH_CONFIG_CHANGE_REASON_SET &&
-        *p_enabled != ((m_latched_features & HEARTBEAT_TRIGGER_TYPE_PROXY) > 0))
+    if (reason == MESH_CONFIG_CHANGE_REASON_SET)
     {
-        m_latched_features ^= HEARTBEAT_TRIGGER_TYPE_PROXY;
-        heartbeat_on_feature_change_trigger(HEARTBEAT_TRIGGER_TYPE_PROXY);
+        on_feature_update(HEARTBEAT_TRIGGER_TYPE_PROXY, *p_enabled);
     }
 }
+
+MESH_CONFIG_LISTENER(m_heartbeat_proxy_listener, MESH_OPT_GATT_PROXY_EID, heartbeat_proxy_listener_cb);
 #endif /* MESH_FEATURE_GATT_PROXY_ENABLED */
 
 /*****************************************************************************
@@ -405,9 +370,41 @@ static uint32_t hb_pub_setter(mesh_config_entry_id_t entry_id, const void * p_en
 {
     NRF_MESH_ASSERT_DEBUG(MESH_OPT_CORE_HB_PUBLICATION_RECORD == entry_id.record);
 
-    if (&m_heartbeat_publication != (heartbeat_publication_state_t *)p_entry)
+    const heartbeat_publication_state_t * p_publication = (const heartbeat_publication_state_t *) p_entry;
+
+    nrf_mesh_address_type_t dst_type = nrf_mesh_address_type_get(p_publication->dst);
+
+    if (dst_type == NRF_MESH_ADDRESS_TYPE_VIRTUAL ||
+        (p_publication->count > HEARTBEAT_MAX_COUNT && p_publication->count != HEARTBEAT_INF_COUNT) ||
+        (p_publication->period > HEARTBEAT_MAX_PERIOD) || (p_publication->ttl > NRF_MESH_TTL_MAX))
     {
-        m_heartbeat_publication = *(heartbeat_publication_state_t *)p_entry;
+        return NRF_ERROR_INVALID_PARAM;
+    }
+
+    m_heartbeat_publication = *(heartbeat_publication_state_t *) p_entry;
+
+    if (p_publication->dst == NRF_MESH_ADDR_UNASSIGNED)
+    {
+        // publish is disabled, wipe values according to Mesh Profile Specification v1.0 Section 4.4.1.2.15
+        m_heartbeat_publication.count = 0;
+        m_heartbeat_publication.period = 0;
+        m_heartbeat_publication.ttl = 0;
+    }
+
+    /* As we don't actively update the count in persistent storage for every publication, we'll
+     * ignore non-infinite count values when loading them from flash. Otherwise, we'll end up
+     * resetting the counter to the initial value on every power up. */
+    bool count_is_valid = (m_publish_is_loaded
+                               ? (m_heartbeat_publication.count == HEARTBEAT_INF_COUNT)
+                               : (m_heartbeat_publication.count > 0));
+
+    if (count_is_valid && m_heartbeat_publication.period > 0)
+    {
+        periodic_publication_start();
+    }
+    else
+    {
+        periodic_publication_stop();
     }
 
     return NRF_SUCCESS;
@@ -417,10 +414,13 @@ static void hb_pub_getter(mesh_config_entry_id_t entry_id, void * p_entry)
 {
     NRF_MESH_ASSERT_DEBUG(MESH_OPT_CORE_HB_PUBLICATION_RECORD == entry_id.record);
 
-    if (&m_heartbeat_publication != (heartbeat_publication_state_t *)p_entry)
-    {
-        *(heartbeat_publication_state_t *)p_entry = m_heartbeat_publication;
-    }
+    memcpy(p_entry, &m_heartbeat_publication, sizeof(heartbeat_publication_state_t));
+}
+
+static void hb_pub_deleter(mesh_config_entry_id_t entry_id)
+{
+    NRF_MESH_ASSERT_DEBUG(MESH_OPT_CORE_HB_PUBLICATION_RECORD == entry_id.record);
+    memset(&m_heartbeat_publication, 0, sizeof(m_heartbeat_publication));
 }
 
 MESH_CONFIG_ENTRY(heartbeat_publication,
@@ -429,8 +429,8 @@ MESH_CONFIG_ENTRY(heartbeat_publication,
                   sizeof(heartbeat_publication_state_t),
                   hb_pub_setter,
                   hb_pub_getter,
-                  NULL,
-                  &m_heartbeat_publication);
+                  hb_pub_deleter,
+                  true);
 
 /*****************************************************************************
  * Public API
@@ -438,24 +438,21 @@ MESH_CONFIG_ENTRY(heartbeat_publication,
 
 void heartbeat_init(void)
 {
-    // Note: Initialization of subscription state and publication state is not required. They are
-    // static globals and hence reset to zero on boot up. They will be loaded with appropriate
-    // values by the DSM, if they had been stored before previous power down.
-
-    // Initialization should occur only once
-    NRF_MESH_ASSERT(m_heartbeat_init_done == false);
-
+#ifdef UNIT_TEST
+    memset(&m_heartbeat_publication, 0, sizeof(m_heartbeat_publication));
+    memset(&m_heartbeat_subscription, 0, sizeof(m_heartbeat_subscription));
+    m_latched_features = 0;
+#endif
     // register transport event handler to handle heartbeat message opcode
+    static const transport_control_packet_handler_t cp_handler = {
+        .opcode = TRANSPORT_CONTROL_OPCODE_HEARTBEAT, .callback = heartbeat_opcode_handle
+    };
     NRF_MESH_ASSERT(transport_control_packet_consumer_add(&cp_handler, 1) == NRF_SUCCESS);
-
-    m_hb_pending_pub_msg = false;
 
     // Initialize timer event structures
     m_publication_timer.timer.cb = heartbeat_publication_timer_cb;
 
-    memset(&m_subscription_timer, 0, sizeof(m_subscription_timer));
     m_subscription_timer.cb        = heartbeat_subscription_timer_cb;
-    m_subscription_timer.p_context = &m_heartbeat_subscription.period;
 
     // Remaining subscription period needs to be reported by heartbeat module as a part of
     // HEARTBEAT SUBSCRIPTION GET message. Also, incoming heartbeat messages should not be accepted
@@ -464,8 +461,11 @@ void heartbeat_init(void)
     m_subscription_timer.interval  = SEC_TO_US(HEARTBEAT_SUBSCRIPTION_TIMER_GRANULARITY_S);
 
     m_hb_core_evt_handler.evt_cb = heartbeat_core_evt_cb;
+    event_handler_add(&m_hb_core_evt_handler);
 
-    m_heartbeat_init_done = true;
+    /* The publish value is loaded the first time the setter gets an update unless someone called
+     * the publish_set function */
+    m_publish_is_loaded = true;
 }
 
 uint32_t heartbeat_subscription_set(const heartbeat_subscription_state_t * p_hb_sub)
@@ -492,6 +492,8 @@ uint32_t heartbeat_subscription_set(const heartbeat_subscription_state_t * p_hb_
     {
         return NRF_ERROR_INVALID_PARAM;
     }
+
+    const heartbeat_subscription_state_t old_state = m_heartbeat_subscription;
 
     // Validate data of received parameters
     if ((p_hb_sub->period == 0x00) ||
@@ -520,8 +522,14 @@ uint32_t heartbeat_subscription_set(const heartbeat_subscription_state_t * p_hb_
         m_heartbeat_subscription.count    = 0x00;
     }
 
-    //@todo: future: For GATT proxy: Configure dst filters
-    //@todo: future: For friendship: Configure heartbeat if DST is for friend LPN node
+    const nrf_mesh_evt_t change_evt = {
+        .type = NRF_MESH_EVT_HB_SUBSCRIPTION_CHANGE,
+        .params.hb_subscription_change = {
+            .p_old = (old_state.dst == NRF_MESH_ADDR_UNASSIGNED ? NULL : &old_state),
+            .p_new = &m_heartbeat_subscription,
+        }
+    };
+    event_handle(&change_evt);
 
     return NRF_SUCCESS;
 }
@@ -531,30 +539,15 @@ const heartbeat_subscription_state_t * heartbeat_subscription_get(void)
     return &m_heartbeat_subscription;
 }
 
-heartbeat_publication_state_t * heartbeat_publication_get(void)
+const heartbeat_publication_state_t * heartbeat_publication_get(void)
 {
     return &m_heartbeat_publication;
 }
 
-void heartbeat_publication_state_updated(void)
+uint32_t heartbeat_publication_set(const heartbeat_publication_state_t * p_publication_state)
 {
-    // Either abort existing publication timer, or schedule if required
-    if (m_heartbeat_publication.dst == NRF_MESH_ADDR_UNASSIGNED ||
-        m_heartbeat_publication.count == 0 ||
-        m_heartbeat_publication.period == 0)
-    {
-        timer_sch_abort(&m_publication_timer.timer);
-    }
-    else if (is_publication_running())
-    {
-        heartbeat_restart_publication();
-        // Set internal flag to trigger heartbeat on next tx complete event
-        event_handler_add(&m_hb_core_evt_handler);
-        m_hb_pending_pub_msg = true;
-    }
-
-    mesh_config_entry_id_t id = MESH_OPT_CORE_HB_PUBLICATION_EID;
-    NRF_MESH_ASSERT(NRF_SUCCESS == mesh_config_entry_set(id, &m_heartbeat_publication));
+    m_publish_is_loaded = false;
+    return mesh_config_entry_set(MESH_OPT_CORE_HB_PUBLICATION_EID, p_publication_state);
 }
 
 void heartbeat_public_info_getter_register(hb_pub_info_getter_t p_getter)

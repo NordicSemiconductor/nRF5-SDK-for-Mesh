@@ -48,6 +48,11 @@
  * @{
  */
 
+/** Size of a SIG model opcode in bytes. */
+#define ACCESS_UTILS_SIG_OPCODE_SIZE(OPCODE) (((OPCODE) > 0x00FF) ? 2 : 1)
+/** Size of a vendor model opcode in bytes. */
+#define ACCESS_UTILS_VENDOR_OPCODE_SIZE      3
+
 /**
  * Gets the raw size in bytes of an access layer opcode.
  *
@@ -59,15 +64,11 @@ static inline uint16_t access_utils_opcode_size_get(access_opcode_t opcode)
 {
     if (opcode.company_id != ACCESS_COMPANY_ID_NONE)
     {
-        return 3;
-    }
-    else if (opcode.opcode > 0x00FF)
-    {
-        return 2;
+        return ACCESS_UTILS_VENDOR_OPCODE_SIZE;
     }
     else
     {
-        return 1;
+        return ACCESS_UTILS_SIG_OPCODE_SIZE(opcode.opcode);
     }
 }
 

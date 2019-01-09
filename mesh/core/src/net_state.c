@@ -133,11 +133,18 @@ static inline bool iv_timeout_limit_passed(uint32_t timeout)
 }
 
 /* Notify user of the new IV index. */
-static void iv_index_notify(const uint8_t * p_network_id, uint32_t iv_index, net_state_iv_update_t state)
+static void iv_index_notify(const uint8_t * p_network_id)
 {
     nrf_mesh_evt_t app_event;
-    app_event.params.iv_update.iv_index = iv_index;
-    app_event.params.iv_update.state = state;
+    if (m_net_state.iv_update.state == NET_STATE_IV_UPDATE_IN_PROGRESS)
+    {
+        app_event.params.iv_update.iv_index = m_net_state.iv_index - 1;
+    }
+    else
+    {
+        app_event.params.iv_update.iv_index = m_net_state.iv_index;
+    }
+    app_event.params.iv_update.state = m_net_state.iv_update.state;
     app_event.params.iv_update.p_network_id = p_network_id;
     app_event.type = NRF_MESH_EVT_IV_UPDATE_NOTIFICATION;
     event_handle(&app_event);
@@ -165,7 +172,7 @@ static bool iv_update_trigger_if_pending(void)
                 RESET_SEQNUM_MAX();
                 m_net_state.iv_update.state = NET_STATE_IV_UPDATE_NORMAL;
                 m_net_state.iv_update.timeout_counter = 0;
-                iv_index_notify(NULL, m_net_state.iv_index, m_net_state.iv_update.state);
+                iv_index_notify(NULL);
                 flash_store_iv_index();
                 seqnum_block_allocate();
                 break;
@@ -242,7 +249,7 @@ static void incoming_data_received(const uint8_t * p_network_id, uint32_t iv_ind
                 m_net_state.iv_update.state = NET_STATE_IV_UPDATE_NORMAL;
                 flash_store_iv_index();
                 seqnum_block_allocate();
-                iv_index_notify(p_network_id, m_net_state.iv_index, m_net_state.iv_update.state);
+                iv_index_notify(p_network_id);
             }
         }
         else if (iv_update && iv_index == m_net_state.iv_index + 1)
@@ -596,7 +603,7 @@ uint32_t net_state_iv_update_start(void)
         m_net_state.iv_update.timeout_counter = 0;
         m_net_state.iv_index = m_net_state.iv_index + 1;
         flash_store_iv_index();
-        iv_index_notify(NULL, m_net_state.iv_index - 1, m_net_state.iv_update.state);
+        iv_index_notify(NULL);
         status = NRF_SUCCESS;
     }
     else
@@ -709,6 +716,7 @@ uint32_t net_state_iv_index_set(uint32_t iv_index, bool iv_update)
         m_net_state.iv_update.state =
             iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL;
         flash_store_iv_index();
+        iv_index_notify(NULL);
 
         /* Force reseting of sequence numbers upon IV index set */
         m_net_state.seqnum = 0;

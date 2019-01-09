@@ -51,6 +51,8 @@
 #include "utils.h"
 #include "test_assert.h"
 
+#define TX_TOKEN    (nrf_mesh_tx_token_t) 0x12345678
+
 #define CMD_LENGTH_CHECK(_opcode, _intended_length)                                                   \
     do {                                                                                              \
         serial_packet_t _cmd;                                                                         \
@@ -84,6 +86,7 @@ static uint32_t nrf_mesh_packet_send_cb(const nrf_mesh_tx_params_t * p_params, u
     TEST_ASSERT_EQUAL(m_expected_tx_params.security_material.p_app, p_params->security_material.p_app);
     TEST_ASSERT_EQUAL(m_expected_tx_params.data_len, p_params->data_len);
     TEST_ASSERT_EQUAL(m_expected_tx_params.p_data, p_params->p_data);
+    TEST_ASSERT_EQUAL(m_expected_tx_params.tx_token, p_params->tx_token);
     m_expected_packet_send--;
     return m_packet_send_return;
 }
@@ -673,7 +676,7 @@ void test_packet_send(void)
     nrf_mesh_secmat_t secmat;
     secmat.p_net = &net; secmat.p_app = &app;
     m_expected_packet_send = 1;
-    m_packet_send_return = 0x12345678;
+    m_packet_send_return = NRF_SUCCESS;
     m_expected_tx_params.dst.type = NRF_MESH_ADDRESS_TYPE_UNICAST;
     m_expected_tx_params.dst.value = 0x1234;
     m_expected_tx_params.dst.p_virtual_uuid = NULL;
@@ -685,6 +688,10 @@ void test_packet_send(void)
     m_expected_tx_params.security_material.p_app = &app;
     m_expected_tx_params.data_len = 0;
     m_expected_tx_params.p_data = NULL;
+    m_expected_tx_params.tx_token = TX_TOKEN;
+
+    const serial_evt_cmd_rsp_data_packet_send_t rsp = {.token = TX_TOKEN};
+
     dsm_local_unicast_address_t local_addr;
     local_addr.address_start = 0xABC0;
     local_addr.count = 0x10;
@@ -697,9 +704,10 @@ void test_packet_send(void)
     dsm_local_unicast_addresses_get_Expect(NULL);
     dsm_local_unicast_addresses_get_IgnoreArg_p_address();
     dsm_local_unicast_addresses_get_ReturnThruPtr_p_address(&local_addr);
+    nrf_mesh_unique_token_get_ExpectAndReturn(TX_TOKEN);
     nrf_mesh_packet_send_StubWithCallback(nrf_mesh_packet_send_cb);
-    serial_translate_error_ExpectAndReturn(0x12345678, 0xAA);
-    serial_cmd_rsp_send_Expect(cmd.opcode, 0xAA, NULL, 0);
+    serial_translate_error_ExpectAndReturn(NRF_SUCCESS, SERIAL_STATUS_SUCCESS);
+    serial_cmd_rsp_send_Expect(cmd.opcode, SERIAL_STATUS_SUCCESS, (uint8_t *) &rsp, sizeof(rsp));
     serial_handler_mesh_rx(&cmd);
     TEST_ASSERT_EQUAL(0, m_expected_packet_send);
 
@@ -707,6 +715,7 @@ void test_packet_send(void)
     serial_cmd_rsp_send_Expect(cmd.opcode, SERIAL_STATUS_ERROR_INVALID_LENGTH, NULL, 0);
     serial_handler_mesh_rx(&cmd);
 
+    m_packet_send_return = 0x12345678; // dummy error, shouldn't get any data in the response.
     cmd.length = 99; //maxlen
     m_expected_packet_send = 1;
     m_expected_tx_params.data_len = 88;
@@ -720,6 +729,7 @@ void test_packet_send(void)
     dsm_local_unicast_addresses_get_Expect(NULL);
     dsm_local_unicast_addresses_get_IgnoreArg_p_address();
     dsm_local_unicast_addresses_get_ReturnThruPtr_p_address(&local_addr);
+    nrf_mesh_unique_token_get_ExpectAndReturn(TX_TOKEN);
     serial_translate_error_ExpectAndReturn(0x12345678, 0xAA);
     serial_cmd_rsp_send_Expect(cmd.opcode, 0xAA, NULL, 0);
     serial_handler_mesh_rx(&cmd);
@@ -734,6 +744,7 @@ void test_packet_send(void)
     dsm_local_unicast_addresses_get_Expect(NULL);
     dsm_local_unicast_addresses_get_IgnoreArg_p_address();
     dsm_local_unicast_addresses_get_ReturnThruPtr_p_address(&local_addr);
+    nrf_mesh_unique_token_get_ExpectAndReturn(TX_TOKEN);
     serial_translate_error_ExpectAndReturn(NRF_ERROR_INVALID_ADDR, 0xAA);
     serial_cmd_rsp_send_Expect(cmd.opcode, 0xAA, NULL, 0);
     serial_handler_mesh_rx(&cmd);
@@ -745,12 +756,14 @@ void test_packet_send(void)
     dsm_local_unicast_addresses_get_Expect(NULL);
     dsm_local_unicast_addresses_get_IgnoreArg_p_address();
     dsm_local_unicast_addresses_get_ReturnThruPtr_p_address(&local_addr);
+    nrf_mesh_unique_token_get_ExpectAndReturn(TX_TOKEN);
     serial_translate_error_ExpectAndReturn(NRF_ERROR_INVALID_ADDR, 0xAA);
     serial_cmd_rsp_send_Expect(cmd.opcode, 0xAA, NULL, 0);
     serial_handler_mesh_rx(&cmd);
     /* Unknown target address */
     dsm_address_get_ExpectAndReturn(0x0102, NULL, 0x12345678);
     dsm_address_get_IgnoreArg_p_address();
+    nrf_mesh_unique_token_get_ExpectAndReturn(TX_TOKEN);
     serial_translate_error_ExpectAndReturn(0x12345678, 0xAA);
     serial_cmd_rsp_send_Expect(cmd.opcode, 0xAA, NULL, 0);
     serial_handler_mesh_rx(&cmd);
@@ -784,6 +797,7 @@ void test_packet_send(void)
     dsm_local_unicast_addresses_get_IgnoreArg_p_address();
     dsm_local_unicast_addresses_get_ReturnThruPtr_p_address(&local_addr);
     nrf_mesh_packet_send_StubWithCallback(nrf_mesh_packet_send_cb);
+    nrf_mesh_unique_token_get_ExpectAndReturn(TX_TOKEN);
     serial_translate_error_ExpectAndReturn(0x12345678, 0xAA);
     serial_cmd_rsp_send_Expect(cmd.opcode, 0xAA, NULL, 0);
     serial_handler_mesh_rx(&cmd);
@@ -818,6 +832,7 @@ void test_packet_send(void)
     dsm_local_unicast_addresses_get_Expect(NULL);
     dsm_local_unicast_addresses_get_IgnoreArg_p_address();
     dsm_local_unicast_addresses_get_ReturnThruPtr_p_address(&local_addr);
+    nrf_mesh_unique_token_get_ExpectAndReturn(TX_TOKEN);
     serial_translate_error_ExpectAndReturn(0x12345678, 0xAA);
     serial_cmd_rsp_send_Expect(cmd.opcode, 0xAA, NULL, 0);
     serial_handler_mesh_rx(&cmd);
@@ -1014,6 +1029,19 @@ void test_events(void)
     m_expected_tx_packet.opcode = SERIAL_OPCODE_EVT_MESH_KEY_REFRESH_NOTIFICATION;
     m_expected_tx_packet.payload.evt.mesh.key_refresh.phase = (uint8_t) NRF_MESH_KEY_REFRESH_PHASE_2;
     m_expected_tx_packet.payload.evt.mesh.key_refresh.netkey_index = 4;
+    serial_packet_buffer_get_ExpectAndReturn(m_expected_tx_packet.length, NULL, NRF_SUCCESS);
+    serial_packet_buffer_get_IgnoreArg_pp_packet();
+    serial_packet_buffer_get_ReturnThruPtr_pp_packet(&p_packet);
+    p_packet->length = m_expected_tx_packet.length;
+    mp_evt_handler->evt_cb(&evt);
+    TEST_ASSERT_EQUAL(0, m_expected_serial_tx);
+
+    evt.type = NRF_MESH_EVT_TX_COMPLETE;
+    evt.params.tx_complete.token = TX_TOKEN;
+    m_expected_serial_tx = 1;
+    m_expected_tx_packet.length = 5;
+    m_expected_tx_packet.opcode = SERIAL_OPCODE_EVT_MESH_TX_COMPLETE;
+    m_expected_tx_packet.payload.evt.mesh.tx_complete.token = TX_TOKEN;
     serial_packet_buffer_get_ExpectAndReturn(m_expected_tx_packet.length, NULL, NRF_SUCCESS);
     serial_packet_buffer_get_IgnoreArg_pp_packet();
     serial_packet_buffer_get_ReturnThruPtr_pp_packet(&p_packet);

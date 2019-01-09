@@ -39,19 +39,34 @@
 #include "nrf_mesh_defines.h"
 #include "nrf.h"
 #include "nrf_error.h"
+#include "log.h"
 
-uint32_t mesh_app_uuid_gen(uint8_t * p_uuid_dest, const uint8_t * p_uuid_prefix, uint8_t uuid_prefix_len)
+/** Structure for pasring UUID */
+typedef struct __attribute((packed))
 {
-    if (uuid_prefix_len > (NRF_MESH_UUID_SIZE/2))
+    uint32_t time_low;
+    uint16_t time_mid;
+    uint16_t time_hi_version;
+    uint8_t clock_seq_hi_reserved;
+    uint8_t clock_seq_low;
+    uint8_t node[6];
+} uuid_generic_format_t;
+
+void mesh_app_uuid_print(const uint8_t * p_uuid)
+{
+    if (p_uuid == NULL)
     {
-        return NRF_ERROR_INVALID_LENGTH;
+        return;
     }
 
-    /* First half of device UUID is the user provided data, or filled with zeros */
-    memcpy(&p_uuid_dest[0], (void*) p_uuid_prefix, uuid_prefix_len);
-    memset(&p_uuid_dest[uuid_prefix_len], 0x00, (NRF_MESH_UUID_SIZE/2) - uuid_prefix_len);
-    /* Second half of device UUID is the DEVICE ID */
-    memcpy(&p_uuid_dest[(NRF_MESH_UUID_SIZE/2)], (void*) &NRF_FICR->DEVICEID[0], (NRF_MESH_UUID_SIZE/2));
+    const uuid_generic_format_t * p_format = (const uuid_generic_format_t *) p_uuid;
 
-    return NRF_SUCCESS;
+    UNUSED_VARIABLE(p_format);
+    __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "Device UUID (raw)", p_uuid, NRF_MESH_UUID_SIZE);
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Device UUID : %08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X\n",
+          p_format->time_low, p_format->time_mid, p_format->time_hi_version,
+          p_format->clock_seq_hi_reserved, p_format->clock_seq_low,
+          p_format->node[0], p_format->node[1], p_format->node[2], p_format->node[3],
+          p_format->node[4], p_format->node[5]);
 }
+

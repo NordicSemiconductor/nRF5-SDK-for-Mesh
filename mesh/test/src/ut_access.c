@@ -49,9 +49,11 @@
 #include "access_internal.h"
 #include "access_config.h"
 #include "access_status.h"
+#include "access_utils.h"
 
 #include "access_publish_mock.h"
 #include "access_reliable_mock.h"
+#include "access_publish_retransmission_mock.h"
 
 #include "device_state_manager_mock.h"
 #include "flash_manager_mock.h"
@@ -62,6 +64,7 @@
 #include "bearer_event_mock.h"
 #include "proxy_mock.h"
 #include "manual_mock_queue.h"
+#include "mesh_mem_mock.h"
 
 #define TEST_REFERENCE ((void*) 0xB00BB00B)
 #define TEST_MODEL_ID (0xB00B)
@@ -100,6 +103,15 @@
         .publish_ttl = (TTL), \
         .credential_flag = (CRED) \
     }
+
+#define EXPECT(name, times) \
+    do { \
+        for (size_t i = 0; i < times; i++) \
+        { \
+            uint32_t value = 0; \
+            name##_Expect(&value); \
+        } \
+    } while(0)
 
 /*******************************************************************************
  * Sample data from the Mesh Profile Specification v1.0
@@ -189,6 +201,9 @@ static bearer_event_flag_callback_t m_bearer_cb;
 
 static uint32_t m_dsm_tx_friendship_secmat_get_retval = NRF_SUCCESS;
 static uint16_t m_sub_list_dealloc_index;
+
+MOCK_QUEUE_DEF(access_publish_retransmission_message_add_mock, access_publish_retransmit_t, NULL);
+MOCK_QUEUE_DEF(mesh_mem_free_mock, uintptr_t, NULL);
 
 /*******************************************************************************
  * Helper Functions // Mocks // Callbacks
@@ -442,6 +457,62 @@ static uint32_t address_get_stub(dsm_handle_t handle, nrf_mesh_address_t * p_add
     }
 }
 
+static void retransmission_Expect(access_model_handle_t model_handle)
+{
+    access_publish_retransmit_t expected_publish_retransmit;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish_retransmit_get(model_handle,
+                                                                       &expected_publish_retransmit));
+    access_publish_retransmission_message_add_mock_Expect(&expected_publish_retransmit);
+}
+
+static void access_publish_retransmission_message_add_stub(access_model_handle_t model_handle,
+                                                           const access_publish_retransmit_t *p_publish_retransmit,
+                                                           const access_message_tx_t *p_tx_message,
+                                                           const uint8_t *p_access_payload,
+                                                           uint16_t access_payload_length,
+                                                           int num_calls)
+{
+    UNUSED_VARIABLE(model_handle);
+    UNUSED_VARIABLE(p_tx_message);
+    UNUSED_VARIABLE(access_payload_length);
+    UNUSED_VARIABLE(num_calls);
+
+    access_publish_retransmit_t expected_publish_retransmit;
+    access_publish_retransmission_message_add_mock_Consume(&expected_publish_retransmit);
+
+    TEST_ASSERT_EQUAL_MEMORY(&expected_publish_retransmit,
+                             p_publish_retransmit,
+                             sizeof(access_publish_retransmit_t));
+
+    TEST_ASSERT(NULL != p_access_payload);
+
+    mesh_mem_free((uint8_t*) p_access_payload);
+}
+
+void * mesh_mem_alloc_mock(size_t size, int num_calls)
+{
+    UNUSED_VARIABLE(num_calls);
+
+    void* p_buffer = malloc(size);
+
+    uintptr_t expected_value = (uintptr_t) p_buffer;
+    mesh_mem_free_mock_Expect(&expected_value);
+
+    return p_buffer;
+}
+
+void mesh_mem_free_mock(void * ptr, int num_calls)
+{
+    UNUSED_VARIABLE(num_calls);
+
+    /* No way to check pointer here because of reordering malloc/free in
+     * the code */
+    uintptr_t expected_value;
+    mesh_mem_free_mock_Consume(&expected_value);
+
+    free(ptr);
+}
+
 static void publish_timeout_cb(access_model_handle_t handle, void * p_args)
 {
 }
@@ -674,6 +745,14 @@ void build_device_setup(uint32_t elem_count, uint32_t model_count)
             {
                 TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_subscription_list_alloc(handle));
             }
+
+            access_publish_retransmit_t publish_retransmit =
+            {
+                .count = 1,
+                .interval_steps = 1,
+            };
+            TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish_retransmit_set(handle, publish_retransmit));
+
             init_params.model_id.model_id++;
         }
 
@@ -713,8 +792,12 @@ void setUp(void)
     event_mock_Init();
     bearer_event_mock_Init();
     access_publish_mock_Init();
+    access_publish_retransmission_mock_Init();
     proxy_mock_Init();
     flash_manager_entries_read_mock_Init();
+    mesh_mem_mock_Init();
+    access_publish_retransmission_message_add_mock_Init();
+    mesh_mem_free_mock_Init();
 
     __LOG_INIT(0xFFFFFFFF, LOG_LEVEL_REPORT, LOG_CALLBACK_DEFAULT);
     memset(&m_msg_fifo, 0, sizeof(m_msg_fifo));
@@ -734,13 +817,18 @@ void setUp(void)
     m_flash_manager_calls = 0;
     m_listener_register_calls = 0;
 
+    mesh_mem_alloc_StubWithCallback(mesh_mem_alloc_mock);
+    mesh_mem_free_StubWithCallback(mesh_mem_free_mock);
+
     nrf_mesh_evt_handler_add_StubWithCallback(evt_handler_add_stub);
     dsm_flash_area_get_StubWithCallback(dsm_flash_area_get_stub);
     flash_manager_mem_listener_register_StubWithCallback(flash_manager_mem_listener_register_stub);
     flash_manager_add_StubWithCallback(flash_manager_add_stub);
     bearer_event_flag_add_StubWithCallback(bearer_event_flag_add_cb);
+    access_publish_retransmission_message_add_StubWithCallback(access_publish_retransmission_message_add_stub);
     access_reliable_init_Expect();
     access_publish_init_Expect();
+    access_publish_retransmission_init_Expect();
     access_init();
 
     m_dsm_tx_friendship_secmat_get_retval = NRF_SUCCESS;
@@ -776,6 +864,12 @@ void tearDown(void)
     proxy_mock_Destroy();
     flash_manager_entries_read_mock_Verify();
     flash_manager_entries_read_mock_Destroy();
+    mesh_mem_mock_Verify();
+    mesh_mem_mock_Destroy();
+    access_publish_retransmission_message_add_mock_Verify();
+    access_publish_retransmission_message_add_mock_Destroy();
+    mesh_mem_free_mock_Verify();
+    mesh_mem_free_mock_Destroy();
 }
 
 
@@ -986,6 +1080,9 @@ void test_unicast_loopback(void)
     bearer_event_flag_set_Expect(ACCESS_LOOPBACK_FLAG);
     dsm_address_is_rx_ExpectAndReturn(&destination, true); // accept loopback
 
+    /* Check re-transmission */
+    retransmission_Expect(0);
+
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish(0, &message));
 
     dsm_address_is_rx_ExpectAndReturn(&destination, true); // called again in the bearer cb, as we created a loopback context.
@@ -1024,6 +1121,9 @@ void test_group_loopback(void)
     // still expect a TX, as the loopback doesn't prevent it when sending to a group address:
     const uint8_t raw_packet_data[] = "\x00loopback";
     expect_tx(raw_packet_data, data_length + 1 /* opcode */, ELEMENT_ADDRESS_START, m_addresses[address_handle].value, 0, DSM_HANDLE_INVALID, TX_SECMAT_TYPE_MASTER);
+
+    /* Check re-transmission */
+    retransmission_Expect(0);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish(0, &message));
 
@@ -1069,6 +1169,9 @@ void test_virtual_loopback(void)
     // still expect a TX, as the loopback doesn't prevent it when sending to a group address:
     const uint8_t raw_packet_data[] = "\x00loopback";
     expect_tx(raw_packet_data, data_length + 1 /* opcode */, ELEMENT_ADDRESS_START, m_addresses[address_handle].value, 0, DSM_HANDLE_INVALID, TX_SECMAT_TYPE_MASTER);
+
+    /* Check re-transmission */
+    retransmission_Expect(0);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish(0, &message));
 
@@ -1133,7 +1236,10 @@ void test_group_addressing(void)
     }
 }
 
-void test_model_publish(void)
+typedef uint32_t (publication_cb)(access_model_handle_t handle,
+                                    access_message_tx_t *p_tx_message);
+
+static void publication_tests(publication_cb *p_pub_func, bool with_retransmission)
 {
     access_message_tx_t message;
     const uint8_t data[] = "Hello, World";
@@ -1146,17 +1252,13 @@ void test_model_publish(void)
     message.force_segmented = false;
     message.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
 
-    TEST_ASSERT_EQUAL(NRF_ERROR_NULL, access_model_publish(0, NULL));
-    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, access_model_publish(ACCESS_MODEL_COUNT, &message));
-    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, access_model_publish(0, &message));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, p_pub_func(ACCESS_MODEL_COUNT, &message));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, p_pub_func(0, &message));
     build_device_setup(ACCESS_ELEMENT_COUNT, ACCESS_MODEL_COUNT);
 
-    message.length = ACCESS_MESSAGE_LENGTH_MAX;
-    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_LENGTH, access_model_publish(0, &message));
-    message.length = sizeof(data);
     message.opcode.opcode = 0x7f;
-    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, access_model_publish(0, &message));
-    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, access_model_publish(0, &message));
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, p_pub_func(0, &message));
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, p_pub_func(0, &message));
 
     for (uint32_t i = 0; i < ACCESS_MODEL_COUNT; ++i)
     {
@@ -1177,7 +1279,13 @@ void test_model_publish(void)
 
         expect_tx(expected_data, length, src, dst, 0, DSM_HANDLE_INVALID, TX_SECMAT_TYPE_MASTER);
 
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish(i, &message));
+        if (with_retransmission)
+        {
+            /* Check re-transmission */
+            retransmission_Expect(i);
+        }
+
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, p_pub_func(i, &message));
     }
 
     /* Test with frienship secmat */
@@ -1200,7 +1308,13 @@ void test_model_publish(void)
 
     expect_tx(expected_data, length, src, dst, 0, DSM_HANDLE_INVALID, TX_SECMAT_TYPE_FRIENDSHIP);
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish(0, &message));
+    if (with_retransmission)
+    {
+        /* Check re-transmission */
+        retransmission_Expect(0);
+    }
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, p_pub_func(0, &message));
 
     /* Test with frienship secmat
      *
@@ -1211,6 +1325,128 @@ void test_model_publish(void)
     m_dsm_tx_friendship_secmat_get_retval = NRF_ERROR_NOT_FOUND;
     dsm_address_is_rx_ExpectAndReturn(&dst_addr, false); // don't want loopback
     expect_tx(expected_data, length, src, dst, 0, DSM_HANDLE_INVALID, TX_SECMAT_TYPE_FRIENDSHIP);
+
+    if (with_retransmission)
+    {
+        /* Check re-transmission */
+        retransmission_Expect(0);
+    }
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, p_pub_func(0, &message));
+}
+
+static uint32_t access_model_publish_publication_cb(access_model_handle_t handle,
+                                                    access_message_tx_t *p_tx_message)
+{
+    return access_model_publish(handle, p_tx_message);
+}
+
+static uint32_t access_packet_tx_publication_cb(access_model_handle_t handle,
+                                                access_message_tx_t *p_tx_message)
+{
+    /* Prepare access payload */
+    uint16_t opcode_length = access_utils_opcode_size_get(p_tx_message->opcode);
+    uint16_t payload_length = opcode_length + p_tx_message->length;
+    uint8_t payload[payload_length];
+
+    opcode_raw_write(p_tx_message->opcode, payload);
+    memcpy(&payload[opcode_length], p_tx_message->p_buffer, p_tx_message->length);
+
+    return access_packet_tx(handle, p_tx_message, payload, payload_length);
+}
+
+void test_access_model_publish(void)
+{
+    TEST_ASSERT_EQUAL(NRF_ERROR_NULL, access_model_publish(0, NULL));
+
+    access_message_tx_t message;
+    message.length = ACCESS_MESSAGE_LENGTH_MAX;
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_LENGTH, access_model_publish(0, &message));
+
+    publication_tests(access_model_publish_publication_cb, true);
+}
+
+void test_access_packet_tx(void)
+{
+    const uint8_t data[] = "Hello, World";
+    const access_opcode_t opcode = ACCESS_OPCODE_SIG(0x0040);
+    access_message_tx_t message;
+    message.opcode.opcode = opcode.opcode;
+    message.opcode.company_id = opcode.company_id;
+    message.p_buffer = data;
+    message.length = sizeof(data);
+    message.force_segmented = false;
+    message.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
+
+    TEST_ASSERT_EQUAL(NRF_ERROR_NULL, access_packet_tx(0, NULL, data, sizeof(data)));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NULL, access_packet_tx(0, &message, NULL, sizeof(data)));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NULL, access_packet_tx(0, &message, data, 0));
+
+    message.length = ACCESS_MESSAGE_LENGTH_MAX;
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_LENGTH, access_model_publish(0, &message));
+
+    publication_tests(access_packet_tx_publication_cb, false);
+}
+
+void test_publish_retransmit(void)
+{
+    access_publish_retransmit_t publish_retransmit_out = {};
+    access_publish_retransmit_t publish_retransmit_in;
+    publish_retransmit_in.count = 0;
+    publish_retransmit_in.interval_steps = 1;
+
+    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, access_model_publish_retransmit_set(0, publish_retransmit_in));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NULL, access_model_publish_retransmit_get(0, NULL));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, access_model_publish_retransmit_get(0, &publish_retransmit_out));
+
+    build_device_setup(ACCESS_ELEMENT_COUNT, ACCESS_MODEL_COUNT);
+
+    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, access_model_publish_retransmit_set(ACCESS_HANDLE_INVALID, publish_retransmit_in));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, access_model_publish_retransmit_get(ACCESS_HANDLE_INVALID, &publish_retransmit_out));
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish_retransmit_set(0, publish_retransmit_in));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish_retransmit_get(0, &publish_retransmit_out));
+
+    TEST_ASSERT_EQUAL_MEMORY(&publish_retransmit_in,
+                             &publish_retransmit_out,
+                             sizeof(access_publish_retransmit_t));
+
+    /* Test retransmission called */
+    const uint8_t data[] = "Hello, World";
+    const access_opcode_t opcode = ACCESS_OPCODE_SIG(0x0040);
+    access_message_tx_t message;
+    message.opcode.opcode = opcode.opcode;
+    message.opcode.company_id = opcode.company_id;
+    message.p_buffer = data;
+    message.length = sizeof(data);
+    message.force_segmented = false;
+    message.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
+
+    publish_retransmit_in.count = 2;
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish_retransmit_set(0, publish_retransmit_in));
+    retransmission_Expect(0);
+
+    uint16_t src = ELEMENT_ADDRESS_START;
+    uint16_t dst = PUBLISH_ADDRESS_START;
+
+    uint8_t expected_data[sizeof(data) + sizeof(uint32_t)];
+    uint32_t length = opcode_raw_write(message.opcode, expected_data);
+    memcpy(&expected_data[length], data, message.length);
+    length += message.length;
+    nrf_mesh_address_t dst_addr = {NRF_MESH_ADDRESS_TYPE_UNICAST, dst};
+    dsm_address_is_rx_ExpectAndReturn(&dst_addr, false); // don't want loopback
+
+    expect_tx(expected_data, length, src, dst, 0, DSM_HANDLE_INVALID, TX_SECMAT_TYPE_MASTER);
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish(0, &message));
+
+    /* No retransmit, free shall be called */
+    publish_retransmit_in.count = 0;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish_retransmit_set(0, publish_retransmit_in));
+
+    dsm_address_is_rx_ExpectAndReturn(&dst_addr, false); // don't want loopback
+    expect_tx(expected_data, length, src, dst, 0, DSM_HANDLE_INVALID, TX_SECMAT_TYPE_MASTER);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish(0, &message));
 }
@@ -1352,6 +1588,16 @@ void test_error_conditions(void)
     tx_message.opcode.opcode = 0xFFFF;
     tx_message.opcode.company_id = 0x1337;
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, access_model_reply(0,&rx_message, &tx_message));
+
+    /* Allocation test */
+    tx_message.opcode.opcode = 0x00;
+    tx_message.opcode.company_id = ACCESS_COMPANY_ID_NONE;
+    mesh_mem_alloc_StubWithCallback(NULL);
+    mesh_mem_alloc_ExpectAnyArgsAndReturn(NULL);
+    TEST_ASSERT_EQUAL(NRF_ERROR_NO_MEM, access_model_publish(0, &tx_message));
+    mesh_mem_alloc_ExpectAnyArgsAndReturn(NULL);
+    TEST_ASSERT_EQUAL(NRF_ERROR_NO_MEM, access_model_reply(0, &rx_message, &tx_message));
+    mesh_mem_alloc_StubWithCallback(mesh_mem_alloc_mock);
 
     const dsm_handle_t ADDRESS_COUNT = ACCESS_ELEMENT_COUNT + ACCESS_MODEL_COUNT + SUBSCRIPTION_ADDRESS_COUNT;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_subscription_add(0, ADDRESS_COUNT-1));
@@ -1775,6 +2021,7 @@ void test_flash_load_reload(void)
     /********************************* Reset access and lose all data:*****************************/
     access_publish_init_Expect();
     access_reliable_init_Expect();
+    access_publish_retransmission_init_Expect();
     access_init();
     /* Check that elements are un populated */
     access_model_handle_t model_handles[ACCESS_MODEL_COUNT];
@@ -1874,6 +2121,7 @@ void test_flash_load_reload(void)
     /* Adding models before a restore is also accepted. */
     access_publish_init_Expect();
     access_reliable_init_Expect();
+    access_publish_retransmission_init_Expect();
     access_init();
     /* Add models first before restore*/
     access_model_handle_t reinit_handle;

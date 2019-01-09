@@ -52,6 +52,33 @@
 #include "list.h"
 #include "bitfield.h"
 
+static bool is_numeric_oob_action(const nrf_mesh_prov_ctx_t * p_ctx)
+{
+    /* The provisioner's OOB is the reversal of the provisionee's. */
+    return ((p_ctx->role == NRF_MESH_PROV_ROLE_PROVISIONER &&
+             (p_ctx->oob_method == NRF_MESH_PROV_OOB_METHOD_OUTPUT &&
+              (p_ctx->oob_action == NRF_MESH_PROV_OUTPUT_ACTION_BLINK   ||
+               p_ctx->oob_action == NRF_MESH_PROV_OUTPUT_ACTION_BEEP    ||
+               p_ctx->oob_action == NRF_MESH_PROV_OUTPUT_ACTION_VIBRATE ||
+               p_ctx->oob_action == NRF_MESH_PROV_OUTPUT_ACTION_DISPLAY_NUMERIC))) ||
+            (p_ctx->role == NRF_MESH_PROV_ROLE_PROVISIONEE &&
+             (p_ctx->oob_method == NRF_MESH_PROV_OOB_METHOD_INPUT &&
+              (p_ctx->oob_action == NRF_MESH_PROV_INPUT_ACTION_PUSH   ||
+               p_ctx->oob_action == NRF_MESH_PROV_INPUT_ACTION_TWIST    ||
+               p_ctx->oob_action == NRF_MESH_PROV_INPUT_ACTION_ENTER_NUMBER))));
+}
+
+static bool is_alphanumeric_oob_action(const nrf_mesh_prov_ctx_t * p_ctx)
+{
+    /* The provisioner's OOB is the reversal of the provisionee's. */
+    return ((p_ctx->role == NRF_MESH_PROV_ROLE_PROVISIONER &&
+             (p_ctx->oob_method == NRF_MESH_PROV_OOB_METHOD_OUTPUT &&
+              p_ctx->oob_action == NRF_MESH_PROV_OUTPUT_ACTION_ALPHANUMERIC)) ||
+            (p_ctx->role == NRF_MESH_PROV_ROLE_PROVISIONEE &&
+             (p_ctx->oob_method == NRF_MESH_PROV_OOB_METHOD_INPUT &&
+              p_ctx->oob_action == NRF_MESH_PROV_INPUT_ACTION_ENTER_STRING)));
+}
+
 uint32_t nrf_mesh_prov_init(nrf_mesh_prov_ctx_t *            p_ctx,
                             const uint8_t *                  p_public_key,
                             const uint8_t *                  p_private_key,
@@ -234,6 +261,46 @@ uint32_t nrf_mesh_prov_auth_data_provide(nrf_mesh_prov_ctx_t * p_ctx,
                                          const uint8_t *       p_data,
                                          uint8_t               size)
 {
+    if (p_ctx == NULL || p_data == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+    else if (size > PROV_AUTH_LEN ||
+             size != p_ctx->oob_size)
+    {
+        return NRF_ERROR_INVALID_LENGTH;
+    }
+
+    if (p_ctx->oob_method == NRF_MESH_PROV_OOB_METHOD_STATIC)
+    {
+        memcpy(p_ctx->auth_value, p_data, size);
+    }
+    else if (is_numeric_oob_action(p_ctx) &&
+             prov_utils_auth_data_is_valid_number(p_data, size))
+    {
+        uint8_t oob_length = sizeof(uint32_t);
+        memcpy(&p_ctx->auth_value[0], p_data, oob_length);
+        memset(&p_ctx->auth_value[oob_length], 0, sizeof(p_ctx->auth_value) - oob_length);
+
+        /* Reverse the endianness according to the spec. */
+        utils_reverse_array(p_ctx->auth_value, sizeof(p_ctx->auth_value));
+    }
+    else if (is_alphanumeric_oob_action(p_ctx) &&
+             prov_utils_auth_data_is_alphanumeric(p_data, size))
+    {
+        uint8_t oob_length = size;
+        memcpy(&p_ctx->auth_value[0], p_data, oob_length);
+        memset(&p_ctx->auth_value[oob_length], 0, sizeof(p_ctx->auth_value) - oob_length);
+
+        /* Reverse the endianness according to the spec. */
+        utils_reverse_array(p_ctx->auth_value, sizeof(p_ctx->auth_value));
+    }
+    else
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+
+
     if (p_ctx->role == NRF_MESH_PROV_ROLE_PROVISIONER)
     {
         return prov_provisioner_auth_data(p_ctx, p_data, size);

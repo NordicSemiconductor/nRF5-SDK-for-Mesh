@@ -165,14 +165,12 @@ static void start(void)
             .prov_device_identification_start_cb = device_identification_start_cb,
             .prov_device_identification_stop_cb = NULL,
             .prov_abort_cb = provisioning_aborted_cb,
-            .p_device_uri = NULL
+            .p_device_uri = EX_URI_PBR_SERVER
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }
 
-    const uint8_t *p_uuid = nrf_mesh_configure_device_uuid_get();
-    UNUSED_VARIABLE(p_uuid);
-    __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "Device UUID ", p_uuid, NRF_MESH_UUID_SIZE);
+    mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());
 
     ERROR_CHECK(mesh_stack_start());
 

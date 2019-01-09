@@ -54,16 +54,21 @@
 void replay_cache_init(void);
 
 /**
+ * Enable the replay protection cache module.
+ */
+void replay_cache_enable(void);
+
+/**
  * Add an element to the replay protection cache.
  *
- * @param[in] src   Source address.
+ * @param[in] src Source address.
  * @param[in] seqno Message sequence number.
- * @param[in] ivi   IV index bit.
+ * @param[in] iv_index IV index of the packet.
  *
  * @retval NRF_SUCCESS      Successfully added element.
  * @retval NRF_ERROR_NO_MEM No more memory available in the cache.
  */
-uint32_t replay_cache_add(uint16_t src, uint32_t seqno, uint8_t ivi);
+uint32_t replay_cache_add(uint16_t src, uint32_t seqno, uint32_t iv_index);
 
 /**
  * Check if an element is in the cache.
@@ -73,14 +78,14 @@ uint32_t replay_cache_add(uint16_t src, uint32_t seqno, uint8_t ivi);
  * valid since the packet has already passed network decryption, i.e., the IV
  * index is valid.
  *
- * @param[in] src         Source address.
- * @param[in] seqno       Message sequence number.
- * @param[in] ivi         IV index bit.
+ * @param[in] src Source address.
+ * @param[in] seqno Message sequence number.
+ * @param[in] iv_index IV index.
  *
  * @retval true  If the message exists in the cache.
  * @retval false Otherwise.
  */
-bool replay_cache_has_elem(uint16_t src, uint32_t seqno, uint8_t ivi);
+bool replay_cache_has_elem(uint16_t src, uint32_t seqno, uint32_t iv_index);
 
 /**
  * Function to call in IV update.

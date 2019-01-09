@@ -102,6 +102,10 @@
 
 #define PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_TRANSACTION_NUMBER_OFFSET   (0)       /**< Offset to the trs_control_friend_sublist_add_remove_transaction_number field.*/
 
+#define PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_ADDRESS_LIST0_OFFSET   (1)       /**< Offset to the trs_control_friend_sublist_add_remove_address_list field (0).*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_ADDRESS_LIST1_OFFSET   (2)       /**< Offset to the trs_control_friend_sublist_add_remove_address_list field (1).*/
+#define PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_ADDRESS_LIST_MAX_COUNT (5)       /**< Highest number of elements allowed in the trs_control_friend_sublist_add_remove_address_list field. */
+
 #define PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_CONFIRM_TRANSACTION_NUMBER_OFFSET   (0)       /**< Offset to the trs_control_friend_sublist_confirm_transaction_number field.*/
 
 #define PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_UPDATE_FLAG_OFFSET   (0)       /**< Offset to the trs_control_friend_update_iv_update_flag field.*/
@@ -248,7 +252,15 @@
 #define PACKET_MESH_TRS_UNSEG_PDU_OFFSET (1) /**< Offset of trs unseg packet PDU. */ 
 
 /**
- * Packet type for net packet.
+ * Packet type for the trs_control packet.
+ */
+typedef struct
+{
+    uint8_t pdu[11];
+} packet_mesh_trs_control_packet_t;
+
+/**
+ * Packet type for the net packet.
  */
 typedef struct
 {
@@ -256,24 +268,18 @@ typedef struct
 } packet_mesh_net_packet_t;
 
 /**
- * Packet type for trs packet.
+ * Packet type for the trs packet.
  */
 typedef struct
 {
     uint8_t pdu[16];
-} packet_mesh_trs_packet_t;
-
-/**
- * Packet type for trs control packet.
- */
-typedef struct
-{
-    uint8_t pdu[11];
-} packet_mesh_trs_control_packet_t; 
+} packet_mesh_trs_packet_t; 
 
 /**
  * Gets the net payload pointer.
+ *
  * @param[in,out] p_pkt Packet pointer.
+ *
  * @returns Pointer to the start of the upper transport PDU.
  */
 static inline const uint8_t * packet_mesh_net_payload_get(const packet_mesh_net_packet_t * p_pkt)
@@ -283,7 +289,9 @@ static inline const uint8_t * packet_mesh_net_payload_get(const packet_mesh_net_
 
 /**
  * Gets the trs_seg payload pointer.
+ *
  * @param[in,out] p_pkt Packet pointer.
+ *
  * @returns Pointer to the start of the upper transport PDU.
  */
 static inline const uint8_t * packet_mesh_trs_seg_payload_get(const packet_mesh_trs_packet_t * p_pkt)
@@ -293,7 +301,9 @@ static inline const uint8_t * packet_mesh_trs_seg_payload_get(const packet_mesh_
 
 /**
  * Gets the trs_unseg payload pointer.
+ *
  * @param[in,out] p_pkt Packet pointer.
+ *
  * @returns Pointer to the start of the upper transport PDU.
  */
 static inline const uint8_t * packet_mesh_trs_unseg_payload_get(const packet_mesh_trs_packet_t * p_pkt)
@@ -301,9 +311,11 @@ static inline const uint8_t * packet_mesh_trs_unseg_payload_get(const packet_mes
     return &p_pkt->pdu[PACKET_MESH_TRS_UNSEG_PDU_OFFSET];
 }
 /**
- * Gets the the unicast address of the Low Power node being removed.
+ * Gets the unicast address of the Low Power node being removed.
+ *
  * @param[in] p_pkt Packet pointer.
- * @returns Value of the the unicast address of the Low Power node being removed.
+ *
+ * @returns Value of the unicast address of the Low Power node being removed.
  */
 static inline uint16_t packet_mesh_trs_control_friend_clear_lpn_address_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
@@ -312,9 +324,10 @@ static inline uint16_t packet_mesh_trs_control_friend_clear_lpn_address_get(cons
 }
 
 /**
- * Sets the the unicast address of the Low Power node being removed.
+ * Sets the unicast address of the Low Power node being removed.
+ *
  * @param[in,out] p_pkt Packet pointer.
- * @param[in]     val   Value of the the unicast address of the Low Power node being removed.
+ * @param[in]     val   Value of the unicast address of the Low Power node being removed.
  */
 static inline void packet_mesh_trs_control_friend_clear_lpn_address_set(packet_mesh_trs_control_packet_t * p_pkt, uint16_t val)
 {
@@ -324,7 +337,9 @@ static inline void packet_mesh_trs_control_friend_clear_lpn_address_set(packet_m
 
 /**
  * Gets the LPN Counter of new relationship.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the LPN Counter of new relationship.
  */
 static inline uint16_t packet_mesh_trs_control_friend_clear_lpn_counter_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -335,6 +350,7 @@ static inline uint16_t packet_mesh_trs_control_friend_clear_lpn_counter_get(cons
 
 /**
  * Sets the LPN Counter of new relationship.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the LPN Counter of new relationship.
  */
@@ -345,9 +361,11 @@ static inline void packet_mesh_trs_control_friend_clear_lpn_counter_set(packet_m
 }
 
 /**
- * Gets the the unicast address of the Low Power node being removed.
+ * Gets the unicast address of the Low Power node being removed.
+ *
  * @param[in] p_pkt Packet pointer.
- * @returns Value of the the unicast address of the Low Power node being removed.
+ *
+ * @returns Value of the unicast address of the Low Power node being removed.
  */
 static inline uint16_t packet_mesh_trs_control_friend_clear_confirm_lpn_address_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
@@ -356,9 +374,10 @@ static inline uint16_t packet_mesh_trs_control_friend_clear_confirm_lpn_address_
 }
 
 /**
- * Sets the the unicast address of the Low Power node being removed.
+ * Sets the unicast address of the Low Power node being removed.
+ *
  * @param[in,out] p_pkt Packet pointer.
- * @param[in]     val   Value of the the unicast address of the Low Power node being removed.
+ * @param[in]     val   Value of the unicast address of the Low Power node being removed.
  */
 static inline void packet_mesh_trs_control_friend_clear_confirm_lpn_address_set(packet_mesh_trs_control_packet_t * p_pkt, uint16_t val)
 {
@@ -368,7 +387,9 @@ static inline void packet_mesh_trs_control_friend_clear_confirm_lpn_address_set(
 
 /**
  * Gets the LPN Counter of the corresponding Friend Clear message.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the LPN Counter of the corresponding Friend Clear message.
  */
 static inline uint16_t packet_mesh_trs_control_friend_clear_confirm_lpn_counter_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -379,6 +400,7 @@ static inline uint16_t packet_mesh_trs_control_friend_clear_confirm_lpn_counter_
 
 /**
  * Sets the LPN Counter of the corresponding Friend Clear message.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the LPN Counter of the corresponding Friend Clear message.
  */
@@ -390,7 +412,9 @@ static inline void packet_mesh_trs_control_friend_clear_confirm_lpn_counter_set(
 
 /**
  * Gets the Receive Window supported by the Friend node.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the Receive Window supported by the Friend node.
  */
 static inline uint8_t packet_mesh_trs_control_friend_offer_receive_window_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -400,6 +424,7 @@ static inline uint8_t packet_mesh_trs_control_friend_offer_receive_window_get(co
 
 /**
  * Sets the Receive Window supported by the Friend node.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the Receive Window supported by the Friend node.
  */
@@ -410,7 +435,9 @@ static inline void packet_mesh_trs_control_friend_offer_receive_window_set(packe
 
 /**
  * Gets the Queue Size available on the Friend node.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the Queue Size available on the Friend node.
  */
 static inline uint8_t packet_mesh_trs_control_friend_offer_queue_size_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -420,6 +447,7 @@ static inline uint8_t packet_mesh_trs_control_friend_offer_queue_size_get(const 
 
 /**
  * Sets the Queue Size available on the Friend node.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the Queue Size available on the Friend node.
  */
@@ -430,7 +458,9 @@ static inline void packet_mesh_trs_control_friend_offer_queue_size_set(packet_me
 
 /**
  * Gets the size of the Subscription List supported by the Friend node for the Low Power node.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the size of the Subscription List supported by the Friend node for the Low Power node.
  */
 static inline uint8_t packet_mesh_trs_control_friend_offer_subscription_list_size_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -440,6 +470,7 @@ static inline uint8_t packet_mesh_trs_control_friend_offer_subscription_list_siz
 
 /**
  * Sets the size of the Subscription List supported by the Friend node for the Low Power node.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the size of the Subscription List supported by the Friend node for the Low Power node.
  */
@@ -450,7 +481,9 @@ static inline void packet_mesh_trs_control_friend_offer_subscription_list_size_s
 
 /**
  * Gets the RSSI measured by the Friend node.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the RSSI measured by the Friend node.
  */
 static inline uint8_t packet_mesh_trs_control_friend_offer_rssi_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -460,6 +493,7 @@ static inline uint8_t packet_mesh_trs_control_friend_offer_rssi_get(const packet
 
 /**
  * Sets the RSSI measured by the Friend node.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the RSSI measured by the Friend node.
  */
@@ -470,7 +504,9 @@ static inline void packet_mesh_trs_control_friend_offer_rssi_set(packet_mesh_trs
 
 /**
  * Gets the number of sent Friend Offer messages.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the number of sent Friend Offer messages.
  */
 static inline uint16_t packet_mesh_trs_control_friend_offer_friend_counter_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -481,6 +517,7 @@ static inline uint16_t packet_mesh_trs_control_friend_offer_friend_counter_get(c
 
 /**
  * Sets the number of sent Friend Offer messages.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the number of sent Friend Offer messages.
  */
@@ -492,7 +529,9 @@ static inline void packet_mesh_trs_control_friend_offer_friend_counter_set(packe
 
 /**
  * Gets the Friend Sequence Number.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the Friend Sequence Number.
  */
 static inline uint8_t packet_mesh_trs_control_friend_poll_fsn_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -502,6 +541,7 @@ static inline uint8_t packet_mesh_trs_control_friend_poll_fsn_get(const packet_m
 
 /**
  * Sets the Friend Sequence Number.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the Friend Sequence Number.
  */
@@ -513,7 +553,9 @@ static inline void packet_mesh_trs_control_friend_poll_fsn_set(packet_mesh_trs_c
 
 /**
  * Gets the contribution of the RSSI measured by the Friend node.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the contribution of the RSSI measured by the Friend node.
  */
 static inline uint8_t packet_mesh_trs_control_friend_request_rssi_factor_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -523,6 +565,7 @@ static inline uint8_t packet_mesh_trs_control_friend_request_rssi_factor_get(con
 
 /**
  * Sets the contribution of the RSSI measured by the Friend node.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the contribution of the RSSI measured by the Friend node.
  */
@@ -534,7 +577,9 @@ static inline void packet_mesh_trs_control_friend_request_rssi_factor_set(packet
 
 /**
  * Gets the contribution of the Receive Window.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the contribution of the Receive Window.
  */
 static inline uint8_t packet_mesh_trs_control_friend_request_receive_window_factor_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -544,6 +589,7 @@ static inline uint8_t packet_mesh_trs_control_friend_request_receive_window_fact
 
 /**
  * Sets the contribution of the Receive Window.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the contribution of the Receive Window.
  */
@@ -555,7 +601,9 @@ static inline void packet_mesh_trs_control_friend_request_receive_window_factor_
 
 /**
  * Gets the minimum Queue Size of messages on the Friend node.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the minimum Queue Size of messages on the Friend node.
  */
 static inline uint8_t packet_mesh_trs_control_friend_request_min_queue_size_log_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -565,6 +613,7 @@ static inline uint8_t packet_mesh_trs_control_friend_request_min_queue_size_log_
 
 /**
  * Sets the minimum Queue Size of messages on the Friend node.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the minimum Queue Size of messages on the Friend node.
  */
@@ -576,7 +625,9 @@ static inline void packet_mesh_trs_control_friend_request_min_queue_size_log_set
 
 /**
  * Gets the receive delay requested by the Low Power node.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the receive delay requested by the Low Power node.
  */
 static inline uint8_t packet_mesh_trs_control_friend_request_receive_delay_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -586,6 +637,7 @@ static inline uint8_t packet_mesh_trs_control_friend_request_receive_delay_get(c
 
 /**
  * Sets the receive delay requested by the Low Power node.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the receive delay requested by the Low Power node.
  */
@@ -596,7 +648,9 @@ static inline void packet_mesh_trs_control_friend_request_receive_delay_set(pack
 
 /**
  * Gets the initial value of the Poll Timeout.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the initial value of the Poll Timeout.
  */
 static inline uint32_t packet_mesh_trs_control_friend_request_poll_timeout_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -608,6 +662,7 @@ static inline uint32_t packet_mesh_trs_control_friend_request_poll_timeout_get(c
 
 /**
  * Sets the initial value of the Poll Timeout.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the initial value of the Poll Timeout.
  */
@@ -620,7 +675,9 @@ static inline void packet_mesh_trs_control_friend_request_poll_timeout_set(packe
 
 /**
  * Gets the unicast address of the previous Friend node.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the unicast address of the previous Friend node.
  */
 static inline uint16_t packet_mesh_trs_control_friend_request_previous_address_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -631,6 +688,7 @@ static inline uint16_t packet_mesh_trs_control_friend_request_previous_address_g
 
 /**
  * Sets the unicast address of the previous Friend node.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the unicast address of the previous Friend node.
  */
@@ -642,7 +700,9 @@ static inline void packet_mesh_trs_control_friend_request_previous_address_set(p
 
 /**
  * Gets the number of elements in the Low Power node.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the number of elements in the Low Power node.
  */
 static inline uint8_t packet_mesh_trs_control_friend_request_num_elements_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -652,6 +712,7 @@ static inline uint8_t packet_mesh_trs_control_friend_request_num_elements_get(co
 
 /**
  * Sets the number of elements in the Low Power node.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the number of elements in the Low Power node.
  */
@@ -662,7 +723,9 @@ static inline void packet_mesh_trs_control_friend_request_num_elements_set(packe
 
 /**
  * Gets the number of Friend Request messages sent.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the number of Friend Request messages sent.
  */
 static inline uint16_t packet_mesh_trs_control_friend_request_lpn_counter_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -673,6 +736,7 @@ static inline uint16_t packet_mesh_trs_control_friend_request_lpn_counter_get(co
 
 /**
  * Sets the number of Friend Request messages sent.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the number of Friend Request messages sent.
  */
@@ -684,7 +748,9 @@ static inline void packet_mesh_trs_control_friend_request_lpn_counter_set(packet
 
 /**
  * Gets the number for identifying a transaction.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the number for identifying a transaction.
  */
 static inline uint8_t packet_mesh_trs_control_friend_sublist_add_remove_transaction_number_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -694,6 +760,7 @@ static inline uint8_t packet_mesh_trs_control_friend_sublist_add_remove_transact
 
 /**
  * Sets the number for identifying a transaction.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the number for identifying a transaction.
  */
@@ -703,8 +770,37 @@ static inline void packet_mesh_trs_control_friend_sublist_add_remove_transaction
 }
 
 /**
- * Gets the number for identifying a transaction.
+ * Gets an element from the list of group addresses and virtual addresses.
+ *
  * @param[in] p_pkt Packet pointer.
+ * @param[in] index Array index.
+ *
+ * @returns Element index value from the list of group addresses and virtual addresses.
+ */
+static inline uint16_t packet_mesh_trs_control_friend_sublist_add_remove_address_list_get(const packet_mesh_trs_control_packet_t * p_pkt, uint32_t index)
+{
+    return ((p_pkt->pdu[(index * 2) + PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_ADDRESS_LIST0_OFFSET] << 8) | 
+            p_pkt->pdu[(index * 2) + PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_ADDRESS_LIST1_OFFSET]);
+}
+
+/**
+ * Sets an element in the list of group addresses and virtual addresses.
+ *
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     index Index of the element to set.
+ * @param[in]     val   Value to set in the list of group addresses and virtual addresses.
+ */
+static inline void packet_mesh_trs_control_friend_sublist_add_remove_address_list_set(packet_mesh_trs_control_packet_t * p_pkt, uint32_t index, uint16_t val)
+{
+    p_pkt->pdu[(index * 2) + PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_ADDRESS_LIST0_OFFSET] = (val >> 8) & 0xFF;
+    p_pkt->pdu[(index * 2) + PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_ADDRESS_LIST1_OFFSET] = val & 0xFF;
+}
+
+/**
+ * Gets the number for identifying a transaction.
+ *
+ * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the number for identifying a transaction.
  */
 static inline uint8_t packet_mesh_trs_control_friend_sublist_confirm_transaction_number_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -714,6 +810,7 @@ static inline uint8_t packet_mesh_trs_control_friend_sublist_confirm_transaction
 
 /**
  * Sets the number for identifying a transaction.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the number for identifying a transaction.
  */
@@ -724,7 +821,9 @@ static inline void packet_mesh_trs_control_friend_sublist_confirm_transaction_nu
 
 /**
  * Gets the 1 - IV Update active.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the 1 - IV Update active.
  */
 static inline uint8_t packet_mesh_trs_control_friend_update_iv_update_flag_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -734,6 +833,7 @@ static inline uint8_t packet_mesh_trs_control_friend_update_iv_update_flag_get(c
 
 /**
  * Sets the 1 - IV Update active.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the 1 - IV Update active.
  */
@@ -745,7 +845,9 @@ static inline void packet_mesh_trs_control_friend_update_iv_update_flag_set(pack
 
 /**
  * Gets the 1 - in phase2.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the 1 - in phase2.
  */
 static inline uint8_t packet_mesh_trs_control_friend_update_key_refresh_flag_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -755,6 +857,7 @@ static inline uint8_t packet_mesh_trs_control_friend_update_key_refresh_flag_get
 
 /**
  * Sets the 1 - in phase2.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the 1 - in phase2.
  */
@@ -766,7 +869,9 @@ static inline void packet_mesh_trs_control_friend_update_key_refresh_flag_set(pa
 
 /**
  * Gets the current IV Index known by Friend node.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the current IV Index known by Friend node.
  */
 static inline uint32_t packet_mesh_trs_control_friend_update_iv_index_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -779,6 +884,7 @@ static inline uint32_t packet_mesh_trs_control_friend_update_iv_index_get(const 
 
 /**
  * Sets the current IV Index known by Friend node.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the current IV Index known by Friend node.
  */
@@ -792,7 +898,9 @@ static inline void packet_mesh_trs_control_friend_update_iv_index_set(packet_mes
 
 /**
  * Gets the indicator whether Friend Queue is empty or not.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the indicator whether Friend Queue is empty or not.
  */
 static inline uint8_t packet_mesh_trs_control_friend_update_md_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -802,6 +910,7 @@ static inline uint8_t packet_mesh_trs_control_friend_update_md_get(const packet_
 
 /**
  * Sets the indicator whether Friend Queue is empty or not.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the indicator whether Friend Queue is empty or not.
  */
@@ -812,7 +921,9 @@ static inline void packet_mesh_trs_control_friend_update_md_set(packet_mesh_trs_
 
 /**
  * Gets the initial TTL used when sending the message.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the initial TTL used when sending the message.
  */
 static inline uint8_t packet_mesh_trs_control_heartbeat_init_ttl_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -822,6 +933,7 @@ static inline uint8_t packet_mesh_trs_control_heartbeat_init_ttl_get(const packe
 
 /**
  * Sets the initial TTL used when sending the message.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the initial TTL used when sending the message.
  */
@@ -833,7 +945,9 @@ static inline void packet_mesh_trs_control_heartbeat_init_ttl_set(packet_mesh_tr
 
 /**
  * Gets the bit field of currently active features of the node.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the bit field of currently active features of the node.
  */
 static inline uint16_t packet_mesh_trs_control_heartbeat_features_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -844,6 +958,7 @@ static inline uint16_t packet_mesh_trs_control_heartbeat_features_get(const pack
 
 /**
  * Sets the bit field of currently active features of the node.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the bit field of currently active features of the node.
  */
@@ -855,7 +970,9 @@ static inline void packet_mesh_trs_control_heartbeat_features_set(packet_mesh_tr
 
 /**
  * Gets the least significant bit of IV index.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the least significant bit of IV index.
  */
 static inline uint8_t packet_mesh_net_ivi_get(const packet_mesh_net_packet_t * p_pkt)
@@ -865,6 +982,7 @@ static inline uint8_t packet_mesh_net_ivi_get(const packet_mesh_net_packet_t * p
 
 /**
  * Sets the least significant bit of IV index.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the least significant bit of IV index.
  */
@@ -876,7 +994,9 @@ static inline void packet_mesh_net_ivi_set(packet_mesh_net_packet_t * p_pkt, uin
 
 /**
  * Gets the network key identifier.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the network key identifier.
  */
 static inline uint8_t packet_mesh_net_nid_get(const packet_mesh_net_packet_t * p_pkt)
@@ -886,6 +1006,7 @@ static inline uint8_t packet_mesh_net_nid_get(const packet_mesh_net_packet_t * p
 
 /**
  * Sets the network key identifier.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the network key identifier.
  */
@@ -897,7 +1018,9 @@ static inline void packet_mesh_net_nid_set(packet_mesh_net_packet_t * p_pkt, uin
 
 /**
  * Gets the network control.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the network control.
  */
 static inline uint8_t packet_mesh_net_ctl_get(const packet_mesh_net_packet_t * p_pkt)
@@ -907,6 +1030,7 @@ static inline uint8_t packet_mesh_net_ctl_get(const packet_mesh_net_packet_t * p
 
 /**
  * Sets the network control.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the network control.
  */
@@ -918,7 +1042,9 @@ static inline void packet_mesh_net_ctl_set(packet_mesh_net_packet_t * p_pkt, uin
 
 /**
  * Gets the time to live.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the time to live.
  */
 static inline uint8_t packet_mesh_net_ttl_get(const packet_mesh_net_packet_t * p_pkt)
@@ -928,6 +1054,7 @@ static inline uint8_t packet_mesh_net_ttl_get(const packet_mesh_net_packet_t * p
 
 /**
  * Sets the time to live.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the time to live.
  */
@@ -939,7 +1066,9 @@ static inline void packet_mesh_net_ttl_set(packet_mesh_net_packet_t * p_pkt, uin
 
 /**
  * Gets the sequence number.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the sequence number.
  */
 static inline uint32_t packet_mesh_net_seq_get(const packet_mesh_net_packet_t * p_pkt)
@@ -951,6 +1080,7 @@ static inline uint32_t packet_mesh_net_seq_get(const packet_mesh_net_packet_t * 
 
 /**
  * Sets the sequence number.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the sequence number.
  */
@@ -963,7 +1093,9 @@ static inline void packet_mesh_net_seq_set(packet_mesh_net_packet_t * p_pkt, uin
 
 /**
  * Gets the source address.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the source address.
  */
 static inline uint16_t packet_mesh_net_src_get(const packet_mesh_net_packet_t * p_pkt)
@@ -974,6 +1106,7 @@ static inline uint16_t packet_mesh_net_src_get(const packet_mesh_net_packet_t * 
 
 /**
  * Sets the source address.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the source address.
  */
@@ -985,7 +1118,9 @@ static inline void packet_mesh_net_src_set(packet_mesh_net_packet_t * p_pkt, uin
 
 /**
  * Gets the destination address.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the destination address.
  */
 static inline uint16_t packet_mesh_net_dst_get(const packet_mesh_net_packet_t * p_pkt)
@@ -996,6 +1131,7 @@ static inline uint16_t packet_mesh_net_dst_get(const packet_mesh_net_packet_t * 
 
 /**
  * Sets the destination address.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the destination address.
  */
@@ -1007,7 +1143,9 @@ static inline void packet_mesh_net_dst_set(packet_mesh_net_packet_t * p_pkt, uin
 
 /**
  * Gets the 'on behalf of' flag.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the 'on behalf of' flag.
  */
 static inline uint8_t packet_mesh_trs_control_segack_obo_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -1017,6 +1155,7 @@ static inline uint8_t packet_mesh_trs_control_segack_obo_get(const packet_mesh_t
 
 /**
  * Sets the 'on behalf of' flag.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the 'on behalf of' flag.
  */
@@ -1028,7 +1167,9 @@ static inline void packet_mesh_trs_control_segack_obo_set(packet_mesh_trs_contro
 
 /**
  * Gets the least significant bits of SeqAuth.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the least significant bits of SeqAuth.
  */
 static inline uint16_t packet_mesh_trs_control_segack_seqzero_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -1039,6 +1180,7 @@ static inline uint16_t packet_mesh_trs_control_segack_seqzero_get(const packet_m
 
 /**
  * Sets the least significant bits of SeqAuth.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the least significant bits of SeqAuth.
  */
@@ -1052,7 +1194,9 @@ static inline void packet_mesh_trs_control_segack_seqzero_set(packet_mesh_trs_co
 
 /**
  * Gets the block acknowledgement field.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the block acknowledgement field.
  */
 static inline uint32_t packet_mesh_trs_control_segack_block_ack_get(const packet_mesh_trs_control_packet_t * p_pkt)
@@ -1065,6 +1209,7 @@ static inline uint32_t packet_mesh_trs_control_segack_block_ack_get(const packet
 
 /**
  * Sets the block acknowledgement field.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the block acknowledgement field.
  */
@@ -1078,7 +1223,9 @@ static inline void packet_mesh_trs_control_segack_block_ack_set(packet_mesh_trs_
 
 /**
  * Gets the application key flag.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the application key flag.
  */
 static inline uint8_t packet_mesh_trs_access_akf_get(const packet_mesh_trs_packet_t * p_pkt)
@@ -1088,6 +1235,7 @@ static inline uint8_t packet_mesh_trs_access_akf_get(const packet_mesh_trs_packe
 
 /**
  * Sets the application key flag.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the application key flag.
  */
@@ -1099,7 +1247,9 @@ static inline void packet_mesh_trs_access_akf_set(packet_mesh_trs_packet_t * p_p
 
 /**
  * Gets the application key identifier.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the application key identifier.
  */
 static inline uint8_t packet_mesh_trs_access_aid_get(const packet_mesh_trs_packet_t * p_pkt)
@@ -1109,6 +1259,7 @@ static inline uint8_t packet_mesh_trs_access_aid_get(const packet_mesh_trs_packe
 
 /**
  * Sets the application key identifier.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the application key identifier.
  */
@@ -1120,7 +1271,9 @@ static inline void packet_mesh_trs_access_aid_set(packet_mesh_trs_packet_t * p_p
 
 /**
  * Gets the segmentation bit.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the segmentation bit.
  */
 static inline uint8_t packet_mesh_trs_common_seg_get(const packet_mesh_trs_packet_t * p_pkt)
@@ -1130,6 +1283,7 @@ static inline uint8_t packet_mesh_trs_common_seg_get(const packet_mesh_trs_packe
 
 /**
  * Sets the segmentation bit.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the segmentation bit.
  */
@@ -1141,7 +1295,9 @@ static inline void packet_mesh_trs_common_seg_set(packet_mesh_trs_packet_t * p_p
 
 /**
  * Gets the transport control opcode.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the transport control opcode.
  */
 static inline uint8_t packet_mesh_trs_control_opcode_get(const packet_mesh_trs_packet_t * p_pkt)
@@ -1151,6 +1307,7 @@ static inline uint8_t packet_mesh_trs_control_opcode_get(const packet_mesh_trs_p
 
 /**
  * Sets the transport control opcode.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the transport control opcode.
  */
@@ -1162,7 +1319,9 @@ static inline void packet_mesh_trs_control_opcode_set(packet_mesh_trs_packet_t *
 
 /**
  * Gets the size of MIC flag.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the size of MIC flag.
  */
 static inline uint8_t packet_mesh_trs_seg_szmic_get(const packet_mesh_trs_packet_t * p_pkt)
@@ -1172,6 +1331,7 @@ static inline uint8_t packet_mesh_trs_seg_szmic_get(const packet_mesh_trs_packet
 
 /**
  * Sets the size of MIC flag.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the size of MIC flag.
  */
@@ -1183,7 +1343,9 @@ static inline void packet_mesh_trs_seg_szmic_set(packet_mesh_trs_packet_t * p_pk
 
 /**
  * Gets the least significant bits of SeqAuth.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the least significant bits of SeqAuth.
  */
 static inline uint16_t packet_mesh_trs_seg_seqzero_get(const packet_mesh_trs_packet_t * p_pkt)
@@ -1194,6 +1356,7 @@ static inline uint16_t packet_mesh_trs_seg_seqzero_get(const packet_mesh_trs_pac
 
 /**
  * Sets the least significant bits of SeqAuth.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the least significant bits of SeqAuth.
  */
@@ -1207,7 +1370,9 @@ static inline void packet_mesh_trs_seg_seqzero_set(packet_mesh_trs_packet_t * p_
 
 /**
  * Gets the segment offset number.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the segment offset number.
  */
 static inline uint8_t packet_mesh_trs_seg_sego_get(const packet_mesh_trs_packet_t * p_pkt)
@@ -1218,6 +1383,7 @@ static inline uint8_t packet_mesh_trs_seg_sego_get(const packet_mesh_trs_packet_
 
 /**
  * Sets the segment offset number.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the segment offset number.
  */
@@ -1231,7 +1397,9 @@ static inline void packet_mesh_trs_seg_sego_set(packet_mesh_trs_packet_t * p_pkt
 
 /**
  * Gets the last segment number.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the last segment number.
  */
 static inline uint8_t packet_mesh_trs_seg_segn_get(const packet_mesh_trs_packet_t * p_pkt)
@@ -1241,6 +1409,7 @@ static inline uint8_t packet_mesh_trs_seg_segn_get(const packet_mesh_trs_packet_
 
 /**
  * Sets the last segment number.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the last segment number.
  */

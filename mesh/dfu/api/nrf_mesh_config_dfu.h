@@ -52,7 +52,7 @@
 
 /** Time to wait for a response to a DFU request before giving up. */
 #ifndef NRF_MESH_DFU_REQ_TIMEOUT_US
-#define NRF_MESH_DFU_REQ_TIMEOUT_US (30000000UL)
+#define NRF_MESH_DFU_REQ_TIMEOUT_US (600000000UL)
 #endif
 
 /** @} end of NRF_MESH_CONFIG_DFU */

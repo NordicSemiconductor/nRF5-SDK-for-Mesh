@@ -52,6 +52,7 @@
 #include "nrf_mesh_config_examples.h"
 #include "app_timer.h"
 #include "example_common.h"
+#include "nrf_mesh_configure.h"
 
 #if defined(NRF51) && defined(NRF_MESH_STACK_DEPTH)
 #include "stack_depth.h"
@@ -149,8 +150,8 @@ static void config_server_evt_cb(const config_server_evt_t * p_evt)
 static void device_identification_start_cb(uint8_t attention_duration_s)
 {
     hal_led_mask_set(LEDS_MASK, false);
-    hal_led_blink_ms(BSP_LED_2_MASK  | BSP_LED_3_MASK, 
-                     LED_BLINK_ATTENTION_INTERVAL_MS, 
+    hal_led_blink_ms(BSP_LED_2_MASK  | BSP_LED_3_MASK,
+                     LED_BLINK_ATTENTION_INTERVAL_MS,
                      LED_BLINK_ATTENTION_COUNT(attention_duration_s));
 }
 
@@ -220,11 +221,13 @@ static void start(void)
             .prov_device_identification_start_cb = device_identification_start_cb,
             .prov_device_identification_stop_cb = NULL,
             .prov_abort_cb = provisioning_aborted_cb,
-            .p_device_uri = NULL
+            .p_device_uri = EX_URI_BEACON
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }
     adv_start();
+
+    mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());
 
     ERROR_CHECK(mesh_stack_start());
 

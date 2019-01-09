@@ -16,6 +16,20 @@ of client-server Mesh Models defined in the @link_ModelSpec.
 
 You can find detailed information about Bluetooth Mesh in @link_btsig_intro and the @link_btsig_spec.
 
+## Supported features @anchor support_list
+
+The nRF5 SDK for Mesh supports all the mandatory features of the Mesh Profile Specification.
+These mandatory features are qualified.
+
+The following optional mesh features are supported by the nRF5 SDK for Mesh,
+but not qualified yet:
+- Provisioning over GATT bearer
+- GATT bearer
+- Config client
+- Mesh Proxy Service with Proxy Server
+- Low Power feature
+- Generic server and client models
+
 For a quick demonstration of some of the basic concepts of the Bluetooth Mesh
 network using Nordic's nRF5 SDK for Mesh, see [Quick start guide: running a first example](@ref md_doc_getting_started_mesh_quick_start).
 

@@ -72,6 +72,14 @@ void mesh_config_init(void);
 void mesh_config_load(void);
 
 /**
+ * Clear all configuration data.
+ *
+ * @note The configuration data is not cleared until the mesh configuration module leaves the busy
+ * state, as indicated by the @ref mesh_config_is_busy function or the @ref NRF_MESH_EVT_CONFIG_STABLE event, or both.
+ */
+void mesh_config_clear(void);
+
+/**
  * Store all power-down state.
  *
  * @note The configuration data is not safely stored until the mesh config module goes out of the busy

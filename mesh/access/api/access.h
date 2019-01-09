@@ -368,6 +368,16 @@ uint32_t access_model_add(const access_model_add_params_t * p_model_params,
 /**
  * Publishes an access layer message to the publish address of the model.
  *
+ * Once the message is published and the Public Retransmit Count
+ * (see @ref config_publication_state_t.retransmit_count) for the model
+ * is set to non-zero value, the message is queued for later re-transmissions.
+ * If there is not enough memory to publish the message during the re-transmission
+ * or if the previous transmission of the segmented message is still in progress,
+ * the re-transmission attempt will be skipped. If the next message is published
+ * before previous re-tranmissions are finished, the remaining re-transmissions
+ * attempts of the previous message will be skipped. the re-transmission attempt
+ * will be skipped.
+ *
  * @param[in] handle    Access handle for the model that wants to send data.
  * @param[in] p_message Access layer TX message parameter structure.
  *

@@ -1106,7 +1106,7 @@ void test_model_app_bind_unbind(void)
     {
         bool sig_model = !(i % 2);
 
-        uint16_t element_index = 88;
+        uint16_t element_index = 44;
         EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(messages[i % 2].element_address, element_index);
 
         access_model_handle_t model_handle = 77;
@@ -1294,7 +1294,7 @@ void test_subscription_add(void)
     {
         bool sig_model = !i;
 
-        uint16_t element_index = 75;
+        uint16_t element_index = 63;
         EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(messages[i].element_address, element_index);
 
         access_model_handle_t model_handle = 0x9962;
@@ -1381,7 +1381,7 @@ void test_subscription_delete(void)
     {
         bool sig_model = !i;
 
-        uint16_t element_index = 76;
+        uint16_t element_index = 15;
         EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(messages[i].element_address, element_index);
 
         access_model_handle_t model_handle = 0x9962;
@@ -1437,7 +1437,7 @@ void test_subscription_overwrite(void)
     {
         bool sig_model = !i;
 
-        uint16_t element_index = 77;
+        uint16_t element_index = 40;
         EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(messages[i].element_address, element_index);
 
         access_model_handle_t model_handle = 0x9962;
@@ -1498,7 +1498,7 @@ void test_subscription_delete_all(void)
     {
         bool sig_model = !i;
 
-        uint16_t element_index = 77;
+        uint16_t element_index = 50;
         EXPECT_DSM_LOCAL_UNICAST_ADDRESSES_GET(messages[i].element_address, element_index);
 
         access_model_handle_t model_handle = 0x9962;

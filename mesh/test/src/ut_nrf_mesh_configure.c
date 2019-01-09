@@ -43,8 +43,26 @@
 #include "nrf_mesh_configure.h"
 #include "nrf.h"
 
+/** UUID version - 4 */
+#define UUID_VERSION4 (0x04)
+/** Variant - reserved bits  */
+#define UUID_VERSION4_VARIANT_BITS (0x02)
+
+typedef struct __attribute((packed))
+{
+    uint64_t uuid_00_59 : 60;
+    uint64_t version : 4;
+
+    uint64_t uuid_64_67 : 4;
+    uint64_t uuid_68_69 : 2;
+    uint64_t variant : 2;
+
+    uint64_t uuid_72_127 : 56;
+} uuid4_t;
+
 NRF_FICR_Type m_ficr;
 NRF_FICR_Type * NRF_FICR;
+
 
 void setUp(void)
 {
@@ -61,16 +79,16 @@ void tearDown(void)
 *****************************************************************************/
 void test_uuid(void)
 {
-    NRF_FICR->DEVICEID[0] = 0x12345678;
-    NRF_FICR->DEVICEID[1] = 0x9ABCDEF0;
-    NRF_FICR->DEVICEADDR[0] = 0x01234567;
-    NRF_FICR->DEVICEADDR[1] = 0x89ABCDEF;
+
     nrf_mesh_configure_device_uuid_reset();
+
     uint8_t uuid[NRF_MESH_UUID_SIZE];
     memset(uuid, 0, NRF_MESH_UUID_SIZE);
     const uint8_t * p_uuid = nrf_mesh_configure_device_uuid_get();
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(NRF_FICR->DEVICEID, &p_uuid[0], 8);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(NRF_FICR->DEVICEADDR, &p_uuid[8], 8);
+    const uuid4_t * p_uuid4 = (const uuid4_t *) p_uuid;
+    TEST_ASSERT_EQUAL(p_uuid4->version, UUID_VERSION4);
+    TEST_ASSERT_EQUAL(p_uuid4->variant, UUID_VERSION4_VARIANT_BITS);
+
     for (uint32_t i = 0; i < NRF_MESH_UUID_SIZE; i++)
     {
         uuid[i] = i;
@@ -78,6 +96,9 @@ void test_uuid(void)
     nrf_mesh_configure_device_uuid_set(uuid);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(uuid, nrf_mesh_configure_device_uuid_get(), NRF_MESH_UUID_SIZE);
     nrf_mesh_configure_device_uuid_reset();
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(NRF_FICR->DEVICEID, &p_uuid[0], 8);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(NRF_FICR->DEVICEADDR, &p_uuid[8], 8);
+
+    p_uuid = nrf_mesh_configure_device_uuid_get();
+    p_uuid4 = (const uuid4_t *) p_uuid;
+    TEST_ASSERT_EQUAL(p_uuid4->version, UUID_VERSION4);
+    TEST_ASSERT_EQUAL(p_uuid4->variant, UUID_VERSION4_VARIANT_BITS);
 }

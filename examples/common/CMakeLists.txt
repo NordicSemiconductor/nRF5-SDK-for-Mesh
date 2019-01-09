@@ -30,6 +30,49 @@ set(BLE_SOFTDEVICE_SUPPORT_INCLUDE_DIRS
     "${SDK_ROOT}/components/libraries/atomic"
     CACHE INTERNAL "")
 
+set(BLE_DFU_SUPPORT_SOURCE_FILES
+    "${CMAKE_SOURCE_DIR}/examples/common/src/ble_dfu_support.c"
+    "${SDK_ROOT}/components/ble/ble_services/ble_dfu/ble_dfu.c"
+    "${SDK_ROOT}/components/ble/ble_services/ble_dfu/ble_dfu_bonded.c"
+    "${SDK_ROOT}/components/ble/ble_services/ble_dfu/ble_dfu_unbonded.c"
+    "${SDK_ROOT}/components/ble/ble_advertising/ble_advertising.c"
+    "${SDK_ROOT}/components/ble/common/ble_conn_state.c"
+    "${SDK_ROOT}/components/libraries/atomic_fifo/nrf_atfifo.c"
+    "${SDK_ROOT}/components/libraries/atomic_flags/nrf_atflags.c"
+    "${SDK_ROOT}/components/libraries/bootloader/dfu/nrf_dfu_svci.c"
+    "${SDK_ROOT}/components/libraries/fds/fds.c"
+    "${SDK_ROOT}/components/libraries/fstorage/nrf_fstorage.c"
+    "${SDK_ROOT}/components/libraries/fstorage/nrf_fstorage_sd.c"
+    "${SDK_ROOT}/components/libraries/pwr_mgmt/nrf_pwr_mgmt.c"
+    "${SDK_ROOT}/components/ble/peer_manager/gatt_cache_manager.c"
+    "${SDK_ROOT}/components/ble/peer_manager/gatts_cache_manager.c"
+    "${SDK_ROOT}/components/ble/peer_manager/id_manager.c"
+    "${SDK_ROOT}/components/ble/peer_manager/peer_manager.c"
+    "${SDK_ROOT}/components/ble/peer_manager/peer_data_storage.c"
+    "${SDK_ROOT}/components/ble/peer_manager/peer_database.c"
+    "${SDK_ROOT}/components/ble/peer_manager/peer_id.c"
+    "${SDK_ROOT}/components/ble/peer_manager/pm_buffer.c"
+    "${SDK_ROOT}/components/ble/peer_manager/security_dispatcher.c"
+    "${SDK_ROOT}/components/ble/peer_manager/security_manager.c"
+    CACHE INTERNAL "")
+
+set(BLE_DFU_SUPPORT_INCLUDE_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${SDK_ROOT}/components/ble/ble_advertising"
+    "${SDK_ROOT}/components/ble/ble_services/ble_dfu"
+    "${SDK_ROOT}/components/ble/peer_manager"
+    "${SDK_ROOT}/components/libraries/atomic_fifo"
+    "${SDK_ROOT}/components/libraries/atomic_flags"
+    "${SDK_ROOT}/components/libraries/bootloader"
+    "${SDK_ROOT}/components/libraries/bootloader/ble_dfu"
+    "${SDK_ROOT}/components/libraries/bootloader/dfu"
+    "${SDK_ROOT}/components/libraries/fds"
+    "${SDK_ROOT}/components/libraries/fstorage"
+    "${SDK_ROOT}/components/libraries/mutex"
+    "${SDK_ROOT}/components/libraries/pwr_mgmt"
+    "${SDK_ROOT}/components/libraries/svc"
+    CACHE INTERNAL "")
+
 set(lint_include_dirs
     ${COMMON_EXAMPLES_INCLUDE_DIRS}
     ${BLE_SOFTDEVICE_SUPPORT_INCLUDE_DIRS}

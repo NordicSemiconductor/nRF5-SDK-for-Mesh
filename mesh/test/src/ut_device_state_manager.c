@@ -57,6 +57,7 @@
 #include "manual_mock_queue.h"
 #include "mesh_lpn_internal_mock.h"
 #include "mesh_lpn_mock.h"
+#include "heartbeat_mock.h"
 
 /* Enable this to check that the handle ordering is as expected (0..N-1). */
 #define TEST_EXPLICIT_ORDERING 1
@@ -174,6 +175,7 @@ void setUp(void)
     fm_entries_read_mock_queue_Init();
     mesh_lpn_mock_Init();
     mesh_lpn_internal_mock_Init();
+    heartbeat_mock_Init();
     mp_flash_manager = NULL;
     m_add_manager_result_state = FM_STATE_READY;
     m_expected_flash_data.verify_contents = true;
@@ -220,6 +222,8 @@ void tearDown(void)
     mesh_lpn_mock_Destroy();
     mesh_lpn_internal_mock_Verify();
     mesh_lpn_internal_mock_Destroy();
+    heartbeat_mock_Verify();
+    heartbeat_mock_Destroy();
 }
 
 static void flash_manager_mem_listener_register_cb(fm_mem_listener_t * p_listener, int calls)
@@ -900,6 +904,12 @@ void test_rx_addr(void)
     /* Test core lookup of rx addresses */
     nrf_mesh_address_t addr;
 
+    // ignore all heartbeat polling first, then explicitly test it later:
+    heartbeat_subscription_state_t hb_sub = {
+        .dst = 0xFF00 // a group address that isn't the rx list
+    };
+    heartbeat_subscription_get_IgnoreAndReturn(&hb_sub);
+
     TEST_ASSERT_TRUE(nrf_mesh_rx_address_get(0xF001, &addr));
     TEST_ASSERT_EQUAL(NRF_MESH_ADDRESS_TYPE_GROUP, addr.type);
     TEST_ASSERT_EQUAL_HEX16(0xF001, addr.value);
@@ -963,6 +973,15 @@ void test_rx_addr(void)
     mesh_opt_core_adv_get_IgnoreArg_p_entry();
     mesh_opt_core_adv_get_ReturnThruPtr_p_entry(&opt);
     TEST_ASSERT_FALSE(dsm_address_is_rx(&all_relays));
+
+    // Test heartbeat RX from core:
+
+    heartbeat_subscription_get_ExpectAndReturn(&hb_sub);
+    TEST_ASSERT_TRUE(nrf_mesh_rx_address_get(hb_sub.dst, &addr)); // receive on hb sub
+    TEST_ASSERT_EQUAL(NRF_MESH_ADDRESS_TYPE_GROUP, addr.type);
+    TEST_ASSERT_EQUAL(hb_sub.dst, addr.value);
+    TEST_ASSERT_NULL(addr.p_virtual_uuid);
+
 
     //TODO: Test sublist overflow
 }
@@ -2116,6 +2135,12 @@ void test_subscription_propagation_to_friend(void)
         mesh_lpn_subman_add_ExpectAndReturn(exp_vt_addr[i].addr, NRF_SUCCESS);
     }
 
+    heartbeat_subscription_state_t hb_sub = {
+        .dst = 0xF000 // a group address that isn't the rx list
+    };
+    heartbeat_subscription_get_ExpectAndReturn(&hb_sub);
+    mesh_lpn_subman_add_ExpectAndReturn(hb_sub.dst, NRF_SUCCESS);
+
     helper_trigger_event(NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED);
     mesh_lpn_internal_mock_Verify();
 
@@ -2149,6 +2174,9 @@ void test_subscription_propagation_to_friend(void)
     {
         mesh_lpn_subman_add_ExpectAndReturn(exp_vt_addr[i].addr, NRF_SUCCESS);
     }
+    hb_sub.dst = 0x0001; // a valid unicast addr, shouldn't be added to the subman
+    heartbeat_subscription_get_ExpectAndReturn(&hb_sub);
+
     helper_trigger_event(NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED);
 
 

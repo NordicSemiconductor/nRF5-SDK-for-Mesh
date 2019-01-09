@@ -45,7 +45,6 @@
 #include "access_reliable.h"
 #include "generic_ponoff_common.h"
 #include "generic_ponoff_messages.h"
-#include "generic_onoff_client.h"
 
 
 /**
@@ -115,10 +114,6 @@ struct __generic_ponoff_client_t
     generic_ponoff_client_msg_data_t msg_pkt;
     /* Acknowledged message context variable */
     access_reliable_t access_message;
-
-    /** Parent model context for - Generic OnOff client */
-    generic_onoff_client_t generic_onoff_cli;
-
     /** Model settings and callbacks for this instance */
     generic_ponoff_client_settings_t settings;
 };

@@ -1,12 +1,10 @@
 # Running examples
+@anchor examples_how_to_run_examples
 
 This page describes how to run [examples included in the nRF5 SDK for Mesh package](@ref md_examples_README).
 
-@anchor examples_how_to_run_examples
 Just as with [installing the toolchain](@ref md_doc_getting_started_how_to_toolchain) and [building the mesh stack and examples](@ref md_doc_getting_started_how_to_build),
-the procedure for running examples depends on the IDE:
-- [Running examples using SEGGER Embedded Studio](@ref how_to_run_examples_ses)
-- [Running examples in CMake-based build environment](@ref how_to_run_examples_cmake)
+the procedure for running examples depends on the IDE.
 
 Once you have an example running, you can [interact with it through command line with SEGGER RTT](@ref segger-rtt).
 
@@ -14,18 +12,29 @@ Once you have an example running, you can [interact with it through command line
 - The following procedures are not applicable for the DFU example. See [Configuring DFU](@ref md_doc_getting_started_dfu_quick_start) for details.
 - For some examples, additional steps might be required. See the [documentation for each example](@ref md_examples_README) for more information.
 
+**Table of contents**
+- [Running examples using SEGGER Embedded Studio](@ref how_to_run_examples_ses)
+- [Running examples in CMake-based build environment](@ref how_to_run_examples_cmake)
+    - [Running examples using custom CMake target](@ref how_to_run_examples_cmake_custom)
+    - [Running examples using nrfjprog](@ref how_to_run_examples_nrfjprog)
+- [Interacting with examples using SEGGER RTT](@ref segger-rtt)
+
 
 ---
 
 
 ## Running examples using SEGGER Embedded Studio @anchor how_to_run_examples_ses
-To run the examples in a build environment based on SEGGER Embedded Studio (SES):
-1. Connect a Development Kit to your computer with a USB cable.
-2. Wait until the board is detected.
-3. Erase the chip from the SES options menu: **Target -> Erase all**.
-4. Flash and run the example from the SES options menu: **Target -> Download**. This flashes
-both the necessary SoftDevice and the application binary.
 
+The following procedure only works if you have [built the example with SEGGER Embedded Studio](@ref how_to_build_segger_compiling_building).
+
+To run the examples in a build environment based on SEGGER Embedded Studio (SES):
+1. Connect the Development Kit with the USB cable to your computer.
+2. In SES, connect to the development kit with **Target -> Connect J-Link**.
+3. Erase the device from the SES options menu: **Target -> Erase all**.
+4. Run the example with **Debug -> Go**. This downloads the matching SoftDevice and the compiled example and starts the debugger.
+5. When the download is complete, select **Debug -> Go** again to start the code execution.
+
+If the debugging does not start, reset the J-Link: **Target -> Reset J-Link**.
 
 ---
 
@@ -96,14 +105,37 @@ To run an example with `nrfjprog`:
 ---
 
 		
-## Command line interaction with examples @anchor segger-rtt
+## Interacting with examples using SEGGER RTT @anchor segger-rtt
 
-The examples can communicate with a host computer through @link_rtt<!--https://www.segger.com/products/debug-probes/j-link/technology/real-time-transfer/about-real-time-transfer/-->.
+The nRF5 SDK for Mesh examples can communicate with a host computer through @link_rtt,
+and several examples require or allow you to connect RTT viewer to observe output generated in the RTT log.
 
-SEGGER Embedded Studio has a built-in RTT Viewer available when debugging the target code (go to
-`Build -> Build and Debug`). Once debugging starts, the RTT communication with the device will be
-available in the `Debug Terminal` window.
+The RTT viewer is available as:
+- built-in feature of SEGGER Embedded Studio (SES)
+- standalone application: J-Link RTT Viewer
 
-When using command line tools, you can use the standalone J-Link RTT Viewer tool (included in the J-Link
-toolchain) to communicate with the device. Refer to @link_jlink_docs <!--https://www.segger.com/downloads/jlink\--> for
-details on how to set up an RTT session using the J-Link RTT Viewer.
+Only the standalone application allows you to issue commands through RTT, for example when testing @ref md_examples_experimental_dimming_README.
+
+### Displaying RTT output in SES @anchor segger-rtt_ses
+
+SEGGER Embedded Studio (SES) has a built-in RTT Viewer available when debugging the target code.
+
+To see the RTT output generated when using SES, [build](@ref how_to_build_segger_compiling_building) and [run](@ref how_to_run_examples_ses) the example.
+Once debugging starts, the RTT communication with the device will be available in the Debug Terminal window.
+
+### Displaying RTT output in standalone J-Link RTT Viewer @anchor segger-rtt_standalone
+
+nRF5x Command Line Tools come with the standalone J-Link RTT Viewer tool that can be used when using both CMake or SEGGER.
+
+To see the RTT log of single development boards in this tool, make sure you connect the nRF5 boards to the USB ports.
+When the boards are connected, complete the following steps for each board:
+1. Start J-Link RTT viewer. The Configuration window appears. 
+@note You can also press the **F2** button or select **File > Connect** to open the Configuration window.
+3. In the Configuration window, depending on the development kit board chip number you are using, make sure
+that either NRF52832_XXAA or NRF52840_XXAA is selected in the Specify Target Device dropdown menu.
+4. Click **OK**. The Emulator selection window appears.
+5. Choose the desired board by selecting its USB Identification (SEGGER ID). 
+
+After flashing the example firmware and running the example, you will see output printed in the RTT log while testing.
+
+Refer to @link_jlink_docs for more details about how to set up an RTT session using the J-Link RTT Viewer.

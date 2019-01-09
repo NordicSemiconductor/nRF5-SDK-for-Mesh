@@ -278,6 +278,7 @@ void test_enable_disable(void)
     bearer_handler_start_ExpectAndReturn(NRF_SUCCESS);
     scanner_enable_Expect();
     network_enable_Expect();
+    transport_enable_Expect();
     bearer_event_start_Expect();
     TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_enable());
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, nrf_mesh_enable());

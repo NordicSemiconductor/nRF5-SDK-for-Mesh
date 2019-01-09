@@ -259,7 +259,7 @@ void test_alloc(void)
     secmat.nid                   = 0xAA;
     buffer.user_data.p_metadata  = &metadata;
     buffer.user_data.token       = TOKEN;
-    buffer.role                  = CORE_TX_ROLE_ORIGINATOR;
+    buffer.user_data.role        = CORE_TX_ROLE_ORIGINATOR;
     metadata.p_security_material = &secmat;
 
     for (volatile uint32_t i = 0; i < ARRAY_SIZE(vector); ++i)
@@ -313,6 +313,10 @@ void test_alloc(void)
     TEST_NRF_MESH_ASSERT_EXPECT(network_packet_alloc(&buffer));
     buffer.user_data.p_metadata = NULL;
     TEST_NRF_MESH_ASSERT_EXPECT(network_packet_alloc(&buffer));
+    buffer.user_data.p_metadata = &metadata;
+    metadata.p_security_material = &secmat;
+    buffer.user_data.role = CORE_TX_ROLE_COUNT; // too high
+    TEST_NRF_MESH_ASSERT_EXPECT(network_packet_alloc(&buffer));
 
 }
 
@@ -339,7 +343,7 @@ void test_send(void)
         buffer.user_data.p_metadata  = &metadata;
         buffer.user_data.token       = TOKEN;
         buffer.user_data.payload_len = len;
-        buffer.role                  = CORE_TX_ROLE_ORIGINATOR;
+        buffer.user_data.role        = CORE_TX_ROLE_ORIGINATOR;
         buffer.p_payload             = &packet.pdu[9];
         core_tx_packet_send_Expect();
 
@@ -365,7 +369,7 @@ void test_discard(void)
     buffer.user_data.p_metadata  = &metadata;
     buffer.user_data.token       = TOKEN;
     buffer.user_data.payload_len = 10;
-    buffer.role                  = CORE_TX_ROLE_ORIGINATOR;
+    buffer.user_data.role        = CORE_TX_ROLE_ORIGINATOR;
     buffer.p_payload             = &payload[9];
 
     for (uint32_t control = 0; control < 2U; ++control)

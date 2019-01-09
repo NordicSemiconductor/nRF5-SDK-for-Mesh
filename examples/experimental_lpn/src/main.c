@@ -71,7 +71,11 @@
 #include "nrf_mesh_config_examples.h"
 #include "example_common.h"
 #include "ble_softdevice_support.h"
+#include "ble_dfu_support.h"
+
+/* nRF5 SDK */
 #include "nrf_soc.h"
+#include "nrf_pwr_mgmt.h"
 
 /** The maximum duration to scan for incoming Friend Offers. */
 #define FRIEND_REQUEST_TIMEOUT_MS (MESH_LPN_FRIEND_REQUEST_TIMEOUT_MAX_MS)
@@ -140,6 +144,10 @@ static void provisioning_complete_cb(void)
      * service to the Proxy  */
     gap_params_init();
     conn_params_init();
+
+#if BLE_DFU_SUPPORT_ENABLED
+    ble_dfu_support_service_init();
+#endif
 
     dsm_local_unicast_address_t node_address;
     dsm_local_unicast_addresses_get(&node_address);
@@ -484,14 +492,11 @@ static void models_init_cb(void)
 
 static void mesh_init(void)
 {
-    uint8_t dev_uuid[NRF_MESH_UUID_SIZE];
-
-    ERROR_CHECK(mesh_app_uuid_gen(dev_uuid, NULL, 0));
     mesh_stack_init_params_t init_params =
     {
         .core.irq_priority       = NRF_MESH_IRQ_PRIORITY_LOWEST,
         .core.lfclksrc           = DEV_BOARD_LF_CLK_CFG,
-        .core.p_uuid             = dev_uuid,
+        .core.p_uuid             = NULL,
         .models.models_init_cb   = models_init_cb,
         .models.config_server_cb = config_server_evt_cb
     };
@@ -500,6 +505,15 @@ static void mesh_init(void)
     /* Register event handler to receive LPN and friendship events. */
     nrf_mesh_evt_handler_add(&m_mesh_core_event_handler);
 }
+
+#if BLE_DFU_SUPPORT_ENABLED
+/** Initializes Power Management. Required for BLE DFU. */
+static void power_management_init(void)
+{
+    uint32_t err_code = nrf_pwr_mgmt_init();
+    APP_ERROR_CHECK(err_code);
+}
+#endif
 
 static void initialize(void)
 {
@@ -516,9 +530,18 @@ static void initialize(void)
     ERROR_CHECK(hal_buttons_init(button_event_handler));
 #endif
 
+#if BLE_DFU_SUPPORT_ENABLED
+    ble_dfu_support_init();
+    power_management_init();
+#endif
+
     ble_stack_init();
     gap_params_init();
     conn_params_init();
+
+#if BLE_DFU_SUPPORT_ENABLED
+    ble_dfu_support_service_init();
+#endif
 
     mesh_init();
     ERROR_CHECK(sd_power_dcdc_mode_set(NRF_POWER_DCDC_ENABLE));
@@ -545,15 +568,12 @@ static void start(void)
             .prov_device_identification_start_cb = device_identification_start_cb,
             .prov_device_identification_stop_cb = NULL,
             .prov_abort_cb = provisioning_aborted_cb,
-            .p_device_uri = NULL
+            .p_device_uri = EX_URI_LPN
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }
 
-    const uint8_t *p_uuid = nrf_mesh_configure_device_uuid_get();
-    UNUSED_VARIABLE(p_uuid);
-
-    __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "Device UUID ", p_uuid, NRF_MESH_UUID_SIZE);
+    mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());
 
     ERROR_CHECK(mesh_stack_start());
 

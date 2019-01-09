@@ -90,28 +90,28 @@
  *
  * The config entry will get registered at link time.
  *
- * @param[in] NAME          Name of the entry and its variables
- * @param[in] ID            Unique mesh configuration id
- * @param[in] MAX_COUNT     Max number of entries
- * @param[in] ENTRY_SIZE    Size of each entry
- * @param[in] SET_CB        Callback to call when setting the value. Cannot be NULL.
- * @param[in] GET_CB        Callback to call to read out the value. Cannot be NULL.
- * @param[in] DELETE_CB     Callback to call to delete the value or NULL.
- * @param[in] DEFAULT_VALUE Pointer to a default value to return if the entry hasn't been set, or NULL if no default value is
- * available
+ * @param[in] NAME              Name of the entry and its variables.
+ * @param[in] ID                Unique mesh configuration ID.
+ * @param[in] MAX_COUNT         Max number of entries.
+ * @param[in] ENTRY_SIZE        Size of each entry.
+ * @param[in] SET_CB            Callback to call when setting the value. Cannot be NULL.
+ * @param[in] GET_CB            Callback to call to read out the value. Cannot be NULL.
+ * @param[in] DELETE_CB         Callback to call to delete the value or NULL.
+ * @param[in] HAS_DEFAULT_VALUE Flag for indicating that the entry has a default value that it can
+ *                              return before the user explicitly sets it.
  */
-#define MESH_CONFIG_ENTRY(NAME, ID, MAX_COUNT, ENTRY_SIZE, SET_CB, GET_CB, DELETE_CB, DEFAULT_VALUE)            \
-    NRF_MESH_STATIC_ASSERT((ENTRY_SIZE) <= MESH_CONFIG_ENTRY_MAX_SIZE);                                         \
-    NRF_MESH_STATIC_ASSERT((MAX_COUNT) > 0);                                                                    \
-    static mesh_config_entry_flags_t m_##NAME##_state[MAX_COUNT];                                               \
-    NRF_MESH_SECTION_ITEM_REGISTER_FLASH(mesh_config_entries,                                                   \
-                                         const mesh_config_entry_params_t m_##NAME##_params) =                  \
-        {.p_id       = &(ID),                                                                                   \
-         .entry_size = ENTRY_SIZE,                                                                              \
-         .p_default  = DEFAULT_VALUE,                                                                           \
-         .max_count  = MAX_COUNT,                                                                               \
-         .callbacks  = {SET_CB, GET_CB, DELETE_CB},                                                             \
-         .p_state    = m_##NAME##_state}
+#define MESH_CONFIG_ENTRY(NAME, ID, MAX_COUNT, ENTRY_SIZE, SET_CB, GET_CB, DELETE_CB, HAS_DEFAULT_VALUE)            \
+    NRF_MESH_STATIC_ASSERT((ENTRY_SIZE) <= MESH_CONFIG_ENTRY_MAX_SIZE);                                             \
+    NRF_MESH_STATIC_ASSERT((MAX_COUNT) > 0);                                                                        \
+    static mesh_config_entry_flags_t m_##NAME##_state[MAX_COUNT];                                                   \
+    NRF_MESH_SECTION_ITEM_REGISTER_FLASH(mesh_config_entries,                                                       \
+                                         const mesh_config_entry_params_t m_##NAME##_params) =                      \
+        {.p_id        = &(ID),                                                                                      \
+         .entry_size  = ENTRY_SIZE,                                                                                 \
+         .has_default = HAS_DEFAULT_VALUE,                                                                          \
+         .max_count   = MAX_COUNT,                                                                                  \
+         .callbacks   = {SET_CB, GET_CB, DELETE_CB},                                                                \
+         .p_state     = m_##NAME##_state}
 
 /**
  * A variation of @ref MESH_CONFIG_ENTRY that also stores the state.
@@ -126,15 +126,16 @@
  * IS_IN_RANGE(p_entry->tx_interval, 0, TX_INTERVAL_MAX)
  * @endcode
  *
- * @param[in] NAME             Name of the entry and its variables
- * @param[in] ID               Unique mesh configuration id
- * @param[in] MAX_COUNT        Max number of entries
- * @param[in] DATA_TYPE        The data type of the state.
- * @param[in] ENTRY_SANITATION Boolean expression used to validate an entry. The entry is
- *                             instantiated as a constant pointer of type @c DATA_TYPE named @c p_entry.
- * @param[in] DEFAULT_VALUE    Pointer to the default value for this entry, or NULL if the entry is invalid until set.
+ * @param[in] NAME              Name of the entry and its variables.
+ * @param[in] ID                Unique mesh configuration ID.
+ * @param[in] MAX_COUNT         Max number of entries.
+ * @param[in] DATA_TYPE         The data type of the state.
+ * @param[in] ENTRY_SANITATION  Boolean expression used to validate an entry. The entry is
+ *                              instantiated as a constant pointer of type @c DATA_TYPE named @c p_entry.
+ * @param[in] HAS_DEFAULT_VALUE Flag for indicating that the entry has a default value that it can
+ *                              return before the user explicitly sets it.
  */
-#define MESH_CONFIG_ENTRY_IMPLEMENTATION(NAME, ID, MAX_COUNT, DATA_TYPE, ENTRY_SANITATION, DEFAULT_VALUE)                   \
+#define MESH_CONFIG_ENTRY_IMPLEMENTATION(NAME, ID, MAX_COUNT, DATA_TYPE, ENTRY_SANITATION, HAS_DEFAULT_VALUE)               \
     static DATA_TYPE m_##NAME[(MAX_COUNT)];                                                                                 \
     static uint32_t NAME##_set(mesh_config_entry_id_t id, const void * p_entry_param)                                       \
     {                                                                                                                       \
@@ -154,13 +155,13 @@
     {                                                                                                                       \
         memcpy(p_entry, &m_##NAME[id.record - (ID).record], sizeof(DATA_TYPE));                                             \
     }                                                                                                                       \
-    MESH_CONFIG_ENTRY(NAME, (ID), (MAX_COUNT), sizeof(DATA_TYPE), NAME##_set, NAME##_get, NULL, DEFAULT_VALUE)
+    MESH_CONFIG_ENTRY(NAME, (ID), (MAX_COUNT), sizeof(DATA_TYPE), NAME##_set, NAME##_get, NULL, HAS_DEFAULT_VALUE)
 
 /**
  * Defines a type safe API wrapper for a configuration entry.
  *
  * @param[in] NAME      Name of the API. The functions will be NAME_get() and similar.
- * @param[in] ID        Entry id
+ * @param[in] ID        Entry id.
  * @param[in] DATA_TYPE Data type of the state.
  */
 #define MESH_CONFIG_ENTRY_API_DEFINE(NAME, ID, DATA_TYPE)       \
@@ -211,7 +212,7 @@
     }
 
 /**
- * Mesh config entry identifier
+ * Mesh config entry identifier.
  */
 typedef struct
 {
@@ -270,11 +271,11 @@ typedef void (*mesh_config_entry_delete_t)(mesh_config_entry_id_t id);
 /** @internal @{ */
 
 /**
- * File parameters for a mesh config file
+ * File parameters for a mesh config file.
  */
 typedef struct
 {
-    uint16_t id; /**< File ID */
+    uint16_t id; /**< File ID. */
     mesh_config_strategy_t strategy; /**< Storage strategy. */
     mesh_config_backend_file_t * p_backend_data; /**< Pointer to backend data associated with the file. */
 } mesh_config_file_params_t;
@@ -287,7 +288,7 @@ typedef enum
     MESH_CONFIG_ENTRY_FLAG_BUSY   = (1 << 2), /**< The backend is currently processing the entry. */
 } mesh_config_entry_flags_t;
 
-/** Mesh config entry parameters. Should only be instantiated through @ref MESH_CONFIG_ENTRY */
+/** Mesh config entry parameters. Should only be instantiated through @ref MESH_CONFIG_ENTRY. */
 typedef struct
 {
     /** Base-ID for this entry set. Must be a pointer for the @ref MESH_CONFIG_ENTRY_ID macro to
@@ -295,7 +296,7 @@ typedef struct
     const mesh_config_entry_id_t * p_id;
     uint16_t entry_size; /**< Size of each entry. */
     uint16_t max_count; /**< Max number of entries in the set. */
-    const void * p_default; /**< Pointer to a default value for the entry. */
+    bool has_default; /**< Whether the entry has a default value or not. */
     struct
     {
         mesh_config_entry_set_t setter;

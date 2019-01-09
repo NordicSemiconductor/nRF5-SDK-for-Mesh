@@ -70,15 +70,36 @@ void tearDown(void)
 /*****************************************************************************
 * Mock functions
 *****************************************************************************/
-extern const mesh_config_entry_params_t m_mesh_opt_core_tx_power_params;
+static const mesh_config_entry_params_t * entry_params_get(mesh_config_entry_id_t entry_id)
+{
+    extern const mesh_config_entry_params_t m_mesh_opt_core_adv_params;
+    extern const mesh_config_entry_params_t m_mesh_opt_core_tx_power_params;
+    extern const mesh_config_entry_params_t m_mesh_opt_core_adv_addr_params;
+
+    if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_ADV_RECORD_START, MESH_OPT_CORE_ADV_RECORD_END))
+    {
+        return &m_mesh_opt_core_adv_params;
+    }
+    else if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_TX_POWER_RECORD_START, MESH_OPT_CORE_TX_POWER_RECORD_END))
+    {
+        return &m_mesh_opt_core_tx_power_params;
+    }
+    else if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_ADV_ADDR_RECORD_START, MESH_OPT_CORE_ADV_ADDR_RECORD_END))
+    {
+        return &m_mesh_opt_core_adv_addr_params;
+    }
+    TEST_FAIL_MESSAGE("Unknown entry id");
+    return NULL;
+}
+
 uint32_t mesh_config_entry_set(mesh_config_entry_id_t id, const void * p_entry)
 {
-    return m_mesh_opt_core_tx_power_params.callbacks.setter(id, p_entry);
+    return entry_params_get(id)->callbacks.setter(id, p_entry);
 }
 
 uint32_t mesh_config_entry_get(mesh_config_entry_id_t id, void * p_entry)
 {
-    m_mesh_opt_core_tx_power_params.callbacks.getter(id, p_entry);
+    entry_params_get(id)->callbacks.getter(id, p_entry);
     return NRF_SUCCESS;
 }
 
@@ -124,14 +145,8 @@ void advertiser_interval_set_ExpectAndSave(advertiser_t * p_adv, uint32_t expect
 *****************************************************************************/
 void test_init(void)
 {
-    ble_gap_addr_t default_addr = {.addr_id_peer = 0,
-                                   .addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC,
-                                   .addr = {0, 1, 2, 3, 4, 5}};
     advertiser_instance_init_StubWithCallback(advertiser_instance_init_cb);
     core_tx_bearer_add_StubWithCallback(core_tx_bearer_add_cb);
-    advertiser_address_default_get_Expect(NULL);
-    advertiser_address_default_get_IgnoreArg_p_addr();
-    advertiser_address_default_get_ReturnMemThruPtr_p_addr(&default_addr, sizeof(ble_gap_addr_t));
     core_tx_adv_init();
     TEST_ASSERT_NOT_NULL(mp_advertisers[0]);
     TEST_ASSERT_NOT_NULL(mp_advertisers[1]);

@@ -240,6 +240,7 @@ void test_mesh_stack_config_clear(void)
     access_clear_Expect();
     dsm_clear_Expect();
     net_state_reset_Expect();
+    mesh_config_clear_Expect();
 
     mesh_stack_config_clear();
 }

@@ -563,6 +563,8 @@ uint32_t nrf_mesh_on_sd_evt(uint32_t sd_evt);
 /**
  * Set a callback which will be called for every packet being received.
  *
+ * This function must be called after @ref nrf_mesh_init().
+ *
  * @param[in] rx_cb Receive callback function.
  */
 void nrf_mesh_rx_cb_set(nrf_mesh_rx_cb_t rx_cb);

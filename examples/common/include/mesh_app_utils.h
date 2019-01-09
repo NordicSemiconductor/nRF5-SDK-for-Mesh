@@ -79,26 +79,16 @@ extern void app_error_handler(uint32_t error_code, uint32_t line_number, const u
 extern nrf_nvic_state_t nrf_nvic_state;
 #endif
 
+
+
 /**
- * Generates a 16-byte number using @link_device_id <!-- DEVICEID-0:   --> and the given prefix bytes.
+ * Prints the given UUID in a readable format.
  *
- * @warning This function only generates a 16-byte number for demonstration purposes.
- * The UUID for the end product must be generated according to the format specified in RFC4122.
+ * This function will not print anything if NULL pointer is provided as an input parameter.
  *
- * @param[out] p_uuid_dest      Pointer to the buffer storing the 16-byte number. This buffer must have
- * 								byte length of @ref NRF_MESH_UUID_SIZE.
- *
- * @param[in]  p_uuid_prefix    Array of bytes to be used as prefix for the 16-byte number.
- * @param[in]  uuid_prefix_len  Length of the array pointed by `p_uuid_prefix`. Maximum value of
- *                              this parameter can be @ref NRF_MESH_UUID_SIZE/2. If value of this
- *                              parameter is less than @ref NRF_MESH_UUID_SIZE/2, the remaining bytes
- *                              will be filled with zeros.
- *
- * @retval NRF_SUCCESS               The 16-byte number is generated successfully.
- * @retval NRF_ERROR_INVALID_LENGTH  The supplied `uuid_prefix_len` is greater than @ref NRF_MESH_UUID_SIZE/2.
- *
+ * @param[in]  p_uuid           Pointer to 16-byte array that represents a UUID.
  */
-uint32_t mesh_app_uuid_gen(uint8_t * p_uuid_dest, const uint8_t * p_uuid_prefix, uint8_t uuid_prefix_len);
+void mesh_app_uuid_print(const uint8_t * p_uuid);
 
 
 /**

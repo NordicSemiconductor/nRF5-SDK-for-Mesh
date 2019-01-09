@@ -43,6 +43,23 @@
 #include "test_instrument.h"
 #endif
 
+/** UUID version - 4 */
+#define UUID_VERSION4 (0x04)
+/** Variant - reserved bits  */
+#define UUID_VERSION4_VARIANT_BITS (0x02)
+
+typedef struct __attribute((packed))
+{
+    uint64_t uuid_00_59 : 60;
+    uint64_t version : 4;
+
+    uint64_t uuid_64_67 : 4;
+    uint64_t uuid_68_69 : 2;
+    uint64_t variant : 2;
+
+    uint64_t uuid_72_127 : 56;
+} uuid4_t;
+
 /*****************************************************************************
 * Static locals
 *****************************************************************************/
@@ -64,6 +81,11 @@ void nrf_mesh_configure_device_uuid_reset(void)
     memcpy(m_uuid, (void*) &NRF_FICR->DEVICEID[0], 8);
     /* Advertisement address */
     memcpy(&m_uuid[8], (void*) &NRF_FICR->DEVICEADDR[0], 8);
+
+    /* Overwrite the version and variant bits */
+    uuid4_t * p_uuid4 = (uuid4_t *) &m_uuid[0];
+    p_uuid4->version = UUID_VERSION4;
+    p_uuid4->variant = UUID_VERSION4_VARIANT_BITS;
 
 #if defined NRF_MESH_TEST_SHIM
     nrf_mesh_test_shim(EDIT_DEVICE_UUID, m_uuid);

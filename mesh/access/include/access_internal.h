@@ -106,9 +106,9 @@ typedef struct
      * https://www.bluetooth.com/specifications/assigned-numbers/gatt-namespace-descriptors
      */
     uint16_t location;
-    /** Number of SIG defined models. */
+    /** Number of models defined by SIG. */
     uint8_t sig_model_count;
-    /** Number of vendor specific models. */
+    /** Number of vendor-specific models. */
     uint8_t vendor_model_count;
     /** Attention timer state. 0 is off, otherwise remaining time in seconds. */
     uint8_t attention_timer;
@@ -130,9 +130,9 @@ typedef struct
     uint16_t element_index;
     /** Subscription list for a model.*/
     uint16_t subscription_pool_index;
-    /** Friendship credentials flag */
+    /** Friendship credentials flag. */
     bool friendship_credential_flag;
-    /** This model's TTL value for each published packet */
+    /** This model's TTL value for each published packet. */
     uint8_t publish_ttl;
     /** Number of steps and step resolution for the publication functionality. */
     access_publish_period_t publication_period;
@@ -142,11 +142,11 @@ typedef struct
 
 typedef struct
 {
-    /** Data pertaining to a specific model instance, which is crucial for maintaining its configuration in a network. */
+    /** Data pertaining to a specific model instance, which is crucial for maintaining the model's configuration in a network. */
     access_model_state_data_t model_info;
     /** Model publication state. */
     access_model_publication_state_t publication_state;
-    /** Pointer to list of opcodes with corresponding callback functions. */
+    /** Pointer to the list of opcodes with the corresponding callback functions. */
     const access_opcode_handler_t * p_opcode_handlers;
     /** Number of opcodes in list @ref p_opcode_handlers. */
     uint16_t opcode_count;
@@ -172,9 +172,33 @@ typedef struct
  * Handles the received message and calls the acceptable model handler.
  *
  * @param[in]  p_message Pointer to the structure with information about
- *                       received message (data, length, metadata).
+ *                       the received message (data, length, metadata).
  */
 void access_incoming_handle(const access_message_rx_t * p_message);
+
+/**
+ * Internal function for publishing an access layer message.
+ *
+ * @param[in] handle             Access handle of the model that wants to send data.
+ * @param[in] p_tx_message       Message to be published.
+ * @param[in] p_access_payload   Access payload containing the access
+ *                               message and the opcode.
+ * @param[in] access_payload_len Access payload length.
+ *
+ * @retval NRF_SUCCESS              Successfully queued packet for transmission.
+ * @retval NRF_ERROR_NO_MEM         Not enough memory available for message.
+ * @retval NRF_ERROR_NOT_FOUND      Invalid model handle or model not bound to an element.
+ * @retval NRF_ERROR_INVALID_PARAM  Model not bound to appkey, publish address not set or wrong
+ *                                  opcode format.
+ * @retval NRF_ERROR_INVALID_LENGTH Message that was about to be sent is larger than @ref ACCESS_MESSAGE_LENGTH_MAX.
+ * @retval NRF_ERROR_INVALID_STATE  Segmented packets: There's already a segmented packet that is being sent to this destination.
+                                    Wait for this process to finish before sending new segmented packets.
+ * @retval NRF_ERROR_FORBIDDEN      Unsegmented packets: Failed to allocate a sequence number from network.
+ */
+uint32_t access_packet_tx(access_model_handle_t handle,
+                          const access_message_tx_t * p_tx_message,
+                          const uint8_t *p_access_payload,
+                          uint16_t access_payload_len);
 
 /** @} */
 #endif /* ACCESS_INTERNAL_H__ */

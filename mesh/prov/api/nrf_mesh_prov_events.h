@@ -62,17 +62,21 @@ typedef enum
     NRF_MESH_PROV_EVT_START_RECEIVED,
     /** Provisioning output request. */
     NRF_MESH_PROV_EVT_OUTPUT_REQUEST,
-    /** Provisioning input request. */
+    /** Provisioning input request. Reply to this event with
+     * @ref nrf_mesh_prov_auth_data_provide(). */
     NRF_MESH_PROV_EVT_INPUT_REQUEST,
-    /** Provisioning static data request. */
+    /** Provisioning static data request. Reply to this event with
+     * @ref nrf_mesh_prov_auth_data_provide(). */
     NRF_MESH_PROV_EVT_STATIC_REQUEST,
-    /** OOB public key requested. */
+    /** OOB public key requested. Reply to this event with
+     * @ref nrf_mesh_prov_pubkey_provide(). */
     NRF_MESH_PROV_EVT_OOB_PUBKEY_REQUEST,
     /** Provisionee capabilities received. */
     NRF_MESH_PROV_EVT_CAPS_RECEIVED,
     /** Provisioning completed. */
     NRF_MESH_PROV_EVT_COMPLETE,
-    /** ECDH calculation requested. */
+    /** ECDH calculation requested. Reply to this event with
+     * @ref nrf_mesh_prov_shared_secret_provide(). */
     NRF_MESH_PROV_EVT_ECDH_REQUEST,
     /** Provisioning failed message received. */
     NRF_MESH_PROV_EVT_FAILED

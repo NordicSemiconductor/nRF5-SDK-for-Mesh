@@ -155,11 +155,34 @@ void prov_utils_generate_oob_data(const nrf_mesh_prov_ctx_t * p_ctx, uint8_t * p
 
 /**
  * Checks the confirmation values of the provisionee and the provisioner.
+ *
  * @param[in] p_ctx Pointer to the context structure.
+ * 
  * @retval true  The confirmation values are matching.
  * @retval false The confirmation values are not matching.
  */
 bool prov_utils_confirmation_check(const nrf_mesh_prov_ctx_t * p_ctx);
+
+/**
+ * Checks whether the given data is alphanumeric.
+ *
+ * @note Valid ASCII characters are '0'-'9' (codes 0x30-0x39) and 'A'-'Z' (codes 0x41-0x5A). See Mesh Profile Specification v1.0, section 5.4.2.2.
+ *
+ * @retval true     The input data is alphanumeric.
+ * @retval false    The input is not alphanumeric.
+ */
+bool prov_utils_auth_data_is_alphanumeric(const uint8_t * p_data, uint8_t size);
+
+/**
+ * Check whether a number has less than @p size number of digits.
+ *
+ * @param[in] p_data Pointer to a 4-byte number.
+ * @param[in] size   Number of digits in the number.
+ *
+ * @retval true      The input data has less than @p size digits.
+ * @retval false     The input data does not have less than @p size digits.
+ */
+bool prov_utils_auth_data_is_valid_number(const uint8_t * p_data, uint8_t size);
 
 /** @} */
 

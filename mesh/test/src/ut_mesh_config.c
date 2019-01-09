@@ -91,7 +91,6 @@ mesh_config_entry_params_t mesh_config_entries[NRF_SECTION_ENTRIES];
 mesh_config_listener_t mesh_config_entry_listeners[NRF_SECTION_ENTRIES];
 static entry_t m_entries[NRF_SECTION_ENTRIES + EXTRA_ENTRIES];
 static entry_t m_load_entries[NRF_SECTION_ENTRIES];
-static entry_t m_default_entry = {0xDEFA, 0xDEFA};
 static bool m_active[NRF_SECTION_ENTRIES + EXTRA_ENTRIES];
 static mesh_config_backend_evt_cb_t m_backend_evt_cb;
 static const mesh_config_entry_id_t m_invalid_id = MESH_CONFIG_ENTRY_ID(0, 0);
@@ -104,11 +103,11 @@ static void event_handler(const nrf_mesh_evt_t * p_evt, int calls);
 MESH_CONFIG_FILE(file0, FILE_ID_0, MESH_CONFIG_STRATEGY_CONTINUOUS);
 MESH_CONFIG_FILE(file1, FILE_ID_1, MESH_CONFIG_STRATEGY_CONTINUOUS);
 
-MESH_CONFIG_ENTRY(entry0, TEST_ENTRY(0), 1, sizeof(entry_t), entry_set, entry_get, entry_delete, &m_default_entry);
-MESH_CONFIG_ENTRY(entry1, TEST_ENTRY(1), 1, sizeof(entry_t), entry_set, entry_get, entry_delete, NULL);
-MESH_CONFIG_ENTRY(entry2, TEST_ENTRY(2), 1, sizeof(entry_t), entry_set, entry_get, entry_delete, NULL);
-MESH_CONFIG_ENTRY(entry3, TEST_ENTRY(3), 1, sizeof(entry_t), entry_set, entry_get, entry_delete, NULL);
-MESH_CONFIG_ENTRY(entry4, TEST_ENTRY(4), EXTRA_ENTRIES, sizeof(entry_t), entry_set, entry_get, entry_delete, NULL);
+MESH_CONFIG_ENTRY(entry0, TEST_ENTRY(0), 1, sizeof(entry_t), entry_set, entry_get, entry_delete, true);
+MESH_CONFIG_ENTRY(entry1, TEST_ENTRY(1), 1, sizeof(entry_t), entry_set, entry_get, entry_delete, false);
+MESH_CONFIG_ENTRY(entry2, TEST_ENTRY(2), 1, sizeof(entry_t), entry_set, entry_get, entry_delete, false);
+MESH_CONFIG_ENTRY(entry3, TEST_ENTRY(3), 1, sizeof(entry_t), entry_set, entry_get, entry_delete, false);
+MESH_CONFIG_ENTRY(entry4, TEST_ENTRY(4), EXTRA_ENTRIES, sizeof(entry_t), entry_set, entry_get, entry_delete, false);
 
 static void mesh_config_backend_init_callback(const mesh_config_entry_params_t * p_entries,
                                               uint32_t entry_count,
@@ -544,8 +543,8 @@ void test_get(void)
     entry_t entry;
     /* Has default: */
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_config_entry_get(*mesh_config_entries[0].p_id, &entry));
-    TEST_ASSERT_EQUAL(m_default_entry.var1, entry.var1);
-    TEST_ASSERT_EQUAL(m_default_entry.var2, entry.var2);
+    TEST_ASSERT_EQUAL(m_entries[0].var1, entry.var1);
+    TEST_ASSERT_EQUAL(m_entries[0].var2, entry.var2);
     /* No default: */
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, mesh_config_entry_get(*mesh_config_entries[1].p_id, &entry));
     /* out of bounds: */
@@ -826,15 +825,15 @@ void test_entry_available(void)
 
 void test_power_down(void)
 {
+    nrf_mesh_evt_t stable_evt = {.type = NRF_MESH_EVT_CONFIG_STABLE};
+
     /* Run set-test first to populate the entries: */
     test_set();
 
     mesh_config_files[0].strategy = MESH_CONFIG_STRATEGY_ON_POWER_DOWN;
 
-    /* If all entries are clean, power down does nothing: */
-    mesh_config_power_down();
-    /* continuous memory-entries don't have any effect: */
-    mesh_config_entries[3].p_state[0] |= MESH_CONFIG_ENTRY_FLAG_DIRTY;
+    /* mesh_config_power_down shall cause NRF_MESH_EVT_CONFIG_STABLE in any case (even if there is no data for storage) */
+    config_evt_Expect(&stable_evt);
     mesh_config_power_down();
 
     /* Dirty power down, do the action! */
@@ -953,7 +952,54 @@ void test_collision_check(void)
     TEST_NRF_MESH_ASSERT_EXPECT(mesh_config_init());
 }
 
-void test_stats(void)
+void test_clear_all(void)
 {
+    /* Run set-test first to populate the entries: */
+    test_set();
 
+    for (uint32_t i = 0; i < NRF_SECTION_ENTRIES; ++i)
+    {
+        for (uint32_t j = 0; j < mesh_config_entries[i].max_count; ++j)
+        {
+            /* Expect active state in flags */
+            TEST_ASSERT_EQUAL_HEX8(MESH_CONFIG_ENTRY_FLAG_ACTIVE, mesh_config_entries[i].p_state[j]);
+        }
+    }
+
+    mesh_config_files[0].strategy = MESH_CONFIG_STRATEGY_ON_POWER_DOWN;
+
+    for (uint32_t i = 0; i < NRF_SECTION_ENTRIES; ++i)
+    {
+        for (uint32_t j = 0; j < mesh_config_entries[i].max_count; ++j)
+        {
+            mesh_config_entry_id_t id = {.file = mesh_config_entries[i].p_id->file,
+                                         .record = mesh_config_entries[i].p_id->record + j};
+            mesh_config_backend_erase_ExpectAndReturn(id, NRF_SUCCESS);
+        }
+    }
+
+    nrf_mesh_evt_t stable_evt = {.type = NRF_MESH_EVT_CONFIG_STABLE};
+    config_evt_Expect(&stable_evt);
+
+    mesh_config_clear();
+
+    for (uint32_t i = 0; i < NRF_SECTION_ENTRIES; ++i)
+    {
+        for (uint32_t j = 0; j < mesh_config_entries[i].max_count; ++j)
+        {
+            mesh_config_backend_evt_t backend_evt = {MESH_CONFIG_BACKEND_EVT_TYPE_STORE_COMPLETE,
+                                                     .id.file = mesh_config_entries[i].p_id->file,
+                                                     .id.record = mesh_config_entries[i].p_id->record + j};
+            m_backend_evt_cb(&backend_evt);
+        }
+    }
+
+    for (uint32_t i = 0; i < NRF_SECTION_ENTRIES; ++i)
+    {
+        for (uint32_t j = 0; j < mesh_config_entries[i].max_count; ++j)
+        {
+            /* Expect clear state in flags */
+            TEST_ASSERT_EQUAL_HEX8(0, mesh_config_entries[i].p_state[j]);
+        }
+    }
 }

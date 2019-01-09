@@ -1,0 +1,25 @@
+@startuml
+skinparam defaultFontName Arial
+
+  [*] --> wait_for_unprov
+
+  wait_for_unprov --> provisioning: Unprovisioned UUID beacon
+  provisioning --> wait_for_unprov: Provisioning failed
+  provisioning --> configuring: Provisioning successful
+
+  configuring --> wait_for_unprov: Configuring failed / Delete provisioning data
+  configuring --> wait_for_unprov: Configuring successful && device_count < SERVER_NODE_COUNT
+
+  configuring --> running: Configuring successful && device_count == SERVER_NODE_COUNT
+
+  state configuring {
+
+  [*] --> wait_composition_data: Status success / Get composition data
+  wait_composition_data --> wait_appkey_add: Status success / Add application key
+  wait_appkey_add --> wait_appkey_bind: Status success / Bind application key
+  wait_appkey_bind --> wait_publication_set: Status success / Set publication state
+  wait_publication_set --> wait_subscription_add: Status success / Add subscription
+  wait_subscription_add --> [*]: Status success
+  }
+
+@enduml

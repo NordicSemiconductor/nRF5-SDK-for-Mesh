@@ -181,7 +181,7 @@ enter a `?` before or after the object and press `<enter>`. E.g., for the
             Channel map bitfield for beacon, starting at channel 37.
         interval_ms : uint32_t
             TX interval in milliseconds.
-    File:           <nrf5_sdk_for_bluetooth_mesh>\scripts\interactive_pyaci\aci\aci_cmd.py
+    File:           <nrf5_sdk_for_bluetooth_mesh>/scripts/interactive_pyaci/aci/aci_cmd.py
     Type:           type
 
 

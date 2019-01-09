@@ -11,6 +11,13 @@
             "width":  8,
             "doc": "number for identifying a transaction",
             "visible": true
+        },
+        {
+            "name": "address_list",
+            "width": 16,
+            "doc": "the list of group addresses and virtual addresses",
+            "visible": true,
+            "count": 5
         }
     ]
 }

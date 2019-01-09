@@ -874,6 +874,15 @@ void test_packet_send(void)
     receive_data_ack(&bearer_adv.prov_bearer, link_id, true);
     curr_transcation++;
 
+    /* Send packets until rollover + 1: */
+    while (curr_transcation != 1)
+    {
+        no_segments = send_data_packet(&bearer_adv.prov_bearer, data, 1);
+        receive_data_ack(&bearer_adv.prov_bearer, link_id, true);
+        curr_transcation = (curr_transcation + 1) & 0x7f; // rolls over at 0x7f
+        TEST_ASSERT_EQUAL(curr_transcation, bearer_adv.transaction_out);
+    }
+
     /* Send the largest possible data packet */
     no_segments = send_data_packet(&bearer_adv.prov_bearer, data, PROV_PAYLOAD_MAX_LENGTH);
     /* transcation no must be incremented for each new transaction */
@@ -1004,11 +1013,18 @@ void test_packet_receive(void)
     receive_data(&bearer_adv.prov_bearer, data, PROV_PAYLOAD_MAX_LENGTH, curr_transcation++, link_id);
     TEST_ASSERT_EQUAL(curr_transcation, bearer_adv.transaction_in);
 
-    /* Bump up the transaction number to a near wrap_around*/
-    bearer_adv.transaction_in = 0xFF;
-    curr_transcation = 0xFF;
-    receive_data(&bearer_adv.prov_bearer, data, PROV_START_PDU_PAYLOAD_MAX_LEN, curr_transcation++, link_id);
-    TEST_ASSERT_EQUAL(curr_transcation, bearer_adv.transaction_in);
+    /* Send packets until the transaction number wraps around */
+    while (curr_transcation != PROVISIONEE_TRANSACTION_START_VALUE)
+    {
+        receive_data(&bearer_adv.prov_bearer, data, PROV_START_PDU_PAYLOAD_MAX_LEN, curr_transcation++, link_id);
+        if (curr_transcation == 0x00)
+        {
+            /* Should roll over to start value */
+            curr_transcation = PROVISIONEE_TRANSACTION_START_VALUE;
+        }
+        TEST_ASSERT_EQUAL(curr_transcation, bearer_adv.transaction_in);
+    }
+
     /* Re send the old packet after the wrap around and expect a response but no callback!*/
     ALLOC_AND_TX(&bearer_adv.advertiser, PROV_ADV_OVERHEAD + PROV_TRANS_ACK_DATA_SIZE, true);
     prov_cb_pkt_in_Expect(&bearer_adv.prov_bearer, data, 1);
@@ -1079,10 +1095,11 @@ void test_packet_receive_abnormal(void)
     TEST_ASSERT_EQUAL(1, m_packet.config.repeats);
 
 
-    /* Increment transaction number with a large number, should be OK, and the next expected
-     * transaction number should be incremented. */
-    curr_transcation += 10;
-    receive_data(&bearer_adv.prov_bearer, data, 1, curr_transcation++, link_id);
+    /* Increment transaction number with more than 1. Should be ignored, and the next expected
+     * transaction number should stay unchanged. */
+    uint8_t invalid_transaction_number = curr_transcation + 1;
+    p_ad_data = get_transaction_start_packet(&data[10], 10, invalid_transaction_number);
+    prov_bearer_adv_packet_in(p_ad_data->data, p_ad_data->length - BLE_AD_DATA_OVERHEAD, &m_dummy_metadata);
     TEST_ASSERT_EQUAL(curr_transcation, bearer_adv.transaction_in);
 
     /* Send new data with wrong fcs (CRC)*/

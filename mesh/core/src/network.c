@@ -83,7 +83,7 @@ static uint32_t allocate_packet(network_tx_packet_buffer_t * p_buffer)
 
     const core_tx_alloc_params_t alloc_params =
     {
-        .role            = p_buffer->role,
+        .role            = p_buffer->user_data.role,
         .net_packet_len  = m_core_tx_buffer_size_get(p_buffer->user_data.p_metadata,
                                                      p_buffer->user_data.payload_len), /*lint !e446 Side effect in initializer */
         .p_metadata      = p_buffer->user_data.p_metadata,
@@ -95,7 +95,7 @@ static uint32_t allocate_packet(network_tx_packet_buffer_t * p_buffer)
                              (uint8_t **) &p_net_packet) != 0)
     {
 #if MESH_FEATURE_RELAY_ENABLED
-        if (p_buffer->role != CORE_TX_ROLE_RELAY)
+        if (p_buffer->user_data.role != CORE_TX_ROLE_RELAY)
 #endif
         {
             p_buffer->user_data.p_metadata->internal.iv_index = net_state_tx_iv_index_get();
@@ -137,7 +137,7 @@ static void packet_relay(network_packet_metadata_t * p_net_metadata,
     buffer.user_data.payload_len = payload_len;
     buffer.user_data.token = NRF_MESH_RELAY_TOKEN;
     buffer.user_data.bearer_selector = CORE_TX_BEARER_TYPE_ALLOW_ALL;
-    buffer.role = CORE_TX_ROLE_RELAY;
+    buffer.user_data.role = CORE_TX_ROLE_RELAY;
 
     if (allocate_packet(&buffer) == NRF_SUCCESS)
     {
@@ -243,7 +243,7 @@ uint32_t network_packet_alloc(network_tx_packet_buffer_t * p_buffer)
     NRF_MESH_ASSERT(p_buffer != NULL);
     NRF_MESH_ASSERT(p_buffer->user_data.p_metadata != NULL);
     NRF_MESH_ASSERT(p_buffer->user_data.p_metadata->p_security_material != NULL);
-    p_buffer->role = CORE_TX_ROLE_ORIGINATOR;
+    NRF_MESH_ASSERT(p_buffer->user_data.role < CORE_TX_ROLE_COUNT);
     return allocate_packet(p_buffer);
 }
 

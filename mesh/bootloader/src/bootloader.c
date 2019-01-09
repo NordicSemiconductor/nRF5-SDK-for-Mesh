@@ -54,6 +54,7 @@
 #include "rtt_log.h"
 #include "dfu_util.h"
 #include "boards.h"
+#include "radio_control.h"
 
 /*****************************************************************************
 * Local defines
@@ -568,6 +569,7 @@ void bootloader_abort(dfu_end_t end_reason)
                 if (fifo_is_empty(&m_flash_fifo))
                 {
                     interrupts_disable();
+                    radio_disable();
 
                     sd_mbr_command_t com = {SD_MBR_COMMAND_INIT_SD, };
 

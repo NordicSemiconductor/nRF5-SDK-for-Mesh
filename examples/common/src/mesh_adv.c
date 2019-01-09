@@ -150,9 +150,27 @@ void mesh_adv_data_set(uint16_t service_uuid, const uint8_t * p_service_data, ui
 void mesh_adv_params_set(uint32_t timeout_ms, uint32_t interval_units)
 {
 #if NRF_SD_BLE_API_VERSION == 6
-    m_adv_params.duration = timeout_ms * 10;  /* 10 ms steps. */
+    if (timeout_ms > 0)
+    {
+        uint32_t scaled_timeout;
+        scaled_timeout = MIN(UINT16_MAX, timeout_ms / 10);   /* 10 ms steps */
+        m_adv_params.duration = scaled_timeout > 0 ? scaled_timeout : 1;
+    }
+    else
+    {
+        m_adv_params.duration = 0;
+    }
 #else
-    m_adv_params.timeout = timeout_ms * 1000; /* 1 second steps. */
+    if (timeout_ms > 0)
+    {
+        uint32_t scaled_timeout;
+        scaled_timeout = MIN(0x3FFF, timeout_ms / 1000);   /* 1 s steps, Max: 0x3FFF. */
+        m_adv_params.timeout = scaled_timeout > 0 ? scaled_timeout : 1;
+    }
+    else
+    {
+        m_adv_params.timeout = 0;
+    }
 #endif
     m_adv_params.interval = interval_units;
 }

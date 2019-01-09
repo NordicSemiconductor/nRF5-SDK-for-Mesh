@@ -531,18 +531,6 @@ uint32_t prov_provisioner_auth_data(nrf_mesh_prov_ctx_t * p_ctx, const uint8_t *
         return NRF_ERROR_INVALID_STATE;
     }
 
-    if (size > 16 || size != p_ctx->oob_size)
-    {
-        return NRF_ERROR_INVALID_LENGTH;
-    }
-
-    memcpy(p_ctx->auth_value, p_data, size);
-    memset(&p_ctx->auth_value[size], 0, sizeof(p_ctx->auth_value) - size); /* Add zero-padding to the authentication data. */
-    if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_OOB_INPUT)
-    {
-        utils_reverse_array(p_ctx->auth_value, sizeof(p_ctx->auth_value));
-    }
-
     return send_confirmation(p_ctx);
 }
 

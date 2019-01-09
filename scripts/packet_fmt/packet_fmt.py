@@ -30,6 +30,7 @@
 
 import json
 import glob
+import sys
 
 HEADER_START="""/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  * All rights reserved.
@@ -101,7 +102,7 @@ class Define(object):
 
 class Field(object):
     """Packet field object."""
-    def __init__(self, name, owner, width, doc, visible, bit_offset=0):
+    def __init__(self, name, owner, width, doc, visible, bit_offset=0, count=1):
         """Initializes a field for a packet.
 
         name    -- the (short) name of the field
@@ -115,6 +116,12 @@ class Field(object):
         self.width   = width
         self.doc     = doc
         self.visible = visible
+        self.count = count
+
+        # Count must be 1, or field must be a valid uint
+
+        if not (count == 1 or (bit_offset % 8 == 0 and width % 8 == 0)):
+            raise AssertionError('Array fields must be byte aligned, both in start and length')
 
         self._bit_offset = bit_offset
         self._masks      = []
@@ -212,21 +219,43 @@ class Field(object):
             defs  = "\n".join(defs) + "\n"
         return defs
 
+    def get_count_defines(self):
+        """Returns the define setting the largest array index allowed"""
+        if self.count == 1:
+            return ""
+        ws = (8 - len(str(self.count))) * " "
+        return "#define PACKET_MESH_%s_MAX_COUNT (%u)%s/**< Highest number of elements allowed in the %s field. */" % (self.get_full_name().upper(), self.count, ws, self.get_full_name().lower())
+
+
     def get_getter_function(self):
         """Gets the getter function for this field."""
         NUM_SPACES = 4
         ws = " " * NUM_SPACES
         ctype = self.get_ctype((self.width - 1) // 8)
 
-        fun = ["""/**
+        if self.count is 1:
+            fun = ["""/**
  * Gets the %s.
+ *
  * @param[in] p_pkt Packet pointer.
+ *
  * @returns Value of the %s.
  */""" % (self.doc, self.doc)]
-
-        fun += ["static inline %s packet_mesh_%s_get(const %s * p_pkt)" \
-                % (ctype, self.get_full_name(), self.owner._packet_type),
-                "{"]
+            fun += ["static inline %s packet_mesh_%s_get(const %s * p_pkt)" \
+                    % (ctype, self.get_full_name(), self.owner._packet_type),
+                    "{"]
+        else: # Array field
+            fun = ["""/**
+ * Gets an element from %s.
+ *
+ * @param[in] p_pkt Packet pointer.
+ * @param[in] index Array index.
+ *
+ * @returns Element index value from %s.
+ */""" % (self.doc, self.doc)]
+            fun += ["static inline %s packet_mesh_%s_get(const %s * p_pkt, uint32_t index)" \
+                    % (ctype, self.get_full_name(), self.owner._packet_type),
+                    "{"]
 
         if self.width == 1:
             fun.append(ws + "return (" + self.get_str(0) + " > 0);")
@@ -280,16 +309,30 @@ class Field(object):
         else:
             names = [self.get_full_name().upper()]
 
-
-        fun = ["""/**
+        if self.count == 1:
+            fun = ["""/**
  * Sets the %s.
+ *
  * @param[in,out] p_pkt Packet pointer.
  * @param[in]     val   Value of the %s.
  */""" % (self.doc, self.doc)]
 
-        fun += ["static inline void packet_mesh_%s_set(%s * p_pkt, %s val)" \
-                % (self.get_full_name(), self.owner._packet_type, ctype),
-                "{"]
+            fun += ["static inline void packet_mesh_%s_set(%s * p_pkt, %s val)" \
+                    % (self.get_full_name(), self.owner._packet_type, ctype),
+                    "{"]
+        else:
+            fun = ["""/**
+ * Sets an element in %s.
+ *
+ * @param[in,out] p_pkt Packet pointer.
+ * @param[in]     index Index of the element to set.
+ * @param[in]     val   Value to set in %s.
+ */""" % (self.doc, self.doc)]
+
+            fun += ["static inline void packet_mesh_%s_set(%s * p_pkt, uint32_t index, %s val)" \
+                    % (self.get_full_name(), self.owner._packet_type, ctype),
+                    "{"]
+
 
         for i in range(len(self._masks)-1):
 
@@ -301,34 +344,45 @@ class Field(object):
                 if lsb_offset % 8 > 0:
                     bitshift -= lsb_offset
 
+            if self.count == 1:
+                array_index = "PACKET_MESH_%s_OFFSET" % (names[i])
+            else:
+                array_index = "(index * %u) + PACKET_MESH_%s_OFFSET" % (self.width // 8, names[i])
+
+
             if self._masks[i] == 0xFF:
                 fun.append(ws
-                           + "p_pkt->pdu[PACKET_MESH_%s_OFFSET] = (val >> %u) & 0xFF;" \
-                           % (names[i], bitshift))
+                           + "p_pkt->pdu[%s] = (val >> %u) & 0xFF;" \
+                           % (array_index, bitshift))
             else:
                 fun.append(ws
-                           + "p_pkt->pdu[PACKET_MESH_%s_OFFSET] &= PACKET_MESH_%s_MASK_INV;" \
-                           % (names[i], names[i]))
+                           + "p_pkt->pdu[%s] &= PACKET_MESH_%s_MASK_INV;" \
+                           % (array_index, names[i]))
                 fun.append(ws
-                           + "p_pkt->pdu[PACKET_MESH_%s_OFFSET] |= (val >> %u) & PACKET_MESH_%s_MASK;" \
-                           % (names[i], bitshift, names[i]))
+                           + "p_pkt->pdu[%s] |= (val >> %u) & PACKET_MESH_%s_MASK;" \
+                           % (array_index, bitshift, names[i]))
+
+        if self.count == 1:
+            array_index = "PACKET_MESH_%s_OFFSET" % (names[-1])
+        else:
+            array_index = "(index * %u) + PACKET_MESH_%s_OFFSET" % (self.width // 8, names[-1])
 
         if self._masks[-1] == 0xFF:
-            fun.append(ws + "p_pkt->pdu[PACKET_MESH_%s_OFFSET] = val & 0xFF;" % (names[-1]))
+            fun.append(ws + "p_pkt->pdu[%s] = val & 0xFF;" % (array_index))
         else:
             fun.append(ws
-                       + "p_pkt->pdu[PACKET_MESH_%s_OFFSET] &= PACKET_MESH_%s_MASK_INV;" \
-                       % (names[-1], names[-1]))
+                       + "p_pkt->pdu[%s] &= PACKET_MESH_%s_MASK_INV;" \
+                       % (array_index, names[-1]))
 
             lsb_offset = 8 - (self._bit_offset + self.width) % 8
             if lsb_offset % 8 > 0:
                 fun.append(ws
-                           + "p_pkt->pdu[PACKET_MESH_%s_OFFSET] |= (val << %u) & PACKET_MESH_%s_MASK;" \
-                           % (names[-1], lsb_offset, names[-1]))
+                           + "p_pkt->pdu[%s] |= (val << %u) & PACKET_MESH_%s_MASK;" \
+                           % (array_index, lsb_offset, names[-1]))
             else:
                 fun.append(ws
-                           + "p_pkt->pdu[PACKET_MESH_%s_OFFSET] |= (val & PACKET_MESH_%s_MASK);" \
-                           % (names[-1], names[-1]))
+                           + "p_pkt->pdu[%s] |= (val & PACKET_MESH_%s_MASK);" \
+                           % (array_index, names[-1]))
 
         fun.append("}")
         return "\n".join(fun) + "\n"
@@ -338,7 +392,7 @@ class Field(object):
         """Joins the bitmask and offset defines and returns them as a string."""
         if not self.visible:
             return ""
-        return (self.get_byte_offset_defines() + self.get_bitmask_defines()).strip() + "\n"
+        return (self.get_byte_offset_defines() + self.get_bitmask_defines() + self.get_count_defines()).strip() + "\n"
 
     def get_functions(self):
         """Joins the setter and getter functions and returns them as a string."""
@@ -354,10 +408,16 @@ class Field(object):
             name = self.get_full_name().upper() + str(i)
         else:
             name = self.get_full_name().upper()
-        if self._masks[i] == 0xFF:
-            return "p_pkt->pdu[PACKET_MESH_%s_OFFSET]" % (name)
+
+        if self.count == 1:
+            array_str = "p_pkt->pdu[PACKET_MESH_%s_OFFSET]" % (name)
         else:
-            return "(p_pkt->pdu[PACKET_MESH_%s_OFFSET] & PACKET_MESH_%s_MASK)" % (name, name)
+            array_str = "p_pkt->pdu[(index * %u) + PACKET_MESH_%s_OFFSET]" % (self.width // 8, name)
+
+        if self._masks[i] == 0xFF:
+            return array_str
+        else:
+            return "(%s & PACKET_MESH_%s_MASK)" % (array_str, name)
 
     @staticmethod
     def get_ctype(byte_width):
@@ -469,7 +529,9 @@ def json_reads():
 
 pdu_func_format_string = """/**
  * Gets the {lname} payload pointer.
+ *
  * @param[in,out] p_pkt Packet pointer.
+ *
  * @returns Pointer to the start of the upper transport PDU.
  */
 static inline const uint8_t * packet_mesh_{lname}_payload_get(const {packet_type} * p_pkt)
@@ -480,7 +542,7 @@ static inline const uint8_t * packet_mesh_{lname}_payload_get(const {packet_type
 """
 packet_format_string = """
 /**
- * Packet type for {full_name_human_readable} packet.
+ * Packet type for the {full_name_human_readable} packet.
  */
 typedef struct
 {{
@@ -513,7 +575,7 @@ if __name__ == "__main__":
             pdu_types[f._packet_type] = f._max_length
 
     for pdu in pdu_types:
-        pdu_strings += packet_format_string.format(full_name_human_readable=pdu.replace('_', ' ')[len('packet_mesh_'):-len('_packet_t')], pdu_type=pdu, maxlen=pdu_types[pdu])
+        pdu_strings += packet_format_string.format(full_name_human_readable=pdu[len('packet_mesh_'):-len('_packet_t')], pdu_type=pdu, maxlen=pdu_types[pdu])
 
     blob = []
     for fmt in fields:

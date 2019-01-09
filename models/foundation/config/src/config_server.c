@@ -41,6 +41,7 @@
 #include "access.h"
 #include "access_config.h"
 #include "access_status.h"
+#include "access_utils.h"
 #include "event.h"
 
 #include "config_messages.h"
@@ -99,6 +100,27 @@
 
 #define KEY_REFRESH_TRANSITION_TO_PHASE_2      2
 #define KEY_REFRESH_TRANSITION_TO_PHASE_3      3
+
+
+/********** Static asserts for limits imposed by configuration message sizes **********/
+
+/** The Application keys must fit inside the Vendor Model App List packet. */
+NRF_MESH_STATIC_ASSERT(DSM_APP_MAX_LIMIT <=
+    (2 * (ACCESS_MESSAGE_LENGTH_MAX - ACCESS_UTILS_SIG_OPCODE_SIZE(CONFIG_OPCODE_VENDOR_MODEL_APP_LIST) - offsetof(config_msg_vendor_model_app_list_t, key_indexes)) / 3));
+
+/** The network keys must fit inside the NetKey List packet. */
+NRF_MESH_STATIC_ASSERT(DSM_SUBNET_MAX_LIMIT <=
+    (2 * (ACCESS_MESSAGE_LENGTH_MAX - ACCESS_UTILS_SIG_OPCODE_SIZE(CONFIG_OPCODE_NETKEY_LIST)) / 3));
+
+/** The subscription addresses must fit inside the Vendor Model Subscription List packet. */
+NRF_MESH_STATIC_ASSERT(DSM_ADDR_MAX_LIMIT <=
+    ((ACCESS_MESSAGE_LENGTH_MAX - ACCESS_UTILS_SIG_OPCODE_SIZE(CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_LIST) - offsetof(config_msg_vendor_model_subscription_list_t, subscriptions)) / 2));
+
+/** The composition data must fit within the Composition Data Status packet. If this assert fails,
+ * there are too many models or too many elements defined. Note that the macro assumes all models to be vendor models. */
+NRF_MESH_STATIC_ASSERT(CONFIG_COMPOSITION_DATA_SIZE <=
+    (ACCESS_MESSAGE_LENGTH_MAX - ACCESS_UTILS_SIG_OPCODE_SIZE(CONFIG_OPCODE_COMPOSITION_DATA_STATUS) - sizeof(config_msg_composition_data_status_t)));
+
 
 typedef enum
 {
@@ -559,7 +581,7 @@ static inline access_status_t get_subscription_list(access_model_handle_t model_
 static uint32_t config_server_heartbeat_publication_params_get(heartbeat_publication_information_t * p_pub_info)
 {
 
-    heartbeat_publication_state_t * p_hb_pub = heartbeat_publication_get();
+    const heartbeat_publication_state_t * p_hb_pub = heartbeat_publication_get();
     const nrf_mesh_network_secmat_t *p_net_secmat = NULL;
     dsm_local_unicast_address_t node_address;
     dsm_local_unicast_addresses_get(&node_address);
@@ -2193,7 +2215,7 @@ static inline uint8_t heartbeat_subscription_count_encode(uint32_t count)
 static void handle_heartbeat_publication_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
 {
     config_msg_heartbeat_publication_status_t status_message;
-    heartbeat_publication_state_t * p_hb_pub = heartbeat_publication_get();
+    const heartbeat_publication_state_t * p_hb_pub = heartbeat_publication_get();
 
     /* Ignore messages with invalid length */
     if (p_message->length != 0)
@@ -2220,14 +2242,13 @@ static void handle_heartbeat_publication_set(access_model_handle_t handle, const
 {
     config_msg_heartbeat_publication_status_t status_message;
     const config_msg_heartbeat_publication_set_t *p_pdu = (config_msg_heartbeat_publication_set_t *) p_message->p_data;
-    heartbeat_publication_state_t * p_hb_pub = heartbeat_publication_get();
 
     if (p_message->length != sizeof(config_msg_heartbeat_publication_set_t))
     {
         return;
     }
 
-    heartbeat_publication_state_t hb_pub = {
+    const heartbeat_publication_state_t hb_pub = {
         .dst          = p_pdu->destination,
         .count        = heartbeat_publication_count_decode(p_pdu->count_log),
         .period       = heartbeat_pubsub_period_decode(p_pdu->period_log),
@@ -2243,41 +2264,9 @@ static void handle_heartbeat_publication_set(access_model_handle_t handle, const
     }
     else
     {
-        if ((nrf_mesh_address_type_get(hb_pub.dst) == NRF_MESH_ADDRESS_TYPE_VIRTUAL) ||
-            ((hb_pub.count > HEARTBEAT_MAX_COUNT) && (hb_pub.count < HEARTBEAT_INF_COUNT))  ||
-            (hb_pub.period > HEARTBEAT_MAX_PERIOD) ||
-            (hb_pub.ttl > NRF_MESH_TTL_MAX)
-           )
-        {
-            status_message.status  = ACCESS_STATUS_CANNOT_SET;
-        }
-        else
-        {
-            p_hb_pub->dst = hb_pub.dst;
-
-            if (p_hb_pub->dst == NRF_MESH_ADDR_UNASSIGNED)
-            {
-                p_hb_pub->count  = 0x0000;
-                p_hb_pub->period = 0x0000;
-                p_hb_pub->ttl    = 0x00;
-            }
-            else
-            {
-                // We want to set these values _even though_ we're not necessarily starting publication.
-                // The user should expect to get these back when doing a
-                // `CONFIG_OPCODE_HEARTBEAT_PUBLICATION_GET`.
-                p_hb_pub->count  = hb_pub.count;
-                p_hb_pub->period = hb_pub.period;
-                p_hb_pub->ttl    = hb_pub.ttl;
-            }
-
-            p_hb_pub->features     = hb_pub.features & HEARTBEAT_TRIGGER_TYPE_RFU_MASK;
-            p_hb_pub->netkey_index = hb_pub.netkey_index;
-
-            heartbeat_publication_state_updated();
-
-            status_message.status  = ACCESS_STATUS_SUCCESS;
-        }
+        status_message.status = (heartbeat_publication_set(&hb_pub) == NRF_SUCCESS)
+                                    ? ACCESS_STATUS_SUCCESS
+                                    : ACCESS_STATUS_CANNOT_SET;
     }
 
     status_message.destination  =  p_pdu->destination;
@@ -2294,7 +2283,7 @@ static void handle_heartbeat_publication_set(access_model_handle_t handle, const
     {
         const config_server_evt_t evt = {
             .type = CONFIG_SERVER_EVT_HEARTBEAT_PUBLICATION_SET,
-            .params.heartbeat_publication_set.p_publication_state = p_hb_pub
+            .params.heartbeat_publication_set.p_publication_state = &hb_pub
         };
         app_evt_send(&evt);
     }

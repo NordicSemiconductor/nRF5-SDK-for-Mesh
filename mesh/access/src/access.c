@@ -43,6 +43,7 @@
 #include "access_internal.h"
 #include "access_loopback.h"
 #include "access_config.h"
+#include "access_publish_retransmission.h"
 
 #include "access_publish.h"
 #include "access_reliable.h"
@@ -53,6 +54,7 @@
 #include "nrf_mesh_utils.h"
 #include "nrf_mesh.h"
 
+#include "mesh_mem.h"
 #include "device_state_manager.h"
 #include "log.h"
 #include "bitfield.h"
@@ -313,13 +315,11 @@ static bool check_tx_params(access_model_handle_t handle, const access_message_t
 
 static uint32_t packet_tx(access_model_handle_t handle,
                           const access_message_tx_t * p_tx_message,
-                          const access_message_rx_t * p_rx_message)
+                          const access_message_rx_t * p_rx_message,
+                          const uint8_t *p_access_payload,
+                          uint16_t access_payload_len)
 {
-    uint32_t status;
-    if (!check_tx_params(handle, p_tx_message, p_rx_message, &status))
-    {
-        return status;
-    }
+    uint32_t status = NRF_SUCCESS;
 
     dsm_local_unicast_address_t local_addresses;
     dsm_local_unicast_addresses_get(&local_addresses);
@@ -383,9 +383,11 @@ static uint32_t packet_tx(access_model_handle_t handle,
 
     if (!loopback_packet || (dst_address.type != NRF_MESH_ADDRESS_TYPE_UNICAST))
     {
+        NRF_MESH_ASSERT_DEBUG(p_access_payload != NULL);
+        NRF_MESH_ASSERT_DEBUG(access_payload_len != 0);
+
         nrf_mesh_tx_params_t tx_params;
         memset(&tx_params, 0, sizeof(tx_params));
-        uint8_t access_packet[ACCESS_MESSAGE_LENGTH_MAX]; // 380 bytes!
 
 #if MESH_FEATURE_LPN_ENABLED
         status = NRF_ERROR_NOT_FOUND;
@@ -414,12 +416,9 @@ static uint32_t packet_tx(access_model_handle_t handle,
         tx_params.ttl = ttl;
         tx_params.force_segmented = p_tx_message->force_segmented;
         tx_params.transmic_size = p_tx_message->transmic_size;
-        tx_params.p_data = access_packet;
-        tx_params.data_len = p_tx_message->length + access_utils_opcode_size_get(p_tx_message->opcode);
+        tx_params.p_data = p_access_payload;
+        tx_params.data_len = access_payload_len;
         tx_params.tx_token = p_tx_message->access_token;
-
-        opcode_set(p_tx_message->opcode, access_packet);
-        memcpy(&access_packet[access_utils_opcode_size_get(p_tx_message->opcode)], p_tx_message->p_buffer, p_tx_message->length);
 
         status = nrf_mesh_packet_send(&tx_params, NULL);
         if (status == NRF_SUCCESS)
@@ -430,6 +429,46 @@ static uint32_t packet_tx(access_model_handle_t handle,
     }
 
     return status;
+}
+
+static uint32_t packet_alloc_and_tx(access_model_handle_t handle,
+                                    const access_message_tx_t * p_tx_message,
+                                    const access_message_rx_t * p_rx_message,
+                                    uint8_t **pp_access_payload,
+                                    uint16_t *p_access_payload_len)
+{
+    NRF_MESH_ASSERT_DEBUG(p_tx_message != NULL);
+
+    uint32_t status;
+
+    if (!check_tx_params(handle, p_tx_message, p_rx_message, &status))
+    {
+        return status;
+    }
+
+    uint16_t opcode_length = access_utils_opcode_size_get(p_tx_message->opcode);
+    uint16_t payload_length = opcode_length + p_tx_message->length;
+
+    uint8_t *p_payload = (uint8_t *) mesh_mem_alloc(payload_length);
+    if (NULL == p_payload)
+    {
+        return NRF_ERROR_NO_MEM;
+    }
+
+    opcode_set(p_tx_message->opcode, p_payload);
+    memcpy(&p_payload[opcode_length], p_tx_message->p_buffer, p_tx_message->length);
+
+    status = packet_tx(handle, p_tx_message, p_rx_message, p_payload, payload_length);
+    if (NRF_SUCCESS != status || NULL == pp_access_payload || NULL == p_access_payload_len)
+    {
+        mesh_mem_free(p_payload);
+        return status;
+    }
+
+    *pp_access_payload = p_payload;
+    *p_access_payload_len = payload_length;
+
+    return NRF_SUCCESS;
 }
 
 static void access_state_clear(void)
@@ -1020,6 +1059,25 @@ void access_incoming_handle(const access_message_rx_t * p_message)
     }
 }
 
+uint32_t access_packet_tx(access_model_handle_t handle,
+                          const access_message_tx_t * p_tx_message,
+                          const uint8_t *p_access_payload,
+                          uint16_t access_payload_len)
+{
+    uint32_t status;
+    if (NULL == p_tx_message || NULL == p_access_payload || 0 == access_payload_len)
+    {
+        return NRF_ERROR_NULL;
+    }
+    else if (!check_tx_params(handle, p_tx_message, NULL, &status))
+    {
+        return status;
+    }
+
+    return packet_tx(handle, p_tx_message, NULL, p_access_payload,
+                     access_payload_len);
+}
+
 /* ********** Public API ********** */
 void access_clear(void)
 {
@@ -1036,6 +1094,7 @@ void access_init(void)
     nrf_mesh_evt_handler_add(&m_evt_handler);
     access_reliable_init();
     access_publish_init();
+    access_publish_retransmission_init();
     access_loopback_init();
 
     /* Initialize the flash manager */
@@ -1108,14 +1167,35 @@ uint32_t access_model_add(const access_model_add_params_t * p_model_params,
 
 uint32_t access_model_publish(access_model_handle_t handle, const access_message_tx_t * p_message)
 {
+    uint32_t status;
+
     if (p_message == NULL)
     {
         return NRF_ERROR_NULL;
     }
+
+    uint16_t payload_length = 0;
+    uint8_t *p_payload;
+
+    status = packet_alloc_and_tx(handle, p_message, NULL, &p_payload, &payload_length);
+    if (NRF_SUCCESS != status)
+    {
+        return status;
+    }
+
+    if (m_model_pool[handle].model_info.publication_retransmit.count > 0)
+    {
+        access_publish_retransmission_message_add(handle,
+                                                  &m_model_pool[handle].model_info.publication_retransmit,
+                                                  p_message,
+                                                  p_payload,
+                                                  payload_length);
+    }
     else
     {
-        return packet_tx(handle, p_message, NULL);
+        mesh_mem_free(p_payload);
     }
+    return NRF_SUCCESS;
 }
 
 uint32_t access_model_reply(access_model_handle_t handle,
@@ -1126,10 +1206,8 @@ uint32_t access_model_reply(access_model_handle_t handle,
     {
         return NRF_ERROR_NULL;
     }
-    else
-    {
-        return packet_tx(handle, p_reply, p_message);
-    }
+
+    return packet_alloc_and_tx(handle, p_reply, p_message, NULL, NULL);
 }
 
 uint32_t access_model_element_index_get(access_model_handle_t handle, uint16_t * p_element_index)

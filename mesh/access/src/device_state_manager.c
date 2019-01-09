@@ -56,6 +56,7 @@
 #include "nrf_mesh_externs.h"
 #include "mesh_opt_core.h"
 #include "nrf_mesh_keygen.h"
+#include "heartbeat.h"
 
 #if MESH_FEATURE_LPN_ENABLED
 #include "mesh_lpn.h"
@@ -121,9 +122,10 @@ NRF_MESH_STATIC_ASSERT(DSM_NONVIRTUAL_ADDR_MAX < DSM_FLASH_HANDLE_FILTER_MASK);
 NRF_MESH_STATIC_ASSERT(DSM_VIRTUAL_HANDLE_START + DSM_VIRTUAL_ADDR_MAX < DSM_FLASH_HANDLE_FILTER_MASK);
 #endif /* PERSISTENT_STORAGE */
 
-NRF_MESH_STATIC_ASSERT(DSM_APP_MAX >= 1);
-NRF_MESH_STATIC_ASSERT(DSM_SUBNET_MAX >= 1);
+NRF_MESH_STATIC_ASSERT(DSM_APP_MAX >= 1 && DSM_APP_MAX <= DSM_APP_MAX_LIMIT);
+NRF_MESH_STATIC_ASSERT(DSM_SUBNET_MAX >= 1 && DSM_SUBNET_MAX <= DSM_SUBNET_MAX_LIMIT);
 NRF_MESH_STATIC_ASSERT(DSM_DEVICE_MAX >= 1);
+NRF_MESH_STATIC_ASSERT(DSM_ADDR_MAX <= DSM_ADDR_MAX_LIMIT);
 
 #if MESH_FEATURE_LPN_ENABLED && (MESH_FRIENDSHIP_CREDENTIALS != 1)
 #error "MESH_FRIENDSHIP_CREDENTIALS shall be set to 1 if MESH_FEATURE_LPN_ENABLED is enabled"
@@ -408,8 +410,9 @@ static bool address_nonvirtual_subscription_exists(uint16_t address, dsm_handle_
             return true;
         }
     }
-
-    return false;
+    /* Finally, check whether heartbeat subscribes to this address. */
+    const heartbeat_subscription_state_t * p_hb_sub = heartbeat_subscription_get();
+    return (p_hb_sub->dst == address);
 }
 
 /** Gets the group address if it's in the address subscription list.
@@ -1173,6 +1176,12 @@ static void friendship_established_handle(void)
             NRF_MESH_ASSERT_DEBUG(mesh_lpn_subman_add(m_virtual_addresses[i].address) == NRF_SUCCESS);
         }
     }
+
+    const heartbeat_subscription_state_t * p_hb_sub = heartbeat_subscription_get();
+    if (nrf_mesh_address_type_get(p_hb_sub->dst) == NRF_MESH_ADDRESS_TYPE_GROUP)
+    {
+        NRF_MESH_ASSERT_DEBUG(mesh_lpn_subman_add(p_hb_sub->dst) == NRF_SUCCESS);
+    }
 }
 
 static void friendship_termination_handle(const nrf_mesh_evt_friendship_terminated_t *p_terminated)
@@ -1190,35 +1199,65 @@ static void friendship_termination_handle(const nrf_mesh_evt_friendship_terminat
 
 static void mesh_evt_handler(const nrf_mesh_evt_t * p_evt)
 {
-    if (p_evt->type == NRF_MESH_EVT_NET_BEACON_RECEIVED)
+    switch (p_evt->type)
     {
-        net_beacon_rx_handle(p_evt->params.net_beacon.p_beacon_info,
-                             p_evt->params.net_beacon.p_beacon_secmat,
-                             p_evt->params.net_beacon.iv_index,
-                             p_evt->params.net_beacon.flags.iv_update,
-                             p_evt->params.net_beacon.flags.key_refresh);
-    }
+        case NRF_MESH_EVT_NET_BEACON_RECEIVED:
+            net_beacon_rx_handle(p_evt->params.net_beacon.p_beacon_info,
+                                p_evt->params.net_beacon.p_beacon_secmat,
+                                p_evt->params.net_beacon.iv_index,
+                                p_evt->params.net_beacon.flags.iv_update,
+                                p_evt->params.net_beacon.flags.key_refresh);
+            break;
 #if MESH_FEATURE_LPN_ENABLED
-    else if (p_evt->type == NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED)
-    {
-        friendship_established_handle();
-    }
-    else if (p_evt->type == NRF_MESH_EVT_LPN_FRIEND_UPDATE)
-    {
-        friend_update_rx_handle(p_evt->params.friend_update.p_secmat_net,
-                                p_evt->params.friend_update.iv_index,
-                                p_evt->params.friend_update.iv_update_active,
-                                p_evt->params.friend_update.key_refresh_in_phase2);
-    }
-    else if (p_evt->type == NRF_MESH_EVT_FRIENDSHIP_TERMINATED)
-    {
-        friendship_termination_handle(&p_evt->params.friendship_terminated);
-    }
-    else if (p_evt->type == NRF_MESH_EVT_LPN_FRIEND_REQUEST_TIMEOUT)
-    {
-        friendship_clear(&m_friendships[0]);
-    }
+        case NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED:
+            friendship_established_handle();
+            break;
+        case NRF_MESH_EVT_LPN_FRIEND_UPDATE:
+            friend_update_rx_handle(p_evt->params.friend_update.p_secmat_net,
+                                    p_evt->params.friend_update.iv_index,
+                                    p_evt->params.friend_update.iv_update_active,
+                                    p_evt->params.friend_update.key_refresh_in_phase2);
+            break;
+        case NRF_MESH_EVT_FRIENDSHIP_TERMINATED:
+            friendship_termination_handle(&p_evt->params.friendship_terminated);
+            break;
+        case NRF_MESH_EVT_LPN_FRIEND_REQUEST_TIMEOUT:
+            friendship_clear(&m_friendships[0]);
+            break;
+        case NRF_MESH_EVT_HB_SUBSCRIPTION_CHANGE:
+            /* We need to add and remove heartbeat subscription addresses to/from the LPN
+             * subscription list to ensure that the friend delivers the messages to us */
+            if (mesh_lpn_is_in_friendship())
+            {
+                if (p_evt->params.hb_subscription_change.p_old != NULL &&
+                    (nrf_mesh_address_type_get(p_evt->params.hb_subscription_change.p_old->dst) ==
+                     NRF_MESH_ADDRESS_TYPE_GROUP))
+                {
+                    /* Shouldn't remove the heartbeat subscription if there's a model that subscribes to it as well. */
+                    dsm_handle_t dummy_handle;
+                    if (non_virtual_address_handle_get(p_evt->params.hb_subscription_change.p_old->dst,
+                                                       &dummy_handle) != NRF_SUCCESS)
+                    {
+                        NRF_MESH_ASSERT_DEBUG(
+                            mesh_lpn_subman_remove(p_evt->params.hb_subscription_change.p_old->dst) ==
+                            NRF_SUCCESS);
+                    }
+                }
+
+                if (p_evt->params.hb_subscription_change.p_new != NULL &&
+                    (nrf_mesh_address_type_get(p_evt->params.hb_subscription_change.p_new->dst) ==
+                     NRF_MESH_ADDRESS_TYPE_GROUP))
+                {
+                    /* Adding duplicate addresses isn't a problem, no need to check if a model subscribes to it. */
+                    NRF_MESH_ASSERT_DEBUG(
+                        mesh_lpn_subman_add(p_evt->params.hb_subscription_change.p_new->dst) ==
+                        NRF_SUCCESS);
+                }
+            }
 #endif
+        default:
+            break;
+    }
 }
 /******************************* FLASH STORAGE MANAGEMENT *****************************************/
 

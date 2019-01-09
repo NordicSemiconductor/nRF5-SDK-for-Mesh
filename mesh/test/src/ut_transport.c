@@ -153,7 +153,7 @@ static uint32_t network_packet_alloc_callback(network_tx_packet_buffer_t * p_buf
     TEST_ASSERT_EQUAL(m_expect_network_packet_alloc.net_meta.control_packet, p_buf->user_data.p_metadata->control_packet);
     TEST_ASSERT_EQUAL_PTR(m_expect_network_packet_alloc.net_meta.p_security_material, p_buf->user_data.p_metadata->p_security_material);
 
-    p_buf->role      = CORE_TX_ROLE_ORIGINATOR;
+    p_buf->user_data.role = CORE_TX_ROLE_ORIGINATOR;
     p_buf->p_payload = m_expect_network_packet_alloc.p_buffer;
 
     m_expect_network_packet_alloc.p_tx_buffer = p_buf;

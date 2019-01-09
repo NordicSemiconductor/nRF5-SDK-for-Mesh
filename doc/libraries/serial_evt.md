@@ -535,11 +535,15 @@ Type              | Name                                    | Size  | Offset | D
 
 _Opcode:_ `0xd2`
 
-_Total length: 1 byte_
+_Total length: 5 bytes_
 
 A radio packet TX has completed.
 
-_Mesh TX Complete has no parameters._
+_Mesh TX Complete Parameters_
+
+Type              | Name                                    | Size  | Offset | Description
+------------------|-----------------------------------------|-------|--------|------------
+`nrf_mesh_tx_token_t` | Token                                   | 4     | 0      | TX token for the completed packet.
 
 ### Mesh IV Update Notification          {#mesh-iv-update-notification}
 

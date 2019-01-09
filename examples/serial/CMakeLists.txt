@@ -4,6 +4,7 @@ add_executable(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
     "${CMAKE_SOURCE_DIR}/mesh/stack/src/mesh_stack.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/simple_hal.c"
+    "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_app_utils.c"
     ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${PROV_PROVISIONER_SOURCE_FILES}
     ${PROV_PROVISIONEE_SOURCE_FILES}

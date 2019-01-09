@@ -60,6 +60,12 @@ NRF_MESH_SECTION_DEF_FLASH(mesh_config_files, const mesh_config_file_params_t);
 NRF_MESH_SECTION_DEF_FLASH(mesh_config_entries, const mesh_config_entry_params_t);
 NRF_MESH_SECTION_DEF_FLASH(mesh_config_entry_listeners, const mesh_config_listener_t);
 
+/* This flag is set only if mesh_config shall fulfill handling all kind of files in the dirty_entries_process.
+ * There are two emergency actions:
+ * Power Down
+ * Configuration cleaning */
+static bool m_emergency_action;
+
 #if PERSISTENT_STORAGE
 static const mesh_config_entry_params_t * entry_params_get(uint32_t i)
 {
@@ -123,14 +129,15 @@ static void listeners_notify(const mesh_config_entry_params_t * p_params,
     }
 }
 
-static void dirty_entries_process(mesh_config_strategy_t strategy)
+static void dirty_entries_process(void)
 {
 #if PERSISTENT_STORAGE
     FOR_EACH_ENTRY(p_params)
     {
-        const mesh_config_file_params_t * p_file    = file_params_find(p_params->p_id->file);
+        const mesh_config_file_params_t * p_file = file_params_find(p_params->p_id->file);
         NRF_MESH_ASSERT(p_file);
-        if (p_file->strategy == strategy)
+        if (p_file->strategy == MESH_CONFIG_STRATEGY_CONTINUOUS ||
+           (p_file->strategy == MESH_CONFIG_STRATEGY_ON_POWER_DOWN && m_emergency_action))
         {
             for (uint32_t j = 0; j < p_params->max_count; ++j)
             {
@@ -181,17 +188,10 @@ static uint32_t entry_store(const mesh_config_entry_params_t * p_params, mesh_co
         *p_flags |= (mesh_config_entry_flags_t)(MESH_CONFIG_ENTRY_FLAG_DIRTY | MESH_CONFIG_ENTRY_FLAG_ACTIVE);
         const mesh_config_file_params_t * p_file = file_params_find(p_params->p_id->file);
         NRF_MESH_ASSERT(p_file != NULL);
-        if (p_file->strategy == MESH_CONFIG_STRATEGY_CONTINUOUS)
-        {
-            dirty_entries_process(MESH_CONFIG_STRATEGY_CONTINUOUS);
-        }
-
+        dirty_entries_process();
         listeners_notify(p_params, MESH_CONFIG_CHANGE_REASON_SET, id, p_entry);
     }
-    else
-    {
-        status = NRF_ERROR_INVALID_DATA;
-    }
+
     return status;
 }
 
@@ -257,10 +257,11 @@ static void backend_evt_handler(const mesh_config_backend_evt_t * p_evt)
 
     if (mesh_config_is_busy())
     {
-        dirty_entries_process(MESH_CONFIG_STRATEGY_CONTINUOUS);
+        dirty_entries_process();
     }
     else
     {
+        m_emergency_action = false;
         nrf_mesh_evt_t evt = {.type = NRF_MESH_EVT_CONFIG_STABLE};
         event_handle(&evt);
     }
@@ -308,7 +309,15 @@ void mesh_config_load(void)
 
 void mesh_config_power_down(void)
 {
-    dirty_entries_process(MESH_CONFIG_STRATEGY_ON_POWER_DOWN);
+    m_emergency_action = true;
+    dirty_entries_process();
+
+    if (!mesh_config_is_busy() && m_emergency_action)
+    { // there was no data for emergency storage
+        m_emergency_action = false;
+        nrf_mesh_evt_t evt = {.type = NRF_MESH_EVT_CONFIG_STABLE};
+        event_handle(&evt);
+    }
 }
 
 bool mesh_config_is_busy(void)
@@ -373,20 +382,13 @@ uint32_t mesh_config_entry_get(mesh_config_entry_id_t id, void * p_entry)
     const mesh_config_entry_params_t * p_params = entry_params_find(id);
     if (p_params)
     {
-        if (*entry_flags_get(p_params, id) & MESH_CONFIG_ENTRY_FLAG_ACTIVE)
+        if (p_params->has_default || *entry_flags_get(p_params, id) & MESH_CONFIG_ENTRY_FLAG_ACTIVE)
         {
             p_params->callbacks.getter(id, p_entry);
         }
         else
         {
-            if (p_params->p_default)
-            {
-                memcpy(p_entry, p_params->p_default, p_params->entry_size);
-            }
-            else
-            {
-                return NRF_ERROR_INVALID_STATE;
-            }
+            return NRF_ERROR_INVALID_STATE;
         }
         return NRF_SUCCESS;
     }
@@ -409,10 +411,7 @@ uint32_t mesh_config_entry_delete(mesh_config_entry_id_t id)
                 p_params->callbacks.deleter(id);
             }
 
-            if (file_params_find(p_params->p_id->file)->strategy == MESH_CONFIG_STRATEGY_CONTINUOUS)
-            {
-                dirty_entries_process(MESH_CONFIG_STRATEGY_CONTINUOUS);
-            }
+            dirty_entries_process();
             listeners_notify(p_params, MESH_CONFIG_CHANGE_REASON_DELETE, id, NULL);
             return NRF_SUCCESS;
         }
@@ -427,4 +426,18 @@ uint32_t mesh_config_entry_delete(mesh_config_entry_id_t id)
 uint32_t mesh_config_power_down_time_get(void)
 {
     return mesh_config_backend_power_down_time_get();
+}
+
+void mesh_config_clear(void)
+{
+    m_emergency_action = true;
+    FOR_EACH_ENTRY(p_params)
+    {
+        for (uint32_t count = 0; count < p_params->max_count; count++)
+        {
+            mesh_config_entry_id_t entry_id = *(p_params->p_id);
+            entry_id.record += count;
+            (void) mesh_config_entry_delete(entry_id);
+        }
+    }
 }

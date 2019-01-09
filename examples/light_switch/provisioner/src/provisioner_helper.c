@@ -39,6 +39,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "example_common.h"
 #include "nrf_mesh_prov.h"
 #include "nrf_mesh_prov_bearer_adv.h"
 #include "nrf_mesh_events.h"
@@ -48,6 +49,7 @@
 #include "node_setup.h"
 #include "rand.h"
 #include "log.h"
+#include "enc.h"
 
 typedef enum
 {
@@ -62,8 +64,9 @@ static uint8_t m_private_key[NRF_MESH_PROV_PRIVKEY_SIZE];
 
 static nrf_mesh_prov_bearer_adv_t m_prov_bearer_adv;
 static nrf_mesh_prov_ctx_t m_prov_ctx;
-static prov_helper_uuid_filter_t * mp_expected_uuid;
-static uint8_t * mp_current_uuid;
+static const char **mp_uri_filter;
+static const char *mp_current_uri;
+static uint8_t m_uri_count;
 
 static prov_state_t m_prov_state;
 static uint8_t      m_retry_cnt;
@@ -77,27 +80,20 @@ static bool m_provisioner_init_done;
 /* Forward declaration */
 static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt);
 
-/* Compare the given UUID with the predefined filter. If filter is undefined, this function
-will always return true */
-bool uuid_filter_compare(const uint8_t *p_in_uuid, const prov_helper_uuid_filter_t * p_expected_uuid)
+/* Compare the given URI hash with the calculated URI hash. If invalid inputs are
+provided this function will always return false. */
+static bool uri_hash_compare(const uint8_t * p_in_uri_hash, const char * p_uri)
 {
-    if (p_expected_uuid->p_uuid == NULL || p_expected_uuid->length == 0)
-    {
-        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Any UUID accepted\n");
-        return true;
-    }
-    NRF_MESH_ASSERT(p_expected_uuid->length <= NRF_MESH_UUID_SIZE);
+    uint8_t m_uri_hash[NRF_MESH_UUID_SIZE];
 
-    for (uint8_t i = 0; i <= (NRF_MESH_UUID_SIZE - p_expected_uuid->length); i++)
+    if (p_in_uri_hash == NULL || p_uri == NULL)
     {
-        if (memcmp(&p_in_uuid[i], p_expected_uuid->p_uuid, p_expected_uuid->length) == 0)
-        {
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "UUID filter matched\n");
-            return true;
-        }
+        return false;
     }
 
-    return false;
+    enc_s1((const uint8_t*) p_uri, strlen(p_uri), m_uri_hash);
+
+    return (memcmp(p_in_uri_hash, m_uri_hash, NRF_MESH_BEACON_UNPROV_URI_HASH_SIZE) == 0);
 }
 
 static void start_provisioning(const uint8_t * p_uuid)
@@ -139,19 +135,30 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
         case NRF_MESH_PROV_EVT_UNPROVISIONED_RECEIVED:
             if (m_prov_state == PROV_STATE_WAIT)
             {
-
-                __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "UUID seen", p_evt->params.unprov.device_uuid, NRF_MESH_UUID_SIZE);
-                if (!uuid_filter_compare(p_evt->params.unprov.device_uuid, mp_expected_uuid))
+                __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "UUID ", p_evt->params.unprov.device_uuid, NRF_MESH_UUID_SIZE);
+                if (p_evt->params.unprov.p_metadata->source == NRF_MESH_RX_SOURCE_SCANNER)
                 {
-                    break;
+                    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "^RSSI: %d\n",
+                          p_evt->params.unprov.p_metadata->params.scanner.rssi);
                 }
 
-                if (mp_current_uuid != NULL)
+                if (p_evt->params.unprov.uri_hash_present)
                 {
-                    memcpy(mp_current_uuid, p_evt->params.unprov.device_uuid, NRF_MESH_UUID_SIZE);
+                    __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "^URI Hash", p_evt->params.unprov.uri_hash, NRF_MESH_BEACON_UNPROV_URI_HASH_SIZE);
+
+                    for (uint32_t i = 0; i < m_uri_count; i++)
+                    {
+                        if (uri_hash_compare(p_evt->params.unprov.uri_hash, mp_uri_filter[i]))
+                        {
+                            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "URI hash matched. Provisioning ...\n");
+
+                            mp_current_uri = mp_uri_filter[i];
+                            start_provisioning(p_evt->params.unprov.device_uuid);
+                            m_prov_state = PROV_STATE_PROV;
+                            break;
+                        }
+                    }
                 }
-                start_provisioning(p_evt->params.unprov.device_uuid);
-                m_prov_state = PROV_STATE_PROV;
             }
             break;
 
@@ -178,6 +185,10 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
                 m_provisioner.p_nw_data->last_device_address = m_target_address;
                 m_provisioner.p_nw_data->provisioned_devices++;
                 m_provisioner.p_nw_data->next_device_address += m_target_elements;
+                if (m_provisioner.p_nw_data->last_device_address == UNPROV_START_ADDRESS)
+                {
+                    m_provisioner.p_nw_data->p_client_uri = mp_current_uri;
+                }
                 m_provisioner.p_data_store_cb();
                 m_provisioner.p_prov_success_cb();
 
@@ -185,7 +196,7 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
                       m_provisioner.p_nw_data->last_device_address, m_target_elements);
 
                 node_setup_start(m_provisioner.p_nw_data->last_device_address, PROVISIONER_RETRY_COUNT,
-                m_provisioner.p_nw_data->appkey, APPKEY_INDEX, mp_current_uuid);
+                m_provisioner.p_nw_data->appkey, APPKEY_INDEX, m_provisioner.p_nw_data->p_client_uri);
                 m_prov_state = PROV_STATE_IDLE;
 
             }
@@ -269,16 +280,20 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
 
 }
 
-void prov_helper_provision_next_device(uint8_t retry_cnt, uint16_t address, prov_helper_uuid_filter_t * p_uuid_filter,
-                                       uint8_t * p_current_uuid)
+void prov_helper_provision_next_device(uint8_t retry_cnt, uint16_t address, const char **p_uri_filter,
+                                       uint8_t uri_count)
 {
+    if (p_uri_filter == NULL || uri_count == 0)
+    {
+        __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Cannot provision. No example URI identifier(s) provided.\n")
+        return;
+    }
+
     m_retry_cnt = retry_cnt;
     m_target_address = address;
     m_prov_state = PROV_STATE_WAIT;
-
-    NRF_MESH_ASSERT(p_uuid_filter->length <= NRF_MESH_UUID_SIZE);
-    mp_expected_uuid = p_uuid_filter;
-    mp_current_uuid = p_current_uuid;
+    mp_uri_filter = p_uri_filter;
+    m_uri_count = uri_count;
 
     prov_helper_provisioner_init();
 }

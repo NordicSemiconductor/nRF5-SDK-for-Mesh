@@ -171,16 +171,6 @@
 /** @} end of MESH_CONFIG_GATT */
 
 /**
- * @defgroup MESH_CONFIG_LOG Log module configuration
- * @{
- */
-
-/** Enable logging module. */
-#define NRF_MESH_LOG_ENABLE 1
-
-/** @} end of MESH_CONFIG_LOG */
-
-/**
  * @defgroup MESH_CONFIG_FRIENDSHIP Friendship configuration defines
  * @{
  */
@@ -206,7 +196,7 @@
  */
 
 /** Enable Advertising-based provisioning bearer, PB-ADV. */
-#define MESH_PROVISIONEE_BEARER_ADV_ENABLED 0
+#define MESH_FEATURE_PB_ADV_ENABLED 0
 
 /** @} end of NRF_MESH_PROVISIONEE_CONFIG */
 
@@ -278,6 +268,20 @@
 #define PROXY_ENABLED_DEFAULT (true)
 
 /** @} end of NRF_MESH_CONFIG_PROV_BEARER */
+
+
+/**
+ * @defgroup DFU_SUPPORT_CONFIG BLE DFU support module configuration
+ * @ingroup MESH_API_GROUP_APP_SUPPORT
+ * Configuration for compile time. Part of the BLE DFU support module.
+ *
+ * @{
+ */
+
+/** Enable BLE DFU support module. */
+#define BLE_DFU_SUPPORT_ENABLED 0
+
+/** @} end of DFU_SUPPORT_CONFIG */
 
 /** @} end of NRF_MESH_CONFIG_EXAMPLES */
 

@@ -9,7 +9,7 @@
         {
             "name": "lpn_address",
             "width":  16,
-            "doc": "the unicast address of the Low Power node being removed",
+            "doc": "unicast address of the Low Power node being removed",
             "visible": true
         },
         {

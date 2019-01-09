@@ -132,16 +132,16 @@ Discarded input sections
  .text          0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .data          0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .bss           0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- .text          0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
- .data          0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
- .bss           0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
- .text          0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
- .data          0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
- .bss           0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+ .text          0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
+ .data          0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
+ .bss           0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
+ .text          0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
+ .data          0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
+ .bss           0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
  .text.SystemCoreClockUpdate
-                0x00000000       0x10 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
- .data          0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
- .bss           0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+                0x00000000       0x10 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
+ .data          0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+ .bss           0x00000000        0x0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
  .data          0x00000000        0x0 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_lshrdi3.o)
  .bss           0x00000000        0x0 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_lshrdi3.o)
  .data          0x00000000        0x0 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_ashldi3.o)
@@ -215,9 +215,9 @@ LOAD mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/
 LOAD mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
 LOAD mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
 LOAD mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
-LOAD mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
-LOAD mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
-LOAD mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+LOAD mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
+LOAD mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
+LOAD mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
 START GROUP
 LOAD c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a
 LOAD c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a
@@ -244,7 +244,7 @@ END GROUP
  *uECC.c.obj(.data*)
  *dfu_mesh.c.obj(.data*)
  .data.m_state  0x2000fd00        0x1 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
- .data.tx_slot.11153
+ .data.tx_slot.11173
                 0x2000fd01        0x1 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
  *dfu_transfer_mesh.c.obj(.data*)
  *dfu_bank.c.obj(.data*)
@@ -335,9 +335,9 @@ END GROUP
                 0x10001018        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/main.c.obj
                 0x10001018                m_uicr_bootloader_mbrparam_address
 
-.text           0x00078000     0x4b78
+.text           0x00078000     0x4b80
  *(.isr_vector)
- .isr_vector    0x00078000      0x200 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+ .isr_vector    0x00078000      0x200 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
                 0x00078000                __isr_vector
  *(.text*)
  .text          0x00078200       0x6c c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
@@ -365,494 +365,494 @@ END GROUP
                 0x00078594        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
                 0x00078594                bootloader_cmd_send
  .text.bootloader_abort
-                0x00078598       0x7c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
+                0x00078598       0x80 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
                 0x00078598                bootloader_abort
  .text.bl_evt_handler
-                0x00078614      0x238 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
+                0x00078618      0x238 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
  .text.bootloader_timeout
-                0x0007884c       0x4c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
-                0x0007884c                bootloader_timeout
+                0x00078850       0x4c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
+                0x00078850                bootloader_timeout
  .text.bl_cmd_handler
-                0x00078898      0x148 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
-                0x00078898                bl_cmd_handler
+                0x0007889c      0x148 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
+                0x0007889c                bl_cmd_handler
  .text.bootloader_app_bridge_init
-                0x000789e0       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
-                0x000789e0                bootloader_app_bridge_init
+                0x000789e4       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
+                0x000789e4                bootloader_app_bridge_init
  .text.bootloader_evt_send
-                0x00078a08       0x10 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
-                0x00078a08                bootloader_evt_send
+                0x00078a0c       0x10 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
+                0x00078a0c                bootloader_evt_send
  .text.send_end_evt
-                0x00078a18       0x1a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
-                0x00078a18                send_end_evt
+                0x00078a1c       0x1a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
+                0x00078a1c                send_end_evt
  .text.flash_write
-                0x00078a32       0x2a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
-                0x00078a32                flash_write
+                0x00078a36       0x2a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
+                0x00078a36                flash_write
  .text.flash_erase
-                0x00078a5c       0x26 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
-                0x00078a5c                flash_erase
+                0x00078a60       0x26 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
+                0x00078a60                flash_erase
  .text.tx_abort
-                0x00078a82       0x1a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
-                0x00078a82                tx_abort
+                0x00078a86       0x1a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
+                0x00078a86                tx_abort
  .text.bootloader_is_in_application
-                0x00078a9c       0x10 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
-                0x00078a9c                bootloader_is_in_application
+                0x00078aa0       0x10 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
+                0x00078aa0                bootloader_is_in_application
  .text.info_entry_get
-                0x00078aac       0x3c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078ab0       0x3c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
  .text.bootloader_info_header_get
-                0x00078ae8       0x1c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078aec       0x1c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
  .text.bootloader_info_first_unused_get
-                0x00078b04       0x16 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
- *fill*         0x00078b1a        0x2 
+                0x00078b08       0x16 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+ *fill*         0x00078b1e        0x2 
  .text.entry_header_invalidate
-                0x00078b1c       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078b20       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
  .text.copy_page_write_meta
-                0x00078b3c       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078b40       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
  .text.copy_page_write_next_data
-                0x00078b5c       0x74 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078b60       0x74 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
  .text.copy_page
-                0x00078bd0       0x34 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078bd4       0x34 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
  .text.place_head_after_entry.constprop.1
-                0x00078c04       0x40 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078c08       0x40 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
  .text.entry_invalidate
-                0x00078c44       0x34 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
-                0x00078c44                entry_invalidate
+                0x00078c48       0x34 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078c48                entry_invalidate
  .text.entry_write
-                0x00078c78       0xf8 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
-                0x00078c78                entry_write
+                0x00078c7c       0xf8 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078c7c                entry_write
  .text.bootloader_info_init
-                0x00078d70       0xcc mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
-                0x00078d70                bootloader_info_init
+                0x00078d74       0xcc mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078d74                bootloader_info_init
  .text.bootloader_info_entry_get
-                0x00078e3c        0xa mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
-                0x00078e3c                bootloader_info_entry_get
+                0x00078e40        0xa mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078e40                bootloader_info_entry_get
  .text.bootloader_info_entry_overwrite
-                0x00078e46       0x2a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
-                0x00078e46                bootloader_info_entry_overwrite
+                0x00078e4a       0x2a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078e4a                bootloader_info_entry_overwrite
  .text.bootloader_info_entry_invalidate
-                0x00078e70        0xa mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
-                0x00078e70                bootloader_info_entry_invalidate
- *fill*         0x00078e7a        0x2 
+                0x00078e74        0xa mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078e74                bootloader_info_entry_invalidate
+ *fill*         0x00078e7e        0x2 
  .text.bootloader_info_reset
-                0x00078e7c       0x40 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
-                0x00078e7c                bootloader_info_reset
+                0x00078e80       0x40 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078e80                bootloader_info_reset
  .text.bootloader_info_entry_put
-                0x00078ebc       0xd0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
-                0x00078ebc                bootloader_info_entry_put
+                0x00078ec0       0xd0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078ec0                bootloader_info_entry_put
  .text.bootloader_info_stable
-                0x00078f8c       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
-                0x00078f8c                bootloader_info_stable
+                0x00078f90       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078f90                bootloader_info_stable
  .text.bootloader_info_on_flash_op_end
-                0x00078fac      0x118 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
-                0x00078fac                bootloader_info_on_flash_op_end
+                0x00078fb0      0x118 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x00078fb0                bootloader_info_on_flash_op_end
  .text.bootloader_info_on_flash_idle
-                0x000790c4       0x40 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
-                0x000790c4                bootloader_info_on_flash_idle
+                0x000790c8       0x40 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x000790c8                bootloader_info_on_flash_idle
  .text.RTC0_IRQHandler
-                0x00079104       0x48 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_rtc.c.obj
-                0x00079104                RTC0_IRQHandler
+                0x00079108       0x48 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_rtc.c.obj
+                0x00079108                RTC0_IRQHandler
  .text.rtc_init
-                0x0007914c       0x30 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_rtc.c.obj
-                0x0007914c                rtc_init
+                0x00079150       0x30 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_rtc.c.obj
+                0x00079150                rtc_init
  .text.bootloader_util_app_start
-                0x0007917c       0x3c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_util.c.obj
-                0x0007917c                bootloader_util_app_start
+                0x00079180       0x3c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_util.c.obj
+                0x00079180                bootloader_util_app_start
  .text.sd_mbr_command
-                0x000791b8        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
+                0x000791bc        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
  .text.flash_bank_entry
-                0x000791bc      0x2c0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
+                0x000791c0      0x2c0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
  .text.dfu_bank_scan
-                0x0007947c       0x48 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
-                0x0007947c                dfu_bank_scan
+                0x00079480       0x48 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
+                0x00079480                dfu_bank_scan
  .text.dfu_bank_flash
-                0x000794c4       0x48 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
-                0x000794c4                dfu_bank_flash
+                0x000794c8       0x48 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
+                0x000794c8                dfu_bank_flash
  .text.dfu_bank_on_flash_idle
-                0x0007950c       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
-                0x0007950c                dfu_bank_on_flash_idle
+                0x00079510       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
+                0x00079510                dfu_bank_on_flash_idle
  .text.dfu_bank_transfer_in_progress
-                0x0007952c       0x10 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
-                0x0007952c                dfu_bank_transfer_in_progress
+                0x00079530       0x10 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
+                0x00079530                dfu_bank_transfer_in_progress
  .text.segment_count_from_start_packet
-                0x0007953c       0x2c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x00079540       0x2c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
  .text.get_info_pointers
-                0x00079568       0x68 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x0007956c       0x68 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
  .text.beacon_set
-                0x000795d0       0xf0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x000795d4       0xf0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
  .text.start_find_fwid
-                0x000796c0       0x24 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x000796c4       0x24 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
  .text.notify_state_packet
-                0x000796e4       0x3c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x000796e8       0x3c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
  .text.packet_tx_dynamic.constprop.3
-                0x00079720       0x4c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x00079724       0x4c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
  .text.relay_packet
-                0x0007976c       0x30 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x00079770       0x30 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
  .text.start_req
-                0x0007979c       0x58 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x000797a0       0x58 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
  .text.handle_data_packet
-                0x000797f4      0x52c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x000797f8      0x52c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
  .text.dfu_mesh_init
-                0x00079d20       0x44 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
-                0x00079d20                dfu_mesh_init
+                0x00079d24       0x44 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x00079d24                dfu_mesh_init
  .text.dfu_mesh_start
-                0x00079d64       0xe8 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
-                0x00079d64                dfu_mesh_start
+                0x00079d68       0xe8 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x00079d68                dfu_mesh_start
  .text.dfu_mesh_req
-                0x00079e4c       0x34 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
-                0x00079e4c                dfu_mesh_req
+                0x00079e50       0x34 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x00079e50                dfu_mesh_req
  .text.dfu_mesh_relay
-                0x00079e80       0x4c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
-                0x00079e80                dfu_mesh_relay
+                0x00079e84       0x4c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x00079e84                dfu_mesh_relay
  .text.dfu_mesh_rx
-                0x00079ecc      0x2f4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
-                0x00079ecc                dfu_mesh_rx
+                0x00079ed0      0x2f4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x00079ed0                dfu_mesh_rx
  .text.dfu_mesh_missing_type_get
-                0x0007a1c0       0x4c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
-                0x0007a1c0                dfu_mesh_missing_type_get
+                0x0007a1c4       0x4c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x0007a1c4                dfu_mesh_missing_type_get
  .text.dfu_mesh_app_is_valid
-                0x0007a20c       0x34 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
-                0x0007a20c                dfu_mesh_app_is_valid
+                0x0007a210       0x34 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x0007a210                dfu_mesh_app_is_valid
  .text.dfu_mesh_finalize
-                0x0007a240      0x150 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
-                0x0007a240                dfu_mesh_finalize
+                0x0007a244      0x150 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x0007a244                dfu_mesh_finalize
  .text.dfu_mesh_timeout
-                0x0007a390       0xd8 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
-                0x0007a390                dfu_mesh_timeout
+                0x0007a394       0xd8 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x0007a394                dfu_mesh_timeout
  .text.dfu_mesh_restart
-                0x0007a468        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
-                0x0007a468                dfu_mesh_restart
+                0x0007a46c        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x0007a46c                dfu_mesh_restart
  .text.dfu_mesh_on_flash_idle
-                0x0007a46c       0x50 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
-                0x0007a46c                dfu_mesh_on_flash_idle
+                0x0007a470       0x50 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                0x0007a470                dfu_mesh_on_flash_idle
  .text.segment_is_missing
-                0x0007a4bc       0x2c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
+                0x0007a4c0       0x2c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
  .text.dfu_transfer_init
-                0x0007a4e8       0x1c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
-                0x0007a4e8                dfu_transfer_init
+                0x0007a4ec       0x1c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
+                0x0007a4ec                dfu_transfer_init
  .text.dfu_transfer_start
-                0x0007a504       0x80 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
-                0x0007a504                dfu_transfer_start
+                0x0007a508       0x80 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
+                0x0007a508                dfu_transfer_start
  .text.dfu_transfer_data
-                0x0007a584      0x12c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
-                0x0007a584                dfu_transfer_data
+                0x0007a588      0x12c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
+                0x0007a588                dfu_transfer_data
  .text.dfu_transfer_has_entry
-                0x0007a6b0       0x58 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
-                0x0007a6b0                dfu_transfer_has_entry
+                0x0007a6b4       0x58 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
+                0x0007a6b4                dfu_transfer_has_entry
  .text.dfu_transfer_get_oldest_missing_entry
-                0x0007a708       0x70 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
-                0x0007a708                dfu_transfer_get_oldest_missing_entry
+                0x0007a70c       0x70 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
+                0x0007a70c                dfu_transfer_get_oldest_missing_entry
  .text.dfu_transfer_sha256
-                0x0007a778       0x1c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
-                0x0007a778                dfu_transfer_sha256
+                0x0007a77c       0x1c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
+                0x0007a77c                dfu_transfer_sha256
  .text.dfu_transfer_end
-                0x0007a794        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
-                0x0007a794                dfu_transfer_end
+                0x0007a798        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
+                0x0007a798                dfu_transfer_end
  .text.dfu_transfer_flash_write_complete
-                0x0007a798       0x18 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
-                0x0007a798                dfu_transfer_flash_write_complete
+                0x0007a79c       0x18 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
+                0x0007a79c                dfu_transfer_flash_write_complete
  .text.fwid_union_cpy
-                0x0007a7b0       0x1e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007a7b0                fwid_union_cpy
+                0x0007a7b4       0x1e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007a7b4                fwid_union_cpy
  .text.fwid_union_cmp
-                0x0007a7ce       0x2c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007a7ce                fwid_union_cmp
+                0x0007a7d2       0x2c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007a7d2                fwid_union_cmp
  .text.fwid_union_id_cmp
-                0x0007a7fa       0x30 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007a7fa                fwid_union_id_cmp
+                0x0007a7fe       0x30 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007a7fe                fwid_union_id_cmp
  .text.fwid_union_version_cmp
-                0x0007a82a       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007a82a                fwid_union_version_cmp
+                0x0007a82e       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007a82e                fwid_union_version_cmp
  .text.addr_from_seg
-                0x0007a852       0x14 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007a852                addr_from_seg
+                0x0007a856       0x14 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007a856                addr_from_seg
  .text.is_upgrade
-                0x0007a866       0x86 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007a866                is_upgrade
+                0x0007a86a       0x86 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007a86a                is_upgrade
  .text.app_is_newer
-                0x0007a8ec       0x30 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007a8ec                app_is_newer
+                0x0007a8f0       0x30 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007a8f0                app_is_newer
  .text.bootloader_is_newer
-                0x0007a91c       0x2e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007a91c                bootloader_is_newer
+                0x0007a920       0x2e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007a920                bootloader_is_newer
  .text.fw_is_verified
-                0x0007a94a       0x1c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007a94a                fw_is_verified
- *fill*         0x0007a966        0x2 
+                0x0007a94e       0x1c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007a94e                fw_is_verified
+ *fill*         0x0007a96a        0x2 
  .text.tid_cache_entry_put
-                0x0007a968       0x1c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007a968                tid_cache_entry_put
+                0x0007a96c       0x1c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007a96c                tid_cache_entry_put
  .text.tid_cache_has_entry
-                0x0007a984       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007a984                tid_cache_has_entry
+                0x0007a988       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007a988                tid_cache_has_entry
  .text.ready_packet_matches_our_req
-                0x0007a9a4       0x3e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007a9a4                ready_packet_matches_our_req
- *fill*         0x0007a9e2        0x2 
+                0x0007a9a8       0x3e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007a9a8                ready_packet_matches_our_req
+ *fill*         0x0007a9e6        0x2 
  .text.packet_in_cache
-                0x0007a9e4       0x2c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007a9e4                packet_in_cache
+                0x0007a9e8       0x2c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007a9e8                packet_in_cache
  .text.packet_cache_put
-                0x0007aa10       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007aa10                packet_cache_put
+                0x0007aa14       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007aa14                packet_cache_put
  .text.packet_cache_flush
-                0x0007aa38       0x1c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007aa38                packet_cache_flush
+                0x0007aa3c       0x1c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007aa3c                packet_cache_flush
  .text.section_overlap
-                0x0007aa54       0x22 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007aa54                section_overlap
- *fill*         0x0007aa76        0x2 
+                0x0007aa58       0x22 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007aa58                section_overlap
+ *fill*         0x0007aa7a        0x2 
  .text.interrupts_disable
-                0x0007aa78       0x24 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
-                0x0007aa78                interrupts_disable
+                0x0007aa7c       0x24 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+                0x0007aa7c                interrupts_disable
  .text.fifo_init
-                0x0007aa9c       0x1e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
-                0x0007aa9c                fifo_init
+                0x0007aaa0       0x1e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
+                0x0007aaa0                fifo_init
  .text.fifo_push
-                0x0007aaba       0x4e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
-                0x0007aaba                fifo_push
+                0x0007aabe       0x4e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
+                0x0007aabe                fifo_push
  .text.fifo_pop
-                0x0007ab08       0x4a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
-                0x0007ab08                fifo_pop
+                0x0007ab0c       0x4a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
+                0x0007ab0c                fifo_pop
  .text.fifo_peek_at
-                0x0007ab52       0x4e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
-                0x0007ab52                fifo_peek_at
+                0x0007ab56       0x4e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
+                0x0007ab56                fifo_peek_at
  .text.fifo_peek
-                0x0007aba0        0x6 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
-                0x0007aba0                fifo_peek
+                0x0007aba4        0x6 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
+                0x0007aba4                fifo_peek
  .text.fifo_get_len
-                0x0007aba6        0x8 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
-                0x0007aba6                fifo_get_len
+                0x0007abaa        0x8 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
+                0x0007abaa                fifo_get_len
  .text.fifo_is_empty
-                0x0007abae        0xc mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
-                0x0007abae                fifo_is_empty
+                0x0007abb2        0xc mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
+                0x0007abb2                fifo_is_empty
  .text.app_error_handler_bare
-                0x0007abba        0x6 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/main.c.obj
-                0x0007abba                app_error_handler_bare
+                0x0007abbe        0x6 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/main.c.obj
+                0x0007abbe                app_error_handler_bare
  .text.HardFault_Handler
-                0x0007abc0        0x6 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/main.c.obj
-                0x0007abc0                HardFault_Handler
- *fill*         0x0007abc6        0x2 
+                0x0007abc4        0x6 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/main.c.obj
+                0x0007abc4                HardFault_Handler
+ *fill*         0x0007abca        0x2 
  .text.startup.main
-                0x0007abc8       0x90 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/main.c.obj
-                0x0007abc8                main
+                0x0007abcc       0x90 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/main.c.obj
+                0x0007abcc                main
  .text.mesh_packet_init
-                0x0007ac58       0x14 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
-                0x0007ac58                mesh_packet_init
+                0x0007ac5c       0x14 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
+                0x0007ac5c                mesh_packet_init
  .text.mesh_packet_acquire
-                0x0007ac6c       0x3c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
-                0x0007ac6c                mesh_packet_acquire
+                0x0007ac70       0x3c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
+                0x0007ac70                mesh_packet_acquire
  .text.mesh_packet_ref_count_inc
-                0x0007aca8       0x44 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
-                0x0007aca8                mesh_packet_ref_count_inc
+                0x0007acac       0x44 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
+                0x0007acac                mesh_packet_ref_count_inc
  .text.mesh_packet_ref_count_dec
-                0x0007acec       0x48 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
-                0x0007acec                mesh_packet_ref_count_dec
+                0x0007acf0       0x48 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
+                0x0007acf0                mesh_packet_ref_count_dec
  .text.mesh_packet_ref_count_get
-                0x0007ad34       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
-                0x0007ad34                mesh_packet_ref_count_get
+                0x0007ad38       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
+                0x0007ad38                mesh_packet_ref_count_get
  .text.mesh_packet_set_local_addr
-                0x0007ad54       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
-                0x0007ad54                mesh_packet_set_local_addr
+                0x0007ad58       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
+                0x0007ad58                mesh_packet_set_local_addr
  .text.mesh_packet_adv_data_get
-                0x0007ad7c       0x48 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
-                0x0007ad7c                mesh_packet_adv_data_get
+                0x0007ad80       0x48 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
+                0x0007ad80                mesh_packet_adv_data_get
  .text.nrf_flash_erase
-                0x0007adc4       0x60 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/nrf_flash.c.obj
-                0x0007adc4                nrf_flash_erase
+                0x0007adc8       0x60 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/nrf_flash.c.obj
+                0x0007adc8                nrf_flash_erase
  .text.nrf_flash_store
-                0x0007ae24       0x74 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/nrf_flash.c.obj
-                0x0007ae24                nrf_flash_store
+                0x0007ae28       0x74 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/nrf_flash.c.obj
+                0x0007ae28                nrf_flash_store
  .text.radio_init
-                0x0007ae98      0x118 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
-                0x0007ae98                radio_init
+                0x0007ae9c      0x118 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
+                0x0007ae9c                radio_init
  .text.radio_order
-                0x0007afb0       0x4c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
-                0x0007afb0                radio_order
+                0x0007afb4       0x4c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
+                0x0007afb4                radio_order
  .text.radio_disable
-                0x0007affc       0x24 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
-                0x0007affc                radio_disable
+                0x0007b000       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
+                0x0007b000                radio_disable
  .text.radio_event_handler
-                0x0007b020      0x1b0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
-                0x0007b020                radio_event_handler
+                0x0007b028      0x1b0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
+                0x0007b028                radio_event_handler
  .text.rand_prng_get
-                0x0007b1d0       0x22 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
-                0x0007b1d0                rand_prng_get
- *fill*         0x0007b1f2        0x2 
+                0x0007b1d8       0x22 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
+                0x0007b1d8                rand_prng_get
+ *fill*         0x0007b1fa        0x2 
  .text.rand_hw_rng_get
-                0x0007b1f4       0x30 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
-                0x0007b1f4                rand_hw_rng_get
+                0x0007b1fc       0x30 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
+                0x0007b1fc                rand_hw_rng_get
  .text.rand_prng_seed
-                0x0007b224       0x38 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
-                0x0007b224                rand_prng_seed
+                0x0007b22c       0x38 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
+                0x0007b22c                rand_prng_seed
  .text.order_next_rtc
-                0x0007b25c       0x68 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+                0x0007b264       0x68 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
  .text.radio_tx_cb
-                0x0007b2c4        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+                0x0007b2cc        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
  .text.radio_rx_cb
-                0x0007b2c8       0x30 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+                0x0007b2d0       0x30 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
  .text.order_scan
-                0x0007b2f8       0x3c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+                0x0007b300       0x3c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
  .text.radio_idle_cb
-                0x0007b334       0x10 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+                0x0007b33c       0x10 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
  .text.set_next_tx
-                0x0007b344       0x70 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+                0x0007b34c       0x70 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
  .text.RADIO_IRQHandler
-                0x0007b3b4        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
-                0x0007b3b4                RADIO_IRQHandler
+                0x0007b3bc        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+                0x0007b3bc                RADIO_IRQHandler
  .text.timeslot_is_in_ts
-                0x0007b3b8        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
-                0x0007b3b8                timeslot_is_in_ts
+                0x0007b3c0        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+                0x0007b3c0                timeslot_is_in_ts
  .text.transport_init
-                0x0007b3bc       0x8c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
-                0x0007b3bc                transport_init
+                0x0007b3c4       0x8c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+                0x0007b3c4                transport_init
  .text.transport_start
-                0x0007b448       0x14 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
-                0x0007b448                transport_start
+                0x0007b450       0x14 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+                0x0007b450                transport_start
  .text.SWI0_EGU0_IRQHandler
-                0x0007b45c       0x4c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
-                0x0007b45c                SWI0_EGU0_IRQHandler
+                0x0007b464       0x4c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+                0x0007b464                SWI0_EGU0_IRQHandler
  .text.transport_tx
-                0x0007b4a8       0x74 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
-                0x0007b4a8                transport_tx
+                0x0007b4b0       0x74 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+                0x0007b4b0                transport_tx
  .text.transport_tx_abort
-                0x0007b51c       0x40 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
-                0x0007b51c                transport_tx_abort
+                0x0007b524       0x40 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+                0x0007b524                transport_tx_abort
  .text.transport_rtc_irq_handler
-                0x0007b55c       0xc0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
-                0x0007b55c                transport_rtc_irq_handler
+                0x0007b564       0xc0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+                0x0007b564                transport_rtc_irq_handler
  .text.vli_clear
-                0x0007b61c       0x10 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+                0x0007b624       0x10 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .text.vli_isZero
-                0x0007b62c       0x16 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+                0x0007b634       0x16 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .text.vli_testBit
-                0x0007b642       0x14 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- .text.vli_set  0x0007b656       0x14 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- .text.vli_cmp  0x0007b66a       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+                0x0007b64a       0x14 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+ .text.vli_set  0x0007b65e       0x14 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+ .text.vli_cmp  0x0007b672       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .text.vli_rshift1
-                0x0007b692       0x1c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- .text.vli_add  0x0007b6ae       0x2a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- .text.vli_sub  0x0007b6d8       0x2a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+                0x0007b69a       0x1c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+ .text.vli_add  0x0007b6b6       0x2a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+ .text.vli_sub  0x0007b6e0       0x2a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .text.vli_bytesToNative
-                0x0007b702       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+                0x0007b70a       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .text.vli_modInv
-                0x0007b72a      0x11c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- *fill*         0x0007b846        0x2 
+                0x0007b732      0x11c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+ *fill*         0x0007b84e        0x2 
  .text.vli_modSub.constprop.1
-                0x0007b848       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+                0x0007b850       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .text.vli_modAdd.constprop.2
-                0x0007b868       0x2c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+                0x0007b870       0x2c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .text.vli_numBits.constprop.3
-                0x0007b894       0x2c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+                0x0007b89c       0x2c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .text.vli_mult
-                0x0007b8c0       0xc4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+                0x0007b8c8       0xc4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .text.vli_modMult_fast
-                0x0007b984      0x198 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- .text.apply_z  0x0007bb1c       0x34 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+                0x0007b98c      0x198 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+ .text.apply_z  0x0007bb24       0x34 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .text.XYcZ_add
-                0x0007bb50       0x9a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- *fill*         0x0007bbea        0x2 
+                0x0007bb58       0x9a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+ *fill*         0x0007bbf2        0x2 
  .text.vli_modMult_n
-                0x0007bbec       0x9c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+                0x0007bbf4       0x9c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .text.uECC_verify
-                0x0007bc88      0x330 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
-                0x0007bc88                uECC_verify
+                0x0007bc90      0x330 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+                0x0007bc90                uECC_verify
  .text.sha256_transform
-                0x0007bfb8      0x138 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
-                0x0007bfb8                sha256_transform
+                0x0007bfc0      0x138 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
+                0x0007bfc0                sha256_transform
  .text.sha256_init
-                0x0007c0f0       0x60 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
-                0x0007c0f0                sha256_init
+                0x0007c0f8       0x60 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
+                0x0007c0f8                sha256_init
  .text.sha256_update
-                0x0007c150       0x48 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
-                0x0007c150                sha256_update
+                0x0007c158       0x48 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
+                0x0007c158                sha256_update
  .text.sha256_final
-                0x0007c198      0x11e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
-                0x0007c198                sha256_final
- *fill*         0x0007c2b6        0x2 
+                0x0007c1a0      0x11e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
+                0x0007c1a0                sha256_final
+ *fill*         0x0007c2be        0x2 
  .text.errata_57
-                0x0007c2b8       0x34 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+                0x0007c2c0       0x34 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
  .text.errata_136
-                0x0007c2ec       0x40 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+                0x0007c2f4       0x40 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
  .text.SystemInit
-                0x0007c32c      0x264 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
-                0x0007c32c                SystemInit
- .text          0x0007c590       0x3c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
-                0x0007c590                Reset_Handler
-                0x0007c5b8                NMI_Handler
-                0x0007c5bc                MemoryManagement_Handler
-                0x0007c5be                BusFault_Handler
-                0x0007c5c0                UsageFault_Handler
-                0x0007c5c2                SVC_Handler
-                0x0007c5c4                DebugMon_Handler
-                0x0007c5c6                PendSV_Handler
-                0x0007c5c8                SysTick_Handler
-                0x0007c5ca                TEMP_IRQHandler
-                0x0007c5ca                POWER_CLOCK_IRQHandler
-                0x0007c5ca                TIMER3_IRQHandler
-                0x0007c5ca                FPU_IRQHandler
-                0x0007c5ca                SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQHandler
-                0x0007c5ca                QDEC_IRQHandler
-                0x0007c5ca                PDM_IRQHandler
-                0x0007c5ca                UARTE0_UART0_IRQHandler
-                0x0007c5ca                TIMER4_IRQHandler
-                0x0007c5ca                I2S_IRQHandler
-                0x0007c5ca                SWI4_EGU4_IRQHandler
-                0x0007c5ca                TIMER0_IRQHandler
-                0x0007c5ca                PWM1_IRQHandler
-                0x0007c5ca                TIMER1_IRQHandler
-                0x0007c5ca                PWM2_IRQHandler
-                0x0007c5ca                ECB_IRQHandler
-                0x0007c5ca                SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler
-                0x0007c5ca                Default_Handler
-                0x0007c5ca                SAADC_IRQHandler
-                0x0007c5ca                CCM_AAR_IRQHandler
-                0x0007c5ca                WDT_IRQHandler
-                0x0007c5ca                GPIOTE_IRQHandler
-                0x0007c5ca                SWI5_EGU5_IRQHandler
-                0x0007c5ca                RNG_IRQHandler
-                0x0007c5ca                RTC2_IRQHandler
-                0x0007c5ca                PWM0_IRQHandler
-                0x0007c5ca                RTC1_IRQHandler
-                0x0007c5ca                SWI1_EGU1_IRQHandler
-                0x0007c5ca                SPIM2_SPIS2_SPI2_IRQHandler
-                0x0007c5ca                NFCT_IRQHandler
-                0x0007c5ca                SWI2_EGU2_IRQHandler
-                0x0007c5ca                MWU_IRQHandler
-                0x0007c5ca                TIMER2_IRQHandler
-                0x0007c5ca                COMP_LPCOMP_IRQHandler
- .text          0x0007c5cc       0x18 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_lshrdi3.o)
-                0x0007c5cc                __lshrdi3
-                0x0007c5cc                __aeabi_llsr
- .text          0x0007c5e4       0x18 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_ashldi3.o)
-                0x0007c5e4                __aeabi_llsl
-                0x0007c5e4                __ashldi3
- .text          0x0007c5fc       0x30 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_aeabi_uldivmod.o)
-                0x0007c5fc                __aeabi_uldivmod
- .text          0x0007c62c      0x2dc c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_udivmoddi4.o)
-                0x0007c62c                __udivmoddi4
- .text          0x0007c908        0x4 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_dvmd_tls.o)
-                0x0007c908                __aeabi_idiv0
-                0x0007c908                __aeabi_ldiv0
- .text.exit     0x0007c90c       0x28 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-exit.o)
-                0x0007c90c                exit
+                0x0007c334      0x264 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
+                0x0007c334                SystemInit
+ .text          0x0007c598       0x3c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+                0x0007c598                Reset_Handler
+                0x0007c5c0                NMI_Handler
+                0x0007c5c4                MemoryManagement_Handler
+                0x0007c5c6                BusFault_Handler
+                0x0007c5c8                UsageFault_Handler
+                0x0007c5ca                SVC_Handler
+                0x0007c5cc                DebugMon_Handler
+                0x0007c5ce                PendSV_Handler
+                0x0007c5d0                SysTick_Handler
+                0x0007c5d2                TEMP_IRQHandler
+                0x0007c5d2                POWER_CLOCK_IRQHandler
+                0x0007c5d2                TIMER3_IRQHandler
+                0x0007c5d2                FPU_IRQHandler
+                0x0007c5d2                SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQHandler
+                0x0007c5d2                QDEC_IRQHandler
+                0x0007c5d2                PDM_IRQHandler
+                0x0007c5d2                UARTE0_UART0_IRQHandler
+                0x0007c5d2                TIMER4_IRQHandler
+                0x0007c5d2                I2S_IRQHandler
+                0x0007c5d2                SWI4_EGU4_IRQHandler
+                0x0007c5d2                TIMER0_IRQHandler
+                0x0007c5d2                PWM1_IRQHandler
+                0x0007c5d2                TIMER1_IRQHandler
+                0x0007c5d2                PWM2_IRQHandler
+                0x0007c5d2                ECB_IRQHandler
+                0x0007c5d2                SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler
+                0x0007c5d2                Default_Handler
+                0x0007c5d2                SAADC_IRQHandler
+                0x0007c5d2                CCM_AAR_IRQHandler
+                0x0007c5d2                WDT_IRQHandler
+                0x0007c5d2                GPIOTE_IRQHandler
+                0x0007c5d2                SWI5_EGU5_IRQHandler
+                0x0007c5d2                RNG_IRQHandler
+                0x0007c5d2                RTC2_IRQHandler
+                0x0007c5d2                PWM0_IRQHandler
+                0x0007c5d2                RTC1_IRQHandler
+                0x0007c5d2                SWI1_EGU1_IRQHandler
+                0x0007c5d2                SPIM2_SPIS2_SPI2_IRQHandler
+                0x0007c5d2                NFCT_IRQHandler
+                0x0007c5d2                SWI2_EGU2_IRQHandler
+                0x0007c5d2                MWU_IRQHandler
+                0x0007c5d2                TIMER2_IRQHandler
+                0x0007c5d2                COMP_LPCOMP_IRQHandler
+ .text          0x0007c5d4       0x18 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_lshrdi3.o)
+                0x0007c5d4                __lshrdi3
+                0x0007c5d4                __aeabi_llsr
+ .text          0x0007c5ec       0x18 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_ashldi3.o)
+                0x0007c5ec                __aeabi_llsl
+                0x0007c5ec                __ashldi3
+ .text          0x0007c604       0x30 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_aeabi_uldivmod.o)
+                0x0007c604                __aeabi_uldivmod
+ .text          0x0007c634      0x2dc c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_udivmoddi4.o)
+                0x0007c634                __udivmoddi4
+ .text          0x0007c910        0x4 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_dvmd_tls.o)
+                0x0007c910                __aeabi_idiv0
+                0x0007c910                __aeabi_ldiv0
+ .text.exit     0x0007c914       0x28 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-exit.o)
+                0x0007c914                exit
  .text.__libc_init_array
-                0x0007c934       0x48 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-init.o)
-                0x0007c934                __libc_init_array
- .text.memcmp   0x0007c97c       0x1e c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-memcmp.o)
-                0x0007c97c                memcmp
- .text.memcpy   0x0007c99a       0x16 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-memcpy-stub.o)
-                0x0007c99a                memcpy
- .text.memset   0x0007c9b0       0x10 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-memset.o)
-                0x0007c9b0                memset
- .text._exit    0x0007c9c0        0x4 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(_exit.o)
-                0x0007c9c0                _exit
+                0x0007c93c       0x48 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-init.o)
+                0x0007c93c                __libc_init_array
+ .text.memcmp   0x0007c984       0x1e c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-memcmp.o)
+                0x0007c984                memcmp
+ .text.memcpy   0x0007c9a2       0x16 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-memcpy-stub.o)
+                0x0007c9a2                memcpy
+ .text.memset   0x0007c9b8       0x10 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-memset.o)
+                0x0007c9b8                memset
+ .text._exit    0x0007c9c8        0x4 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libnosys.a(_exit.o)
+                0x0007c9c8                _exit
  *(.init)
- .init          0x0007c9c4        0x4 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
-                0x0007c9c4                _init
- .init          0x0007c9c8        0x8 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
+ .init          0x0007c9cc        0x4 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
+                0x0007c9cc                _init
+ .init          0x0007c9d0        0x8 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
  *(.fini)
- .fini          0x0007c9d0        0x4 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
-                0x0007c9d0                _fini
- .fini          0x0007c9d4        0x8 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
+ .fini          0x0007c9d8        0x4 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crti.o
+                0x0007c9d8                _fini
+ .fini          0x0007c9dc        0x8 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtn.o
  *crtbegin.o(.ctors)
  *crtbegin?.o(.ctors)
  *(EXCLUDE_FILE(*crtend.o *crtend?.o) .ctors)
@@ -865,55 +865,55 @@ END GROUP
  *(.dtors)
  *(.rodata*)
  .rodata.m_invalid_header
-                0x0007c9dc        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+                0x0007c9e4        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
  .rodata.CSWTCH.30
-                0x0007c9e0        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
- .rodata        0x0007c9e4        0xc mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
+                0x0007c9e8        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+ .rodata        0x0007c9ec        0xc mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
  .rodata.curve_G
-                0x0007c9f0       0x40 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+                0x0007c9f8       0x40 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .rodata.curve_n
-                0x0007ca30       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+                0x0007ca38       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .rodata.curve_p
-                0x0007ca50       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- .rodata.k      0x0007ca70      0x100 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
+                0x0007ca58       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+ .rodata.k      0x0007ca78      0x100 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
  .rodata._global_impure_ptr
-                0x0007cb70        0x4 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-impure.o)
-                0x0007cb70                _global_impure_ptr
+                0x0007cb78        0x4 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-impure.o)
+                0x0007cb78                _global_impure_ptr
  *(.eh_frame*)
- .eh_frame      0x0007cb74        0x0 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
- .eh_frame      0x0007cb74        0x4 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtend.o
+ .eh_frame      0x0007cb7c        0x0 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
+ .eh_frame      0x0007cb7c        0x4 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtend.o
 
-.glue_7         0x0007cb78        0x0
- .glue_7        0x0007cb78        0x0 linker stubs
+.glue_7         0x0007cb80        0x0
+ .glue_7        0x0007cb80        0x0 linker stubs
 
-.glue_7t        0x0007cb78        0x0
- .glue_7t       0x0007cb78        0x0 linker stubs
+.glue_7t        0x0007cb80        0x0
+ .glue_7t       0x0007cb80        0x0 linker stubs
 
-.vfp11_veneer   0x0007cb78        0x0
- .vfp11_veneer  0x0007cb78        0x0 linker stubs
+.vfp11_veneer   0x0007cb80        0x0
+ .vfp11_veneer  0x0007cb80        0x0 linker stubs
 
-.v4_bx          0x0007cb78        0x0
- .v4_bx         0x0007cb78        0x0 linker stubs
+.v4_bx          0x0007cb80        0x0
+ .v4_bx         0x0007cb80        0x0 linker stubs
 
-.iplt           0x0007cb78        0x0
- .iplt          0x0007cb78        0x0 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
+.iplt           0x0007cb80        0x0
+ .iplt          0x0007cb80        0x0 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
 
 .ARM.extab
  *(.ARM.extab* .gnu.linkonce.armextab.*)
-                0x0007cb78                __exidx_start = .
+                0x0007cb80                __exidx_start = .
 
-.ARM.exidx      0x0007cb78        0x8
+.ARM.exidx      0x0007cb80        0x8
  *(.ARM.exidx* .gnu.linkonce.armexidx.*)
- .ARM.exidx     0x0007cb78        0x8 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard/crt0.o
- .ARM.exidx     0x0007cb80        0x0 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_udivmoddi4.o)
+ .ARM.exidx     0x0007cb80        0x8 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard/crt0.o
+ .ARM.exidx     0x0007cb88        0x0 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_udivmoddi4.o)
                                   0x8 (size before relaxing)
-                0x0007cb80                __exidx_end = .
-                0x0007cb80                __etext = .
+                0x0007cb88                __exidx_end = .
+                0x0007cb88                __etext = .
 
-.rel.dyn        0x0007cb80        0x0
- .rel.iplt      0x0007cb80        0x0 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
+.rel.dyn        0x0007cb88        0x0
+ .rel.iplt      0x0007cb88        0x0 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
 
-.data           0x20000004       0x78 load address 0x0007cb80
+.data           0x20000004       0x78 load address 0x0007cb88
                 0x20000004                __data_start__ = .
  *(vtable)
  *(.data*)
@@ -923,7 +923,7 @@ END GROUP
                 0x20000008        0x1 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
  *fill*         0x20000009        0x3 
  .data.SystemCoreClock
-                0x2000000c        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+                0x2000000c        0x4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
                 0x2000000c                SystemCoreClock
  .data.impure_data
                 0x20000010       0x60 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-impure.o)
@@ -949,10 +949,10 @@ END GROUP
                 0x2000007c                . = ALIGN (0x4)
                 0x2000007c                __data_end__ = .
 
-.igot.plt       0x2000007c        0x0 load address 0x0007cbf8
+.igot.plt       0x2000007c        0x0 load address 0x0007cc00
  .igot.plt      0x2000007c        0x0 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard/crtbegin.o
 
-.bss            0x2000007c      0x790 load address 0x0007cbf8
+.bss            0x2000007c      0x790 load address 0x0007cc00
                 0x2000007c                . = ALIGN (0x4)
                 0x2000007c                __bss_start__ = .
  *(.bss*)
@@ -966,7 +966,7 @@ END GROUP
  .bss.m_timeout_action
                 0x20000131        0x1 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
  *fill*         0x20000132        0x2 
- .bss.rsp_cmd.11372
+ .bss.rsp_cmd.11425
                 0x20000134       0x18 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
  .bss.g_packet_pool
                 0x2000014c      0x500 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
@@ -1006,19 +1006,19 @@ END GROUP
                 0x20000810                __end__ = .
                 [!provide]                PROVIDE (end, .)
  *(.heap*)
- .heap          0x20000810     0x2000 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+ .heap          0x20000810     0x2000 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
                 0x20002810                __HeapLimit = .
 
 .stack_dummy    0x20000810     0x2000
  *(.stack*)
- .stack         0x20000810     0x2000 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+ .stack         0x20000810     0x2000 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
                 0x2000fd00                __StackTop = (ORIGIN (RAM) + LENGTH (RAM))
                 0x2000dd00                __StackLimit = (__StackTop - SIZEOF (.stack_dummy))
                 0x2000fd00                PROVIDE (__stack, __StackTop)
                 0x00000001                ASSERT ((__StackLimit >= __HeapLimit), region RAM overflowed with stack)
                 0x00000078                DataInitFlashUsed = (__bss_start__ - __data_start__)
-                0x00004b80                CodeFlashUsed = (__etext - ORIGIN (FLASH))
-                0x00004bf8                TotalFlashUsed = (CodeFlashUsed + DataInitFlashUsed)
+                0x00004b88                CodeFlashUsed = (__etext - ORIGIN (FLASH))
+                0x00004c00                TotalFlashUsed = (CodeFlashUsed + DataInitFlashUsed)
                 0x00000001                ASSERT ((TotalFlashUsed <= LENGTH (FLASH)), region FLASH overflowed with .data and user data)
 OUTPUT(mesh\bootloader\mesh_bootloader_gccarmemb_nrf52832_xxAA.elf elf32-littlearm)
 
@@ -1065,11 +1065,11 @@ OUTPUT(mesh\bootloader\mesh_bootloader_gccarmemb_nrf52832_xxAA.elf elf32-littlea
  .ARM.attributes
                 0x00000406       0x39 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .ARM.attributes
-                0x0000043f       0x39 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
+                0x0000043f       0x39 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
  .ARM.attributes
-                0x00000478       0x39 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+                0x00000478       0x39 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
  .ARM.attributes
-                0x000004b1       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
+                0x000004b1       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/gcc_startup_nrf52.S.obj
  .ARM.attributes
                 0x000004d1       0x22 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_lshrdi3.o)
  .ARM.attributes
@@ -1118,29 +1118,29 @@ OUTPUT(mesh\bootloader\mesh_bootloader_gccarmemb_nrf52832_xxAA.elf elf32-littlea
  .comment       0x0000007f       0x80 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
  .comment       0x0000007f       0x80 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
  .comment       0x0000007f       0x80 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- .comment       0x0000007f       0x80 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
- .comment       0x0000007f       0x80 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+ .comment       0x0000007f       0x80 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
+ .comment       0x0000007f       0x80 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
 
-.debug_info     0x00000000    0x1aea8
- .debug_info    0x00000000     0x34c0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
- .debug_info    0x000034c0     0x232c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
- .debug_info    0x000057ec     0x1c12 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
- .debug_info    0x000073fe      0x783 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_rtc.c.obj
- .debug_info    0x00007b81      0x8fd mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_util.c.obj
- .debug_info    0x0000847e     0x2281 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
- .debug_info    0x0000a6ff     0x35ca mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
- .debug_info    0x0000dcc9      0xed9 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
- .debug_info    0x0000eba2     0x16f4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
- .debug_info    0x00010296      0xc77 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
- .debug_info    0x00010f0d     0x1523 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/main.c.obj
- .debug_info    0x00012430     0x12ec mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
- .debug_info    0x0001371c      0x641 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/nrf_flash.c.obj
- .debug_info    0x00013d5d     0x16a2 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
- .debug_info    0x000153ff      0x34d mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
- .debug_info    0x0001574c     0x1b7a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
- .debug_info    0x000172c6     0x1ecf mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- .debug_info    0x00019195      0xc21 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
- .debug_info    0x00019db6     0x10f2 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+.debug_info     0x00000000    0x1af38
+ .debug_info    0x00000000     0x34e4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
+ .debug_info    0x000034e4     0x233b mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
+ .debug_info    0x0000581f     0x1c12 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+ .debug_info    0x00007431      0x783 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_rtc.c.obj
+ .debug_info    0x00007bb4      0x8fd mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_util.c.obj
+ .debug_info    0x000084b1     0x2291 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
+ .debug_info    0x0000a742     0x35ca mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+ .debug_info    0x0000dd0c      0xed9 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
+ .debug_info    0x0000ebe5     0x16f4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+ .debug_info    0x000102d9      0xc77 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
+ .debug_info    0x00010f50     0x1533 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/main.c.obj
+ .debug_info    0x00012483     0x12fb mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
+ .debug_info    0x0001377e      0x650 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/nrf_flash.c.obj
+ .debug_info    0x00013dce     0x16a2 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
+ .debug_info    0x00015470      0x34d mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
+ .debug_info    0x000157bd     0x1b7a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+ .debug_info    0x00017337     0x1ecf mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+ .debug_info    0x00019206      0xc21 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
+ .debug_info    0x00019e27     0x1111 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
 
 .debug_abbrev   0x00000000     0x3ce2
  .debug_abbrev  0x00000000      0x467 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
@@ -1160,8 +1160,8 @@ OUTPUT(mesh\bootloader\mesh_bootloader_gccarmemb_nrf52832_xxAA.elf elf32-littlea
  .debug_abbrev  0x00002fd4      0x179 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
  .debug_abbrev  0x0000314d      0x4b9 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
  .debug_abbrev  0x00003606      0x292 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- .debug_abbrev  0x00003898      0x24a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
- .debug_abbrev  0x00003ae2      0x200 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+ .debug_abbrev  0x00003898      0x24a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
+ .debug_abbrev  0x00003ae2      0x200 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
 
 .debug_loc      0x00000000     0x5cd7
  .debug_loc     0x00000000      0x54b mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
@@ -1181,7 +1181,7 @@ OUTPUT(mesh\bootloader\mesh_bootloader_gccarmemb_nrf52832_xxAA.elf elf32-littlea
  .debug_loc     0x00003df8      0x12d mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
  .debug_loc     0x00003f25      0x583 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
  .debug_loc     0x000044a8     0x12f8 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- .debug_loc     0x000057a0      0x537 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
+ .debug_loc     0x000057a0      0x537 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
 
 .debug_aranges  0x00000000      0x768
  .debug_aranges
@@ -1219,9 +1219,9 @@ OUTPUT(mesh\bootloader\mesh_bootloader_gccarmemb_nrf52832_xxAA.elf elf32-littlea
  .debug_aranges
                 0x00000648       0xb0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
  .debug_aranges
-                0x000006f8       0x38 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
+                0x000006f8       0x38 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
  .debug_aranges
-                0x00000730       0x38 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+                0x00000730       0x38 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
 
 .debug_ranges   0x00000000      0xe08
  .debug_ranges  0x00000000       0xf0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
@@ -1241,69 +1241,69 @@ OUTPUT(mesh\bootloader\mesh_bootloader_gccarmemb_nrf52832_xxAA.elf elf32-littlea
  .debug_ranges  0x00000ab8       0x20 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
  .debug_ranges  0x00000ad8      0x148 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
  .debug_ranges  0x00000c20      0x198 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- .debug_ranges  0x00000db8       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
- .debug_ranges  0x00000de0       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+ .debug_ranges  0x00000db8       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
+ .debug_ranges  0x00000de0       0x28 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
 
-.debug_line     0x00000000     0x4cdd
- .debug_line    0x00000000      0x6c7 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
- .debug_line    0x000006c7      0x449 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
- .debug_line    0x00000b10      0x604 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
- .debug_line    0x00001114      0x1e4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_rtc.c.obj
- .debug_line    0x000012f8      0x135 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_util.c.obj
- .debug_line    0x0000142d      0x514 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
- .debug_line    0x00001941      0x8a8 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
- .debug_line    0x000021e9      0x3df mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
- .debug_line    0x000025c8      0x448 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
- .debug_line    0x00002a10      0x329 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
- .debug_line    0x00002d39      0x2f0 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/main.c.obj
- .debug_line    0x00003029      0x44b mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
- .debug_line    0x00003474      0x1ef mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/nrf_flash.c.obj
- .debug_line    0x00003663      0x3aa mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
- .debug_line    0x00003a0d      0x1e3 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
- .debug_line    0x00003bf0      0x55e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
- .debug_line    0x0000414e      0x520 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- .debug_line    0x0000466e      0x424 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
- .debug_line    0x00004a92      0x24b mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+.debug_line     0x00000000     0x4e8c
+ .debug_line    0x00000000      0x703 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
+ .debug_line    0x00000703      0x461 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
+ .debug_line    0x00000b64      0x61c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+ .debug_line    0x00001180      0x1f4 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_rtc.c.obj
+ .debug_line    0x00001374      0x135 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_util.c.obj
+ .debug_line    0x000014a9      0x53c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
+ .debug_line    0x000019e5      0x8c8 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+ .debug_line    0x000022ad      0x3f7 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
+ .debug_line    0x000026a4      0x458 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+ .debug_line    0x00002afc      0x339 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
+ .debug_line    0x00002e35      0x308 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/main.c.obj
+ .debug_line    0x0000313d      0x463 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
+ .debug_line    0x000035a0      0x1ff mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/nrf_flash.c.obj
+ .debug_line    0x0000379f      0x3c5 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
+ .debug_line    0x00003b64      0x1f3 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
+ .debug_line    0x00003d57      0x576 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
+ .debug_line    0x000042cd      0x520 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
+ .debug_line    0x000047ed      0x444 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
+ .debug_line    0x00004c31      0x25b mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
 
-.debug_str      0x00000000     0x4599
- .debug_str     0x00000000     0x226a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
-                               0x24ad (size before relaxing)
- .debug_str     0x0000226a      0x2da mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
-                               0x195e (size before relaxing)
- .debug_str     0x00002544      0x51d mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
+.debug_str      0x00000000     0x45a9
+ .debug_str     0x00000000     0x2278 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
+                               0x24c4 (size before relaxing)
+ .debug_str     0x00002278      0x2da mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_app_bridge.c.obj
+                               0x195d (size before relaxing)
+ .debug_str     0x00002552      0x51d mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_info.c.obj
                                0x1087 (size before relaxing)
- .debug_str     0x00002a61       0x52 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_rtc.c.obj
-                                0x696 (size before relaxing)
- .debug_str     0x00002ab3       0x3f mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_util.c.obj
+ .debug_str     0x00002a6f       0x52 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_rtc.c.obj
+                                0x69f (size before relaxing)
+ .debug_str     0x00002ac1       0x3f mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader_util.c.obj
                                 0x5f3 (size before relaxing)
- .debug_str     0x00002af2      0x182 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
-                               0x178b (size before relaxing)
- .debug_str     0x00002c74      0x7d8 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
-                               0x1b70 (size before relaxing)
- .debug_str     0x0000344c      0x114 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
+ .debug_str     0x00002b00      0x182 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_bank.c.obj
+                               0x1794 (size before relaxing)
+ .debug_str     0x00002c82      0x7d8 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_mesh.c.obj
+                               0x1b6f (size before relaxing)
+ .debug_str     0x0000345a      0x114 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_transfer_mesh.c.obj
                                 0xa23 (size before relaxing)
- .debug_str     0x00003560      0x140 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
+ .debug_str     0x0000356e      0x140 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/dfu_util.c.obj
                                0x10f6 (size before relaxing)
- .debug_str     0x000036a0       0x68 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
+ .debug_str     0x000036ae       0x68 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/fifo.c.obj
                                 0x6e2 (size before relaxing)
- .debug_str     0x00003708      0x1bd mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/main.c.obj
-                                0xe79 (size before relaxing)
- .debug_str     0x000038c5      0x170 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
-                                0xaa8 (size before relaxing)
- .debug_str     0x00003a35       0x9a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/nrf_flash.c.obj
-                                0x3f2 (size before relaxing)
- .debug_str     0x00003acf      0x461 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
-                                0xecc (size before relaxing)
+ .debug_str     0x00003716      0x1bd mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/main.c.obj
+                                0xe82 (size before relaxing)
+ .debug_str     0x000038d3      0x170 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/mesh_packet.c.obj
+                                0xaa7 (size before relaxing)
+ .debug_str     0x00003a43       0x9a mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/nrf_flash.c.obj
+                                0x3f1 (size before relaxing)
+ .debug_str     0x00003add      0x453 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/radio_control.c.obj
+                                0xed5 (size before relaxing)
  .debug_str     0x00003f30       0x7d mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
-                                0x2f5 (size before relaxing)
+                                0x2f4 (size before relaxing)
  .debug_str     0x00003fad      0x1b7 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
-                                0xfcd (size before relaxing)
+                                0xfd6 (size before relaxing)
  .debug_str     0x00004164      0x2a3 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
                                 0x4b8 (size before relaxing)
- .debug_str     0x00004407       0x74 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
-                                0x6cc (size before relaxing)
- .debug_str     0x0000447b      0x11e mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
-                                0x767 (size before relaxing)
+ .debug_str     0x00004407       0x7c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
+                                0x6d4 (size before relaxing)
+ .debug_str     0x00004483      0x126 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
+                                0x778 (size before relaxing)
 
 .debug_frame    0x00000000     0x14ec
  .debug_frame   0x00000000      0x138 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/bootloader.c.obj
@@ -1323,8 +1323,8 @@ OUTPUT(mesh\bootloader\mesh_bootloader_gccarmemb_nrf52832_xxAA.elf elf32-littlea
  .debug_frame   0x00000e60       0x60 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/rand.c.obj
  .debug_frame   0x00000ec0      0x1cc mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/transport.c.obj
  .debug_frame   0x0000108c      0x22c mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/src/uECC.c.obj
- .debug_frame   0x000012b8       0x98 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/components/libraries/sha256/sha256.c.obj
- .debug_frame   0x00001350       0x58 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/sdks/nRF5_SDK_15.0.0_a53641a/modules/nrfx/mdk/system_nrf52.c.obj
+ .debug_frame   0x000012b8       0x98 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/components/libraries/sha256/sha256.c.obj
+ .debug_frame   0x00001350       0x58 mesh/bootloader/CMakeFiles/mesh_bootloader_gccarmemb_nrf52832_xxAA.dir/C_/m/.venv/common/nRF5_SDK_15.2.0_9412b96/modules/nrfx/mdk/system_nrf52.c.obj
  .debug_frame   0x000013a8       0x2c c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_aeabi_uldivmod.o)
  .debug_frame   0x000013d4       0x34 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/thumb/v7e-m/fpv4-sp/hard\libgcc.a(_udivmoddi4.o)
  .debug_frame   0x00001408       0x28 c:/a/gcc_arm/6/bin/../lib/gcc/arm-none-eabi/6.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m/fpv4-sp/hard\libg_nano.a(lib_a-exit.o)

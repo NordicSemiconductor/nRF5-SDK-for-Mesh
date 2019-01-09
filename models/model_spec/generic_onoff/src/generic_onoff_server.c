@@ -217,4 +217,3 @@ uint32_t generic_onoff_server_status_publish(generic_onoff_server_t * p_server, 
 
     return status_send(p_server, NULL, p_params);
 }
-

@@ -55,9 +55,10 @@ typedef struct
         uint32_t payload_len;
         /** The bearer on which the outgoing packets are to be sent on. Alternatively, use CORE_TX_BEARER_TYPE_ALLOW_ALL to allow allocation to all bearers. */
         core_tx_bearer_type_t bearer_selector;
+        /** Role this device has for the packet. */
+        core_tx_role_t role;
     } user_data;
 
-    core_tx_role_t role;
 
     /** Pointer to the network data, set in the allocation. */
     uint8_t * p_payload;

@@ -67,7 +67,8 @@ used to set the initial state of the provisioning context:
   can be used with the node. If no authentication is used, only the `algorithm` field
   must be set.
 
-For example, see `prov_helper_provisioner_init()` in the static provisioner example (`\examples\light-switch\provisioner\src\provisioner_helper.c`).
+For example, see `prov_helper_provisioner_init()` in the static provisioner
+example (`/examples/light-switch/provisioner/src/provisioner_helper.c`).
 
 For regular mesh devices (i.e. the devices exhibiting the Node role), the initialization of the
 provisioning stack is encapsulated by the @ref MESH_STACK.

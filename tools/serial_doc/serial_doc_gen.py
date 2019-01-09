@@ -79,6 +79,7 @@ PARAM_LENGTHS = {
     'nrf_mesh_dfu_type_t'   : 1,
     'nrf_mesh_dfu_state_t'  : 1,
     'nrf_mesh_dfu_packet_t' : 24,
+    'nrf_mesh_tx_token_t'   : 4,
     'access_model_id_t'     : 4,
     'dsm_handle_t'          : 2,
     'access_model_handle_t' : 2,

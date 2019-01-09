@@ -60,6 +60,7 @@ typedef struct
     uint16_t configured_devices;
     uint16_t last_device_address;
     uint16_t next_device_address;
+    const char * p_client_uri;
 
     uint8_t  netkey[NRF_MESH_KEY_SIZE];
     uint8_t  appkey[NRF_MESH_KEY_SIZE];

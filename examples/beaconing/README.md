@@ -1,22 +1,18 @@
 # Beaconing example
 
-This example shows how to do concurrent beaconing, allowing an application to
-advertise beacons (such as iBeacon or Eddystone beacons) while at the same time
-participating in the mesh network. The example illustrates usage of the Packet RX
-callback functionality and application usage of advertisers.
+This example shows how to do concurrent beaconing, which allows an application to
+advertise beacons (such as iBeacon or Eddystone beacons) while participating
+in the mesh network. Moreover, it demonstrates the usage of the RX callback.
 
-## RX callback
+**Table of contents**
+- [Beacon sending](@ref beaconing_example_sending_beacons)
+- [RX callback](@ref beaconing_example_rx_callback)
+- [Hardware requirements](@ref beaconing_example_requirements_hw)
+- [Software requirements](@ref beaconing_example_requirements_sw)
+- [Setup](@ref beaconing_example_setup)
+- [Testing the example](@ref beaconing_example_testing)
 
-The RX callback must be registered in the mesh framework by calling
-`nrf_mesh_rx_cb_set()` (after `nrf_mesh_init()`). As input, the RX callback
-function takes a pointer to a parameter struct that
-contains all data available on the incoming packet.
-
-The RX callback is invoked for all packets that are processed by the mesh after the mesh
-itself has processed them. The mesh assumes that all incoming packets adhere to the
-Bluetooth low energy advertisement packet format.
-
-## Beacon transmission
+## Beacon sending @anchor beaconing_example_sending_beacons
 
 To send beacons, the application uses the mesh-internal packet manager and
 advertiser structure directly.
@@ -24,23 +20,71 @@ advertiser structure directly.
 The application first initializes the advertiser (initialization is needed only once).
 It then allocates and fills the fields of the packet. There is no need to set
 the packet type or advertisement address, because this is
-taken care of by the advertiser module. The application then schedules the packet
+taken care of by the advertiser module.
+
+After the initialization, the application schedules the packet
 for transmission by putting it in the TX queue of the advertiser, with a parameter
-indicating the number of repeats that the advertiser should do. In this example,
-the repeat count is set to `BEARER_ADV_REPEAT_INFINITE`, causing the packet to
+indicating the number of repeats that the advertiser will do. In this example,
+the repeat count is set to `BEARER_ADV_REPEAT_INFINITE`, which causes the packet to
 be retransmitted forever or until replaced by a different packet.
 
-> **Important:** Using the packet manager and advertiser directly makes the
-> application compete for the same resources as the core mesh framework. Incorrect or
-> heavy usage will affect mesh performance or stability. Treat these modules
-> with caution.
+@warning
+Using the packet manager and advertiser directly makes the
+application compete for the same resources as the core mesh framework. Incorrect or
+heavy usage will affect mesh performance or stability. Treat these modules
+with caution.
 
-## Running the example
+## RX callback @anchor beaconing_example_rx_callback
 
-To build the example, follow the instructions in
-[Building the Mesh Stack](@ref md_doc_getting_started_how_to_build). For commands required to program a device using `nrfjprog`,
-see the [Running examples using nrfjprog](@ref how_to_run_examples_nrfjprog) section on the @ref md_doc_getting_started_how_to_run_examples page.
+The beaconing example also demonstrates the usage of the Packet RX
+callback. This functionality allows to receive  all non-filtered,
+BLE-compliant advertisement packets in the application code.
+These packets are captured by @ref SCANNER.
 
-Once running, the example outputs all incoming packets over [RTT](@ref segger-rtt). Outgoing
-beacons can be observed with @link_nRFConnectDesktop<!-- https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Connect-for-desktop -->
-or @link_nRFConnectMobile<!-- https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Connect-for-mobile -->.
+The `ble_packet_type_t` type lists all advertisement packets that it is possible
+to receive. Once a new packet is captured by the Scanner, it is passed through the provided
+RX callback to the user application.
+
+To listen to advertisement packets, the example registers the RX callback by calling
+`nrf_mesh_rx_cb_set()`. As input, the RX callback function takes a pointer to a parameter struct
+that contains all data available on the incoming packet.
+
+The RX callback is invoked for all packets that are processed by the mesh after the mesh
+itself has processed them. The mesh assumes that all incoming packets adhere to the
+Bluetooth Low Energy advertisement packet format.
+
+---
+
+## Hardware requirements @anchor beaconing_example_requirements_hw
+
+You need one supported development kit board for this beaconing example.
+
+See @ref md_doc_introduction_mesh_compatibility for information about
+the supported boards.
+
+---
+
+## Software requirements @anchor beaconing_example_requirements_sw
+
+You need to install nRF Connect in one of the following versions:
+- @link_nRFConnectDesktop
+- @link_nRFConnectMobile
+
+
+---
+
+## Setup @anchor beaconing_example_setup
+
+You can find the source code of the beaconing example in the following folder: `<InstallFolder>/examples/beaconing`
+
+---
+
+## Testing the example @anchor beaconing_example_testing
+
+To test the beaconing example:
+1. Build the example by following the instructions in [Building the mesh stack](@ref md_doc_getting_started_how_to_build).
+2. Program the board by following the instructions in @ref md_doc_getting_started_how_to_run_examples.
+3. Connect [RTT viewer](@ref segger-rtt) to see the RTT output generated by the beaconing example in the RTT log.
+
+Once the example is running, it outputs all incoming packets over RTT. Outgoing
+beacons can be observed with nRF Connect for Desktop or nRF Connect for Mobile.

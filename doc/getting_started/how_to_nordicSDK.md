@@ -5,6 +5,7 @@ You can either:
 - [include nRF5 SDK for Mesh functionalities in an nRF5 SDK example](@ref coexistence_mesh_in_nrf5_sdk).
 
 See @ref md_doc_getting_started_how_to_build for information on how to download and install the nRF5 SDK.
+See @ref md_examples_sdk_coexist_README examples to see how the nRF5 SDK features can be simultaneously used with nRF5 SDK for Mesh.
 
 @note
 * nRF5 SDK integration is only tested with nRF5 SDK version 15.2.
@@ -37,9 +38,6 @@ SES project file.
 - When building the nRF5 SDK for Mesh stack using CMake, add code files and include paths to the corresponding CMakeLists.txt file.
 The SDK_ROOT root symbol is used to refer to the nRF5 SDK installation folder
 (see e.g. `CMakeLists.txt` in the Light Switch Server example).
-
-### Examples
-See @ref md_examples_sdk_coexist_README examples to see how the nRF5 SDK features can be simultaneously used with nRF5 SDK for Mesh.
 
 
 ---

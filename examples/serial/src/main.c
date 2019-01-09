@@ -47,6 +47,7 @@
 #include "mesh_opt_prov.h"
 #include "app_timer.h"
 #include "example_common.h"
+#include "nrf_mesh_configure.h"
 
 static bool m_device_provisioned;
 
@@ -88,6 +89,9 @@ static void initialize(void)
 static void start(void)
 {
     ERROR_CHECK(nrf_mesh_serial_enable());
+
+    mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());
+
     ERROR_CHECK(mesh_stack_start());
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Bluetooth Mesh Serial Interface Application started!\n");

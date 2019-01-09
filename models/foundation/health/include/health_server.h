@@ -126,6 +126,8 @@ struct __health_server_t
  * message. This is done by dividing the current publishing interval with 2<sup>fast period interval</sup>
  * and using the result as the new publishing interval.
  *
+ * @note The fast publishing interval will never go lower than 100 ms.
+ *
  * @param[in,out] p_server   Pointer to a server instance.
  * @param[in]     fault_code ID of the fault to register.
  *

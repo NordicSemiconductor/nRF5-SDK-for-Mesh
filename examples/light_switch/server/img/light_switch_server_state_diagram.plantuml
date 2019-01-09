@@ -1,0 +1,5 @@
+@startuml
+[*] --> unprovisioned: Start listening for provisioning links
+unprovisioned --> unprovisioned: Provisioning failed
+unprovisioned --> provisioned: Provisioning complete
+@enduml

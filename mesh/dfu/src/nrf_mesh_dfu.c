@@ -71,8 +71,8 @@ NRF_MESH_STATIC_ASSERT(NRF_MESH_DFU_ROLE__LAST      <= UINT8_MAX);
 #define DFU_TX_DELAY_RANDOMIZATION_MASK_US  (0xFFFF)    /**< Maximum variation in TX time offsets. */
 #define DFU_TX_TIMER_MARGIN_US              (1000)      /**< Time margin for a timeout to be considered instant. */
 
-#define TIMER_START_TIMEOUT_US              (50000000)  /**< Time to wait for first data during a transfer. */
-#define TIMER_DATA_TIMEOUT_US               (10000000)  /**< Time to wait for next data during a transfer. */
+#define TIMER_START_TIMEOUT_US              (600000000)  /**< Time to wait for first data during a transfer. */
+#define TIMER_DATA_TIMEOUT_US               (600000000)  /**< Time to wait for next data during a transfer. */
 /*****************************************************************************
 * Local typedefs
 *****************************************************************************/

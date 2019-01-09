@@ -95,6 +95,7 @@ typedef struct
     uint32_t length;
 } prov_helper_uuid_filter_t;
 
+/** Parameter structure used during the initialization of provisioner helper module. */
 typedef struct
 {
     /** Application-specific structure storing dsm handles */
@@ -114,12 +115,7 @@ typedef struct
 } mesh_provisioner_init_params_t;
 
 /** Initializes the provisioner, but does not start the scan.
- * @param[in] p_dev_hdls            Pointer to device handle data structure. This is required by
- * the provisioner library to maintain the list of device keys and address handles.
- * @param[in] p_dev_nw_state         Pointer to device network data structure. This is
- * @param[in] prov_lib_cb           Application callback function for this library
- * @param[in] prov_process_cb       Application callback function for the provisioning process
- *
+ * @param[in] p_prov_init_info   Pointer to the @ref mesh_provisioner_init_params_t structure.
  */
 void prov_helper_init(mesh_provisioner_init_params_t * p_prov_init_info);
 
@@ -137,20 +133,17 @@ void prov_helper_scan_start(void);
  * @param[in]  retry_cnt        Number of times, provisioning process will be re-run, if it fails.
  * @param[in]  address          The address specified here will be used by the provisioner as a
  *                              start address (unicast address) for the unprovisioned device.
- * @param[in]  uuid_filter      Structure of the type @prov_helper_uuid_filter_t containing pointer
- *                              to uuid filter array (p_uuid) and length of the filter (length).
- *                              If `uuid_filter->p_uuid` is set to NULL or if `uuid_filter->length`
- *                              is zero provisioner helper will provision the next unprovisioned
- *                              device it sees.
- * @param[out] p_current_uuid   Buffer to copy the full UUID of the node being provisioned.
+ * @param[in]  p_uri_filter     Pointer to the list of acceptable Uniform Resource Identifier
+ *                              string pointers.
+ * @param[in]  uri_count        Number of entries present in the `p_uri_filter` list.
  *
  * @note In this example, we know that our light switch servers only have _one_ element,
  *       therefore their unicast addresses will be sequential. This assumption does not hold
  *       in general.
  */
 void prov_helper_provision_next_device(uint8_t retry_cnt, uint16_t address,
-                                       prov_helper_uuid_filter_t * p_uuid_filter,
-                                       uint8_t * p_current_uuid);
+                                       const char **p_uri_filter,
+                                       uint8_t uri_count);
 
 /** Initializes the local node by adding self address, self device key, and by binding models. */
 void prov_helper_provision_self(void);
@@ -169,14 +162,6 @@ uint32_t prov_helper_element_count_get(void);
  * Retrieves stored handles for the netkey, appkey and self device key.
  */
 void prov_helper_device_handles_load(void);
-
-/**
- * Compares the given UUID with the UUID filter
- *
- * @param[in] p_in_uuid         Input UUID
- * @param[in] p_expected_uuid   Expected UUID filter
- */
-bool uuid_filter_compare(const uint8_t *p_in_uuid, const prov_helper_uuid_filter_t * p_expected_uuid);
 
 /** @} end of PROVISIONER_HELPER */
 

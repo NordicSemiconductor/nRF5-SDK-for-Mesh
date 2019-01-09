@@ -15,7 +15,6 @@ note over a: init_params defines UUID, core params\n and event callbacks
 a -> ah: ble_stack_init()
 a -> ah: gap_params_init()
 a -> ah: conn_params_init()
-a -> ah: mesh_app_uuid_gen()
 a -> c: mesh_stack_init(...)
 c -> core: Initialize: Mesh and Foundation models
 ... ...

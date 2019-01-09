@@ -65,6 +65,8 @@
 
 /** rx_count index to treat as current. */
 #define RX_COUNT_SAMPLE_INDEX_CURRENT 0
+#define BEACON_INTERVAL_UPPER_LIMIT_S  600
+
 /*****************************************************************************
 * Local typedefs
 *****************************************************************************/
@@ -185,12 +187,18 @@ static inline uint32_t beacon_interval_in_seconds(const nrf_mesh_beacon_tx_info_
      * The interval calculation can be simplified:
      * Beacon interval = 10s * P * (Observed beacons + 1) / P = 10s * (Observed beacons + 1)
      */
+    /* todo MBTLE-3024
+     * It works only if beacons are transmitted evenly.
+     * If beacons are concentrated in 1-2 ten seconds interval then the stack will allow
+     * after 30 seconds to transmit again. */
     uint32_t observed_beacons = 0;
     for (uint32_t period = 0; period < ARRAY_SIZE(p_tx_info->rx_count); ++period)
     {
         observed_beacons += p_tx_info->rx_count[period];
     }
-    return NRF_MESH_BEACON_SECURE_NET_BCAST_INTERVAL_SECONDS * (observed_beacons + 1);
+
+    uint32_t interval = NRF_MESH_BEACON_SECURE_NET_BCAST_INTERVAL_SECONDS * (observed_beacons + 1);
+    return MIN(interval, BEACON_INTERVAL_UPPER_LIMIT_S);
 }
 
 /**
@@ -287,10 +295,12 @@ static uint32_t beacon_setter(mesh_config_entry_id_t entry_id, const void * p_en
     /* Enable the beacon from disabled state: */
     if (!m_enabled && enabled)
     {
+        advertiser_enable(&m_adv);
         timer_sch_reschedule((timer_event_t *) &m_tx_timer, timer_now() + m_tx_timer.interval);
     }
     else if (m_enabled && !enabled)
     {
+        advertiser_disable(&m_adv);
         timer_sch_abort((timer_event_t *) & m_tx_timer);
     }
 
@@ -313,7 +323,7 @@ MESH_CONFIG_ENTRY(net_beacon_enable,
                   beacon_setter,
                   beacon_getter,
                   NULL,
-                  &m_enabled);
+                  true);
 
 /*****************************************************************************
 * Interface functions

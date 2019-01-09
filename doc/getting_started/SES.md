@@ -12,6 +12,10 @@ The `SDK_ROOT` macro can be set by navigating to Tools -> Options, then
 contain `SDK_ROOT=<the path to your nRF5 SDK 15 instance>`. Save the
 configuration.
 
+**NOTE:** Some functionality in Segger Embedded Studio does not work properly
+with Windows-style path separators. Make sure you only use forward slashes in
+your path macros.
+
 The path can be verified by opening one of the source files under the "nRF5 SDK"
 file group. If the macro was set correctly, the file should open in the editor
 window. If not, it will show an error message telling you that the file couldn't

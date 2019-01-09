@@ -66,6 +66,22 @@
  * @{
  */
 
+/**
+ * PB-ADV feature.
+ *
+ * This feature should normally always be enabled. Without it, a node cannot be
+ * provisioned over the advertising bearer. You can disable this feature to save
+ * power when the device is acting as a Low Power node.
+ */
+#ifndef MESH_FEATURE_PB_ADV_ENABLED
+#define MESH_FEATURE_PB_ADV_ENABLED 1
+#endif
+
+/** PB-GATT feature. To be enabled only in combination with linking GATT files. */
+#ifndef MESH_FEATURE_PB_GATT_ENABLED
+#define MESH_FEATURE_PB_GATT_ENABLED 0
+#endif
+
 /** The default advertisement interval of the unprovisioned beacon. Meant for PB-ADV. */
 #ifndef NRF_MESH_PROV_BEARER_ADV_UNPROV_BEACON_INTERVAL_MS
 #define NRF_MESH_PROV_BEARER_ADV_UNPROV_BEACON_INTERVAL_MS 2000

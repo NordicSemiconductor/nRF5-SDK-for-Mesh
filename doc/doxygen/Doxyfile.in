@@ -292,6 +292,9 @@ link_nrf5xclt_download="<a href="https://www.nordicsemi.com/DocLib/Content/User_
 link_cmake_download="<a href="https://cmake.org/download/" target="_blank">CMake</a>" \
 link_ninja_download="<a href="https://github.com/ninja-build/ninja/releases" target="_blank">Ninja</a>" \
 link_nrf5SDK_download="<a href="https://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v15.x.x/" target="_blank">nRF5 SDK</a>" \
+link_nrf_connect_mobile_ios="<a href=\"https://itunes.apple.com/us/app/nrf-connect/id1054362403\">iOS</a>" \
+link_nrf_connect_mobile_android="<a href=\"https://play.google.com/store/apps/details?id=no.nordicsemi.android.mcp\">Android</a>" \
+link_nrf_connect_for_desktop="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Connect-for-desktop\">nRF Connect for Desktop</a>" \
 
 # grfe: Links to the documentation library must provide the full path.
 ALIASES               += \
@@ -315,7 +318,23 @@ link_BLE_stack="[BLE stack](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nR
 link_GAP="[Generic Access Profile (GAP)](https://www.nordicsemi.com/DocLib/Content/SoftDevice_API_Doc/S132/v6-1-0/group_ble_gap)" \
 link_BLE_CPN="[Connection Parameters Negotiation](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/group__ble__conn__params)" \
 link_ble_app_proximity_example="[ble_app_proximity](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/ble_sdk_app_proximity)" \
-link_ble_app_uart_example="[ble_app_uart](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/ble_sdk_app_nus_eval)"
+link_ble_app_uart_example="[ble_app_uart](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/ble_sdk_app_nus_eval)" \
+link_buttonless_secure_dfu_service="[Buttonless Secure DFU Service](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/service_dfu.html)" \
+link_buttonless_secure_dfu_service_configuration="[Buttonless Secure DFU Service Configuration](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/service_dfu.html#secure_dfu_buttonless_configuration)" \
+link_bootloader_and_dfu_modules="[Bootloader and DFU modules](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/lib_bootloader_modules.html)" \
+link_working_with_keys="[Working with keys](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/lib_bootloader_dfu_keys.html)" \
+link_bootloader_signature_verification="[Signature Verification](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/lib_bootloader_dfu_validation.html#lib_bootloader_signatures)" \
+link_secure_bootloader="[Secure Bootloader example](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/ble_sdk_app_dfu_bootloader.html)" \
+link_bootloader_settings_page="[Bootloader Settings page](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/lib_bootloader.html#lib_bootloader_settings_page)" \
+link_programming_bootloader="[Programming the bootloader](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/lib_bootloader.html#lib_bootloader_programming)" \
+link_micro_ecc="[micro-ecc](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/lib_crypto_backend_micro_ecc.html#lib_crypto_backend_micro_ecc_install)" \
+link_nrfutil_nrf5_sdk="[nrfutil](https://www.nordicsemi.com/DocLib/Content/User_Guides/nrfutil/latest/UG/nrfutil/nrfutil_intro)" \
+link_nrfutil_installing="[Installing nrfutil](https://www.nordicsemi.com/en/DocLib/Content/User_Guides/nrfutil/latest/UG/nrfutil/nrfutil_installing)" \
+link_nrfutil_perform_dfu_over_ble="[Performing a DFU over BLE](https://www.nordicsemi.com/en/DocLib/Content/User_Guides/nrfutil/latest/UG/nrfutil/nrfutil_dfu_ble)" \
+link_nrfutil_bootloader_settings="[Generating and displaying bootloader settings](https://www.nordicsemi.com/en/DocLib/Content/User_Guides/nrfutil/latest/UG/nrfutil/nrfutil_settings_generate_display)" \
+link_nrfutil_generating_dfu_packages="[Generating DFU packages with nrfutil](https://www.nordicsemi.com/en/DocLib/Content/User_Guides/nrfutil/latest/UG/nrfutil/nrfutil_pkg)" \
+link_nrf_command_line_tools="[nRF5x Command Line Tools](https://www.nordicsemi.com/DocLib/Content/User_Guides/nrf5x_cltools/latest/UG/cltools/nrf5x_command_line_tools_lpage)" \
+link_app_data_area_size="[NRF_DFU_APP_DATA_AREA_SIZE](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/group__nrf__dfu__config.html#gafeca0997c1671ecd32a25d6c17b16af3)" \
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"
@@ -880,7 +899,6 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/models/model_spec/generic_ponoff/include" \
 "@PROJECT_SOURCE_DIR@/RELEASE_NOTES.md" \
 "@PROJECT_SOURCE_DIR@/MIGRATION_GUIDE.md" \
-"@PROJECT_SOURCE_DIR@/doc/migration" \
 "@PROJECT_SOURCE_DIR@/doc/OVERVIEW.md" \
 "@PROJECT_SOURCE_DIR@/mesh/bootloader/README.md" \
 "@PROJECT_SOURCE_DIR@/mesh/doc" \
@@ -894,11 +912,14 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/doc/demo_loopback.md" \
 "@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/doc/demo_sending_packets.md" \
 "@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/doc/demo_configuration.md" \
-"@PROJECT_SOURCE_DIR@/examples/pb_remote/client/README.md" \
-"@PROJECT_SOURCE_DIR@/examples/pb_remote/server/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/pb_remote/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/light_switch/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/light_switch/client/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/light_switch/server/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/light_switch/provisioner/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/experimental_dimming/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/experimental_lpn/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/experimental_lpn/dfu_ble.md" \
 "@PROJECT_SOURCE_DIR@/examples/experimental_lpn/bin/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/enocean_switch/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/dfu/README.md" \
@@ -999,6 +1020,9 @@ EXAMPLE_RECURSIVE      = NO
 IMAGE_PATH             = "@PROJECT_SOURCE_DIR@/mesh/doc" \
                          "@PROJECT_SOURCE_DIR@/models/experimental/pb_remote/doc" \
                          "@PROJECT_SOURCE_DIR@/examples/light_switch/img" \
+                         "@PROJECT_SOURCE_DIR@/examples/light_switch/client/img" \
+                         "@PROJECT_SOURCE_DIR@/examples/light_switch/server/img" \
+                         "@PROJECT_SOURCE_DIR@/examples/light_switch/provisioner/img" \
                          "@PROJECT_SOURCE_DIR@/examples/enocean_switch/img" \
                          "@PROJECT_SOURCE_DIR@/doc/getting_started/img" \
 						 "@PROJECT_SOURCE_DIR@/doc/introduction/img" \
