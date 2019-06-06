@@ -4,6 +4,7 @@ set(nRF5_SDK_15.2.0_9412b96_SOURCE_FILES
 
 set(nRF5_SDK_15.2.0_9412b96_INCLUDE_DIRS
     "${SDK_ROOT}/integration/nrfx"
+    "${SDK_ROOT}/components/libraries/memobj"
     "${SDK_ROOT}/components/libraries/util"
     "${SDK_ROOT}/components/libraries/timer"
     "${SDK_ROOT}/components/libraries/log"
