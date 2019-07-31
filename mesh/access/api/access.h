@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -48,7 +48,7 @@
  * The access layer API is the main API for Mesh Models.
  *
  * The access layer API provides a way for models to register into the device database,
- * and send and receive messages on the mesh. See @ref md_doc_getting_started_how_to_models for a
+ * and send and receive messages on the mesh. See @ref md_doc_libraries_how_to_models for a
  * walkthrough of the usage of the access layer API.
  *
  * @{
@@ -110,7 +110,7 @@
  * @return Expands to an initializer for an @ref access_model_id_t struct.
  * @see access_model_id_t
  */
-#define ACCESS_MODEL_VENDOR(id, company) (access_model_id_t) {.company_id = (company), .model_id = (id)}
+#define ACCESS_MODEL_VENDOR(id, company) {.company_id = (company), .model_id = (id)}
 
 /** Value used for TTL parameters in order to set the TTL to the default value. */
 #define ACCESS_TTL_USE_DEFAULT  (0xFF)
@@ -355,7 +355,8 @@ void access_clear(void);
  * @retval     NRF_SUCCESS               Successfully added model to the given element.
  * @retval     NRF_ERROR_NO_MEM          @ref ACCESS_MODEL_COUNT number of models already allocated.
  * @retval     NRF_ERROR_NULL            One or more of the function parameters was NULL.
- * @retval     NRF_ERROR_FORBIDDEN       Multiple model instances per element is not allowed.
+ * @retval     NRF_ERROR_FORBIDDEN       Either multiple model instances per element is not allowed
+ *                                       or changes to device composition are not allowed.
  * @retval     NRF_ERROR_NOT_FOUND       Invalid access element index.
  * @retval     NRF_ERROR_INVALID_LENGTH  Number of opcodes was zero and pointer to the list of
  *                                       opcode handler callbacks is not NULL.
@@ -377,6 +378,12 @@ uint32_t access_model_add(const access_model_add_params_t * p_model_params,
  * before previous re-tranmissions are finished, the remaining re-transmissions
  * attempts of the previous message will be skipped. the re-transmission attempt
  * will be skipped.
+ *
+ * @note The message will be sent as a segmented message and reassembled on the peer side if one of
+ * the following conditions are true:
+ * - The length of the message is greater than @ref NRF_MESH_UNSEG_PAYLOAD_SIZE_MAX.
+ * - The @p force_segmented field of @p p_message is true.
+ * - The @p transmic_size field of @p p_message is @ref NRF_MESH_TRANSMIC_SIZE_LARGE.
  *
  * @param[in] handle    Access handle for the model that wants to send data.
  * @param[in] p_message Access layer TX message parameter structure.
@@ -403,6 +410,12 @@ uint32_t access_model_publish(access_model_handle_t handle, const access_message
  * This function is intended to be used in pair with the opcode handle callbacks; the model
  * gets a message through the @ref access_opcode_handler_cb_t "opcode handler callback" and
  * replies to the incoming message by calling this function.
+ *
+ * @note The message will be sent as a segmented message and reassembled on the peer side if one of
+ * the following conditions are true:
+ * - The length of the message is greater than @ref NRF_MESH_UNSEG_PAYLOAD_SIZE_MAX.
+ * - The @p force_segmented field of @p p_message is true.
+ * - The @p transmic_size field of @p p_message is @ref NRF_MESH_TRANSMIC_SIZE_LARGE.
  *
  * @param[in] handle    Access handle for the model that wants to send data.
  * @param[in] p_message Incoming message that the model is replying to.

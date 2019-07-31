@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -146,6 +146,8 @@ typedef struct
     access_model_state_data_t model_info;
     /** Model publication state. */
     access_model_publication_state_t publication_state;
+    /** Publish period divisor. */
+    uint16_t publish_divisor;
     /** Pointer to the list of opcodes with the corresponding callback functions. */
     const access_opcode_handler_t * p_opcode_handlers;
     /** Number of opcodes in list @ref p_opcode_handlers. */

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -122,6 +122,11 @@ static void successful_init_test(bool dsm_flash_config_load_return, bool access_
     mesh_config_load_Expect();
     dsm_local_unicast_addresses_get_Expect(NULL);
     dsm_local_unicast_addresses_get_IgnoreArg_p_address();
+
+    if (access_flash_config_load_return)
+    {
+        access_flash_config_store_Expect();
+    }
 
     dsm_local_unicast_address_t addresses = {.address_start = NRF_MESH_ADDR_UNASSIGNED, .count = 0};
     if (dsm_flash_config_load_return)
@@ -254,6 +259,10 @@ void test_mesh_stack_device_reset_flash_not_stable(void)
     nrf_mesh_evt_t evt;
     evt.type = NRF_MESH_EVT_FLASH_STABLE;
 
+    flash_manager_is_stable_ExpectAndReturn(false);
+    m_mesh_evt_cb(&evt);
+
+    flash_manager_is_stable_ExpectAndReturn(true);
     hal_device_reset_Expect(0);
     m_mesh_evt_cb(&evt);
 #endif

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -44,6 +44,8 @@
 #include "utils.h"
 #include "test_assert.h"
 #include "mesh_opt_core.h"
+#include "mesh_config_entry.h"
+#include "nrf_mesh_config_bearer.h"
 
 #define TOKEN   0x12345678
 
@@ -51,6 +53,10 @@ static advertiser_t * mp_advertisers[CORE_TX_ROLE_COUNT];
 
 static const core_tx_bearer_interface_t * mp_interface;
 static core_tx_bearer_t * mp_bearer;
+
+extern const mesh_config_entry_params_t m_mesh_opt_core_adv_params;
+extern const mesh_config_entry_params_t m_mesh_opt_core_tx_power_params;
+extern const mesh_config_entry_params_t m_mesh_opt_core_adv_addr_params;
 
 void setUp(void)
 {
@@ -72,10 +78,6 @@ void tearDown(void)
 *****************************************************************************/
 static const mesh_config_entry_params_t * entry_params_get(mesh_config_entry_id_t entry_id)
 {
-    extern const mesh_config_entry_params_t m_mesh_opt_core_adv_params;
-    extern const mesh_config_entry_params_t m_mesh_opt_core_tx_power_params;
-    extern const mesh_config_entry_params_t m_mesh_opt_core_adv_addr_params;
-
     if (IS_IN_RANGE(entry_id.record, MESH_OPT_CORE_ADV_RECORD_START, MESH_OPT_CORE_ADV_RECORD_END))
     {
         return &m_mesh_opt_core_adv_params;
@@ -320,4 +322,41 @@ void test_config(void)
     }
 
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, mesh_opt_core_tx_power_set(CORE_TX_ROLE_COUNT, tx_power));
+}
+
+void test_opt_deleters(void)
+{
+    mesh_config_entry_id_t entry_id = MESH_OPT_CORE_ADV_EID;
+
+    TEST_ASSERT_NOT_NULL(m_mesh_opt_core_adv_params.callbacks.getter);
+    TEST_ASSERT_NOT_NULL(m_mesh_opt_core_adv_params.callbacks.setter);
+    TEST_ASSERT_NOT_NULL(m_mesh_opt_core_adv_params.callbacks.deleter);
+
+    mp_advertisers[CORE_TX_ROLE_ORIGINATOR]->enabled = true;
+    advertiser_interval_set_Expect(mp_advertisers[CORE_TX_ROLE_ORIGINATOR], BEARER_ADV_INT_DEFAULT_MS);
+    m_mesh_opt_core_adv_params.callbacks.deleter(entry_id);
+
+    entry_id.record += CORE_TX_ROLE_RELAY;
+    mp_advertisers[CORE_TX_ROLE_RELAY]->enabled = false;
+    advertiser_enable_Expect(mp_advertisers[CORE_TX_ROLE_RELAY]);
+    advertiser_interval_set_Expect(mp_advertisers[CORE_TX_ROLE_RELAY], BEARER_ADV_INT_DEFAULT_MS);
+    m_mesh_opt_core_adv_params.callbacks.deleter(entry_id);
+
+    entry_id = MESH_OPT_CORE_TX_POWER_EID;
+    advertiser_tx_power_set_Expect(mp_advertisers[CORE_TX_ROLE_ORIGINATOR], RADIO_POWER_NRF_0DBM);
+    m_mesh_opt_core_tx_power_params.callbacks.deleter(entry_id);
+    entry_id.record += CORE_TX_ROLE_RELAY;
+    advertiser_tx_power_set_Expect(mp_advertisers[CORE_TX_ROLE_RELAY], RADIO_POWER_NRF_0DBM);
+    m_mesh_opt_core_tx_power_params.callbacks.deleter(entry_id);
+
+    entry_id = MESH_OPT_CORE_ADV_ADDR_EID;
+    advertiser_address_default_get_ExpectAnyArgs();
+    advertiser_address_set_Expect(mp_advertisers[CORE_TX_ROLE_ORIGINATOR], NULL);
+    advertiser_address_set_IgnoreArg_p_addr();
+    m_mesh_opt_core_adv_addr_params.callbacks.deleter(entry_id);
+    entry_id.record += CORE_TX_ROLE_RELAY;
+    advertiser_address_default_get_ExpectAnyArgs();
+    advertiser_address_set_Expect(mp_advertisers[CORE_TX_ROLE_RELAY], NULL);
+    advertiser_address_set_IgnoreArg_p_addr();
+    m_mesh_opt_core_adv_addr_params.callbacks.deleter(entry_id);
 }

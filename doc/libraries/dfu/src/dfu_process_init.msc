@@ -1,0 +1,18 @@
+# MSC for handling DFU process
+
+msc {
+    hscale="1.8";
+
+    a [label="Application"], b[label="Mesh Stack"], c[label="Mesh DFU"];
+
+    ---  [label="Initializing the Mesh DFU module"];
+    c note c [label="\nState = NRF_MESH_DFU_STATE_UNINITIALIZED.\n"];
+    a=>b [label="mesh_stack_init()"];
+    b=>c [label="nrf_mesh_dfu_init()"];
+    c note c [label="\nState = NRF_MESH_DFU_STATE_INITIALIZED.\n"];
+    
+    ---  [label="Enabling the Mesh DFU module"];
+    a=>b [label="mesh_stack_start()"];
+    b=>c [label="nrf_mesh_dfu_enable()"];
+    c->b [label="Sends firmware ID packet"];
+}

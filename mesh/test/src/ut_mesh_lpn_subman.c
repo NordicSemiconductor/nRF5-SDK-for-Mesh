@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -43,7 +43,7 @@
 
 #include "event_mock.h"
 #include "transport_mock.h"
-#include "mesh_lpn_internal_mock.h"
+#include "mesh_lpn_internal.h"
 #include "mesh_lpn_mock.h"
 #include "nrf_mesh_mock.h"
 #include "packet_mesh.h"
@@ -168,12 +168,14 @@ static void helper_trigger_event(nrf_mesh_evt_type_t event_type)
     m_exp_transaction_number = 0;
     if (event_type == NRF_MESH_EVT_FRIENDSHIP_TERMINATED)
     {
+        evt.params.friendship_terminated.role = NRF_MESH_FRIENDSHIP_ROLE_LPN;
         helper_test_addr_list_mark_as_unsent();
         m_test_in_friendship = false;
         m_test_exp_confirm_cnt = 0;
     }
     else if (event_type == NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED)
     {
+        evt.params.friendship_established.role = NRF_MESH_FRIENDSHIP_ROLE_LPN;
         m_test_in_friendship = true;
         m_test_exp_confirm_cnt = 0;
     }

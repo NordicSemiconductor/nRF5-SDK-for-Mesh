@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -240,7 +240,7 @@ static void send_ack(config_opcode_t opcode, const uint8_t * p_data, uint16_t le
     }
 
     TEST_ASSERT_NOT_NULL_MESSAGE(p_cb, "Could not find opcode handler");
-    access_message_rx_t msg = {0};
+    access_message_rx_t msg = {{0}};
     msg.opcode.opcode = opcode;
     msg.opcode.company_id = ACCESS_COMPANY_ID_NONE;
     msg.p_data = p_data;
@@ -1101,6 +1101,48 @@ void test_relay_set(void)
         };
     EXPECT_ACK(CONFIG_OPCODE_RELAY_STATUS, &status, sizeof(status));
     send_ack(CONFIG_OPCODE_RELAY_STATUS, (const uint8_t *) &status, sizeof(status));
+    m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
+}
+
+void test_network_transmit_get(void)
+{
+    __setup();
+
+    EXPECT_TX(CONFIG_OPCODE_NETWORK_TRANSMIT_GET, NULL, 0);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_network_transmit_get());
+
+    const config_msg_network_transmit_status_t status =
+        {
+            .network_transmit_count = 2,
+            .network_transmit_interval_steps = 4
+        };
+    EXPECT_ACK(CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS, &status, sizeof(status));
+    send_ack(CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS, (const uint8_t *) &status, sizeof(status));
+    m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
+}
+
+void test_network_transmit_set(void)
+{
+    __setup();
+
+    const config_msg_network_transmit_status_t msg =
+        {
+            .network_transmit_count = CONFIG_RETRANSMIT_COUNT_MAX,
+            .network_transmit_interval_steps = CONFIG_RETRANSMIT_INTERVAL_STEPS_MAX
+        };
+
+    EXPECT_TX(CONFIG_OPCODE_NETWORK_TRANSMIT_SET, &msg, sizeof(msg));
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, config_client_network_transmit_set(CONFIG_RETRANSMIT_COUNT_MAX+1, 4));
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, config_client_network_transmit_set(2, CONFIG_RETRANSMIT_INTERVAL_STEPS_MAX+1));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_network_transmit_set(CONFIG_RETRANSMIT_COUNT_MAX, CONFIG_RETRANSMIT_INTERVAL_STEPS_MAX));
+
+    const config_msg_network_transmit_status_t status =
+        {
+            .network_transmit_count = CONFIG_RETRANSMIT_COUNT_MAX,
+            .network_transmit_interval_steps = CONFIG_RETRANSMIT_INTERVAL_STEPS_MAX
+        };
+    EXPECT_ACK(CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS, &status, sizeof(status));
+    send_ack(CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS, (const uint8_t *) &status, sizeof(status));
     m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
 }
 

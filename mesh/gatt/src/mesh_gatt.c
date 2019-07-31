@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -693,6 +693,11 @@ void mesh_gatt_packet_discard(uint16_t conn_index, const uint8_t * p_packet)
     packet_buffer_free(&m_gatt.connections[conn_index].tx.packet_buffer, p_buf_packet);
 }
 
+bool mesh_gatt_packet_is_pending(uint16_t conn_index)
+{
+    return (!packet_buffer_is_empty(&m_gatt.connections[conn_index].tx.packet_buffer));
+}
+
 uint32_t mesh_gatt_disconnect(uint16_t conn_index)
 {
     NRF_MESH_ASSERT(conn_index < MESH_GATT_CONNECTION_COUNT_MAX);
@@ -714,7 +719,7 @@ void mesh_gatt_on_ble_evt(const ble_evt_t * p_ble_evt, void * p_context)
         case BLE_GAP_EVT_DISCONNECTED:
             disconnect_evt_handle(p_ble_evt);
             break;
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION == 6 || NRF_SD_BLE_API_VERSION == 7
         case BLE_GAP_EVT_ADV_SET_TERMINATED:
             if (p_ble_evt->evt.gap_evt.params.adv_set_terminated.reason ==
                 BLE_GAP_EVT_ADV_SET_TERMINATED_REASON_TIMEOUT)

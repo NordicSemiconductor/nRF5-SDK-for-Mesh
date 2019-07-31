@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -216,6 +216,11 @@ bearer_event_flag_t bearer_event_flag_add_stub(bearer_event_flag_callback_t call
     return BEARER_FLAG;
 }
 
+bool mesh_lpn_is_in_friendship_stub(int calls)
+{
+    return m_in_friendship;
+}
+
 /*****************************************************************************
  * Helper functions
  *****************************************************************************/
@@ -315,13 +320,11 @@ static void sar_rx_ctx_free_Expect(void)
 {
     timer_sch_is_scheduled_IgnoreAndReturn(!m_in_friendship);
     timer_sch_is_scheduled_IgnoreAndReturn(!m_in_friendship);
-    if (!m_in_friendship)
-    {
-        /* Incomplete timer. */
-        timer_sch_abort_ExpectAnyArgs();
-        /* ACK timer. */
-        timer_sch_abort_ExpectAnyArgs();
-    }
+
+    /* Incomplete timer. */
+    timer_sch_abort_ExpectAnyArgs();
+    /* ACK timer. */
+    timer_sch_abort_ExpectAnyArgs();
     net_state_iv_index_lock_Expect(false);
 }
 
@@ -337,8 +340,6 @@ static void transport_packet_in_Expect(void)
     nrf_mesh_rx_address_get_ReturnThruPtr_p_address(&dst_addr);
     replay_cache_has_elem_IgnoreAndReturn(false);
     replay_cache_add_IgnoreAndReturn(NRF_SUCCESS);
-    bearer_event_critical_section_begin_Expect();
-    bearer_event_critical_section_end_Expect();
 }
 
 static void incomplete_timeout_trigger(void)
@@ -358,6 +359,19 @@ static void mesh_event_send(nrf_mesh_evt_type_t evt_type)
     nrf_mesh_evt_t evt;
     memset(&evt, 0, sizeof(evt));
     evt.type = evt_type;
+
+    switch (evt.type)
+    {
+        case NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED:
+            evt.params.friendship_established.role = NRF_MESH_FRIENDSHIP_ROLE_LPN;
+            break;
+        case NRF_MESH_EVT_FRIENDSHIP_TERMINATED:
+            evt.params.friendship_terminated.role = NRF_MESH_FRIENDSHIP_ROLE_LPN;
+            break;
+        default:
+            break;
+    }
+
     mp_mesh_evt_handler->evt_cb(&evt);
 }
 
@@ -377,8 +391,6 @@ static void receive_first_segment(void)
 
     transport_packet_in_Expect();
 
-    mesh_lpn_is_in_friendship_ExpectAndReturn(m_in_friendship);
-
     if (!m_in_friendship)
     {
         incomplete_timer_reschedule_Expect();
@@ -389,9 +401,10 @@ static void receive_first_segment(void)
     TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_packet_in(&packet, sizeof(packet.pdu), &net_metadata, &rx_metadata));
 }
 
-static void segack_receive(uint16_t seqzero, uint32_t block_ack)
+static void segack_receive(uint16_t seqzero, uint32_t block_ack, uint16_t src)
 {
     network_packet_metadata_t net_metadata = ACCESS_NET_METADATA;
+    net_metadata.src = src;
     net_metadata.control_packet = true;
     const nrf_mesh_rx_metadata_t rx_metadata = {0};
 
@@ -436,12 +449,14 @@ void setUp(void)
     m_seqnum = SEQZERO;
     m_expected_timer_sch_reschedules = 0;
     m_in_friendship = false;
+    mesh_lpn_is_in_friendship_StubWithCallback(mesh_lpn_is_in_friendship_stub);
     memset(&m_expected_evt, 0, sizeof(m_expected_evt));
     network_packet_alloc_StubWithCallback(network_packet_alloc_stub);
     network_packet_send_StubWithCallback(network_packet_send_stub);
+    nrf_mesh_is_address_rx_IgnoreAndReturn(false);
 
     expect_init();
-    transport_init(NULL);
+    transport_init();
 }
 
 void tearDown(void)
@@ -526,8 +541,6 @@ void test_ignoring_old_segments(void)
 
     transport_packet_in_Expect();
 
-    mesh_lpn_is_in_friendship_ExpectAndReturn(m_in_friendship);
-
     packet_mesh_trs_seg_sego_set(&packet, 1);
     packet_mesh_trs_seg_seqzero_set(&packet, SEQZERO-1);
 
@@ -538,8 +551,6 @@ void test_ignoring_old_segments(void)
     packet_mesh_trs_seg_sego_set(&packet, 1);
 
     transport_packet_in_Expect();
-
-    mesh_lpn_is_in_friendship_ExpectAndReturn(m_in_friendship);
 
     sar_rx_ctx_free_Expect();
 
@@ -560,8 +571,6 @@ void test_cancel_existing_session_if_new(void)
 
     transport_packet_in_Expect();
 
-    mesh_lpn_is_in_friendship_ExpectAndReturn(m_in_friendship);
-
     /* SeqZero is new and the existing session is cancelled. */
     packet_mesh_trs_seg_seqzero_set(&packet, SEQZERO+1);
 
@@ -576,8 +585,6 @@ void test_cancel_existing_session_if_new(void)
     /* Complete the new transaction. */
     packet_mesh_trs_seg_sego_set(&packet, 1);
     transport_packet_in_Expect();
-
-    mesh_lpn_is_in_friendship_ExpectAndReturn(m_in_friendship);
 
     sar_rx_ctx_free_Expect();
     decrypt_Expect();
@@ -595,8 +602,6 @@ void test_receive_full_transaction(void)
     const nrf_mesh_rx_metadata_t rx_metadata = {0};
 
     transport_packet_in_Expect();
-
-    mesh_lpn_is_in_friendship_ExpectAndReturn(m_in_friendship);
 
     sar_rx_ctx_free_Expect();
 
@@ -621,7 +626,6 @@ void test_normal_behavior_when_not_in_friendship(void)
     packet_mesh_trs_seg_sego_set(&packet, 1);
 
     transport_packet_in_Expect();
-    mesh_lpn_is_in_friendship_ExpectAndReturn(m_in_friendship);
 
     /* Incomplete timer is rescheduled (then aborted again...) */
     incomplete_timer_reschedule_Expect();
@@ -714,8 +718,6 @@ void test_sar_always_room_for_an_rx_in_friendship(void)
 
     transport_packet_in_Expect();
 
-    mesh_lpn_is_in_friendship_ExpectAndReturn(m_in_friendship);
-
     /* SeqZero is new and the existing session is cancelled. */
     packet_mesh_trs_seg_seqzero_set(&packet, SEQZERO+1);
 
@@ -731,12 +733,20 @@ void test_sar_always_room_for_an_rx_in_friendship(void)
     packet_mesh_trs_seg_sego_set(&packet, 1);
     transport_packet_in_Expect();
 
-    mesh_lpn_is_in_friendship_ExpectAndReturn(m_in_friendship);
-
     sar_rx_ctx_free_Expect();
     decrypt_Expect();
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_packet_in(&packet, sizeof(packet.pdu), &net_metadata, &rx_metadata));
+
+    /* Cleanup TX contexts by acking all of them */
+    for (uint32_t i = 0; i < TRANSPORT_SAR_SESSIONS_MAX-1; ++i)
+    {
+        /* ACK segment -> successful TX. */
+        event_handle_StubWithCallback(event_handle_stub);
+        m_expected_evt.type = NRF_MESH_EVT_TX_COMPLETE;
+        sar_tx_ctx_free_Expect();
+        segack_receive(SEQZERO + 2*i, 0x03, OTHER_ADDRESS + i);
+    }
 }
 
 /*****************************************************************************
@@ -766,7 +776,6 @@ void test_poll_on_tx_retry_timeout(void)
         __LOG(LOG_SRC_TEST, LOG_LEVEL_INFO, "TX retry: %u/%u\n", i, TRANSPORT_SAR_TX_RETRIES_DEFAULT);
 
         /* Retry timer should trigger a poll(). */
-        mesh_lpn_is_in_friendship_ExpectAndReturn(m_in_friendship);
         mesh_lpn_friend_poll_ExpectAndReturn(0, NRF_SUCCESS);
         tx_retry_timeout_trigger();
 
@@ -786,13 +795,12 @@ void test_poll_on_tx_retry_timeout(void)
     __LOG(LOG_SRC_TEST, LOG_LEVEL_INFO, "TX retry: %u/%u\n", 4, TRANSPORT_SAR_TX_RETRIES_DEFAULT);
 
     /* Retry timer should trigger a poll(). */
-    mesh_lpn_is_in_friendship_ExpectAndReturn(m_in_friendship);
     mesh_lpn_friend_poll_ExpectAndReturn(0, NRF_SUCCESS);
     tx_retry_timeout_trigger();
 
     /* On the final POLL_COMPLETE, the SAR TX is considered failed. */
     sar_cancel_evt_Expect(NRF_MESH_SAR_CANCEL_REASON_RETRY_OVER);
-    sar_rx_ctx_free_Expect();
+    sar_tx_ctx_free_Expect();
     mesh_event_send(NRF_MESH_EVT_LPN_FRIEND_POLL_COMPLETE);
 }
 
@@ -816,17 +824,15 @@ void test_successful_tx_while_waiting_for_poll_complete(void)
     TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_tx(&tx_params, NULL));
 
     /* Retry timer should trigger a poll(). */
-    mesh_lpn_is_in_friendship_ExpectAndReturn(m_in_friendship);
     mesh_lpn_friend_poll_ExpectAndReturn(0, NRF_SUCCESS);
     tx_retry_timeout_trigger();
 
     /* ACK the first segment. Expect the second segment to be sent again. */
     segmented_packet_Expect(mic, sizeof(mic), SEQZERO, 1, 1);
     tx_retry_timer_reschedule_Expect();
-    segack_receive(SEQZERO, 0x01);
+    segack_receive(SEQZERO, 0x01, OTHER_ADDRESS);
 
     /* Retry timer should trigger a poll(). */
-    mesh_lpn_is_in_friendship_ExpectAndReturn(m_in_friendship);
     mesh_lpn_friend_poll_ExpectAndReturn(0, NRF_SUCCESS);
     tx_retry_timeout_trigger();
 
@@ -834,5 +840,5 @@ void test_successful_tx_while_waiting_for_poll_complete(void)
     event_handle_StubWithCallback(event_handle_stub);
     m_expected_evt.type = NRF_MESH_EVT_TX_COMPLETE;
     sar_tx_ctx_free_Expect();
-    segack_receive(SEQZERO, 0x03);
+    segack_receive(SEQZERO, 0x03, OTHER_ADDRESS);
 }

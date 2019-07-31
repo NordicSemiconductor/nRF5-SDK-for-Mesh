@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -52,7 +52,7 @@
  * SoftDevice v6.0.0 as well as the older legacy APIs.
  */
 
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 6
 #define MESH_ADV_ADV_TYPE BLE_GAP_ADV_TYPE_CONNECTABLE_SCANNABLE_UNDIRECTED
 #define MESH_ADV_DATA_SIZE_MAX BLE_GAP_ADV_SET_DATA_SIZE_MAX
 
@@ -86,7 +86,7 @@ static ble_gap_adv_params_t m_adv_params =
     .timeout = MESH_ADV_TIMEOUT_INFINITE
 };
 
-#endif  /* NRF_SD_BLE_API_VERSION == 6 */
+#endif  /* NRF_SD_BLE_API_VERSION >= 6 */
 
 /**
  * In the SoftDevice v6.0.0 API, the advertisement data buffers are owned by the application.
@@ -130,7 +130,7 @@ void mesh_adv_data_set(uint16_t service_uuid, const uint8_t * p_service_data, ui
     APP_ERROR_CHECK(ble_advdata_encode(&advdata, m_gap_adv_data.adv_data.p_data, &m_gap_adv_data.adv_data.len));
     APP_ERROR_CHECK(ble_advdata_encode(&srdata, m_gap_adv_data.scan_rsp_data.p_data, &m_gap_adv_data.scan_rsp_data.len));
 
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 6
 
     uint32_t err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, &m_gap_adv_data, &m_adv_params);
     if (err_code == NRF_ERROR_INVALID_STATE)
@@ -143,41 +143,33 @@ void mesh_adv_data_set(uint16_t service_uuid, const uint8_t * p_service_data, ui
                                                 m_gap_adv_data.adv_data.len,
                                                 m_gap_adv_data.scan_rsp_data.p_data,
                                                 m_gap_adv_data.scan_rsp_data.len);
-#endif  /* NRF_SD_BLE_API_VERSION == 6 */
+#endif  /* NRF_SD_BLE_API_VERSION >= 6 */
     APP_ERROR_CHECK(err_code);
 }
 
 void mesh_adv_params_set(uint32_t timeout_ms, uint32_t interval_units)
 {
-#if NRF_SD_BLE_API_VERSION == 6
-    if (timeout_ms > 0)
+#if NRF_SD_BLE_API_VERSION >= 6
+    uint32_t scaled_timeout = MIN(UINT16_MAX, timeout_ms / 10);   /* 10 ms steps */
+    if (timeout_ms > 0 && scaled_timeout == 0)
     {
-        uint32_t scaled_timeout;
-        scaled_timeout = MIN(UINT16_MAX, timeout_ms / 10);   /* 10 ms steps */
-        m_adv_params.duration = scaled_timeout > 0 ? scaled_timeout : 1;
+        scaled_timeout = 1;
     }
-    else
-    {
-        m_adv_params.duration = 0;
-    }
+    m_adv_params.duration = scaled_timeout;
 #else
-    if (timeout_ms > 0)
+    uint32_t scaled_timeout = MIN(0x3FFF, timeout_ms / 1000);   /* 1 s steps, Max: 0x3FFF. */
+    if (timeout_ms > 0 && scaled_timeout == 0)
     {
-        uint32_t scaled_timeout;
-        scaled_timeout = MIN(0x3FFF, timeout_ms / 1000);   /* 1 s steps, Max: 0x3FFF. */
-        m_adv_params.timeout = scaled_timeout > 0 ? scaled_timeout : 1;
+        scaled_timeout = 1;
     }
-    else
-    {
-        m_adv_params.timeout = 0;
-    }
+    m_adv_params.timeout = scaled_timeout;
 #endif
     m_adv_params.interval = interval_units;
 }
 
 void mesh_adv_start(void)
 {
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 6
     APP_ERROR_CHECK(sd_ble_gap_adv_start(m_adv_handle,  MESH_SOFTDEVICE_CONN_CFG_TAG));
 #else
     APP_ERROR_CHECK(sd_ble_gap_adv_start(&m_adv_params,  MESH_SOFTDEVICE_CONN_CFG_TAG));
@@ -188,7 +180,7 @@ void mesh_adv_start(void)
 
 void mesh_adv_stop(void)
 {
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 6
     APP_ERROR_CHECK(sd_ble_gap_adv_stop(m_adv_handle));
 #else
     APP_ERROR_CHECK(sd_ble_gap_adv_stop());

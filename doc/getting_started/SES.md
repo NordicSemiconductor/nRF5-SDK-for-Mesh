@@ -1,25 +1,30 @@
-# nRF5 SDK for Mesh Segger Embedded Studio first time setup
+# Segger Embedded Studio: SDK_ROOT first time setup
 
 Segger Embedded Studio determines the location of the nRF5 SDK through macros.
-Before building the example, you must first configure the `SDK_ROOT` macro
-in Segger Embedded Studio. This is a one time global configuration that will
-still be valid the next time you open Segger Embedded Studio. The `SDK_ROOT`
-variable defaults to an nRF5 SDK 15.2.0 instance unzipped right next to the mesh
-folder if not set.
+Before building the mesh examples with SEGGER Embedded Studio, you must complete
+a one-time setup of the `SDK_ROOT` macro in SEGGER Embedded Studio. 
 
-The `SDK_ROOT` macro can be set by navigating to Tools -> Options, then
-"Building". Under "Build" in the configuration list, edit "Global macros" to
-contain `SDK_ROOT=<the path to your nRF5 SDK 15 instance>`. Save the
-configuration.
+You can either:
+- Use the default settings of the `SDK_ROOT` macro. It defaults to an nRF5 SDK 15.3.0
+instance unzipped right next to the mesh folder.
+- Set the `SDK_ROOT` macro to a custom nRF5 SDK instance.
 
-**NOTE:** Some functionality in Segger Embedded Studio does not work properly
-with Windows-style path separators. Make sure you only use forward slashes in
-your path macros.
+To set the `SDK_ROOT` macro manually in SEGGER Embedded Studio:
+1. Go to "Tools" -> "Options".
+2. Select "Building".
+3. Under "Build" in the configuration list, edit "Global macros" to
+contain `SDK_ROOT=<the path to nRF5 SDK instance>`.
+4. Save the configuration.
 
-The path can be verified by opening one of the source files under the "nRF5 SDK"
-file group. If the macro was set correctly, the file should open in the editor
-window. If not, it will show an error message telling you that the file couldn't
+You can verify the path by opening one of the source files under the nRF5 SDK
+file group. If the macro is set correctly, the file opens in the editor
+window. If not, an error message is displayed with information that the file cannot
 be found.
 
-For more info on Segger Embedded Studio macros, see
-https://studio.segger.com/ide_project_macros.htm
+## Further reading
+
+For more information, see the following pages:
+- Segger Embedded Studio macros: https://studio.segger.com/ide_project_macros.htm
+- Building examples with SES: https://www.nordicsemi.com/en/DocLib/Content/SDK_Doc/Mesh_SDK/v3-0-0/md_doc_getting_started_how_to_build#how_to_build_segger_compiling_building
+- Running examples with SES: https://www.nordicsemi.com/en/DocLib/Content/SDK_Doc/Mesh_SDK/v3-0-0/md_doc_getting_started_how_to_run_examples#how_to_run_examples_ses
+- nRF5 SDK for Mesh examples: https://www.nordicsemi.com/DocLib/Content/SDK_Doc/Mesh_SDK/v3-0-0/md_examples_README

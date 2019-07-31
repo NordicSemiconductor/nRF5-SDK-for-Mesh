@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -70,6 +70,8 @@
 #include "heartbeat_mock.h"
 #include "mesh_config_mock.h"
 #include "mesh_opt_mock.h"
+#include "core_tx_local_mock.h"
+#include "ad_type_filter_mock.h"
 
 static uint32_t m_rx_cb_expect;
 static nrf_mesh_adv_packet_rx_data_t m_adv_packet_rx_data_expect;
@@ -105,6 +107,16 @@ static void ad_listener_process_cb(ble_packet_type_t adv_type,
     mp_listener->handler(mp_ad_data->data, mp_ad_data->length, p_metadata);
 }
 
+static void bearer_adtype_add_cb(uint8_t type, int num_calls)
+{
+    UNUSED_VARIABLE(num_calls);
+
+    TEST_ASSERT((AD_TYPE_PB_ADV == type)
+                || (AD_TYPE_MESH == type)
+                || (AD_TYPE_BEACON == type)
+                || (AD_TYPE_DFU == type));
+}
+
 static void scanner_init_callback(bearer_event_flag_callback_t packet_process_cb, int cmock_num_calls)
 {
     m_scanner_init_callback_cnt++;
@@ -123,7 +135,7 @@ static void initialize_mesh(nrf_mesh_init_params_t * p_init_params)
     msg_cache_init_Expect();
     timer_sch_init_Expect();
     bearer_event_init_Expect(NRF_MESH_IRQ_PRIORITY_LOWEST);
-    transport_init_Expect(p_init_params);
+    transport_init_Expect();
     network_init_Expect(p_init_params);
     scanner_init_StubWithCallback(scanner_init_callback);
     advertiser_init_Expect();
@@ -134,6 +146,8 @@ static void initialize_mesh(nrf_mesh_init_params_t * p_init_params)
     bearer_handler_init_Expect();
     core_tx_adv_init_Expect();
     mesh_opt_init_Expect();
+    core_tx_local_init_Expect();
+    bearer_adtype_add_StubWithCallback(bearer_adtype_add_cb);
     ad_listener_subscribe_StubWithCallback(ad_subscriber_cb);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_init(p_init_params));
@@ -189,6 +203,8 @@ void setUp(void)
     heartbeat_mock_Init();
     mesh_config_mock_Init();
     mesh_opt_mock_Init();
+    core_tx_local_mock_Init();
+    ad_type_filter_mock_Init();
     __LOG_INIT((LOG_SRC_API | LOG_SRC_TEST), LOG_LEVEL_ERROR, LOG_CALLBACK_DEFAULT);
 
     /*
@@ -254,6 +270,10 @@ void tearDown(void)
     mesh_config_mock_Destroy();
     mesh_opt_mock_Verify();
     mesh_opt_mock_Destroy();
+    core_tx_local_mock_Verify();
+    core_tx_local_mock_Destroy();
+    ad_type_filter_mock_Verify();
+    ad_type_filter_mock_Destroy();
 }
 
 /*************** Test Cases ***************/

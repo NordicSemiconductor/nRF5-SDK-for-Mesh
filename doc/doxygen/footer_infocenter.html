@@ -2,7 +2,9 @@
 <hr/>
 <a href="mailto:docfeedback@nordicsemi.no?subject=Documentation%20feedback" id="maillink">Documentation feedback</a> | <a href="https://devzone.nordicsemi.com/questions/" target="_blank">Developer Zone</a> | <a href="http://response.nordicsemi.com/subscribe-to-our-newsletters" target="_blank">Subscribe</a> | Updated <span id="date"/>
 
+<script src="PLUGINS_ROOT/PRODUCT_PLUGIN/footer.js"/>
 <script>
+document.getElementById("theURL").href = getURL(); document.getElementById("theURL").onclick = promptCopy;
 var date = new Date("$date" + " UTC");
 document.getElementById("date").innerHTML = date.toJSON().slice(0, 10);
 var url=window.location.href.split("?")[0];

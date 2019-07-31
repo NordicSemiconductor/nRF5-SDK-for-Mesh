@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -40,12 +40,12 @@
 #include "proxy_test_common.h"
 #include "nrf_mesh.h"
 #include "proxy.h"
-#include "mesh_gatt.h"
 #include "core_tx.h"
 #include "event.h"
 
 #include "timer_scheduler_mock.h"
 #include "proxy_filter_mock.h"
+#include "mesh_gatt_mock.h"
 
 #define UNICAST_ADDR 0x1201
 
@@ -117,9 +117,10 @@ void nrf_mesh_net_secmat_next_get(uint8_t nid, const nrf_mesh_network_secmat_t *
     *pp_secmat = mp_net_secmat;
 }
 
-void mesh_gatt_init(const mesh_gatt_uuids_t * p_uuids,
-                    mesh_gatt_evt_handler_t evt_handler,
-                    void * p_context)
+void mesh_gatt_init_mock(const mesh_gatt_uuids_t * p_uuids,
+                         mesh_gatt_evt_handler_t evt_handler,
+                         void * p_context,
+                         int num_calls)
 {
     TEST_ASSERT_NOT_NULL(p_uuids);
     TEST_ASSERT_EQUAL(SERVICE_UUID, p_uuids->service);
@@ -130,10 +131,11 @@ void mesh_gatt_init(const mesh_gatt_uuids_t * p_uuids,
     mp_gatt_context = p_context;
 }
 
-uint8_t * mesh_gatt_packet_alloc(uint16_t conn_index,
-                                 mesh_gatt_pdu_type_t type,
-                                 uint16_t size,
-                                 nrf_mesh_tx_token_t token)
+uint8_t * mesh_gatt_packet_alloc_mock(uint16_t conn_index,
+                                      mesh_gatt_pdu_type_t type,
+                                      uint16_t size,
+                                      nrf_mesh_tx_token_t token,
+                                      int num_calls)
 {
     TEST_ASSERT_FALSE(m_gatt_tx_packet.allocated);
     if (m_gatt_tx_packet.available)
@@ -155,7 +157,7 @@ uint8_t * mesh_gatt_packet_alloc(uint16_t conn_index,
     }
 }
 
-uint32_t mesh_gatt_packet_send(uint16_t conn_index, const uint8_t * p_packet)
+uint32_t mesh_gatt_packet_send_mock(uint16_t conn_index, const uint8_t * p_packet, int num_calls)
 {
     TEST_ASSERT_EQUAL_PTR(m_gatt_tx_packet.buffer, p_packet);
     TEST_ASSERT_TRUE(m_gatt_tx_packet.allocated);
@@ -168,7 +170,7 @@ uint32_t mesh_gatt_packet_send(uint16_t conn_index, const uint8_t * p_packet)
     return NRF_SUCCESS;
 }
 
-void mesh_gatt_packet_discard(uint16_t conn_index, const uint8_t * p_packet)
+void mesh_gatt_packet_discard_mock(uint16_t conn_index, const uint8_t * p_packet, int num_calls)
 {
     TEST_ASSERT_EQUAL_PTR(m_gatt_tx_packet.buffer, p_packet);
     TEST_ASSERT_TRUE(m_gatt_tx_packet.allocated);
@@ -176,7 +178,7 @@ void mesh_gatt_packet_discard(uint16_t conn_index, const uint8_t * p_packet)
     m_gatt_tx_packet.allocated = false;
 }
 
-uint32_t mesh_gatt_disconnect(uint16_t conn_index)
+uint32_t mesh_gatt_disconnect_mock(uint16_t conn_index, int num_calls)
 {
     return NRF_SUCCESS;
 }
@@ -237,6 +239,12 @@ uint32_t beacon_tx(uint8_t beacon_type, const void * p_payload, uint8_t payload_
 *****************************************************************************/
 void init(void)
 {
+    mesh_gatt_init_StubWithCallback(mesh_gatt_init_mock);
+    mesh_gatt_packet_alloc_StubWithCallback(mesh_gatt_packet_alloc_mock);
+    mesh_gatt_packet_send_StubWithCallback(mesh_gatt_packet_send_mock);
+    mesh_gatt_packet_discard_StubWithCallback(mesh_gatt_packet_discard_mock);
+    mesh_gatt_disconnect_StubWithCallback(mesh_gatt_disconnect_mock);
+
     m_gatt_tx_packet.available = true;
     m_gatt_tx_packet.count     = 0;
     mp_beacon_info             = NULL;

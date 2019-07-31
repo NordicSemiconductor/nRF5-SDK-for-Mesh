@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -61,6 +61,10 @@
 #if MESH_FEATURE_LPN_ENABLED
 #include "mesh_lpn.h"
 #include "mesh_lpn_internal.h"
+#endif
+
+#if MESH_FEATURE_FRIEND_ENABLED
+#include "mesh_opt_friend.h"
 #endif
 
 #if PERSISTENT_STORAGE
@@ -127,8 +131,17 @@ NRF_MESH_STATIC_ASSERT(DSM_SUBNET_MAX >= 1 && DSM_SUBNET_MAX <= DSM_SUBNET_MAX_L
 NRF_MESH_STATIC_ASSERT(DSM_DEVICE_MAX >= 1);
 NRF_MESH_STATIC_ASSERT(DSM_ADDR_MAX <= DSM_ADDR_MAX_LIMIT);
 
-#if MESH_FEATURE_LPN_ENABLED && (MESH_FRIENDSHIP_CREDENTIALS != 1)
-#error "MESH_FRIENDSHIP_CREDENTIALS shall be set to 1 if MESH_FEATURE_LPN_ENABLED is enabled"
+/**
+ * Number of friendship credentials to be supported by the mesh stack.
+ *
+ * @note Shall be set to at least 1 if LPN feature is enabled
+ */
+#if MESH_FEATURE_LPN_ENABLED && MESH_FEATURE_FRIEND_ENABLED
+    #define MESH_FRIENDSHIP_CREDENTIALS (MESH_FRIEND_FRIENDSHIP_COUNT + 1)
+#elif MESH_FEATURE_LPN_ENABLED
+    #define MESH_FRIENDSHIP_CREDENTIALS  1
+#elif MESH_FEATURE_FRIEND_ENABLED
+    #define MESH_FRIENDSHIP_CREDENTIALS (MESH_FRIEND_FRIENDSHIP_COUNT)
 #endif
 
 /*****************************************************************************
@@ -153,7 +166,7 @@ typedef struct
     } beacon;
 } subnet_t;
 
-#if MESH_FEATURE_LPN_ENABLED
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
 typedef struct
 {
     dsm_handle_t subnet_handle;
@@ -161,7 +174,7 @@ typedef struct
 
     nrf_mesh_network_secmat_t secmat;
     nrf_mesh_network_secmat_t secmat_updated;
-} friendship_t;
+} friendship_secmat_t;
 #endif
 
 typedef struct
@@ -255,9 +268,9 @@ static dsm_local_unicast_address_t m_local_unicast_addr;
 /** Security information for each subnet and its associated application */
 static subnet_t m_subnets[DSM_SUBNET_MAX];
 
-#if MESH_FEATURE_LPN_ENABLED
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
 /** Security information for friendship */
-static friendship_t m_friendships[MESH_FRIENDSHIP_CREDENTIALS];
+static friendship_secmat_t m_friendships[MESH_FRIENDSHIP_CREDENTIALS];
 #endif
 
 /** Security information associated with each appkey */
@@ -433,7 +446,15 @@ static bool rx_group_address_get(uint16_t address, nrf_mesh_address_t * p_addres
             return false;
 #endif
         case NRF_MESH_ALL_FRIENDS_ADDR:
+        {
+#if MESH_FEATURE_FRIEND_ENABLED
+            bool is_enabled;
+            NRF_MESH_ERROR_CHECK(mesh_opt_friend_get(&is_enabled));
+            return is_enabled;
+#else
             return false;
+#endif
+        }
         case NRF_MESH_ALL_RELAYS_ADDR:
         {
 #if MESH_FEATURE_RELAY_ENABLED
@@ -714,7 +735,7 @@ static dsm_handle_t get_subnet_handle(const nrf_mesh_network_secmat_t * p_secmat
     return retval;
 }
 
-#if MESH_FEATURE_LPN_ENABLED
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
 /**
  * Returns an index of the m_friendships array for the given network secmat
  * Returns end of m_friendship array if secmat is not found
@@ -816,10 +837,10 @@ static void net_beacon_rx_handle(const nrf_mesh_beacon_info_t * p_beacon_info,
 }
 
 #if MESH_FEATURE_LPN_ENABLED
-static void friend_update_rx_handle(const nrf_mesh_network_secmat_t * p_net_secmat,
-                                    uint32_t iv_index,
-                                    bool iv_update,
-                                    bool key_refresh)
+static void lpn_friend_update_rx_handle(const nrf_mesh_network_secmat_t * p_net_secmat,
+                                        uint32_t iv_index,
+                                        bool iv_update,
+                                        bool key_refresh)
 {
     dsm_handle_t subnet_handle = dsm_subnet_handle_get(p_net_secmat);
     NRF_MESH_ASSERT_DEBUG(subnet_handle != DSM_HANDLE_INVALID);
@@ -1151,15 +1172,16 @@ static uint32_t add_address_virtual(const uint8_t * p_label_uuid, dsm_handle_t *
     return NRF_SUCCESS;
 }
 
-#if MESH_FEATURE_LPN_ENABLED
-static void friendship_clear(friendship_t *p_friendship)
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
+static void friendship_clear(friendship_secmat_t *p_friendship)
 {
     p_friendship->subnet_handle = DSM_HANDLE_INVALID;
     memset(&p_friendship->secmat, 0x00, sizeof(nrf_mesh_network_secmat_t));
     memset(&p_friendship->secmat_updated, 0x00, sizeof(nrf_mesh_network_secmat_t));
 }
 
-static void friendship_established_handle(void)
+#if MESH_FEATURE_LPN_ENABLED
+static void friendship_established_lpn_handle(void)
 {
     for (uint32_t i = 0; i < DSM_NONVIRTUAL_ADDR_MAX; ++i)
     {
@@ -1183,8 +1205,19 @@ static void friendship_established_handle(void)
         NRF_MESH_ASSERT_DEBUG(mesh_lpn_subman_add(p_hb_sub->dst) == NRF_SUCCESS);
     }
 }
+#endif
 
-static void friendship_termination_handle(const nrf_mesh_evt_friendship_terminated_t *p_terminated)
+static void friendship_established_handle(const nrf_mesh_evt_friendship_established_t * p_established)
+{
+#if MESH_FEATURE_LPN_ENABLED
+    if (p_established->role == NRF_MESH_FRIENDSHIP_ROLE_LPN)
+    {
+        friendship_established_lpn_handle();
+    }
+#endif
+}
+
+static void friendship_termination_handle(const nrf_mesh_evt_friendship_terminated_t * p_terminated)
 {
     for (uint32_t i = 0; i < ARRAY_SIZE(m_friendships); i++)
     {
@@ -1195,7 +1228,21 @@ static void friendship_termination_handle(const nrf_mesh_evt_friendship_terminat
         }
     }
 }
+
+#if MESH_FEATURE_LPN_ENABLED
+static void lpn_friend_request_timeout_handle(void)
+{
+    for (uint32_t i = 0; i < ARRAY_SIZE(m_friendships); i++)
+    {
+        if (m_friendships[i].secmat_params.lpn_address == m_local_unicast_addr.address_start)
+        {
+            friendship_clear(&m_friendships[i]);
+            break;
+        }
+    }
+}
 #endif /* MESH_FEATURE_LPN_ENABLED */
+#endif /* (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED) */
 
 static void mesh_evt_handler(const nrf_mesh_evt_t * p_evt)
 {
@@ -1208,21 +1255,24 @@ static void mesh_evt_handler(const nrf_mesh_evt_t * p_evt)
                                 p_evt->params.net_beacon.flags.iv_update,
                                 p_evt->params.net_beacon.flags.key_refresh);
             break;
-#if MESH_FEATURE_LPN_ENABLED
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
         case NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED:
-            friendship_established_handle();
-            break;
-        case NRF_MESH_EVT_LPN_FRIEND_UPDATE:
-            friend_update_rx_handle(p_evt->params.friend_update.p_secmat_net,
-                                    p_evt->params.friend_update.iv_index,
-                                    p_evt->params.friend_update.iv_update_active,
-                                    p_evt->params.friend_update.key_refresh_in_phase2);
+            friendship_established_handle(&p_evt->params.friendship_established);
             break;
         case NRF_MESH_EVT_FRIENDSHIP_TERMINATED:
             friendship_termination_handle(&p_evt->params.friendship_terminated);
             break;
+#endif
+
+#if MESH_FEATURE_LPN_ENABLED
+        case NRF_MESH_EVT_LPN_FRIEND_UPDATE:
+            lpn_friend_update_rx_handle(p_evt->params.friend_update.p_secmat_net,
+                                        p_evt->params.friend_update.iv_index,
+                                        p_evt->params.friend_update.iv_update_active,
+                                        p_evt->params.friend_update.key_refresh_in_phase2);
+            break;
         case NRF_MESH_EVT_LPN_FRIEND_REQUEST_TIMEOUT:
-            friendship_clear(&m_friendships[0]);
+            lpn_friend_request_timeout_handle();
             break;
         case NRF_MESH_EVT_HB_SUBSCRIPTION_CHANGE:
             /* We need to add and remove heartbeat subscription addresses to/from the LPN
@@ -1687,6 +1737,11 @@ static void build_flash_area(void)
     manager_config.p_area = dsm_flash_area_get();
     manager_config.page_count = DSM_FLASH_PAGE_COUNT;
 
+    if (m_flash_is_available)
+    {
+        return;
+    }
+
     /* Lock the bearer event handler to ensure that we don't enter and leave the BUILDING state
      * between adding and checking. */
     bearer_event_critical_section_begin();
@@ -1828,7 +1883,7 @@ void dsm_clear(void)
     bitfield_clear_all(m_appkey_allocated, BITFIELD_BLOCK_COUNT(DSM_APP_MAX));
     bitfield_clear_all(m_devkey_allocated, BITFIELD_BLOCK_COUNT(DSM_DEVICE_MAX));
 
-#if MESH_FEATURE_LPN_ENABLED
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
     for (uint32_t i = 0; i < ARRAY_SIZE(m_friendships); i++)
     {
         friendship_clear(&m_friendships[i]);
@@ -1862,7 +1917,7 @@ void dsm_init(void)
     build_flash_area();
 #endif
 
-#if MESH_FEATURE_LPN_ENABLED
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
     for (uint32_t i = 0; i < ARRAY_SIZE(m_friendships); i++)
     {
         friendship_clear(&m_friendships[i]);
@@ -2001,26 +2056,7 @@ bool dsm_address_subscription_get(dsm_handle_t address_handle)
 
 bool dsm_address_is_rx(const nrf_mesh_address_t * p_addr)
 {
-    switch (p_addr->type)
-    {
-        case NRF_MESH_ADDRESS_TYPE_UNICAST:
-        case NRF_MESH_ADDRESS_TYPE_GROUP:
-        {
-            nrf_mesh_address_t dummy;
-            return nrf_mesh_rx_address_get(p_addr->value, &dummy);
-        }
-        case NRF_MESH_ADDRESS_TYPE_VIRTUAL:
-        {
-            dsm_handle_t virtual_addr_index;
-            if (virtual_address_uuid_index_get(p_addr->p_virtual_uuid, &virtual_addr_index))
-            {
-                return (m_virtual_addresses[virtual_addr_index].subscription_count > 0);
-            }
-            return false;
-        }
-        default:
-            return false;
-    }
+    return nrf_mesh_is_address_rx(p_addr);
 }
 
 uint32_t dsm_address_subscription_count_get(dsm_handle_t address_handle, uint16_t * p_count)
@@ -2238,7 +2274,7 @@ dsm_handle_t dsm_subnet_handle_get(const nrf_mesh_network_secmat_t * p_secmat)
         return DSM_HANDLE_INVALID;
     }
 
-#if MESH_FEATURE_LPN_ENABLED
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
     uint32_t i = friendship_index_by_secmat_get(p_secmat);
     if (i < ARRAY_SIZE(m_friendships))
     {
@@ -2374,6 +2410,8 @@ uint32_t dsm_subnet_add(mesh_key_index_t net_key_index, const uint8_t * p_key, d
         subnet_set(net_key_index, p_key, *p_subnet_handle);
         (void) flash_save(DSM_ENTRY_TYPE_SUBNET, *p_subnet_handle);
         nrf_mesh_subnet_added(net_key_index, m_subnets[*p_subnet_handle].beacon.info.secmat.net_id);
+
+        __LOG_XB(LOG_SRC_DSM, LOG_LEVEL_DBG3, "Netkey added", p_key, NRF_MESH_KEY_SIZE);
         return NRF_SUCCESS;
     }
 }
@@ -2423,7 +2461,7 @@ uint32_t dsm_subnet_update(dsm_handle_t subnet_handle, const uint8_t * p_key)
                         NRF_SUCCESS);
 #endif
 
-#if MESH_FEATURE_LPN_ENABLED
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
         for (uint32_t i = 0; i < ARRAY_SIZE(m_friendships); i++)
         {
             if (m_friendships[i].subnet_handle == subnet_handle)
@@ -2486,7 +2524,7 @@ uint32_t dsm_subnet_update_commit(dsm_handle_t subnet_handle)
         memcpy(&m_subnets[subnet_handle].beacon.info.secmat, &m_subnets[subnet_handle].beacon.info.secmat_updated,
                 sizeof(m_subnets[subnet_handle].beacon.info.secmat));
 
-#if MESH_FEATURE_LPN_ENABLED
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
         for (uint32_t i = 0; i < ARRAY_SIZE(m_friendships); i++)
         {
             if (m_friendships[i].subnet_handle == subnet_handle)
@@ -2536,7 +2574,7 @@ uint32_t dsm_subnet_delete(dsm_handle_t subnet_handle)
         return NRF_ERROR_FORBIDDEN;
     }
 
-#if MESH_FEATURE_LPN_ENABLED
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
     for (uint32_t i = 0; i < ARRAY_SIZE(m_friendships); i++)
     {
         if (m_friendships[i].subnet_handle == subnet_handle)
@@ -2635,6 +2673,8 @@ uint32_t dsm_devkey_add(uint16_t raw_unicast_addr, dsm_handle_t subnet_handle, c
         (void) flash_save(DSM_ENTRY_TYPE_DEVKEY, handle - DSM_DEVKEY_HANDLE_START);
         *p_devkey_handle = handle;
     }
+
+    __LOG_XB(LOG_SRC_DSM, LOG_LEVEL_DBG3, "Devkey added", p_key, NRF_MESH_KEY_SIZE);
     return NRF_SUCCESS;
 }
 
@@ -2713,6 +2753,8 @@ uint32_t dsm_appkey_add(mesh_key_index_t app_key_index, dsm_handle_t subnet_hand
         appkey_set(app_key_index, subnet_handle, p_key, *p_app_handle);
         (void) flash_save(DSM_ENTRY_TYPE_APPKEY, *p_app_handle);
     }
+
+    __LOG_XB(LOG_SRC_DSM, LOG_LEVEL_DBG3, "Appkey added", p_key, NRF_MESH_KEY_SIZE);
     return NRF_SUCCESS;
 }
 
@@ -2803,7 +2845,7 @@ uint32_t dsm_tx_secmat_get(dsm_handle_t subnet_handle, dsm_handle_t app_handle, 
     return NRF_SUCCESS;
 }
 
-#if MESH_FEATURE_LPN_ENABLED
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
 uint32_t dsm_tx_friendship_secmat_get(dsm_handle_t subnet_handle, dsm_handle_t app_handle, nrf_mesh_secmat_t * p_secmat)
 {
     if (NULL == p_secmat)
@@ -2869,7 +2911,6 @@ uint32_t dsm_net_secmat_from_keyindex_get(mesh_key_index_t net_key_index, const 
     }
 }
 
-
 /************************************** Externed functions ****************************************/
 
 /* returns null via pp_secmat if end of search */
@@ -2880,7 +2921,7 @@ void nrf_mesh_net_secmat_next_get(uint8_t nid, const nrf_mesh_network_secmat_t *
 
     nid &= PACKET_MESH_NET_NID_MASK;
 
-#if MESH_FEATURE_LPN_ENABLED
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
     uint32_t j = 0;
     if (*pp_secmat != NULL)
     {
@@ -2899,6 +2940,18 @@ void nrf_mesh_net_secmat_next_get(uint8_t nid, const nrf_mesh_network_secmat_t *
                 return;
             }
         }
+    }
+#endif
+
+#if MESH_FEATURE_LPN_ENABLED
+    /* For lpn: if control reaches here and lpn is in friendship => no matching friendship secmats
+     * found and hence return null to stop iterating in the network layer.
+     */
+    if (mesh_lpn_is_in_friendship())
+    {
+        *pp_secmat = NULL;
+        *pp_secmat_secondary = NULL;
+        return;
     }
 #endif
 
@@ -3050,7 +3103,7 @@ void nrf_mesh_unicast_address_get(uint16_t * p_addr_start, uint16_t * p_addr_cou
     *p_addr_count = m_local_unicast_addr.count;
 }
 
-#if MESH_FEATURE_LPN_ENABLED
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
 uint32_t nrf_mesh_friendship_secmat_params_set(const nrf_mesh_network_secmat_t * p_net, const nrf_mesh_keygen_friendship_secmat_params_t *p_secmat_params)
 {
     if (NULL == p_net || NULL == p_secmat_params)
@@ -3117,4 +3170,103 @@ void nrf_mesh_friendship_secmat_get(uint16_t lpn_addr, const nrf_mesh_network_se
         }
     }
 }
+
 #endif
+
+#if MESH_FEATURE_FRIEND_ENABLED
+nrf_mesh_network_secmat_t * nrf_mesh_net_master_secmat_get(const nrf_mesh_network_secmat_t * p_secmat)
+{
+    if (p_secmat == NULL)
+    {
+        return NULL;
+    }
+
+    /* Check friendships */
+    for (uint32_t j = 0; j < ARRAY_SIZE(m_friendships); j++)
+    {
+        if (m_friendships[j].subnet_handle != DSM_HANDLE_INVALID)
+        {
+            if (p_secmat == &m_friendships[j].secmat)
+            {
+                return &m_subnets[m_friendships[j].subnet_handle].secmat;
+            }
+
+            if (p_secmat == &m_friendships[j].secmat_updated &&
+                m_subnets[m_friendships[j].subnet_handle].key_refresh_phase != NRF_MESH_KEY_REFRESH_PHASE_0)
+            {
+                return &m_subnets[m_friendships[j].subnet_handle].secmat_updated;
+            }
+        }
+    }
+
+    return NULL;
+}
+#endif
+
+nrf_mesh_key_refresh_phase_t nrf_mesh_key_refresh_phase_get(const nrf_mesh_network_secmat_t * p_secmat)
+{
+    NRF_MESH_ASSERT(p_secmat != NULL);
+
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
+    /* Check friendships */
+    for (uint32_t j = 0; j < ARRAY_SIZE(m_friendships); j++)
+    {
+        if (m_friendships[j].subnet_handle != DSM_HANDLE_INVALID)
+        {
+            if (p_secmat == &m_friendships[j].secmat ||
+                p_secmat == &m_friendships[j].secmat_updated)
+            {
+                return m_subnets[m_friendships[j].subnet_handle].key_refresh_phase;
+            }
+        }
+    }
+#endif
+
+    dsm_handle_t handle = get_subnet_handle(p_secmat);
+    if (handle != DSM_HANDLE_INVALID)
+    {
+        return m_subnets[handle].key_refresh_phase;
+    }
+
+    /* Should not be reached. */
+    NRF_MESH_ASSERT(false);
+    return NRF_MESH_KEY_REFRESH_PHASE_0;
+}
+
+const nrf_mesh_network_secmat_t * nrf_mesh_net_secmat_from_index_get(uint16_t subnet_index)
+{
+    const nrf_mesh_network_secmat_t * p_secmat = NULL;
+    uint32_t status = dsm_net_secmat_from_keyindex_get(subnet_index, &p_secmat);
+    if (status == NRF_SUCCESS)
+    {
+        return p_secmat;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+bool nrf_mesh_is_address_rx(const nrf_mesh_address_t * p_addr)
+{
+    switch (p_addr->type)
+    {
+        case NRF_MESH_ADDRESS_TYPE_UNICAST:
+        case NRF_MESH_ADDRESS_TYPE_GROUP:
+        {
+            nrf_mesh_address_t dummy;
+            return nrf_mesh_rx_address_get(p_addr->value, &dummy);
+        }
+        case NRF_MESH_ADDRESS_TYPE_VIRTUAL:
+        {
+            dsm_handle_t virtual_addr_index;
+            if (virtual_address_uuid_index_get(p_addr->p_virtual_uuid, &virtual_addr_index))
+            {
+                return (m_virtual_addresses[virtual_addr_index].subscription_count > 0);
+            }
+            return false;
+        }
+        default:
+            return false;
+    }
+}

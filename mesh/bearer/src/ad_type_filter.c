@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -94,6 +94,7 @@ void bearer_adtype_filtering_set(bool onoff)
     if (onoff)
     {
         m_adtype_filter.filter.handler = adtype_filter_handle;
+        m_adtype_filter.filter.type    = FILTER_TYPE_PRE_PROC;
         fen_filter_start(&m_adtype_filter.filter);
     }
     else

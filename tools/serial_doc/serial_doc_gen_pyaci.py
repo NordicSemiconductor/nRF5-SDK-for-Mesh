@@ -1,4 +1,4 @@
-# Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+# Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ import os
 import textwrap
 import datetime
 
-LICENSE_TEXT ="""# Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+LICENSE_TEXT ="""# Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without

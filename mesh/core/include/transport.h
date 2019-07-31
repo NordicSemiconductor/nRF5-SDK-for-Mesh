@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -78,13 +78,16 @@
 /** Default number of retries before cancelling SAR TX session. */
 #define TRANSPORT_SAR_TX_RETRIES_DEFAULT (4)
 
-#if MESH_FEATURE_LPN_ENABLED
-/** Maximum number of control packet consumers. Heartbeat + LPN_SM + LPN FSM */
+/** Maximum number of control packet consumers. Heartbeat + LPN_SM + LPN FSM + Friend. */
+#if MESH_FEATURE_LPN_ENABLED && MESH_FEATURE_FRIEND_ENABLED
+#define TRANSPORT_CONTROL_PACKET_CONSUMERS_MAX   (4)
+#elif MESH_FEATURE_LPN_ENABLED
 #define TRANSPORT_CONTROL_PACKET_CONSUMERS_MAX   (3)
+#elif MESH_FEATURE_FRIEND_ENABLED
+#define TRANSPORT_CONTROL_PACKET_CONSUMERS_MAX   (2)
 #else
 #define TRANSPORT_CONTROL_PACKET_CONSUMERS_MAX   (1)
 #endif
-
 /** The highest control packet opcode that can fit in the packet field,  */
 #define TRANSPORT_CONTROL_PACKET_OPCODE_MAX (PACKET_MESH_TRS_CONTROL_OPCODE_MASK)
 
@@ -126,7 +129,7 @@ typedef struct
     nrf_mesh_address_t dst; /**< Packet destination address. */
     const nrf_mesh_network_secmat_t * p_net_secmat; /**< Network security material used during network encryption/decryption. */
     uint8_t ttl; /**< TTL value for the control packet. This is a 7 bit value. */
-    core_tx_bearer_type_t bearer_selector; /**< The bearer on which the outgoing packets are to be sent on. Alternatively, use CORE_TX_BEARER_TYPE_ALLOW_ALL to allow allocation to all bearers. */
+    core_tx_bearer_selector_t bearer_selector; /**< The bearers on which the outgoing packets are to be sent on. Alternatively, use CORE_TX_BEARER_TYPE_ALLOW_ALL to allow allocation to all bearers. */
 } transport_control_packet_t;
 
 /**
@@ -148,10 +151,8 @@ typedef struct
 
 /**
  * Initializes the transport layer.
- *
- * @param[in] p_init_params  Generic initialization parameters pointer.
  */
-void transport_init(const nrf_mesh_init_params_t * p_init_params);
+void transport_init(void);
 
 /**
  * Enables the transport layer.

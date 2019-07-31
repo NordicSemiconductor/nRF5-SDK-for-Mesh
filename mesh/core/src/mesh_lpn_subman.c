@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -236,6 +236,11 @@ static void subman_lpn_event_handler(const nrf_mesh_evt_t * p_evt)
     switch (p_evt->type)
     {
         case NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED:
+            if (p_evt->params.friendship_established.role == NRF_MESH_FRIENDSHIP_ROLE_FRIEND)
+            {
+                return;
+            }
+
             /* Send out first subscription add message */
             if (m_address_sync_in_progress == false && subman_next_pdu_create(TRANSPORT_CONTROL_OPCODE_FRIEND_SUBSCRIPTION_LIST_ADD))
             {
@@ -247,6 +252,11 @@ static void subman_lpn_event_handler(const nrf_mesh_evt_t * p_evt)
             break;
 
         case NRF_MESH_EVT_FRIENDSHIP_TERMINATED:
+            if (p_evt->params.friendship_terminated.role == NRF_MESH_FRIENDSHIP_ROLE_FRIEND)
+            {
+                return;
+            }
+
             for (int32_t i = 0; i < LPN_SUBMAN_ADDRESS_LIST_SIZE; i++)
             {
                 entry_clear_all(i);

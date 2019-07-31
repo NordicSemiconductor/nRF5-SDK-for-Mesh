@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -105,6 +105,13 @@ static const access_opcode_handler_t m_opcode_handlers[] =
     {ACCESS_OPCODE_VENDOR(SIMPLE_ON_OFF_OPCODE_SET_UNRELIABLE, SIMPLE_ON_OFF_COMPANY_ID), handle_set_unreliable_cb}
 };
 
+static void handle_publish_timeout(access_model_handle_t handle, void * p_args)
+{
+    simple_on_off_server_t * p_server = p_args;
+
+    (void) simple_on_off_server_status_publish(p_server, p_server->get_cb(p_server));
+}
+
 /*****************************************************************************
  * Public API
  *****************************************************************************/
@@ -125,7 +132,7 @@ uint32_t simple_on_off_server_init(simple_on_off_server_t * p_server, uint16_t e
     init_params.p_opcode_handlers = &m_opcode_handlers[0];
     init_params.opcode_count = sizeof(m_opcode_handlers) / sizeof(m_opcode_handlers[0]);
     init_params.p_args = p_server;
-    init_params.publish_timeout_cb = NULL;
+    init_params.publish_timeout_cb = handle_publish_timeout;
     return access_model_add(&init_params, &p_server->model_handle);
 }
 

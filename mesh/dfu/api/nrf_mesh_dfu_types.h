@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -137,19 +137,20 @@ typedef enum
 /** Reasons for a DFU operation to end. */
 typedef enum
 {
-    NRF_MESH_DFU_END_SUCCESS,                          /**< The transfer ended successfully. */
-    NRF_MESH_DFU_END_FWID_VALID,                       /**< The FWID was valid, and the bootloader stopped operation. */
-    NRF_MESH_DFU_END_APP_ABORT,                        /**< The application requested to abort the transfer. */
-    NRF_MESH_DFU_END_ERROR_PACKET_LOSS,                /**< Too many packets were lost in the transfer. */
-    NRF_MESH_DFU_END_ERROR_UNAUTHORIZED,               /**< The signature check failed. */
-    NRF_MESH_DFU_END_ERROR_NO_START,                   /**< Failed to receive the start packet. */
-    NRF_MESH_DFU_END_ERROR_TIMEOUT,                    /**< Timed out waiting for packets. */
-    NRF_MESH_DFU_END_ERROR_NO_MEM,                     /**< Not enough memory to handle transfer. */
-    NRF_MESH_DFU_END_ERROR_INVALID_PERSISTENT_STORAGE, /**< Device page contained invalid or corrupted data. */
-    NRF_MESH_DFU_END_ERROR_SEGMENT_VIOLATION,          /**< The transfer fell outside its designated flash section. */
-    NRF_MESH_DFU_END_ERROR_MBR_CALL_FAILED,            /**< A call to the MBR failed. */
-    NRF_MESH_DFU_END_ERROR_INVALID_TRANSFER,           /**< The transfer does not meet its requirements. */
-    NRF_MESH_DFU_END_ERROR_BANK_IN_BOOTLOADER_AREA,    /**< The given bank address results in bootloader invalidation. */
+    NRF_MESH_DFU_END_SUCCESS,                               /**< The transfer ended successfully. */
+    NRF_MESH_DFU_END_FWID_VALID,                            /**< The FWID was valid, and the bootloader stopped operation. */
+    NRF_MESH_DFU_END_APP_ABORT,                             /**< The application requested to abort the transfer. */
+    NRF_MESH_DFU_END_ERROR_PACKET_LOSS,                     /**< Too many packets were lost in the transfer. */
+    NRF_MESH_DFU_END_ERROR_UNAUTHORIZED,                    /**< The signature check failed. */
+    NRF_MESH_DFU_END_ERROR_NO_START,                        /**< Failed to receive the start packet. */
+    NRF_MESH_DFU_END_ERROR_TIMEOUT,                         /**< Timed out waiting for packets. */
+    NRF_MESH_DFU_END_ERROR_NO_MEM,                          /**< Not enough memory to handle transfer. */
+    NRF_MESH_DFU_END_ERROR_INVALID_PERSISTENT_STORAGE,      /**< Device page contained invalid or corrupted data. */
+    NRF_MESH_DFU_END_ERROR_SEGMENT_VIOLATION,               /**< The transfer fell outside its designated flash section. */
+    NRF_MESH_DFU_END_ERROR_MBR_CALL_FAILED,                 /**< A call to the MBR failed. */
+    NRF_MESH_DFU_END_ERROR_INVALID_TRANSFER,                /**< The transfer does not meet its requirements. */
+    NRF_MESH_DFU_END_ERROR_BANK_IN_BOOTLOADER_AREA,         /**< The given bank address results in bootloader invalidation. */
+    NRF_MESH_DFU_END_ERROR_BANK_AND_DESTINATION_OVERLAP,    /**< When copying the finished bank to its intended destination, it will have to overwrite itself. */
 
     /** @internal Largest number in the enum. */
     NRF_MESH_DFU_END_ERROR__LAST = NRF_MESH_DFU_END_ERROR_BANK_IN_BOOTLOADER_AREA,

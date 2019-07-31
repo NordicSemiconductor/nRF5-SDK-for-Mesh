@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -176,6 +176,29 @@ static void core_tx_adv_get(mesh_config_entry_id_t entry_id, void * p_entry)
     p_adv->tx_interval_ms = advertiser_interval_get(&m_bearer_roles[role].advertiser);
 }
 
+static void core_tx_adv_delete(mesh_config_entry_id_t entry_id)
+{
+    core_tx_role_t role = (core_tx_role_t) (entry_id.record - MESH_OPT_CORE_ADV_RECORD_START);
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+
+    if (!advertiser_is_enabled(&m_bearer_roles[role].advertiser))
+    {
+        advertiser_enable(&m_bearer_roles[role].advertiser);
+    }
+
+#if MESH_FEATURE_RELAY_ENABLED
+    if (role == CORE_TX_ROLE_RELAY)
+    {
+        m_bearer_roles[role].adv_tx_count = CORE_TX_REPEAT_RELAY_DEFAULT;
+    }
+    else
+#endif
+    {
+        m_bearer_roles[role].adv_tx_count = CORE_TX_REPEAT_ORIGINATOR_DEFAULT;
+    }
+    advertiser_interval_set(&m_bearer_roles[role].advertiser, BEARER_ADV_INT_DEFAULT_MS);
+}
+
 static uint32_t core_tx_tx_power_set(mesh_config_entry_id_t entry_id, const void * p_entry)
 {
     core_tx_role_t role = (core_tx_role_t) (entry_id.record - MESH_OPT_CORE_TX_POWER_RECORD_START);
@@ -222,6 +245,16 @@ static void core_tx_adv_addr_get(mesh_config_entry_id_t entry_id, void * p_entry
     advertiser_address_get(&m_bearer_roles[role].advertiser, p_addr);
 }
 
+static void core_tx_adv_addr_delete(mesh_config_entry_id_t entry_id)
+{
+    core_tx_role_t role = (core_tx_role_t) (entry_id.record - MESH_OPT_CORE_ADV_ADDR_RECORD_START);
+    NRF_MESH_ASSERT_DEBUG(role < CORE_TX_ROLE_COUNT);
+
+    ble_gap_addr_t adv_addr;
+    advertiser_address_default_get(&adv_addr);
+    advertiser_address_set(&m_bearer_roles[role].advertiser, &adv_addr);
+}
+
 /*****************************************************************************
  * Wrapper functions
  *****************************************************************************/
@@ -232,7 +265,7 @@ MESH_CONFIG_ENTRY(mesh_opt_core_adv,
                   sizeof(mesh_opt_core_adv_t),
                   core_tx_adv_set,
                   core_tx_adv_get,
-                  NULL,
+                  core_tx_adv_delete,
                   true);
 
 MESH_CONFIG_ENTRY(mesh_opt_core_tx_power,
@@ -250,7 +283,7 @@ MESH_CONFIG_ENTRY(mesh_opt_core_adv_addr,
                   sizeof(ble_gap_addr_t),
                   core_tx_adv_addr_set,
                   core_tx_adv_addr_get,
-                  NULL,
+                  core_tx_adv_addr_delete,
                   true);
 
 

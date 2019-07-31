@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="19cm" height="16cm" viewBox="186 282 363 318" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 3; stroke-dasharray: 16; stroke: #009400" cx="411.833" cy="435.102" rx="97.5229" ry="97.3001"/>
+    <text font-size="12.8" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="411.833" y="439.902">
+      <tspan x="411.833" y="439.902">  </tspan>
+    </text>
+  </g>
+  <g>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 3; stroke-dasharray: 16; stroke: #0000ff" cx="405.511" cy="501.24" rx="97.5229" ry="97.3001"/>
+    <text font-size="12.8" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="405.511" y="506.04">
+      <tspan x="405.511" y="506.04">  </tspan>
+    </text>
+  </g>
+  <g>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 3; stroke-dasharray: 16; stroke: #ff00c9" cx="352.34" cy="464.929" rx="97.5229" ry="97.3001"/>
+    <text font-size="12.8" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="352.34" y="469.729">
+      <tspan x="352.34" y="469.729">  </tspan>
+    </text>
+  </g>
+  <g>
+    <ellipse style="fill: #84fc84" cx="412.18" cy="435.375" rx="27.1462" ry="27.6461"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 3; stroke: #009400" cx="412.18" cy="435.375" rx="27.1462" ry="27.6461"/>
+    <text font-size="12.8" style="fill: #000000;text-anchor:end;font-family:sans-serif;font-style:normal;font-weight:normal" x="429.255" y="440.175">
+      <tspan x="429.255" y="440.175"></tspan>
+    </text>
+  </g>
+  <g>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 3; stroke-dasharray: 16; stroke: #ff0000" cx="449.927" cy="381.283" rx="97.5229" ry="97.3001"/>
+    <text font-size="12.8" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="449.927" y="386.083">
+      <tspan x="449.927" y="386.083">  </tspan>
+    </text>
+  </g>
+  <g>
+    <ellipse style="fill: #ff9292" cx="450.275" cy="381.556" rx="27.1462" ry="27.6461"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 3; stroke: #ff0000" cx="450.275" cy="381.556" rx="27.1462" ry="27.6461"/>
+    <text font-size="12.8" style="fill: #000000;text-anchor:end;font-family:sans-serif;font-style:normal;font-weight:normal" x="467.35" y="386.356">
+      <tspan x="467.35" y="386.356"></tspan>
+    </text>
+  </g>
+  <text font-size="7.90222" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="436.007" y="384.459">
+    <tspan x="436.007" y="384.459">NODE_E</tspan>
+  </text>
+  <text font-size="7.90222" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="397.912" y="438.278">
+    <tspan x="397.912" y="438.278">NODE_B</tspan>
+  </text>
+  <g>
+    <ellipse style="fill: #ffb7f0" cx="352.688" cy="465.202" rx="27.1462" ry="27.6461"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 3; stroke: #ff00c9" cx="352.688" cy="465.202" rx="27.1462" ry="27.6461"/>
+    <text font-size="12.8" style="fill: #000000;text-anchor:end;font-family:sans-serif;font-style:normal;font-weight:normal" x="369.763" y="470.002">
+      <tspan x="369.763" y="470.002"></tspan>
+    </text>
+  </g>
+  <text font-size="7.90222" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="338.42" y="468.105">
+    <tspan x="338.42" y="468.105">NODE_C</tspan>
+  </text>
+  <g>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 3; stroke-dasharray: 16; stroke: #000000" cx="285.067" cy="455.203" rx="97.5229" ry="97.3001"/>
+    <text font-size="12.8" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="285.067" y="460.003">
+      <tspan x="285.067" y="460.003">  </tspan>
+    </text>
+  </g>
+  <g>
+    <ellipse style="fill: #bfbfbf" cx="285.414" cy="455.476" rx="27.1462" ry="27.6461"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 3; stroke: #000000" cx="285.414" cy="455.476" rx="27.1462" ry="27.6461"/>
+    <text font-size="12.8" style="fill: #000000;text-anchor:end;font-family:sans-serif;font-style:normal;font-weight:normal" x="302.489" y="460.276">
+      <tspan x="302.489" y="460.276"></tspan>
+    </text>
+  </g>
+  <text font-size="7.90222" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="271.146" y="458.379">
+    <tspan x="271.146" y="458.379">NODE_D</tspan>
+  </text>
+  <g>
+    <ellipse style="fill: #b3b3ff" cx="405.858" cy="501.514" rx="27.1462" ry="27.6461"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 3; stroke: #0000ff" cx="405.858" cy="501.514" rx="27.1462" ry="27.6461"/>
+    <text font-size="12.8" style="fill: #000000;text-anchor:end;font-family:sans-serif;font-style:normal;font-weight:normal" x="422.933" y="506.314">
+      <tspan x="422.933" y="506.314"></tspan>
+    </text>
+  </g>
+  <text font-size="7.90222" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="391.59" y="504.416">
+    <tspan x="391.59" y="504.416">NODE_A</tspan>
+  </text>
+</svg>

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -69,6 +69,7 @@ void bearer_rssi_filtering_set(int8_t rssi)
         if (m_rssi_filter.rssi_filter_val == 0)
         {
             m_rssi_filter.filter.handler = rssi_filter_handle;
+            m_rssi_filter.filter.type    = FILTER_TYPE_POST_PROC;
             fen_filter_start(&m_rssi_filter.filter);
         }
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -45,6 +45,10 @@
  * Abstract timer API which is based on SDK app_timer (RTC).
  * @{
  */
+
+/** Maximum error that can be introduced while converting RTC ticks to microsecond timestamps by the
+ * use of timer_now() API */
+#define TIMER_NOW_MAX_ERROR_US   (31)
 
 /** Get timestamp - ref, including rollover. */
 #define TIMER_DIFF(timestamp, reference) timer_diff(timestamp, reference)

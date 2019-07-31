@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -145,7 +145,7 @@ typedef struct
  *
  * @details Special value of the event_id field. If it is used in transition
  *          declaration table, then the transitions listed in this state will be applied
- *          in case they have not been listed in the transition table for the 
+ *          in case they have not been listed in the transition table for the
  *          current FSM state or the transition does not have guard function.
  *          Only one FSM_STATE(FSM_ANY_STATE) can be present in transition table.
  */
@@ -158,7 +158,7 @@ typedef struct
  *          between state declaration and transition declaration.
  */
 #define FSM_STATE_FLAG      0x80
-   
+
 
 /**@brief   Prototype of a user-defined FSM guard condition function.
  *
@@ -195,7 +195,7 @@ typedef struct
     /** Number of transitions in the transition table.
      */
     uint8_t                  transitions_count;
-    
+
     /** Initial state ID.
      */
     fsm_state_id_t           initial_state;
@@ -234,7 +234,7 @@ typedef struct
 
 /**@brief   FSM dynamic descriptor, holding the current state of the FSM.
 */
-typedef struct 
+typedef struct
 {
     /** Pointer to the constant FSM descriptor, which can reside in read-only memory.
      */
@@ -265,7 +265,7 @@ void fsm_init(fsm_t * p_fsm, const fsm_const_descriptor_t * p_fsm_const);
 /**@brief   Posts event to FSM.
  *
  * @details This function causes FSM transition from the current state to the new state,
- *          according to the transition table of this FSM. 
+ *          according to the transition table of this FSM.
  *          The corresponding guard check and action is performed.
  *
  * @param[in]   p_fsm       Pointer to FSM descriptor.

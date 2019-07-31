@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -276,11 +276,18 @@ static void radio_handle_end_event(void)
             m_scanner.rx_callback(p_packet, rx_timestamp_ts);
         }
 
-        packet_buffer_commit(&m_scanner.packet_buffer,
-                             m_scanner.p_buffer_packet,
-                             SCANNER_PACKET_OVERHEAD + p_packet->packet.header.length);
+        if (!fen_filters_apply(FILTER_TYPE_PRE_PROC, p_packet))
+        {
+            packet_buffer_commit(&m_scanner.packet_buffer,
+                                 m_scanner.p_buffer_packet,
+                                 SCANNER_PACKET_OVERHEAD + p_packet->packet.header.length);
 
-        bearer_event_flag_set(m_scanner.nrf_mesh_process_flag);
+            bearer_event_flag_set(m_scanner.nrf_mesh_process_flag);
+        }
+        else
+        {
+            packet_buffer_free(&m_scanner.packet_buffer, m_scanner.p_buffer_packet);
+        }
     }
     else
     {
@@ -537,7 +544,7 @@ const scanner_packet_t * scanner_rx(void)
 
     while (packet_buffer_pop(&m_scanner.packet_buffer, &p_packet) == NRF_SUCCESS)
     {
-        if (fen_filters_apply((scanner_packet_t *)p_packet->packet))
+        if (fen_filters_apply(FILTER_TYPE_POST_PROC, (scanner_packet_t *)p_packet->packet))
         {
             scanner_packet_release((scanner_packet_t *)p_packet->packet);
         }

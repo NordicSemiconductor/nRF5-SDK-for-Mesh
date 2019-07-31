@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -44,6 +44,7 @@
 #include "list.h"
 #include "mesh_config.h"
 #include "heartbeat.h"
+#include "mesh_friendship_types.h"
 
 /**
  * @defgroup NRF_MESH_EVENTS Mesh events
@@ -112,8 +113,13 @@ typedef enum
     NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED,
     /** The friendship is successfully terminated. */
     NRF_MESH_EVT_FRIENDSHIP_TERMINATED,
+    /** The mesh proxy server is stopped. */
+    NRF_MESH_EVT_PROXY_STOPPED,
     /** The mesh has been disabled. */
     NRF_MESH_EVT_DISABLED,
+    /** The node has received a Friend Request from an LPN. Unless the friendship is actively
+     * terminated, the request is accepted automatically. */
+    NRF_MESH_EVT_FRIEND_REQUEST,
 } nrf_mesh_evt_type_t;
 
 /**
@@ -251,7 +257,7 @@ typedef union
     struct
     {
         nrf_mesh_dfu_transfer_t transfer;       /**< DFU type and firmware ID of the bank. */
-        uint32_t* p_start_addr;                 /**< Start address of the bank. */
+        const uint32_t * p_start_addr;          /**< Start address of the bank. */
         uint32_t length;                        /**< Length of the firmware in the bank. */
         bool is_signed;                         /**< Flag indicating whether the bank is signed with an encryption key. */
     } bank;
@@ -393,8 +399,21 @@ typedef struct
     uint32_t iv_index;
 } nrf_mesh_evt_lpn_friend_update_t;
 
+/**
+ * Device role in the friendship.
+ */
+typedef enum
+{
+    /** Friend role. */
+    NRF_MESH_FRIENDSHIP_ROLE_FRIEND,
+    /** Low Power node role. */
+    NRF_MESH_FRIENDSHIP_ROLE_LPN
+} nrf_mesh_friendship_role_t;
+
 typedef struct
 {
+    /** Source device role for the event. */
+    nrf_mesh_friendship_role_t role;
     /** Source (element) address of the Low Power node. */
     uint16_t lpn_src;
     /** Source (element) address of the Friend node. */
@@ -410,11 +429,19 @@ typedef enum
     /** The Friend node did not reply to the (repeated) Friend Poll. */
     NRF_MESH_EVT_FRIENDSHIP_TERMINATED_REASON_NO_REPLY,
     /** The Low Power node was not able to send transport command due to internal fault. */
-    NRF_MESH_EVT_FRIENDSHIP_TERMINATED_REASON_INTERNAL_TX_FAILED
+    NRF_MESH_EVT_FRIENDSHIP_TERMINATED_REASON_INTERNAL_TX_FAILED,
+    /** A new Friend Request was received from an LPN. */
+    NRF_MESH_EVT_FRIENDSHIP_TERMINATED_REASON_NEW_FRIEND_REQUEST,
+    /** The friendship was terminated through the API. */
+    NRF_MESH_EVT_FRIENDSHIP_TERMINATED_REASON_USER,
+    /** The LPN established a friendship with a different Friend. */
+    NRF_MESH_EVT_FRIENDSHIP_TERMINATED_REASON_NEW_FRIEND
 } nrf_mesh_evt_friendship_terminated_reason_t;
 
 typedef struct
 {
+    /** Source role of the event. */
+    nrf_mesh_friendship_role_t role;
     /** Source (element) address of the Low Power node. */
     uint16_t lpn_src;
     /** Source (element) address of the Friend node. */
@@ -422,6 +449,16 @@ typedef struct
     /** Reason for friendship termination. */
     nrf_mesh_evt_friendship_terminated_reason_t reason;
 } nrf_mesh_evt_friendship_terminated_t;
+
+typedef struct
+{
+    /** Pointer to the friendship parameter structure. */
+    const mesh_friendship_t * p_friendship;
+    /** Network layer security material used in the decryption of the payload. */
+    const nrf_mesh_network_secmat_t * p_net;
+    /** Metadata for the received packet. */
+    const nrf_mesh_rx_metadata_t * p_metadata;
+} nrf_mesh_evt_friend_request_t;
 
 /**
  * Mesh event structure.
@@ -468,6 +505,8 @@ typedef struct
         nrf_mesh_evt_friendship_established_t   friendship_established;
         /** Friendship terminated event. */
         nrf_mesh_evt_friendship_terminated_t    friendship_terminated;
+        /** Friend Request event. */
+        nrf_mesh_evt_friend_request_t           friend_request;
     } params;
 } nrf_mesh_evt_t;
 

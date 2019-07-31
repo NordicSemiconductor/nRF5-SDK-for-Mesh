@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -42,14 +42,15 @@
 
 #include <nrf_error.h>
 
-#include "enc.h"
+#include "nrf_mesh_config_core.h"
+#include "nrf_mesh_config_bearer.h"
+#include "mesh_opt_core.h"
 #include "msg_cache.h"
 #include "transport.h"
 #include "nrf_mesh_assert.h"
 #include "net_beacon.h"
 #include "net_state.h"
 #include "utils.h"
-#include "log.h"
 #include "internal_event.h"
 #include "nrf_mesh_utils.h"
 #include "nrf_mesh_externs.h"
@@ -58,11 +59,15 @@
 #include "core_tx_adv.h"
 #include "core_tx_instaburst.h"
 #include "heartbeat.h"
-#include "nrf_mesh_config_bearer.h"
-#include "mesh_opt_core.h"
+#include "enc.h"
+#include "log.h"
 #if MESH_FEATURE_GATT_PROXY_ENABLED
 #include "proxy.h"
 #endif
+#if MESH_FEATURE_FRIEND_ENABLED
+#include "friend_internal.h"
+#endif
+
 /********************
  * Static variables *
  ********************/
@@ -94,7 +99,7 @@ static uint32_t allocate_packet(network_tx_packet_buffer_t * p_buffer)
     if (core_tx_packet_alloc(&alloc_params,
                              (uint8_t **) &p_net_packet) != 0)
     {
-#if MESH_FEATURE_RELAY_ENABLED
+#if MESH_FEATURE_RELAY_ENABLED || MESH_FEATURE_FRIEND_ENABLED
         if (p_buffer->user_data.role != CORE_TX_ROLE_RELAY)
 #endif
         {
@@ -124,11 +129,13 @@ static uint32_t allocate_packet(network_tx_packet_buffer_t * p_buffer)
  * @param[in] p_net_metadata Network metadata of packet to relay.
  * @param[in,out] p_net_payload Payload of the network packet to relay.
  * @param[in] payload_len Length of the network payload.
+ * @param[in] p_rx_metadata RX metadata tied to the packet
  */
 #if MESH_FEATURE_RELAY_ENABLED
 static void packet_relay(network_packet_metadata_t * p_net_metadata,
                          const uint8_t * p_net_payload,
-                         uint8_t payload_len)
+                         uint8_t payload_len,
+                         const nrf_mesh_rx_metadata_t * p_rx_metadata)
 {
     p_net_metadata->ttl--; /* Subtract this hop */
 
@@ -136,8 +143,18 @@ static void packet_relay(network_packet_metadata_t * p_net_metadata,
     buffer.user_data.p_metadata = p_net_metadata;
     buffer.user_data.payload_len = payload_len;
     buffer.user_data.token = NRF_MESH_RELAY_TOKEN;
-    buffer.user_data.bearer_selector = CORE_TX_BEARER_TYPE_ALLOW_ALL;
+    // exclude local bearer from relay mechanism
+    buffer.user_data.bearer_selector = CORE_TX_BEARER_TYPE_ALLOW_ALL ^ CORE_TX_BEARER_TYPE_LOCAL;
     buffer.user_data.role = CORE_TX_ROLE_RELAY;
+
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    if (p_rx_metadata->source != NRF_MESH_RX_SOURCE_GATT && !proxy_is_enabled())
+    {
+        buffer.user_data.bearer_selector ^= CORE_TX_BEARER_TYPE_GATT_SERVER;
+    }
+#else
+    UNUSED_PARAMETER(p_rx_metadata);
+#endif
 
     if (allocate_packet(&buffer) == NRF_SUCCESS)
     {
@@ -160,6 +177,7 @@ static bool metadata_is_valid(const network_packet_metadata_t * p_net_metadata)
 
     return (p_net_metadata->dst.type != NRF_MESH_ADDRESS_TYPE_INVALID &&
             p_net_metadata->internal.sequence_number <= NETWORK_SEQNUM_MAX &&
+            !(p_net_metadata->control_packet && p_net_metadata->dst.type == NRF_MESH_ADDRESS_TYPE_VIRTUAL) &&
             p_net_metadata->ttl <= NRF_MESH_TTL_MAX);
 }
 
@@ -169,12 +187,22 @@ static bool metadata_is_valid(const network_packet_metadata_t * p_net_metadata)
  * @note Assumes that the message has been accepted for transport processing.
  *
  * @param[in] p_metadata Metadata to evaluate
+ * @param[in] p_rx_metadata RX metadata tied to the packet
  *
  * @returns Whether or not the packet represented by the metadata should be relayed.
  */
 #if MESH_FEATURE_RELAY_ENABLED
-static bool should_relay(const network_packet_metadata_t * p_metadata)
+static bool should_relay(const network_packet_metadata_t * p_metadata,
+                         const nrf_mesh_rx_metadata_t * p_rx_metadata)
 {
+    /* If the source address is one of our unicast rx addresses, we sent it ourselves, and shouldn't
+     * process it to prevent relay loop */
+    nrf_mesh_address_t dummy_addr;
+    if (nrf_mesh_rx_address_get(p_metadata->src, &dummy_addr))
+    {
+        return false;
+    }
+
     /* Relay feature must be enabled */
 #if EXPERIMENTAL_INSTABURST_ENABLED
     if (!core_tx_instaburst_is_enabled(CORE_TX_ROLE_RELAY))
@@ -184,20 +212,29 @@ static bool should_relay(const network_packet_metadata_t * p_metadata)
     {
         return false;
     }
+
     /* TTL must be 2 or greater */
     if (p_metadata->ttl < 2)
     {
         return false;
     }
+
     /* Should not be directed to a unicast address on this device */
     if (p_metadata->dst.type == NRF_MESH_ADDRESS_TYPE_UNICAST)
     {
-        nrf_mesh_address_t dummy_addr;
         if (nrf_mesh_rx_address_get(p_metadata->dst.value, &dummy_addr))
         {
             return false;
         }
     }
+
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    if (p_rx_metadata->source == NRF_MESH_RX_SOURCE_GATT && !proxy_is_enabled())
+    {
+        return false;
+    }
+#endif
+
     /* Relay check callback function approves of the relay */
     if (m_relay_check_cb != NULL)
     {
@@ -233,7 +270,7 @@ void network_init(const nrf_mesh_init_params_t * p_init_params)
 void network_enable(void)
 {
     net_state_enable();
-#if !MESH_FEATURE_LPN_ENABLED
+#if !MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_LPN_ACT_AS_REGULAR_NODE_OUT_OF_FRIENDSHIP
     net_beacon_enable();
 #endif
 }
@@ -244,6 +281,7 @@ uint32_t network_packet_alloc(network_tx_packet_buffer_t * p_buffer)
     NRF_MESH_ASSERT(p_buffer->user_data.p_metadata != NULL);
     NRF_MESH_ASSERT(p_buffer->user_data.p_metadata->p_security_material != NULL);
     NRF_MESH_ASSERT(p_buffer->user_data.role < CORE_TX_ROLE_COUNT);
+    NRF_MESH_ASSERT(p_buffer->user_data.bearer_selector != CORE_TX_BEARER_TYPE_INVALID);
     return allocate_packet(p_buffer);
 }
 
@@ -255,7 +293,7 @@ void network_packet_send(const network_tx_packet_buffer_t * p_buffer)
     NRF_MESH_ASSERT(p_buffer->user_data.p_metadata->p_security_material != NULL);
 
     packet_mesh_net_packet_t * p_net_packet = net_packet_from_payload(p_buffer->p_payload);
-
+    __LOG_XB(LOG_SRC_NETWORK, LOG_LEVEL_DBG1, "Net TX", (const uint8_t *) p_net_packet, sizeof(packet_mesh_net_packet_t));
     net_packet_encrypt(p_buffer->user_data.p_metadata,
                        p_buffer->user_data.payload_len,
                        p_net_packet,
@@ -292,6 +330,7 @@ uint32_t network_packet_in(const uint8_t * p_packet, uint32_t net_packet_len, co
            p_net_packet,
            net_packet_obfuscation_start_get(p_net_packet) - (uint8_t *) p_net_packet);
 
+    __LOG_XB(LOG_SRC_NETWORK, LOG_LEVEL_DBG1, "  Net RX (enc)", p_packet, net_packet_len);
     network_packet_metadata_t net_metadata;
     status = net_packet_decrypt(&net_metadata,
                                 net_packet_len,
@@ -300,6 +339,7 @@ uint32_t network_packet_in(const uint8_t * p_packet, uint32_t net_packet_len, co
                                 NET_PACKET_KIND_TRANSPORT);
     if ((status == NRF_SUCCESS) && metadata_is_valid(&net_metadata))
     {
+        __LOG_XB(LOG_SRC_NETWORK, LOG_LEVEL_DBG1, "Net RX (unenc)", &net_decrypted_packet.pdu[0], net_packet_len);
         NRF_MESH_ASSERT(net_metadata.p_security_material != NULL);
 
 #if MESH_FEATURE_GATT_PROXY_ENABLED
@@ -317,14 +357,30 @@ uint32_t network_packet_in(const uint8_t * p_packet, uint32_t net_packet_len, co
                                      &net_metadata,
                                      p_rx_metadata);
 
+        /* Add to cache irrespective of whether we relay the PDU or not */
+        msg_cache_entry_add(net_metadata.src, net_metadata.internal.sequence_number);
+
 #if MESH_FEATURE_RELAY_ENABLED
-        if (should_relay(&net_metadata))
+#if MESH_FEATURE_FRIEND_ENABLED
+        /* Perform security material translation irrespective whether the received packet was on the
+         * friendship security credentials or regular credentials
+         */
+        if (friend_friendship_established(net_metadata.src))
         {
-            packet_relay(&net_metadata, p_net_payload, payload_len);
+            nrf_mesh_network_secmat_t * p_tx_secmat = nrf_mesh_net_master_secmat_get(net_metadata.p_security_material);
+            if (p_tx_secmat != NULL)
+            {
+                net_metadata.p_security_material = p_tx_secmat;
+            }
+
+        }
+#endif
+        if (should_relay(&net_metadata, p_rx_metadata))
+        {
+            packet_relay(&net_metadata, p_net_payload, payload_len, p_rx_metadata);
         }
 #endif
 
-        msg_cache_entry_add(net_metadata.src, net_metadata.internal.sequence_number);
     }
     return status;
 }

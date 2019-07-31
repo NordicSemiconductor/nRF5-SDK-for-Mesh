@@ -1,5 +1,5 @@
 
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -96,6 +96,11 @@ static void handle_set(access_model_handle_t model_handle, const access_message_
     if (p_rx_msg->length == sizeof(generic_dtt_set_msg_pkt_t))
     {
         generic_dtt_set_msg_pkt_t * p_msg_params_packed = (generic_dtt_set_msg_pkt_t *) p_rx_msg->p_data;
+        if (!model_transition_time_is_valid(p_msg_params_packed->transition_time))
+        {
+            return;
+        }
+
         in_data.transition_time_ms = model_transition_time_decode(p_msg_params_packed->transition_time);
 
         p_server->settings.p_callbacks->dtt_cbs.set_cb(p_server, &p_rx_msg->meta_data, &in_data,

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -143,7 +143,7 @@ void ble_stack_init(void)
 #elif (NRF_SD_BLE_API_VERSION >= 2) && (NRF_SD_BLE_API_VERSION < 5)
     ble_enable_params_t ble_enable_params = {{0}};
     err_code = sd_ble_enable(&ble_enable_params, &app_ram_base);
-#elif NRF_SD_BLE_API_VERSION == 5 || NRF_SD_BLE_API_VERSION == 6
+#elif NRF_SD_BLE_API_VERSION == 5 || NRF_SD_BLE_API_VERSION == 6 || NRF_SD_BLE_API_VERSION == 7
     ble_cfg_t cfg;
     memset(&cfg, 0, sizeof(cfg));
     cfg.common_cfg.vs_uuid_cfg.vs_uuid_count = 0;

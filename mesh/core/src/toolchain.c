@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -37,7 +37,7 @@
 
 #include "toolchain.h"
 
-#if defined(MTT_TEST) && (defined(__linux__) || defined(WIN32)) 
+#if defined(MTT_TEST) && (defined(__linux__) || defined(WIN32))
 
 pthread_mutex_t irq_mutex;
 

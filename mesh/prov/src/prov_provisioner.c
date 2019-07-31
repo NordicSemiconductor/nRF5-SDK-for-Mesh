@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -296,9 +296,17 @@ static void prov_provisioner_cb_link_closed(prov_bearer_t * p_bearer, nrf_mesh_p
 static void prov_provisioner_pkt_in(prov_bearer_t * p_bearer, const uint8_t * p_buffer, uint16_t length)
 {
     nrf_mesh_prov_ctx_t * p_ctx = prov_bearer_ctx_get(p_bearer);
+    const prov_pdu_type_t pdu_type = (prov_pdu_type_t) p_buffer[0];
 
-    if (!prov_packet_length_valid(p_buffer, length))
+    if (!prov_packet_length_valid(p_buffer, length) || pdu_type >= PROV_PDU_TYPE_INVALID)
     {
+        p_ctx->p_active_bearer->p_interface->link_close(
+            p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
+        return;
+    }
+    else if (!prov_utils_is_valid_pdu(p_ctx->role, p_ctx->state, pdu_type))
+    {
+        __LOG(LOG_SRC_PROV, LOG_LEVEL_DBG1, "Got unexpected PDU %u in state %u\n", pdu_type, p_ctx->state);
         p_ctx->p_active_bearer->p_interface->link_close(
             p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
         return;
@@ -307,127 +315,126 @@ static void prov_provisioner_pkt_in(prov_bearer_t * p_bearer, const uint8_t * p_
     switch (p_buffer[0])
     {
         case PROV_PDU_TYPE_CAPABILITIES:
-            if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_CAPS)
-            {
-                const prov_pdu_caps_t * p_pdu = (const prov_pdu_caps_t *) p_buffer;
+        {
+            const prov_pdu_caps_t * p_pdu = (const prov_pdu_caps_t *) p_buffer;
 
-                /* Copy PDU contents (excluding PDU type) into the confirmation inputs: */
-                memcpy(p_ctx->confirmation_inputs + PROV_CONFIRM_INPUTS_CAPS_OFFSET, ((uint8_t *) p_pdu) + 1, sizeof(prov_pdu_caps_t) - 1);
+            /* Copy PDU contents (excluding PDU type) into the confirmation inputs: */
+            memcpy(p_ctx->confirmation_inputs + PROV_CONFIRM_INPUTS_CAPS_OFFSET, ((uint8_t *) p_pdu) + 1, sizeof(prov_pdu_caps_t) - 1);
 
-                /* Wait for app to tell us which OOB method to use */
-                p_ctx->state = NRF_MESH_PROV_STATE_WAIT_CAPS_CONFIRM;
+            /* Wait for app to tell us which OOB method to use */
+            p_ctx->state = NRF_MESH_PROV_STATE_WAIT_CAPS_CONFIRM;
 
-                nrf_mesh_prov_evt_t event;
-                event.type = NRF_MESH_PROV_EVT_CAPS_RECEIVED;
-                event.params.oob_caps_received.p_context =  p_ctx;
-                event.params.oob_caps_received.oob_caps.num_elements = p_pdu->num_elements;
-                event.params.oob_caps_received.oob_caps.algorithms = BE2LE16(p_pdu->algorithms);
-                event.params.oob_caps_received.oob_caps.pubkey_type = p_pdu->pubkey_type;
-                event.params.oob_caps_received.oob_caps.oob_static_types = p_pdu->oob_static_types;
-                event.params.oob_caps_received.oob_caps.oob_output_size = p_pdu->oob_output_size;
-                event.params.oob_caps_received.oob_caps.oob_output_actions = BE2LE16(p_pdu->oob_output_actions);
-                event.params.oob_caps_received.oob_caps.oob_input_size = p_pdu->oob_input_size;
-                event.params.oob_caps_received.oob_caps.oob_input_actions = BE2LE16(p_pdu->oob_input_actions);
-                p_ctx->event_handler(&event);
-            }
+            nrf_mesh_prov_evt_t event;
+            event.type = NRF_MESH_PROV_EVT_CAPS_RECEIVED;
+            event.params.oob_caps_received.p_context =  p_ctx;
+            event.params.oob_caps_received.oob_caps.num_elements = p_pdu->num_elements;
+            event.params.oob_caps_received.oob_caps.algorithms = BE2LE16(p_pdu->algorithms);
+            event.params.oob_caps_received.oob_caps.pubkey_type = p_pdu->pubkey_type;
+            event.params.oob_caps_received.oob_caps.oob_static_types = p_pdu->oob_static_types;
+            event.params.oob_caps_received.oob_caps.oob_output_size = p_pdu->oob_output_size;
+            event.params.oob_caps_received.oob_caps.oob_output_actions = BE2LE16(p_pdu->oob_output_actions);
+            event.params.oob_caps_received.oob_caps.oob_input_size = p_pdu->oob_input_size;
+            event.params.oob_caps_received.oob_caps.oob_input_actions = BE2LE16(p_pdu->oob_input_actions);
+            p_ctx->event_handler(&event);
             break;
+        }
         case PROV_PDU_TYPE_PUBLIC_KEY:
-            if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_PUB_KEY)
+        {
+#if PROV_DEBUG_MODE
+            __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisioner L%d: provisionee's public key received!\n", debug_link_id_get(p_ctx));
+#endif
+
+            const prov_pdu_pubkey_t * p_pdu = (const prov_pdu_pubkey_t *) p_buffer;
+            if (!prov_utils_is_valid_public_key(p_pdu->public_key))
             {
-#if PROV_DEBUG_MODE
-                __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisioner L%d: provisionee's public key received!\n", debug_link_id_get(p_ctx));
-#endif
-
-                const prov_pdu_pubkey_t * p_pdu = (const prov_pdu_pubkey_t *) p_buffer;
-                memcpy(p_ctx->peer_public_key, p_pdu->public_key, NRF_MESH_PROV_PUBKEY_SIZE);
-
-                if (start_authentication(p_ctx) != NRF_SUCCESS)
-                {
-                    p_ctx->p_active_bearer->p_interface->link_close(
-                        p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
-                }
-            }
-            break;
-        case PROV_PDU_TYPE_INPUT_COMPLETE:
-            if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_INPUT_COMPLETE)
-            {
-#if PROV_DEBUG_MODE
-                __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisioner L%d: input complete message received!\n", debug_link_id_get(p_ctx));
-#endif
-                uint32_t err_code = send_confirmation(p_ctx);
-                if (err_code != NRF_SUCCESS)
-                {
-                    p_ctx->p_active_bearer->p_interface->link_close(
-                        p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
-                }
-            }
-            break;
-        case PROV_PDU_TYPE_CONFIRMATION:
-            if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_CONFIRMATION)
-            {
-#if PROV_DEBUG_MODE
-                __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisioner L%d: provisioning confirmation received!\n", debug_link_id_get(p_ctx));
-#endif
-                const prov_pdu_confirm_t * p_pdu = (const prov_pdu_confirm_t *) p_buffer;
-                memcpy(p_ctx->peer_confirmation, p_pdu->confirmation, sizeof(p_ctx->peer_confirmation));
-
-                if (NRF_SUCCESS == prov_tx_random(p_ctx->p_active_bearer, p_ctx->node_random))
-                {
-                    p_ctx->state = NRF_MESH_PROV_STATE_WAIT_RANDOM;
-                }
-                else
-                {
-                    p_ctx->p_active_bearer->p_interface->link_close(
-                        p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
-                }
-            }
-
-            break;
-        case PROV_PDU_TYPE_RANDOM:
-            if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_RANDOM)
-            {
-#if PROV_DEBUG_MODE
-                __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisioner L%d: provisionee's random number received!\n", debug_link_id_get(p_ctx));
-#endif
-                /* TODO: Peer random is only used here, no need to store it. */
-                const prov_pdu_random_t * p_pdu = (const prov_pdu_random_t *) p_buffer;
-                memcpy(p_ctx->peer_random, p_pdu->random, sizeof(p_pdu->random));
-
-                if (!prov_utils_confirmation_check(p_ctx))
-                {
-#if PROV_DEBUG_MODE
-                    __LOG(LOG_SRC_PROV, LOG_LEVEL_ERROR, "Provisioner L%d: could not authenticate provisionee!\n", debug_link_id_get(p_ctx));
-#endif
-                    p_ctx->p_active_bearer->p_interface->link_close(
-                        p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
-                }
-                else
-                {
-                    uint8_t session_key[NRF_MESH_KEY_SIZE];
-                    uint8_t session_nonce[PROV_NONCE_LEN];
-                    prov_utils_derive_keys(p_ctx, session_key, session_nonce, p_ctx->device_key);
-                    send_data(p_ctx, session_key, session_nonce);
-                }
-            }
-            break;
-        case PROV_PDU_TYPE_COMPLETE:
-            if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_COMPLETE)
-            {
-#if PROV_DEBUG_MODE
-                __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisioner L%d: received provisioning complete message!\n", debug_link_id_get(p_ctx));
-#endif
-
-                nrf_mesh_prov_evt_t app_event;
-                app_event.type = NRF_MESH_PROV_EVT_COMPLETE;
-                app_event.params.complete.p_context = p_ctx;
-                app_event.params.complete.p_devkey = p_ctx->device_key;
-                app_event.params.complete.p_prov_data = &p_ctx->data;
-                p_ctx->event_handler(&app_event);
-
                 p_ctx->p_active_bearer->p_interface->link_close(
-                    p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_SUCCESS);
+                    p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
+                break;
+            }
+            memcpy(p_ctx->peer_public_key, p_pdu->public_key, NRF_MESH_PROV_PUBKEY_SIZE);
+
+            if (start_authentication(p_ctx) != NRF_SUCCESS)
+            {
+                p_ctx->p_active_bearer->p_interface->link_close(
+                    p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
             }
             break;
+        }
+        case PROV_PDU_TYPE_INPUT_COMPLETE:
+        {
+#if PROV_DEBUG_MODE
+            __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisioner L%d: input complete message received!\n", debug_link_id_get(p_ctx));
+#endif
+            uint32_t err_code = send_confirmation(p_ctx);
+            if (err_code != NRF_SUCCESS)
+            {
+                p_ctx->p_active_bearer->p_interface->link_close(
+                    p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
+            }
+        }
+        break;
+        case PROV_PDU_TYPE_CONFIRMATION:
+        {
+#if PROV_DEBUG_MODE
+            __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisioner L%d: provisioning confirmation received!\n", debug_link_id_get(p_ctx));
+#endif
+            const prov_pdu_confirm_t * p_pdu = (const prov_pdu_confirm_t *) p_buffer;
+            memcpy(p_ctx->peer_confirmation, p_pdu->confirmation, sizeof(p_ctx->peer_confirmation));
+
+            if (NRF_SUCCESS == prov_tx_random(p_ctx->p_active_bearer, p_ctx->node_random))
+            {
+                p_ctx->state = NRF_MESH_PROV_STATE_WAIT_RANDOM;
+            }
+            else
+            {
+                p_ctx->p_active_bearer->p_interface->link_close(
+                    p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
+            }
+            break;
+        }
+        case PROV_PDU_TYPE_RANDOM:
+        {
+#if PROV_DEBUG_MODE
+            __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisioner L%d: provisionee's random number received!\n", debug_link_id_get(p_ctx));
+#endif
+            /* TODO: Peer random is only used here, no need to store it. */
+            const prov_pdu_random_t * p_pdu = (const prov_pdu_random_t *) p_buffer;
+            memcpy(p_ctx->peer_random, p_pdu->random, sizeof(p_pdu->random));
+
+            if (!prov_utils_confirmation_check(p_ctx))
+            {
+#if PROV_DEBUG_MODE
+                __LOG(LOG_SRC_PROV, LOG_LEVEL_ERROR, "Provisioner L%d: could not authenticate provisionee!\n", debug_link_id_get(p_ctx));
+#endif
+                p_ctx->p_active_bearer->p_interface->link_close(
+                    p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
+            }
+            else
+            {
+                uint8_t session_key[NRF_MESH_KEY_SIZE];
+                uint8_t session_nonce[PROV_NONCE_LEN];
+                prov_utils_derive_keys(p_ctx, session_key, session_nonce, p_ctx->device_key);
+                send_data(p_ctx, session_key, session_nonce);
+            }
+            break;
+        }
+        case PROV_PDU_TYPE_COMPLETE:
+        {
+#if PROV_DEBUG_MODE
+            __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisioner L%d: received provisioning complete message!\n", debug_link_id_get(p_ctx));
+#endif
+
+            nrf_mesh_prov_evt_t app_event;
+            app_event.type = NRF_MESH_PROV_EVT_COMPLETE;
+            app_event.params.complete.p_context = p_ctx;
+            app_event.params.complete.p_devkey = p_ctx->device_key;
+            app_event.params.complete.p_prov_data = &p_ctx->data;
+            p_ctx->event_handler(&app_event);
+
+            p_ctx->p_active_bearer->p_interface->link_close(
+                p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_SUCCESS);
+            break;
+        }
         case PROV_PDU_TYPE_FAILED:
         {
             const prov_pdu_failed_t * p_pdu = (const prov_pdu_failed_t *) p_buffer;
@@ -563,14 +570,27 @@ uint32_t prov_provisioner_oob_pubkey(nrf_mesh_prov_ctx_t * p_ctx, const uint8_t 
         return NRF_ERROR_NULL;
     }
 
-    memcpy(p_ctx->peer_public_key, p_key, NRF_MESH_PROV_PUBKEY_SIZE);
-
-    uint32_t retval = prov_tx_public_key(p_ctx->p_active_bearer, p_ctx->p_public_key);
-    if (retval == NRF_SUCCESS)
+    /* From this point, an error with the public key or when transmitting the
+     * public key should not be return to the application, but cause the link to
+     * be closed. */
+    uint32_t status = NRF_ERROR_INVALID_PARAM;
+    if (prov_utils_is_valid_public_key(p_key))
     {
-        p_ctx->state = NRF_MESH_PROV_STATE_WAIT_PUB_KEY_ACK;
+        memcpy(p_ctx->peer_public_key, p_key, NRF_MESH_PROV_PUBKEY_SIZE);
+
+        status = prov_tx_public_key(p_ctx->p_active_bearer, p_ctx->p_public_key);
+        if (status == NRF_SUCCESS)
+        {
+            p_ctx->state = NRF_MESH_PROV_STATE_WAIT_PUB_KEY_ACK;
+        }
     }
 
-    return retval;
+    if (status != NRF_SUCCESS)
+    {
+        p_ctx->p_active_bearer->p_interface->link_close(
+            p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
+    }
+
+    return NRF_SUCCESS;
 }
 

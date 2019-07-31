@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -57,15 +57,22 @@
 /**
  * Recover access layer configuration from flash.
  *
- * @warning All models have to be added before this function is called.
+ * @warning All models have to be added before this function is called. Calling this function will
+ *          prevent any further changes to composition of the device (Freezing of model
+ *          configurations and device composition data.)
  *
- * @returns @c true if a valid state was successfully restored from flash.
+ * @returns @c True If a valid state was successfully restored from flash, or if this function is
+ *                  called for the first time when no configuration exist in the flash.
+ *
  */
 bool access_flash_config_load(void);
 
 /**
  * Store the current state of access layer - information related to element and model configuration -
  * in non volatile memory.
+ *
+ * @warning Calls to this API will not result in any storage of information if the access
+ *          configuration is not yet frozen. See @ref access_flash_config_load() API.
  */
 void access_flash_config_store(void);
 
@@ -138,6 +145,7 @@ uint32_t access_model_publication_by_appkey_stop(dsm_handle_t appkey_handle);
  */
 uint32_t access_model_publish_address_get(access_model_handle_t handle,
                                           dsm_handle_t * p_address_handle);
+
 /**
  * Sets the publish retransmit parameters for the given model.
  *
@@ -163,6 +171,22 @@ uint32_t access_model_publish_retransmit_set(access_model_handle_t handle,
  */
 uint32_t access_model_publish_retransmit_get(access_model_handle_t handle,
                                              access_publish_retransmit_t * p_retransmit_params);
+
+/**
+ * Sets the publish period divisor.
+ *
+ * Access layer will divide a publish period by the `publish_divisor` value. If publication is
+ * already active, its period will be modified immediately with the new value of publish_divisor.
+ *
+ * @param[in]  handle              Access model handle.
+ * @param[in]  publish_divisor     A divisor value to divide the model publication period with. This
+ *                                 value should not be zero.
+ *
+ * @retval NRF_SUCCESS             Successfully updated the publish period.
+ * @retval NRF_ERROR_NOT_FOUND     Access handle invalid.
+ * @retval NRF_ERROR_INVALID_PARAM The `publish_divisor` value is invalid.
+ */
+uint32_t access_model_publish_period_divisor_set(access_model_handle_t handle, uint16_t publish_divisor);
 
 /**
  * Sets the publish period for the given model.
@@ -397,6 +421,8 @@ uint32_t access_model_p_args_get(access_model_handle_t handle, void ** pp_args);
  *                                      @see ACCESS_SUBSCRIPTION_LIST_COUNT.
  * @retval     NRF_ERROR_NOT_FOUND      Access handle invalid.
  * @retval     NRF_ERROR_INVALID_STATE  A subscription list is already allocated for model.
+ * @retval     NRF_ERROR_FORBIDDEN      Model configuration is frozen and changes to model
+ *                                      subscription list are not allowed.
  */
 uint32_t access_model_subscription_list_alloc(access_model_handle_t handle);
 
@@ -412,9 +438,8 @@ uint32_t access_model_subscription_list_alloc(access_model_handle_t handle);
  *
  * @retval     NRF_SUCCESS              Successfully de-allocated subscription list.
  * @retval     NRF_ERROR_NOT_FOUND      Access handle invalid.
- * @retval     NRF_ERROR_FORBIDDEN      Subscription list is already allocated and stored in the
- *                                      flash and cannot be de-allocated, or Access layer flash
- *                                      operations are underway.
+ * @retval     NRF_ERROR_FORBIDDEN      Model configuration is frozen and changes to model
+ *                                      subscription list are not allowed.
  *
  */
 uint32_t access_model_subscription_list_dealloc(access_model_handle_t handle);
@@ -435,7 +460,8 @@ uint32_t access_model_subscription_list_dealloc(access_model_handle_t handle);
  * @retval     NRF_ERROR_NOT_FOUND      Access handle invalid for one or more of the models.
  * @retval     NRF_ERROR_INVALID_STATE  Invalid parameter combination. The owner must have a
  *                                      subscription list allocated.
- * @retval     NRF_ERROR_FORBIDDEN      If model configuration is stored in the flash and cannot be changed.
+ * @retval     NRF_ERROR_FORBIDDEN      Model configuration is frozen and changes to model
+ *                                      subscription list are not allowed.
  */
 uint32_t access_model_subscription_lists_share(access_model_handle_t owner, access_model_handle_t other);
 

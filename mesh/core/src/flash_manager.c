@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -488,7 +488,11 @@ static void end_action(action_t * p_action, fm_result_t result, const fm_entry_t
             break;
         case ACTION_TYPE_ERASE_AREA:
             NRF_MESH_ASSERT(result == FM_RESULT_SUCCESS);
-            p_manager->internal.state = FM_STATE_UNINITIALIZED;
+            if (p_manager->internal.state != FM_STATE_BUILDING)
+            { // there is postponed metadata task
+                p_manager->internal.state = FM_STATE_UNINITIALIZED;
+            }
+
             if (p_manager->config.remove_complete_cb != NULL)
             {
                 p_manager->config.remove_complete_cb(p_manager);

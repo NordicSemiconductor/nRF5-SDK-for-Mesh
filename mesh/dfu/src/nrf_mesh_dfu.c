@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -370,7 +370,7 @@ static void tx_packet_redundancy_check(const nrf_mesh_dfu_packet_t* p_packet, ui
     }
 }
 
-static uint32_t dfu_evt_handler(bl_evt_t* p_evt)
+static uint32_t dfu_evt_handler(const bl_evt_t* p_evt)
 {
     uint32_t return_code = NRF_SUCCESS;
     switch (p_evt->type)
@@ -480,7 +480,7 @@ static uint32_t dfu_evt_handler(bl_evt_t* p_evt)
 
         case BL_EVT_TYPE_FLASH_ERASE:
             {
-                if (!IS_PAGE_ALIGNED(p_evt->params.flash.erase.start_addr))
+                if (!IS_PAGE_ALIGNED(p_evt->params.flash.erase.p_start_addr))
                 {
                     return_code = NRF_ERROR_INVALID_ADDR;
                 }
@@ -488,7 +488,7 @@ static uint32_t dfu_evt_handler(bl_evt_t* p_evt)
                 {
                     flash_operation_t flash_op;
                     flash_op.type = FLASH_OP_TYPE_ERASE;
-                    flash_op.params.erase.p_start_addr = (uint32_t *) p_evt->params.flash.erase.start_addr;
+                    flash_op.params.erase.p_start_addr = (uint32_t *) p_evt->params.flash.erase.p_start_addr;
                     flash_op.params.erase.length = p_evt->params.flash.erase.length;
                     return_code = mesh_flash_op_push(MESH_FLASH_USER_DFU, &flash_op, NULL);
                 }
@@ -497,7 +497,7 @@ static uint32_t dfu_evt_handler(bl_evt_t* p_evt)
 
         case BL_EVT_TYPE_FLASH_WRITE:
             {
-                if (!IS_WORD_ALIGNED(p_evt->params.flash.write.start_addr) ||
+                if (!IS_WORD_ALIGNED(p_evt->params.flash.write.p_start_addr) ||
                     !IS_WORD_ALIGNED(p_evt->params.flash.write.p_data))
                 {
                     return_code = NRF_ERROR_INVALID_ADDR;
@@ -510,8 +510,8 @@ static uint32_t dfu_evt_handler(bl_evt_t* p_evt)
                 {
                     flash_operation_t flash_op;
                     flash_op.type = FLASH_OP_TYPE_WRITE;
-                    flash_op.params.write.p_start_addr = (uint32_t *) p_evt->params.flash.write.start_addr;
-                    flash_op.params.write.p_data = (uint32_t *) p_evt->params.flash.write.p_data;
+                    flash_op.params.write.p_start_addr = p_evt->params.flash.write.p_start_addr;
+                    flash_op.params.write.p_data = (const uint32_t *) p_evt->params.flash.write.p_data;
                     flash_op.params.write.length = p_evt->params.flash.write.length;
                     return_code = mesh_flash_op_push(MESH_FLASH_USER_DFU, &flash_op, NULL);
                 }
@@ -773,7 +773,7 @@ uint32_t nrf_mesh_dfu_rx(const uint8_t * p_packet,
 
 uint32_t nrf_mesh_dfu_request(nrf_mesh_dfu_type_t type,
         const nrf_mesh_fwid_t* p_fwid,
-        uint32_t* p_bank_addr)
+        const uint32_t* p_bank_addr)
 {
     if (m_transfer_state.state != NRF_MESH_DFU_STATE_INITIALIZED)
     {

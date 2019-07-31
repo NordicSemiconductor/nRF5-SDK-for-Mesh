@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -51,10 +51,10 @@
 /** Generic Power OnOff model message opcodes. */
 typedef enum
 {
-    GENERIC_PONOFF_OPCODE_GET = 0x820D,
-    GENERIC_PONOFF_OPCODE_SET = 0x820E,
-    GENERIC_PONOFF_OPCODE_SET_UNACKNOWLEDGED = 0x820F,
-    GENERIC_PONOFF_OPCODE_STATUS = 0x8210
+    GENERIC_PONOFF_OPCODE_GET = 0x8211,
+    GENERIC_PONOFF_OPCODE_STATUS = 0x8212,
+    GENERIC_PONOFF_OPCODE_SET = 0x8213,
+    GENERIC_PONOFF_OPCODE_SET_UNACKNOWLEDGED = 0x8214
 } generic_ponoff_opcode_t;
 
 /** Packed message structure typedefs are used for packing and unpacking byte stream. */

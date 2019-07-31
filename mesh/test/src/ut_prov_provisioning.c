@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -45,7 +45,9 @@
 #include <unity.h>
 
 #include "provisioning_mock.h"
-#include "prov_utils_mock.h"
+#include "uECC_mock.h"
+#include "rand_mock.h"
+#include "mesh_config_entry_mock.h"
 #include "enc_mock.h"
 #include "nrf_mesh_utils_mock.h"
 
@@ -150,6 +152,8 @@ static void link_close_dummy(prov_bearer_t * p_bearer, nrf_mesh_prov_link_close_
 static nrf_mesh_prov_ctx_t m_provisioner_ctx;
 static nrf_mesh_prov_ctx_t m_provisionee_ctx;
 static prov_pdu_t m_prov_pdu;
+static const char * m_URI = "hello";
+static uint16_t m_oob_info_sources = 0;
 
 static prov_bearer_interface_t m_interface =
 {
@@ -238,7 +242,7 @@ uint32_t tx_start_cb(prov_bearer_t* p_bearer, const prov_pdu_prov_start_t* p_sta
     TEST_ASSERT_EQUAL_UINT8(1, p_start->public_key);
     TEST_ASSERT_EQUAL_UINT8(NRF_MESH_PROV_OOB_METHOD_OUTPUT, p_start->auth_method);
     TEST_ASSERT_EQUAL_UINT8(NRF_MESH_PROV_OUTPUT_ACTION_DISPLAY_NUMERIC, p_start->auth_action);
-    TEST_ASSERT_EQUAL_UINT8(5, p_start->auth_size);
+    TEST_ASSERT_EQUAL_UINT8(6, p_start->auth_size);
 
     memcpy(&m_prov_pdu.pdu_start, p_start, sizeof(prov_pdu_prov_start_t));
 
@@ -325,21 +329,27 @@ static void provisioner_event_handler(const nrf_mesh_prov_evt_t * p_evt)
 void setUp(void)
 {
     provisioning_mock_Init();
-    prov_utils_mock_Init();
     enc_mock_Init();
     nrf_mesh_utils_mock_Init();
+    uECC_mock_Init();
+    rand_mock_Init();
+    mesh_config_entry_mock_Init();
 }
 
 void tearDown(void)
 {
     provisioning_mock_Verify();
     provisioning_mock_Destroy();
-    prov_utils_mock_Verify();
-    prov_utils_mock_Destroy();
     enc_mock_Verify();
     enc_mock_Destroy();
     nrf_mesh_utils_mock_Verify();
     nrf_mesh_utils_mock_Destroy();
+    uECC_mock_Verify();
+    uECC_mock_Destroy();
+    rand_mock_Verify();
+    rand_mock_Destroy();
+    mesh_config_entry_mock_Verify();
+    mesh_config_entry_mock_Destroy();
 }
 
 /********** Test Cases **********/
@@ -351,8 +361,7 @@ void test_provisioning(void)
 
 void test_oob_authentication(void)
 {
-    const char * URI = "hello";
-    uint16_t oob_info_sources = NRF_MESH_PROV_OOB_INFO_SOURCE_NUMBER | NRF_MESH_PROV_OOB_INFO_SOURCE_INSIDE_MANUAL;
+    m_oob_info_sources = NRF_MESH_PROV_OOB_INFO_SOURCE_NUMBER | NRF_MESH_PROV_OOB_INFO_SOURCE_INSIDE_MANUAL;
     uint8_t uuid[NRF_MESH_UUID_SIZE];
     nrf_mesh_prov_provisioning_data_t prov_data_stub;
 
@@ -363,14 +372,15 @@ void test_oob_authentication(void)
     memset(&m_provisionee_ctx, 0, sizeof(nrf_mesh_prov_ctx_t));
     m_provisionee_ctx.p_active_bearer = &m_bearer_provisionee;
     m_provisionee_ctx.event_handler = provisionee_event_handler;
+    m_provisionee_ctx.role = NRF_MESH_PROV_ROLE_PROVISIONEE;
     m_bearer_provisionee.p_parent = &m_provisionee_ctx;
 
     /* 1 Test provisionee invitation */
     /* 1.1 Initialization */
     TEST_ASSERT_EQUAL_UINT32(NRF_SUCCESS, prov_provisionee_listen(&m_provisionee_ctx,
                                                                   &m_bearer_provisionee,
-                                                                  URI,
-                                                                  oob_info_sources));
+                                                                  m_URI,
+                                                                  m_oob_info_sources));
     /* 1.2 Start listening */
     m_bearer_provisionee.p_callbacks->opened(&m_bearer_provisionee);
 
@@ -399,6 +409,7 @@ void test_oob_authentication(void)
     m_provisioner_ctx.p_active_bearer = &m_bearer_provisioner;
     m_provisioner_ctx.event_handler = provisioner_event_handler;
     m_bearer_provisioner.p_parent = &m_provisioner_ctx;
+    m_provisioner_ctx.role = NRF_MESH_PROV_ROLE_PROVISIONER;
 
     /* 2 Test provisioner invitation */
     /* 2.1 Initialization */
@@ -411,6 +422,7 @@ void test_oob_authentication(void)
     m_bearer_provisioner.p_callbacks->opened(&m_bearer_provisioner);
 
     /* 2.3 Receiving invitation from provisioner. Sending back capabilities. */
+    m_prov_pdu.pdu_caps.pdu_type = PROV_PDU_TYPE_CAPABILITIES;
     prov_packet_length_valid_IgnoreAndReturn(true);
     m_bearer_provisioner.p_callbacks->rx(&m_bearer_provisioner, (const uint8_t *)&m_prov_pdu.pdu_caps, sizeof(prov_pdu_caps_t));
 
@@ -418,9 +430,9 @@ void test_oob_authentication(void)
     m_provisioner_ctx.capabilities.num_elements = 1;
     m_provisioner_ctx.capabilities.pubkey_type = NRF_MESH_PROV_OOB_PUBKEY_TYPE_OOB;
     m_provisioner_ctx.capabilities.oob_static_types = NRF_MESH_PROV_OOB_STATIC_TYPE_SUPPORTED;
-    m_provisioner_ctx.capabilities.oob_input_size = 1;
+    m_provisioner_ctx.capabilities.oob_input_size = 6;
     m_provisioner_ctx.capabilities.oob_input_actions = NRF_MESH_PROV_OOB_INPUT_ACTION_ENTER_NUMBER;
-    m_provisioner_ctx.capabilities.oob_output_size = 1;
+    m_provisioner_ctx.capabilities.oob_output_size = 6;
     m_provisioner_ctx.capabilities.oob_output_actions = NRF_MESH_PROV_OOB_OUTPUT_ACTION_NUMERIC;
 
     /* 3. Test provisioner tx OOB usage */
@@ -428,7 +440,7 @@ void test_oob_authentication(void)
     TEST_ASSERT_EQUAL_UINT32(NRF_SUCCESS, prov_provisioner_oob_use(&m_provisioner_ctx,
                                                                    NRF_MESH_PROV_OOB_METHOD_OUTPUT,
                                                                    NRF_MESH_PROV_OUTPUT_ACTION_DISPLAY_NUMERIC,
-                                                                   5));
+                                                                   6));
 
     /* 4. Test provisionee tx OOB usage with OOB public key event */
     prov_packet_length_valid_IgnoreAndReturn(true);
@@ -446,9 +458,8 @@ void test_oob_authentication(void)
 
 void test_disallow_public_key_oob_when_not_supported(void)
 {
-    const char * URI = "hello";
-    uint16_t oob_info_sources = 0;
-
+#if !NRF_MESH_PROV_FORCE_SECURE_PROVISIONING
+    m_oob_info_sources = 0;
     memset(&m_bearer_provisionee, 0, sizeof(prov_bearer_t));
     m_bearer_provisionee.bearer_type = NRF_MESH_PROV_BEARER_MESH;
     m_bearer_provisionee.p_interface = &m_interface;
@@ -457,13 +468,14 @@ void test_disallow_public_key_oob_when_not_supported(void)
     m_provisionee_ctx.p_active_bearer = &m_bearer_provisionee;
     m_provisionee_ctx.event_handler = provisionee_event_handler;
     m_bearer_provisionee.p_parent = &m_provisionee_ctx;
+    m_provisionee_ctx.role = NRF_MESH_PROV_ROLE_PROVISIONEE;
 
     /* 1 Test provisionee invitation */
     /* 1.1 Initialization */
     TEST_ASSERT_EQUAL_UINT32(NRF_SUCCESS, prov_provisionee_listen(&m_provisionee_ctx,
                                                                   &m_bearer_provisionee,
-                                                                  URI,
-                                                                  oob_info_sources));
+                                                                  m_URI,
+                                                                  m_oob_info_sources));
     /* 1.2 Start listening */
     m_bearer_provisionee.p_callbacks->opened(&m_bearer_provisionee);
 
@@ -480,7 +492,7 @@ void test_disallow_public_key_oob_when_not_supported(void)
     m_provisionee_ctx.capabilities.oob_input_size = 1;
     m_provisionee_ctx.capabilities.oob_input_actions = NRF_MESH_PROV_OOB_INPUT_ACTION_ENTER_NUMBER;
     m_provisionee_ctx.capabilities.oob_output_size = 1;
-    m_provisionee_ctx.capabilities.oob_input_actions = NRF_MESH_PROV_OOB_OUTPUT_ACTION_NUMERIC;
+    m_provisionee_ctx.capabilities.oob_output_actions = NRF_MESH_PROV_OOB_OUTPUT_ACTION_NUMERIC;
 
     m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *)&m_prov_pdu.pdu_invite, sizeof(prov_pdu_invite_t));
 
@@ -500,4 +512,242 @@ void test_disallow_public_key_oob_when_not_supported(void)
 
     prov_tx_failed_ExpectAndReturn(&m_bearer_provisionee, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT, NRF_SUCCESS);
     m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *) &m_prov_pdu.pdu_start, sizeof(prov_pdu_prov_start_t));
+#else
+    TEST_IGNORE_MESSAGE("Ignored because `NRF_MESH_PROV_FORCE_SECURE_PROVISIONING` is set");
+#endif
+}
+
+void test_unsecure_provisioning_allowed(void)
+{
+#if !NRF_MESH_PROV_FORCE_SECURE_PROVISIONING
+    m_oob_info_sources = 0;
+    memset(&m_bearer_provisionee, 0, sizeof(prov_bearer_t));
+    m_bearer_provisionee.bearer_type = NRF_MESH_PROV_BEARER_MESH;
+    m_bearer_provisionee.p_interface = &m_interface;
+
+    memset(&m_provisionee_ctx, 0, sizeof(nrf_mesh_prov_ctx_t));
+    m_provisionee_ctx.p_active_bearer = &m_bearer_provisionee;
+    m_provisionee_ctx.event_handler = provisionee_event_handler;
+    m_bearer_provisionee.p_parent = &m_provisionee_ctx;
+    m_provisionee_ctx.role = NRF_MESH_PROV_ROLE_PROVISIONEE;
+
+    /* 1 Test provisionee invitation */
+    /* 1.1 Initialization */
+    TEST_ASSERT_EQUAL_UINT32(NRF_SUCCESS, prov_provisionee_listen(&m_provisionee_ctx,
+                                                                  &m_bearer_provisionee,
+                                                                  m_URI,
+                                                                  m_oob_info_sources));
+    /* 1.2 Start listening */
+    m_bearer_provisionee.p_callbacks->opened(&m_bearer_provisionee);
+
+    /* 1.3 Receiving invitation from provisioner. Sending back capabilities. */
+    prov_tx_capabilities_StubWithCallback(tx_caps_cb);
+    prov_packet_length_valid_IgnoreAndReturn(true);
+    m_prov_pdu.pdu_invite.pdu_type = PROV_PDU_TYPE_INVITE;
+    m_prov_pdu.pdu_invite.attention_duration_s = TEST_ATTENTION_DURATION_S;
+
+    m_provisionee_ctx.capabilities.algorithms = NRF_MESH_PROV_ALGORITHM_FIPS_P256EC;
+    m_provisionee_ctx.capabilities.num_elements = 1;
+    m_provisionee_ctx.capabilities.pubkey_type = NRF_MESH_PROV_OOB_PUBKEY_TYPE_INBAND;
+    m_provisionee_ctx.capabilities.oob_static_types = NRF_MESH_PROV_OOB_STATIC_TYPE_SUPPORTED;
+    m_provisionee_ctx.capabilities.oob_input_size = 1;
+    m_provisionee_ctx.capabilities.oob_input_actions = NRF_MESH_PROV_OOB_INPUT_ACTION_ENTER_NUMBER;
+    m_provisionee_ctx.capabilities.oob_output_size = 1;
+    m_provisionee_ctx.capabilities.oob_output_actions = NRF_MESH_PROV_OOB_OUTPUT_ACTION_NUMERIC;
+
+    m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *)&m_prov_pdu.pdu_invite, sizeof(prov_pdu_invite_t));
+
+    TEST_ASSERT_TRUE(provisionee_invite_rx_happened);
+
+    m_bearer_provisionee.p_callbacks->ack(&m_bearer_provisionee);
+
+    /* Test: Choose No OOB Public key, and no static OOB. */
+    memset(&m_prov_pdu, 0, sizeof(m_prov_pdu));
+    m_prov_pdu.pdu_start.pdu_type = PROV_PDU_TYPE_START;
+    m_prov_pdu.pdu_start.algorithm = NRF_MESH_PROV_ALGORITHM_FIPS_P256;
+
+    m_prov_pdu.pdu_start.public_key = NRF_MESH_PROV_OOB_PUBKEY_TYPE_INBAND;
+    m_prov_pdu.pdu_start.auth_method = NRF_MESH_PROV_OOB_METHOD_NONE;
+
+    //prov_tx_failed_ExpectAndReturn(&m_bearer_provisionee, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT, NRF_SUCCESS);
+    m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *) &m_prov_pdu.pdu_start, sizeof(prov_pdu_prov_start_t));
+
+    TEST_ASSERT_TRUE(provisionee_start_rx_happened);
+#else
+    TEST_IGNORE_MESSAGE("Ignored because `NRF_MESH_PROV_FORCE_SECURE_PROVISIONING` is set");
+#endif
+}
+
+#if NRF_MESH_PROV_FORCE_SECURE_PROVISIONING
+static void helper_secure_provisioning_tests_common(void)
+{
+    m_oob_info_sources = 0;
+    memset(&m_bearer_provisionee, 0, sizeof(prov_bearer_t));
+    m_bearer_provisionee.bearer_type = NRF_MESH_PROV_BEARER_MESH;
+    m_bearer_provisionee.p_interface = &m_interface;
+
+    memset(&m_provisionee_ctx, 0, sizeof(nrf_mesh_prov_ctx_t));
+    m_provisionee_ctx.p_active_bearer = &m_bearer_provisionee;
+    m_provisionee_ctx.event_handler = provisionee_event_handler;
+    m_bearer_provisionee.p_parent = &m_provisionee_ctx;
+    m_provisionee_ctx.role = NRF_MESH_PROV_ROLE_PROVISIONEE;
+
+    /* 1 Test provisionee invitation */
+    /* 1.1 Initialization */
+    TEST_ASSERT_EQUAL_UINT32(NRF_SUCCESS, prov_provisionee_listen(&m_provisionee_ctx,
+                                                                  &m_bearer_provisionee,
+                                                                  m_URI,
+                                                                  m_oob_info_sources));
+    /* 1.2 Start listening */
+    m_bearer_provisionee.p_callbacks->opened(&m_bearer_provisionee);
+
+    /* 1.3 Receiving invitation from provisioner. Sending back capabilities. */
+    prov_tx_capabilities_StubWithCallback(tx_caps_cb);
+    prov_packet_length_valid_IgnoreAndReturn(true);
+    m_prov_pdu.pdu_invite.pdu_type = PROV_PDU_TYPE_INVITE;
+    m_prov_pdu.pdu_invite.attention_duration_s = TEST_ATTENTION_DURATION_S;
+
+    m_provisionee_ctx.capabilities.algorithms = NRF_MESH_PROV_ALGORITHM_FIPS_P256EC;
+    m_provisionee_ctx.capabilities.num_elements = 1;
+    m_provisionee_ctx.capabilities.pubkey_type = NRF_MESH_PROV_OOB_PUBKEY_TYPE_INBAND;
+    m_provisionee_ctx.capabilities.oob_static_types = NRF_MESH_PROV_OOB_STATIC_TYPE_SUPPORTED;
+    m_provisionee_ctx.capabilities.oob_input_size = 6;
+    m_provisionee_ctx.capabilities.oob_input_actions = NRF_MESH_PROV_OOB_INPUT_ACTION_ENTER_NUMBER;
+    m_provisionee_ctx.capabilities.oob_output_size = 6;
+    m_provisionee_ctx.capabilities.oob_output_actions = NRF_MESH_PROV_OOB_OUTPUT_ACTION_NUMERIC;
+
+    m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *)&m_prov_pdu.pdu_invite, sizeof(prov_pdu_invite_t));
+
+    TEST_ASSERT_TRUE(provisionee_invite_rx_happened);
+
+    m_bearer_provisionee.p_callbacks->ack(&m_bearer_provisionee);
+}
+#endif
+
+void test_unsecure_provisioning_not_allowed_inband_pubkey_no_oob(void)
+{
+#if NRF_MESH_PROV_FORCE_SECURE_PROVISIONING
+    helper_secure_provisioning_tests_common();
+
+    /* Test: Choose No OOB Public key, and no static OOB. */
+    memset(&m_prov_pdu, 0, sizeof(m_prov_pdu));
+    m_prov_pdu.pdu_start.pdu_type = PROV_PDU_TYPE_START;
+    m_prov_pdu.pdu_start.algorithm = NRF_MESH_PROV_ALGORITHM_FIPS_P256;
+
+    m_prov_pdu.pdu_start.public_key = NRF_MESH_PROV_OOB_PUBKEY_TYPE_INBAND;
+    m_prov_pdu.pdu_start.auth_method = NRF_MESH_PROV_OOB_METHOD_NONE;
+
+    prov_tx_failed_ExpectAndReturn(&m_bearer_provisionee, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT, NRF_SUCCESS);
+    m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *) &m_prov_pdu.pdu_start, sizeof(prov_pdu_prov_start_t));
+#else
+    TEST_IGNORE_MESSAGE("Ignored because `NRF_MESH_PROV_FORCE_SECURE_PROVISIONING` is not set");
+#endif
+}
+
+void test_unsecure_provisioning_not_allowed_inband_pubkey_static_oob(void)
+{
+#if NRF_MESH_PROV_FORCE_SECURE_PROVISIONING
+    helper_secure_provisioning_tests_common();
+
+    /* Test: Choose Inband Public key, and static OOB. */
+    memset(&m_prov_pdu, 0, sizeof(m_prov_pdu));
+    m_prov_pdu.pdu_start.pdu_type = PROV_PDU_TYPE_START;
+    m_prov_pdu.pdu_start.algorithm = NRF_MESH_PROV_ALGORITHM_FIPS_P256;
+
+    m_prov_pdu.pdu_start.public_key = NRF_MESH_PROV_OOB_PUBKEY_TYPE_INBAND;
+    m_prov_pdu.pdu_start.auth_method = NRF_MESH_PROV_OOB_METHOD_STATIC;
+
+    prov_tx_failed_ExpectAndReturn(&m_bearer_provisionee, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT, NRF_SUCCESS);
+    m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *) &m_prov_pdu.pdu_start, sizeof(prov_pdu_prov_start_t));
+#else
+    TEST_IGNORE_MESSAGE("Ignored because `NRF_MESH_PROV_FORCE_SECURE_PROVISIONING` is not set");
+#endif
+}
+
+void test_unsecure_provisioning_not_allowed_inband_pubkey_output_oob_sz_5(void)
+{
+#if NRF_MESH_PROV_FORCE_SECURE_PROVISIONING
+    helper_secure_provisioning_tests_common();
+
+    /* Test: Choose Inband Public key, and Output OOB Alphanumeric with size 5. */
+    memset(&m_prov_pdu, 0, sizeof(m_prov_pdu));
+    m_prov_pdu.pdu_start.pdu_type = PROV_PDU_TYPE_START;
+    m_prov_pdu.pdu_start.algorithm = NRF_MESH_PROV_ALGORITHM_FIPS_P256;
+
+    m_prov_pdu.pdu_start.public_key = NRF_MESH_PROV_OOB_PUBKEY_TYPE_INBAND;
+    m_prov_pdu.pdu_start.auth_method = NRF_MESH_PROV_OOB_METHOD_OUTPUT;
+    m_prov_pdu.pdu_start.auth_action = NRF_MESH_PROV_OUTPUT_ACTION_ALPHANUMERIC;
+    m_prov_pdu.pdu_start.auth_size = 5;
+
+    prov_tx_failed_ExpectAndReturn(&m_bearer_provisionee, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT, NRF_SUCCESS);
+    m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *) &m_prov_pdu.pdu_start, sizeof(prov_pdu_prov_start_t));
+#else
+    TEST_IGNORE_MESSAGE("Ignored because `NRF_MESH_PROV_FORCE_SECURE_PROVISIONING` is not set");
+#endif
+}
+
+void test_unsecure_provisioning_not_allowed_inband_pubkey_output_blink_sz_6(void)
+{
+#if NRF_MESH_PROV_FORCE_SECURE_PROVISIONING
+    helper_secure_provisioning_tests_common();
+
+    /* Test: Choose Inband Public key, and Output OOB Blink with size 6. */
+    memset(&m_prov_pdu, 0, sizeof(m_prov_pdu));
+    m_prov_pdu.pdu_start.pdu_type = PROV_PDU_TYPE_START;
+    m_prov_pdu.pdu_start.algorithm = NRF_MESH_PROV_ALGORITHM_FIPS_P256;
+
+    m_prov_pdu.pdu_start.public_key = NRF_MESH_PROV_OOB_PUBKEY_TYPE_INBAND;
+    m_prov_pdu.pdu_start.auth_method = NRF_MESH_PROV_OOB_METHOD_OUTPUT;
+    m_prov_pdu.pdu_start.auth_action = NRF_MESH_PROV_OUTPUT_ACTION_BLINK;
+    m_prov_pdu.pdu_start.auth_size = 6;
+
+    prov_tx_failed_ExpectAndReturn(&m_bearer_provisionee, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT, NRF_SUCCESS);
+    m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *) &m_prov_pdu.pdu_start, sizeof(prov_pdu_prov_start_t));
+#else
+    TEST_IGNORE_MESSAGE("Ignored because `NRF_MESH_PROV_FORCE_SECURE_PROVISIONING` is not set");
+#endif
+}
+
+void test_unsecure_provisioning_not_allowed_inband_pubkey_input_oob_sz_5(void)
+{
+#if NRF_MESH_PROV_FORCE_SECURE_PROVISIONING
+    helper_secure_provisioning_tests_common();
+
+    /* Test: Choose Inband Public key, and Input OOB Number with size 5. */
+    memset(&m_prov_pdu, 0, sizeof(m_prov_pdu));
+    m_prov_pdu.pdu_start.pdu_type = PROV_PDU_TYPE_START;
+    m_prov_pdu.pdu_start.algorithm = NRF_MESH_PROV_ALGORITHM_FIPS_P256;
+
+    m_prov_pdu.pdu_start.public_key = NRF_MESH_PROV_OOB_PUBKEY_TYPE_INBAND;
+    m_prov_pdu.pdu_start.auth_method = NRF_MESH_PROV_OOB_METHOD_INPUT;
+    m_prov_pdu.pdu_start.auth_action = NRF_MESH_PROV_INPUT_ACTION_ENTER_NUMBER;
+    m_prov_pdu.pdu_start.auth_size = 5;
+
+    prov_tx_failed_ExpectAndReturn(&m_bearer_provisionee, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT, NRF_SUCCESS);
+    m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *) &m_prov_pdu.pdu_start, sizeof(prov_pdu_prov_start_t));
+#else
+    TEST_IGNORE_MESSAGE("Ignored because `NRF_MESH_PROV_FORCE_SECURE_PROVISIONING` is not set");
+#endif
+}
+
+void test_unsecure_provisioning_not_allowed_inband_pubkey_input_push_sz_6(void)
+{
+#if NRF_MESH_PROV_FORCE_SECURE_PROVISIONING
+    helper_secure_provisioning_tests_common();
+
+    /* Test: Choose Inband Public key, and Input OOB Push with size 6. */
+    memset(&m_prov_pdu, 0, sizeof(m_prov_pdu));
+    m_prov_pdu.pdu_start.pdu_type = PROV_PDU_TYPE_START;
+    m_prov_pdu.pdu_start.algorithm = NRF_MESH_PROV_ALGORITHM_FIPS_P256;
+
+    m_prov_pdu.pdu_start.public_key = NRF_MESH_PROV_OOB_PUBKEY_TYPE_INBAND;
+    m_prov_pdu.pdu_start.auth_method = NRF_MESH_PROV_OOB_METHOD_INPUT;
+    m_prov_pdu.pdu_start.auth_action = NRF_MESH_PROV_INPUT_ACTION_PUSH;
+    m_prov_pdu.pdu_start.auth_size = 6;
+
+    prov_tx_failed_ExpectAndReturn(&m_bearer_provisionee, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT, NRF_SUCCESS);
+    m_bearer_provisionee.p_callbacks->rx(&m_bearer_provisionee, (const uint8_t *) &m_prov_pdu.pdu_start, sizeof(prov_pdu_prov_start_t));
+#else
+    TEST_IGNORE_MESSAGE("Ignored because `NRF_MESH_PROV_FORCE_SECURE_PROVISIONING` is not set");
+#endif
 }

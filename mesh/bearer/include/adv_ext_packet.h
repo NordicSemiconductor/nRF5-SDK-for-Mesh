@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -64,7 +64,7 @@
 #define ADV_EXT_OVERHEAD(FIELDS)    (sizeof(adv_ext_header_t) + ADV_EXT_HEADER_LEN(FIELDS))
 
 #define ADV_EXT_HEADER_LEN(FIELDS) (                                                   \
-    (!!FIELDS) +                                                                       \
+    ((FIELDS == ADV_EXT_HEADER_EMPTY) ? 0 : 1) +                               \
     ((FIELDS & ADV_EXT_HEADER_ADV_ADDR_BIT) ? ADV_EXT_HEADER_ADV_ADDR_LEN : 0) +       \
     ((FIELDS & ADV_EXT_HEADER_TARGET_ADDR_BIT) ? ADV_EXT_HEADER_TARGET_ADDR_LEN : 0) + \
     ((FIELDS & ADV_EXT_HEADER_ADI_BIT) ? ADV_EXT_HEADER_ADI_LEN : 0) +                 \
@@ -99,6 +99,7 @@ typedef enum
 
 typedef enum
 {
+    ADV_EXT_HEADER_EMPTY,
     ADV_EXT_HEADER_ADV_ADDR_BIT    = (1 << ADV_EXT_HEADER_ADV_ADDR),
     ADV_EXT_HEADER_TARGET_ADDR_BIT = (1 << ADV_EXT_HEADER_TARGET_ADDR),
     ADV_EXT_HEADER_ADI_BIT         = (1 << ADV_EXT_HEADER_ADI),

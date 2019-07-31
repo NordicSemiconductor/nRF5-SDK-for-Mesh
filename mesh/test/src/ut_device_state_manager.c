@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -58,6 +58,7 @@
 #include "mesh_lpn_internal_mock.h"
 #include "mesh_lpn_mock.h"
 #include "heartbeat_mock.h"
+#include "mesh_opt_friend_mock.h"
 
 /* Enable this to check that the handle ordering is as expected (0..N-1). */
 #define TEST_EXPLICIT_ORDERING 1
@@ -144,17 +145,21 @@ static void helper_trigger_event(nrf_mesh_evt_type_t event_type)
 {
     nrf_mesh_evt_t evt;
 
-    if (event_type == NRF_MESH_EVT_FRIENDSHIP_TERMINATED)
+    switch (event_type)
     {
-        m_test_in_friendship = false;
-    }
-    else if (event_type == NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED)
-    {
-        m_test_in_friendship = true;
-    }
-    else
-    {
-        TEST_ASSERT_TRUE(false);
+        case NRF_MESH_EVT_FRIENDSHIP_TERMINATED:
+            m_test_in_friendship = false;
+            evt.params.friendship_terminated.role = NRF_MESH_FRIENDSHIP_ROLE_LPN;
+            break;
+        case NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED:
+            m_test_in_friendship = true;
+            evt.params.friendship_established.role = NRF_MESH_FRIENDSHIP_ROLE_LPN;
+            break;
+        case NRF_MESH_EVT_LPN_FRIEND_REQUEST_TIMEOUT:
+            break;
+        default:
+            TEST_ASSERT_TRUE(false);
+            break;
     }
 
     evt.type = event_type;
@@ -176,6 +181,7 @@ void setUp(void)
     mesh_lpn_mock_Init();
     mesh_lpn_internal_mock_Init();
     heartbeat_mock_Init();
+    mesh_opt_friend_mock_Init();
     mp_flash_manager = NULL;
     m_add_manager_result_state = FM_STATE_READY;
     m_expected_flash_data.verify_contents = true;
@@ -224,6 +230,8 @@ void tearDown(void)
     mesh_lpn_internal_mock_Destroy();
     heartbeat_mock_Verify();
     heartbeat_mock_Destroy();
+    mesh_opt_friend_mock_Verify();
+    mesh_opt_friend_mock_Destroy();
 }
 
 static void flash_manager_mem_listener_register_cb(fm_mem_listener_t * p_listener, int calls)
@@ -523,6 +531,47 @@ static void friendship_network_add(test_net_t * p_net,
     nrf_mesh_keygen_friendship_secmat_ReturnMemThruPtr_p_secmat(p_frnd_secmat, sizeof(nrf_mesh_network_secmat_t));
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_friendship_secmat_params_set(p_net_secmat_valid, p_frnd_secmat_params));
+}
+
+static void subnet_key_refresh_phase_Verify(dsm_handle_t subnet_handle,
+                                            nrf_mesh_key_refresh_phase_t expected_phase)
+{
+        /* Verify the changed key: */
+    nrf_mesh_key_refresh_phase_t kr_phase;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_kr_phase_get(subnet_handle, &kr_phase));
+    TEST_ASSERT_EQUAL(expected_phase, kr_phase);
+}
+
+static void nid_key_refresh_phase_Verify(uint8_t nid,
+                                         nrf_mesh_key_refresh_phase_t expected_phase)
+{
+    /* Fetch secmat to get the key refresh phase.  */
+    const nrf_mesh_network_secmat_t * p_primary_secmat = NULL;
+    const nrf_mesh_network_secmat_t * p_secondary_secmat = NULL;
+    nrf_mesh_net_secmat_next_get(nid, &p_primary_secmat, &p_secondary_secmat);
+    if (p_primary_secmat != NULL)
+    {
+        TEST_ASSERT_EQUAL(expected_phase, nrf_mesh_key_refresh_phase_get(p_primary_secmat));
+    }
+    else if (p_secondary_secmat != NULL)
+    {
+        TEST_ASSERT_EQUAL(expected_phase, nrf_mesh_key_refresh_phase_get(p_secondary_secmat));
+    }
+    else
+    {
+        char msg[64];
+        (void) sprintf(msg, "Neither primary or secondary secmat matched NID %#x", nid);
+        TEST_FAIL_MESSAGE(msg);
+    }
+}
+
+static void friendship_key_refresh_phase_Verify(uint16_t lpn_address,
+                                                nrf_mesh_key_refresh_phase_t expected_phase)
+{
+    const nrf_mesh_network_secmat_t * p_friendship_secmat = NULL;
+    nrf_mesh_friendship_secmat_get(lpn_address, &p_friendship_secmat);
+    TEST_ASSERT_NOT_NULL(p_friendship_secmat);
+    TEST_ASSERT_EQUAL(expected_phase, nrf_mesh_key_refresh_phase_get(p_friendship_secmat));
 }
 
 /*****************************************************************************
@@ -894,11 +943,11 @@ void test_rx_addr(void)
 
     for (uint32_t i = 0; i < ARRAY_SIZE(known_addrs); ++i)
     {
-        TEST_ASSERT_TRUE(dsm_address_is_rx(&known_addrs[i]));
+        TEST_ASSERT_TRUE(nrf_mesh_is_address_rx(&known_addrs[i]));
     }
     for (uint32_t i = 0; i < ARRAY_SIZE(unknown_addrs); ++i)
     {
-        TEST_ASSERT_FALSE(dsm_address_is_rx(&unknown_addrs[i]));
+        TEST_ASSERT_FALSE(nrf_mesh_is_address_rx(&unknown_addrs[i]));
     }
 
     /* Test core lookup of rx addresses */
@@ -940,8 +989,12 @@ void test_rx_addr(void)
     TEST_ASSERT_FALSE(nrf_mesh_rx_address_get(0x0000, &addr)); /* invalid */
 
     /* Spec-defined addresses */
+    bool is_friend_enabled = true;
     TEST_ASSERT_TRUE(nrf_mesh_rx_address_get(NRF_MESH_ALL_NODES_ADDR, &addr));
-    TEST_ASSERT_FALSE(nrf_mesh_rx_address_get(NRF_MESH_ALL_FRIENDS_ADDR, &addr)); // friendship not supported
+    mesh_opt_friend_get_ExpectAndReturn(NULL, NRF_SUCCESS);
+    mesh_opt_friend_get_IgnoreArg_p_enabled();
+    mesh_opt_friend_get_ReturnThruPtr_p_enabled(&is_friend_enabled);
+    TEST_ASSERT_TRUE(nrf_mesh_rx_address_get(NRF_MESH_ALL_FRIENDS_ADDR, &addr));
     TEST_ASSERT_FALSE(nrf_mesh_rx_address_get(NRF_MESH_ALL_PROXIES_ADDR, &addr)); // proxy not supported
     mesh_opt_core_adv_t opt;
     opt.enabled = true;
@@ -957,22 +1010,25 @@ void test_rx_addr(void)
 
     /* Verify that the spec defined addresses work when calling is_rx as well */
     nrf_mesh_address_t all_nodes = {NRF_MESH_ADDRESS_TYPE_GROUP, NRF_MESH_ALL_NODES_ADDR};
-    TEST_ASSERT_TRUE(dsm_address_is_rx(&all_nodes));
+    TEST_ASSERT_TRUE(nrf_mesh_is_address_rx(&all_nodes));
     nrf_mesh_address_t all_friends = {NRF_MESH_ADDRESS_TYPE_GROUP, NRF_MESH_ALL_FRIENDS_ADDR};
-    TEST_ASSERT_FALSE(dsm_address_is_rx(&all_friends)); // friendship not supported
+    mesh_opt_friend_get_ExpectAndReturn(NULL, NRF_SUCCESS);
+    mesh_opt_friend_get_IgnoreArg_p_enabled();
+    mesh_opt_friend_get_ReturnThruPtr_p_enabled(&is_friend_enabled);
+    TEST_ASSERT_TRUE(nrf_mesh_is_address_rx(&all_friends));
     nrf_mesh_address_t all_proxies = {NRF_MESH_ADDRESS_TYPE_GROUP, NRF_MESH_ALL_PROXIES_ADDR};
-    TEST_ASSERT_FALSE(dsm_address_is_rx(&all_proxies)); // proxy not supported
+    TEST_ASSERT_FALSE(nrf_mesh_is_address_rx(&all_proxies)); // proxy not supported
     nrf_mesh_address_t all_relays = {NRF_MESH_ADDRESS_TYPE_GROUP, NRF_MESH_ALL_RELAYS_ADDR};
     opt.enabled = true;
     mesh_opt_core_adv_get_ExpectAndReturn(CORE_TX_ROLE_RELAY, NULL, NRF_SUCCESS);
     mesh_opt_core_adv_get_IgnoreArg_p_entry();
     mesh_opt_core_adv_get_ReturnThruPtr_p_entry(&opt);
-    TEST_ASSERT_TRUE(dsm_address_is_rx(&all_relays));
+    TEST_ASSERT_TRUE(nrf_mesh_is_address_rx(&all_relays));
     opt.enabled = false;
     mesh_opt_core_adv_get_ExpectAndReturn(CORE_TX_ROLE_RELAY, NULL, NRF_SUCCESS);
     mesh_opt_core_adv_get_IgnoreArg_p_entry();
     mesh_opt_core_adv_get_ReturnThruPtr_p_entry(&opt);
-    TEST_ASSERT_FALSE(dsm_address_is_rx(&all_relays));
+    TEST_ASSERT_FALSE(nrf_mesh_is_address_rx(&all_relays));
 
     // Test heartbeat RX from core:
 
@@ -1108,11 +1164,6 @@ void test_net(void)
     nrf_mesh_keygen_friendship_secmat_ReturnMemThruPtr_p_secmat(&friendship_secmat, sizeof(nrf_mesh_network_secmat_t));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_friendship_secmat_params_set(p_net_secmat_valid[0], &friendship_secmat_params[0]));
 
-#if MESH_FEATURE_LPN_ENABLED
-    /* LPN feature specific behavior: only 1 friendship is allowed */
-    TEST_ASSERT_EQUAL(NRF_ERROR_NO_MEM, nrf_mesh_friendship_secmat_params_set(p_net_secmat_valid[1], &friendship_secmat_params[1]));
-#endif
-
     /**** Delete ****/
     uint8_t delete_indexes[] = {0, 8};
     for (uint32_t i = 0; i < sizeof(delete_indexes); i++)
@@ -1167,10 +1218,6 @@ void test_net(void)
     nrf_mesh_keygen_friendship_secmat_IgnoreArg_p_secmat();
     nrf_mesh_keygen_friendship_secmat_ReturnMemThruPtr_p_secmat(&friendship_secmat, sizeof(nrf_mesh_network_secmat_t));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_friendship_secmat_params_set(p_net_secmat_valid[0], &friendship_secmat_params[0]));
-#if MESH_FEATURE_LPN_ENABLED
-    /* LPN feature specific behavior: only 1 friendship is allowed */
-    TEST_ASSERT_EQUAL(NRF_ERROR_NO_MEM, nrf_mesh_friendship_secmat_params_set(p_net_secmat_valid[1], &friendship_secmat_params[1]));
-#endif
 
     /* Remove friendship creds */
     nrf_mesh_evt_t mesh_friendship_terminated_evt;
@@ -1193,13 +1240,6 @@ void test_net(void)
     nrf_mesh_net_secmat_next_get(friendship_secmat.nid, &p_secmat, &p_aux_secmat);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(&friendship_secmat, p_secmat, sizeof(nrf_mesh_network_secmat_t));
     TEST_ASSERT_NULL(p_aux_secmat);
-
-#if MESH_FEATURE_LPN_ENABLED
-    /* Second attempt shall fail because it is possible to have only 1 creds for LPN */
-    nrf_mesh_net_secmat_next_get(friendship_secmat.nid, &p_secmat, &p_aux_secmat);
-    TEST_ASSERT_NULL(p_secmat);
-    TEST_ASSERT_NULL(p_aux_secmat);
-#endif
 
     /* Remove friendship creds to not interfere with rest of the test */
     m_mesh_evt_handler.evt_cb(&mesh_friendship_terminated_evt);
@@ -1278,6 +1318,7 @@ void test_net(void)
     };
     p_secmat = NULL;
     p_aux_secmat = NULL;
+    mesh_lpn_is_in_friendship_IgnoreAndReturn(m_test_in_friendship);
     for (uint32_t i = 0; i < ARRAY_SIZE(nid_groups); i++)
     {
         for (uint32_t j = 0; j < nid_groups[i].count; j++)
@@ -1920,12 +1961,15 @@ void test_beacon_info_get(void)
     TEST_ASSERT_EQUAL_MEMORY(&net[0].beacon_secmat, &p_beacon_info->secmat, sizeof(nrf_mesh_beacon_secmat_t));
     TEST_ASSERT_TRUE(p_beacon_info->iv_update_permitted); // No primary networks!
     TEST_ASSERT_NOT_NULL(p_beacon_info->p_tx_info);
-    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->rx_count[0]);
+    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->rx_count);
     TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->tx_timestamp);
+    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->interval);
+    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->observation_count);
     /* Manipulate the tx info, to ensure it'll remain the same across multiple gets */
-    p_beacon_info->p_tx_info->rx_count[0] = 89;
-    p_beacon_info->p_tx_info->rx_count[1] = 43;
+    p_beacon_info->p_tx_info->rx_count = 89;
     p_beacon_info->p_tx_info->tx_timestamp = 456;
+    p_beacon_info->p_tx_info->observation_count = 212;
+    p_beacon_info->p_tx_info->interval = 600;
 
     /* Get the first one again, should yield the same thing! */
     p_beacon_info = NULL;
@@ -1934,9 +1978,10 @@ void test_beacon_info_get(void)
     TEST_ASSERT_EQUAL_MEMORY(&net[0].beacon_secmat, &p_beacon_info->secmat, sizeof(nrf_mesh_beacon_secmat_t));
     TEST_ASSERT_TRUE(p_beacon_info->iv_update_permitted); // No primary networks!
     TEST_ASSERT_NOT_NULL(p_beacon_info->p_tx_info);
-    TEST_ASSERT_EQUAL(89, p_beacon_info->p_tx_info->rx_count[0]);
-    TEST_ASSERT_EQUAL(43, p_beacon_info->p_tx_info->rx_count[1]);
+    TEST_ASSERT_EQUAL(89, p_beacon_info->p_tx_info->rx_count);
     TEST_ASSERT_EQUAL(456, p_beacon_info->p_tx_info->tx_timestamp);
+    TEST_ASSERT_EQUAL(600, p_beacon_info->p_tx_info->interval);
+    TEST_ASSERT_EQUAL(212, p_beacon_info->p_tx_info->observation_count);
 
     /* Get the next in the list */
     nrf_mesh_beacon_info_next_get(NULL, &p_beacon_info, &kr_phase);
@@ -1944,9 +1989,10 @@ void test_beacon_info_get(void)
     TEST_ASSERT_EQUAL_MEMORY(&net[1].beacon_secmat, &p_beacon_info->secmat, sizeof(nrf_mesh_beacon_secmat_t));
     TEST_ASSERT_TRUE(p_beacon_info->iv_update_permitted); // No primary networks!
     TEST_ASSERT_NOT_NULL(p_beacon_info->p_tx_info);
-    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->rx_count[0]);
-    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->rx_count[1]);
+    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->rx_count);
     TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->tx_timestamp);
+    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->interval);
+    TEST_ASSERT_EQUAL(0, p_beacon_info->p_tx_info->observation_count);
 
     /* No more networks, should now get NULL back. */
     nrf_mesh_beacon_info_next_get(NULL, &p_beacon_info, &kr_phase);
@@ -2081,11 +2127,13 @@ void test_address_subcount_virtual(void)
 
 void test_subscription_propagation_to_friend(void)
 {
-    subman_test_addr_info_t exp_nv_addr[DSM_NONVIRTUAL_ADDR_MAX] = {0};
-    subman_test_vaddr_info_t exp_vt_addr[DSM_VIRTUAL_ADDR_MAX] = {0};
+    subman_test_addr_info_t exp_nv_addr[DSM_NONVIRTUAL_ADDR_MAX];
+    subman_test_vaddr_info_t exp_vt_addr[DSM_VIRTUAL_ADDR_MAX];
     uint16_t nv_cnt = 0;
     uint16_t vt_cnt = 0;
 
+    memset(exp_nv_addr, 0, sizeof(exp_nv_addr));
+    memset(exp_vt_addr, 0, sizeof(exp_vt_addr));
     printf("DSM_NONVIRTUAL_ADDR_MAX: %d DSM_VIRTUAL_ADDR_MAX: %d\n", DSM_NONVIRTUAL_ADDR_MAX, DSM_VIRTUAL_ADDR_MAX);
 
     /* Test: DSM propagates existing addresses to the subscription manager once friendship is established */
@@ -2455,6 +2503,7 @@ void test_key_refresh_all_phases(void)
     const nrf_mesh_network_secmat_t * p_primary = NULL, * p_secondary = NULL;
 
     /* Check if the old NID can still be used: */
+    mesh_lpn_is_in_friendship_IgnoreAndReturn(m_test_in_friendship);
     nrf_mesh_net_secmat_next_get(old_nid, &p_primary, &p_secondary);
     TEST_ASSERT_NOT_NULL(p_primary);
     TEST_ASSERT_NULL(p_secondary);
@@ -2464,6 +2513,7 @@ void test_key_refresh_all_phases(void)
     memset(expected_key, 2, NRF_MESH_KEY_SIZE);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_key, p_primary->encryption_key, NRF_MESH_KEY_SIZE);
 
+    mesh_lpn_is_in_friendship_IgnoreAndReturn(m_test_in_friendship);
     nrf_mesh_net_secmat_next_get(old_nid, &p_primary, &p_secondary);
     TEST_ASSERT_NULL(p_primary);
     TEST_ASSERT_NULL(p_secondary);
@@ -2471,6 +2521,7 @@ void test_key_refresh_all_phases(void)
     /* Check that the new NID can also be used: */
     p_primary = NULL;
     p_secondary = NULL;
+    mesh_lpn_is_in_friendship_IgnoreAndReturn(m_test_in_friendship);
     nrf_mesh_net_secmat_next_get(new_nid, &p_primary, &p_secondary);
     TEST_ASSERT_NOT_NULL(p_primary);
     TEST_ASSERT_NULL(p_secondary);
@@ -2480,6 +2531,7 @@ void test_key_refresh_all_phases(void)
     memset(expected_key, 22, NRF_MESH_KEY_SIZE);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_key, p_primary->encryption_key, NRF_MESH_KEY_SIZE);
 
+    mesh_lpn_is_in_friendship_IgnoreAndReturn(m_test_in_friendship);
     nrf_mesh_net_secmat_next_get(new_nid, &p_primary, &p_secondary);
     TEST_ASSERT_NULL(p_primary);
     TEST_ASSERT_NULL(p_secondary);
@@ -2528,6 +2580,7 @@ void test_key_refresh_all_phases(void)
     p_secondary = NULL;
 
     /* Check that the old NID can still be used to receive packets: */
+    mesh_lpn_is_in_friendship_IgnoreAndReturn(m_test_in_friendship);
     nrf_mesh_net_secmat_next_get(old_nid, &p_primary, &p_secondary);
     TEST_ASSERT_NOT_NULL(p_primary);
     TEST_ASSERT_NULL(p_secondary);
@@ -2537,11 +2590,13 @@ void test_key_refresh_all_phases(void)
     memset(expected_key, 2, NRF_MESH_KEY_SIZE);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_key, p_primary->encryption_key, NRF_MESH_KEY_SIZE);
 
+    mesh_lpn_is_in_friendship_IgnoreAndReturn(m_test_in_friendship);
     nrf_mesh_net_secmat_next_get(old_nid, &p_primary, &p_secondary);
     TEST_ASSERT_NULL(p_primary);
     TEST_ASSERT_NULL(p_secondary);
 
     /* Check that the new NID can still be used to receive packets: */
+    mesh_lpn_is_in_friendship_IgnoreAndReturn(m_test_in_friendship);
     nrf_mesh_net_secmat_next_get(new_nid, &p_primary, &p_secondary);
     TEST_ASSERT_NOT_NULL(p_primary);
     TEST_ASSERT_NULL(p_secondary);
@@ -2551,6 +2606,7 @@ void test_key_refresh_all_phases(void)
     memset(expected_key, 22, NRF_MESH_KEY_SIZE);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_key, p_primary->encryption_key, NRF_MESH_KEY_SIZE);
 
+    mesh_lpn_is_in_friendship_IgnoreAndReturn(m_test_in_friendship);
     nrf_mesh_net_secmat_next_get(new_nid, &p_primary, &p_secondary);
     TEST_ASSERT_NULL(p_primary);
     TEST_ASSERT_NULL(p_secondary);
@@ -2593,6 +2649,7 @@ void test_key_refresh_all_phases(void)
     }
 
     /* Check that the new NID can be used to receive packets: */
+    mesh_lpn_is_in_friendship_IgnoreAndReturn(m_test_in_friendship);
     nrf_mesh_net_secmat_next_get(new_nid, &p_primary, &p_secondary);
     TEST_ASSERT_NOT_NULL(p_primary);
     TEST_ASSERT_NULL(p_secondary);
@@ -2601,11 +2658,11 @@ void test_key_refresh_all_phases(void)
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_key, p_primary->privacy_key, NRF_MESH_KEY_SIZE);
     memset(expected_key, 22, NRF_MESH_KEY_SIZE);
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_key, p_primary->encryption_key, NRF_MESH_KEY_SIZE);
-
+    mesh_lpn_is_in_friendship_IgnoreAndReturn(m_test_in_friendship);
     nrf_mesh_net_secmat_next_get(new_nid, &p_primary, &p_secondary);
     TEST_ASSERT_NULL(p_primary);
     TEST_ASSERT_NULL(p_secondary);
-
+    mesh_lpn_is_in_friendship_IgnoreAndReturn(m_test_in_friendship);
     nrf_mesh_net_secmat_next_get(old_nid, &p_primary, &p_secondary);
     TEST_ASSERT_NULL(p_primary);
     TEST_ASSERT_NULL(p_secondary);
@@ -2690,27 +2747,37 @@ void test_key_refresh_1_to_3(void)
         p_test_secmat = NULL;
         p_test_aux_secmat = NULL;
 
+        /* If in friendship, don't expect mesh_lpn_is_in_friendship() since friendship and regular
+         * secmats have same NID, otherwise expect it. */
+        if (!net[i].is_in_friendship)
+        {
+            mesh_lpn_is_in_friendship_ExpectAndReturn(net[i].is_in_friendship);
+        }
+
         nrf_mesh_net_secmat_next_get(net[i].old_nid, &p_test_secmat, &p_test_aux_secmat);
         TEST_ASSERT_NULL(p_test_aux_secmat);
         if (!net[i].is_in_friendship)
         {
             TEST_ASSERT_EQUAL_HEX8_ARRAY(&old_secmat, p_test_secmat, sizeof(nrf_mesh_network_secmat_t));
+
+            /* This time it should fail. */
+            mesh_lpn_is_in_friendship_ExpectAndReturn(net[i].is_in_friendship);
+            nrf_mesh_net_secmat_next_get(net[i].old_nid, &p_test_secmat, &p_test_aux_secmat);
+
+            TEST_ASSERT_NULL(p_test_secmat);
+            TEST_ASSERT_NULL(p_test_aux_secmat);
         }
         else
         {
             TEST_ASSERT_EQUAL_HEX8_ARRAY(&old_friendship_secmat, p_test_secmat, sizeof(nrf_mesh_network_secmat_t));
 
             /* We've added both friendship and normal secmat with same NID. I.e., the second time it
-             * should find the original secmat: */
+             * should return null, as LPN should not process packets arriving on the normal (master) secmat: */
+            mesh_lpn_is_in_friendship_ExpectAndReturn(net[i].is_in_friendship);
             nrf_mesh_net_secmat_next_get(net[i].old_nid, &p_test_secmat, &p_test_aux_secmat);
-            TEST_ASSERT_NOT_NULL(p_test_secmat);
+            TEST_ASSERT_NULL(p_test_secmat);
             TEST_ASSERT_NULL(p_test_aux_secmat);
         }
-
-        /* This time it should fail. */
-        nrf_mesh_net_secmat_next_get(net[i].old_nid, &p_test_secmat, &p_test_aux_secmat);
-        TEST_ASSERT_NULL(p_test_secmat);
-        TEST_ASSERT_NULL(p_test_aux_secmat);
 
         nrf_mesh_key_refresh_phase_t current_phase;
         TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_kr_phase_get(net[i].network_handle, &current_phase));
@@ -2742,6 +2809,13 @@ void test_key_refresh_1_to_3(void)
         p_test_secmat = NULL;
         p_test_aux_secmat = NULL;
 
+        /* If in friendship, don't expect mesh_lpn_is_in_friendship() since friendship and regular
+         * secmats have same NID, otherwise expect it. */
+        if (!net[i].is_in_friendship)
+        {
+            mesh_lpn_is_in_friendship_ExpectAndReturn(net[i].is_in_friendship);
+        }
+
         nrf_mesh_net_secmat_next_get(net[i].new_nid, &p_test_secmat, &p_test_aux_secmat);
         if (!net[i].is_in_friendship)
         {
@@ -2755,6 +2829,12 @@ void test_key_refresh_1_to_3(void)
             {
                 TEST_ASSERT_NULL(p_test_aux_secmat);
             }
+
+            /* This time it should fail. */
+            mesh_lpn_is_in_friendship_ExpectAndReturn(net[i].is_in_friendship);
+            nrf_mesh_net_secmat_next_get(net[i].old_nid, &p_test_secmat, &p_test_aux_secmat);
+            TEST_ASSERT_NULL(p_test_secmat);
+            TEST_ASSERT_NULL(p_test_aux_secmat);
         }
         else /* is_in_friendship */
         {
@@ -2770,23 +2850,13 @@ void test_key_refresh_1_to_3(void)
             }
 
             /* We've added both friendship and normal secmat with same NID. I.e., the second time it
-             * should find the original secmat: */
+             * should return null, as LPN should not process packets arriving on the normal (master) secmat: */
+            mesh_lpn_is_in_friendship_ExpectAndReturn(net[i].is_in_friendship);
             nrf_mesh_net_secmat_next_get(net[i].old_nid, &p_test_secmat, &p_test_aux_secmat);
-            TEST_ASSERT_NOT_NULL(p_test_secmat);
-            if (net[i].old_nid == net[i].new_nid)
-            {
-                TEST_ASSERT_NOT_NULL(p_test_aux_secmat);
-            }
-            else
-            {
-                TEST_ASSERT_NULL(p_test_aux_secmat);
-            }
+            TEST_ASSERT_NULL(p_test_secmat);
+            TEST_ASSERT_NULL(p_test_aux_secmat);
         }
 
-        /* This time it should fail. */
-        nrf_mesh_net_secmat_next_get(net[i].old_nid, &p_test_secmat, &p_test_aux_secmat);
-        TEST_ASSERT_NULL(p_test_secmat);
-        TEST_ASSERT_NULL(p_test_aux_secmat);
 
         /* When key refresh process is in progress, nrf_mesh_friendship_secmat_params_set() call
          * shall generate friendship secmats according to the new network key */
@@ -2833,6 +2903,13 @@ void test_key_refresh_1_to_3(void)
         p_test_secmat = NULL;
         p_test_aux_secmat = NULL;
 
+        /* If in friendship, don't expect mesh_lpn_is_in_friendship() since friendship and regular
+         * secmats have same NID, otherwise expect it. */
+        if (!net[i].is_in_friendship)
+        {
+            mesh_lpn_is_in_friendship_ExpectAndReturn(net[i].is_in_friendship);
+        }
+
         nrf_mesh_net_secmat_next_get(net[i].new_nid, &p_test_secmat, &p_test_aux_secmat);
         TEST_ASSERT_NOT_NULL(p_test_secmat);
         TEST_ASSERT_NULL(p_test_aux_secmat);
@@ -2840,22 +2917,24 @@ void test_key_refresh_1_to_3(void)
         if (!net[i].is_in_friendship)
         {
             TEST_ASSERT_EQUAL_HEX8_ARRAY(&new_secmat, p_test_secmat, sizeof(nrf_mesh_network_secmat_t));
+
+            /* This time it should fail. */
+            mesh_lpn_is_in_friendship_ExpectAndReturn(net[i].is_in_friendship);
+            nrf_mesh_net_secmat_next_get(net[i].new_nid, &p_test_secmat, &p_test_aux_secmat);
+            TEST_ASSERT_NULL(p_test_secmat);
+            TEST_ASSERT_NULL(p_test_aux_secmat);
         }
         else
         {
             TEST_ASSERT_EQUAL_HEX8_ARRAY(&new_friendship_secmat, p_test_secmat, sizeof(nrf_mesh_network_secmat_t));
 
             /* We've added both friendship and normal secmat with same NID. I.e., the second time it
-             * should find the original secmat: */
+             * should return null, as LPN should not process packets arriving on the normal (master) secmat: */
+            mesh_lpn_is_in_friendship_ExpectAndReturn(net[i].is_in_friendship);
             nrf_mesh_net_secmat_next_get(net[i].new_nid, &p_test_secmat, &p_test_aux_secmat);
-            TEST_ASSERT_NOT_NULL(p_test_secmat);
+            TEST_ASSERT_NULL(p_test_secmat);
             TEST_ASSERT_NULL(p_test_aux_secmat);
         }
-
-        /* This time it should fail. */
-        nrf_mesh_net_secmat_next_get(net[i].new_nid, &p_test_secmat, &p_test_aux_secmat);
-        TEST_ASSERT_NULL(p_test_secmat);
-        TEST_ASSERT_NULL(p_test_aux_secmat);
 
 
 #if MESH_FEATURE_LPN_ENABLED
@@ -2869,6 +2948,7 @@ void test_key_refresh_1_to_3(void)
             m_mesh_evt_handler.evt_cb(&mesh_friendship_terminated_evt);
         }
 #endif
+        mesh_lpn_mock_Verify();
     }
 }
 
@@ -3525,16 +3605,65 @@ void test_invalid_address_lookup(void)
 #endif
 }
 
-void test_secmat_lookup_with_same_nid(void)
+void test_lpn_request_timeout_handling(void)
 {
     const uint8_t NID = 0x42;
-    test_net_t nets[2];
-    memset(nets, 0, sizeof(nets));
+    test_net_t nets;
+    memset(&nets, 0, sizeof(nets));
 
     nrf_mesh_network_secmat_t friendship_secmat = {
         .nid = NID,
-        .privacy_key = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0F},
-        .encryption_key = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0F},
+        .privacy_key = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F},
+        .encryption_key = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F},
+    };
+
+    /* Dummy parameters, not important in this test. */
+    nrf_mesh_keygen_friendship_secmat_params_t friendship_secmat_params = {
+        .lpn_address = 0x002a,
+        .friend_address = 0x0002,
+        .lpn_counter = 1,
+        .friend_counter = 2
+    };
+
+    nets.key_index = 0;
+    nets.nid = NID;
+    memset(nets.key, 0x55, NRF_MESH_KEY_SIZE);
+    nets.handle = 0xBEEF;
+    network_add(&nets);
+
+    friendship_network_add(&nets, &friendship_secmat_params, &friendship_secmat);
+
+    dsm_local_unicast_address_t self_address = {friendship_secmat_params.lpn_address, 1};
+    flash_expect_unicast(&self_address);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_local_unicast_addresses_set(&self_address));
+
+    const nrf_mesh_network_secmat_t * p_get_net_secmat;
+    nrf_mesh_friendship_secmat_get(friendship_secmat_params.lpn_address, &p_get_net_secmat);
+    TEST_ASSERT_EQUAL_MEMORY(&friendship_secmat, p_get_net_secmat, sizeof(nrf_mesh_network_secmat_t));
+
+    helper_trigger_event(NRF_MESH_EVT_LPN_FRIEND_REQUEST_TIMEOUT);
+
+    p_get_net_secmat = NULL;
+    nrf_mesh_friendship_secmat_get(friendship_secmat_params.lpn_address, &p_get_net_secmat);
+    TEST_ASSERT_NULL(p_get_net_secmat);
+}
+
+void test_friendship_secmat_overflow(void)
+{
+#if MESH_FEATURE_LPN_ENABLED && MESH_FEATURE_FRIEND_ENABLED
+    #define MESH_FRIENDSHIP_CREDENTIALS (MESH_FRIEND_FRIENDSHIP_COUNT + 1)
+#elif MESH_FEATURE_LPN_ENABLED
+    #define MESH_FRIENDSHIP_CREDENTIALS  1
+#elif MESH_FEATURE_FRIEND_ENABLED
+    #define MESH_FRIENDSHIP_CREDENTIALS (MESH_FRIEND_FRIENDSHIP_COUNT)
+#endif
+
+    test_net_t nets[MESH_FRIENDSHIP_CREDENTIALS];
+    memset(nets, 0, sizeof(nets));
+
+    nrf_mesh_network_secmat_t friendship_secmat = {
+        .privacy_key = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F},
+        .encryption_key = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F},
     };
 
     /* Dummy parameters, not important in this test. */
@@ -3547,41 +3676,119 @@ void test_secmat_lookup_with_same_nid(void)
 
     for (uint32_t i = 0; i < ARRAY_SIZE(nets); ++i)
     {
+        friendship_secmat.nid = i + 2;
+
         nets[i].key_index = i;
-        nets[i].nid = NID;
+        nets[i].nid = friendship_secmat.nid;
         memset(nets[i].key, i, NRF_MESH_KEY_SIZE);
         nets[i].handle = 0xBEEF;
 
         network_add(&nets[i]);
+
+        friendship_network_add(nets, &friendship_secmat_params, &friendship_secmat);
     }
 
-    friendship_network_add(&nets[0], &friendship_secmat_params, &friendship_secmat);
+    const uint8_t nid = 0x2a;
+    test_net_t one_more_net;
+    memset(&one_more_net, 0, sizeof(one_more_net));
 
-    const nrf_mesh_network_secmat_t * p_test_secmat = NULL;
-    const nrf_mesh_network_secmat_t * p_test_aux_secmat = NULL;
+    friendship_secmat.nid = nid;
+    one_more_net.key_index = 0x2a;
+    one_more_net.nid = friendship_secmat.nid;
+    memset(one_more_net.key, 0x2a, NRF_MESH_KEY_SIZE);
+    one_more_net.handle = 0xDEAD;
 
-    /* We should get the friendship secmat first. */
-    nrf_mesh_net_secmat_next_get(NID, &p_test_secmat, &p_test_aux_secmat);
-    TEST_ASSERT_NOT_NULL(p_test_secmat);
-    TEST_ASSERT_NULL(p_test_aux_secmat);
+    network_add(&one_more_net);
 
-    TEST_ASSERT_EQUAL_MEMORY(&friendship_secmat, p_test_secmat, sizeof(nrf_mesh_network_secmat_t));
+    const nrf_mesh_network_secmat_t * p_net_secmat_valid;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_net_secmat_from_keyindex_get(one_more_net.key_index, &p_net_secmat_valid));
+    TEST_ASSERT_EQUAL(NRF_ERROR_NO_MEM, nrf_mesh_friendship_secmat_params_set(p_net_secmat_valid, &friendship_secmat_params));
+}
 
-    for (uint32_t i = 0; i < ARRAY_SIZE(nets); ++i)
-    {
-        /* Assume the decryption failed with the NID, let's try the next key. */
-        nrf_mesh_net_secmat_next_get(NID, &p_test_secmat, &p_test_aux_secmat);
-        TEST_ASSERT_NOT_NULL(p_test_secmat);
-        TEST_ASSERT_NULL(p_test_aux_secmat);
+void test_key_refresh_phase_get(void)
+{
+    test_net_t network;
+    memset(&network, 0, sizeof(network));
+    network.key_index = 1;
+    network.nid = 0x1e;
+    memset(network.key, 0x1e, NRF_MESH_KEY_SIZE);
+    network.handle = 0xABCD;
+    network_add(&network);
 
-        /* Check that we're getting the correct key. This test makes an assumption about the order
-         * of the keys. */
-        TEST_ASSERT_EQUAL_MEMORY(&nets[i].secmat.net, p_test_secmat, sizeof(nrf_mesh_network_secmat_t));
-    }
+    test_net_t new_network;
+    memset(&new_network, 0, sizeof(new_network));
+    new_network.key_index = 1;
+    new_network.nid = 33;
+    memset(new_network.key, 0xab, NRF_MESH_KEY_SIZE);
+    memset(new_network.secmat.net.privacy_key,    11, NRF_MESH_KEY_SIZE);
+    memset(new_network.secmat.net.encryption_key, 22, NRF_MESH_KEY_SIZE);
+    new_network.secmat.net.nid = 33;
 
-    /* All available networks with the given NID is exhausted. Last attempt should not result in any
-     * secmat. */
-    nrf_mesh_net_secmat_next_get(NID, &p_test_secmat, &p_test_aux_secmat);
-    TEST_ASSERT_NULL(p_test_secmat);
-    TEST_ASSERT_NULL(p_test_aux_secmat);
+    new_network.handle = network.handle;
+
+    nrf_mesh_keygen_friendship_secmat_params_t friendship_secmat_params = {
+      .lpn_address = 0x1337,
+      .friend_address = 0x0001,
+      .lpn_counter = 52,
+      .friend_counter = 13
+    };
+    nrf_mesh_network_secmat_t friend_secmat;
+    memset(&friend_secmat, 0, sizeof(friend_secmat));
+    friend_secmat.nid = 13;
+    memset(friend_secmat.encryption_key, 0x13, NRF_MESH_KEY_SIZE);
+    memset(friend_secmat.privacy_key, 0x13, NRF_MESH_KEY_SIZE);
+    friendship_network_add(&network, &friendship_secmat_params, &friend_secmat);
+
+    nrf_mesh_network_secmat_t new_friend_secmat;
+    memset(&new_friend_secmat, 0, sizeof(new_friend_secmat));
+    new_friend_secmat.nid = 14;
+    memset(new_friend_secmat.encryption_key, 0x14, NRF_MESH_KEY_SIZE);
+    memset(new_friend_secmat.privacy_key, 0x14, NRF_MESH_KEY_SIZE);
+
+    subnet_key_refresh_phase_Verify(network.handle, NRF_MESH_KEY_REFRESH_PHASE_0);
+
+    mesh_lpn_is_in_friendship_IgnoreAndReturn(m_test_in_friendship);
+    nid_key_refresh_phase_Verify(network.nid, NRF_MESH_KEY_REFRESH_PHASE_0);
+
+    nid_key_refresh_phase_Verify(friend_secmat.nid, NRF_MESH_KEY_REFRESH_PHASE_0);
+
+    /* Initiate the key refresh by updating the network key: */
+    nrf_mesh_keygen_network_secmat_ExpectAndReturn(new_network.key, NULL, NRF_SUCCESS);
+    nrf_mesh_keygen_network_secmat_IgnoreArg_p_secmat();
+    nrf_mesh_keygen_network_secmat_ReturnMemThruPtr_p_secmat(&new_network.secmat.net, sizeof(nrf_mesh_network_secmat_t));
+
+    nrf_mesh_keygen_beacon_secmat_ExpectAndReturn(new_network.key, NULL, NRF_SUCCESS);
+    nrf_mesh_keygen_beacon_secmat_IgnoreArg_p_secmat();
+    nrf_mesh_keygen_beacon_secmat_ReturnMemThruPtr_p_secmat(&new_network.secmat.beacon, sizeof(nrf_mesh_beacon_secmat_t));
+
+    nrf_mesh_keygen_friendship_secmat_ExpectAndReturn(new_network.key, &friendship_secmat_params, NULL, NRF_SUCCESS);
+    nrf_mesh_keygen_friendship_secmat_IgnoreArg_p_secmat();
+    nrf_mesh_keygen_friendship_secmat_ReturnMemThruPtr_p_secmat(&new_friend_secmat, sizeof(nrf_mesh_network_secmat_t));
+
+    flash_expect_subnet_update(network.key, new_network.key, network.key_index, NRF_MESH_KEY_REFRESH_PHASE_1, network.handle);
+    net_state_key_refresh_phase_changed_Expect(network.key_index, new_network.secmat.beacon.net_id, NRF_MESH_KEY_REFRESH_PHASE_1);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_update(network.handle, new_network.key));
+
+    subnet_key_refresh_phase_Verify(network.handle, NRF_MESH_KEY_REFRESH_PHASE_1);
+    nid_key_refresh_phase_Verify(network.nid, NRF_MESH_KEY_REFRESH_PHASE_1);
+    nid_key_refresh_phase_Verify(new_network.nid, NRF_MESH_KEY_REFRESH_PHASE_1);
+    nid_key_refresh_phase_Verify(friend_secmat.nid, NRF_MESH_KEY_REFRESH_PHASE_1);
+    nid_key_refresh_phase_Verify(new_friend_secmat.nid, NRF_MESH_KEY_REFRESH_PHASE_1);
+    friendship_key_refresh_phase_Verify(friendship_secmat_params.lpn_address, NRF_MESH_KEY_REFRESH_PHASE_1);
+
+    /* Swap the keys. */
+    net_state_key_refresh_phase_changed_Expect(network.key_index, new_network.secmat.beacon.net_id, NRF_MESH_KEY_REFRESH_PHASE_2);
+    flash_expect_subnet_update(network.key, new_network.key, network.key_index, NRF_MESH_KEY_REFRESH_PHASE_2, network.handle);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_update_swap_keys(network.handle));
+
+    subnet_key_refresh_phase_Verify(network.handle, NRF_MESH_KEY_REFRESH_PHASE_2);
+    nid_key_refresh_phase_Verify(network.nid, NRF_MESH_KEY_REFRESH_PHASE_2);
+    nid_key_refresh_phase_Verify(new_network.nid, NRF_MESH_KEY_REFRESH_PHASE_2);
+    nid_key_refresh_phase_Verify(friend_secmat.nid, NRF_MESH_KEY_REFRESH_PHASE_2);
+    nid_key_refresh_phase_Verify(new_friend_secmat.nid, NRF_MESH_KEY_REFRESH_PHASE_2);
+    friendship_key_refresh_phase_Verify(friendship_secmat_params.lpn_address, NRF_MESH_KEY_REFRESH_PHASE_2);
+
+    net_state_key_refresh_phase_changed_Expect(network.key_index, new_network.secmat.beacon.net_id, NRF_MESH_KEY_REFRESH_PHASE_0);
+    flash_expect_subnet(new_network.key, new_network.key_index);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_subnet_update_commit(network.handle));
 }

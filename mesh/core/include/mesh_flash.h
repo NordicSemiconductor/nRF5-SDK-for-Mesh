@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -71,8 +71,8 @@ typedef enum
 typedef struct
 {
     uint32_t * p_start_addr; /**< The start address to write to. */
-    uint32_t length; /**< Number of bytes to write. */
-    uint32_t * p_data; /**< The data to write. */
+    uint32_t length;         /**< Number of bytes to write. */
+    const uint32_t * p_data; /**< The data to write. */
 } flash_operation_params_write_t;
 
 /** Parameters for erase flash operation */

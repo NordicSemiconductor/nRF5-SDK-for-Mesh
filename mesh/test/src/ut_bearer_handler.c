@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -294,6 +294,19 @@ void test_signal_handler(void)
     bearer_handler_timer_irq_handler();
     scanner_mock_Verify();
     queue_mock_Verify();
+
+    /* Test handler stops the timeslot if queue is empty and stop is requested */
+    timeslot_is_in_ts_ExpectAndReturn(true);
+    timeslot_trigger_Expect();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, bearer_handler_stop(NULL));
+
+    timeslot_is_in_cb_ExpectAndReturn(true);
+    timeslot_stop_Expect();
+    bearer_handler_timer_irq_handler();
+
+    scanner_is_enabled_ExpectAndReturn(true);
+    timeslot_start_ExpectAndReturn(NRF_SUCCESS);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, bearer_handler_start());
 
     /** Wake up with event in queue, while the scanner is running */
     m_time_now = 1234;
@@ -728,16 +741,27 @@ void test_timeslot_restart(void)
 
 void test_stop_callback(void)
 {
-    /* Should wait for active ts session to end before calling callback */
-    timeslot_session_is_active_ExpectAndReturn(true);
+    /* Should wait for active ts to end before calling callback */
+    timeslot_is_in_ts_ExpectAndReturn(true);
     timeslot_trigger_Expect();
     TEST_ASSERT_EQUAL(NRF_SUCCESS, bearer_handler_stop(stop_cb));
 
+    /* start it again */
+    scanner_is_enabled_ExpectAndReturn(true);
+    timeslot_start_ExpectAndReturn(NRF_SUCCESS);
+    bearer_handler_start();
+
+    /* Should wait for next TS to start and end before calling callback */
+    timeslot_is_in_ts_ExpectAndReturn(false);
+    timeslot_session_is_active_ExpectAndReturn(true);
+    timeslot_stop_Expect();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, bearer_handler_stop(stop_cb));
+
+    /* Already stopped */
     m_expected_stop_cb = 1;
     bearer_handler_on_ts_session_closed();
     TEST_ASSERT_EQUAL(0, m_expected_stop_cb);
 
-    /* Already stopped */
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, bearer_handler_stop(stop_cb));
 
     /* start it again */
@@ -746,6 +770,7 @@ void test_stop_callback(void)
     bearer_handler_start();
 
     /* Should call cb immediately if there's nothing going on */
+    timeslot_is_in_ts_ExpectAndReturn(false);
     timeslot_session_is_active_ExpectAndReturn(false);
     m_expected_stop_cb = 1;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, bearer_handler_stop(stop_cb));
@@ -757,6 +782,7 @@ void test_stop_callback(void)
     bearer_handler_start();
 
     /* Should allow NULL-callback */
+    timeslot_is_in_ts_ExpectAndReturn(false);
     timeslot_session_is_active_ExpectAndReturn(false);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, bearer_handler_stop(NULL));
 

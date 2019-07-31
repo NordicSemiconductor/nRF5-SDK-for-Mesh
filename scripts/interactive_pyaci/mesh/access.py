@@ -1,4 +1,4 @@
-# Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+# Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -105,7 +105,6 @@ def opcode_from_message_get(data):
     elif format_bits == Opcode.FORMAT_2BYTE and len(data) >= 2:
         return bytearray(data[0:2])
     elif format_bits == Opcode.FORMAT_3BYTE and len(data) >= 3:
-        data[1], data[2] = data[2], data[1]
         return bytearray(data[0:3])
     else:
         return None

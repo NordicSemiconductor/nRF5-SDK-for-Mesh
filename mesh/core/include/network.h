@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -53,8 +53,8 @@ typedef struct
         nrf_mesh_tx_token_t token;
         /** Length of the payload. */
         uint32_t payload_len;
-        /** The bearer on which the outgoing packets are to be sent on. Alternatively, use CORE_TX_BEARER_TYPE_ALLOW_ALL to allow allocation to all bearers. */
-        core_tx_bearer_type_t bearer_selector;
+        /** The bearers on which the outgoing packets are to be sent on. Alternatively, use CORE_TX_BEARER_TYPE_ALLOW_ALL to allow allocation to all bearers. */
+        core_tx_bearer_selector_t bearer_selector;
         /** Role this device has for the packet. */
         core_tx_role_t role;
     } user_data;

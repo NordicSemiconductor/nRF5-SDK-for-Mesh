@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -39,7 +39,7 @@
 #include "nrf.h"
 #include "nrf_sdm.h"
 #include "nrf_mesh_assert.h"
-#if defined(S130) || defined(S132) || defined(S140) || defined(S112)
+#if defined(S130) || defined(S132) || defined(S140) || defined(S112) || defined(S113)
 #include "nrf_nvic.h"
 #elif defined(S110)
 #include "nrf_soc.h"
@@ -61,14 +61,17 @@ void hal_device_reset(uint8_t gpregret_value)
 #if defined(SOFTDEVICE_PRESENT)
     (void) sd_power_reset_reason_clr(RESET_REASON_MASK); /* avoid wrongful state-readout on reboot */
 #if defined(S130) || defined(S110)
+    (void) sd_power_gpregret_clr(NRF_MESH_GPREGRET_USED_BIT_MASK);
     (void) sd_power_gpregret_set(gpregret_value);
 #elif defined(S132)
-    (void) sd_power_gpregret_set(gpregret_value, RESET_REASON_MASK);
+    (void) sd_power_gpregret_clr(0, NRF_MESH_GPREGRET_USED_BIT_MASK);
+    (void) sd_power_gpregret_set(0, gpregret_value);
 #endif
     (void) sd_nvic_SystemReset();
 #else
     NRF_POWER->RESETREAS = RESET_REASON_MASK; /* avoid wrongful state-readout on reboot */
-    NRF_POWER->GPREGRET = gpregret_value;
+    NRF_POWER->GPREGRET &= ~(NRF_MESH_GPREGRET_USED_BIT_MASK);
+    NRF_POWER->GPREGRET |= gpregret_value;
     NVIC_SystemReset();
 #endif
     NRF_MESH_ASSERT(false);

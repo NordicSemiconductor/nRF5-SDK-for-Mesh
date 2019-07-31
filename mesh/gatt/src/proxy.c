@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -44,6 +44,7 @@
 #include "core_tx.h"
 #include "mesh_gatt.h"
 #include "network.h"
+#include "beacon.h"
 #include "net_beacon.h"
 #include "net_state.h"
 #include "net_packet.h"
@@ -59,6 +60,7 @@
 #include "cache.h"
 #include "mesh_config_entry.h"
 #include "mesh_opt_gatt.h"
+#include "event.h"
 
 #if MESH_GATT_PROXY_NODE_IDENTITY_DURATION_MS > 60000
 #error The MESH_GATT_PROXY_NODE_IDENTITY_DURATION_MS shall not be greater than 60,000 ms
@@ -143,6 +145,7 @@ static const core_tx_bearer_interface_t m_interface = {core_tx_packet_alloc_cb,
 static proxy_connection_t m_connections[MESH_GATT_CONNECTION_COUNT_MAX];
 static nrf_mesh_evt_handler_t m_mesh_evt_handler;
 static bool m_enabled = PROXY_ENABLED_DEFAULT;
+static bool m_stop_requested;
 
 static struct
 {
@@ -182,6 +185,20 @@ static inline uint32_t active_connection_count(void)
         }
     }
     return count;
+}
+
+static bool has_pending_packets(void)
+{
+    for (size_t i = 0; i < MESH_GATT_CONNECTION_COUNT_MAX; i++)
+    {
+        if (m_connections[i].connected
+            && mesh_gatt_packet_is_pending(connection_index(&m_connections[i])))
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 static void adv_data_network_id_set(const uint8_t * p_network_id)
@@ -245,6 +262,7 @@ static uint32_t packet_alloc(proxy_connection_t * p_connection,
 static void packet_send(proxy_connection_t * p_connection)
 {
     NRF_MESH_ASSERT(p_connection->p_alloc_packet);
+
     if(mesh_gatt_packet_send(connection_index(p_connection), p_connection->p_alloc_packet) != NRF_SUCCESS)
     {
         mesh_gatt_packet_discard(connection_index(p_connection), p_connection->p_alloc_packet);
@@ -558,7 +576,7 @@ static void rx_handle(proxy_connection_t * p_connection,
             (void) network_packet_in(p_data, length, &rx_metadata);
             break;
         case MESH_GATT_PDU_TYPE_MESH_BEACON:
-            net_beacon_packet_in(p_data, length, &rx_metadata);
+            (void) beacon_packet_in(p_data, length, &rx_metadata);
             break;
         case MESH_GATT_PDU_TYPE_PROXY_CONFIG:
             config_packet_in(p_connection, p_data, length);
@@ -600,6 +618,17 @@ static void gatt_evt_handler(const mesh_gatt_evt_t * p_evt, void * p_context)
                 m_advertising.p_net_beacon_info = NULL;
                 adv_start(PROXY_ADV_TYPE_NETWORK_ID, true);
             }
+
+            if (m_stop_requested && !active_connection_count())
+            {
+                m_stop_requested = false;
+
+                nrf_mesh_evt_t evt =
+                {
+                    .type = NRF_MESH_EVT_PROXY_STOPPED,
+                };
+                event_handle(&evt);
+            }
             break;
 
         case MESH_GATT_EVT_TYPE_TX_READY:
@@ -617,6 +646,7 @@ static void gatt_evt_handler(const mesh_gatt_evt_t * p_evt, void * p_context)
 
         case MESH_GATT_EVT_TYPE_TX_COMPLETE:
             __LOG(LOG_SRC_BEARER, LOG_LEVEL_INFO, "TX complete\n");
+
             if (p_evt->params.tx_complete.pdu_type == MESH_GATT_PDU_TYPE_NETWORK_PDU)
             {
 #if MESH_FEATURE_RELAY_ENABLED
@@ -631,6 +661,11 @@ static void gatt_evt_handler(const mesh_gatt_evt_t * p_evt, void * p_context)
                                  role,
                                  timer_now(),
                                  p_evt->params.tx_complete.token);
+            }
+
+            if (m_stop_requested && !has_pending_packets())
+            {
+                proxy_disconnect();
             }
             break;
 
@@ -819,7 +854,9 @@ uint32_t proxy_start(void)
 {
     if (m_enabled)
     {
-        if (!m_advertising.running)
+        /* Can't start connectable advertisements if run out of connections. */
+        if (!m_advertising.running
+            && active_connection_count() < MESH_GATT_CONNECTION_COUNT_MAX)
         {
             m_advertising.p_net_beacon_info = NULL;
             adv_start(PROXY_ADV_TYPE_NETWORK_ID, true);
@@ -836,7 +873,6 @@ uint32_t proxy_stop(void)
 {
     if (m_enabled)
     {
-        proxy_disconnect();
         if (m_advertising.running)
         {
             mesh_adv_stop();
@@ -844,6 +880,25 @@ uint32_t proxy_stop(void)
         }
 
         m_enabled = false;
+
+        if (!active_connection_count())
+        {
+            nrf_mesh_evt_t evt =
+            {
+                .type = NRF_MESH_EVT_PROXY_STOPPED,
+            };
+            event_handle(&evt);
+        }
+        else
+        {
+            m_stop_requested = true;
+
+            if (!has_pending_packets())
+            {
+                proxy_disconnect();
+            }
+        }
+
         return NRF_SUCCESS;
     }
     else
@@ -1002,13 +1057,24 @@ static void proxy_get(mesh_config_entry_id_t id, void * p_entry)
     *p_enabled = proxy_is_enabled();
 }
 
+static void proxy_delete(mesh_config_entry_id_t id)
+{
+    m_enabled = PROXY_ENABLED_DEFAULT;
+
+    if (m_advertising.running && m_enabled == false)
+    {
+        mesh_adv_stop();
+        on_adv_end();
+    }
+}
+
 MESH_CONFIG_ENTRY(mesh_opt_gatt_proxy,
                   MESH_OPT_GATT_PROXY_EID,
                   1,
                   sizeof(bool),
                   proxy_set,
                   proxy_get,
-                  NULL,
+                  proxy_delete,
                   true);
 
 uint32_t mesh_opt_gatt_proxy_set(bool enabled)

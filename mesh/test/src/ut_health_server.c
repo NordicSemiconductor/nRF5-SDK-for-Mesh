@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -38,6 +38,7 @@
 #include <unity.h>
 #include <cmock.h>
 
+#include "log.h"
 #include "access_mock.h"
 #include "access_config_mock.h"
 #include "access_reliable_mock.h"
@@ -48,12 +49,15 @@
 #include "health_messages.h"
 #include "health_opcodes.h"
 #include "health_server.h"
+#include "mesh_config_mock.h"
+#include "mesh_opt_mock.h"
 
 #include "utils.h"
 
-#define TEST_MODEL_HANDLE   14
-#define TEST_ELEMENT_INDEX  42
-#define TEST_COMPANY_ID     0x1234
+#define TEST_MODEL_HANDLE           14
+#define TEST_ELEMENT_INDEX          0
+#define TEST_COMPANY_ID             0x1234
+#define TEST_MAX_HEALTH_SERVERS     (ACCESS_ELEMENT_COUNT)
 
 #define ACCESS_MESSAGE_RX(req, op) \
     { \
@@ -75,6 +79,11 @@ static const access_opcode_handler_t * mp_opcode_handlers;
 static uint16_t m_num_opcodes;
 
 static access_model_handle_t m_model_handle;
+
+static uint32_t access_model_subscription_list_alloc_mock(access_model_handle_t handle, int count)
+{
+    return NRF_SUCCESS;
+}
 
 static uint32_t access_model_add_mock(const access_model_add_params_t * p_init_params,
         access_model_handle_t * p_model_handle, int count)
@@ -240,6 +249,34 @@ static void call_opcode_handler(access_model_handle_t handle, const access_messa
     TEST_ASSERT_TRUE(handler_found);
 }
 
+extern const mesh_config_entry_params_t m_mesh_opt_health_params;
+static const mesh_config_entry_params_t * entry_params_get(mesh_config_entry_id_t entry_id)
+{
+    if (IS_IN_RANGE(entry_id.record, MESH_OPT_HEALTH_ID_START, MESH_OPT_HEALTH_ID_END))
+    {
+        return &m_mesh_opt_health_params;
+    }
+
+    TEST_FAIL_MESSAGE("Unknown entry id");
+    return NULL;
+}
+
+uint32_t mesh_config_entry_set(mesh_config_entry_id_t id, const void * p_entry)
+{
+    return entry_params_get(id)->callbacks.setter(id, p_entry);
+}
+
+uint32_t mesh_config_entry_get(mesh_config_entry_id_t id, void * p_entry)
+{
+    entry_params_get(id)->callbacks.getter(id, p_entry);
+    return NRF_SUCCESS;
+}
+
+uint32_t mesh_config_entry_delete(mesh_config_entry_id_t id)
+{
+    return NRF_SUCCESS;
+}
+
 /********** Self-test helper functions **********/
 
 static const uint8_t * mp_next_faults;
@@ -304,6 +341,7 @@ void setUp(void)
     access_mock_Init();
     access_config_mock_Init();
     access_model_add_StubWithCallback(access_model_add_mock);
+    access_model_subscription_list_alloc_StubWithCallback(access_model_subscription_list_alloc_mock);
     access_model_reply_StubWithCallback(access_model_reply_mock);
     access_model_publish_StubWithCallback(access_model_publish_mock);
     access_model_publish_period_get_StubWithCallback(access_model_publish_period_get_mock);
@@ -320,7 +358,11 @@ void setUp(void)
     bearer_event_critical_section_begin_Ignore();
     bearer_event_critical_section_end_Ignore();
 
+    mesh_config_mock_Init();
+    //mesh_config_entry_mock_Init();
+
     m_publish_period_get_expected = false;
+    TEST_ASSERT_TRUE(TEST_MAX_HEALTH_SERVERS > 1);
 }
 
 void tearDown(void)
@@ -348,6 +390,12 @@ void tearDown(void)
 
     nrf_mesh_mock_Verify();
     nrf_mesh_mock_Destroy();
+
+    mesh_config_mock_Verify();
+    mesh_config_mock_Destroy();
+
+    //mesh_config_entry_mock_Verify();
+    //mesh_config_entry_mock_Destroy();
 }
 
 /********** Test cases **********/
@@ -360,8 +408,7 @@ void test_faultarray(void)
 
     TEST_ASSERT_EQUAL(0, health_server_fault_count_get(&server));
 
-    EXPECT_PUBLISH_PERIOD_GET(server.model_handle, ACCESS_PUBLISH_RESOLUTION_1S, 2);
-    access_model_publish_period_set_ExpectAndReturn(server.model_handle, ACCESS_PUBLISH_RESOLUTION_1S, 2, NRF_SUCCESS);
+    access_model_publish_period_divisor_set_ExpectAndReturn(server.model_handle, 1 << server.fast_period_divisor, NRF_SUCCESS);
 
     health_server_fault_register(&server, 0xf1);
     TEST_ASSERT_EQUAL(1, health_server_fault_count_get(&server));
@@ -380,7 +427,7 @@ void test_faultarray(void)
     TEST_ASSERT_FALSE(health_server_fault_is_set(&server, 0xf1));
     TEST_ASSERT_TRUE(health_server_fault_is_set(&server, 0x22));
 
-    access_model_publish_period_set_ExpectAndReturn(server.model_handle, ACCESS_PUBLISH_RESOLUTION_1S, 2, NRF_SUCCESS);
+    access_model_publish_period_divisor_set_ExpectAndReturn(server.model_handle, 1, NRF_SUCCESS);
     health_server_fault_clear(&server, 0x22);
     TEST_ASSERT_EQUAL(0, health_server_fault_count_get(&server));
     TEST_ASSERT_FALSE(health_server_fault_is_set(&server, 0xf1));
@@ -398,32 +445,11 @@ void test_fast_period_divisor(void)
     /* Cheat, and set the fast period divisor manually to 2 (giving an actual divisor of 2^2): */
     server.fast_period_divisor = 2;
 
-    /*
-     * The publish interval for the Current Status will be divided by the fast period divisor and a new publish period
-     * will be set when a fault is registered.
-     */
-    EXPECT_PUBLISH_PERIOD_GET(server.model_handle, ACCESS_PUBLISH_RESOLUTION_1S, 2);
-    access_model_publish_period_set_ExpectAndReturn(server.model_handle, ACCESS_PUBLISH_RESOLUTION_100MS, 5, NRF_SUCCESS);
+    /* Fast period divisor value will be used to calculate actual divisor and will be passed to access module */
+    access_model_publish_period_divisor_set_ExpectAndReturn(server.model_handle, 1 << server.fast_period_divisor, NRF_SUCCESS);
     health_server_fault_register(&server, 0xf1);
 
-    access_model_publish_period_set_ExpectAndReturn(server.model_handle, ACCESS_PUBLISH_RESOLUTION_1S, 2, NRF_SUCCESS);
-    health_server_fault_clear(&server, 0xf1);
-
-    // Try dividing by something that makes the interval go to 0. Should stop at the smallest interval:
-    server.fast_period_divisor = 6; // actual divisor is 2^6 = 64
-    EXPECT_PUBLISH_PERIOD_GET(server.model_handle, ACCESS_PUBLISH_RESOLUTION_1S, 2);
-    access_model_publish_period_set_ExpectAndReturn(server.model_handle, ACCESS_PUBLISH_RESOLUTION_100MS, 1, NRF_SUCCESS);
-    health_server_fault_register(&server, 0xf1);
-
-    access_model_publish_period_set_ExpectAndReturn(server.model_handle, ACCESS_PUBLISH_RESOLUTION_1S, 2, NRF_SUCCESS);
-    health_server_fault_clear(&server, 0xf1);
-
-    // If the period is 0, it should stay 0, and not go up to lower threshold
-    EXPECT_PUBLISH_PERIOD_GET(server.model_handle, ACCESS_PUBLISH_RESOLUTION_100MS, 0);
-    access_model_publish_period_set_ExpectAndReturn(server.model_handle, ACCESS_PUBLISH_RESOLUTION_100MS, 0, NRF_SUCCESS);
-    health_server_fault_register(&server, 0xf1);
-
-    access_model_publish_period_set_ExpectAndReturn(server.model_handle, ACCESS_PUBLISH_RESOLUTION_100MS, 0, NRF_SUCCESS);
+    access_model_publish_period_divisor_set_ExpectAndReturn(server.model_handle, 1, NRF_SUCCESS);
     health_server_fault_clear(&server, 0xf1);
 }
 
@@ -462,8 +488,7 @@ void test_selftest(void)
         p_expected_reply->company_id = TEST_COMPANY_ID;
         memcpy(p_expected_reply->fault_array, expected_faults, sizeof(expected_faults));
 
-        EXPECT_PUBLISH_PERIOD_GET(server.model_handle, ACCESS_PUBLISH_RESOLUTION_100MS, 0);
-        access_model_publish_period_set_ExpectAndReturn(server.model_handle, ACCESS_PUBLISH_RESOLUTION_100MS, 0, NRF_SUCCESS);
+        access_model_publish_period_divisor_set_ExpectAndReturn(server.model_handle, 1 << server.fast_period_divisor, NRF_SUCCESS);
         EXPECT_REPLY(server.model_handle, HEALTH_OPCODE_FAULT_STATUS, reply_buffer, sizeof(reply_buffer));
         call_opcode_handler(server.model_handle, &request_message, &server);
     }
@@ -579,12 +604,12 @@ void test_attention(void)
 
 void test_multimodel_attention(void)
 {
-    health_server_t servers[5];
-    const uint8_t attention_values[5] = { 4, 5, 1, 11, 10 };
+    health_server_t servers[TEST_MAX_HEALTH_SERVERS];
+    const uint8_t attention_values[TEST_MAX_HEALTH_SERVERS] = { 4, 5, 1, 11, 10 };
     const uint8_t max_attention_value = 11; /* max(attention_values) */
 
     EXPECT_TIMER_SCH_SCHEDULE();
-    for(int i = 0; i < 5; ++i)
+    for(int i = 0; i < TEST_MAX_HEALTH_SERVERS; ++i)
     {
         TEST_ASSERT_EQUAL(NRF_SUCCESS, health_server_init(&servers[i], TEST_ELEMENT_INDEX + i, TEST_COMPANY_ID, attention_callback, NULL, 0));
 
@@ -611,57 +636,73 @@ void test_multimodel_attention(void)
             timer_sch_abort_ExpectAnyArgs();
         }
 
-        TIMER_SCH_TRIGGER();
+        //TIMER_SCH_TRIGGER();
+        do {
+        if(mp_timer_sch_event->interval != 0)
+        {
+            mp_timer_sch_event->timestamp += mp_timer_sch_event->interval;
+            m_current_time += mp_timer_sch_event->interval;
+        }
+        else
+        {
+            m_current_time = mp_timer_sch_event->timestamp;
+        }
+        mp_timer_sch_event->cb(m_current_time, mp_timer_sch_event->p_context);
+        } while(0);
     }
 }
 
 void test_status_period(void)
 {
-    health_server_t server;
+    health_server_t server[TEST_MAX_HEALTH_SERVERS];
     health_server_selftest_t test_array[] = {{ .test_id = 0x01, .selftest_function = selftest_test_function }};
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, health_server_init(&server, TEST_ELEMENT_INDEX, TEST_COMPANY_ID, NULL, test_array, ARRAY_SIZE(test_array)));
 
-    /* Check that the default value of the fast period divisor is 0: */
+    for (int i = 0; i < TEST_MAX_HEALTH_SERVERS; i++)
     {
-        access_message_rx_t request_message = ACCESS_MESSAGE_RX_EMPTY(HEALTH_OPCODE_PERIOD_GET);
-        health_msg_period_status_t expected_reply = { .fast_period_divisor = 0 };
-        EXPECT_REPLY(server.model_handle, HEALTH_OPCODE_PERIOD_STATUS, &expected_reply, sizeof(expected_reply));
-        call_opcode_handler(server.model_handle, &request_message, &server);
-    }
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, health_server_init(&server[i], TEST_ELEMENT_INDEX, TEST_COMPANY_ID, NULL, test_array, ARRAY_SIZE(test_array)));
 
-    /* Set the fast period divisor to 5: */
-    {
-        const health_msg_period_set_t request = { .fast_period_divisor = 5 };
-        access_message_rx_t request_message = ACCESS_MESSAGE_RX(request, HEALTH_OPCODE_PERIOD_SET);
+        /* Check that the default value of the fast period divisor is 0: */
+        {
+            access_message_rx_t request_message = ACCESS_MESSAGE_RX_EMPTY(HEALTH_OPCODE_PERIOD_GET);
+            health_msg_period_status_t expected_reply = { .fast_period_divisor = 0 };
+            EXPECT_REPLY(server[i].model_handle, HEALTH_OPCODE_PERIOD_STATUS, &expected_reply, sizeof(expected_reply));
+            call_opcode_handler(server[i].model_handle, &request_message, &server[i]);
+        }
 
-        health_msg_period_status_t expected_reply = { .fast_period_divisor = 5};
-        EXPECT_REPLY(server.model_handle, HEALTH_OPCODE_PERIOD_STATUS, &expected_reply, sizeof(expected_reply));
-        call_opcode_handler(server.model_handle, &request_message, &server);
-    }
+        /* Set the fast period divisor to 5: */
+        {
+            const health_msg_period_set_t request = { .fast_period_divisor = 5 };
+            access_message_rx_t request_message = ACCESS_MESSAGE_RX(request, HEALTH_OPCODE_PERIOD_SET);
 
-    /* Set the fast period divisor to 8: */
-    {
-        const health_msg_period_set_t request = { .fast_period_divisor = 8 };
-        access_message_rx_t request_message = ACCESS_MESSAGE_RX(request, HEALTH_OPCODE_PERIOD_SET_UNACKED);
-        call_opcode_handler(server.model_handle, &request_message, &server);
-    }
+            health_msg_period_status_t expected_reply = { .fast_period_divisor = 5};
+            EXPECT_REPLY(server[i].model_handle, HEALTH_OPCODE_PERIOD_STATUS, &expected_reply, sizeof(expected_reply));
+            call_opcode_handler(server[i].model_handle, &request_message, &server[i]);
+        }
 
-    /* Check that the default value of the fast period divisor is 8: */
-    {
-        access_message_rx_t request_message = ACCESS_MESSAGE_RX_EMPTY(HEALTH_OPCODE_PERIOD_GET);
-        health_msg_period_status_t expected_reply = { .fast_period_divisor = 8 };
-        EXPECT_REPLY(server.model_handle, HEALTH_OPCODE_PERIOD_STATUS, &expected_reply, sizeof(expected_reply));
-        call_opcode_handler(server.model_handle, &request_message, &server);
-    }
+        /* Set the fast period divisor to 8: */
+        {
+            const health_msg_period_set_t request = { .fast_period_divisor = 8 };
+            access_message_rx_t request_message = ACCESS_MESSAGE_RX(request, HEALTH_OPCODE_PERIOD_SET_UNACKED);
+            call_opcode_handler(server[i].model_handle, &request_message, &server[i]);
+        }
 
-    /* Try setting the divisor to an invalid value: */
-    {
-        const health_msg_period_set_t request = { .fast_period_divisor = 18 }; /* 15 is the maximum according to the spec */
-        access_message_rx_t request_message = ACCESS_MESSAGE_RX(request, HEALTH_OPCODE_PERIOD_SET);
+        /* Check that the default value of the fast period divisor is 8: */
+        {
+            access_message_rx_t request_message = ACCESS_MESSAGE_RX_EMPTY(HEALTH_OPCODE_PERIOD_GET);
+            health_msg_period_status_t expected_reply = { .fast_period_divisor = 8 };
+            EXPECT_REPLY(server[i].model_handle, HEALTH_OPCODE_PERIOD_STATUS, &expected_reply, sizeof(expected_reply));
+            call_opcode_handler(server[i].model_handle, &request_message, &server[i]);
+        }
 
-        health_msg_period_status_t expected_reply = { .fast_period_divisor = 8}; /* The invalid value should have been ignored */
-        EXPECT_REPLY(server.model_handle, HEALTH_OPCODE_PERIOD_STATUS, &expected_reply, sizeof(expected_reply));
-        call_opcode_handler(server.model_handle, &request_message, &server);
+        /* Try setting the divisor to an invalid value: */
+        {
+            const health_msg_period_set_t request = { .fast_period_divisor = 18 }; /* 15 is the maximum according to the spec */
+            access_message_rx_t request_message = ACCESS_MESSAGE_RX(request, HEALTH_OPCODE_PERIOD_SET);
+
+            health_msg_period_status_t expected_reply = { .fast_period_divisor = 8}; /* The invalid value should have been ignored */
+            EXPECT_REPLY(server[i].model_handle, HEALTH_OPCODE_PERIOD_STATUS, &expected_reply, sizeof(expected_reply));
+            call_opcode_handler(server[i].model_handle, &request_message, &server[i]);
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -171,6 +171,51 @@ extern uint32_t nrf_mesh_friendship_secmat_params_set(const nrf_mesh_network_sec
  * for the given address, or NULL if not found.
  */
 extern void nrf_mesh_friendship_secmat_get(uint16_t lpn_addr, const nrf_mesh_network_secmat_t ** pp_secmat);
+
+#if MESH_FEATURE_FRIEND_ENABLED
+/**
+ * Retrives the master TX network secmat from the given friendship secmat.
+ *
+ * @param[in] p_secmat  Pointer to the friendship secmat.
+ *
+ * @retval  <pointer>   Pointer to the master network secmat corresponding to the given friendship secmat.
+ * @retval  NULL        No suitable secmat could be found.
+ */
+extern nrf_mesh_network_secmat_t * nrf_mesh_net_master_secmat_get(const nrf_mesh_network_secmat_t * p_secmat);
+#endif
+
+/**
+ * Gets the key refresh phase of the given security material.
+ *
+ * @note This function is implemented by the Device State Manager module.
+ *
+ * @param[in] p_secmat Valid secmat pointer. The function will assert on invalid input.
+ *
+ * @retval NRF_MESH_KEY_REFRESH_PHASE_0  See @ref NRF_MESH_KEY_REFRESH_PHASE_0.
+ * @retval NRF_MESH_KEY_REFRESH_PHASE_1  See @ref NRF_MESH_KEY_REFRESH_PHASE_1.
+ * @retval NRF_MESH_KEY_REFRESH_PHASE_2  See @ref NRF_MESH_KEY_REFRESH_PHASE_2.
+ * @retval NRF_MESH_KEY_REFRESH_PHASE_3  See @ref NRF_MESH_KEY_REFRESH_PHASE_3.
+ */
+nrf_mesh_key_refresh_phase_t nrf_mesh_key_refresh_phase_get(const nrf_mesh_network_secmat_t * p_secmat);
+
+/**
+ * Gets the network security material from the given subnetwork key index.
+ *
+ * @param[in] subnet_index Subnetwork key index.
+ *
+ * @retval <pointer> Pointer to network security material.
+ * @retval NULL      No security material for the key index was found.
+ */
+const nrf_mesh_network_secmat_t * nrf_mesh_net_secmat_from_index_get(uint16_t subnet_index);
+
+/**
+ * Returns whether the device will process packets received on the given destination address.
+ *
+ * @param[in] p_addr The raw address to check for.
+ *
+ * @returns Whether the device will process packets received on the given destination address.
+ */
+extern bool nrf_mesh_is_address_rx(const nrf_mesh_address_t * p_addr);
 
 /** @} end of NRF_MESH_EXTERNS */
 

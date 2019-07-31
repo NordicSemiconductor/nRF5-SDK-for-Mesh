@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -50,6 +50,14 @@
  * @{
  */
 
+/** Filter type. */
+typedef enum
+{
+    FILTER_TYPE_PRE_PROC,   /**< Pre-processing filter. */
+    FILTER_TYPE_POST_PROC,  /**< Post-processing filter. */
+    FILTER_TYPE_END,        /**< Amount of filter types. */
+} filter_type_t;
+
 /**
  * Filter handler to perform a filtering procedure
  *
@@ -63,7 +71,8 @@ typedef bool (* filter_handler_t)(scanner_packet_t * p_packet, void * p_data);
 /** The filter descriptor. */
 typedef struct
 {
-    filter_handler_t handler;    /**< The entrance point into the filtering algorithm of an instance. */
+    filter_type_t    type;       /**< Type that specifies when the filter is to be applied. */
+    filter_handler_t handler;    /**< Handler that acts as the entrance point into the filtering algorithm of an instance. */
     void *           p_data;     /**< Pointer to the customized filter data. */
     list_node_t      node;       /**< Service field, set and used by the module. */
 } filter_t;
@@ -86,18 +95,21 @@ void fen_filter_stop(filter_t * p_filter);
 /**
  * Applies set of active filters on received messages.
  *
+ * @param[in]  type      Type of filters on which the packet is to be applied.
  * @param[in]  p_packet  Pointer to the received packet from the scanner rx queue.
  *
  * @return true if packet shall be filtered, false otherwise.
  */
-bool fen_filters_apply(scanner_packet_t * p_packet);
+bool fen_filters_apply(filter_type_t type, scanner_packet_t * p_packet);
 
 /**
  * Reads out the accepted amount of packets.
  *
+ * @param[in] type       Specifies type of filters which the accepted amount of packets should be returned for.
+ *
  * @return the amount of packets that passed through all the filters.
  */
-uint32_t fen_accepted_amount_get(void);
+uint32_t fen_accepted_amount_get(filter_type_t type);
 
 /** @} */
 

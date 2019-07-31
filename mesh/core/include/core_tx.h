@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -66,34 +66,37 @@ typedef enum
     CORE_TX_ROLE_COUNT /**< Number of roles available, not a valid role itself. */
 } core_tx_role_t;
 
+/** Supported bearer types. */
 typedef enum
 {
-    CORE_TX_BEARER_TYPE_INVALID,
-    CORE_TX_BEARER_TYPE_ADV,
-    CORE_TX_BEARER_TYPE_GATT_SERVER,
-    CORE_TX_BEARER_TYPE_GATT_CLIENT,
-    CORE_TX_BEARER_TYPE_FRIEND,
-    CORE_TX_BEARER_TYPE_LOW_POWER,
-
-    /**
-     * Allow all bearers, for use with @ref core_tx_alloc_params_t::bearer_selector.
-     *
-     * @note Set to @c INVALID to avoid having two meta types. They don't make sense in the same contexts anyway.
-     */
-    CORE_TX_BEARER_TYPE_ALLOW_ALL = CORE_TX_BEARER_TYPE_INVALID,
+    CORE_TX_BEARER_TYPE_INVALID     = 0x00,
+    CORE_TX_BEARER_TYPE_ADV         = 0x01,
+    CORE_TX_BEARER_TYPE_GATT_SERVER = 0x02,
+    CORE_TX_BEARER_TYPE_GATT_CLIENT = 0x04,
+    CORE_TX_BEARER_TYPE_FRIEND      = 0x08,
+    CORE_TX_BEARER_TYPE_LOW_POWER   = 0x10,
+    CORE_TX_BEARER_TYPE_LOCAL       = 0x20,
+    CORE_TX_BEARER_TYPE_ALLOW_ALL   = 0xFF,
 } core_tx_bearer_type_t;
+
+/** Bearer selector type representing multiple bearer types. */
+typedef uint32_t core_tx_bearer_selector_t;
 
 /** Parameter structure for @ref core_tx_packet_alloc(). */
 typedef struct
 {
     core_tx_role_t role; /**< Packet role. */
     uint32_t net_packet_len; /**< Requited network packet length. */
-    const network_packet_metadata_t * p_metadata; /*< Network packet metadata to pass to bearer for allocation decision. */
+    const network_packet_metadata_t * p_metadata; /**< Network packet metadata to pass to bearer for allocation decision. */
     nrf_mesh_tx_token_t token; /**< TX token used to identify the packet in the TX complete callback. */
-    core_tx_bearer_type_t bearer_selector; /**< The bearer on which the outgoing packets are to be sent on. Alternatively, use CORE_TX_BEARER_TYPE_ALLOW_ALL to allow allocation to all bearers. */
+    core_tx_bearer_selector_t bearer_selector; /**< The bearers on which the outgoing packets are to be sent on. Alternatively, use @ref CORE_TX_BEARER_TYPE_ALLOW_ALL to allow allocation to all bearers. */
 } core_tx_alloc_params_t;
 
-/** Bitmap type representing multiple bearers. */
+/**
+ * Bitmap type representing multiple bearers.
+ *
+ * @note The bearer bitmap represents bearer instances, not bearer types. Each bearer instance has a bearer type.
+ */
 typedef uint32_t core_tx_bearer_bitmap_t;
 
 /**

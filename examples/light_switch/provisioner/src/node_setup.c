@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -69,6 +69,7 @@ typedef enum
 {
     NODE_SETUP_IDLE,
     NODE_SETUP_CONFIG_COMPOSITION_GET,
+    NODE_SETUP_CONFIG_NETWORK_TRANSMIT,
     NODE_SETUP_CONFIG_APPKEY_ADD,
     NODE_SETUP_CONFIG_APPKEY_BIND_HEALTH,
     NODE_SETUP_CONFIG_APPKEY_BIND_ONOFF_SERVER,
@@ -121,6 +122,7 @@ of the steps can be done in @ref setup_select_steps() function.
 static const config_steps_t client_config_steps[] =
 {
     NODE_SETUP_CONFIG_COMPOSITION_GET,
+    NODE_SETUP_CONFIG_NETWORK_TRANSMIT,
     NODE_SETUP_CONFIG_APPKEY_ADD,
     NODE_SETUP_CONFIG_APPKEY_BIND_HEALTH,
     NODE_SETUP_CONFIG_PUBLICATION_HEALTH,
@@ -135,6 +137,7 @@ static const config_steps_t client_config_steps[] =
 static const config_steps_t server_config_steps[] =
 {
     NODE_SETUP_CONFIG_COMPOSITION_GET,
+    NODE_SETUP_CONFIG_NETWORK_TRANSMIT,
     NODE_SETUP_CONFIG_APPKEY_ADD,
     NODE_SETUP_CONFIG_APPKEY_BIND_HEALTH,
     NODE_SETUP_CONFIG_APPKEY_BIND_ONOFF_SERVER,
@@ -150,6 +153,7 @@ static uint16_t m_retry_count;
 static client_send_retry_t m_send_timer;
 static const uint8_t * mp_appkey;
 static uint16_t m_appkey_idx;
+static uint16_t m_netkey_idx;
 static access_model_id_t m_client_model_id;
 static access_model_id_t m_server_model_id;
 
@@ -228,8 +232,9 @@ static status_check_t check_expected_status(uint16_t rx_opcode, const config_msg
 
     switch (rx_opcode)
     {
-        /* COMPOSITION_DATA_STATUS does not have a STATUS field */
+        /* These messages do not have a STATUS field. */
         case CONFIG_OPCODE_COMPOSITION_DATA_STATUS:
+        case CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS:
             break;
 
         case CONFIG_OPCODE_MODEL_APP_STATUS:
@@ -351,11 +356,21 @@ static void config_step_execute(void)
             break;
         }
 
+        case NODE_SETUP_CONFIG_NETWORK_TRANSMIT:
+        {
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Updating network transmit: count: %d steps: %d\n",
+                  NETWORK_TRANSMIT_COUNT, NETWORK_TRANSMIT_INTERVAL_STEPS);
+            status = config_client_network_transmit_set(NETWORK_TRANSMIT_COUNT, NETWORK_TRANSMIT_INTERVAL_STEPS);
+
+            expected_status_set(CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS, 0 , NULL);
+            break;
+        }
+
         /* Add the application key to the node: */
         case NODE_SETUP_CONFIG_APPKEY_ADD:
         {
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Adding appkey\n");
-            status = config_client_appkey_add(NETKEY_INDEX, m_appkey_idx, mp_appkey);
+            status = config_client_appkey_add(m_netkey_idx, m_appkey_idx, mp_appkey);
 
             static const access_status_t exp_status[] = {ACCESS_STATUS_SUCCESS, ACCESS_STATUS_KEY_INDEX_ALREADY_STORED};
             expected_status_set(CONFIG_OPCODE_APPKEY_STATUS, ARRAY_SIZE(exp_status), exp_status);
@@ -423,7 +438,7 @@ static void config_step_execute(void)
             pubstate.element_address = m_current_node_addr;
             pubstate.publish_address.type = NRF_MESH_ADDRESS_TYPE_UNICAST;
             pubstate.publish_address.value = PROVISIONER_ADDRESS;
-            pubstate.appkey_index = 0;
+            pubstate.appkey_index = m_appkey_idx;
             pubstate.frendship_credential_flag = false;
             pubstate.publish_ttl = (SERVER_NODE_COUNT > NRF_MESH_TTL_MAX ? NRF_MESH_TTL_MAX : SERVER_NODE_COUNT);
             pubstate.publish_period.step_num = 1;
@@ -636,7 +651,7 @@ void node_setup_config_client_event_process(config_client_event_type_t event_typ
  * Begins the node setup process.
  */
 void node_setup_start(uint16_t address, uint8_t  retry_cnt, const uint8_t * p_appkey,
-                      uint16_t appkey_idx, const char * p_client_uri)
+                      uint16_t appkey_idx, uint16_t netkey_idx, const char * p_client_uri)
 {
     if (*mp_config_step != NODE_SETUP_IDLE)
     {
@@ -649,6 +664,7 @@ void node_setup_start(uint16_t address, uint8_t  retry_cnt, const uint8_t * p_ap
     m_send_timer.count = CLIENT_BUSY_SEND_RETRY_LIMIT;
     mp_appkey = p_appkey;
     m_appkey_idx = appkey_idx;
+    m_netkey_idx = netkey_idx;
 
     /* The filter match will decide, which model pairs to pick up */
     if (strcmp(p_client_uri, EX_URI_LS_CLIENT) == 0 || strcmp(p_client_uri, EX_URI_ENOCEAN) == 0)

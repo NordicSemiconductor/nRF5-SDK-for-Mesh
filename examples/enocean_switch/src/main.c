@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -338,6 +338,8 @@ static void config_server_evt_cb(const config_server_evt_t * p_evt)
 {
     if (p_evt->type == CONFIG_SERVER_EVT_NODE_RESET)
     {
+        /* Trigger clearing of application data and schedule node reset. */
+        app_flash_clear(&m_app_secmat_flash[0], sizeof(m_app_secmat_flash));
         node_reset();
     }
 }

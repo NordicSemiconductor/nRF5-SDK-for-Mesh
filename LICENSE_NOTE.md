@@ -1,6 +1,6 @@
 # License
 
-Copyright (c) 2010 - 2018, Nordic Semiconductor ASA<br />
+Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,

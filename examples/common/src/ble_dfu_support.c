@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -145,6 +145,11 @@ static void ble_dfu_evt_handler(ble_dfu_buttonless_evt_type_t event)
 void ble_dfu_support_init(void)
 {
     ret_code_t err_code = ble_dfu_buttonless_async_svci_init();
+    if (err_code != NRF_SUCCESS)
+    {
+        __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR,
+              "Unable to initialize Buttonless DFU Service. Is the bootloader flashed?\n");
+    }
     APP_ERROR_CHECK(err_code);
 }
 

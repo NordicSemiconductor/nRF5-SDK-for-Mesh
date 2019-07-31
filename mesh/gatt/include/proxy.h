@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -95,6 +95,11 @@ uint32_t proxy_start(void);
 
 /**
  * Stops the mesh proxy service.
+ *
+ * The service disconnects from all connected Proxy Clients.
+ * The disconnection is initiated once all packets are transmitted.
+ * When the mesh proxy service is stopped, the @ref NRF_MESH_EVT_PROXY_STOP 
+ * event is generated.
  *
  * @note This API is intended to be used to safely stop the proxy service before a reset. It will
  * not modify the stored state of the proxy, s.t. the original state will be loaded after the reset.

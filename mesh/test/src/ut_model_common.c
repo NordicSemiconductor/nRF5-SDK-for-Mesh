@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -76,7 +76,6 @@ static uint8_t     m_exp_old_tid;
 #define TIMEOUT_TICKS_2         (2000)
 #define TIMER_CONTEXT_2         (0x5555555555)
 
-#define APP_TIMER_CNT_INC       (100)
 #define MAX_RTC_COUNTER_VAL     (0x00FFFFFF)
 
 #define APP_TIMER_MAX_TIMEOUT   (APP_TIMER_MAX_CNT_VAL - (APP_TIMER_MIN_TIMEOUT_TICKS * 2))
@@ -230,7 +229,13 @@ void test_model_transaction_is_new(void)
 
 static void helper_model_timer_cb(void * p_context)
 {
+    model_timer_t * p_timer = (model_timer_t *) p_context;
+
     TEST_ASSERT_EQUAL(m_exp_model_timer.p_context, p_context);
+
+    TEST_ASSERT_EQUAL(m_app_timer_count, p_timer->last_rtc_stamp);
+    TEST_ASSERT_EQUAL(m_exp_model_timer.total_rtc_ticks, p_timer->total_rtc_ticks);
+    m_exp_model_timer.last_rtc_stamp = m_app_timer_count;
 }
 
 static ret_code_t app_timer_create_mock(app_timer_id_t const * p_timer_id, app_timer_mode_t mode,
@@ -254,44 +259,61 @@ static void helper_setup_model_timer(model_timer_mode_t mode, uint64_t timeout_r
     m_model_timer.mode = mode;
     m_model_timer.cb = helper_model_timer_cb;
     m_model_timer.p_timer_id = &test_timer;
+    m_model_timer.total_rtc_ticks = 0;
+    m_model_timer.last_rtc_stamp = 0;
 
     m_exp_model_timer = m_model_timer;
+    m_app_timer_count = 0;
 
-    app_timer_stop_ExpectAnyArgsAndReturn(m_app_timer_count);
-    m_app_timer_count += APP_TIMER_CNT_INC;
+    app_timer_stop_ExpectAnyArgsAndReturn(NRF_SUCCESS);
     app_timer_cnt_get_ExpectAndReturn(m_app_timer_count);
 
     if (timeout_rtc_ticks > MODEL_TIMER_MAX_TIMEOUT_TICKS)
     {
         app_timer_start_ExpectAndReturn(*m_model_timer.p_timer_id,
-                                         MODEL_TIMER_MAX_TIMEOUT_TICKS - (APP_TIMER_MIN_TIMEOUT_TICKS * 2),
+                                         APP_TIMER_MAX_TIMEOUT,
                                          &m_model_timer, NRF_SUCCESS);
+
+        m_app_timer_count = APP_TIMER_MAX_TIMEOUT;
     }
     else
     {
         app_timer_start_ExpectAndReturn(*m_model_timer.p_timer_id,
                                         timeout_rtc_ticks,
                                         &m_model_timer, NRF_SUCCESS);
+        m_app_timer_count = timeout_rtc_ticks;
     }
 
-    app_timer_cnt_get_ExpectAndReturn(m_app_timer_count);
-    app_timer_cnt_get_ExpectAndReturn(m_app_timer_count);
-    app_timer_cnt_diff_compute_ExpectAnyArgsAndReturn(((m_app_timer_count - m_model_timer.last_rtc_stamp) & MAX_RTC_COUNTER_VAL));
 }
 
 static void helper_trigger_timer(void)
 {
+    app_timer_cnt_get_ExpectAndReturn(m_app_timer_count);
+    app_timer_cnt_get_ExpectAndReturn(m_app_timer_count);
+    app_timer_cnt_diff_compute_ExpectAnyArgsAndReturn(((m_app_timer_count - m_model_timer.last_rtc_stamp) & MAX_RTC_COUNTER_VAL));
+
     if (m_model_timer.remaining_ticks > 0 || m_model_timer.mode == MODEL_TIMER_MODE_REPEATED)
     {
-        m_app_timer_count += (MODEL_TIMER_MAX_TIMEOUT_TICKS - (APP_TIMER_MIN_TIMEOUT_TICKS * 2));
-        app_timer_cnt_get_ExpectAndReturn(m_app_timer_count);
-        app_timer_cnt_get_ExpectAndReturn(m_app_timer_count);
-        app_timer_cnt_diff_compute_ExpectAnyArgsAndReturn(((m_app_timer_count - m_model_timer.last_rtc_stamp) & MAX_RTC_COUNTER_VAL));
+        m_exp_model_timer.total_rtc_ticks = m_app_timer_count;
         app_timer_start_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    }
+    else
+    {
+        m_exp_model_timer.total_rtc_ticks = m_app_timer_count;
     }
 
     TEST_ASSERT_NOT_NULL(m_app_timer_cb);
     m_app_timer_cb(&m_model_timer);
+
+    /* Advance emulated time */
+    if (m_model_timer.remaining_ticks > APP_TIMER_MAX_TIMEOUT)
+    {
+        m_app_timer_count += APP_TIMER_MAX_TIMEOUT;
+    }
+    else
+    {
+        m_app_timer_count += m_model_timer.remaining_ticks;
+    }
 }
 
 void test_model_timer_create(void)
@@ -335,13 +357,13 @@ void test_model_timer_schedule_single_shot()
 
     /* test: Schedule with valid params, with small delay, where timeout occurs immediately */
     req_timeout_ticks = 5000;
-    helper_setup_model_timer(MODEL_TIMER_MODE_SINGLE_SHOT, req_timeout_ticks, (void *)0xCCCC);
+    helper_setup_model_timer(MODEL_TIMER_MODE_SINGLE_SHOT, req_timeout_ticks, &m_model_timer);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, model_timer_schedule(&m_model_timer));
     helper_trigger_timer();
 
     /* test: Schedule with valid params, with a very long delay */
     req_timeout_ticks = APP_TIMER_MAX_TIMEOUT * 3 + 100 ;
-    helper_setup_model_timer(MODEL_TIMER_MODE_SINGLE_SHOT, req_timeout_ticks, (void *)TIMER_CONTEXT_2);
+    helper_setup_model_timer(MODEL_TIMER_MODE_SINGLE_SHOT, req_timeout_ticks, &m_model_timer);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, model_timer_schedule(&m_model_timer));
     helper_trigger_timer();
 
@@ -373,7 +395,7 @@ void test_model_timer_schedule_repeat()
 
     /* test: Schedule with valid params, with small delay, where timeout occurs immediately */
     req_timeout_ticks = 5000;
-    helper_setup_model_timer(MODEL_TIMER_MODE_REPEATED, req_timeout_ticks, (void *)0xCCCC);
+    helper_setup_model_timer(MODEL_TIMER_MODE_REPEATED, req_timeout_ticks, &m_model_timer);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, model_timer_schedule(&m_model_timer));
     for(uint32_t i = 0; i < 10; i++)
     {
@@ -383,7 +405,7 @@ void test_model_timer_schedule_repeat()
 
     /* test: Schedule with valid params, with a very long delay */
     req_timeout_ticks = APP_TIMER_MAX_TIMEOUT * 3 + 100 ;
-    helper_setup_model_timer(MODEL_TIMER_MODE_SINGLE_SHOT, req_timeout_ticks, (void *)TIMER_CONTEXT_2);
+    helper_setup_model_timer(MODEL_TIMER_MODE_SINGLE_SHOT, req_timeout_ticks, &m_model_timer);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, model_timer_schedule(&m_model_timer));
 
     for (uint32_t j = 0; j < 10; j++)

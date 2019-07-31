@@ -1,0 +1,18 @@
+; nRF5 SDK for Mesh Application scatter file.
+;
+; This file is intended for nrf52810_xxAA with the s112_6.1.1 SoftDevice.
+
+LR_IROM1 0x00019000 0x00017000 {
+  ; MBR:        0x00000000 0x00001000
+  ; SOFTDEVICE: 0x00001000 0x00018000
+
+  ER_IROM1 0x00019000 0x00017000 {
+   *.o (RESET, +First)
+   *(InRoot$$Sections)
+   .ANY (+RO)
+  }
+
+  RW_IRAM1 0x20001680 0x00004980 {
+   .ANY (+RW +ZI)
+  }
+}

@@ -1,0 +1,20 @@
+--- components/softdevice/common/nrf_sdh_ble.c	2019-07-03 12:38:50.964606500 +0200
++++ components/softdevice/common/nrf_sdh_ble.c	2019-07-03 12:50:51.481923100 +0200
+@@ -110,7 +110,7 @@
+         return ret_code;
+     }
+ 
+-#ifdef S112
++#if !(defined(S112) || defined(S113))
+     STATIC_ASSERT(NRF_SDH_BLE_CENTRAL_LINK_COUNT == 0, "When using s112, NRF_SDH_BLE_CENTRAL_LINK_COUNT must be 0.");
+ #endif
+ 
+@@ -137,7 +137,7 @@
+     // Configure the connection roles.
+     memset(&ble_cfg, 0, sizeof(ble_cfg));
+     ble_cfg.gap_cfg.role_count_cfg.periph_role_count  = NRF_SDH_BLE_PERIPHERAL_LINK_COUNT;
+-#ifndef S112
++#if !(defined(S112) || defined(S113))
+     ble_cfg.gap_cfg.role_count_cfg.central_role_count = NRF_SDH_BLE_CENTRAL_LINK_COUNT;
+     ble_cfg.gap_cfg.role_count_cfg.central_sec_count  = MIN(NRF_SDH_BLE_CENTRAL_LINK_COUNT,
+                                                             BLE_GAP_ROLE_COUNT_CENTRAL_SEC_DEFAULT);

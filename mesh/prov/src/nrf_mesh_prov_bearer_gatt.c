@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -44,6 +44,7 @@
 #include "nrf_mesh_assert.h"
 #include "nrf_mesh_configure.h"
 #include "mesh_adv.h"
+#include "internal_event.h"
 
 /*******************************************************************************
  * FSM setup
@@ -129,7 +130,7 @@ static const fsm_transition_t m_pb_gatt_fsm_transition_table[] =
     FSM_STATE(S_LINK_ACTIVE),
     FSM_TRANSITION(E_PDU_TX,          FSM_ALWAYS,         A_PDU_TX,             FSM_SAME_STATE),
     FSM_TRANSITION(E_PDU_RX,          G_IS_PROV_PDU_TYPE, A_PDU_RX,             FSM_SAME_STATE),
-    FSM_TRANSITION(E_PDU_RX,          FSM_OTHERWISE,      A_LINK_CLOSE,         S_CONNECTED),
+    FSM_TRANSITION(E_PDU_RX,          FSM_OTHERWISE,      FSM_NO_ACTION,        FSM_SAME_STATE),
     FSM_TRANSITION(E_TX_COMPLETE,     FSM_ALWAYS,         A_PDU_ACK,            FSM_SAME_STATE),
     FSM_TRANSITION(E_LINK_TIMEOUT,    FSM_ALWAYS,         A_LINK_CLOSE,         S_CONNECTED),
     FSM_TRANSITION(E_LINK_CLOSE,      FSM_ALWAYS,         A_LINK_CLOSE,         S_CONNECTED),
@@ -244,7 +245,14 @@ static void link_timer_reset(nrf_mesh_prov_bearer_gatt_t * p_bearer_gatt)
 static bool g_is_prov_pdu_type(void * p_context)
 {
     fsm_evt_gatt_data_t * p_evt = p_context;
-    return (p_evt->pdu_type == MESH_GATT_PDU_TYPE_PROV_PDU);
+    bool result = (p_evt->pdu_type == MESH_GATT_PDU_TYPE_PROV_PDU);
+
+    /* Print warning for test framework. */
+    if (!result)
+    {
+        __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_GATT_PROV_PDU_IGNORED, 0, 0, NULL);
+    }
+    return (result);
 }
 
 static void a_link_timer_start(void * p_context)

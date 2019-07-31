@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -110,7 +110,7 @@ static dsm_handle_t               m_devkey_handles[DSM_DEVICE_MAX];
 static dsm_handle_t               m_netkey_handles[DSM_SUBNET_MAX];
 static dsm_handle_t               m_appkey_handles[DSM_APP_MAX];
 static dsm_handle_t               m_device_address_handles[DSM_NONVIRTUAL_ADDR_MAX];
-static uint8_t                    m_next_unprov_index = 0;
+static uint32_t                   m_next_unprov_index = 0;
 
 static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt);
 static void remote_client_event_cb(const pb_remote_event_t * p_evt);
@@ -120,7 +120,6 @@ static void provisioner_start(void)
 {
     nrf_mesh_prov_oob_caps_t capabilities = NRF_MESH_PROV_OOB_CAPS_DEFAULT(ACCESS_ELEMENT_COUNT);
 
-    ERROR_CHECK(nrf_mesh_prov_generate_keys(m_public_key, m_private_key));
     ERROR_CHECK(nrf_mesh_prov_init(&m_prov_ctx, m_public_key, m_private_key, &capabilities, prov_evt_handler));
     ERROR_CHECK(nrf_mesh_prov_bearer_add(&m_prov_ctx, nrf_mesh_prov_bearer_adv_interface_get(&m_prov_bearer_adv)));
     ERROR_CHECK(nrf_mesh_prov_bearer_add(&m_prov_ctx, pb_remote_client_bearer_interface_get(&m_remote_client)));
@@ -138,7 +137,7 @@ static void start_provisioning(const uint8_t * p_uuid, nrf_mesh_prov_bearer_type
             .flags.iv_update   = false,
             .flags.key_refresh = false
         };
-
+    ERROR_CHECK(nrf_mesh_prov_generate_keys(m_public_key, m_private_key));
     ERROR_CHECK(nrf_mesh_prov_provision(&m_prov_ctx, p_uuid, ATTENTION_DURATION_S, &prov_data, bearer_type));
 }
 
@@ -163,6 +162,10 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
             break;
 
         case NRF_MESH_PROV_EVT_COMPLETE:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Provisioned device addr: 0x%04X net_key_handle: %d\n",
+                  p_evt->params.complete.p_prov_data->address, m_netkey_handles[0]);
+            __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "Dev Key", p_evt->params.complete.p_devkey, NRF_MESH_KEY_SIZE);
+
             ERROR_CHECK(dsm_address_publish_add(m_next_unprov_address,
                                                 &m_device_address_handles[m_next_unprov_index]));
             ERROR_CHECK(dsm_devkey_add(p_evt->params.complete.p_prov_data->address,
@@ -171,7 +174,7 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
                                        &m_devkey_handles[1 + m_next_unprov_index]));
             __LOG(LOG_SRC_APP,
                   LOG_LEVEL_INFO,
-                  "Provisioning complete! Added %04X as handle %u\n",
+                  "Provisioning complete! Added 0x%04X as handle %u\n",
                   p_evt->params.complete.p_prov_data->address,
                   m_device_address_handles[m_next_unprov_index]);
             m_next_unprov_index++;
@@ -252,6 +255,15 @@ static void user_input_handler(int key)
                     break;
 
                 case '2':
+                    for (uint32_t i = 0; i < m_next_unprov_index; i++)
+                    {
+                        nrf_mesh_address_t addr;
+                        ERROR_CHECK(dsm_address_get(m_device_address_handles[i], &addr));
+                        NRF_MESH_ASSERT(addr.type == NRF_MESH_ADDRESS_TYPE_UNICAST);
+
+                        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Addr: 0x%04X  handle: %d\n",
+                              addr.value, m_device_address_handles[i]);
+                    }
                     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Please enter a valid publish handle: \n");
                     s_state = UIS_PUBLISH_HANDLE;
                     break;
@@ -273,7 +285,7 @@ static void user_input_handler(int key)
                     break;
 
                 case '5':
-                    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Please enter a valid device number: \n");
+                    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Please enter a valid Device ID: \n");
                     s_state = UIS_DEVICE_NUMBER;
                     break;
 
@@ -366,6 +378,23 @@ static void start(void)
     provisioner_start();
 
     mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());
+
+    m_next_unprov_index = ARRAY_SIZE(m_device_address_handles);
+    ERROR_CHECK(dsm_address_get_all(&m_device_address_handles[0], &m_next_unprov_index));
+
+    if (m_next_unprov_index != 0)
+    {
+        nrf_mesh_address_t addr;
+        ERROR_CHECK(dsm_address_get(m_device_address_handles[m_next_unprov_index - 1], &addr));
+        NRF_MESH_ASSERT(addr.type == NRF_MESH_ADDRESS_TYPE_UNICAST);
+
+        /* As we don't store composition data of provisioned devices, select next higher address
+         * with some gap to prevent overlap of addresses. */
+        m_next_unprov_address = addr.value + 0x10;
+    }
+
+    __LOG(LOG_SRC_APP,LOG_LEVEL_INFO, "Next unprovisioned device address: 0x%04X\n", m_next_unprov_address);
+    __LOG(LOG_SRC_APP,LOG_LEVEL_INFO, "Next unprovisioned device index: %d\n", m_next_unprov_index);
 
     ERROR_CHECK(mesh_stack_start());
 

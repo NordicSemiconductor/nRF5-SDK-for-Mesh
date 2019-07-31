@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -65,7 +65,7 @@ typedef __packed_armcc struct
 } __packed_gcc trickle_t;
 
 
-/** 
+/**
 * @brief Setup the algorithm. Is only called once, and before all other trickle
 *   related functions.
 */
@@ -94,21 +94,21 @@ void trickle_timer_reset(trickle_t* trickle, uint32_t time_now);
 void trickle_tx_register(trickle_t* trickle, uint32_t time_now);
 
 /**
-* @brief Check timeouts and check whether a TX on the trickle instance is 
+* @brief Check timeouts and check whether a TX on the trickle instance is
 *   necessary.
-* 
+*
 * @param[in] trickle pointer to trickle algorithm instance object.
 * @param[out] out_do_tx returns whether the trickle instance is due for a TX
 */
 void trickle_tx_timeout(trickle_t* trickle, bool* out_do_tx, uint32_t time_now);
 
 /**
-* @brief Disable the given trickle instance. It will always report that it is 
+* @brief Disable the given trickle instance. It will always report that it is
 *   not to perform a transmit when checked.
 */
 void trickle_disable(trickle_t* trickle);
 
-/** 
+/**
 * @brief enable a previously disabled trickle value
 */
 void trickle_enable(trickle_t* trickle);

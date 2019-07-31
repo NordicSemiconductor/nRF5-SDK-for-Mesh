@@ -5,7 +5,6 @@ set(ACCESS_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/access_publish_retransmission.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/access.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/access_reliable.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/access_loopback.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/device_state_manager.c" CACHE INTERNAL "")
 
 set(ACCESS_INCLUDE_DIRS

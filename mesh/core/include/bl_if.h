@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -158,9 +158,9 @@ typedef struct bl_evt bl_evt_t; /**< Forward declaration of @c bl_evt_t. */
 typedef struct bl_cmd bl_cmd_t; /**< Forward declaration of @c bl_cmd_t. */
 
 /** Bootloader event callback function pointer type. */
-typedef uint32_t (*bl_if_cb_evt_t)(bl_evt_t* p_bl_evt);
+typedef uint32_t (*bl_if_cb_evt_t)(const bl_evt_t* p_bl_evt);
 /** Bootloader command callback function pointer type. */
-typedef uint32_t (*bl_if_cmd_handler_t)(bl_cmd_t* p_bl_cmd);
+typedef uint32_t (*bl_if_cmd_handler_t)(const bl_cmd_t* p_bl_cmd);
 
 
 /****** Command parameters ******/
@@ -201,7 +201,7 @@ typedef struct
 {
     uint8_t type;                     /**< DFU type of the desired transfer. */
     nrf_mesh_fwid_t     fwid;         /**< FWID of the DFU transfer to request. */
-    uint32_t*           p_bank_start; /**< Pointer to start of transfer bank. */
+    const uint32_t *    p_bank_start; /**< Pointer to start of transfer bank. */
 } bl_cmd_dfu_start_target_t;
 
 /** DFU start relay command parameters, used with @ref BL_CMD_TYPE_DFU_START_RELAY. */
@@ -246,15 +246,15 @@ typedef union
 typedef struct
 {
     bl_info_type_t      type;    /**< Info type to get from the device page. */
-    bl_info_entry_t*    p_entry; /**< Pointer to info entry structure to fill with the resulting entry. */
+    bl_info_entry_t *   p_entry; /**< Pointer to info entry structure to fill with the resulting entry. */
 } bl_cmd_info_get_t;
 
 /** Info put command parameters, used with @ref BL_CMD_TYPE_INFO_PUT. */
 typedef struct
 {
-    bl_info_type_t      type;    /**< Info type to put in the device page. */
-    bl_info_entry_t*    p_entry; /**< Pointer to info entry structure to put in the device page. */
-    uint32_t            length;  /**< Length of the given info entry in bytes. */
+    bl_info_type_t          type;    /**< Info type to put in the device page. */
+    const bl_info_entry_t * p_entry; /**< Pointer to info entry structure to put in the device page. */
+    uint32_t                length;  /**< Length of the given info entry in bytes. */
 } bl_cmd_info_put_t;
 
 /** Info erase command parameters, used with @ref BL_CMD_TYPE_INFO_ERASE. */
@@ -318,10 +318,10 @@ typedef struct
 /** uECC verify command parameters, used with @ref BL_CMD_TYPE_UECC_VERIFY. */
 typedef struct
 {
-    const uint8_t*  p_public_key;  /**< Pointer to the public key to use for verifying the given signature. */
-    const uint8_t*  p_hash;        /**< Pointer to the hash to verify the signature of. */
+    const uint8_t * p_public_key;  /**< Pointer to the public key to use for verifying the given signature. */
+    const uint8_t * p_hash;        /**< Pointer to the hash to verify the signature of. */
     uint32_t        hash_size;     /**< Size of the hash. */
-    uint8_t*        p_signature;   /**< Pointer to the signature to verify. */
+    const uint8_t * p_signature;   /**< Pointer to the signature to verify. */
     uECC_curve_t    curve;         /**< uECC curve to use for the signature verification. */
 } bl_cmd_uecc_verify_t;
 
@@ -340,13 +340,13 @@ typedef union
 /** Flash write command parameters, used with @ref BL_CMD_TYPE_FLASH_WRITE_COMPLETE. */
 typedef struct
 {
-    void* p_data; /**< Pointer to the source data that was written. */
+    const void * p_data; /**< Pointer to the source data that was written. */
 } bl_cmd_flash_write_t;
 
 /** Flash erase command parameters, used with @ref BL_CMD_TYPE_FLASH_ERASE_COMPLETE. */
 typedef struct
 {
-    void* p_dest; /**< Pointer to the flash data that was erased. */
+    const void * p_dest; /**< Pointer to the flash data that was erased. */
 } bl_cmd_flash_erase_t;
 
 /** Flash command parameters. */
@@ -386,9 +386,9 @@ typedef struct
 /** Error event parameters, used with @ref BL_EVT_TYPE_ERROR. */
 typedef struct
 {
-    uint32_t    error_code; /**< Error code produced. */
-    const char* p_file;     /**< Filename where the error occured, may be NULL. */
-    uint32_t    line;       /**< Line number where the error occured. */
+    uint32_t     error_code; /**< Error code produced. */
+    const char * p_file;     /**< Filename where the error occured, may be NULL. */
+    uint32_t     line;       /**< Line number where the error occured. */
 } bl_evt_error_t;
 
 /* DFU Events */
@@ -461,7 +461,7 @@ typedef struct
     bool                    is_signed;     /**< Whether the bank is signed. */
     nrf_mesh_fwid_t         bank_fwid;     /**< Firmware ID of the bank. */
     nrf_mesh_fwid_t         current_fwid;  /**< Current FWID of the firmware with the same type as the bank. */
-    uint32_t*               p_bank_addr;   /**< Pointer to the bank data. */
+    const uint32_t *        p_bank_addr;   /**< Pointer to the bank data. */
     uint32_t                bank_length;   /**< Length of the bank data. */
 } bl_evt_bank_available_t;
 
@@ -470,16 +470,16 @@ typedef struct
 /** Flash erase event parameters, used with @ref BL_EVT_TYPE_FLASH_ERASE. */
 typedef struct
 {
-    uint32_t    start_addr; /**< Start of section to erase. */
-    uint32_t    length;     /**< Length of section to erase. */
+    uint32_t *  p_start_addr; /**< Start of section to erase. */
+    uint32_t    length;       /**< Length of section to erase. */
 } bl_evt_flash_erase_t;
 
 /** Flash write event parameters, used with @ref BL_EVT_TYPE_FLASH_WRITE. */
 typedef struct
 {
-    uint32_t    start_addr; /**< Start of section to write to. */
-    uint8_t*    p_data;     /**< Data to write to flash. */
-    uint32_t    length;     /**< Length of data to write to flash. */
+    uint32_t * p_start_addr; /**< Start of section to write to. */
+    const uint8_t *  p_data;       /**< Data to write to flash. */
+    uint32_t         length;       /**< Length of data to write to flash. */
 } bl_evt_flash_write_t;
 
 /** Flash event parameters. */
@@ -494,18 +494,18 @@ typedef union
 /** TX radio event parameters, used with @ref BL_EVT_TYPE_TX_RADIO. */
 typedef struct
 {
-    nrf_mesh_dfu_packet_t*      p_dfu_packet;  /**< Pointer to DFU packet to send on the radio. */
-    uint32_t                    length;        /**< Length of the given DFU packet. */
-    bl_radio_interval_type_t    interval_type; /**< Interval type to use for the transmission timing. */
-    uint8_t                     tx_count;      /**< Number of transmits to perform. */
-    uint8_t                     tx_slot;       /**< TX slot to use for the transmission. */
+    const nrf_mesh_dfu_packet_t * p_dfu_packet;  /**< Pointer to DFU packet to send on the radio. */
+    uint32_t                      length;        /**< Length of the given DFU packet. */
+    bl_radio_interval_type_t      interval_type; /**< Interval type to use for the transmission timing. */
+    uint8_t                       tx_count;      /**< Number of transmits to perform. */
+    uint8_t                       tx_slot;       /**< TX slot to use for the transmission. */
 } bl_evt_tx_radio_t;
 
 /** TX serial event parameters, used with @ref BL_EVT_TYPE_TX_SERIAL. */
 typedef struct
 {
-    nrf_mesh_dfu_packet_t*   p_dfu_packet; /**< Pointer to DFU packet to send over serial. */
-    uint32_t        length;                /**< Length of given DFU packet. */
+    const nrf_mesh_dfu_packet_t * p_dfu_packet; /**< Pointer to DFU packet to send over serial. */
+    uint32_t                      length;       /**< Length of given DFU packet. */
 } bl_evt_tx_serial_t;
 
 /** TX abort event parameters, used with @ref BL_EVT_TYPE_TX_ABORT. */

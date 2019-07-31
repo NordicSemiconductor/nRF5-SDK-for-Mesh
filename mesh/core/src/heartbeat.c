@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -63,10 +63,20 @@
 #if MESH_FEATURE_GATT_PROXY_ENABLED
 #include "mesh_opt_gatt.h"
 #endif
+#if MESH_FEATURE_FRIEND_ENABLED
+#include "mesh_opt_friend.h"
+#endif
 
 /*****************************************************************************
  * Local defines
  *****************************************************************************/
+#if (MESH_FEATURE_LPN_ENABLED == 1) || (MESH_FEATURE_RELAY_ENABLED == 1) || (MESH_FEATURE_GATT_PROXY_ENABLED == 1) || \
+    (MESH_FEATURE_FRIEND_ENABLED == 1)
+#define HEARTBEAT_FEATURE_LATCH_ENABLED  1
+#else
+#define HEARTBEAT_FEATURE_LATCH_ENABLED  0
+#endif
+
 #define HEARTBEAT_MIN_HOPS_INIT  (0x7F)
 #define HEARTBEAT_MAX_HOPS_INIT  (0x00)
 
@@ -291,7 +301,8 @@ static void heartbeat_publication_timer_cb(timestamp_t timestamp, void * p_conte
     m_publication_timer.remaining_time_s -= interval_seconds;
 }
 
-_UNUSED static void on_feature_update(uint16_t feature, bool enabled)
+#if HEARTBEAT_FEATURE_LATCH_ENABLED
+static void on_feature_update(uint16_t feature, bool enabled)
 {
     if (enabled == !(feature & m_latched_features))
     {
@@ -302,6 +313,7 @@ _UNUSED static void on_feature_update(uint16_t feature, bool enabled)
         }
     }
 }
+#endif
 
 /** Event handler callback sends the pending triggered message on the TX complete */
 static void heartbeat_core_evt_cb(const nrf_mesh_evt_t * p_evt)
@@ -316,10 +328,16 @@ static void heartbeat_core_evt_cb(const nrf_mesh_evt_t * p_evt)
             break;
 #if MESH_FEATURE_LPN_ENABLED
         case NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED:
-            on_feature_update(HEARTBEAT_TRIGGER_TYPE_LPN, true);
+            if (p_evt->params.friendship_established.role == NRF_MESH_FRIENDSHIP_ROLE_LPN)
+            {
+                on_feature_update(HEARTBEAT_TRIGGER_TYPE_LPN, true);
+            }
             break;
         case NRF_MESH_EVT_FRIENDSHIP_TERMINATED:
-            on_feature_update(HEARTBEAT_TRIGGER_TYPE_LPN, false);
+            if (p_evt->params.friendship_terminated.role == NRF_MESH_FRIENDSHIP_ROLE_LPN)
+            {
+                on_feature_update(HEARTBEAT_TRIGGER_TYPE_LPN, false);
+            }
             break;
 #endif
         default:
@@ -362,6 +380,21 @@ static void heartbeat_proxy_listener_cb(mesh_config_change_reason_t reason,
 
 MESH_CONFIG_LISTENER(m_heartbeat_proxy_listener, MESH_OPT_GATT_PROXY_EID, heartbeat_proxy_listener_cb);
 #endif /* MESH_FEATURE_GATT_PROXY_ENABLED */
+
+#if MESH_FEATURE_FRIEND_ENABLED
+static void heartbeat_friend_listener_cb(mesh_config_change_reason_t reason,
+                                         mesh_config_entry_id_t id,
+                                         const void * p_entry)
+{
+    const bool * p_enabled = p_entry;
+    if (reason == MESH_CONFIG_CHANGE_REASON_SET)
+    {
+        on_feature_update(HEARTBEAT_TRIGGER_TYPE_FRIEND, *p_enabled);
+    }
+}
+
+MESH_CONFIG_LISTENER(m_heartbeat_friend_listener, MESH_OPT_FRIEND_EID, heartbeat_friend_listener_cb);
+#endif /* MESH_FEATURE_FRIEND_ENABLED */
 
 /*****************************************************************************
  * Mesh Config wrapper functions

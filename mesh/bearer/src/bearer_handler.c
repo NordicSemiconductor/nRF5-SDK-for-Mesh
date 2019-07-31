@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -319,9 +319,13 @@ uint32_t bearer_handler_stop(bearer_handler_stopped_cb_t cb)
         /* Will stop the timeslot when the current action ends. */
         m_stopped_callback = cb;
         m_stopped = true;
-        if (timeslot_session_is_active())
+        if (timeslot_is_in_ts())
         {
             timeslot_trigger();
+        }
+        else if (timeslot_session_is_active())
+        {
+            timeslot_stop();
         }
         else
         {
@@ -453,7 +457,14 @@ void bearer_handler_timer_irq_handler(void)
 
     if (mp_action == NULL)
     {
-        action_switch();
+        if (m_stopped)
+        {
+            timeslot_stop();
+        }
+        else
+        {
+            action_switch();
+        }
     }
 }
 

@@ -1,15 +1,15 @@
 # Setup unit test build
-set(CMOCK_ROOT "${CMAKE_SOURCE_DIR}/../CMock")
-find_dependency(CMOCK_ROOT
-    "Path to CMock repository"
-    "${CMOCK_ROOT}"
-    "src/cmock.c")
+find_path(CMOCK_ROOT
+    "src/cmock.c"
+    HINTS "${CMAKE_SOURCE_DIR}/../CMock" ENV CMOCK_ROOT
+    DOC "Path to CMock repository"
+    )
 
-set(UNITY_ROOT "${CMOCK_ROOT}/vendor/unity")
-find_dependency(UNITY_ROOT
-    "Path to Unity repository"
-    "${UNITY_ROOT}"
-    "src/unity.c")
+find_path(UNITY_ROOT
+    "src/unity.c"
+    HINTS "${CMOCK_ROOT}/vendor/unity" ENV UNITY_ROOT
+    DOC "Path to Unity repository"
+    )
 
 if (NOT CMOCK_ROOT OR NOT UNITY_ROOT)
     message(FATAL_ERROR "Path(s) to CMock and/or Unity not found. "
@@ -52,7 +52,7 @@ target_include_directories(unit_test_common PUBLIC
 # filtered by `EXCLUDE_REGEX`.
 # For each header, we make a target outputting ${header}_mock.c and ${header}_mock.h.
 # Any target that depends on these files will trigger this target.
-function (generate_mock_targets INCLUDE_GLOB_EXPRESSION EXCLUDE_REGEX)
+function (generate_mock_targets INCLUDE_GLOB_EXPRESSION EXCLUDE_REGEX MOCK_DEPS)
     if (CMOCK_SETTINGS_FILE)
         set(settings_arg "-o${CMOCK_SETTINGS_FILE}")
     else ()
@@ -77,12 +77,12 @@ function (generate_mock_targets INCLUDE_GLOB_EXPRESSION EXCLUDE_REGEX)
 
             add_custom_command(OUTPUT ${CMOCK_BIN}/tmp/${header}.h
                 COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CONFIG_DIR}/svcall2func.py ${headerpath} ${CMOCK_BIN}/tmp/${header}.h
-                DEPENDS ${headerpath}
+                DEPENDS ${headerpath} ${MOCK_DEPS}
                 COMMENT "Preprocessing SoftDevice header")
         else ()
             add_custom_command(OUTPUT ${CMOCK_BIN}/${header}_mock.c ${CMOCK_BIN}/${header}_mock.h
                 COMMAND ${RUBY_EXECUTABLE} ${CMOCK_ROOT}/lib/cmock.rb ${settings_arg} ${headerpath}
-                DEPENDS ${headerpath}
+                DEPENDS ${headerpath} ${MOCK_DEPS}
                 VERBATIM
                 COMMENT "Generating mock for ${header}.h...")
         endif()

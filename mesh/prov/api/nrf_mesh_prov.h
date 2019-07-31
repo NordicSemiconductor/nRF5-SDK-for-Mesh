@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -131,7 +131,9 @@ struct nrf_mesh_prov_ctx
  *                                  authentication capabilities.
  * @param[in]      event_handler    Event handler callback function.
  *
- * @retval NRF_SUCCESS The library was successfully initialized.
+ * @retval NRF_SUCCESS             The library was successfully initialized.
+ * @retval NRF_ERROR_NULL          One or more parameters were NULL.
+ * @retval NRF_ERROR_INVALID_STATE Initialization was attempted when the provisioning was already working.
  */
 uint32_t nrf_mesh_prov_init(nrf_mesh_prov_ctx_t *            p_ctx,
                             const uint8_t *                  p_public_key,

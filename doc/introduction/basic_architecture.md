@@ -29,7 +29,7 @@ The models define the behavior and communication formats of all data that is tra
 
 The Bluetooth Mesh Specification defines a set of immutable models for typical usage scenarios, but vendors are also free to implement their own models.
 
-You can read more about how to implement your own models in [Creating new models](@ref md_doc_getting_started_how_to_models).
+You can read more about models, including how to implement your own models, in @ref md_doc_libraries_models_main.
 
 ---
 
@@ -38,7 +38,12 @@ You can read more about how to implement your own models in [Creating new models
 
 *API:* \ref MESH_API_GROUP_ACCESS
 
-The access layer controls the device's model composition. It holds references to the models that are present on the device, the messages these models accept, and the configuration of these models. As the device receives mesh messages, the access layer finds which models the messages are for and forwards them to the model implementations.
+The access layer controls the device's model composition. It holds references to:
+- models that are present on the device,
+- messages these models accept,
+- configuration of these models. 
+
+As the device receives mesh messages, the access layer finds which models the messages are for and forwards them to the model implementations.
 
 ---
 
@@ -47,7 +52,9 @@ The access layer controls the device's model composition. It holds references to
 
 *API:* \ref DEVICE_STATE_MANAGER
 
-The Device State Manager stores the encryption keys and addresses used by the mesh stack. When models get assigned application keys and publish addresses through configuration, the Device State Manager stores the raw values and provides handles for the models to use when referencing these values.
+The Device State Manager stores the [encryption keys and addresses](@ref concepts_security_encryption) used by the mesh stack.
+When models get assigned application keys and publish addresses through configuration server, the Device State Manager stores the raw values
+and provides handles to these values. The models can use the handles when referencing these values.
 
 The Device State Manager stores its data in persistent storage, which it can recover on bootup.
 
@@ -73,11 +80,15 @@ The Mesh Core provides protection against malicious behavior and attacks against
 
 *API:* \ref MESH_API_GROUP_PROV
 
-Provisioning is the act of adding a device to a mesh network. The Provisioning module takes care of both sides of this process, by implementing a provisioner role (the network owner) and a provisionee role (the device to add).
+Provisioning is the act of adding a device to a mesh network. The Provisioning module takes care
+of both sides of this process, by implementing a provisioner role (the network owner)
+and a provisionee role (the device to add).
 
-To participate in mesh communication, each device must be provisioned. Through the provisioning process, the new device receives a range of addresses, a network key, and a device key. For a detailed guide on how to use provisioning, see [mesh provisioning](@ref md_doc_getting_started_provisioning).
+For detailed information about the provisioning process, see @ref md_doc_getting_started_provisioning.
 
-The mesh stack provides two ways to provision a device: directly through the PB-ADV provisioning bearer, or through remote provisioning. The PB-ADV provisioning can only happen between a provisioner and a provisionee that are within radio range of each other, while remote provisioning implements two mesh models that together create a tunnel through the mesh, allowing the provisioner to add devices from a distance, with the help of a PB-ADV proxy device.
+The mesh stack provides two ways to provision a device:
+- Provisioning directly through the PB-ADV/PB-GATT provisioning bearer, which can only happen between a provisioner and a provisionee that are within radio range of each other.
+- Provisioning through remote provisioning, which implements two mesh models that together create a tunnel through the mesh, allowing the provisioner to add devices from a distance, with the help of a PB-ADV proxy device.
 
 @note The remote provisioning is a Nordic proprietary feature that cannot be used with devices from other vendors.
 
@@ -90,7 +101,8 @@ The [Remote Provisioning example](@ref md_examples_pb_remote_README) demonstrate
 
 *API:* \ref MESH_API_GROUP_BEARER
 
-The Bearer is the low-level radio controller and provides an asynchronous interface to the radio packet sending and receiving for the upper layers. It enforces Bluetooth low energy compliance for packet formats and timing and operates directly on radio hardware through the @link_ic_SDtimeslotAPI<!--SoftDevice Timeslot API: https://www.nordicsemi.com/DocLib/Content/SoftDevice_Spec/s132/latest/SDS/s1xx/concurrent_multiprotocol_tsl_api/concurrent_multiprotocol_tsl_api -->.
+The Bearer is the low-level radio controller that provides an asynchronous interface to the radio packet sending and receiving for the upper layers.
+It enforces Bluetooth low energy compliance for packet formats and timing, and operates directly on radio hardware through the @link_ic_SDtimeslotAPI.
 
 The Bearer is an internal module that normally does not need to be accessed by the application.
 
@@ -101,13 +113,14 @@ The Bearer is an internal module that normally does not need to be accessed by t
 
 *API:* \ref MESH_API_GROUP_DFU
 
-The Device Firmware Upgrade module provides firmware update capabilities over the mesh by cooperating with a bootloader. It is capable of concurrent, authenticated firmware transfers to all devices in a network, without halting the application.
+The Device Firmware Upgrade module provides firmware update capabilities over the mesh by cooperating with a bootloader.
+It is capable of concurrent, authenticated firmware transfers to all devices in a network, without halting the application.
 
-Note that the DFU procedure is not compatible with the Bluetooth low energy secure DFU procedure used in the nRF5 SDK.
+@note
+- The mesh DFU is a Nordic proprietary feature that cannot be used with devices from other vendors.
+- DFU procedure is not compatible with the Bluetooth low energy secure DFU procedure used in the nRF5 SDK.
 
-@note The mesh DFU is a Nordic proprietary feature that cannot be used with devices from other vendors.
-
-For more information about the DFU procedure, see the [DFU quick start guide](@ref md_doc_getting_started_dfu_quick_start).
+For more information about DFU, see the [DFU protocol](@ref md_doc_libraries_dfu_dfu_protocol) section, including [information about how to run Mesh DFU](@ref md_doc_libraries_dfu_dfu_quick_start).
 
 ---
 
@@ -116,7 +129,8 @@ For more information about the DFU procedure, see the [DFU quick start guide](@r
 
 *API:* \ref MESH_STACK
 
-The Mesh Stack module is a thin wrapper around the top-level mesh modules that makes it easy to get started using the mesh. It takes care of mesh initialization and enabling. It also contains functions for storing and erasing provisioning and state related data.
+The Mesh Stack module is a thin wrapper around the top-level mesh modules that makes it easy to get started using the mesh.
+It takes care of mesh initialization and enabling. It also contains functions for storing and erasing provisioning and state related data.
 
 ---
 
@@ -125,8 +139,11 @@ The Mesh Stack module is a thin wrapper around the top-level mesh modules that m
 
 *API:* \ref MESH_API_GROUP_SERIAL
 
-The Serial module provides full serialization of the mesh API, allowing other devices to control the nRF5 mesh device through a UART interface. Intended for network gateways and similar complex applications, the serial interface provides a way to access the mesh through a Nordic device, without making it the unit's main controller.
+The Serial module provides full serialization of the mesh API, allowing other devices to control the nRF5 mesh device through a UART interface.
+Intended for network gateways and similar complex applications, the serial interface provides a way to access the mesh through a Nordic device, without making it the unit's main controller.
 
-The mesh serial interface is based on the @link_nRF8001 <!--nRF8000 series page: http://www.nordicsemi.com/Products/Low-power-short-range-wireless/nRF8000-series --> ACI serial interface and optionally supports @link_SLIP<!--SLIP: https://en.wikipedia.org/wiki/Serial_Line_Internet_Protocol-->-encoded operation. The serial protocol can be run as a stand-alone application (see the [serial example](@ref md_examples_serial_README)) or alongside a normal mesh application.
+The mesh serial interface is based on the @link_nRF8001 ACI serial interface and optionally supports @link_SLIP-encoded operation.
+The serial protocol can be run as a stand-alone application (see [serial example](@ref md_examples_serial_README)) or alongside a normal mesh application.
 
-An overview of the serial packet format, commands, and events can be found in the [serial documentation](@ref md_doc_libraries_serial).
+For an overview of the serial packet format, commands, and events, as well as the related Interactive PyACI script,
+the @ref md_scripts_README section.

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -63,7 +63,7 @@ void access_publish_retransmission_init(void);
  * @param[in] model_handle              Access handle of the model that sent data.
  * @param[in] p_publication_retransmit  Retransmit parameters of the model.
  * @param[in] p_tx_message              Parameter structure of the access layer TX message.
- * @param[in] p_access_payload          Access payload to be re-transmitted 
+ * @param[in] p_access_payload          Access payload to be re-transmitted
                                         containing the access message and the opcode.
  * @param[in] access_payload_len        Access payload length.
  *

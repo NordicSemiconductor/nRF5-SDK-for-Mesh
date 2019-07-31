@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -201,6 +201,7 @@ static void transmit_and_reschedule(const transport_control_packet_t * p_packet,
                                     nrf_mesh_tx_token_t token,
                                     uint32_t receive_delay_ms,
                                     uint32_t receive_window_ms);
+static void event_send(const nrf_mesh_evt_t * p_evt);
 
 static const fsm_transition_t m_lpn_fsm_transition_table[] =
 {
@@ -424,7 +425,10 @@ static void a_friend_clear_send(void * p_data)
         lpn_fault_task_post();
         return;
     }
+
+#if !MESH_FEATURE_LPN_ACT_AS_REGULAR_NODE_OUT_OF_FRIENDSHIP
     scanner_disable();
+#endif
 }
 
 static void a_subman_data_send(void * p_data)
@@ -465,7 +469,7 @@ static void a_friend_search_finished_notify(void * p_data)
     nrf_mesh_evt_t evt;
 
     evt.type = NRF_MESH_EVT_LPN_FRIEND_REQUEST_TIMEOUT;
-    event_handle(&evt);
+    event_send(&evt);
 }
 
 static void a_friendship_established_notify(void * p_data)
@@ -482,9 +486,10 @@ static void a_friendship_established_notify(void * p_data)
     NRF_MESH_ERROR_CHECK(mesh_lpn_friend_poll(m_lpn.poll_interval_ms));
 
     evt.type = NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED;
+    p_establish->role = NRF_MESH_FRIENDSHIP_ROLE_LPN;
     p_establish->friend_src = p_control_packet->src;
     p_establish->lpn_src = p_control_packet->dst.value;
-    event_handle(&evt);
+    event_send(&evt);
 }
 
 static void a_polling_terminated_notify(void * p_data)
@@ -501,7 +506,7 @@ static void a_polling_terminated_notify(void * p_data)
         evt.type = NRF_MESH_EVT_LPN_FRIEND_REQUEST_TIMEOUT;
     }
 
-    event_handle(&evt);
+    event_send(&evt);
 }
 
 static void a_polling_finished_notify(void * p_data)
@@ -510,7 +515,7 @@ static void a_polling_finished_notify(void * p_data)
     nrf_mesh_evt_t evt;
 
     evt.type = NRF_MESH_EVT_LPN_FRIEND_POLL_COMPLETE;
-    event_handle(&evt);
+    event_send(&evt);
 
     // lpn fulfilled session with friend completely
     // schedule the next session and go to sleep
@@ -538,7 +543,7 @@ static void a_offer_received_notify(void * p_data)
     p_offer->offer.receive_window_ms = FRIEND_OFFER_RX_WINDOW_UNPACK(p_control_packet->p_data);
     p_offer->offer.subscription_list_size = FRIEND_OFFER_SUBLIST_SIZE_UNPACK(p_control_packet->p_data);
 
-    event_handle(&evt);
+    event_send(&evt);
 }
 
 static void a_poll_schedule(void * p_data)
@@ -558,8 +563,9 @@ static void a_poll_schedule(void * p_data)
 static void a_fault_notify(void * p_data)
 {
     nrf_mesh_evt_t evt;
+
     termination_evt_prepare(&evt, NRF_MESH_EVT_FRIENDSHIP_TERMINATED_REASON_INTERNAL_TX_FAILED);
-    event_handle(&evt);
+    event_send(&evt);
 }
 
 static bool g_is_last_frndreq(void * p_data)
@@ -646,7 +652,7 @@ static void friend_update_handle(const transport_control_packet_t * p_control_pa
     p_update->iv_index = FRIEND_UPDATE_IV_INDEX_UNPACK(p_control_packet->p_data);
     p_update->key_refresh_in_phase2 = !!FRIEND_UPDATE_KEY_REFRESH_FLAG_UNPACK(p_control_packet->p_data);
     p_update->is_friend_queue_empty = !FRIEND_UPDATE_MD_UNPACK(p_control_packet->p_data);
-    event_handle(&evt);
+    event_send(&evt);
 
     fsm_event_post(&m_lpn_fsm, E_FRIEND_UPDATE_RX, &data);
 }
@@ -681,6 +687,7 @@ static void termination_evt_prepare(nrf_mesh_evt_t * p_evt,
     m_lpn.is_in_friendship = false;
 
     p_evt->type = NRF_MESH_EVT_FRIENDSHIP_TERMINATED;
+    p_terminate->role = NRF_MESH_FRIENDSHIP_ROLE_LPN;
     p_terminate->friend_src = m_lpn.friend_address;
     p_terminate->lpn_src = local_address;
     p_terminate->reason = reason;
@@ -710,6 +717,23 @@ static void transmit_and_reschedule(const transport_control_packet_t * p_packet,
     timer_sch_reschedule(&m_lpn.timeout_scheduler, next_timeout);
 }
 
+static void event_send(const nrf_mesh_evt_t * p_evt)
+{
+#if MESH_FEATURE_LPN_ACT_AS_REGULAR_NODE_OUT_OF_FRIENDSHIP
+    switch (p_evt->type)
+    {
+        case NRF_MESH_EVT_LPN_FRIEND_REQUEST_TIMEOUT:
+        case NRF_MESH_EVT_FRIENDSHIP_TERMINATED:
+            scanner_enable();
+            break;
+        default:
+            break;
+    }
+#endif
+
+    event_handle(p_evt);
+}
+
 static void lpn_establish_task(void)
 {
     fsm_event_post(&m_lpn_fsm, E_ESTABLISH, NULL);
@@ -728,7 +752,7 @@ static void lpn_terminate_task(void)
 
     nrf_mesh_evt_t evt;
     termination_evt_prepare(&evt, NRF_MESH_EVT_FRIENDSHIP_TERMINATED_REASON_LPN);
-    event_handle(&evt);
+    event_send(&evt);
 }
 
 static void lpn_poll_task(void)
@@ -949,9 +973,14 @@ void mesh_lpn_rx_notify(const network_packet_metadata_t * p_net_metadata)
         m_lpn.fsn++;
     }
 
+    fsm_transac_data_t data =
+    {
+        .poll_scheduler.delay_ms = MESH_LPN_POLL_SEPARATION_INTERVAL_MS
+    };
+
     m_lpn.poll_attempts_count = MESH_LPN_POLL_RETRY_COUNT + 1;
 
-    fsm_event_post(&m_lpn_fsm, E_NETWORK_RX, NULL);
+    fsm_event_post(&m_lpn_fsm, E_NETWORK_RX, &data);
 }
 
 void mesh_lpn_subman_data_push(transport_control_packet_t * p_trs_ctrl_pkt)
@@ -960,7 +989,7 @@ void mesh_lpn_subman_data_push(transport_control_packet_t * p_trs_ctrl_pkt)
     NRF_MESH_ASSERT_DEBUG(m_lpn.p_subman_data == NULL);
 
     m_lpn.p_subman_data = p_trs_ctrl_pkt;
-    NRF_MESH_ERROR_CHECK(mesh_lpn_friend_poll(0));
+    NRF_MESH_ERROR_CHECK(mesh_lpn_friend_poll(MESH_LPN_POLL_SEPARATION_INTERVAL_MS));
 }
 
 void mesh_lpn_subman_data_clear(void)

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -105,10 +105,13 @@ core_tx_bearer_bitmap_t core_tx_packet_alloc(const core_tx_alloc_params_t * p_pa
     NRF_MESH_ASSERT(m_packet.bearer_bitmap == 0);
     NRF_MESH_ASSERT(p_params->net_packet_len <= sizeof(m_packet.buffer));
 
-#if MESH_FEATURE_RELAY_ENABLED
+#if MESH_FEATURE_RELAY_ENABLED || MESH_FEATURE_FRIEND_ENABLED
     if (p_params->role == CORE_TX_ROLE_RELAY)
     {
-        NRF_MESH_ASSERT(p_params->token == NRF_MESH_RELAY_TOKEN);
+        NRF_MESH_ASSERT(p_params->token == NRF_MESH_RELAY_TOKEN ||
+                        IS_IN_RANGE(p_params->token,
+                                    NRF_MESH_FRIEND_TOKEN_BEGIN,
+                                    NRF_MESH_FRIEND_TOKEN_BEGIN + MESH_FRIEND_FRIENDSHIP_COUNT - 1));
     }
 #endif
 
@@ -116,8 +119,7 @@ core_tx_bearer_bitmap_t core_tx_packet_alloc(const core_tx_alloc_params_t * p_pa
     {
         core_tx_bearer_t * p_bearer = PARENT_BY_FIELD_GET(core_tx_bearer_t, list_node, p_iterator);
 
-        if (p_params->bearer_selector == CORE_TX_BEARER_TYPE_ALLOW_ALL ||
-            p_params->bearer_selector == p_bearer->type)
+        if ((p_params->bearer_selector & p_bearer->type) > 0)
         {
             core_tx_alloc_result_t result = p_bearer->p_interface->packet_alloc(p_bearer, p_params);
 
@@ -146,7 +148,7 @@ void core_tx_packet_send(void)
     {
         core_tx_bearer_t * p_bearer = PARENT_BY_FIELD_GET(core_tx_bearer_t, list_node, p_iterator);
 
-        if (m_packet.bearer_bitmap & (1 << p_bearer->bearer_index))
+        if ((m_packet.bearer_bitmap & (1 << p_bearer->bearer_index)) > 0)
         {
             p_bearer->p_interface->packet_send(p_bearer, m_packet.buffer.pdu, m_packet.length);
         }
@@ -162,7 +164,7 @@ void core_tx_packet_discard(void)
     {
         core_tx_bearer_t * p_bearer = PARENT_BY_FIELD_GET(core_tx_bearer_t, list_node, p_iterator);
 
-        if (m_packet.bearer_bitmap & (1 << p_bearer->bearer_index))
+        if ((m_packet.bearer_bitmap & (1 << p_bearer->bearer_index)) > 0)
         {
             p_bearer->p_interface->packet_discard(p_bearer);
         }
@@ -210,6 +212,7 @@ void core_tx_bearer_add(core_tx_bearer_t * p_bearer,
     NRF_MESH_ASSERT(p_bearer != NULL);
     NRF_MESH_ASSERT(p_interface != NULL);
     NRF_MESH_ASSERT(type != CORE_TX_BEARER_TYPE_INVALID);
+    NRF_MESH_ASSERT(type != CORE_TX_BEARER_TYPE_ALLOW_ALL);
     NRF_MESH_ASSERT(p_interface->packet_alloc != NULL);
     NRF_MESH_ASSERT(p_interface->packet_send != NULL);
     NRF_MESH_ASSERT(p_interface->packet_discard != NULL);

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -123,6 +123,7 @@ static uint32_t gap_addr_filter_set(const ble_gap_addr_t * const p_addrs,
     m_addr_filter.count           = addr_count;
     m_addr_filter.filter.handler  = gap_address_filter_handle;
     m_addr_filter.filter.p_data   = (void *)&m_addr_filter;
+    m_addr_filter.filter.type     = FILTER_TYPE_POST_PROC;
 
     if (m_addr_filter.p_gap_addr_list != p_addrs)
     {

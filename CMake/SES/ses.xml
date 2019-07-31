@@ -3,8 +3,8 @@
   <project Name="{{ target["name"] }}">
     <configuration
       Name="Common"
-      arm_architecture="{% if platform["config"]["arch"]=="cortex-m0" %}v6M{% elif platform["config"]["arch"]=="cortex-m4f" %}v7EM{% else %}{% endif %}"
-      arm_core_type="{% if platform["config"]["arch"]=="cortex-m0" %}Cortex-M0{% elif platform["config"]["arch"]=="cortex-m4f" %}Cortex-M4{% else %}{% endif %}"
+      arm_architecture="{% if platform["config"]["arch"]=="cortex-m0" %}v6M{% elif platform["config"]["arch"]=="cortex-m4f" %}v7EM{% elif platform["config"]["arch"]=="cortex-m4" %}v7EM{% else %}{% endif %}"
+      arm_core_type="{% if platform["config"]["arch"]=="cortex-m0" %}Cortex-M0{% elif platform["config"]["arch"]=="cortex-m4f" %}Cortex-M4{% elif platform["config"]["arch"]=="cortex-m4" %}Cortex-M4{% else %}{% endif %}"
       arm_endian="Little"
       arm_fp_abi="{% if platform["fpu"] %}Hard{% else %}Soft{% endif %}"
       arm_fpu_type="{% if platform["config"]["arch"] %}FPv4-SP-D16{% else %}Soft{% endif %}"

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -122,6 +122,17 @@ static void evt_handler(const nrf_mesh_evt_t * p_evt)
     }
 }
 
+static inline bool packet_is_new(const replay_cache_entry_t * p_entry, uint32_t new_iv_index, uint32_t new_seqnum)
+{
+    uint32_t entry_iv_index = iv_index_get(p_entry);
+
+    /* According to Mesh Profile Specification v1.0 Section 3.8.8, we should discard packets
+     * coming from IV indexes lower than a previous packet from the same source, as well as
+     * packets on the same IV index with lower sequence numbers. */
+    return ((new_iv_index == entry_iv_index && new_seqnum > p_entry->seqnum) ||
+            (new_iv_index > entry_iv_index));
+}
+
 void replay_cache_init(void)
 {
     static nrf_mesh_evt_handler_t event_handler = {.evt_cb = evt_handler};
@@ -141,12 +152,14 @@ uint32_t replay_cache_add(uint16_t src, uint32_t seqnum, uint32_t iv_index)
     {
         if (m_replay_cache[i].src == src)
         {
-            m_replay_cache[i].iv_index = (uint16_t) iv_index;
-            m_replay_cache[i].seqnum = seqnum;
+            if (packet_is_new(&m_replay_cache[i], iv_index, seqnum))
+            {
+                m_replay_cache[i].iv_index = (uint16_t) iv_index;
+                m_replay_cache[i].seqnum = seqnum;
+            }
             return NRF_SUCCESS;
         }
     }
-
     if (m_entry_count < REPLAY_CACHE_ENTRIES)
     {
         m_replay_cache[m_entry_count].src = src;
@@ -166,13 +179,7 @@ bool replay_cache_has_elem(uint16_t src, uint32_t seqnum, uint32_t iv_index)
     {
         if (m_replay_cache[i].src == src)
         {
-            uint32_t entry_iv_index = iv_index_get(&m_replay_cache[i]);
-
-            /* According to Mesh Profile Specification v1.0 Section 3.8.8, we should discard packets
-             * coming IV indexes lower than a previous packet from the same source as well as
-             * packets on the same IV index with lower sequence numbers. */
-            return ((iv_index == entry_iv_index && m_replay_cache[i].seqnum >= seqnum) ||
-                    (entry_iv_index > iv_index));
+            return !packet_is_new(&m_replay_cache[i], iv_index, seqnum);
         }
     }
 

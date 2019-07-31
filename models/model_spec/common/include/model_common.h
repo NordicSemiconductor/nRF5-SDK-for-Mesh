@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -52,8 +52,8 @@
  * @{
  */
 
-/** Transition time value to indicate invalid transition time */
-#define MODEL_TRANSITION_TIME_INVALID               (0xFFFFFFFF)
+/** Transition time value to indicate unknown transition time */
+#define MODEL_TRANSITION_TIME_UNKNOWN               (UINT32_MAX)
 
 
 /** Transition time value to indicate the default transition time should be used */

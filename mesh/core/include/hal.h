@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -47,6 +47,9 @@
  * @ingroup MESH_CORE
  * @{
  */
+
+/** Retention register bits that are relevant for the mesh stack. */
+#define NRF_MESH_GPREGRET_USED_BIT_MASK  (0x000000FF)
 
 #if NRF51
 /** Gets nRF51 bootloader address. */
@@ -132,8 +135,12 @@ typedef enum
 #define HAL_IRQn_NONE       ((IRQn_Type) - 16)
 
 /**
- * Clear the reset reason register, set the retention register, and reset the
+ * Clear the reset reason register, set the @ref NRF_MESH_GPREGRET_USED_BIT_MASK bits in the
+ * retention register to the value specified by `gpregret_value`, and reset the
  * device. All volatile memory will be lost. This function will never return.
+ *
+ * @note For SofDevices S110 or S130, this API will set the bits of the GPREGRET register.
+ * For the S132 SoftDevice, this API will set the bits of the GPREGRET0 register.
  *
  * @param[in] gpregret_value Value to set the retention register to.
  */

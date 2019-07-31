@@ -10,6 +10,7 @@ else ()
     add_subdirectory("prov")
     add_subdirectory("serial")
     add_subdirectory("gatt")
+    add_subdirectory("friend")
 
     set(MESH_INCLUDE_DIRS
         ${MESH_STACK_INCLUDE_DIRS}
@@ -19,5 +20,6 @@ else ()
         ${PROV_INCLUDE_DIRS}
         ${MESH_BEARER_INCLUDE_DIRS}
         ${MESH_GATT_INCLUDE_DIRS}
-        PARENT_SCOPE)
+        ${MESH_FRIEND_INCLUDE_DIRS}
+        CACHE INTERNAL "")
 endif (BUILD_HOST)

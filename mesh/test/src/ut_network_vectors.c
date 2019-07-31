@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -513,32 +513,6 @@ void test_packet_in(void)
     }
 }
 
-void test_self_receive(void)
-{
-    nrf_mesh_rx_metadata_t rx_metadata;
-    const uint8_t run_testvectors[] = SELF_RECEIVE_TEST_VECTORS;
-    provision(true);
-
-    mp_net_secmats = &test_network;
-    m_net_secmat_count = 1;
-
-    for (unsigned int i = 0; i < sizeof(run_testvectors); ++i)
-    {
-        test_vector_t test_vector;
-        get_test_vector(run_testvectors[i], &test_vector);
-
-        m_rx_address = test_vector.metadata.src;
-        m_net_secmat_get_calls_expect = 2; /* One to fetch the secmat that gets cancelled, one to get NULL */
-
-        msg_cache_entry_exists_IgnoreAndReturn(false);
-        net_state_rx_iv_index_get_ExpectAndReturn(test_vector.metadata.internal.iv_index & 0x01, test_vector.metadata.internal.iv_index);
-
-        TEST_ASSERT_EQUAL(NRF_ERROR_NOT_FOUND, network_packet_in(test_vector.p_encrypted_packet, test_vector.lengths.encrypted, &rx_metadata));
-
-        TEST_ASSERT_EQUAL(0, m_net_secmat_get_calls_expect);
-    }
-}
-
 void test_packet_out(void)
 {
     const uint8_t run_testvectors[] = NETWORK_PKT_OUT_TEST_VECTORS;
@@ -569,6 +543,7 @@ void test_packet_out(void)
         net_packet_buffer.user_data.p_metadata = &test_vector.metadata;
         net_packet_buffer.user_data.payload_len = test_vector.lengths.transport;
         net_packet_buffer.user_data.role = CORE_TX_ROLE_ORIGINATOR;
+        net_packet_buffer.user_data.bearer_selector = CORE_TX_BEARER_TYPE_ADV;
 
         memcpy(&m_core_tx_buffer.pdu[9],
                test_vector.p_transport_packet,

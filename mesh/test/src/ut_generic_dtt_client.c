@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -304,7 +304,7 @@ void test_generic_dtt_client_init(void)
 
 void test_generic_dtt_client_set(void)
 {
-    generic_dtt_set_params_t set_params;
+    generic_dtt_set_params_t set_params = {0};
     generic_dtt_set_msg_pkt_t pkt;
     uint16_t opcode;
     uint16_t len;

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -92,8 +92,8 @@ typedef enum
 /**
  * Initialize the DFU module.
  *
- * @retval NRF_SUCCESS The dfu-module was successfully initialized.
- * @retval NRF_ERROR_NOT_FOUND The dfu-module was unable to find the bootloader
+ * @retval NRF_SUCCESS The DFU-module was successfully initialized.
+ * @retval NRF_ERROR_NOT_SUPPORTED The DFU-module was unable to find the bootloader
  *  or the bootloader device page.
  */
 uint32_t nrf_mesh_dfu_init(void);
@@ -104,7 +104,7 @@ uint32_t nrf_mesh_dfu_init(void);
  * @note This function is called from nrf_mesh_enable()
  *
  * @retval NRF_SUCCESS The DFU app successfully sent a msg to bootloader to enable DFU.
- * @retval NRF_ERROR_NOT_SUPPORTED The dfu functionality is not available.
+ * @retval NRF_ERROR_NOT_SUPPORTED The DFU functionality is not available.
  * @retval NRF_ERROR_* The given command did not succeed. The meaning of each
  * error code depends on the command.
  */
@@ -121,135 +121,135 @@ uint32_t nrf_mesh_dfu_enable(void);
 uint32_t nrf_mesh_dfu_jump_to_bootloader(void);
 
 /**
- * Pass a dfu packet to the dfu module.
+ * Pass a DFU packet to the DFU module.
  *
  * @param[in] p_packet A pointer to a DFU packet.
  * @param[in] length The length of the DFU packet.
  * @param[in] p_metadata Metadata attached to the packet that came in.
  *
  * @retval NRF_SUCCESS The packet was successfully handled by the DFU module.
- * @retval NRF_ERROR_BUSY The dfu module can't accept the request at the moment.
+ * @retval NRF_ERROR_BUSY The DFU module can't accept the request at the moment.
  * @retval NRF_ERROR_INVALID_ADDR The packet isn't a known DFU packet.
- * @retval NRF_ERROR_NOT_SUPPORTED The dfu functionality is not available.
+ * @retval NRF_ERROR_NOT_SUPPORTED The DFU functionality is not available.
  */
 uint32_t nrf_mesh_dfu_rx(const uint8_t * p_packet,
                          uint32_t length,
                          const nrf_mesh_rx_metadata_t * p_metadata);
 
 /**
-* Request a DFU transfer.
-*
-* The DFU transfer will run alongside the application, and store the firmware
-* in the given bank.
-*
-* Generates events:
-*   * ::NRF_MESH_EVT_DFU_BANK_AVAILABLE: The DFU transfer is finished, and is
-*     available for flashing.
-*   * ::NRF_MESH_EVT_DFU_START: The dfu module got a response to the DFU
-*     request, and started receiving the transfer.
-*   * ::NRF_MESH_EVT_DFU_END: The dfu module finished its transfer.
-*
-* @param[in] type DFU type to request.
-* @param[in] p_fwid Firmware ID to request.
-* @param[in,out] p_bank_addr Address in which to store the banked data. Any
-* existing data in this location will be erased.
-*
-* @retval NRF_SUCCESS The dfu module has started requesting the given transfer.
-* @retval NRF_ERROR_NULL One of the parameters provided was null.
-* @retval NRF_ERROR_NOT_SUPPORTED The dfu functionality is not available.
-* @retval NRF_ERROR_INVALID_PARAM The given dfu type is not available.
-* @retval NRF_ERROR_INVALID_STATE The DFU module is not in an idle state, and
-* the operation can't be started. This can either be because the application
-* failed to initialize the module, or because a DFU operation is currently in
-* progress. In the last case, stop the current operation with @ref
-* nrf_mesh_dfu_abort() or wait for an end-event before requesting a new
-* transfer.
-*/
+ * Request a DFU transfer.
+ *
+ * The DFU transfer will run alongside the application, and store the firmware
+ * in the given bank.
+ *
+ * Generates events:
+ *   * ::NRF_MESH_EVT_DFU_BANK_AVAILABLE: The DFU transfer is finished, and is
+ *     available for flashing.
+ *   * ::NRF_MESH_EVT_DFU_START: The DFU module got a response to the DFU
+ *     request, and started receiving the transfer.
+ *   * ::NRF_MESH_EVT_DFU_END: The DFU module finished its transfer.
+ *
+ * @param[in] type DFU type to request.
+ * @param[in] p_fwid Firmware ID to request.
+ * @param[in] p_bank_addr Address in which to store the banked data. Any
+ * existing data in this location will be erased.
+ *
+ * @retval NRF_SUCCESS The DFU module has started requesting the given transfer.
+ * @retval NRF_ERROR_NULL One of the parameters provided was null.
+ * @retval NRF_ERROR_NOT_SUPPORTED The DFU functionality is not available.
+ * @retval NRF_ERROR_INVALID_PARAM The given DFU type is not available.
+ * @retval NRF_ERROR_INVALID_STATE The DFU module is not in an idle state, and
+ * the operation can't be started. This can either be because the application
+ * failed to initialize the module, or because a DFU operation is currently in
+ * progress. In the last case, stop the current operation with @ref
+ * nrf_mesh_dfu_abort() or wait for an end-event before requesting a new
+ * transfer.
+ */
 uint32_t nrf_mesh_dfu_request(nrf_mesh_dfu_type_t type,
         const nrf_mesh_fwid_t* p_fwid,
-        uint32_t* p_bank_addr);
+        const uint32_t* p_bank_addr);
 
 /**
-* Relay an ongoing transfer. Should only be used as a response to an
-* ::NRF_MESH_EVT_DFU_REQ_RELAY.
-*
-* Generates events:
-*   * ::NRF_MESH_EVT_DFU_START: The transfer has started, and the device is
-*     actively relaying data packets.
-*   * ::NRF_MESH_EVT_DFU_END: The dfu module finished its transfer.
-*
-* @param[in] type DFU type to request.
-* @param[in] p_fwid Firmware ID to request.
-*
-* @retval NRF_SUCCESS The dfu module has started advertising its intention to
-*                     relay the given transfer.
-* @retval NRF_ERROR_NULL The FWID pointer provided was NULL.
-* @retval NRF_ERROR_NOT_SUPPORTED The dfu functionality is not available.
-* @retval NRF_ERROR_INVALID_PARAM The given dfu type is not available.
-* @retval NRF_ERROR_INVALID_STATE The DFU module is not in an idle state, and
-* the operation can't be started. This can either be because the application
-* failed to initialize the module, or because a DFU operation is currently in
-* progress. In the last case, stop the current operation with @ref
-* nrf_mesh_dfu_abort() or wait for an end-event before requesting a new
-* transfer.
-*/
+ * Relay an ongoing transfer. Should only be used as a response to an
+ * ::NRF_MESH_EVT_DFU_REQ_RELAY.
+ *
+ * Generates events:
+ *   * ::NRF_MESH_EVT_DFU_START: The transfer has started, and the device is
+ *     actively relaying data packets.
+ *   * ::NRF_MESH_EVT_DFU_END: The DFU module finished its transfer.
+ *
+ * @param[in] type DFU type to request.
+ * @param[in] p_fwid Firmware ID to request.
+ *
+ * @retval NRF_SUCCESS The DFU module has started advertising its intention to
+ *                     relay the given transfer.
+ * @retval NRF_ERROR_NULL The FWID pointer provided was NULL.
+ * @retval NRF_ERROR_NOT_SUPPORTED The DFU functionality is not available.
+ * @retval NRF_ERROR_INVALID_PARAM The given DFU type is not available.
+ * @retval NRF_ERROR_INVALID_STATE The DFU module is not in an idle state, and
+ * the operation can't be started. This can either be because the application
+ * failed to initialize the module, or because a DFU operation is currently in
+ * progress. In the last case, stop the current operation with @ref
+ * nrf_mesh_dfu_abort() or wait for an end-event before requesting a new
+ * transfer.
+ */
 uint32_t nrf_mesh_dfu_relay(nrf_mesh_dfu_type_t type,
         const nrf_mesh_fwid_t* p_fwid);
 
 /**
-* Abort the ongoing dfu operation.
-*
-* @retval NRF_SUCCES The ongoing dfu operation was successfully stopped, and
-* the DFU module went back to the idle state.
-* @retval NRF_ERROR_NOT_SUPPORTED The dfu functionality is not available.
-* @retval NRF_ERROR_INVALID_STATE The dfu module was not doing any dfu
-* operations.
-*/
+ * Abort the ongoing DFU operation.
+ *
+ * @retval NRF_SUCCES The ongoing DFU operation was successfully stopped, and
+ * the DFU module went back to the idle state.
+ * @retval NRF_ERROR_NOT_SUPPORTED The DFU functionality is not available.
+ * @retval NRF_ERROR_INVALID_STATE The DFU module was not doing any DFU
+ * operations.
+ */
 uint32_t nrf_mesh_dfu_abort(void);
 
 /**
-* Get info on the bank of the given type.
-*
-* @param[in] type Type of the bank to get info on.
-* @param[out] p_bank_info Pointer to a structure which the function will put
-* information on the bank in.
-*
-* @retval NRF_SUCCESS The bank was found, and the @c p_bank_info parameter was filled
-* with the correct paramters.
-* @retval NRF_ERROR_NULL The bank info pointer provided was NULL.
-* @retval NRF_ERROR_NOT_SUPPORTED The dfu functionality is not available.
-* @retval NRF_ERROR_NOT_FOUND No bank of the given type was found.
-* @retval NRF_ERROR_INVALID_STATE The DFU module has not been initialized.
-*/
-uint32_t nrf_mesh_dfu_bank_info_get(nrf_mesh_dfu_type_t type, nrf_mesh_dfu_bank_info_t* p_bank_info);
+ * Get info on the bank of the given type.
+ *
+ * @param[in] type Type of the bank to get info on.
+ * @param[out] p_bank_info Pointer to a structure which the function will put
+ * information on the bank in.
+ *
+ * @retval NRF_SUCCESS The bank was found, and the @c p_bank_info parameter was filled
+ * with the correct paramters.
+ * @retval NRF_ERROR_NULL The bank info pointer provided was NULL.
+ * @retval NRF_ERROR_NOT_SUPPORTED The DFU functionality is not available.
+ * @retval NRF_ERROR_NOT_FOUND No bank of the given type was found.
+ * @retval NRF_ERROR_INVALID_STATE The DFU module has not been initialized.
+ */
+uint32_t nrf_mesh_dfu_bank_info_get(nrf_mesh_dfu_type_t type, nrf_mesh_dfu_bank_info_t * p_bank_info);
 
 /**
-* Flash the bank of the given type.
-*
-* @warning This will trigger a restart of the chip. All non-volatile memory
-* will be lost during this call. If successful, this never returns.
-*
-* @param[in] bank_type The dfu type of the bank to be flashed. There can only
-* be one bank of each dfu type.
-*
-* @retval NRF_ERROR_NOT_FOUND No bank of the given type is available.
-* @retval NRF_ERROR_NOT_SUPPORTED The dfu functionality is not available.
-* @retval NRF_ERROR_INVALID_STATE The DFU module has not been initialized.
-*/
+ * Flash the bank of the given type.
+ *
+ * @warning This will trigger a restart of the chip. All non-volatile memory
+ * will be lost during this call. If successful, this never returns.
+ *
+ * @param[in] bank_type The DFU type of the bank to be flashed. There can only
+ * be one bank of each DFU type.
+ *
+ * @retval NRF_ERROR_NOT_FOUND No bank of the given type is available.
+ * @retval NRF_ERROR_NOT_SUPPORTED The DFU functionality is not available.
+ * @retval NRF_ERROR_INVALID_STATE The DFU module has not been initialized.
+ */
 uint32_t nrf_mesh_dfu_bank_flash(nrf_mesh_dfu_type_t bank_type);
 
 /**
-* Get the current state of the DFU module.
-*
-* @param[out] p_dfu_transfer_state A pointer to a dfu transfer state variable,
-* which the framework will fill with the current state/progress of an ongoing
-* transfer, if any.
-*
-* @retval NRF_SUCCESS The dfu state was successfully retrieved.
-* @retval NRF_ERROR_NULL The transfer state pointer provided was NULL.
-* @retval NRF_ERROR_NOT_SUPPORTED The dfu functionality is not available.
-* @retval NRF_ERROR_INVALID_STATE The DFU module has not been initialized.
-*/
+ * Get the current state of the DFU module.
+ *
+ * @param[out] p_dfu_transfer_state A pointer to a DFU transfer state variable,
+ * which the framework will fill with the current state/progress of an ongoing
+ * transfer, if any.
+ *
+ * @retval NRF_SUCCESS The DFU state was successfully retrieved.
+ * @retval NRF_ERROR_NULL The transfer state pointer provided was NULL.
+ * @retval NRF_ERROR_NOT_SUPPORTED The DFU functionality is not available.
+ * @retval NRF_ERROR_INVALID_STATE The DFU module has not been initialized.
+ */
 uint32_t nrf_mesh_dfu_state_get(nrf_mesh_dfu_transfer_state_t* p_dfu_transfer_state);
 
 /**@}*/

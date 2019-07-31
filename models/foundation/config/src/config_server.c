@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -70,6 +70,12 @@
 #if MESH_FEATURE_GATT_PROXY_ENABLED
 #include "proxy.h"
 #endif
+
+#if MESH_FEATURE_FRIEND_ENABLED
+#include "mesh_friend.h"
+#include "friend_internal.h"
+#endif
+
 /** Configuration server model ID. */
 #define CONFIG_SERVER_MODEL_ID  0x0000
 
@@ -859,13 +865,6 @@ static void handle_composition_data_get(access_model_handle_t handle, const acce
         return;
     }
 
-    const config_msg_composition_data_get_t * p_pdu = (const config_msg_composition_data_get_t *) p_message->p_data;
-    if (p_pdu->page_number != 0 && p_pdu->page_number != 0xFF)
-    {
-        /* Only page 0/0xFF is supported in Mesh Profile Specification v1.0. */
-        return;
-    }
-
     uint8_t buffer[sizeof(config_msg_composition_data_status_t) + CONFIG_COMPOSITION_DATA_SIZE];
     config_msg_composition_data_status_t * p_response = (config_msg_composition_data_status_t *) buffer;
     p_response->page_number = 0;
@@ -913,8 +912,14 @@ static void handle_config_friend_get(access_model_handle_t handle, const access_
     {
         return;
     }
+    config_msg_friend_status_t status_message = { .friend_state = CONFIG_FRIEND_STATE_UNSUPPORTED };
 
-    const config_msg_friend_status_t status_message = { .friend_state = CONFIG_FRIEND_STATE_UNSUPPORTED };
+#if MESH_FEATURE_FRIEND_ENABLED
+    status_message.friend_state = (mesh_friend_is_enabled() ?
+                                   CONFIG_FRIEND_STATE_SUPPORTED_ENABLED :
+                                   CONFIG_FRIEND_STATE_SUPPORTED_DISABLED);
+#endif
+
     send_reply(handle, p_message, CONFIG_OPCODE_FRIEND_STATUS,
                (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
 }
@@ -928,7 +933,28 @@ static void handle_config_friend_set(access_model_handle_t handle, const access_
         return;
     }
 
-    const config_msg_friend_status_t status_message = { .friend_state = CONFIG_FRIEND_STATE_UNSUPPORTED };
+    config_msg_friend_status_t status_message = { .friend_state = CONFIG_FRIEND_STATE_UNSUPPORTED };
+
+#if MESH_FEATURE_FRIEND_ENABLED
+    switch (p_pdu->friend_state)
+    {
+        case CONFIG_FRIEND_STATE_SUPPORTED_DISABLED:
+            mesh_friend_disable();
+            break;
+
+        case CONFIG_FRIEND_STATE_SUPPORTED_ENABLED:
+            mesh_friend_enable();
+            break;
+
+        default:
+            NRF_MESH_ASSERT(false); /* Input checked above. */
+            break;
+    }
+    status_message.friend_state = (mesh_friend_is_enabled() ?
+                                   CONFIG_FRIEND_STATE_SUPPORTED_ENABLED :
+                                   CONFIG_FRIEND_STATE_SUPPORTED_DISABLED);
+#endif
+
     send_reply(handle, p_message, CONFIG_OPCODE_FRIEND_STATUS,
                (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
 }
@@ -1281,7 +1307,7 @@ static void handle_config_model_publication_set(access_model_handle_t handle, co
                 /* Setting publish period when not supported, is an error */
                 if (publish_period.step_num != 0)
                 {
-                    status_error_pub_send(handle, p_message, sig_model, ACCESS_STATUS_FEATURE_NOT_SUPPORTED);
+                    status_error_pub_send(handle, p_message, sig_model, ACCESS_STATUS_NOT_A_PUBLISH_MODEL);
                     return;
                 }
                 break;
@@ -1702,7 +1728,7 @@ static void handle_config_model_subscription_virtual_address_add(access_model_ha
                 target_address.value, p_pdu->model_id, sig_model);
 
         const config_server_evt_t evt = {
-            .type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_ADD,
+            .type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_ADD,
             .params.model_subscription_add.model_handle = model_handle,
             .params.model_subscription_add.address_handle = subscription_address_handle
         };
@@ -1772,7 +1798,7 @@ static void handle_config_model_subscription_virtual_address_delete(access_model
             p_pdu->model_id, sig_model);
 
     const config_server_evt_t evt = {
-        .type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_DELETE,
+        .type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_DELETE,
         .params.model_subscription_delete.model_handle = model_handle,
         .params.model_subscription_delete.address_handle = subscription_address_handle
     };
@@ -1859,7 +1885,7 @@ static void handle_config_model_subscription_virtual_address_overwrite(access_mo
                     target_address.value, p_pdu->model_id, sig_model);
 
             const config_server_evt_t evt = {
-                .type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_OVERWRITE,
+                .type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_OVERWRITE,
                 .params.model_subscription_overwrite.model_handle = model_handle,
                 .params.model_subscription_overwrite.address_handle = subscription_address_handle
             };
@@ -2666,43 +2692,37 @@ static void handle_node_identity_set(access_model_handle_t handle, const access_
 
     const config_msg_identity_set_t * p_pdu = (const config_msg_identity_set_t *) p_message->p_data;
 
+    if (p_pdu->identity_state >= CONFIG_IDENTITY_STATE_UNSUPPORTED)
+    {
+        /* Invalid value */
+        return;
+    }
+
 #if MESH_FEATURE_GATT_PROXY_ENABLED
     access_status_t access_status = ACCESS_STATUS_SUCCESS;
     const nrf_mesh_beacon_info_t * p_beacon_info = NULL;
 
-    if (proxy_is_enabled())
+    dsm_handle_t subnet = dsm_net_key_index_to_subnet_handle(p_pdu->netkey_index);
+    nrf_mesh_key_refresh_phase_t kr_phase;
+    if (dsm_beacon_info_get(subnet, &p_beacon_info) == NRF_SUCCESS &&
+        dsm_subnet_kr_phase_get(subnet, &kr_phase)  == NRF_SUCCESS)
     {
         if (p_pdu->identity_state == CONFIG_IDENTITY_STATE_RUNNING)
         {
-            dsm_handle_t subnet = dsm_net_key_index_to_subnet_handle(p_pdu->netkey_index);
-            nrf_mesh_key_refresh_phase_t kr_phase;
-            if (dsm_beacon_info_get(subnet, &p_beacon_info) == NRF_SUCCESS &&
-                dsm_subnet_kr_phase_get(subnet, &kr_phase)  == NRF_SUCCESS)
+            if (!proxy_is_enabled() || proxy_node_id_enable(p_beacon_info, kr_phase) != NRF_SUCCESS)
             {
-                if (proxy_node_id_enable(p_beacon_info, kr_phase) != NRF_SUCCESS)
-                {
-                    access_status = ACCESS_STATUS_TEMPORARILY_UNABLE_TO_CHANGE_STATE;
-                }
-            }
-            else
-            {
-                access_status = ACCESS_STATUS_INVALID_NETKEY;
+                access_status = ACCESS_STATUS_TEMPORARILY_UNABLE_TO_CHANGE_STATE;
             }
         }
-        else if (p_pdu->identity_state == CONFIG_IDENTITY_STATE_STOPPED)
+        else /* p_pdu->identity_state == CONFIG_IDENTITY_STATE_STOPPED */
         {
             uint32_t err_code = proxy_node_id_disable();
             NRF_MESH_ASSERT_DEBUG(err_code == NRF_SUCCESS || NRF_ERROR_INVALID_STATE);
         }
-        else
-        {
-            /* Invalid value */
-            return;
-        }
     }
     else
     {
-        access_status = ACCESS_STATUS_TEMPORARILY_UNABLE_TO_CHANGE_STATE;
+        access_status = ACCESS_STATUS_INVALID_NETKEY;
     }
 
     const config_msg_identity_status_t reply =
@@ -2844,7 +2864,7 @@ static void handle_model_app_get(access_model_handle_t handle, const access_mess
     send_reply(handle, p_message, response_opcode, response_buffer, response_size, nrf_mesh_unique_token_get());
 }
 
-#ifdef FRIEND_FEATURE
+#if MESH_FEATURE_FRIEND_ENABLED
 static void handle_config_low_power_node_polltimeout_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
 {
     if (!IS_PACKET_LENGTH_VALID_WITH_ID(config_msg_low_power_node_polltimeout_get_t, p_message))
@@ -2853,9 +2873,17 @@ static void handle_config_low_power_node_polltimeout_get(access_model_handle_t h
     }
 
     const config_msg_low_power_node_polltimeout_get_t * p_pdu = (config_msg_low_power_node_polltimeout_get_t *) p_message->p_data;
-    const config_msg_low_power_node_polltimeout_status_t response = {p_pdu->lpn_address, 0, 0};
+    if (nrf_mesh_address_type_get(p_pdu->lpn_address) != NRF_MESH_ADDRESS_TYPE_UNICAST)
+    {
+        return;
+    }
 
-    /* @todo: Query polltime list and fill appropriate value in response if available */
+    config_msg_low_power_node_polltimeout_status_t response = {p_pdu->lpn_address, {0, 0, 0}};
+
+    uint32_t remaining_time = friend_remaining_poll_timeout_time_get(p_pdu->lpn_address);
+    response.polltimeout[0] = 0xFF & remaining_time;
+    response.polltimeout[1] = 0xFF & (remaining_time >> 8);
+    response.polltimeout[2] = 0xFF & (remaining_time >> 16);
 
     send_reply(handle, p_message, CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_STATUS,
                (const uint8_t *) &response, sizeof(response), nrf_mesh_unique_token_get());
@@ -2866,15 +2894,17 @@ static void apply_reset(void)
 {
     /* Clear all the state. */
     mesh_stack_config_clear();
-    if (flash_manager_is_stable())
+#if PERSISTENT_STORAGE
+    if (!flash_manager_is_stable())
+    {
+        m_node_reset_pending = NODE_RESET_FLASHING;
+    }
+    else
+#endif
     {
         const config_server_evt_t evt = { .type = CONFIG_SERVER_EVT_NODE_RESET };
         app_evt_send(&evt);
         m_node_reset_pending = NODE_RESET_IDLE;
-    }
-    else
-    {
-        m_node_reset_pending = NODE_RESET_FLASHING;
     }
 }
 
@@ -2882,6 +2912,14 @@ static void mesh_event_cb(const nrf_mesh_evt_t * p_evt)
 {
     switch (p_evt->type)
     {
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+        case NRF_MESH_EVT_PROXY_STOPPED:
+            if (m_node_reset_pending == NODE_RESET_PENDING_PROXY)
+            {
+                apply_reset();
+            }
+            break;
+#endif
         case NRF_MESH_EVT_TX_COMPLETE:
             if (p_evt->params.tx_complete.token == m_reset_token)
             {
@@ -2894,17 +2932,13 @@ static void mesh_event_cb(const nrf_mesh_evt_t * p_evt)
                      */
                     if (proxy_is_connected())
                     {
-                        (void) proxy_stop();
                         m_node_reset_pending = NODE_RESET_PENDING_PROXY;
+                        (void) proxy_stop();
                     }
                     else
                     {
                         apply_reset();
                     }
-                }
-                else if (NODE_RESET_PENDING_PROXY == m_node_reset_pending)
-                {
-                    apply_reset();
                 }
 #else
                 if (NODE_RESET_PENDING == m_node_reset_pending)
@@ -2977,7 +3011,7 @@ static const access_opcode_handler_t opcode_handlers[] =
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_SIG_MODEL_APP_GET)                            , handle_model_app_get },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_VENDOR_MODEL_APP_GET)                         , handle_model_app_get },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETWORK_TRANSMIT_GET)                         , handle_config_network_transmit_get},
-#ifdef FRIEND_FEATURE
+#if MESH_FEATURE_FRIEND_ENABLED
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_GET)               , handle_config_low_power_node_polltimeout_get},
 #endif
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETWORK_TRANSMIT_SET)                         , handle_config_network_transmit_set}

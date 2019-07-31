@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -53,6 +53,7 @@
 #include "app_timer.h"
 #include "example_common.h"
 #include "nrf_mesh_configure.h"
+#include "ad_type_filter.h"
 
 #if defined(NRF51) && defined(NRF_MESH_STACK_DEPTH)
 #include "stack_depth.h"
@@ -72,7 +73,7 @@ static bool         m_device_provisioned;
 static void rx_cb(const nrf_mesh_adv_packet_rx_data_t * p_rx_data)
 {
     LEDS_OFF(BSP_LED_0_MASK);  /* @c LED_RGB_RED_MASK on pca10031 */
-    char msg[64];
+    char msg[128];
     (void) sprintf(msg, "RX [@%u]: RSSI: %3d ADV TYPE: %x ADDR: [%02x:%02x:%02x:%02x:%02x:%02x]",
                    p_rx_data->p_metadata->params.scanner.timestamp,
                    p_rx_data->p_metadata->params.scanner.rssi,
@@ -94,11 +95,14 @@ static void adv_init(void)
 
 static void adv_start(void)
 {
+    /* Let scanner accept Complete Local Name AD Type. */
+    bearer_adtype_add(BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME);
+
     advertiser_enable(&m_advertiser);
     static const uint8_t adv_data[] =
     {
         0x11, /* AD data length (including type, but not itself) */
-        0x09, /* AD data type (Complete local name) */
+        BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME, /* AD data type (Complete local name) */
         'N',  /* AD data payload (Name of device) */
         'o',
         'r',
@@ -186,7 +190,7 @@ static void mesh_init(void)
     /* Start listening for incoming packets */
     nrf_mesh_rx_cb_set(rx_cb);
 
-    /* Start Advertising own beacon */
+    /* Initialize the advertizer */
     adv_init();
 }
 
@@ -225,6 +229,10 @@ static void start(void)
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }
+
+    /* Start advertising own beacon */
+    /* Note: If application wants to start beacons at later time, adv_start() API must be called
+     * from the same IRQ priority context same as that of the Mesh Stack. */
     adv_start();
 
     mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());

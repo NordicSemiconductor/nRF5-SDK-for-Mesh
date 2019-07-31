@@ -5,7 +5,7 @@ applications to use the features provided by the Bluetooth Mesh when running on 
 nRF5 Series chips.
 
 The Bluetooth @link_MeshSpec is developed and published by the
-@link_BluetoothSIG<!--http://www.bluetooth.org/-->. It allows one-to-one, one-to-many, and many-to-many
+@link_BluetoothSIG. It allows one-to-one, one-to-many, and many-to-many
 communication. It uses BLE protocol to exchange messages between the nodes on the network.
 The nodes can communicate with each other as long as they are in direct
 radio range of each other or there are enough devices available that are
@@ -34,8 +34,7 @@ For a quick demonstration of some of the basic concepts of the Bluetooth Mesh
 network using Nordic's nRF5 SDK for Mesh, see [Quick start guide: running a first example](@ref md_doc_getting_started_mesh_quick_start).
 
 @note
-The nRF5 SDK for Mesh requires the
-<a href="http://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v15.x.x/" target="_blank">nRF5 SDK 15.2.0</a>
+The nRF5 SDK for Mesh requires the @link_nRF5SDK
 to compile. See @ref md_doc_getting_started_how_to_toolchain for more information.
 
 ## Introduction to nRF5 SDK for Mesh @anchor this_section
@@ -66,5 +65,4 @@ If you've been using one of the previous versions of the nRF SDK for Mesh, check
 ## Reporting issues @anchor reporting_issues
 
 We appreciate all bug reports and fixes. Please report all issues on 
-<a href="https://devzone.nordicsemi.com" target="_blank">DevZone</a> and our
-technical support team will ensure they are tracked.
+@link_devzone and our technical support team will ensure they are tracked.

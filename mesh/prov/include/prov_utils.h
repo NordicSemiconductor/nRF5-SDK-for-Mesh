@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -157,7 +157,7 @@ void prov_utils_generate_oob_data(const nrf_mesh_prov_ctx_t * p_ctx, uint8_t * p
  * Checks the confirmation values of the provisionee and the provisioner.
  *
  * @param[in] p_ctx Pointer to the context structure.
- * 
+ *
  * @retval true  The confirmation values are matching.
  * @retval false The confirmation values are not matching.
  */
@@ -183,6 +183,29 @@ bool prov_utils_auth_data_is_alphanumeric(const uint8_t * p_data, uint8_t size);
  * @retval false     The input data does not have less than @p size digits.
  */
 bool prov_utils_auth_data_is_valid_number(const uint8_t * p_data, uint8_t size);
+
+/**
+ * Checks whether a received PDU is valid in the given state.
+ *
+ * @param[in] role     Provisioner or provisionee role.
+ * @param[in] state    Current state of the provisioning context.
+ * @param[in] pdu_type PDU type.
+ *
+ * @retval true        The PDU is expected in the given state.
+ * @retval false       The PDU is unexpected in the given state.
+ */
+bool prov_utils_is_valid_pdu(nrf_mesh_prov_role_t role, nrf_mesh_prov_state_t state, prov_pdu_type_t pdu_type);
+
+/**
+ * Checks whether a public key is valid.
+ *
+ * @param[in] p_public_key Pointer to a public key array. Assumed to be @ref
+ *                         NRF_MESH_PROV_PUBKEY_SIZE.
+ *
+ * @retval true            The public key is valid.
+ * @retval false           The public key is invalid.
+ */
+bool prov_utils_is_valid_public_key(const uint8_t * p_public_key);
 
 /** @} */
 

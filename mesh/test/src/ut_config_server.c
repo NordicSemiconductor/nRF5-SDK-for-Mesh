@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -52,6 +52,17 @@
 #include "nrf_mesh_events_mock.h"
 #include "mesh_stack_mock.h"
 #include "nrf_mesh_mock.h"
+#include "flash_manager_mock.h"
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+#include "proxy_mock.h"
+#include "mesh_opt_gatt_mock.h"
+#endif
+#if MESH_FEATURE_FRIEND_ENABLED
+#include "friend_internal_mock.h"
+#include "mesh_friend_mock.h"
+#endif
+
+#include "manual_mock_queue.h"
 
 #include "access.h"
 #include "config_messages.h"
@@ -59,8 +70,11 @@
 #include "config_server.h"
 #include "utils.h"
 #include "packed_index_list.h"
+#include "nrf_mesh_utils.h"
 
 #define CONFIG_SERVER_MODEL_ID  0x0000
+
+#define UNIQUE_TOKEN ((nrf_mesh_tx_token_t)0x55AA55AAul)
 
 #define VERIFY_REPLY_OPCODE(c)                                          \
     do {                                                                \
@@ -136,6 +150,10 @@ static dsm_handle_t * mp_access_model_applications_get_appkey_array;
 static uint16_t m_access_model_applications_get_appkey_count;
 static uint32_t m_access_model_applications_get_retval;
 
+static nrf_mesh_evt_handler_t *mp_mesh_evt_handler;
+
+MOCK_QUEUE_DEF(config_server_evt_mock, config_server_evt_t, NULL);
+
 /*********** Helper functions ***********/
 
 static void send_message(uint16_t opcode, const uint8_t * p_data, uint16_t length)
@@ -191,7 +209,10 @@ static uint32_t access_model_reply_mock(access_model_handle_t handle, const acce
 
     mp_previous_reply_buffer = malloc(p_reply->length);
     TEST_ASSERT_NOT_NULL(mp_previous_reply_buffer);
-    memcpy(mp_previous_reply_buffer, p_reply->p_buffer, p_reply->length);
+    if (p_reply->p_buffer)
+    {
+        memcpy(mp_previous_reply_buffer, p_reply->p_buffer, p_reply->length);
+    }
 
     m_previous_reply.opcode = p_reply->opcode;
     m_previous_reply.p_buffer = mp_previous_reply_buffer;
@@ -242,7 +263,18 @@ static uint32_t dsm_appkey_get_all_mock(dsm_handle_t subnet_handle, mesh_key_ind
 
 static void config_server_evt_cb(const config_server_evt_t * p_evt)
 {
+    config_server_evt_t expected_evt;
+    config_server_evt_mock_Consume(&expected_evt);
 
+    TEST_ASSERT_EQUAL(expected_evt.type, p_evt->type);
+}
+
+static void nrf_mesh_evt_handler_add_mock(nrf_mesh_evt_handler_t * p_handler_params,
+                                          int num_calls)
+{
+    mp_mesh_evt_handler = p_handler_params;
+
+    nrf_mesh_evt_handler_add_StubWithCallback(NULL);
 }
 
 /*********** Test Initialization and Finalization ***********/
@@ -261,17 +293,21 @@ void setUp(void)
     nrf_mesh_events_mock_Init();
     mesh_stack_mock_Init();
     nrf_mesh_mock_Init();
-
+    config_server_evt_mock_Init();
+#if MESH_FRIEND_FEATURE_ENABLED
+    friend_internal_mock_Init();
+    mesh_friend_mock_Init();
+#endif
     m_previous_reply_received = false;
     mp_previous_reply_buffer = NULL;
 
-    nrf_mesh_unique_token_get_IgnoreAndReturn((nrf_mesh_tx_token_t)0x55AA55AAul);
+    nrf_mesh_unique_token_get_IgnoreAndReturn(UNIQUE_TOKEN);
 
     access_model_add_StubWithCallback(access_model_add_mock);
     access_model_reply_StubWithCallback(access_model_reply_mock);
 
     heartbeat_public_info_getter_register_ExpectAnyArgs();
-    nrf_mesh_evt_handler_add_ExpectAnyArgs();
+    nrf_mesh_evt_handler_add_StubWithCallback(nrf_mesh_evt_handler_add_mock);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_server_init(config_server_evt_cb));
 }
 
@@ -307,6 +343,14 @@ void tearDown(void)
     mesh_stack_mock_Destroy();
     nrf_mesh_mock_Verify();
     nrf_mesh_mock_Destroy();
+    config_server_evt_mock_Verify();
+    config_server_evt_mock_Destroy();
+#if MESH_FRIEND_FEATURE_ENABLED
+    friend_internal_mock_Verify();
+    friend_internal_mock_Destroy();
+    mesh_friend_mock_Verify();
+    mesh_friend_mock_Destroy();
+#endif
 }
 
 /*********** Test Cases ***********/
@@ -340,6 +384,8 @@ void test_config_beacon_get(void)
 
 void test_config_beacon_set(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_BEACON_SET;
 
     net_beacon_state_set_Expect(true);          /* This is the value we are trying to set the beacon state to */
     net_beacon_state_get_ExpectAndReturn(true); /* This is the value that determines the current beacon state, used in the reply */
@@ -352,6 +398,7 @@ void test_config_beacon_set(void)
     send_message(CONFIG_OPCODE_BEACON_SET, (const uint8_t *) &message, sizeof(message) - 1); /* Test with invalid length */
     TEST_ASSERT_FALSE(m_previous_reply_received);
 
+    config_server_evt_mock_Expect(&evt);
     send_message(CONFIG_OPCODE_BEACON_SET, (const uint8_t *) &message, sizeof(message)); /* Test with correct parameters */
 
     TEST_ASSERT_TRUE(m_previous_reply_received);
@@ -365,6 +412,7 @@ void test_config_beacon_set(void)
     net_beacon_state_set_Expect(false);
     net_beacon_state_get_ExpectAndReturn(false);
 
+    config_server_evt_mock_Expect(&evt);
     message.beacon_state = CONFIG_NET_BEACON_STATE_DISABLED;
     send_message(CONFIG_OPCODE_BEACON_SET, (const uint8_t *) &message, sizeof(message));
 
@@ -382,12 +430,6 @@ void test_composition_data_get(void)
 
     /* Try first with an invalid page number: */
     message.page_number = 4;
-    send_message(CONFIG_OPCODE_COMPOSITION_DATA_GET, (const uint8_t *) &message, sizeof(message));
-    TEST_ASSERT_FALSE(m_previous_reply_received); /* no reply on invalid messages */
-
-    /* Try with a valid message: */
-    message.page_number = 0;
-
     uint16_t size = CONFIG_COMPOSITION_DATA_SIZE;
     config_composition_data_get_Expect(NULL, NULL);
     config_composition_data_get_IgnoreArg_p_data();
@@ -400,6 +442,22 @@ void test_composition_data_get(void)
     TEST_ASSERT_EQUAL(sizeof(config_msg_composition_data_status_t) + CONFIG_COMPOSITION_DATA_SIZE, m_previous_reply.length);
 
     const config_msg_composition_data_status_t * p_reply = (const config_msg_composition_data_status_t *) m_previous_reply.p_buffer;
+    TEST_ASSERT_EQUAL(0, p_reply->page_number);
+
+    /* Try with a valid message: */
+    message.page_number = 0;
+
+    config_composition_data_get_Expect(NULL, NULL);
+    config_composition_data_get_IgnoreArg_p_data();
+    config_composition_data_get_IgnoreArg_p_size();
+    config_composition_data_get_ReturnThruPtr_p_size(&size);
+    send_message(CONFIG_OPCODE_COMPOSITION_DATA_GET, (const uint8_t *) &message, sizeof(message));
+
+    TEST_ASSERT_TRUE(m_previous_reply_received);
+    VERIFY_REPLY_OPCODE(CONFIG_OPCODE_COMPOSITION_DATA_STATUS);
+    TEST_ASSERT_EQUAL(sizeof(config_msg_composition_data_status_t) + CONFIG_COMPOSITION_DATA_SIZE, m_previous_reply.length);
+
+    p_reply = (const config_msg_composition_data_status_t *) m_previous_reply.p_buffer;
     TEST_ASSERT_EQUAL(0, p_reply->page_number);
 }
 
@@ -420,9 +478,15 @@ void test_config_default_ttl_get(void)
 
 void test_config_default_ttl_set(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_DEFAULT_TTL_SET;
+
     /* Test valid parameter path */
     const config_msg_default_ttl_set_t valid_message = { 8 };
     access_default_ttl_set_ExpectAndReturn(8, NRF_SUCCESS);
+
+    config_server_evt_mock_Expect(&evt);
+
     send_message(CONFIG_OPCODE_DEFAULT_TTL_SET, (const uint8_t *) &valid_message, sizeof(valid_message));
 
     TEST_ASSERT_TRUE(m_previous_reply_received);
@@ -457,6 +521,9 @@ void test_gatt_proxy_get(void)
     send_message(CONFIG_OPCODE_GATT_PROXY_GET, NULL, 4); /* Invalid length */
     TEST_ASSERT_FALSE(m_previous_reply_received);
 
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    proxy_is_enabled_ExpectAndReturn(false);
+#endif
     send_message(CONFIG_OPCODE_GATT_PROXY_GET, NULL, 0);
 
     TEST_ASSERT_TRUE(m_previous_reply_received);
@@ -464,7 +531,11 @@ void test_gatt_proxy_get(void)
 
     TEST_ASSERT_NOT_NULL(mp_previous_reply_buffer);
     TEST_ASSERT_EQUAL(sizeof(config_msg_proxy_status_t), m_previous_reply.length);
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    TEST_ASSERT_EQUAL_UINT8(CONFIG_GATT_PROXY_STATE_RUNNING_DISABLED, m_previous_reply.p_buffer[0]);
+#else
     TEST_ASSERT_EQUAL_UINT8(CONFIG_GATT_PROXY_STATE_UNSUPPORTED, m_previous_reply.p_buffer[0]);
+#endif
 }
 
 void test_gatt_proxy_set(void)
@@ -477,6 +548,11 @@ void test_gatt_proxy_set(void)
     send_message(CONFIG_OPCODE_GATT_PROXY_SET, (const uint8_t *) &message, sizeof(config_msg_proxy_set_t) - 1); /* Invalid length */
     TEST_ASSERT_FALSE(m_previous_reply_received);
 
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    mesh_opt_gatt_proxy_set_ExpectAndReturn(true, NRF_SUCCESS);
+    proxy_start_ExpectAndReturn(NRF_SUCCESS);
+    proxy_is_enabled_ExpectAndReturn(true);
+#endif
     send_message(CONFIG_OPCODE_GATT_PROXY_SET, (const uint8_t *) &message, sizeof(config_msg_proxy_set_t));
 
     TEST_ASSERT_TRUE(m_previous_reply_received);
@@ -484,12 +560,15 @@ void test_gatt_proxy_set(void)
 
     TEST_ASSERT_NOT_NULL(mp_previous_reply_buffer);
     TEST_ASSERT_EQUAL(sizeof(config_msg_proxy_status_t), m_previous_reply.length);
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    TEST_ASSERT_EQUAL_UINT8(CONFIG_GATT_PROXY_STATE_RUNNING_ENABLED, m_previous_reply.p_buffer[0]);
+#else
     TEST_ASSERT_EQUAL_UINT8(CONFIG_GATT_PROXY_STATE_UNSUPPORTED, m_previous_reply.p_buffer[0]);
+#endif
 }
 
 void test_config_relay_get(void)
 {
-
     mesh_opt_core_adv_t relay_state = {.enabled = true, .tx_count = 2, .tx_interval_ms = 50};
     mesh_opt_core_adv_get_ExpectAndReturn(CORE_TX_ROLE_RELAY, NULL, NRF_SUCCESS);
     mesh_opt_core_adv_get_IgnoreArg_p_entry();
@@ -508,6 +587,9 @@ void test_config_relay_get(void)
 
 void test_config_relay_set(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_RELAY_SET;
+
     const config_msg_relay_set_t message =
         {
             .relay_state = CONFIG_RELAY_STATE_SUPPORTED_ENABLED,
@@ -525,6 +607,8 @@ void test_config_relay_set(void)
     mesh_opt_core_adv_get_ExpectAndReturn(CORE_TX_ROLE_RELAY, NULL, NRF_SUCCESS);
     mesh_opt_core_adv_get_IgnoreArg_p_entry();
     mesh_opt_core_adv_get_ReturnThruPtr_p_entry(&relay_state);
+
+    config_server_evt_mock_Expect(&evt);
 
     send_message(CONFIG_OPCODE_RELAY_SET, (const uint8_t *) &message, sizeof(message));
 
@@ -652,6 +736,9 @@ void test_publication_get(void)
 
 void test_publication_set(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_MODEL_PUBLICATION_SET;
+
     config_msg_publication_set_t messages[2] =
     {
         {
@@ -771,6 +858,8 @@ void test_publication_set(void)
         access_model_publish_retransmit_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
         access_model_publish_retransmit_get_ReturnThruPtr_p_retransmit_params(&publish_retransmit);
 
+        config_server_evt_mock_Expect(&evt);
+
         m_previous_reply_received = false;
         send_message(CONFIG_OPCODE_MODEL_PUBLICATION_SET, (const uint8_t *) &messages[i], sizeof(messages[i]) - sig_model * sizeof(uint16_t));
 
@@ -804,6 +893,9 @@ void test_publication_set(void)
 
 void test_netkey_add(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_NETKEY_ADD;
+
     const config_msg_netkey_add_update_t message =
         {
             .netkey_index = 4,
@@ -814,6 +906,8 @@ void test_netkey_add(void)
     dsm_subnet_add_ExpectAndReturn(message.netkey_index, message.netkey, NULL, NRF_SUCCESS);
     dsm_subnet_add_IgnoreArg_p_subnet_handle();
     dsm_subnet_add_ReturnThruPtr_p_subnet_handle(&subnet_handle);
+
+    config_server_evt_mock_Expect(&evt);
 
     send_message(CONFIG_OPCODE_NETKEY_ADD, (const uint8_t *) &message, sizeof(config_msg_netkey_add_update_t));
 
@@ -828,6 +922,9 @@ void test_netkey_add(void)
 
 void test_netkey_update(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_NETKEY_UPDATE;
+
     const config_msg_netkey_add_update_t message =
         {
             .netkey_index = 7,
@@ -836,6 +933,8 @@ void test_netkey_update(void)
 
     dsm_net_key_index_to_subnet_handle_ExpectAndReturn(message.netkey_index, 2);
     dsm_subnet_update_ExpectAndReturn(2, message.netkey, NRF_SUCCESS);
+
+    config_server_evt_mock_Expect(&evt);
 
     send_message(CONFIG_OPCODE_NETKEY_UPDATE, (const uint8_t *) &message, sizeof(config_msg_netkey_add_update_t));
 
@@ -850,6 +949,9 @@ void test_netkey_update(void)
 
 void test_netkey_delete(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_NETKEY_DELETE;
+
     const config_msg_netkey_delete_t message =
     {
         .netkey_index = 12
@@ -867,6 +969,8 @@ void test_netkey_delete(void)
 
     dsm_subnet_delete_ExpectAndReturn(9, NRF_SUCCESS);
     access_model_publication_by_appkey_stop_ExpectAndReturn(13, NRF_SUCCESS);
+
+    config_server_evt_mock_Expect(&evt);
 
     send_message(CONFIG_OPCODE_NETKEY_DELETE, (const uint8_t *) &message, sizeof(config_msg_netkey_delete_t));
 
@@ -905,6 +1009,9 @@ void test_netkey_get(void)
 
 void test_appkey_add(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_APPKEY_ADD;
+
     const uint16_t netkey_index = 42;
     const uint16_t appkey_index = 24;
 
@@ -919,6 +1026,8 @@ void test_appkey_add(void)
     dsm_appkey_add_ExpectAndReturn(appkey_index, 4, message.appkey, NULL, NRF_SUCCESS);
     dsm_appkey_add_IgnoreArg_p_app_handle();
     dsm_appkey_add_ReturnThruPtr_p_app_handle(&appkey_handle);
+
+    config_server_evt_mock_Expect(&evt);
 
     send_message(CONFIG_OPCODE_APPKEY_ADD, (const uint8_t *) &message, sizeof(config_msg_appkey_add_t));
 
@@ -937,6 +1046,9 @@ void test_appkey_add(void)
 
 void test_appkey_update(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_APPKEY_UPDATE;
+
     const uint16_t netkey_index = 22;
     const uint16_t appkey_index = 88;
 
@@ -957,6 +1069,8 @@ void test_appkey_update(void)
     dsm_appkey_handle_to_subnet_handle_IgnoreArg_p_netkey_handle();
     dsm_appkey_handle_to_subnet_handle_ReturnThruPtr_p_netkey_handle(&network_handle);
 
+    config_server_evt_mock_Expect(&evt);
+
     send_message(CONFIG_OPCODE_APPKEY_UPDATE, (const uint8_t *) &message, sizeof(config_msg_appkey_add_t));
 
     TEST_ASSERT_TRUE(m_previous_reply_received);
@@ -974,6 +1088,9 @@ void test_appkey_update(void)
 
 void test_appkey_delete(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_APPKEY_DELETE;
+
     const uint16_t netkey_index = 118;
     const uint16_t appkey_index = 500;
     const dsm_handle_t appkey_handle = 1337;
@@ -990,6 +1107,8 @@ void test_appkey_delete(void)
 
     access_model_publication_by_appkey_stop_ExpectAndReturn(appkey_handle, NRF_SUCCESS);
     dsm_appkey_delete_ExpectAndReturn(appkey_handle, NRF_SUCCESS);
+
+    config_server_evt_mock_Expect(&evt);
 
     send_message(CONFIG_OPCODE_APPKEY_DELETE, (const uint8_t *) &message, sizeof(config_msg_appkey_delete_t));
 
@@ -1048,6 +1167,11 @@ void test_identity_get(void)
 {
     const config_msg_identity_get_t message = { .netkey_index = 4 };
 
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    dsm_net_key_index_to_subnet_handle_ExpectAndReturn(message.netkey_index, 0);
+    dsm_beacon_info_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    proxy_node_id_is_enabled_ExpectAnyArgsAndReturn(false);
+#endif
     send_message(CONFIG_OPCODE_NODE_IDENTITY_GET, (const uint8_t *) &message, sizeof(message));
 
     TEST_ASSERT_TRUE(m_previous_reply_received);
@@ -1058,7 +1182,11 @@ void test_identity_get(void)
 
     TEST_ASSERT_EQUAL(ACCESS_STATUS_SUCCESS, p_reply->status);
     TEST_ASSERT_EQUAL(message.netkey_index, p_reply->netkey_index);
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    TEST_ASSERT_EQUAL(CONFIG_IDENTITY_STATE_STOPPED, p_reply->identity_state);
+#else
     TEST_ASSERT_EQUAL(CONFIG_IDENTITY_STATE_UNSUPPORTED, p_reply->identity_state);
+#endif
 }
 
 void test_identity_set(void)
@@ -1069,6 +1197,21 @@ void test_identity_set(void)
             .identity_state = CONFIG_IDENTITY_STATE_RUNNING
         };
 
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    nrf_mesh_beacon_info_t beacon_info;
+    const nrf_mesh_beacon_info_t * p_beacon_info = &beacon_info;
+    nrf_mesh_key_refresh_phase_t phase = NRF_MESH_KEY_REFRESH_PHASE_1;
+    dsm_net_key_index_to_subnet_handle_ExpectAndReturn(message.netkey_index, 4);
+    dsm_beacon_info_get_ExpectAndReturn(4, NULL, NRF_SUCCESS);
+    dsm_beacon_info_get_IgnoreArg_pp_beacon_info();
+    dsm_beacon_info_get_ReturnThruPtr_pp_beacon_info(&p_beacon_info);
+    dsm_subnet_kr_phase_get_ExpectAndReturn(4, NULL, NRF_SUCCESS);
+    dsm_subnet_kr_phase_get_IgnoreArg_p_phase();
+    dsm_subnet_kr_phase_get_ReturnThruPtr_p_phase(&phase);
+    proxy_is_enabled_ExpectAndReturn(true);
+    proxy_node_id_enable_ExpectAndReturn(p_beacon_info, phase, NRF_SUCCESS);
+    proxy_node_id_is_enabled_ExpectAndReturn(p_beacon_info, NRF_SUCCESS);
+#endif
     send_message(CONFIG_OPCODE_NODE_IDENTITY_SET, (const uint8_t *) &message, sizeof(message));
 
     TEST_ASSERT_TRUE(m_previous_reply_received);
@@ -1079,11 +1222,73 @@ void test_identity_set(void)
 
     TEST_ASSERT_EQUAL(ACCESS_STATUS_SUCCESS, p_reply->status);
     TEST_ASSERT_EQUAL(message.netkey_index, p_reply->netkey_index);
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    TEST_ASSERT_EQUAL(CONFIG_IDENTITY_STATE_STOPPED, p_reply->identity_state);
+#else
     TEST_ASSERT_EQUAL(CONFIG_IDENTITY_STATE_UNSUPPORTED, p_reply->identity_state);
+#endif
+}
+
+/* Test invalid parameters */
+void test_node_id_set_invalid_params(void)
+{
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    const config_msg_identity_set_t message =
+    {
+        .netkey_index = 5,
+        .identity_state = CONFIG_IDENTITY_STATE_RUNNING
+    };
+
+    proxy_node_id_is_enabled_IgnoreAndReturn(NRF_SUCCESS);
+
+    m_previous_reply_received = false;
+    dsm_net_key_index_to_subnet_handle_ExpectAndReturn(message.netkey_index, 4);
+    dsm_beacon_info_get_ExpectAnyArgsAndReturn(NRF_ERROR_NOT_FOUND);
+
+    send_message(CONFIG_OPCODE_NODE_IDENTITY_SET, (const uint8_t *) &message, sizeof(message));
+    TEST_ASSERT_TRUE(m_previous_reply_received);
+    VERIFY_REPLY_OPCODE(CONFIG_OPCODE_NODE_IDENTITY_STATUS);
+    TEST_ASSERT_EQUAL(ACCESS_STATUS_INVALID_NETKEY, ((config_msg_identity_status_t *) m_previous_reply.p_buffer)->status);
+
+    m_previous_reply_received = false;
+    dsm_net_key_index_to_subnet_handle_ExpectAndReturn(message.netkey_index, 4);
+    dsm_beacon_info_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    dsm_subnet_kr_phase_get_ExpectAnyArgsAndReturn(NRF_ERROR_NOT_FOUND);
+
+    send_message(CONFIG_OPCODE_NODE_IDENTITY_SET, (const uint8_t *) &message, sizeof(message));
+    TEST_ASSERT_TRUE(m_previous_reply_received);
+    VERIFY_REPLY_OPCODE(CONFIG_OPCODE_NODE_IDENTITY_STATUS);
+    TEST_ASSERT_EQUAL(ACCESS_STATUS_INVALID_NETKEY, ((config_msg_identity_status_t *) m_previous_reply.p_buffer)->status);
+
+    m_previous_reply_received = false;
+    dsm_net_key_index_to_subnet_handle_ExpectAndReturn(message.netkey_index, 4);
+    dsm_beacon_info_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    dsm_subnet_kr_phase_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    proxy_is_enabled_ExpectAndReturn(false);
+
+    send_message(CONFIG_OPCODE_NODE_IDENTITY_SET, (const uint8_t *) &message, sizeof(message));
+    TEST_ASSERT_TRUE(m_previous_reply_received);
+    VERIFY_REPLY_OPCODE(CONFIG_OPCODE_NODE_IDENTITY_STATUS);
+    TEST_ASSERT_EQUAL(ACCESS_STATUS_TEMPORARILY_UNABLE_TO_CHANGE_STATE, ((config_msg_identity_status_t *) m_previous_reply.p_buffer)->status);
+
+    m_previous_reply_received = false;
+    dsm_net_key_index_to_subnet_handle_ExpectAndReturn(message.netkey_index, 4);
+    dsm_beacon_info_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    dsm_subnet_kr_phase_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    proxy_is_enabled_ExpectAndReturn(true);
+    proxy_node_id_enable_ExpectAnyArgsAndReturn(NRF_ERROR_BUSY);
+
+    send_message(CONFIG_OPCODE_NODE_IDENTITY_SET, (const uint8_t *) &message, sizeof(message));
+    TEST_ASSERT_TRUE(m_previous_reply_received);
+    VERIFY_REPLY_OPCODE(CONFIG_OPCODE_NODE_IDENTITY_STATUS);
+    TEST_ASSERT_EQUAL(ACCESS_STATUS_TEMPORARILY_UNABLE_TO_CHANGE_STATE, ((config_msg_identity_status_t *) m_previous_reply.p_buffer)->status);
+#endif
 }
 
 void test_model_app_bind_unbind(void)
 {
+    config_server_evt_t evt;
+
     const config_msg_app_bind_unbind_t messages[2] =
     {
         {
@@ -1116,13 +1321,20 @@ void test_model_app_bind_unbind(void)
         dsm_handle_t appkey_handle = 15;
         dsm_appkey_index_to_appkey_handle_ExpectAndReturn(messages[i % 2].appkey_index, appkey_handle);
         access_flash_config_store_Expect();
+
         if (i < 2)
         {
+            evt.type = CONFIG_SERVER_EVT_MODEL_APP_BIND;
+            config_server_evt_mock_Expect(&evt);
+
             access_model_application_bind_ExpectAndReturn(model_handle, appkey_handle, NRF_SUCCESS);
             send_message(CONFIG_OPCODE_MODEL_APP_BIND, (const uint8_t *) &messages[i % 2], sizeof(messages[i % 2]) - sig_model * sizeof(uint16_t));
         }
         else
         {
+            evt.type = CONFIG_SERVER_EVT_MODEL_APP_UNBIND;
+            config_server_evt_mock_Expect(&evt);
+
             access_model_application_unbind_ExpectAndReturn(model_handle, appkey_handle, NRF_SUCCESS);
 
             access_model_publish_application_get_ExpectAnyArgsAndReturn(NRF_SUCCESS);
@@ -1147,6 +1359,9 @@ void test_model_app_bind_unbind(void)
 
 void test_friend_get(void)
 {
+#if MESH_FEATURE_FRIEND_ENABLED
+    mesh_friend_is_enabled_ExpectAndReturn(true);
+#endif
     send_message(CONFIG_OPCODE_FRIEND_GET, NULL, 0); /* Message with no parameters */
 
     TEST_ASSERT_TRUE(m_previous_reply_received);
@@ -1154,12 +1369,20 @@ void test_friend_get(void)
 
     TEST_ASSERT_NOT_NULL(mp_previous_reply_buffer);
     TEST_ASSERT_EQUAL(sizeof(config_msg_friend_status_t), m_previous_reply.length);
+#if MESH_FEATURE_FRIEND_ENABLED
+    TEST_ASSERT_EQUAL_UINT8(CONFIG_FRIEND_STATE_SUPPORTED_ENABLED, m_previous_reply.p_buffer[0]);
+#else
     TEST_ASSERT_EQUAL_UINT8(CONFIG_FRIEND_STATE_UNSUPPORTED, m_previous_reply.p_buffer[0]);
+#endif
 }
 
 void test_friend_set(void)
 {
     const config_msg_friend_set_t message = { .friend_state = CONFIG_FRIEND_STATE_SUPPORTED_ENABLED };
+#if MESH_FEATURE_FRIEND_ENABLED
+    mesh_friend_enable_Expect();
+    mesh_friend_is_enabled_ExpectAndReturn(true);
+#endif
     send_message(CONFIG_OPCODE_FRIEND_SET, (const uint8_t *) &message, sizeof(message));
 
     TEST_ASSERT_TRUE(m_previous_reply_received);
@@ -1167,7 +1390,11 @@ void test_friend_set(void)
 
     TEST_ASSERT_NOT_NULL(mp_previous_reply_buffer);
     TEST_ASSERT_EQUAL(sizeof(config_msg_friend_status_t), m_previous_reply.length);
+#if MESH_FEATURE_FRIEND_ENABLED
+    TEST_ASSERT_EQUAL_UINT8(CONFIG_FRIEND_STATE_SUPPORTED_ENABLED, m_previous_reply.p_buffer[0]);
+#else
     TEST_ASSERT_EQUAL_UINT8(CONFIG_FRIEND_STATE_UNSUPPORTED, m_previous_reply.p_buffer[0]);
+#endif
 }
 
 void test_key_refresh_phase_get(void)
@@ -1201,6 +1428,9 @@ void test_key_refresh_phase_get(void)
 
 void test_key_refresh_phase_set(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_KEY_REFRESH_PHASE_SET;
+
     send_message(CONFIG_OPCODE_KEY_REFRESH_PHASE_SET, NULL, 31); /* Invalid length */
     TEST_ASSERT_FALSE(m_previous_reply_received);
 
@@ -1251,6 +1481,11 @@ void test_key_refresh_phase_set(void)
                     break;
             }
 
+            if (is_replayed)
+            {
+                config_server_evt_mock_Expect(&evt);
+            }
+
             const config_msg_key_refresh_phase_set_t message = { netkey_index, transition };
             send_message(CONFIG_OPCODE_KEY_REFRESH_PHASE_SET, (const uint8_t *) &message, sizeof(message));
 
@@ -1275,6 +1510,9 @@ void test_key_refresh_phase_set(void)
 
 void test_subscription_add(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_ADD;
+
     const config_msg_subscription_add_del_owr_t messages[2] =
     {
         {
@@ -1309,6 +1547,8 @@ void test_subscription_add(void)
 
         access_model_subscription_add_ExpectAndReturn(model_handle, address_handle, NRF_SUCCESS);
         access_flash_config_store_Expect();
+
+        config_server_evt_mock_Expect(&evt);
 
         m_previous_reply_received = false;
         send_message(CONFIG_OPCODE_MODEL_SUBSCRIPTION_ADD, (const uint8_t *) &messages[i], sizeof(messages[i]) - sig_model * sizeof(uint16_t));
@@ -1362,6 +1602,9 @@ void test_reject_all_nodes_addr_subscription_add(void)
 
 void test_subscription_delete(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_DELETE;
+
     const config_msg_subscription_add_del_owr_t messages[2] =
     {
         {
@@ -1400,6 +1643,8 @@ void test_subscription_delete(void)
         dsm_address_subscription_remove_ExpectAndReturn(address_handle, NRF_SUCCESS);
         access_flash_config_store_Expect();
 
+        config_server_evt_mock_Expect(&evt);
+
         m_previous_reply_received = false;
         send_message(CONFIG_OPCODE_MODEL_SUBSCRIPTION_DELETE, (const uint8_t *) &messages[i], sizeof(messages[i]) - sig_model * sizeof(uint16_t));
 
@@ -1418,6 +1663,9 @@ void test_subscription_delete(void)
 
 void test_subscription_overwrite(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_OVERWRITE;
+
     const config_msg_subscription_add_del_owr_t messages[2] =
     {
         {
@@ -1464,6 +1712,8 @@ void test_subscription_overwrite(void)
         access_model_subscription_add_ExpectAndReturn(model_handle, address_handle, NRF_SUCCESS);
         access_flash_config_store_Expect();
 
+        config_server_evt_mock_Expect(&evt);
+
         m_previous_reply_received = false;
         send_message(CONFIG_OPCODE_MODEL_SUBSCRIPTION_OVERWRITE, (const uint8_t *) &messages[i], sizeof(messages[i]) - sig_model * sizeof(uint16_t));
 
@@ -1481,6 +1731,9 @@ void test_subscription_overwrite(void)
 
 void test_subscription_delete_all(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_DELETE_ALL;
+
     const config_msg_subscription_delete_all_t messages[2] =
     {
         {
@@ -1518,6 +1771,8 @@ void test_subscription_delete_all(void)
             dsm_address_subscription_remove_ExpectAndReturn(subscriptions[j], NRF_SUCCESS);
         }
 
+        config_server_evt_mock_Expect(&evt);
+
         access_flash_config_store_Expect();
         m_previous_reply_received = false;
         send_message(CONFIG_OPCODE_MODEL_SUBSCRIPTION_DELETE_ALL, (const uint8_t *) &messages[i], sizeof(messages[i]) - sig_model * sizeof(uint16_t));
@@ -1536,6 +1791,9 @@ void test_subscription_delete_all(void)
 
 void test_subscription_virtual_add(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_ADD;
+
     const config_msg_subscription_virtual_add_del_owr_t messages[] =
     {
         {
@@ -1576,6 +1834,8 @@ void test_subscription_virtual_add(void)
         dsm_address_get_IgnoreArg_p_address();
         dsm_address_get_ReturnThruPtr_p_address(&address);
 
+        config_server_evt_mock_Expect(&evt);
+
         m_previous_reply_received = false;
         send_message(CONFIG_OPCODE_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_ADD, (const uint8_t *) &messages[i], sizeof(messages[i]) - sig_model * sizeof(uint16_t));
 
@@ -1593,6 +1853,9 @@ void test_subscription_virtual_add(void)
 
 void test_subscription_virtual_overwrite(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_OVERWRITE;
+
     const config_msg_subscription_virtual_add_del_owr_t messages[] =
     {
         {
@@ -1645,6 +1908,8 @@ void test_subscription_virtual_overwrite(void)
         dsm_address_get_IgnoreArg_p_address();
         dsm_address_get_ReturnThruPtr_p_address(&address);
 
+        config_server_evt_mock_Expect(&evt);
+
         m_previous_reply_received = false;
         send_message(CONFIG_OPCODE_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_OVERWRITE, (const uint8_t *) &messages[i], sizeof(messages[i]) - sig_model * sizeof(uint16_t));
 
@@ -1662,6 +1927,9 @@ void test_subscription_virtual_overwrite(void)
 
 void test_subscription_virtual_delete(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_DELETE;
+
     const config_msg_subscription_virtual_add_del_owr_t messages[] =
     {
         {
@@ -1703,6 +1971,8 @@ void test_subscription_virtual_delete(void)
         access_model_subscription_remove_ExpectAndReturn(model_handle, address_handle, NRF_SUCCESS);
         access_flash_config_store_Expect();
         dsm_address_subscription_remove_ExpectAndReturn(address_handle, NRF_SUCCESS);
+
+        config_server_evt_mock_Expect(&evt);
 
         m_previous_reply_received = false;
         send_message(CONFIG_OPCODE_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_DELETE, (const uint8_t *) &messages[i], sizeof(messages[i]) - sig_model * sizeof(uint16_t));
@@ -1926,6 +2196,9 @@ void test_vendor_model_app_get(void)
 
 void test_network_transmit_set(void)
 {
+    config_server_evt_t evt;
+    evt.type = CONFIG_SERVER_EVT_NETWORK_TRANSMIT_SET;
+
     const uint8_t TRANSMIT_COUNT = 2;
     const uint8_t INTERVAL_STEPS = 3;
     const uint32_t INTERVAL_MS = 10 * (INTERVAL_STEPS + 1);
@@ -1945,6 +2218,8 @@ void test_network_transmit_set(void)
     mesh_opt_core_adv_get_ExpectAndReturn(CORE_TX_ROLE_ORIGINATOR, NULL, NRF_SUCCESS);
     mesh_opt_core_adv_get_IgnoreArg_p_entry();
     mesh_opt_core_adv_get_ReturnThruPtr_p_entry(&net_state);
+
+    config_server_evt_mock_Expect(&evt);
 
     send_message(CONFIG_OPCODE_NETWORK_TRANSMIT_SET, (const uint8_t *) &message, sizeof(message));
     TEST_ASSERT_TRUE(m_previous_reply_received);
@@ -1986,23 +2261,80 @@ void test_network_transmit_get(void)
 
 void test_polltimeout_get(void)
 {
-    const uint16_t lpn_address = 0x1234;
-    const config_msg_low_power_node_polltimeout_get_t message = {lpn_address};
+    const uint16_t lpn_address[4] = {NRF_MESH_ADDR_UNASSIGNED, 0x8234, 0xC234, 0x1234};
+    uint32_t poll_timeout = 0;
+    config_msg_low_power_node_polltimeout_get_t message;
 
     /* Invalid length testing */
+    message.lpn_address = lpn_address[3];
     send_message(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_GET, (const uint8_t *) &message, sizeof(message) + 1);
     TEST_ASSERT_FALSE(m_previous_reply_received);
 
-    send_message(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_GET, (const uint8_t *) &message, sizeof(message));
-    TEST_ASSERT_TRUE(m_previous_reply_received);
-    VERIFY_REPLY_OPCODE(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_STATUS);
+    for (uint32_t i = 0; i < ARRAY_SIZE(lpn_address); i++)
+    {
+        message.lpn_address = lpn_address[i];
+#if MESH_FEATURE_FRIEND_ENABLED
+        if (nrf_mesh_address_type_get(lpn_address[i]) == NRF_MESH_ADDRESS_TYPE_UNICAST)
+        {
+            poll_timeout = ~i;
+            friend_remaining_poll_timeout_time_get_ExpectAndReturn(lpn_address[i], poll_timeout);
+        }
+#endif
+        send_message(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_GET, (const uint8_t *) &message, sizeof(message));
 
-    TEST_ASSERT_EQUAL(sizeof(config_msg_low_power_node_polltimeout_status_t), m_previous_reply.length);
+        if (nrf_mesh_address_type_get(lpn_address[i]) != NRF_MESH_ADDRESS_TYPE_UNICAST)
+        {
+            TEST_ASSERT_FALSE(m_previous_reply_received);
+            continue;
+        }
 
-    const config_msg_low_power_node_polltimeout_status_t * p_reply =
-        (const config_msg_low_power_node_polltimeout_status_t *) m_previous_reply.p_buffer;
-    TEST_ASSERT_EQUAL(lpn_address, p_reply->lpn_address);
-    TEST_ASSERT_EQUAL(0, p_reply->msb_polltimeout);
-    TEST_ASSERT_EQUAL(0, p_reply->lsb_polltimeout);
+        TEST_ASSERT_TRUE(m_previous_reply_received);
+        VERIFY_REPLY_OPCODE(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_STATUS);
+
+        TEST_ASSERT_EQUAL(sizeof(config_msg_low_power_node_polltimeout_status_t), m_previous_reply.length);
+
+        const config_msg_low_power_node_polltimeout_status_t * p_reply =
+            (const config_msg_low_power_node_polltimeout_status_t *) m_previous_reply.p_buffer;
+        TEST_ASSERT_EQUAL(lpn_address[i], p_reply->lpn_address);
+        TEST_ASSERT_EQUAL_HEX8_ARRAY(&poll_timeout, p_reply->polltimeout, sizeof(p_reply->polltimeout));
+    }
 }
 
+void test_node_reset(void)
+{
+    config_server_evt_t expect_evt;
+    expect_evt.type = CONFIG_SERVER_EVT_NODE_RESET;
+
+    nrf_mesh_evt_t evt;
+
+    send_message(CONFIG_OPCODE_NODE_RESET, NULL, 0);
+
+    TEST_ASSERT_TRUE(m_previous_reply_received);
+    VERIFY_REPLY_OPCODE(CONFIG_OPCODE_NODE_RESET_STATUS);
+
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    proxy_is_connected_ExpectAndReturn(true);
+    proxy_stop_ExpectAndReturn(NRF_SUCCESS);
+
+    /* Send TX_COMPLETE event */
+    evt.type = NRF_MESH_EVT_TX_COMPLETE;
+    evt.params.tx_complete.token = UNIQUE_TOKEN;
+    mp_mesh_evt_handler->evt_cb(&evt);
+
+    /* Send PROXY_STOPPED event */
+    config_server_evt_mock_Expect(&expect_evt);
+    mesh_stack_config_clear_Expect();
+    flash_manager_is_stable_ExpectAndReturn(true);
+    evt.type = NRF_MESH_EVT_PROXY_STOPPED;
+    mp_mesh_evt_handler->evt_cb(&evt);
+#else
+    /* Send TX_COMPLETE event */
+    config_server_evt_mock_Expect(&expect_evt);
+    mesh_stack_config_clear_Expect();
+    flash_manager_is_stable_ExpectAndReturn(true);
+
+    evt.type = NRF_MESH_EVT_TX_COMPLETE;
+    evt.params.tx_complete.token = UNIQUE_TOKEN;
+    mp_mesh_evt_handler->evt_cb(&evt);
+#endif
+}

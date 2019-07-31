@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -142,4 +142,253 @@ void test_peek(void)
     TEST_ASSERT_EQUAL_PTR(&elems[2].queue_elem, queue_peek(&q));
     TEST_ASSERT_EQUAL_PTR(&elems[2].queue_elem, queue_peek(&q));
     TEST_ASSERT_EQUAL_PTR(&elems[2].queue_elem, queue_pop(&q));
+}
+
+void test_merge(void)
+{
+    queue_t q;
+    queue_init(&q);
+    queue_elem_t elems[6];
+
+    queue_t q2;
+    queue_init(&q2);
+
+    // Merge two empty queues, both should remain empty:
+    queue_merge(&q, &q2);
+    TEST_ASSERT_NULL(queue_peek(&q));
+    TEST_ASSERT_NULL(queue_peek(&q2));
+
+    // Merge a non-empty queue into an empty queue:
+    queue_push(&q2, &elems[0]);
+    queue_push(&q2, &elems[1]);
+    queue_push(&q2, &elems[2]);
+    queue_merge(&q, &q2);
+    TEST_ASSERT_NULL(queue_peek(&q2)); // should be emptied
+    TEST_ASSERT_EQUAL_PTR(&elems[0], queue_pop(&q));
+    TEST_ASSERT_EQUAL_PTR(&elems[1], queue_pop(&q));
+    TEST_ASSERT_EQUAL_PTR(&elems[2], queue_pop(&q));
+
+    // Merge a non-empty queue into a non-empty queue:
+    queue_push(&q, &elems[0]);
+    queue_push(&q, &elems[1]);
+    queue_push(&q, &elems[2]);
+    queue_push(&q2, &elems[3]);
+    queue_push(&q2, &elems[4]);
+    queue_push(&q2, &elems[5]);
+    queue_merge(&q, &q2);
+    TEST_ASSERT_NULL(queue_peek(&q2)); // should be emptied
+    TEST_ASSERT_EQUAL_PTR(&elems[0], queue_pop(&q));
+    TEST_ASSERT_EQUAL_PTR(&elems[1], queue_pop(&q));
+    TEST_ASSERT_EQUAL_PTR(&elems[2], queue_pop(&q));
+    TEST_ASSERT_EQUAL_PTR(&elems[3], queue_pop(&q));
+    TEST_ASSERT_EQUAL_PTR(&elems[4], queue_pop(&q));
+    TEST_ASSERT_EQUAL_PTR(&elems[5], queue_pop(&q));
+
+    // Merge an empty queue into a non-empty queue:
+    queue_push(&q, &elems[0]);
+    queue_push(&q, &elems[1]);
+    queue_push(&q, &elems[2]);
+    queue_merge(&q, &q2);
+    TEST_ASSERT_NULL(queue_peek(&q2)); // should be emptied
+    TEST_ASSERT_EQUAL_PTR(&elems[0], queue_pop(&q));
+    TEST_ASSERT_EQUAL_PTR(&elems[1], queue_pop(&q));
+    TEST_ASSERT_EQUAL_PTR(&elems[2], queue_pop(&q));
+}
+
+void test_iterator(void)
+{
+    queue_t q;
+    queue_init(&q);
+
+    // empty queue, shouldn't even visit the iteration scope:
+    QUEUE_FOREACH(&q, it)
+    {
+        TEST_FAIL();
+    }
+
+    // add some elements
+    queue_elem_t elems[6];
+    queue_push(&q, &elems[0]);
+    queue_push(&q, &elems[1]);
+    queue_push(&q, &elems[2]);
+    queue_push(&q, &elems[3]);
+    queue_push(&q, &elems[4]);
+    queue_push(&q, &elems[5]);
+
+    // Should hit all the elements in order:
+    uint32_t i = 0;
+    QUEUE_FOREACH(&q, it)
+    {
+        TEST_ASSERT_TRUE(i < ARRAY_SIZE(elems));
+        TEST_ASSERT_EQUAL_PTR(&elems[i++], *it.pp_elem);
+    }
+    TEST_ASSERT_EQUAL(ARRAY_SIZE(elems), i);
+}
+
+void test_elem_remove(void)
+{
+    queue_t q;
+    queue_elem_t elems[6];
+
+    // Test all possible elements for removal:
+    for (uint32_t remove_index = 0; remove_index < ARRAY_SIZE(elems); ++remove_index)
+    {
+        queue_init(&q);
+        queue_push(&q, &elems[0]);
+        queue_push(&q, &elems[1]);
+        queue_push(&q, &elems[2]);
+        queue_push(&q, &elems[3]);
+        queue_push(&q, &elems[4]);
+        queue_push(&q, &elems[5]);
+
+        // Iterate through the queue and remove the element at the remove index
+        uint32_t i = 0;
+        QUEUE_FOREACH(&q, it)
+        {
+            TEST_ASSERT_TRUE(i < ARRAY_SIZE(elems));
+            TEST_ASSERT_EQUAL_PTR(&elems[i], *it.pp_elem);
+
+            if (i == remove_index)
+            {
+                queue_iterator_elem_remove(&it);
+                // should have moved over to the next element already:
+                if (i < ARRAY_SIZE(elems) - 1)
+                {
+                    TEST_ASSERT_EQUAL_PTR(&elems[i + 1], *it.pp_elem);
+                }
+                else
+                {
+                    TEST_ASSERT_EQUAL_PTR(NULL, *it.pp_elem);
+                }
+            }
+            i++;
+        }
+        TEST_ASSERT_EQUAL(ARRAY_SIZE(elems), i);
+        // Should still be N - 1 elements left:
+        for (uint32_t i = 0; i < ARRAY_SIZE(elems) - 1; ++i)
+        {
+            TEST_ASSERT_NOT_NULL(queue_pop(&q));
+        }
+        TEST_ASSERT_NULL(queue_pop(&q));
+    }
+
+    // Remove all the elements:
+    queue_init(&q);
+    queue_push(&q, &elems[0]);
+    queue_push(&q, &elems[1]);
+    queue_push(&q, &elems[2]);
+    queue_push(&q, &elems[3]);
+    queue_push(&q, &elems[4]);
+    queue_push(&q, &elems[5]);
+
+    // Iterate through the queue and remove the element at the remove index
+    uint32_t i = 0;
+    QUEUE_FOREACH(&q, it)
+    {
+        TEST_ASSERT_TRUE(i < ARRAY_SIZE(elems));
+        TEST_ASSERT_EQUAL_PTR(&elems[i], *it.pp_elem);
+        queue_iterator_elem_remove(&it);
+        i++;
+    }
+    TEST_ASSERT_EQUAL(ARRAY_SIZE(elems), i);
+
+    // Remove the back element:
+    queue_init(&q);
+    queue_push(&q, &elems[0]);
+    queue_push(&q, &elems[1]);
+    queue_push(&q, &elems[2]);
+    queue_push(&q, &elems[3]);
+    queue_push(&q, &elems[4]);
+    queue_push(&q, &elems[5]);
+
+    queue_elem_iterator_t it = QUEUE_ITERATOR_END(&q);
+    queue_iterator_elem_remove(&it);
+
+    // Removed the last element:
+    i = 0;
+    QUEUE_FOREACH(&q, it)
+    {
+        TEST_ASSERT_EQUAL_PTR(&elems[i], *it.pp_elem);
+        i++;
+    }
+    TEST_ASSERT_EQUAL(ARRAY_SIZE(elems) - 1, i);
+
+    // Re-add the last element:
+    queue_push(&q, &elems[5]);
+
+    // Should have been added successfully:
+    i = 0;
+    QUEUE_FOREACH(&q, it)
+    {
+        TEST_ASSERT_EQUAL_PTR(&elems[i], *it.pp_elem);
+        i++;
+    }
+    TEST_ASSERT_EQUAL(ARRAY_SIZE(elems), i);
+
+    // Remove all the elements this way:
+    i = 0;
+    while (queue_peek(&q) != NULL)
+    {
+        queue_elem_iterator_t it = QUEUE_ITERATOR_END(&q);
+        queue_iterator_elem_remove(&it);
+        i++;
+    }
+    TEST_ASSERT_EQUAL(ARRAY_SIZE(elems), i);
+
+}
+
+void test_elem_insert(void)
+{
+    queue_t q;
+    queue_elem_t elems[6];
+
+    // Test all possible elements for insertion:
+    for (uint32_t insert_index = 0; insert_index < ARRAY_SIZE(elems); ++insert_index)
+    {
+        queue_init(&q);
+        queue_push(&q, &elems[0]);
+        queue_push(&q, &elems[1]);
+        queue_push(&q, &elems[2]);
+        queue_push(&q, &elems[3]);
+        queue_push(&q, &elems[4]);
+        queue_push(&q, &elems[5]);
+
+        queue_elem_t insert_elem;
+
+        // Iterate through the queue and insert the element at the insert index
+        uint32_t i = 0;
+        uint32_t j = 0;
+        QUEUE_FOREACH(&q, it)
+        {
+            TEST_ASSERT_TRUE(i < ARRAY_SIZE(elems) + 1);
+
+            if (i == insert_index)
+            {
+                queue_iterator_elem_insert(&it, &insert_elem);
+                // should stay at the inserted element:
+                TEST_ASSERT_EQUAL_PTR(&insert_elem, *it.pp_elem);
+            }
+            else
+            {
+                TEST_ASSERT_EQUAL_PTR(&elems[j++], *it.pp_elem);
+            }
+            i++;
+        }
+        TEST_ASSERT_EQUAL(ARRAY_SIZE(elems) + 1, i);
+
+        // Should have N + 1 elements now:
+        for (uint32_t i = 0; i < insert_index; ++i)
+        {
+            TEST_ASSERT_EQUAL_PTR(&elems[i], queue_pop(&q));
+        }
+
+        TEST_ASSERT_EQUAL_PTR(&insert_elem, queue_pop(&q));
+
+        for (uint32_t i = insert_index; i < ARRAY_SIZE(elems); ++i)
+        {
+            TEST_ASSERT_EQUAL_PTR(&elems[i], queue_pop(&q));
+        }
+
+        TEST_ASSERT_NULL(queue_pop(&q));
+    }
 }

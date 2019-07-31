@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -252,7 +252,7 @@ uint32_t dsm_address_subscription_add_handle(dsm_handle_t address_handle);
 /**
  * Returns whether the given address_handle is in the global subscription list.
  *
- * @deprecated This function is deprecated, and the more general @ref dsm_address_is_rx
+ * @deprecated This function is deprecated, and the more general @ref nrf_mesh_is_address_rx
  * should be used instead.
  *
  * @param[in] address_handle The reserved handle of the address.
@@ -264,11 +264,14 @@ _DEPRECATED bool dsm_address_subscription_get(dsm_handle_t address_handle);
 /**
  * Returns whether the device will process packets received on the given destination address.
  *
+ * @deprecated This function is deprecated, and the more general @ref nrf_mesh_is_address_rx
+ * should be used instead.
+ *
  * @param[in] p_addr The raw address to check for.
  *
  * @returns Whether the device will process packets received on the given destination address.
  */
-bool dsm_address_is_rx(const nrf_mesh_address_t * p_addr);
+_DEPRECATED bool dsm_address_is_rx(const nrf_mesh_address_t * p_addr);
 
 /**
  * Returns the number of subscriptions registered for an address in the global subscription list.
@@ -699,7 +702,7 @@ uint32_t dsm_appkey_get_all(dsm_handle_t subnet_handle, mesh_key_index_t * p_key
  */
 uint32_t dsm_tx_secmat_get(dsm_handle_t subnet_handle, dsm_handle_t app_handle, nrf_mesh_secmat_t * p_secmat);
 
-#if MESH_FEATURE_LPN_ENABLED
+#if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
 /**
  * Retrieves the necessary application and friendship network security material for sending a mesh packet.
  *

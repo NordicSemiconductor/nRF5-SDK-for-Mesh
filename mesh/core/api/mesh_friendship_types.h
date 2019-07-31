@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -94,6 +94,24 @@ typedef enum
     MESH_FRIENDSHIP_MIN_FRIEND_QUEUE_SIZE_64         = 6,
     MESH_FRIENDSHIP_MIN_FRIEND_QUEUE_SIZE_128        = 7
 } mesh_friendship_min_friend_queue_size_t;
+
+typedef struct
+{
+    uint16_t src;               /**< LPN source address. */
+    uint16_t prev_friend_src;   /**< Source of the previous Friend. */
+    uint16_t element_count;     /**< Number of elements in the LPN. */
+    uint16_t request_count;     /**< Number of Friend Requests sent by the LPN. */
+} mesh_friendship_lpn_t;
+
+typedef struct
+{
+    mesh_friendship_lpn_t lpn;  /**< Low Power node data. */
+    uint32_t poll_timeout_ms;   /**< Poll Timeout in milliseconds. */
+    uint32_t poll_count;        /**< Number of polls received from the LPN. */
+    uint8_t receive_delay_ms;   /**< Delay before the receive window starts, in milliseconds. */
+    uint8_t receive_window_ms;  /**< Length of the LPN's Receive Window in milliseconds. */
+    int8_t avg_rssi;            /**< Average RSSI of the LPN messages received. */
+} mesh_friendship_t;
 
 /** @} end of MESH_FRIENDSHIP_TYPES */
 

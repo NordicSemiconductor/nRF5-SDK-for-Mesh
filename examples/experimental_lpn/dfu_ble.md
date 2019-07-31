@@ -4,7 +4,7 @@ Device Firmware Upgrade (DFU) over BLE is the process that provides ability to u
 SoftDevice, and bootloader through BLE.
 
 While this example is closely related to the @ref md_examples_experimental_lpn_README, it is not related
-to the nRF5 SDK for Mesh DFU functionality described in @ref md_doc_getting_started_dfu_quick_start.
+to the nRF5 SDK for Mesh DFU functionality described in @ref md_doc_libraries_dfu_dfu_quick_start.
 The Mesh DFU is not normally suitable for the LPN device, because it requires an always-on radio, which
 increases power consumption significantly. For this reason, the LPN example uses the DFU solution
 of the nRF5 SDK, which is GATT-based. In particular, it uses the following features of the nRF5 SDK
@@ -41,11 +41,11 @@ Performing DFU over BLE using PC requires one @link_nrf52dk, in addition to the 
 ## Software requirements @anchor examples_lpn_dfu_ble_requirements_sw
 
 Install the following additional tools:
-- @link_nrfutil_nrf5_sdk for generating the application signature and the firmware package. See @link_nrfutil_installing
+- @link_ic_nrfutil for generating the application signature and the firmware package. See @link_nrfutil_installing
 for details.
 - Depending on whether you want to perform DFU using mobile or PC:
     - @link_nRFConnectMobile (@link_nrf_connect_mobile_ios or @link_nrf_connect_mobile_android) for performing DFU using a mobile phone.
-    - @link_nrf_connect_for_desktop for performing DFU using a PC.
+    - @link_nRFConnectDesktop for performing DFU using a PC.
 
 
 ---
@@ -160,7 +160,7 @@ To perform the DFU transfer over BLE using a mobile phone:
 **PC**<br>
 To perform the DFU transfer over BLE using PC:
 1. Plug in the one additional PCA10040 Development Kit.
-2. Add "Bluetooth Low Energy" app to @link_nrf_connect_for_desktop.
+2. Add "Bluetooth Low Energy" app to @link_nRFConnectDesktop.
 3. Select the development kit you plugged in.
 4. Launch "Bluetooth Low Energy" app.
 5. Scan for a target device and connect to it:

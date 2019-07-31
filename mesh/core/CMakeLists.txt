@@ -48,6 +48,7 @@ set(MESH_CORE_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/lpn.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/core_tx_lpn.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_lpn_subman.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core_tx_local.c"
 
     # uri.c is not in use.
     # It is an optional feature to include
@@ -66,6 +67,13 @@ if (EXPERIMENTAL_INSTABURST_ENABLED)
 else()
     set(MESH_CORE_SOURCE_FILES ${MESH_CORE_SOURCE_FILES}
         "${CMAKE_CURRENT_SOURCE_DIR}/src/core_tx_adv.c")
+endif()
+
+if (MESH_FEATURE_FRIEND_ENABLED)
+    set(MESH_CORE_SOURCE_FILES ${MESH_CORE_SOURCE_FILES}
+    "${CMAKE_CURRENT_SOURCE_DIR}/../friend/src/friend.c")
+    set(MESH_CORE_INCLUDE_DIRS ${MESH_CORE_INCLUDE_DIRS}
+    "${CMAKE_CURRENT_SOURCE_DIR}/../friend/include")
 endif()
 
 if (MESH_MEM_BACKEND STREQUAL "stdlib")
@@ -148,13 +156,21 @@ set(lint_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../dfu/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../access/api
     ${CMAKE_CURRENT_SOURCE_DIR}/../test/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../friend/include
     ${CMAKE_SOURCE_DIR}/examples/templates
     ${CMAKE_SOURCE_DIR}/external/rtt/include
     ${${SOFTDEVICE}_INCLUDE_DIRS}
     ${${PLATFORM}_INCLUDE_DIRS}
     ${${nRF5_SDK_VERSION}_INCLUDE_DIRS})
 
+set(LINT_FEATURE_INCLUSION_DEFINES
+    "-DMESH_FRIEND_FEATURE_ENABLED=1"
+    "-DMESH_FEATURE_LPN_ENABLED=1")
+
+set(lint_optional_feature_include_dirs
+    "${CMAKE_CURRENT_SOURCE_DIR}/../friend/include")
+
 add_pc_lint(mesh_core_${PLATFORM}
-    "${MESH_CORE_SOURCE_FILES}"
-    "${lint_include_dirs}"
-    "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES}")
+    "${MESH_CORE_SOURCE_FILES};"
+    "${lint_include_dirs};${lint_optional_feature_include_dirs}"
+    "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${LINT_FEATURE_INCLUSION_DEFINES}")

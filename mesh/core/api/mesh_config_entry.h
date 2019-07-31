@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -112,50 +112,6 @@
          .max_count   = MAX_COUNT,                                                                                  \
          .callbacks   = {SET_CB, GET_CB, DELETE_CB},                                                                \
          .p_state     = m_##NAME##_state}
-
-/**
- * A variation of @ref MESH_CONFIG_ENTRY that also stores the state.
- *
- * Instantiates a static variable to store the data in, as well as generic setter and getter
- * functions to operate on the data. The user can define an entry sanitation expression that is
- * expected to evaluate to true if the entry is valid and false if it carries an illegal value.
- *
- * Entry sanitation example:
- *
- * @code{.c}
- * IS_IN_RANGE(p_entry->tx_interval, 0, TX_INTERVAL_MAX)
- * @endcode
- *
- * @param[in] NAME              Name of the entry and its variables.
- * @param[in] ID                Unique mesh configuration ID.
- * @param[in] MAX_COUNT         Max number of entries.
- * @param[in] DATA_TYPE         The data type of the state.
- * @param[in] ENTRY_SANITATION  Boolean expression used to validate an entry. The entry is
- *                              instantiated as a constant pointer of type @c DATA_TYPE named @c p_entry.
- * @param[in] HAS_DEFAULT_VALUE Flag for indicating that the entry has a default value that it can
- *                              return before the user explicitly sets it.
- */
-#define MESH_CONFIG_ENTRY_IMPLEMENTATION(NAME, ID, MAX_COUNT, DATA_TYPE, ENTRY_SANITATION, HAS_DEFAULT_VALUE)               \
-    static DATA_TYPE m_##NAME[(MAX_COUNT)];                                                                                 \
-    static uint32_t NAME##_set(mesh_config_entry_id_t id, const void * p_entry_param)                                       \
-    {                                                                                                                       \
-        const DATA_TYPE * p_entry = p_entry_param;                                                                          \
-        bool params_are_valid     = (ENTRY_SANITATION);                                                                     \
-        if (params_are_valid)                                                                                               \
-        {                                                                                                                   \
-            memcpy(&m_##NAME[id.record - (ID).record], p_entry, sizeof(DATA_TYPE));                                         \
-            return NRF_SUCCESS;                                                                                             \
-        }                                                                                                                   \
-        else                                                                                                                \
-        {                                                                                                                   \
-            return NRF_ERROR_INVALID_DATA;                                                                                  \
-        }                                                                                                                   \
-    }                                                                                                                       \
-    static void NAME##_get(mesh_config_entry_id_t id, void * p_entry)                                                       \
-    {                                                                                                                       \
-        memcpy(p_entry, &m_##NAME[id.record - (ID).record], sizeof(DATA_TYPE));                                             \
-    }                                                                                                                       \
-    MESH_CONFIG_ENTRY(NAME, (ID), (MAX_COUNT), sizeof(DATA_TYPE), NAME##_set, NAME##_get, NULL, HAS_DEFAULT_VALUE)
 
 /**
  * Defines a type safe API wrapper for a configuration entry.

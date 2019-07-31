@@ -32,6 +32,13 @@
  * @defgroup MESH_API_GROUP_CORE   Core
  * Core mesh modules, implementing mesh message passing.
  *
+ * @defgroup MESH_API_GROUP_FRIEND   Friend role
+ * Mesh modules that implement the Friend feature.
+ *
+ * The APIs for the Friend role are used internally by the mesh stack.
+ * The Friend feature for the application can be enabled by setting 
+ * @ref MESH_FEATURE_FRIEND_ENABLED define to 1.
+ *
  * @defgroup MESH_API_GROUP_BEARER Bearer
  * Bearer-layer module, providing a Bluetooth communication medium for the mesh.
  *

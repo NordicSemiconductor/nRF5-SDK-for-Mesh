@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -65,9 +65,12 @@
 #define ELEMENT_IDX_ONOFF_CLIENT1       (1)
 #define ELEMENT_IDX_ONOFF_CLIENT2       (2)
 
-#define ATTENTION_DURATION_S (5)
+#define ATTENTION_DURATION_S            (5)
 
-#define PROVISIONER_RETRY_COUNT  (2)
+#define PROVISIONER_RETRY_COUNT         (2)
+
+#define NETWORK_TRANSMIT_COUNT          (2)
+#define NETWORK_TRANSMIT_INTERVAL_STEPS (1)
 
 /** @} end of LIGHT_SWT_V2 */
 

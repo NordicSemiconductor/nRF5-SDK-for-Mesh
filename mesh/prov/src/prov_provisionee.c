@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -57,6 +57,8 @@
 #define PROV_DEBUG_MODE 0
 #endif
 
+#define SECURE_PROVISIONING_MIN_AUTH_SIZE    (6)
+
 /****************** Call-back function declarations ******************/
 static void prov_provisionee_pkt_in(prov_bearer_t * p_bearer, const uint8_t * p_buffer, uint16_t length);
 static void prov_provisionee_cb_ack_received(prov_bearer_t * p_bearer);
@@ -73,22 +75,27 @@ static const prov_bearer_callbacks_t m_prov_callbacks =
 /****************** Local functions ******************/
 static void send_failed(nrf_mesh_prov_ctx_t * p_ctx, nrf_mesh_prov_failure_code_t failure_code)
 {
-    nrf_mesh_prov_evt_t app_event;
-    p_ctx->failure_code = failure_code;
-    app_event.type = NRF_MESH_PROV_EVT_FAILED;
-    app_event.params.failed.p_context =  p_ctx;
-    app_event.params.failed.failure_code = failure_code;
-    if (NRF_SUCCESS == prov_tx_failed(p_ctx->p_active_bearer, p_ctx->failure_code))
-    {
-        p_ctx->event_handler(&app_event);
-        p_ctx->state = NRF_MESH_PROV_STATE_FAILED;
-    }
-    else
+    if (NRF_SUCCESS != prov_tx_failed(p_ctx->p_active_bearer, failure_code))
     {
         p_ctx->p_active_bearer->p_interface->link_close(
             p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
-        p_ctx->event_handler(&app_event);
+    }
+
+    /* Don't post the same event multiple times. */
+    if (p_ctx->state != NRF_MESH_PROV_STATE_FAILED)
+    {
+        nrf_mesh_prov_evt_t app_event;
+        app_event.type = NRF_MESH_PROV_EVT_FAILED;
+        app_event.params.failed.p_context =  p_ctx;
+        app_event.params.failed.failure_code = failure_code;
+
+        /* Set the original failure code. Every PDU received from this
+         * point will result in an NRF_MESH_PROV_FAILURE_CODE_UNEXPECTED_PDU.
+         */
+        p_ctx->failure_code = failure_code;
         p_ctx->state = NRF_MESH_PROV_STATE_FAILED;
+
+        p_ctx->event_handler(&app_event);
     }
 }
 
@@ -112,6 +119,68 @@ static uint32_t send_capabilities(nrf_mesh_prov_ctx_t * p_ctx)
 
     return prov_tx_capabilities(p_ctx->p_active_bearer, &pdu, p_ctx->confirmation_inputs);
 }
+
+#if NRF_MESH_PROV_FORCE_SECURE_PROVISIONING
+/* Secure Provisioning requires any of the following methods: */
+/* 1) FIPS P-256 Elliptic Curve Algorithm (validated elsewhere), a Public Key Type that is not transferred in
+ * band (i.e., ”OOB Public Key is used” is selected), and a Static OOB of any size.
+ */
+static inline bool secure_provisioning_with_pubkeyoob_and_staticoob(const prov_pdu_prov_start_t * p_pdu)
+{
+    return (p_pdu->public_key == NRF_MESH_PROV_PUBLIC_KEY_OOB && p_pdu->auth_method == NRF_MESH_PROV_OOB_METHOD_STATIC);
+}
+
+/* or,
+ * 2) FIPS P-256 Elliptic Curve Algorithm (validated elsewhere); OOB Action of Input Numeric, Input Alphanumeric,
+ * Output Numeric, or Output Alphanumeric; and OOB Size of at least 6 octets.
+ */
+static inline bool secure_provisioning_with_oob_input_or_ouput(const prov_pdu_prov_start_t * p_pdu)
+{
+    return (
+              (
+               (
+                (
+                 p_pdu->auth_method == NRF_MESH_PROV_OOB_METHOD_OUTPUT
+                )
+                &&
+                (
+                 p_pdu->auth_action == NRF_MESH_PROV_OUTPUT_ACTION_DISPLAY_NUMERIC ||
+                 p_pdu->auth_action == NRF_MESH_PROV_OUTPUT_ACTION_ALPHANUMERIC
+                )
+               )
+               ||
+               (
+                (
+                 p_pdu->auth_method == NRF_MESH_PROV_OOB_METHOD_INPUT
+                )
+                &&
+                (
+                 p_pdu->auth_action == NRF_MESH_PROV_INPUT_ACTION_ENTER_NUMBER ||
+                 p_pdu->auth_action == NRF_MESH_PROV_INPUT_ACTION_ENTER_STRING
+                )
+               )
+              )
+
+              &&
+
+              (
+               p_pdu->auth_size >= SECURE_PROVISIONING_MIN_AUTH_SIZE
+              )
+           );
+}
+
+static inline bool secure_provisioning_request_check(const prov_pdu_prov_start_t * p_pdu)
+{
+    if (secure_provisioning_with_pubkeyoob_and_staticoob(p_pdu) ||
+        secure_provisioning_with_oob_input_or_ouput(p_pdu))
+    {
+        return true;
+    }
+
+    /* Requested authentication method is not secure. */
+    return false;
+}
+#endif
 
 static uint32_t handle_prov_start(nrf_mesh_prov_ctx_t * p_ctx, const uint8_t * p_buffer)
 {
@@ -150,6 +219,16 @@ static uint32_t handle_prov_start(nrf_mesh_prov_ctx_t * p_ctx, const uint8_t * p
     {
         return NRF_ERROR_INVALID_LENGTH;
     }
+
+#if NRF_MESH_PROV_FORCE_SECURE_PROVISIONING
+    /* Check if the secure provisioning is requested by the provisioner.
+     * Note: Check for FIPS P-256 Elliptic Curve Algorithm is already done earlier in this function.
+     */
+    if (!secure_provisioning_request_check(p_pdu))
+    {
+        return NRF_ERROR_FORBIDDEN;
+    }
+#endif
 
     /* Copy PDU contents (excluding PDU type) into the confirmation inputs: */
     memcpy(p_ctx->confirmation_inputs + PROV_CONFIRM_INPUTS_START_OFFSET, p_buffer + 1, sizeof(prov_pdu_prov_start_t) - 1);
@@ -301,90 +380,98 @@ static void start_authentication(nrf_mesh_prov_ctx_t * p_ctx)
 static void prov_provisionee_pkt_in(prov_bearer_t * p_bearer, const uint8_t * p_buffer, uint16_t length)
 {
     nrf_mesh_prov_ctx_t * p_ctx = prov_bearer_ctx_get(p_bearer);
+    const prov_pdu_type_t pdu_type = (prov_pdu_type_t) p_buffer[0];
 
-    if (!prov_packet_length_valid(p_buffer, length))
+    if (!prov_packet_length_valid(p_buffer, length) || pdu_type >= PROV_PDU_TYPE_INVALID)
     {
         send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_INVALID_PDU);
+        return;
+    }
+    else if (!prov_utils_is_valid_pdu(p_ctx->role, p_ctx->state, pdu_type))
+    {
+        __LOG(LOG_SRC_PROV, LOG_LEVEL_DBG1, "Got unexpected PDU %u in state %u\n", pdu_type, p_ctx->state);
+        send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_UNEXPECTED_PDU);
         return;
     }
 
     switch (p_buffer[0])
     {
         case PROV_PDU_TYPE_INVITE:
-            if (p_ctx->state == NRF_MESH_PROV_STATE_INVITE)
-            {
+        {
 #if PROV_DEBUG_MODE
-                __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisionee: invite received!\n");
+            __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisionee: invite received!\n");
 #endif
-                /* Copy PDU contents (excluding PDU type) into the confirmation inputs: */
-                memcpy(p_ctx->confirmation_inputs + PROV_CONFIRM_INPUTS_INVITE_OFFSET, p_buffer + 1, sizeof(prov_pdu_invite_t) - 1);
+            /* Copy PDU contents (excluding PDU type) into the confirmation inputs: */
+            memcpy(p_ctx->confirmation_inputs + PROV_CONFIRM_INPUTS_INVITE_OFFSET, p_buffer + 1, sizeof(prov_pdu_invite_t) - 1);
 
-                const prov_pdu_invite_t * p_invite = (const prov_pdu_invite_t *) p_buffer;
+            const prov_pdu_invite_t * p_invite = (const prov_pdu_invite_t *) p_buffer;
 
-                nrf_mesh_prov_evt_t event;
-                event.type = NRF_MESH_PROV_EVT_INVITE_RECEIVED;
-                event.params.invite_received.p_context = p_ctx;
-                event.params.invite_received.attention_duration_s = p_invite->attention_duration_s;
+            nrf_mesh_prov_evt_t event;
+            event.type = NRF_MESH_PROV_EVT_INVITE_RECEIVED;
+            event.params.invite_received.p_context = p_ctx;
+            event.params.invite_received.attention_duration_s = p_invite->attention_duration_s;
+            p_ctx->event_handler(&event);
+
+            if (NRF_SUCCESS != send_capabilities(p_ctx))
+            {
+                send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_OUT_OF_RESOURCES);
+            }
+            break;
+        }
+        case PROV_PDU_TYPE_START:
+        {
+#if PROV_DEBUG_MODE
+            __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisionee: provisioning start message received!\n");
+#endif
+            if (NRF_SUCCESS != handle_prov_start(p_ctx, p_buffer))
+            {
+                send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT);
+                break;
+            }
+
+            nrf_mesh_prov_evt_t event;
+            event.type = NRF_MESH_PROV_EVT_START_RECEIVED;
+            event.params.start_received.p_context = p_ctx;
+            p_ctx->event_handler(&event);
+
+            p_ctx->state = NRF_MESH_PROV_STATE_WAIT_PUB_KEY;
+            if (p_ctx->pubkey_oob)
+            {
+                memset(&event, 0, sizeof(nrf_mesh_prov_evt_t));
+
+                event.type = NRF_MESH_PROV_EVT_OOB_PUBKEY_REQUEST;
+                event.params.oob_pubkey_request.p_context = p_ctx;
                 p_ctx->event_handler(&event);
+            }
+            break;
+        }
+        case PROV_PDU_TYPE_PUBLIC_KEY:
+        {
+#if PROV_DEBUG_MODE
+            __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisionee: public key message received!\n");
+#endif
+            const prov_pdu_pubkey_t * p_pdu = (const prov_pdu_pubkey_t *) p_buffer;
+            if (!prov_utils_is_valid_public_key(p_pdu->public_key))
+            {
+                send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT);
+                break;
+            }
 
-                if (NRF_SUCCESS != send_capabilities(p_ctx))
+            memcpy(p_ctx->peer_public_key, p_pdu->public_key, NRF_MESH_PROV_PUBKEY_SIZE);
+
+            if (!p_ctx->pubkey_oob)
+            {
+                if (NRF_SUCCESS != prov_tx_public_key(p_ctx->p_active_bearer, p_ctx->p_public_key))
                 {
                     send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_OUT_OF_RESOURCES);
-                    break;
                 }
             }
-            break;
-        case PROV_PDU_TYPE_START:
-            if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_START)
+            else
             {
-#if PROV_DEBUG_MODE
-                __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisionee: provisioning start message received!\n");
-#endif
-                if (NRF_SUCCESS != handle_prov_start(p_ctx, p_buffer))
-                {
-                    send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT);
-                    break;
-                }
-
-                nrf_mesh_prov_evt_t event;
-                event.type = NRF_MESH_PROV_EVT_START_RECEIVED;
-                event.params.start_received.p_context = p_ctx;
-                p_ctx->event_handler(&event);
-
-                p_ctx->state = NRF_MESH_PROV_STATE_WAIT_PUB_KEY;
-                if (p_ctx->pubkey_oob)
-                {
-                    memset(&event, 0, sizeof(nrf_mesh_prov_evt_t));
-
-                    event.type = NRF_MESH_PROV_EVT_OOB_PUBKEY_REQUEST;
-                    event.params.oob_pubkey_request.p_context = p_ctx;
-                    p_ctx->event_handler(&event);
-                }
+                start_authentication(p_ctx);
             }
             break;
-        case PROV_PDU_TYPE_PUBLIC_KEY:
-            if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_PUB_KEY)
-            {
-#if PROV_DEBUG_MODE
-                __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisionee: public key message received!\n");
-#endif
-                const prov_pdu_pubkey_t * p_pdu = (const prov_pdu_pubkey_t *) p_buffer;
-                memcpy(p_ctx->peer_public_key, p_pdu->public_key, NRF_MESH_PROV_PUBKEY_SIZE);
-
-                if (!p_ctx->pubkey_oob)
-                {
-                    if (NRF_SUCCESS != prov_tx_public_key(p_ctx->p_active_bearer, p_ctx->p_public_key))
-                    {
-                        send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_OUT_OF_RESOURCES);
-                        break;
-                    }
-                }
-                else
-                {
-                    start_authentication(p_ctx);
-                }
-            }
-            break;
+        }
         case PROV_PDU_TYPE_CONFIRMATION:
             if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_CONFIRMATION)
             {
@@ -402,7 +489,6 @@ static void prov_provisionee_pkt_in(prov_bearer_t * p_bearer, const uint8_t * p_
                     /* NRF_ERROR_NO_MEM is the only expected error code */
                     NRF_MESH_ASSERT(NRF_ERROR_NO_MEM == err_code);
                     send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_OUT_OF_RESOURCES);
-                    break;
                 }
             }
             else if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_OOB_STATIC)
@@ -414,83 +500,58 @@ static void prov_provisionee_pkt_in(prov_bearer_t * p_bearer, const uint8_t * p_
                 memcpy(p_ctx->peer_confirmation, p_pdu->confirmation, sizeof(p_ctx->peer_confirmation));
                 p_ctx->state = NRF_MESH_PROV_STATE_WAIT_OOB_STATIC_C_RCVD;
             }
-
             break;
         case PROV_PDU_TYPE_RANDOM:
-            if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_RANDOM)
-            {
-#if PROV_DEBUG_MODE
-                __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisionee: provisioner's random number received!\n");
-#endif
-                const prov_pdu_random_t * p_pdu = (const prov_pdu_random_t *) p_buffer;
-                memcpy(p_ctx->peer_random, p_pdu->random, sizeof(p_pdu->random));
-
-                if (!prov_utils_confirmation_check(p_ctx))
-                {
-#if PROV_DEBUG_MODE
-                    __LOG(LOG_SRC_PROV, LOG_LEVEL_WARN, "Provisionee: could not authenticate provisioner!\n");
-#endif
-                    send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_CONFIRMATION_FAILED);
-                }
-                else if (NRF_SUCCESS == prov_tx_random(p_ctx->p_active_bearer, p_ctx->node_random))
-                {
-                    prov_utils_derive_keys(p_ctx, p_ctx->session_key, p_ctx->data_nonce, p_ctx->device_key);
-                }
-                else
-                {
-                    send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_OUT_OF_RESOURCES);
-                }
-            }
-            break;
-        case PROV_PDU_TYPE_DATA:
-            if (p_ctx->state == NRF_MESH_PROV_STATE_WAIT_DATA)
-            {
-#if PROV_DEBUG_MODE
-                __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisionee: received provisioning data!\n");
-#endif
-                if (NRF_SUCCESS != handle_data(p_ctx, p_buffer))
-                {
-                    send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_DECRYPTION_FAILED);
-                }
-                else if (!prov_data_is_valid(&p_ctx->data))
-                {
-                    send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT);
-                }
-                else if (!prov_address_is_valid(&p_ctx->data, p_ctx->capabilities.num_elements))
-                {
-                    send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_CANNOT_ASSIGN_ADDR);
-                }
-                else if (NRF_SUCCESS != prov_tx_complete(p_ctx->p_active_bearer))
-                {
-                    send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_OUT_OF_RESOURCES);
-                }
-            }
-            break;
-        case PROV_PDU_TYPE_FAILED:
         {
-            const prov_pdu_failed_t * p_pdu = (const prov_pdu_failed_t *) p_buffer;
+#if PROV_DEBUG_MODE
+            __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisionee: provisioner's random number received!\n");
+#endif
+            const prov_pdu_random_t * p_pdu = (const prov_pdu_random_t *) p_buffer;
+            memcpy(p_ctx->peer_random, p_pdu->random, sizeof(p_pdu->random));
 
-            nrf_mesh_prov_evt_t app_event;
-            app_event.type = NRF_MESH_PROV_EVT_FAILED;
-            app_event.params.failed.p_context =  p_ctx;
-            app_event.params.failed.failure_code = (nrf_mesh_prov_failure_code_t) p_pdu->failure_code;
-            p_ctx->event_handler(&app_event);
-
-            p_ctx->state = NRF_MESH_PROV_STATE_FAILED;
-
+            if (!prov_utils_confirmation_check(p_ctx))
+            {
+#if PROV_DEBUG_MODE
+                __LOG(LOG_SRC_PROV, LOG_LEVEL_WARN, "Provisionee: could not authenticate provisioner!\n");
+#endif
+                send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_CONFIRMATION_FAILED);
+            }
+            else if (NRF_SUCCESS == prov_tx_random(p_ctx->p_active_bearer, p_ctx->node_random))
+            {
+                prov_utils_derive_keys(p_ctx, p_ctx->session_key, p_ctx->data_nonce, p_ctx->device_key);
+            }
+            else
+            {
+                send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_OUT_OF_RESOURCES);
+            }
             break;
         }
-        default:
-            if (p_ctx->state != NRF_MESH_PROV_STATE_FAILED)
-            {
+        case PROV_PDU_TYPE_DATA:
 #if PROV_DEBUG_MODE
-                __LOG(LOG_SRC_PROV, LOG_LEVEL_WARN, "Provisioning: unknown provisioning message received, type = %.02x\n", p_buffer[0]);
+            __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Provisionee: received provisioning data!\n");
 #endif
-                send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_INVALID_PDU);
+            if (NRF_SUCCESS != handle_data(p_ctx, p_buffer))
+            {
+                send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_DECRYPTION_FAILED);
+            }
+            else if (!prov_data_is_valid(&p_ctx->data))
+            {
+                send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT);
+            }
+            else if (!prov_address_is_valid(&p_ctx->data, p_ctx->capabilities.num_elements))
+            {
+                send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_CANNOT_ASSIGN_ADDR);
+            }
+            else if (NRF_SUCCESS != prov_tx_complete(p_ctx->p_active_bearer))
+            {
+                send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_OUT_OF_RESOURCES);
             }
             break;
-    }
 
+        default:
+            NRF_MESH_ASSERT(false);
+            break;
+    }
 }
 
 static void complete_provisioning(nrf_mesh_prov_ctx_t * p_ctx)
@@ -532,8 +593,7 @@ static void prov_provisionee_cb_ack_received(prov_bearer_t * p_bearer)
             p_ctx->state = NRF_MESH_PROV_STATE_COMPLETE;
             break;
         case NRF_MESH_PROV_STATE_FAILED:
-            p_ctx->p_active_bearer->p_interface->link_close(
-                p_ctx->p_active_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_ERROR);
+            __LOG(LOG_SRC_PROV, LOG_LEVEL_INFO, "Got ACK for failed PDU. Waiting for Link Close\n");
             break;
         default:
             __LOG(LOG_SRC_PROV, LOG_LEVEL_ERROR, "Provisionee: unexpected ack while in state %u\n", p_ctx->state);

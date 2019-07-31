@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -50,9 +50,8 @@
 #include "fsm_assistant.h"
 #include "nrf_mesh_assert.h"
 
-#define REMAINING_TIME(pserver)             ((pserver)->state.transition_time_ms - MODEL_TIMER_PERIOD_MS_GET(model_timer_elapsed_ticks_get(&(pserver)->timer)))
-#define TRANSITION_TIME_COMPLETE(pserver)   (MODEL_TIMER_PERIOD_MS_GET(model_timer_elapsed_ticks_get(&(pserver)->timer)) >= (pserver)->state.transition_time_ms)
 #define ELAPSED_TIME(pserver)               (MODEL_TIMER_PERIOD_MS_GET(model_timer_elapsed_ticks_get(&(pserver)->timer)))
+#define TRANSITION_TIME_COMPLETE(pserver)   (MODEL_TIMER_PERIOD_MS_GET(model_timer_elapsed_ticks_get(&(pserver)->timer)) >= (pserver)->state.transition_time_ms)
 
 /* Forward declaration */
 static void generic_level_state_get_cb(const generic_level_server_t * p_self,
@@ -163,7 +162,7 @@ static const fsm_transition_t m_app_level_fsm_transition_table[] =
     FSM_TRANSITION(E_DELTA_SET,       FSM_OTHERWISE,      A_TRANSITION_COMPLETE,S_IDLE),
     FSM_TRANSITION(E_MOVE_SET,        G_SET_DELAY,        A_DELAY_START,        S_IN_DELAY),
     FSM_TRANSITION(E_MOVE_SET,        G_SET_TRANSITION,   A_TRANSITION_START,   S_IN_TRANSITION),
-    FSM_TRANSITION(E_MOVE_SET,        FSM_OTHERWISE,      FSM_NO_ACTION,        S_IDLE)
+    FSM_TRANSITION(E_MOVE_SET,        FSM_OTHERWISE,      A_TRANSITION_COMPLETE,S_IDLE)
 };
 
 #if FSM_DEBUG
@@ -228,6 +227,16 @@ static bool app_level_fsm_guard(fsm_guard_id_t guard_id, void * p_data)
 /***** State machine functions *****/
 /* Note: The task of this state machine is to implement gradual changes of `present_level` value
  * for all possible time intervals and step size combinations allowed by the level model */
+
+static inline bool fsm_in_delay_check(fsm_t * p_fsm)
+{
+    return (p_fsm->current_state == S_IN_DELAY);
+}
+
+static inline bool fsm_in_idle_check(fsm_t * p_fsm)
+{
+    return (p_fsm->current_state == S_IDLE);
+}
 
 static void a_delay_start(void * p_data)
 {
@@ -300,7 +309,7 @@ static void a_transition_tick(void * p_data)
         /* Calculate new value using linear interpolation and provide to the application. */
         int32_t delta = (p_server->state.target_level - p_server->state.params.set.initial_present_level);
         p_server->state.present_level = p_server->state.params.set.initial_present_level +
-                                        (delta * (int32_t)ELAPSED_TIME(p_server) / (int32_t)p_server->state.transition_time_ms);
+                                        (delta * (int64_t)ELAPSED_TIME(p_server) / (int64_t)p_server->state.transition_time_ms);
     }
     else
     {
@@ -320,7 +329,10 @@ static void a_transition_complete(void * p_data)
     model_timer_abort(&p_server->timer);
     p_server->state.transition_time_ms = 0;
 
-    p_server->state.present_level = p_server->state.target_level;
+    if (p_server->state.transition_type != TRANSITION_MOVE_SET)
+    {
+        p_server->state.present_level = p_server->state.target_level;
+    }
 
     generic_level_status_params_t status_params;
     status_params.present_level = p_server->state.present_level;
@@ -346,15 +358,16 @@ static bool g_set_transition(void * p_data)
     {
         /* Requirement: If transition time is not within valid range, do not start the transition. */
         case TRANSITION_SET:
-            return (p_server->state.transition_time_ms > 0 && p_server->state.params.move.required_move != 0);
         case TRANSITION_DELTA_SET:
-            return (p_server->state.transition_time_ms > 0 && p_server->state.params.set.required_delta != 0);
+            return (p_server->state.transition_time_ms > 0 &&
+                    p_server->state.transition_time_ms != MODEL_TRANSITION_TIME_UNKNOWN &&
+                    p_server->state.params.set.required_delta != 0);
 
         /* Requirement: If transition time is not within valid range, or given move level (delta level)
         is zero, do not start the transition. */
         case TRANSITION_MOVE_SET:
             return (p_server->state.transition_time_ms > 0 &&
-                    p_server->state.transition_time_ms != MODEL_TRANSITION_TIME_INVALID &&
+                    p_server->state.transition_time_ms != MODEL_TRANSITION_TIME_UNKNOWN &&
                     p_server->state.params.move.required_move != 0);
         default:
             return false;
@@ -393,21 +406,23 @@ static void generic_level_state_get_cb(const generic_level_server_t * p_self,
     p_out->target_level = p_server->state.target_level;
 
     /* Requirement: Report remaining time during processing of SET or DELTA SET,
-     *              Report transition time during processing of MOVE */
+     *              Report zero/unknown transition time during processing of MOVE. */
     if (p_server->state.transition_type == TRANSITION_MOVE_SET)
+    {
+        p_out->remaining_time_ms = (p_server->state.transition_time_ms == 0) ?
+                                    0 : MODEL_TRANSITION_TIME_UNKNOWN;
+    }
+    else if (fsm_in_idle_check(&p_server->fsm))
+    {
+        p_out->remaining_time_ms = 0;
+    }
+    else if (fsm_in_delay_check(&p_server->fsm))
     {
         p_out->remaining_time_ms = p_server->state.transition_time_ms;
     }
     else
     {
-        if (TRANSITION_TIME_COMPLETE(p_server))
-        {
-            p_out->remaining_time_ms = 0;
-        }
-        else
-        {
-            p_out->remaining_time_ms = REMAINING_TIME(p_server);
-        }
+        p_out->remaining_time_ms = p_server->state.transition_time_ms - ELAPSED_TIME(p_server);
     }
 }
 
@@ -543,23 +558,11 @@ static void generic_level_state_move_set_cb(const generic_level_server_t * p_sel
         {
             p_server->state.transition_time_ms = *p_server->p_dtt_ms;
         }
-
-        p_server->state.target_level = p_server->state.present_level;
     }
     else
     {
         p_server->state.delay_ms = p_in_transition->delay_ms;
-
-        /* Requirement: If transition time is out of range, transition cannot be started. However
-        this must be stored to respond correctly to the get messages. */
-        if (p_in_transition->transition_time_ms > TRANSITION_TIME_STEP_100MS_MAX)
-        {
-            p_server->state.transition_time_ms = MODEL_TRANSITION_TIME_INVALID;
-        }
-        else
-        {
-            p_server->state.transition_time_ms = p_in_transition->transition_time_ms;
-        }
+        p_server->state.transition_time_ms = p_in_transition->transition_time_ms;
     }
 
     /* Requirement: For the status message: The target Generic Level state is the upper limit of
@@ -588,7 +591,10 @@ static void generic_level_state_move_set_cb(const generic_level_server_t * p_sel
     {
         p_out->present_level = p_server->state.present_level;
         p_out->target_level = p_server->state.target_level;
-        p_out->remaining_time_ms = p_server->state.transition_time_ms;
+        /* Reponse to Move Set message is sent with unknown transition time value, if
+        given transition time is non-zero. */
+        p_out->remaining_time_ms = (p_server->state.transition_time_ms == 0) ?
+                                    0 : MODEL_TRANSITION_TIME_UNKNOWN;
     }
 }
 

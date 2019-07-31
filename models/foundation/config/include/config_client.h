@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -515,7 +515,7 @@ uint32_t config_client_default_ttl_set(uint8_t ttl);
 uint32_t config_client_relay_get(void);
 
 /**
- * Sends a relay state get request.
+ * Sends a relay state set request.
  *
  * @note Response: @ref CONFIG_OPCODE_RELAY_STATUS
  *
@@ -531,6 +531,35 @@ uint32_t config_client_relay_get(void);
  *                                 and @ref CONFIG_RETRANSMIT_INTERVAL_STEPS_MAX.
  */
 uint32_t config_client_relay_set(config_relay_state_t relay_state, uint8_t retransmit_count, uint8_t retransmit_interval_steps);
+
+/**
+ * Sends a network transmit get request.
+ *
+ * @note Response: @ref CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS
+ *
+ * @retval NRF_SUCCESS             Successfully sent request.
+ * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
+ * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
+ * @retval NRF_ERROR_INVALID_STATE Client not initialized.
+ */
+uint32_t config_client_network_transmit_get(void);
+
+/**
+ * Sends a network transmit set request.
+ *
+ * @note Response: @ref CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS
+ *
+ * @param[in] transmit_count          Number of times to re-transmit originated packets.
+ * @param[in] transmit_interval_steps Number of 10 ms steps between each re-transmission.
+ *
+ * @retval NRF_SUCCESS             Successfully sent request.
+ * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
+ * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
+ * @retval NRF_ERROR_INVALID_STATE Client not initialized.
+ * @retval NRF_ERROR_INVALID_PARAM Invalid parameter values. See @ref CONFIG_RETRANSMIT_COUNT_MAX
+ *                                 and @ref CONFIG_RETRANSMIT_INTERVAL_STEPS_MAX.
+ */
+uint32_t config_client_network_transmit_set(uint8_t transmit_count, uint8_t transmit_interval_steps);
 
 /**
  * Sends a secure network beacon state get request.

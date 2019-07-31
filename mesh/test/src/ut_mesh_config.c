@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -93,7 +93,7 @@ static entry_t m_entries[NRF_SECTION_ENTRIES + EXTRA_ENTRIES];
 static entry_t m_load_entries[NRF_SECTION_ENTRIES];
 static bool m_active[NRF_SECTION_ENTRIES + EXTRA_ENTRIES];
 static mesh_config_backend_evt_cb_t m_backend_evt_cb;
-static const mesh_config_entry_id_t m_invalid_id = MESH_CONFIG_ENTRY_ID(0, 0);
+static const mesh_config_entry_id_t m_invalid_id = {0, 0};
 
 static uint32_t entry_set(mesh_config_entry_id_t id, const void * p_entry);
 static void entry_get(mesh_config_entry_id_t id, void * p_entry);

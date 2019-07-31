@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -107,7 +107,7 @@ static int32_t m_pwm0_present_level;
  */
 static inline uint16_t scaled_pwm_ticks_get(int16_t raw_level)
 {
-    return (uint16_t)(((int32_t)(m_pwm0_present_level - INT16_MIN) * m_pwm0_max)/UINT16_MAX);
+    return (uint16_t)(((int32_t)(raw_level - INT16_MIN) * m_pwm0_max)/UINT16_MAX);
 }
 
 /* Callback for updating the hardware state */

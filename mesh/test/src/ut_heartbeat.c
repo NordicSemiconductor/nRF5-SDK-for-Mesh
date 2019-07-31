@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -55,9 +55,11 @@
 #include "mesh_config_listener.h"
 #include "mesh_opt_core.h"
 #include "mesh_opt_gatt.h"
+#include "mesh_opt_friend.h"
 
 #define UT_ADDRESS_UNASSIGNED_SAMPLE    (0x0000)
 
+#define UT_ADDRESS_LOCAL                (0x0001)
 #define UT_ADDRESS_UNICAST_SAMPLE       (0x7FFF)
 #define UT_ADDRESS_UNICAST_SAMPLE2      (0x0FFF)
 #define UT_ADDRESS_UNICAST_SAMPLE3      (0x00FF)
@@ -126,6 +128,7 @@ static const heartbeat_publication_state_t * mp_hb_pub;
 
 extern mesh_config_listener_t m_heartbeat_relay_listener;
 extern mesh_config_listener_t m_heartbeat_proxy_listener;
+extern mesh_config_listener_t m_heartbeat_friend_listener;
 
 /*****************************************************************************/
 /** Mock STUB functions */
@@ -180,12 +183,6 @@ static void event_handler_add_stub(nrf_mesh_evt_handler_t * p_handler_params, in
     TEST_ASSERT_NOT_NULL(p_handler_params);
     TEST_ASSERT_NOT_NULL(p_handler_params->evt_cb);
     m_event_handler.evt_cb = p_handler_params->evt_cb;
-}
-
-/** Trigger the callback from local structure */
-static void event_handle_stub(const nrf_mesh_evt_t * p_evt)
-{
-    m_event_handler.evt_cb(p_evt);
 }
 
 static uint32_t ut_mock_config_server_hb_pub_params_get_ret_success(heartbeat_publication_information_t * p_pub_info)
@@ -630,6 +627,23 @@ void test_heartbeat_core_evt_cb_indirect_feat_change(void)
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_pdu.pdu, m_generated_hb_pdu.pdu, m_generated_hb_pdu_len);
     TEST_ASSERT_EQUAL(init_hb_count, hb_pub.count);
 
+    /* Test friend feature trigger */
+    hb_pub.features |= HEARTBEAT_TRIGGER_TYPE_FRIEND;
+    timer_sch_abort_ExpectAnyArgs();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+
+    m_heartbeat_friend_listener.callback(MESH_CONFIG_CHANGE_REASON_SET,
+                                         MESH_OPT_FRIEND_EID,
+                                         &entry.enabled);
+    TEST_ASSERT_EQUAL(3, m_transport_control_tx_stub_cnt);
+    expected_pdu.pdu[0] = hb_pub.ttl;
+    expected_pdu.pdu[1] = 0x00;
+    expected_pdu.pdu[2] = HEARTBEAT_TRIGGER_TYPE_RELAY | HEARTBEAT_TRIGGER_TYPE_PROXY
+            | HEARTBEAT_TRIGGER_TYPE_FRIEND;
+
+    // Test the generated message, and ensure that count is not decremented
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_pdu.pdu, m_generated_hb_pdu.pdu, m_generated_hb_pdu_len);
+    TEST_ASSERT_EQUAL(init_hb_count, hb_pub.count);
 }
 
 /** Test that the publication is able to recover from errors in transport_tx by using TX_COMPLETE */
@@ -658,13 +672,13 @@ void test_transport_tx_error_recover(void)
 
     // will retry on TX COMPLETE. Reject it this time as well.
     transport_control_tx_ExpectAnyArgsAndReturn(NRF_ERROR_NO_MEM);
-    event_handle_stub(&m_tx_complete_evt);
+    m_event_handler.evt_cb(&m_tx_complete_evt);
     // Counter is not decremented in the retry:
     TEST_ASSERT_EQUAL(hb_pub.count - 1, heartbeat_publication_get()->count);
 
     // will retry on TX COMPLETE. This time it works
     transport_control_tx_StubWithCallback(transport_control_tx_stub);
-    event_handle_stub(&m_tx_complete_evt);
+    m_event_handler.evt_cb(&m_tx_complete_evt);
     // Counter is not decremented in the retry:
     TEST_ASSERT_EQUAL(hb_pub.count - 1, heartbeat_publication_get()->count);
     TEST_ASSERT_EQUAL(m_transport_control_tx_stub_cnt, 1);
@@ -681,11 +695,11 @@ void test_transport_tx_error_recover(void)
                                         &entry);
     // will retry on TX COMPLETE. Reject it this time as well.
     transport_control_tx_ExpectAnyArgsAndReturn(NRF_ERROR_NO_MEM);
-    event_handle_stub(&m_tx_complete_evt);
+    m_event_handler.evt_cb(&m_tx_complete_evt);
 
     // will retry on TX COMPLETE. This time it works
     transport_control_tx_StubWithCallback(transport_control_tx_stub);
-    event_handle_stub(&m_tx_complete_evt);
+    m_event_handler.evt_cb(&m_tx_complete_evt);
     // Counter is not decremented in the retry:
     TEST_ASSERT_EQUAL(hb_pub.count - 1, heartbeat_publication_get()->count);
     TEST_ASSERT_EQUAL(m_transport_control_tx_stub_cnt, 2);
@@ -756,15 +770,21 @@ void test_heartbeat_on_feature_change_reject(void)
                                              MESH_OPT_GATT_PROXY_EID,
                                              &enabled);
 
-    // TODO: Test2: DO NOT Trigger on HEARTBEAT_TRIGGER_TYPE_FRIEND
+    // Test2: DO NOT Trigger on HEARTBEAT_TRIGGER_TYPE_FRIEND
     // request heartbeat message due to change in feature state
+    m_heartbeat_friend_listener.callback(MESH_CONFIG_CHANGE_REASON_SET,
+                                         MESH_OPT_FRIEND_EID,
+                                         &enabled);
 
     // Test3: DO NOT Trigger on HEARTBEAT_TRIGGER_TYPE_LPN
     // request heartbeat message due to change in feature state
-    nrf_mesh_evt_t friendship_evt = {
-        .type = NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED,
-    };
-    event_handle_stub(&friendship_evt);
+    nrf_mesh_evt_t friendship_evt;
+    friendship_evt.params.friendship_established.role = NRF_MESH_FRIENDSHIP_ROLE_LPN;
+    friendship_evt.type = NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED;
+    m_event_handler.evt_cb(&friendship_evt);
+    friendship_evt.type = NRF_MESH_EVT_FRIENDSHIP_TERMINATED;
+    m_event_handler.evt_cb(&friendship_evt);
+
     // No functions are expected to be called, since HB is not triggered internally
     TEST_ASSERT_EQUAL(m_transport_control_tx_stub_cnt, 0);
 }
@@ -1121,4 +1141,48 @@ void test_publish_load(void)
     memset(&hb_pub, 0, sizeof(hb_pub)); // expect it to stay at initial value
     TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
 
+}
+
+void test_lpn_establishment(void)
+{
+    helper_do_heartbeat_init(ut_mock_config_server_hb_pub_params_get_ret_success);
+    transport_control_tx_StubWithCallback(transport_control_tx_stub);
+
+    // Setup publication state to known values, without periodic trigger
+    heartbeat_publication_state_t hb_pub;
+    hb_pub.dst          = UT_ADDRESS_UNICAST_SAMPLE;
+    hb_pub.count        = 0;
+    hb_pub.period       = 0x0000;            // this must be zero
+    hb_pub.ttl          = 0x7F;
+    hb_pub.features     = HEARTBEAT_TRIGGER_TYPE_LPN | HEARTBEAT_TRIGGER_TYPE_FRIEND;
+    hb_pub.netkey_index = 0;
+    timer_sch_abort_ExpectAnyArgs();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, heartbeat_publication_set(&hb_pub));
+    TEST_ASSERT_EQUAL_heartbeat_publication_state_t(hb_pub, *heartbeat_publication_get());
+
+    /* Trigger heartbeat. */
+    bool enabled = true;
+    m_heartbeat_friend_listener.callback(MESH_CONFIG_CHANGE_REASON_SET,
+                                         MESH_OPT_FRIEND_EID,
+                                         &enabled);
+    TEST_ASSERT_EQUAL(1, m_transport_control_tx_stub_cnt);
+    m_transport_control_tx_stub_cnt = 0;
+
+    /* Friend friendship established, _FRIENDSHIP_ events should not trigger heartbeat. */
+    nrf_mesh_evt_t friendship_evt;
+    friendship_evt.params.friendship_established.role = NRF_MESH_FRIENDSHIP_ROLE_FRIEND;
+    friendship_evt.type = NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED;
+    m_event_handler.evt_cb(&friendship_evt);
+    friendship_evt.type = NRF_MESH_EVT_FRIENDSHIP_TERMINATED;
+    m_event_handler.evt_cb(&friendship_evt);
+    TEST_ASSERT_EQUAL(0, m_transport_control_tx_stub_cnt);
+
+    /* LPN friendship established, _FRIENDSHIP_ evets should trigger heartbeat. */
+    friendship_evt.params.friendship_established.role = NRF_MESH_FRIENDSHIP_ROLE_LPN;
+    friendship_evt.type = NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED;
+    m_event_handler.evt_cb(&friendship_evt);
+    friendship_evt.type = NRF_MESH_EVT_FRIENDSHIP_TERMINATED;
+    m_event_handler.evt_cb(&friendship_evt);
+    TEST_ASSERT_EQUAL(2, m_transport_control_tx_stub_cnt);
+    m_transport_control_tx_stub_cnt = 0;
 }

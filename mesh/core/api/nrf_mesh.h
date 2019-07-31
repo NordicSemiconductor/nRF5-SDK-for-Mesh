@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -64,6 +64,16 @@
 /** The upper border of the token values which are used for general communication. */
 #define NRF_MESH_SERVICE_BORDER_TOKEN   0xF0000000ul
 /** Reserved token values. */
+
+/**
+ * Beginning of the reserved friendship token range.
+ *
+ * Used by the Core TX Friend to resolve the Friend Bearer.
+ */
+#define NRF_MESH_FRIEND_TOKEN_BEGIN     0xFFFFFE00ul
+/** End of the reserved friendship token range. */
+#define NRF_MESH_FRIEND_TOKEN_END       0xFFFFFEFFul
+
 #define NRF_MESH_FRIEND_POLL_TOKEN      0xFFFFFFF8ul
 #define NRF_MESH_FRIEND_REQUEST_TOKEN   0xFFFFFFF9ul
 #define NRF_MESH_FRIEND_CLEAR_TOKEN     0xFFFFFFFAul
@@ -99,8 +109,6 @@ typedef enum
 {
     NRF_MESH_RX_SOURCE_SCANNER, /**< The packet came from the scanner. */
     NRF_MESH_RX_SOURCE_GATT,    /**< The packet came from a GATT connection. */
-    NRF_MESH_RX_SOURCE_FRIEND,  /**< The packet came from a friend node. */
-    NRF_MESH_RX_SOURCE_LOW_POWER,  /**< The packet came from a low power node. */
     NRF_MESH_RX_SOURCE_INSTABURST,  /**< The packet came from an Instaburst event. */
     NRF_MESH_RX_SOURCE_LOOPBACK,  /**< The packet came from this device. */
 } nrf_mesh_rx_source_t;
@@ -286,7 +294,11 @@ typedef struct
 typedef struct
 {
     /** Rolling number of beacons received in each preceding period. */
-    uint16_t rx_count[NRF_MESH_BEACON_OBSERVATION_PERIODS];
+    uint16_t rx_count;
+    /** Counter of broadcast intervals. Used to measure the observation period. */
+    uint8_t observation_count;
+    /** Actual beacon interval at the moment. */
+    uint16_t interval;
     /** Last transmission time for this beacon. */
     timestamp_t tx_timestamp;
 } nrf_mesh_beacon_tx_info_t;
@@ -385,8 +397,11 @@ typedef enum
 /**
  * Mesh packet transmission parameters.
  *
- * @note If the length of the message is greater than @ref NRF_MESH_UNSEG_PAYLOAD_SIZE_MAX, the
- * message will be sent as a segmented message and reassembled on the peer side.
+ * @note The message will be sent as a segmented message and reassembled on the peer side if one of
+ * the following conditions are true:
+ * - The length of the message is greater than @ref NRF_MESH_UNSEG_PAYLOAD_SIZE_MAX.
+ * - The @p force_segmented field is true.
+ * - The @p transmic_size is @ref NRF_MESH_TRANSMIC_SIZE_LARGE.
  */
 typedef struct
 {
@@ -415,7 +430,7 @@ typedef struct
  */
 typedef struct
 {
-#if (defined(S140) || defined(S130) || defined(S132) || defined(S112) || defined(HOST))
+#if (defined(S140) || defined(S130) || defined(S132) || defined(S112) || defined(S113) || defined(HOST))
     nrf_clock_lf_cfg_t lfclksrc; /**< See nrf_sdm.h or SoftDevice documentation. */
 #elif defined(S110)
     nrf_clock_lfclksrc_t lfclksrc; /**< See nrf_sdm.h or SoftDevice documentation. */

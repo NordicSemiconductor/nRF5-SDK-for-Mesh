@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -69,8 +69,6 @@ static uint32_t timeout_update_and_schedule(model_timer_t * p_timer)
 {
     uint32_t status;
 
-    p_timer->total_rtc_ticks += app_timer_cnt_diff_compute(app_timer_cnt_get(), p_timer->last_rtc_stamp);
-    p_timer->last_rtc_stamp = app_timer_cnt_get();
     if ((p_timer->remaining_ticks) > MODEL_TIMER_MAX_TIMEOUT_TICKS)
     {
         p_timer->remaining_ticks -= APP_TIMER_MAX_TIMEOUT;
@@ -92,6 +90,9 @@ static void model_timer_cb(void * p_context)
     model_timer_t * p_timer = (model_timer_t *) p_context;
 
     NRF_MESH_ASSERT(p_timer->cb != NULL);
+
+    p_timer->total_rtc_ticks += app_timer_cnt_diff_compute(app_timer_cnt_get(), p_timer->last_rtc_stamp);
+    p_timer->last_rtc_stamp = app_timer_cnt_get();
 
     if (p_timer->remaining_ticks == 0)
     {
@@ -160,7 +161,7 @@ uint32_t model_transition_time_decode(uint8_t enc_transition_time)
 
     if ((enc_transition_time & ~TRANSITION_TIME_STEP_MASK) == TRANSITION_TIME_UNKNOWN)
     {
-        return 0;
+        return MODEL_TRANSITION_TIME_UNKNOWN;
     }
 
     switch(enc_transition_time & TRANSITION_TIME_STEP_MASK)

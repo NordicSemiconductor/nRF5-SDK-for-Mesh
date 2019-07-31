@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -252,8 +252,8 @@ static void handle_cmd_device_beacon_params_set(const serial_packet_t * p_cmd)
     {
         advertiser_t * p_adv = &m_beacons[p_cmd->payload.cmd.device.beacon_params_set.beacon_slot].advertiser;
         advertiser_interval_set(p_adv, p_cmd->payload.cmd.device.beacon_params_set.interval_ms);
-        advertiser_channels_t ch = {0};
-        ch.count = 0;
+        advertiser_channels_t ch;
+        memset(&ch, 0, sizeof(ch));
         for (uint32_t i = 0; i < 3; ++i)
         {
             if (p_cmd->payload.cmd.device.beacon_params_set.channel_map & (1 << i))
@@ -261,7 +261,6 @@ static void handle_cmd_device_beacon_params_set(const serial_packet_t * p_cmd)
                 ch.channel_map[ch.count++] = 37 + i;
             }
         }
-        ch.randomize_order = false;
         advertiser_channels_set(p_adv, &ch);
         status = NRF_SUCCESS;
     }

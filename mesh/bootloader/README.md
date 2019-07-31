@@ -1,9 +1,7 @@
-# nRF5 SDK for Mesh Bootloader
+# Mesh Bootloader
 
-*The mesh bootloader for over-the-mesh Direct Firmware Updates*
-
-The mesh bootloader enables mesh devices to update their application, SoftDevice or bootloader
-across a mesh network. The bootloader is capable of relaying while receiving, allowing all
+The nRF5 SDK for Mesh Bootloader enables mesh devices to update their application, SoftDevice, or bootloader
+across a mesh network with over-the-mesh Direct Firmware Updates. The bootloader is capable of relaying while receiving, allowing all
 devices in the mesh network to receive the update at the same time.
 
 The bootloader supports DFU transfers occurring while the application is running, significantly
@@ -15,7 +13,7 @@ reducing application downtime during updates.
 - [Requirements](@ref bootloader_requirements)
 - [Usage](@ref bootloader_usage)
 - [DFU Signing](@ref bootloader_dfu_signing)
-- [Side-by-side DFU](@ref bootloader_side_side_dfu)
+- [Background DFU](@ref bootloader_side_side_dfu)
     - [The shared DFU module](@ref bootloader_side_side_dfu_shared)
 - [Limitations](@ref bootloader_limitations)
 
@@ -57,7 +55,7 @@ with `CMAKE_BUILD_TYPE` equal to `MinSizeRel` for it to fit within its flash siz
 ## Usage @anchor bootloader_usage
 
 To get started with the Mesh-DFU, see the
-[DFU Quick start guide](@ref md_doc_getting_started_dfu_quick_start). It is recommended that all
+[Mesh DFU Quick start guide](@ref md_doc_libraries_dfu_dfu_quick_start). It is recommended that all
 new users go through this guide, and use the steps as a basis for their DFU procedure.
 
 The bootloader supports both serial and over the air transfers. The intended
@@ -88,7 +86,7 @@ use a single signing key for each application, or use the same key for all appli
 ---
 
 
-## Side-by-side DFU @anchor bootloader_side_side_dfu
+## Background DFU @anchor bootloader_side_side_dfu
 
 The mesh bootloader is capable of receiving and relaying DFU transfers while the application is
 running. When a transfer has finished, the DFU module goes idle, and notifies the application of

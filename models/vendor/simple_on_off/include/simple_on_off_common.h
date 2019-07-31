@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -60,7 +60,7 @@
  * the server will publish its state to its publish address every time its state changes.
  *
  * For more information about creating models, see
- * @ref md_doc_getting_started_how_to_models.
+ * @ref md_doc_libraries_how_to_models.
  *
  * Model Identification
  * @par

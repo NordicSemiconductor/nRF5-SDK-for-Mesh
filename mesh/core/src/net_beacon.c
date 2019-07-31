@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -57,15 +57,17 @@
 
 /** Highest number of received beacons to keep track of. */
 #define BEACON_RX_COUNT_MAX         (0xFFFF)
+#define BEACON_TYPICAL_INTERVAL_S   (10)
+#define BEACON_OBSERVATION_PERIOD_S (NRF_MESH_BEACON_SECURE_NET_BCAST_INTERVAL_SECONDS * NRF_MESH_BEACON_OBSERVATION_PERIODS)
+#define BEACON_RX_COUNT_EXPECTED    ROUNDED_DIV(BEACON_OBSERVATION_PERIOD_S, BEACON_TYPICAL_INTERVAL_S)
 
 #define NETWORK_BKEY_SALT_INPUT ((const uint8_t *) "nkbk")
 #define NETWORK_BKEY_SALT_INPUT_LENGTH 4
 #define NETWORK_BKEY_INFO ((const uint8_t *) "id128\x01")
 #define NETWORK_BKEY_INFO_LENGTH 6
 
-/** rx_count index to treat as current. */
-#define RX_COUNT_SAMPLE_INDEX_CURRENT 0
 #define BEACON_INTERVAL_UPPER_LIMIT_S  600
+#define BEACON_INTERVAL_LOWER_LIMIT_S  10
 
 /*****************************************************************************
 * Local typedefs
@@ -175,41 +177,36 @@ static inline void make_network_beacon_packet(const nrf_mesh_beacon_secmat_t * p
     make_network_beacon_cmac(p_net_beacon, p_beacon_secmat, p_net_beacon->cmac);
 }
 
-static inline uint32_t beacon_interval_in_seconds(const nrf_mesh_beacon_tx_info_t * p_tx_info)
+static void update_beacon_interval(const nrf_mesh_beacon_tx_info_t * p_tx_info)
 {
+#ifndef NET_BEACON_LOCK_INTERVAL
     /* According to Mesh Profile Specification v1.0 section 3.9.3.1:
      *
      * Beacon interval = Observation period * (Observed beacons + 1) / Expected number of beacons
-     *
-     * For our implementation, the observation period is defined as P number of TX intervals. Each
-     * TX interval is 10 seconds, and we expect 1 beacon on air every TX interval (including our own).
-     *
-     * The interval calculation can be simplified:
-     * Beacon interval = 10s * P * (Observed beacons + 1) / P = 10s * (Observed beacons + 1)
+     * Observation is started since the start of the beacon logic. Interval is recalculated every broadcast interval.
+     * Beacon counter is cleared every observation interval.
      */
-    /* todo MBTLE-3024
-     * It works only if beacons are transmitted evenly.
-     * If beacons are concentrated in 1-2 ten seconds interval then the stack will allow
-     * after 30 seconds to transmit again. */
-    uint32_t observed_beacons = 0;
-    for (uint32_t period = 0; period < ARRAY_SIZE(p_tx_info->rx_count); ++period)
-    {
-        observed_beacons += p_tx_info->rx_count[period];
-    }
+    uint16_t interval = ROUNDED_DIV(BEACON_OBSERVATION_PERIOD_S * (mp_beacon_info->p_tx_info->rx_count + 1), BEACON_RX_COUNT_EXPECTED);
+    interval = MIN(interval, BEACON_INTERVAL_UPPER_LIMIT_S);
+    interval = MAX(interval, BEACON_INTERVAL_LOWER_LIMIT_S);
+    mp_beacon_info->p_tx_info->interval = interval;
 
-    uint32_t interval = NRF_MESH_BEACON_SECURE_NET_BCAST_INTERVAL_SECONDS * (observed_beacons + 1);
-    return MIN(interval, BEACON_INTERVAL_UPPER_LIMIT_S);
+    if (++mp_beacon_info->p_tx_info->observation_count == NRF_MESH_BEACON_OBSERVATION_PERIODS)
+    {
+        mp_beacon_info->p_tx_info->observation_count = 0;
+
+        mp_beacon_info->p_tx_info->rx_count = 0;
+    }
+#endif
 }
 
 /**
  * Transmit any pending beacons.
  *
- * Beacons are transmitted if we haven't observed more than 1 beacon per interval over the
- * last N intervals (where N is @c ARRAY_SIZE(p_tx_info->rx_count) ). To prevent a scenario where a
- * short burst of beacons stops the device from sending beacons for a long period, the module runs
- * separate counters for each of the last N intervals. When an interval completes, each counter is
- * moved one step back in the list of counters. This ensures that the device only takes the last N
- * periods into account when deciding to send a beacon. Each beacon info structure holds its own set
+ * Beacons are transmitted if we haven't observed more than @c BEACON_RX_COUNT_EXPECTED beacons
+ * per @c BEACON_OBSERVATION_PERIOD_S time. To prevent a scenario where a
+ * short burst of beacons stops the device from sending beacons for a long time, the beacon interval
+ * is changed every observation period. Each beacon info structure holds its own set
  * of counters.
  *
  * @param[in] time_now Current time.
@@ -222,18 +219,8 @@ static void beacon_tx(timestamp_t time_now)
          mp_beacon_info != NULL;
          nrf_mesh_beacon_info_next_get(NULL, &mp_beacon_info, &kr_phase))
     {
-        uint32_t time_since_last_tx = US_TO_SEC(TIMER_DIFF(time_now, mp_beacon_info->p_tx_info->tx_timestamp));
-        uint32_t interval = beacon_interval_in_seconds(mp_beacon_info->p_tx_info);
-
-        /* An observation period finished, move observations back one period */
-        for (uint32_t i = 1; i < ARRAY_SIZE(mp_beacon_info->p_tx_info->rx_count); ++i)
-        {
-            mp_beacon_info->p_tx_info->rx_count[i] = mp_beacon_info->p_tx_info->rx_count[i - 1];
-        }
-        mp_beacon_info->p_tx_info->rx_count[0] = 0;
-
-        /* Send beacon if the time is right */
-        if (time_since_last_tx >= interval)
+        update_beacon_interval(mp_beacon_info->p_tx_info);
+        if (TIMER_DIFF(time_now, mp_beacon_info->p_tx_info->tx_timestamp) >= SEC_TO_US(mp_beacon_info->p_tx_info->interval))
         {
             uint32_t iv_index                         = net_state_beacon_iv_index_get();
             net_state_iv_update_t iv_update           = net_state_iv_update_get();
@@ -256,13 +243,18 @@ static void beacon_tx(timestamp_t time_now)
                 p_packet->config.repeats = 1;
                 advertiser_packet_send(&m_adv, p_packet);
 
-                __LOG(LOG_SRC_NETWORK,
-                    LOG_LEVEL_DBG1,
-                    "BEACON TX %x:%x:%x:%x\n",
-                    mp_beacon_info->secmat.net_id[0],
-                    mp_beacon_info->secmat.net_id[1],
-                    mp_beacon_info->secmat.net_id[2],
-                    mp_beacon_info->secmat.net_id[3]);
+                __LOG(LOG_SRC_NETWORK, LOG_LEVEL_DBG1, "SNB TX ID: %02x%02x%02x%02x%02x%02x%02x%02x ivu: %u kr: %u IV: %u\n",
+                      net_beacon.payload.network_id[0],
+                      net_beacon.payload.network_id[1],
+                      net_beacon.payload.network_id[2],
+                      net_beacon.payload.network_id[3],
+                      net_beacon.payload.network_id[4],
+                      net_beacon.payload.network_id[5],
+                      net_beacon.payload.network_id[6],
+                      net_beacon.payload.network_id[7],
+                      net_beacon.payload.flags.iv_update,
+                      net_beacon.payload.flags.key_refresh,
+                      iv_index);
                 /* Start a new beacon interval for this beacon. */
                 mp_beacon_info->p_tx_info->tx_timestamp = time_now;
             }
@@ -316,13 +308,26 @@ static void beacon_getter(mesh_config_entry_id_t entry_id, void * p_entry)
     *(bool *)p_entry = m_enabled;
 }
 
+static void beacon_deleter(mesh_config_entry_id_t entry_id)
+{
+#if MESH_FEATURE_LPN_ENABLED && !MESH_FEATURE_LPN_ACT_AS_REGULAR_NODE_OUT_OF_FRIENDSHIP
+    m_enabled = false;
+    advertiser_disable(&m_adv);
+    timer_sch_abort((timer_event_t *) & m_tx_timer);
+#else
+    m_enabled = true;
+    advertiser_enable(&m_adv);
+    timer_sch_reschedule((timer_event_t *) &m_tx_timer, timer_now() + m_tx_timer.interval);
+#endif
+}
+
 MESH_CONFIG_ENTRY(net_beacon_enable,
                   MESH_OPT_CORE_SEC_NWK_BCN_EID,
                   1,
                   sizeof(m_enabled),
                   beacon_setter,
                   beacon_getter,
-                  NULL,
+                  beacon_deleter,
                   true);
 
 /*****************************************************************************
@@ -403,16 +408,31 @@ void net_beacon_packet_in(const uint8_t * p_beacon_data, uint8_t data_length, co
 {
     NRF_MESH_ASSERT(p_beacon_data != NULL);
     net_beacon_t* p_beacon = (net_beacon_t*) p_beacon_data;
-
     nrf_mesh_key_refresh_phase_t subnet_kr_phase;
     const nrf_mesh_beacon_info_t * p_beacon_info = NULL;
+    const uint32_t iv_index = BE2LE32(p_beacon->payload.iv_index);
+
+    __LOG(LOG_SRC_NETWORK, LOG_LEVEL_DBG1, "SNB RX ID: %02x%02x%02x%02x%02x%02x%02x%02x ivu: %u kr: %u IV: %u\n",
+          p_beacon->payload.network_id[0],
+          p_beacon->payload.network_id[1],
+          p_beacon->payload.network_id[2],
+          p_beacon->payload.network_id[3],
+          p_beacon->payload.network_id[4],
+          p_beacon->payload.network_id[5],
+          p_beacon->payload.network_id[6],
+          p_beacon->payload.network_id[7],
+          p_beacon->payload.flags.iv_update,
+          p_beacon->payload.flags.key_refresh,
+          iv_index);
+
+
     for (nrf_mesh_beacon_info_next_get(p_beacon->payload.network_id, &p_beacon_info, &subnet_kr_phase);
             p_beacon_info != NULL;
             nrf_mesh_beacon_info_next_get(p_beacon->payload.network_id, &p_beacon_info, &subnet_kr_phase))
     {
         NRF_MESH_ASSERT(p_beacon_info->p_tx_info != NULL);
         const nrf_mesh_beacon_secmat_t * p_beacon_secmat = NULL;
-        uint32_t iv_index = BE2LE32(p_beacon->payload.iv_index);
+
 
         bool valid_pkt = false;
         if (is_valid_beacon_pkt(&p_beacon_info->secmat, p_beacon))
@@ -428,9 +448,9 @@ void net_beacon_packet_in(const uint8_t * p_beacon_data, uint8_t data_length, co
 
         if (valid_pkt)
         {
-            if (p_beacon_info->p_tx_info->rx_count[RX_COUNT_SAMPLE_INDEX_CURRENT] < BEACON_RX_COUNT_MAX)
+            if (p_beacon_info->p_tx_info->rx_count < BEACON_RX_COUNT_MAX)
             {
-                p_beacon_info->p_tx_info->rx_count[RX_COUNT_SAMPLE_INDEX_CURRENT]++;
+                p_beacon_info->p_tx_info->rx_count++;
             }
 
             nrf_mesh_evt_t beacon_evt;

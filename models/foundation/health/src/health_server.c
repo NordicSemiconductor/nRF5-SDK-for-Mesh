@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -49,15 +49,100 @@
 #include "access_config.h"
 #include "utils.h"
 
+#include "mesh_config.h"
+#include "mesh_config_entry.h"
+#include "mesh_opt.h"
+
 #define ATTENTION_TIMER_INTERVAL 1000000u
 #define FAST_PERIOD_DIVISOR_MAX  15
+
+/* Health server entry IDs */
+#define MESH_OPT_HEALTH_PRIMARY_EID     MESH_OPT_CORE_ID(MESH_OPT_HEALTH_ID_START + 0)
 
 /* Attention timer context: */
 static timer_event_t     m_attention_timer;
 /* List of health servers with a non-zero attention timer: */
 static health_server_t * mp_attention_list = NULL;
 
+/* Forward declarations */
+static uint32_t health_server_fpd_set(mesh_config_entry_id_t id, const void * p_entry);
+static void health_server_fpd_get(mesh_config_entry_id_t id, void * p_entry);
+static void health_server_fpd_delete(mesh_config_entry_id_t id);
+
 static void send_fault_status(health_server_t * p_server, uint16_t opcode, const access_message_rx_t * p_message);
+
+/* All possible health server settings for the fast period divisor (FPD) will be stored as part of
+ * the core options in a single entry. Individual records in a entry correspond to different health
+ * server instances.
+ */
+MESH_CONFIG_ENTRY(mesh_opt_health,
+                  MESH_OPT_HEALTH_PRIMARY_EID,
+                  ACCESS_ELEMENT_COUNT,
+                  sizeof(uint8_t),
+                  health_server_fpd_set,
+                  health_server_fpd_get,
+                  health_server_fpd_delete,
+                  true);
+
+NRF_MESH_STATIC_ASSERT((MESH_OPT_HEALTH_ID_START + ACCESS_ELEMENT_COUNT) <= MESH_OPT_HEALTH_ID_END);
+
+/* To store server context information corresponding to each mesh config entry. */
+static health_server_t * mp_server_contexts[ACCESS_ELEMENT_COUNT];
+
+static uint32_t get_server_index(const health_server_t * p_server, uint16_t * p_index)
+{
+    for (uint32_t i = 0; i < ACCESS_ELEMENT_COUNT; i++)
+    {
+        if ((uintptr_t) mp_server_contexts[i] == (uintptr_t) p_server)
+        {
+            *p_index = (uint16_t) i;
+            return NRF_SUCCESS;
+        }
+    }
+
+    return NRF_ERROR_NOT_FOUND;
+}
+
+/* Set fast period divisor via Mesh config */
+static uint32_t health_server_fpd_set(mesh_config_entry_id_t id, const void * p_entry)
+{
+    uint32_t status = NRF_SUCCESS;
+    uint16_t server_index = id.record - MESH_OPT_HEALTH_ID_START;
+    health_server_t * p_server = mp_server_contexts[server_index];
+
+    uint8_t * p_fpd = (uint8_t *) p_entry;
+
+    if (p_server->fast_period_divisor != *p_fpd)
+    {
+        p_server->fast_period_divisor = *p_fpd;
+
+        if (health_server_fault_count_get(p_server) > 0)
+        {
+            status = access_model_publish_period_divisor_set(p_server->model_handle, 1 << p_server->fast_period_divisor);
+        }
+    }
+
+    return status;
+}
+
+/* Get fast period divisor  via Mesh config */
+static void health_server_fpd_get(mesh_config_entry_id_t id, void * p_entry)
+{
+    uint8_t * p_fpd = (uint8_t *) p_entry;
+    uint16_t server_index = id.record - MESH_OPT_HEALTH_ID_START;
+    health_server_t * p_server = mp_server_contexts[server_index];
+
+    *p_fpd = p_server->fast_period_divisor;
+}
+
+/* Delete fast period divisor  via Mesh config */
+static void health_server_fpd_delete(mesh_config_entry_id_t id)
+{
+    uint16_t server_index = id.record - MESH_OPT_HEALTH_ID_START;
+    health_server_t * p_server = mp_server_contexts[server_index];
+
+    p_server->fast_period_divisor = 0;
+}
 
 static void health_publish_timeout_handler(access_model_handle_t handle, void * p_args)
 {
@@ -312,6 +397,8 @@ static void handle_period_get(access_model_handle_t handle, const access_message
 
 static void handle_period_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
 {
+    uint32_t status = NRF_SUCCESS;
+
     if (p_message->length != sizeof(health_msg_period_set_t))
     {
         return;
@@ -322,11 +409,20 @@ static void handle_period_set(access_model_handle_t handle, const access_message
 
     if (p_pdu->fast_period_divisor < FAST_PERIOD_DIVISOR_MAX)
     {
-        p_server->fast_period_divisor = p_pdu->fast_period_divisor;
+        uint16_t server_index;
+        status = get_server_index(p_server, &server_index);
+
+        if (status == NRF_SUCCESS)
+        {
+            mesh_config_entry_id_t id = MESH_OPT_HEALTH_PRIMARY_EID;
+            id.record += server_index;
+
+            status = mesh_config_entry_set(id, &p_pdu->fast_period_divisor);
+        }
     }
 
     /* Respond if the opcode of the incoming message matches the acknowledged Period Set message: */
-    if (p_message->opcode.opcode == HEALTH_OPCODE_PERIOD_SET)
+    if (status == NRF_SUCCESS && p_message->opcode.opcode == HEALTH_OPCODE_PERIOD_SET)
     {
         send_period_status(p_server, p_message);
     }
@@ -374,65 +470,6 @@ static const access_opcode_handler_t m_opcode_handlers[] =
     { ACCESS_OPCODE_SIG(HEALTH_OPCODE_ATTENTION_SET_UNACKED), handle_attention_set },
 };
 
-/* Calculates the value of the fast publish interval. */
-static void divide_publish_interval(access_publish_resolution_t input_resolution, uint8_t input_steps,
-        access_publish_resolution_t * p_output_resolution, uint8_t * p_output_steps, uint8_t divisor)
-{
-    uint32_t ms100_value = input_steps;
-
-    /* Convert the step value to 100 ms steps depending on the resolution: */
-    switch (input_resolution)
-    {
-        case ACCESS_PUBLISH_RESOLUTION_100MS:
-            break;
-        case ACCESS_PUBLISH_RESOLUTION_1S:
-            ms100_value *= 10;
-            break;
-        case ACCESS_PUBLISH_RESOLUTION_10S:
-            ms100_value *= 100;
-            break;
-        case ACCESS_PUBLISH_RESOLUTION_10MIN:
-            ms100_value *= 6000;
-            break;
-        default:
-            NRF_MESH_ASSERT(false);
-    }
-
-    /* Divide the 100 ms value with the fast divisor: */
-    ms100_value /= 1u << divisor;
-
-    /* Get the divisor corresponding to the new number of 100 ms steps: */
-    if (ms100_value < 10)
-    {
-        *p_output_resolution = ACCESS_PUBLISH_RESOLUTION_100MS;
-        if (input_steps == 0)
-        {
-            *p_output_steps = 0;
-        }
-        else
-        {
-            /* Avoid accidentally disabling publishing by dividing by too high a number */
-            *p_output_steps = MAX(1, ms100_value);
-        }
-    }
-    else if (ms100_value < 100)
-    {
-        *p_output_resolution = ACCESS_PUBLISH_RESOLUTION_1S;
-        *p_output_steps = ms100_value / 10;
-    }
-    else if (ms100_value < 6000)
-    {
-        *p_output_resolution = ACCESS_PUBLISH_RESOLUTION_10S;
-        *p_output_steps = ms100_value / 100;
-    }
-    else
-    {
-        *p_output_resolution = ACCESS_PUBLISH_RESOLUTION_10MIN;
-        *p_output_steps = ms100_value / 6000;
-    }
-
-}
-
 /********** Interface functions **********/
 
 void health_server_fault_register(health_server_t * p_server, uint8_t fault_code)
@@ -445,12 +482,7 @@ void health_server_fault_register(health_server_t * p_server, uint8_t fault_code
     /* If no faults were present before registering the new fault, set the publish interval to the fast interval: */
     if (!faults_present)
     {
-        access_publish_resolution_t fast_res;
-        uint8_t fast_steps;
-
-        NRF_MESH_ASSERT(access_model_publish_period_get(p_server->model_handle, &p_server->regular_publish_res, &p_server->regular_publish_steps) == NRF_SUCCESS);
-        divide_publish_interval(p_server->regular_publish_res, p_server->regular_publish_steps, &fast_res, &fast_steps, p_server->fast_period_divisor);
-        NRF_MESH_ASSERT(access_model_publish_period_set(p_server->model_handle, fast_res, fast_steps) == NRF_SUCCESS);
+        NRF_MESH_ERROR_CHECK(access_model_publish_period_divisor_set(p_server->model_handle, 1 << p_server->fast_period_divisor));
     }
 }
 
@@ -463,7 +495,7 @@ void health_server_fault_clear(health_server_t * p_server, uint8_t fault_code)
     /* If faults were present before clearing the array and not after, reset the publish interval: */
     if (faults_present_before && health_server_fault_count_get(p_server) == 0)
     {
-        NRF_MESH_ASSERT(access_model_publish_period_set(p_server->model_handle, p_server->regular_publish_res, p_server->regular_publish_steps) == NRF_SUCCESS);
+        NRF_MESH_ERROR_CHECK(access_model_publish_period_divisor_set(p_server->model_handle, 1));
     }
 }
 
@@ -513,6 +545,15 @@ uint32_t health_server_init(health_server_t * p_server, uint16_t element_index, 
         .publish_timeout_cb = health_publish_timeout_handler,
         .p_args = p_server
     };
-    return access_model_add(&add_params, &p_server->model_handle);
+
+    uint32_t status = access_model_add(&add_params, &p_server->model_handle);
+
+    if (status == NRF_SUCCESS)
+    {
+        mp_server_contexts[element_index] = p_server;
+        status = access_model_subscription_list_alloc(p_server->model_handle);
+    }
+
+    return status;
 }
 

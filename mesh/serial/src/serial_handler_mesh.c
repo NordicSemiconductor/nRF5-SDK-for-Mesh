@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -47,6 +47,7 @@
 #include "nrf_mesh_events.h"
 #include "nrf_mesh_utils.h"
 #include "nrf_mesh_assert.h"
+#include "nrf_mesh_externs.h"
 #include "hal.h"
 
 /* Ensure that we're mapping the size of the serial parameter to the
@@ -252,7 +253,7 @@ static void handle_cmd_addr_get(const serial_packet_t * p_cmd)
     {
         rsp.address_handle = p_cmd->payload.cmd.mesh.addr_get.address_handle;
         rsp.addr_type = addr.type;
-        rsp.subscribed = dsm_address_is_rx(&addr);
+        rsp.subscribed = nrf_mesh_is_address_rx(&addr);
         rsp.raw_short_addr = addr.value;
 
         if (addr.p_virtual_uuid)

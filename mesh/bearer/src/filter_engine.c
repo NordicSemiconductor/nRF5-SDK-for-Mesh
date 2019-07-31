@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -39,27 +39,37 @@
 #include "filter_engine.h"
 #include "utils.h"
 
-static list_node_t * m_filter_list_head = NULL;
-static uint32_t m_accepted_amount;
+typedef struct
+{
+    list_node_t *   p_list_head;
+    uint32_t        accepted_amount;
+} fen_filter_set_t;
+
+static fen_filter_set_t m_filter_sets[FILTER_TYPE_END];
 
 void fen_filter_start(filter_t * p_filter)
 {
     NRF_MESH_ASSERT(p_filter != NULL);
     NRF_MESH_ASSERT(p_filter->handler != NULL);
+    NRF_MESH_ASSERT((p_filter->type == FILTER_TYPE_PRE_PROC) || (p_filter->type == FILTER_TYPE_POST_PROC));
 
-    list_add(&m_filter_list_head, &p_filter->node);
+    list_add(&m_filter_sets[p_filter->type].p_list_head, &p_filter->node);
 }
 
 void fen_filter_stop(filter_t * p_filter)
 {
     NRF_MESH_ASSERT(p_filter != NULL);
+    NRF_MESH_ASSERT((p_filter->type == FILTER_TYPE_PRE_PROC) || (p_filter->type == FILTER_TYPE_POST_PROC));
 
-    (void)list_remove(&m_filter_list_head, &p_filter->node);
+    (void)list_remove(&m_filter_sets[p_filter->type].p_list_head, &p_filter->node);
 }
 
-bool fen_filters_apply(scanner_packet_t * p_packet)
+bool fen_filters_apply(filter_type_t type, scanner_packet_t * p_packet)
 {
-    LIST_FOREACH(p_node, m_filter_list_head)
+    NRF_MESH_ASSERT(p_packet != NULL);
+    NRF_MESH_ASSERT((type == FILTER_TYPE_PRE_PROC) || (type == FILTER_TYPE_POST_PROC));
+
+    LIST_FOREACH(p_node, m_filter_sets[type].p_list_head)
     {
         filter_t * p_filter = PARENT_BY_FIELD_GET(filter_t, node, p_node);
 
@@ -69,12 +79,26 @@ bool fen_filters_apply(scanner_packet_t * p_packet)
         }
     }
 
-    m_accepted_amount++;
+    m_filter_sets[type].accepted_amount++;
 
     return false;
 }
 
-uint32_t fen_accepted_amount_get(void)
+uint32_t fen_accepted_amount_get(filter_type_t type)
 {
-    return m_accepted_amount;
+    NRF_MESH_ASSERT((type == FILTER_TYPE_PRE_PROC) || (type == FILTER_TYPE_POST_PROC));
+
+    return m_filter_sets[type].accepted_amount;
 }
+
+#if defined(UNIT_TEST)
+list_node_t * fen_pre_filter_list_head_get(void)
+{
+    return m_filter_sets[FILTER_TYPE_PRE_PROC].p_list_head;
+}
+
+list_node_t * fen_post_filter_list_head_get(void)
+{
+    return m_filter_sets[FILTER_TYPE_POST_PROC].p_list_head;
+}
+#endif

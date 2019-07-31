@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -257,9 +257,14 @@ static uint32_t calculate_interval(const access_reliable_t * p_message)
     /* The model handle should already been checked by the TX attempt. */
     NRF_MESH_ERROR_CHECK(access_model_publish_ttl_get(p_message->model_handle, &ttl));
 
-    uint16_t length = access_utils_opcode_size_get(p_message->message.opcode) + p_message->message.length;
+    if (ACCESS_TTL_USE_DEFAULT == ttl)
+    {
+        ttl = access_default_ttl_get();
+    }
 
+    uint16_t length = access_utils_opcode_size_get(p_message->message.opcode) + p_message->message.length;
     uint32_t interval = (ttl * ACCESS_RELIABLE_HOP_PENALTY) + ACCESS_RELIABLE_INTERVAL_DEFAULT;
+
     if (NRF_MESH_UNSEG_PAYLOAD_SIZE_MAX < length)
     {
         interval += ((length + (PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE - 1)) /

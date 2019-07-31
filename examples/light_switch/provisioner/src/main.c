@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -368,7 +368,7 @@ static void check_network_state(void)
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Waiting for provisioned node to be configured ...\n");
 
             node_setup_start(m_nw_state.last_device_address, PROVISIONER_RETRY_COUNT,
-                            m_nw_state.appkey, APPKEY_INDEX, m_nw_state.p_client_uri);
+                            m_nw_state.appkey, APPKEY_INDEX, NETKEY_INDEX, m_nw_state.p_client_uri);
 
             hal_led_pin_set(APP_CONFIGURATION_LED, 1);
         }

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -196,6 +196,7 @@ void test_bearer_add(void)
 
     TEST_NRF_MESH_ASSERT_EXPECT(core_tx_bearer_add(NULL, &m_interface, CORE_TX_BEARER_TYPE_ADV));
     TEST_NRF_MESH_ASSERT_EXPECT(core_tx_bearer_add(&bearers[0], &m_interface, CORE_TX_BEARER_TYPE_INVALID));
+    TEST_NRF_MESH_ASSERT_EXPECT(core_tx_bearer_add(&bearers[0], &m_interface, CORE_TX_BEARER_TYPE_ALLOW_ALL));
 
     /* Successful */
     for (uint32_t i = 0; i < ARRAY_SIZE(bearers); ++i)
@@ -220,7 +221,7 @@ void test_alloc(void)
         core_tx_role_t role;
         uint8_t size;
         bool expect_success;
-        core_tx_bearer_type_t bearer;
+        core_tx_bearer_selector_t bearer;
         bool successful_alloc[2];
         bool calls_alloc[2];
     } vector[] = {
@@ -333,10 +334,11 @@ void test_discard(void)
     /* Allocate a packet we can discard (on both bearers) */
     uint8_t * p_packet = NULL;
     network_packet_metadata_t metadata;
-    core_tx_alloc_params_t params = {.role           = CORE_TX_ROLE_ORIGINATOR,
-                                     .net_packet_len = 20,
-                                     .p_metadata     = &metadata,
-                                     .token          = TOKEN};
+    core_tx_alloc_params_t params = {.role              = CORE_TX_ROLE_ORIGINATOR,
+                                     .net_packet_len    = 20,
+                                     .p_metadata        = &metadata,
+                                     .bearer_selector   = CORE_TX_BEARER_TYPE_ALLOW_ALL,
+                                     .token             = TOKEN};
 
     EXPECT_ALLOC(&m_bearer, &params, CORE_TX_ALLOC_SUCCESS);
     EXPECT_ALLOC(&bearer,   &params, CORE_TX_ALLOC_SUCCESS);
@@ -385,14 +387,16 @@ void test_send(void)
     /* Allocate a packet we can send (on both bearers) */
     uint8_t * p_packet = NULL;
     network_packet_metadata_t metadata;
-    core_tx_alloc_params_t params = {.role           = CORE_TX_ROLE_ORIGINATOR,
-                                     .net_packet_len = 20,
-                                     .p_metadata     = &metadata,
-                                     .token          = TOKEN};
+    core_tx_alloc_params_t params = {.role              = CORE_TX_ROLE_ORIGINATOR,
+                                     .net_packet_len    = 20,
+                                     .p_metadata        = &metadata,
+                                     .bearer_selector   = CORE_TX_BEARER_TYPE_ALLOW_ALL,
+                                     .token             = TOKEN};
 
     EXPECT_ALLOC(&m_bearer,   &params, CORE_TX_ALLOC_SUCCESS);
     EXPECT_ALLOC(&bearer, &params, CORE_TX_ALLOC_SUCCESS);
-    TEST_ASSERT_EQUAL_HEX32((1 << 0) | (1 << 1), core_tx_packet_alloc(&params, &p_packet));
+    TEST_ASSERT_EQUAL_HEX32(CORE_TX_BEARER_TYPE_ADV | CORE_TX_BEARER_TYPE_GATT_SERVER,
+                            core_tx_packet_alloc(&params, &p_packet));
 
     /* send, should happen on both bearers: */
     EXPECT_SEND(&m_bearer, p_packet, params.net_packet_len);
@@ -405,7 +409,7 @@ void test_send(void)
     /* Allocate on just one bearer: */
     EXPECT_ALLOC(&m_bearer, &params, CORE_TX_ALLOC_FAIL_NO_MEM);
     EXPECT_ALLOC(&bearer,   &params, CORE_TX_ALLOC_SUCCESS);
-    TEST_ASSERT_EQUAL_HEX32((1 << 1), core_tx_packet_alloc(&params, &p_packet));
+    TEST_ASSERT_EQUAL_HEX32(CORE_TX_BEARER_TYPE_GATT_SERVER, core_tx_packet_alloc(&params, &p_packet));
 
     /* send, should happen only on the second bearer: */
     EXPECT_SEND(&bearer, p_packet, params.net_packet_len);

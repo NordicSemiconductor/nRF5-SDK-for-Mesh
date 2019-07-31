@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -35,7 +35,6 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <string.h>
-#include "fifo.h"
 #include "internal_event.h"
 
 /* The internal_event_type_t must fit inside a single byte, to make sure it can go into a packet. */
@@ -44,23 +43,13 @@ NRF_MESH_STATIC_ASSERT(INTERNAL_EVENT__LAST <= 0xFF);
 #if INTERNAL_EVT_ENABLE
 
 static internal_event_report_cb_t m_report_cb;
-static fifo_t           m_internal_event_fifo;
-static internal_event_t m_internal_event_fifo_buffer[INTERNAL_EVENT_BUFFER_SIZE];
 static bool m_internal_event_initialized = false;
 
 void internal_event_init(internal_event_report_cb_t report_cb)
 {
+    NRF_MESH_ASSERT(report_cb != NULL);
+
     m_report_cb = report_cb;
-    if (NULL == report_cb)
-    {
-        memset(m_internal_event_fifo_buffer, 0, sizeof(m_internal_event_fifo_buffer));
-
-        m_internal_event_fifo.elem_array  = m_internal_event_fifo_buffer;
-        m_internal_event_fifo.elem_size   = sizeof(internal_event_t);
-        m_internal_event_fifo.array_len   = INTERNAL_EVENT_BUFFER_SIZE;
-
-        fifo_init(&m_internal_event_fifo);
-    }
     m_internal_event_initialized = true;
 }
 
@@ -71,23 +60,9 @@ uint32_t internal_event_push(internal_event_t * p_event)
     {
         status = NRF_ERROR_NOT_SUPPORTED;
     }
-    else if (NULL == m_report_cb)
-    {
-        status = fifo_push(&m_internal_event_fifo, p_event);
-    }
     else
     {
         status = m_report_cb(p_event);
-    }
-    return status;
-}
-
-uint32_t internal_event_pop(internal_event_t * p_event)
-{
-    uint32_t status = NRF_ERROR_INVALID_STATE;
-    if (NULL == m_report_cb)
-    {
-        status = fifo_pop(&m_internal_event_fifo, p_event);
     }
     return status;
 }

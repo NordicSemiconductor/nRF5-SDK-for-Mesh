@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -249,7 +249,7 @@
 #define PACKET_MESH_TRS_UNSEG_ACCESS_MAX_SIZE (16) /**< Max size of an unsegmented transport access message. */
 #define PACKET_MESH_TRS_UNSEG_CONTROL_PDU_MAX_SIZE (11) /**< Max PDU size of an unsegmented transport control message. */
 #define PACKET_MESH_TRS_UNSEG_CONTROL_MAX_SIZE (12) /**< Max size of an unsegmented transport control message. */
-#define PACKET_MESH_TRS_UNSEG_PDU_OFFSET (1) /**< Offset of trs unseg packet PDU. */ 
+#define PACKET_MESH_TRS_UNSEG_PDU_OFFSET (1) /**< Offset of trs unseg packet PDU. */
 
 /**
  * Packet type for the trs_control packet.
@@ -273,7 +273,7 @@ typedef struct
 typedef struct
 {
     uint8_t pdu[16];
-} packet_mesh_trs_packet_t; 
+} packet_mesh_trs_packet_t;
 
 /**
  * Gets the net payload pointer.
@@ -319,7 +319,7 @@ static inline const uint8_t * packet_mesh_trs_unseg_payload_get(const packet_mes
  */
 static inline uint16_t packet_mesh_trs_control_friend_clear_lpn_address_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_ADDRESS0_OFFSET] << 8) | 
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_ADDRESS0_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_ADDRESS1_OFFSET]);
 }
 
@@ -344,7 +344,7 @@ static inline void packet_mesh_trs_control_friend_clear_lpn_address_set(packet_m
  */
 static inline uint16_t packet_mesh_trs_control_friend_clear_lpn_counter_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_COUNTER0_OFFSET] << 8) | 
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_COUNTER0_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_LPN_COUNTER1_OFFSET]);
 }
 
@@ -369,7 +369,7 @@ static inline void packet_mesh_trs_control_friend_clear_lpn_counter_set(packet_m
  */
 static inline uint16_t packet_mesh_trs_control_friend_clear_confirm_lpn_address_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_ADDRESS0_OFFSET] << 8) | 
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_ADDRESS0_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_ADDRESS1_OFFSET]);
 }
 
@@ -394,7 +394,7 @@ static inline void packet_mesh_trs_control_friend_clear_confirm_lpn_address_set(
  */
 static inline uint16_t packet_mesh_trs_control_friend_clear_confirm_lpn_counter_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_COUNTER0_OFFSET] << 8) | 
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_COUNTER0_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_LPN_COUNTER1_OFFSET]);
 }
 
@@ -511,7 +511,7 @@ static inline void packet_mesh_trs_control_friend_offer_rssi_set(packet_mesh_trs
  */
 static inline uint16_t packet_mesh_trs_control_friend_offer_friend_counter_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_FRIEND_COUNTER0_OFFSET] << 8) | 
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_FRIEND_COUNTER0_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_OFFER_FRIEND_COUNTER1_OFFSET]);
 }
 
@@ -655,7 +655,7 @@ static inline void packet_mesh_trs_control_friend_request_receive_delay_set(pack
  */
 static inline uint32_t packet_mesh_trs_control_friend_request_poll_timeout_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_POLL_TIMEOUT0_OFFSET] << 16) | 
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_POLL_TIMEOUT0_OFFSET] << 16) |
             (p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_POLL_TIMEOUT1_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_POLL_TIMEOUT2_OFFSET]);
 }
@@ -682,7 +682,7 @@ static inline void packet_mesh_trs_control_friend_request_poll_timeout_set(packe
  */
 static inline uint16_t packet_mesh_trs_control_friend_request_previous_address_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_PREVIOUS_ADDRESS0_OFFSET] << 8) | 
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_PREVIOUS_ADDRESS0_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_PREVIOUS_ADDRESS1_OFFSET]);
 }
 
@@ -730,7 +730,7 @@ static inline void packet_mesh_trs_control_friend_request_num_elements_set(packe
  */
 static inline uint16_t packet_mesh_trs_control_friend_request_lpn_counter_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_LPN_COUNTER0_OFFSET] << 8) | 
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_LPN_COUNTER0_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_REQUEST_LPN_COUNTER1_OFFSET]);
 }
 
@@ -779,7 +779,7 @@ static inline void packet_mesh_trs_control_friend_sublist_add_remove_transaction
  */
 static inline uint16_t packet_mesh_trs_control_friend_sublist_add_remove_address_list_get(const packet_mesh_trs_control_packet_t * p_pkt, uint32_t index)
 {
-    return ((p_pkt->pdu[(index * 2) + PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_ADDRESS_LIST0_OFFSET] << 8) | 
+    return ((p_pkt->pdu[(index * 2) + PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_ADDRESS_LIST0_OFFSET] << 8) |
             p_pkt->pdu[(index * 2) + PACKET_MESH_TRS_CONTROL_FRIEND_SUBLIST_ADD_REMOVE_ADDRESS_LIST1_OFFSET]);
 }
 
@@ -876,7 +876,7 @@ static inline void packet_mesh_trs_control_friend_update_key_refresh_flag_set(pa
  */
 static inline uint32_t packet_mesh_trs_control_friend_update_iv_index_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX0_OFFSET] << 24) | 
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX0_OFFSET] << 24) |
             (p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX1_OFFSET] << 16) |
             (p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX2_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_IV_INDEX3_OFFSET]);
@@ -952,7 +952,7 @@ static inline void packet_mesh_trs_control_heartbeat_init_ttl_set(packet_mesh_tr
  */
 static inline uint16_t packet_mesh_trs_control_heartbeat_features_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_HEARTBEAT_FEATURES0_OFFSET] << 8) | 
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_HEARTBEAT_FEATURES0_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_TRS_CONTROL_HEARTBEAT_FEATURES1_OFFSET]);
 }
 
@@ -1073,7 +1073,7 @@ static inline void packet_mesh_net_ttl_set(packet_mesh_net_packet_t * p_pkt, uin
  */
 static inline uint32_t packet_mesh_net_seq_get(const packet_mesh_net_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_NET_SEQ0_OFFSET] << 16) | 
+    return ((p_pkt->pdu[PACKET_MESH_NET_SEQ0_OFFSET] << 16) |
             (p_pkt->pdu[PACKET_MESH_NET_SEQ1_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_NET_SEQ2_OFFSET]);
 }
@@ -1100,7 +1100,7 @@ static inline void packet_mesh_net_seq_set(packet_mesh_net_packet_t * p_pkt, uin
  */
 static inline uint16_t packet_mesh_net_src_get(const packet_mesh_net_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_NET_SRC0_OFFSET] << 8) | 
+    return ((p_pkt->pdu[PACKET_MESH_NET_SRC0_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_NET_SRC1_OFFSET]);
 }
 
@@ -1125,7 +1125,7 @@ static inline void packet_mesh_net_src_set(packet_mesh_net_packet_t * p_pkt, uin
  */
 static inline uint16_t packet_mesh_net_dst_get(const packet_mesh_net_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_NET_DST0_OFFSET] << 8) | 
+    return ((p_pkt->pdu[PACKET_MESH_NET_DST0_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_NET_DST1_OFFSET]);
 }
 
@@ -1174,7 +1174,7 @@ static inline void packet_mesh_trs_control_segack_obo_set(packet_mesh_trs_contro
  */
 static inline uint16_t packet_mesh_trs_control_segack_seqzero_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
-    return (((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_SEQZERO0_OFFSET] & PACKET_MESH_TRS_CONTROL_SEGACK_SEQZERO0_MASK) << 6) | 
+    return (((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_SEQZERO0_OFFSET] & PACKET_MESH_TRS_CONTROL_SEGACK_SEQZERO0_MASK) << 6) |
             ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_SEQZERO1_OFFSET] & PACKET_MESH_TRS_CONTROL_SEGACK_SEQZERO1_MASK) >> 2));
 }
 
@@ -1201,7 +1201,7 @@ static inline void packet_mesh_trs_control_segack_seqzero_set(packet_mesh_trs_co
  */
 static inline uint32_t packet_mesh_trs_control_segack_block_ack_get(const packet_mesh_trs_control_packet_t * p_pkt)
 {
-    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_BLOCK_ACK0_OFFSET] << 24) | 
+    return ((p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_BLOCK_ACK0_OFFSET] << 24) |
             (p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_BLOCK_ACK1_OFFSET] << 16) |
             (p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_BLOCK_ACK2_OFFSET] << 8) |
             p_pkt->pdu[PACKET_MESH_TRS_CONTROL_SEGACK_BLOCK_ACK3_OFFSET]);
@@ -1350,7 +1350,7 @@ static inline void packet_mesh_trs_seg_szmic_set(packet_mesh_trs_packet_t * p_pk
  */
 static inline uint16_t packet_mesh_trs_seg_seqzero_get(const packet_mesh_trs_packet_t * p_pkt)
 {
-    return (((p_pkt->pdu[PACKET_MESH_TRS_SEG_SEQZERO0_OFFSET] & PACKET_MESH_TRS_SEG_SEQZERO0_MASK) << 6) | 
+    return (((p_pkt->pdu[PACKET_MESH_TRS_SEG_SEQZERO0_OFFSET] & PACKET_MESH_TRS_SEG_SEQZERO0_MASK) << 6) |
             ((p_pkt->pdu[PACKET_MESH_TRS_SEG_SEQZERO1_OFFSET] & PACKET_MESH_TRS_SEG_SEQZERO1_MASK) >> 2));
 }
 

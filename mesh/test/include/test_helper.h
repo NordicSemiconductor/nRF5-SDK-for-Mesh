@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -38,6 +38,10 @@
 #define TEST_HELPER_H__
 
 #include "unity.h"
+
+/* #define STRINGIZE(A) #A */
+
+#define LCONCAT(MACRO, LITERAL) #MACRO LITERAL
 
 /**
  * @internal
@@ -117,149 +121,6 @@
     } while (0)
 #define TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(expected, actual, __LINE__, "")
 
-/**
- * nrf_mesh_evt_t. Only the events that are actually used are included, will assert if you try to
- * use it for unimplemented events. Add more cases to the switch when necessary, and try to qualify
- * all relevant parameters, if possible.
- */
-#define UNITY_TEST_ASSERT_EQUAL_nrf_mesh_evt_t(expected, actual, line, message)                    \
-    do                                                                                             \
-    {                                                                                              \
-        UNITY_TEST_ASSERT_EQUAL_INT((expected).type, (actual).type, line, message);                \
-        switch ((expected).type)                                                                   \
-        {                                                                                          \
-            case NRF_MESH_EVT_TX_COMPLETE:                                                         \
-                UNITY_TEST_ASSERT_EQUAL_HEX32((expected).params.tx_complete.token,                 \
-                                              (actual).params.tx_complete.token,                   \
-                                              line,                                                \
-                                              message);                                            \
-                break;                                                                             \
-            case NRF_MESH_EVT_FLASH_FAILED:                                                        \
-                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.flash_failed.user,                   \
-                                            (actual).params.flash_failed.user,                     \
-                                            line,                                                  \
-                                            message);                                              \
-                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.flash_failed.p_flash_entry,          \
-                                            (actual).params.flash_failed.p_flash_entry,            \
-                                            line,                                                  \
-                                            message);                                              \
-                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.flash_failed.p_flash_page,           \
-                                            (actual).params.flash_failed.p_flash_page,             \
-                                            line,                                                  \
-                                            message);                                              \
-                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.flash_failed.p_area,                 \
-                                            (actual).params.flash_failed.p_area,                   \
-                                            line,                                                  \
-                                            message);                                              \
-                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.flash_failed.page_count,             \
-                                            (actual).params.flash_failed.page_count,               \
-                                            line,                                                  \
-                                            message);                                              \
-                break;                                                                             \
-            case NRF_MESH_EVT_HB_MESSAGE_RECEIVED:                                                 \
-                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.hb_message.init_ttl,                 \
-                                            (actual).params.hb_message.init_ttl,                   \
-                                            line,                                                  \
-                                            message);                                              \
-                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.hb_message.hops,                     \
-                                            (actual).params.hb_message.hops,                       \
-                                            line,                                                  \
-                                            message);                                              \
-                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.hb_message.features,                 \
-                                            (actual).params.hb_message.features,                   \
-                                            line,                                                  \
-                                            message);                                              \
-                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.hb_message.src,                      \
-                                            (actual).params.hb_message.src,                        \
-                                            line,                                                  \
-                                            message);                                              \
-                break;                                                                             \
-            case NRF_MESH_EVT_NET_BEACON_RECEIVED:                                                 \
-                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.net_beacon.p_beacon_info,            \
-                                            (actual).params.net_beacon.p_beacon_info,              \
-                                            line,                                                  \
-                                            message);                                              \
-                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.net_beacon.p_beacon_secmat,          \
-                                            (actual).params.net_beacon.p_beacon_secmat,            \
-                                            line,                                                  \
-                                            message);                                              \
-                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.net_beacon.p_rx_metadata,            \
-                                            (actual).params.net_beacon.p_rx_metadata,              \
-                                            line,                                                  \
-                                            message);                                              \
-                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.net_beacon.iv_index,                 \
-                                            (actual).params.net_beacon.iv_index,                   \
-                                            line,                                                  \
-                                            message);                                              \
-                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.net_beacon.flags.iv_update,          \
-                                            (actual).params.net_beacon.flags.iv_update,            \
-                                            line,                                                  \
-                                            message);                                              \
-                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.net_beacon.flags.key_refresh,        \
-                                            (actual).params.net_beacon.flags.key_refresh,          \
-                                            line,                                                  \
-                                            message);                                              \
-                break;                                                                             \
-            case NRF_MESH_EVT_DISABLED:                                                            \
-                /* No parameters */                                                                \
-                break;                                                                             \
-            case NRF_MESH_EVT_HB_SUBSCRIPTION_CHANGE:                                              \
-                if ((expected).params.hb_subscription_change.p_old == NULL)                        \
-                {                                                                                  \
-                    UNITY_TEST_ASSERT_NULL((actual).params.hb_subscription_change.p_old,           \
-                                           line,                                                   \
-                                           message);                                               \
-                }                                                                                  \
-                else                                                                               \
-                {                                                                                  \
-                    UNITY_TEST_ASSERT_NOT_NULL((actual).params.hb_subscription_change.p_old,       \
-                                               line,                                               \
-                                               message);                                           \
-                    UNITY_TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(                        \
-                        *(expected).params.hb_subscription_change.p_old,                           \
-                        *(actual).params.hb_subscription_change.p_old,                             \
-                        line,                                                                      \
-                        message);                                                                  \
-                }                                                                                  \
-                if ((expected).params.hb_subscription_change.p_new == NULL)                        \
-                {                                                                                  \
-                    UNITY_TEST_ASSERT_NULL((actual).params.hb_subscription_change.p_new,           \
-                                           line,                                                   \
-                                           message);                                               \
-                }                                                                                  \
-                else                                                                               \
-                {                                                                                  \
-                    UNITY_TEST_ASSERT_NOT_NULL((actual).params.hb_subscription_change.p_new,       \
-                                               line,                                               \
-                                               message);                                           \
-                    UNITY_TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(                        \
-                        *(expected).params.hb_subscription_change.p_new,                           \
-                        *(actual).params.hb_subscription_change.p_new,                             \
-                        line,                                                                      \
-                        message);                                                                  \
-                }                                                                                  \
-                break;                                                                             \
-            default:                                                                               \
-            {                                                                                      \
-                char error_msg[256];                                                               \
-                sprintf(error_msg, "Unimplemented event type %#x", (expected).type);               \
-                UNITY_TEST_FAIL(line, error_msg);                                                  \
-                break;                                                                             \
-            }                                                                                      \
-        }                                                                                          \
-                                                                                                   \
-    } while (0)
-#define TEST_ASSERT_EQUAL_nrf_mesh_evt_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_nrf_mesh_evt_t(expected, actual, __LINE__, "")
-
-
-#define UNITY_TEST_ASSERT_EQUAL_core_tx_alloc_params_t(expected, actual, line, message) do { \
-        UNITY_TEST_ASSERT_EQUAL_INT((expected).role, (actual).role, line, message); \
-        UNITY_TEST_ASSERT_EQUAL_INT((expected).net_packet_len, (actual).net_packet_len, line, message); \
-        UNITY_TEST_ASSERT_EQUAL_network_packet_metadata_t(*(expected).p_metadata, *(actual).p_metadata, line, message); \
-        UNITY_TEST_ASSERT_EQUAL_HEX32((expected).token, (actual).token, line, message); \
-    } while (0)
-#define TEST_ASSERT_EQUAL_core_tx_alloc_params_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_core_tx_alloc_params_t(expected, actual, __LINE__, "")
-
 #define UNITY_TEST_ASSERT_EQUAL_nrf_mesh_address_t(expected, actual, line, message)                \
     do                                                                                             \
     {                                                                                              \
@@ -275,6 +136,276 @@
         }                                                                                          \
     } while (0)
 #define TEST_ASSERT_EQUAL_nrf_mesh_address_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_nrf_mesh_address_t(expected, actual, __LINE__, "")
+
+#define UNITY_TEST_ASSERT_EQUAL_mesh_friendship_lpn_t(expected, actual, line, msg) \
+    do                                                                  \
+    {                                                                   \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).src, (actual).src, line, LCONCAT(msg, "mesh_friendship_lpn_t::src")); \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).prev_friend_src, (actual).prev_friend_src, line, LCONCAT(msg, "mesh_friendship_lpn_t::prev_friend_src")); \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).element_count, (actual).element_count, line, LCONCAT(msg, "mesh_friendship_lpn_t::element_count")); \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).request_count, (actual).request_count, line, LCONCAT(msg, "mesh_friendship_lpn_t::request_count")); \
+    } while (0)
+#define TEST_ASSERT_EQUAL_mesh_friendship_lpn_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_mesh_friendship_lpn_t(excepted, actual, __LINE__, "")
+
+#define UNITY_TEST_ASSERT_EQUAL_mesh_friendship_t(expected, actual, line, msg) \
+    do                                                                  \
+    {                                                                   \
+        UNITY_TEST_ASSERT_EQUAL_mesh_friendship_lpn_t((expected).lpn, (actual).lpn, line, LCONCAT(msg, "mesh_friendship_t::lpn")); \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).poll_timeout_ms, (actual).poll_timeout_ms, line, LCONCAT(msg, "mesh_friendship_t::poll_timeout_ms")); \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).poll_count, (actual).poll_count, line, LCONCAT(msg, "mesh_friendship_t::poll_count")); \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).receive_delay_ms, (actual).receive_delay_ms, line, LCONCAT(msg, "mesh_friendship_t::receive_delay_ms")); \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).receive_window_ms, (actual).receive_window_ms, line, LCONCAT(msg, "mesh_friendship_t::receive_window_ms")); \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).avg_rssi, (actual).avg_rssi, line, LCONCAT(msg, "mesh_friendship_t::avg_rssi")); \
+    } while (0)
+#define TEST_ASSERT_EQUAL_mesh_friendship_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_mesh_friendship_t(excepted, actual, __LINE__, "")
+
+/**
+ * nrf_mesh_evt_t. Only the events that are actually used are included. The macro will assert if
+ * you try to use it for unimplemented events. Add more cases to the switch when necessary, and try
+ * to qualify all relevant parameters, if possible.
+ */
+#define UNITY_TEST_ASSERT_EQUAL_nrf_mesh_evt_t(expected, actual, line, msg)                          \
+    do                                                                                               \
+    {                                                                                                \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).type, (actual).type, line, msg);                      \
+        switch ((expected).type)                                                                     \
+        {                                                                                            \
+            case NRF_MESH_EVT_TX_COMPLETE:                                                           \
+                UNITY_TEST_ASSERT_EQUAL_HEX32((expected).params.tx_complete.token,                   \
+                                              (actual).params.tx_complete.token,                     \
+                                              line,                                                  \
+                                              msg);                                                  \
+                break;                                                                               \
+            case NRF_MESH_EVT_FLASH_FAILED:                                                          \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.flash_failed.user,                     \
+                                            (actual).params.flash_failed.user,                       \
+                                            line,                                                    \
+                                            msg);                                                    \
+                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.flash_failed.p_flash_entry,            \
+                                            (actual).params.flash_failed.p_flash_entry,              \
+                                            line,                                                    \
+                                            msg);                                                    \
+                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.flash_failed.p_flash_page,             \
+                                            (actual).params.flash_failed.p_flash_page,               \
+                                            line,                                                    \
+                                            msg);                                                    \
+                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.flash_failed.p_area,                   \
+                                            (actual).params.flash_failed.p_area,                     \
+                                            line,                                                    \
+                                            msg);                                                    \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.flash_failed.page_count,               \
+                                            (actual).params.flash_failed.page_count,                 \
+                                            line,                                                    \
+                                            msg);                                                    \
+                break;                                                                               \
+            case NRF_MESH_EVT_HB_MESSAGE_RECEIVED:                                                   \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.hb_message.init_ttl,                   \
+                                            (actual).params.hb_message.init_ttl,                     \
+                                            line,                                                    \
+                                            msg);                                                    \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.hb_message.hops,                       \
+                                            (actual).params.hb_message.hops,                         \
+                                            line,                                                    \
+                                            msg);                                                    \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.hb_message.features,                   \
+                                            (actual).params.hb_message.features,                     \
+                                            line,                                                    \
+                                            msg);                                                    \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.hb_message.src,                        \
+                                            (actual).params.hb_message.src,                          \
+                                            line,                                                    \
+                                            msg);                                                    \
+                break;                                                                               \
+            case NRF_MESH_EVT_NET_BEACON_RECEIVED:                                                   \
+                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.net_beacon.p_beacon_info,              \
+                                            (actual).params.net_beacon.p_beacon_info,                \
+                                            line,                                                    \
+                                            msg);                                                    \
+                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.net_beacon.p_beacon_secmat,            \
+                                            (actual).params.net_beacon.p_beacon_secmat,              \
+                                            line,                                                    \
+                                            msg);                                                    \
+                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.net_beacon.p_rx_metadata,              \
+                                            (actual).params.net_beacon.p_rx_metadata,                \
+                                            line,                                                    \
+                                            msg);                                                    \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.net_beacon.iv_index,                   \
+                                            (actual).params.net_beacon.iv_index,                     \
+                                            line,                                                    \
+                                            msg);                                                    \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.net_beacon.flags.iv_update,            \
+                                            (actual).params.net_beacon.flags.iv_update,              \
+                                            line,                                                    \
+                                            msg);                                                    \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.net_beacon.flags.key_refresh,          \
+                                            (actual).params.net_beacon.flags.key_refresh,            \
+                                            line,                                                    \
+                                            msg);                                                    \
+                break;                                                                               \
+            case NRF_MESH_EVT_MESSAGE_RECEIVED:                                                      \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.message.length,                        \
+                                            (actual).params.message.length,                          \
+                                            line,                                                    \
+                                            msg);                                                    \
+                if ((expected).params.message.p_buffer != NULL)                                      \
+                {                                                                                    \
+                    UNITY_TEST_ASSERT_EQUAL_HEX8_ARRAY((expected).params.message.p_buffer,           \
+                                                       (actual).params.message.p_buffer,             \
+                                                       (actual).params.message.length,               \
+                                                       line,                                         \
+                                                       msg);                                         \
+                }                                                                                    \
+                UNITY_TEST_ASSERT_EQUAL_nrf_mesh_address_t((expected).params.message.src,            \
+                                                           (actual).params.message.src,              \
+                                                           line,                                     \
+                                                           msg);                                     \
+                UNITY_TEST_ASSERT_EQUAL_nrf_mesh_address_t((expected).params.message.dst,            \
+                                                           (actual).params.message.dst,              \
+                                                           line,                                     \
+                                                           msg);                                     \
+                UNITY_TEST_ASSERT_EQUAL_MEMORY((expected).params.message.secmat.p_app,               \
+                                               (actual).params.message.secmat.p_app,                 \
+                                               sizeof(nrf_mesh_application_secmat_t),                \
+                                               line,                                                 \
+                                               msg);                                                 \
+                UNITY_TEST_ASSERT_EQUAL_MEMORY((expected).params.message.secmat.p_net,               \
+                                               (actual).params.message.secmat.p_net,                 \
+                                               sizeof(nrf_mesh_network_secmat_t),                    \
+                                               line,                                                 \
+                                               msg);                                                 \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.message.ttl,                           \
+                                            (actual).params.message.ttl,                             \
+                                            line,                                                    \
+                                            msg);                                                    \
+                UNITY_TEST_ASSERT_EQUAL_PTR((expected).params.message.p_metadata,                    \
+                                            (actual).params.message.p_metadata,                      \
+                                            line,                                                    \
+                                            msg);                                                    \
+                break;                                                                               \
+            case NRF_MESH_EVT_RX_FAILED:                                                             \
+                UNITY_TEST_ASSERT_EQUAL_HEX16((expected).params.rx_failed.src,                       \
+                                              (actual).params.rx_failed.src,                         \
+                                              line,                                                  \
+                                              msg);                                                  \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.rx_failed.ivi,                         \
+                                            (actual).params.rx_failed.ivi,                           \
+                                            line,                                                    \
+                                            msg);                                                    \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.rx_failed.reason,                      \
+                                            (actual).params.rx_failed.reason,                        \
+                                            line,                                                    \
+                                            msg);                                                    \
+                break;                                                                               \
+            case NRF_MESH_EVT_SAR_FAILED:                                                            \
+                UNITY_TEST_ASSERT_EQUAL_HEX32((expected).params.sar_failed.token,                    \
+                                              (actual).params.sar_failed.token,                      \
+                                              line,                                                  \
+                                              msg);                                                  \
+                UNITY_TEST_ASSERT_EQUAL_INT((expected).params.sar_failed.reason,                     \
+                                            (actual).params.sar_failed.reason,                       \
+                                            line,                                                    \
+                                            msg);                                                    \
+                break;                                                                               \
+            case NRF_MESH_EVT_DISABLED:                                                              \
+                /* No parameters */                                                                  \
+                break;                                                                               \
+            case NRF_MESH_EVT_HB_SUBSCRIPTION_CHANGE:                                                \
+                if ((expected).params.hb_subscription_change.p_old == NULL)                          \
+                {                                                                                    \
+                    UNITY_TEST_ASSERT_NULL((actual).params.hb_subscription_change.p_old, line, msg); \
+                }                                                                                    \
+                else                                                                                 \
+                {                                                                                    \
+                    UNITY_TEST_ASSERT_NOT_NULL((actual).params.hb_subscription_change.p_old,         \
+                                               line,                                                 \
+                                               msg);                                                 \
+                    UNITY_TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(                          \
+                        *(expected).params.hb_subscription_change.p_old,                             \
+                        *(actual).params.hb_subscription_change.p_old,                               \
+                        line,                                                                        \
+                        msg);                                                                        \
+                }                                                                                    \
+                if ((expected).params.hb_subscription_change.p_new == NULL)                          \
+                {                                                                                    \
+                    UNITY_TEST_ASSERT_NULL((actual).params.hb_subscription_change.p_new, line, msg); \
+                }                                                                                    \
+                else                                                                                 \
+                {                                                                                    \
+                    UNITY_TEST_ASSERT_NOT_NULL((actual).params.hb_subscription_change.p_new,         \
+                                               line,                                                 \
+                                               msg);                                                 \
+                    UNITY_TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(                          \
+                        *(expected).params.hb_subscription_change.p_new,                             \
+                        *(actual).params.hb_subscription_change.p_new,                               \
+                        line,                                                                        \
+                        msg);                                                                        \
+                }                                                                                    \
+                break;                                                                               \
+            case NRF_MESH_EVT_FRIENDSHIP_TERMINATED:                                                 \
+                UNITY_TEST_ASSERT_EQUAL_INT(                                                         \
+                    (expected).params.friendship_terminated.lpn_src,                                 \
+                    (actual).params.friendship_terminated.lpn_src,                                   \
+                    line,                                                                            \
+                    msg);                                                                            \
+                UNITY_TEST_ASSERT_EQUAL_INT(                                                         \
+                    (expected).params.friendship_terminated.friend_src,                              \
+                    (actual).params.friendship_terminated.friend_src,                                \
+                    line,                                                                            \
+                    msg);                                                                            \
+                UNITY_TEST_ASSERT_EQUAL_INT(                                                         \
+                    (expected).params.friendship_terminated.reason,                                  \
+                    (actual).params.friendship_terminated.reason,                                    \
+                    line,                                                                            \
+                    msg);                                                                            \
+                break;                                                                               \
+            case NRF_MESH_EVT_FRIEND_REQUEST:                                                        \
+                UNITY_TEST_ASSERT_NOT_NULL((actual).params.friend_request.p_friendship, line, msg);  \
+                UNITY_TEST_ASSERT_EQUAL_mesh_friendship_t(                                                      \
+                    *(expected).params.friend_request.p_friendship,                                   \
+                    *(actual).params.friend_request.p_friendship,                                     \
+                    line, msg);                                                                            \
+                UNITY_TEST_ASSERT_EQUAL_PTR(                                                         \
+                    (expected).params.friend_request.p_net,                                          \
+                    (actual).params.friend_request.p_net,                                            \
+                    line,                                                                            \
+                    msg);                                                                            \
+                UNITY_TEST_ASSERT_EQUAL_PTR(                                                         \
+                    (expected).params.friend_request.p_metadata,                                     \
+                    (actual).params.friend_request.p_metadata,                                       \
+                    line,                                                                            \
+                    msg);                                                                            \
+                break;                                                                               \
+            default:                                                                                 \
+                {                                                                                    \
+                    char error_msg[256];                                                             \
+                    sprintf(error_msg, "Unimplemented event type %#x", (expected).type);             \
+                    UNITY_TEST_FAIL(line, error_msg);                                                \
+                    break;                                                                           \
+                }                                                                                    \
+        }                                                                                            \
+    } while (0)
+#define TEST_ASSERT_EQUAL_nrf_mesh_evt_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_nrf_mesh_evt_t(expected, actual, __LINE__, "nrf_mesh_evt_t::")
+
+
+#define UNITY_TEST_ASSERT_EQUAL_core_tx_alloc_params_t(expected, actual, line, message) do { \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).role, (actual).role, line, message); \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).net_packet_len, (actual).net_packet_len, line, message); \
+        UNITY_TEST_ASSERT_EQUAL_network_packet_metadata_t(*(expected).p_metadata, *(actual).p_metadata, line, message); \
+        UNITY_TEST_ASSERT_EQUAL_HEX32((expected).token, (actual).token, line, message); \
+    } while (0)
+#define TEST_ASSERT_EQUAL_core_tx_alloc_params_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_core_tx_alloc_params_t(expected, actual, __LINE__, "")
+
+#define UNITY_TEST_ASSERT_EQUAL_network_tx_packet_buffer_t(expected, actual, line, message) \
+    do                                                                  \
+    {                                                                   \
+        UNITY_TEST_ASSERT_NOT_NULL((actual).user_data.p_metadata, line, "network_tx_packet_buffer_t::user_data::p_metadata"); \
+        UNITY_TEST_ASSERT_EQUAL_HEX32((expected).user_data.token, (actual).user_data.token, line, "network_tx_packet_buffer_t::user_data::token"); \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).user_data.payload_len, (actual).user_data.payload_len, line, "network_tx_packet_buffer_t::user_data::payload_len"); \
+        UNITY_TEST_ASSERT_EQUAL_HEX32((expected).user_data.bearer_selector, (actual).user_data.bearer_selector, line, "network_tx_packet_buffer_t::user_data::bearer_selector"); \
+        UNITY_TEST_ASSERT_EQUAL_INT((expected).user_data.role, (actual).user_data.role, line, "network_tx_packet_buffer_t::user_data::role"); \
+    } while (0)
+#define TEST_ASSERT_EQUAL_network_tx_packet_buffer_t(expected, actual) UNITY_TEST_ASSERT_EQUAL_network_tx_packet_buffer_t(expected, actual, __LINE__, "")
+
 /** @} */
 
 #endif /* TEST_HELPER_H__ */

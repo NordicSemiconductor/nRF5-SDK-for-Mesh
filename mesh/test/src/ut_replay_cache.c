@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -227,4 +227,13 @@ void test_clear(void)
 
     // should be space for new entries again:
     TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_add(addr, 1, 0));
+}
+
+void test_adding_old_entry(void)
+{
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_add(ADDR_BASE, 10, 0));
+    TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE, 10, 0));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_add(ADDR_BASE, 9, 0));
+    TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE, 10, 0));
+    TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE, 9, 0));
 }

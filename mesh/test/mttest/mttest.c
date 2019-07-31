@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -106,6 +106,7 @@ static void free_current_test(void)
 
     pthread_cond_destroy(&m_test_ready_cond);
     pthread_mutex_destroy(&m_test_ready_mutex);
+    free(mp_current_test->p_rand_states);
     free(mp_current_test->p_threads);
     free(mp_current_test);
     mp_current_test = NULL;

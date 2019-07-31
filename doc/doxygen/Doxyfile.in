@@ -228,113 +228,133 @@ TAB_SIZE               = 4
 # "Side Effects:". You can put \n's in the value part of an alias to insert
 # newlines.
 
-# rufu: External links must be added with target="_blank" to make them open
-# in a new window.
-ALIASES                = \
+## External links (outside of Infocenter)
+# External links must be added with target="_blank" to make them open in a new window.
+
+# BT SIG (bluetooth.com/org)
+ALIASES               = \
+link_BluetoothSIG="<a href=\"http://www.bluetooth.org/\" target=\"_blank\">Bluetooth SIG</a>" \
+link_companyID="<a href=\"https://www.bluetooth.com/specifications/assigned-numbers/company-identifiers\" target=\"_blank\">Company ID assigned by Bluetooth SIG</a>" \
+link_btsig_intro="<a href=\"https://blog.bluetooth.com/introducing-bluetooth-mesh-networking\" target=\"_blank\">Bluetooth SIG's introduction to Bluetooth Mesh</a>" \
+link_btsig_spec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications?_ga=2.18257471.723078495.1501226603-93769939.1480503530\" target=\"_blank\">Bluetooth Mesh Networking Specifications</a>" \
+link_MeshSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\" target=\"_blank\">Mesh Profile Specification</a>" \
+link_ModelSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\" target=\"_blank\">Mesh Model Specification</a>" \
+
+# Nordic (non-Mesh)
+ALIASES               += \
 link_nRF5SDK="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Software/nRF5-SDK\" target=\"_blank\">nRF5 SDK</a>" \
 link_nRF8001="<a href=\"https://www.nordicsemi.com/Products/Low-power-short-range-wireless/nRF8000-series\" target=\"_blank\">nRF8001</a>" \
 link_SLIP="<a href=\"https://en.wikipedia.org/wiki/Serial_Line_Internet_Protocol\" target=\"_blank\">SLIP</a>" \
-link_BluetoothSIG="<a href=\"http://www.bluetooth.org/\" target=\"_blank\">Bluetooth SIG</a>" \
-link_mesh_doclib="<a href=\"https://www.nordicsemi.com/DocLib/Content/SDK_Doc/Mesh_SDK/v3-0-0/index\" target=\"_blank\">nRF5 SDK for Mesh documentation website</a>" \
+link_mesh_doclib="<a href=\"https://infocenter.nordicsemi.com/topic/struct_sdk/struct/sdk_mesh_latest.html\" target=\"_blank\">nRF5 SDK for Mesh documentation website</a>" \
 link_meshsdk_github="<a href=\"https://github.com/NordicSemiconductor/nRF5-SDK-for-Mesh\" target=\"_blank\">nRF5 SDK for Mesh GitHub repository</a>" \
 link_nrfutil_github="<a href=\"https://github.com/NordicSemiconductor/pc-nrfutil/tree/mesh_dfu\" target=\"_blank\">https://github.com/NordicSemiconductor/pc-nrfutil/tree/mesh_dfu</a>" \
 link_nrfutil_github_name="<a href=\"https://github.com/NordicSemiconductor/pc-nrfutil/tree/mesh_dfu\" target=\"_blank\">nrfutil</a>" \
-link_companyID="<a href=\"https://www.bluetooth.com/specifications/assigned-numbers/company-identifiers\" target=\"_blank\">Bluetooth SIG assigned Company ID</a>" \
-link_sdFWID="<a href=\"https://devzone.nordicsemi.com/question/3629/how-do-i-access-softdevice-version-string/?answer=3693#post-id-3693\" target=\"_blank\">SoftDevice FWIDs</a>" \
+link_openmesh_github="<a href=\"https://github.com/NordicPlayground/nRF51-ble-bcast-mesh\" target=\"_blank\">nRF OpenMesh</a>" \
 link_nordicsemi="<a href=\"https://www.nordicsemi.com/\" target=\"_blank\">nordicsemi.com</a>" \
+link_devzone="<a href=\"https://devzone.nordicsemi.com/\" target=\"_blank\">DevZone</a>" \
+link_nrf52dk="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52-DK \" target="_blank">nRF52 Development Kit</a>" \
+
+# Toolchain (excluding mobile)
+ALIASES               += \
 link_pyserial="<a href=\"https://pypi.python.org/pypi/pyserial\" target=\"_blank\">pyserial package</a>" \
-link_cmake="<a href=\"https://cmake.org/\" target=\"_blank\">CMake</a>" \
-link_jlink_docs="<a href=\"https://www.segger.com/downloads/jlink\" target=\"_blank\">SEGGER J-Link documentation</a>" \
+link_cmake="<a href=\"https://cmake.org/overview/\" target=\"_blank\">CMake</a>" \
+link_segger_jlink="<a href=\"https://www.segger.com/downloads/jlink\" target=\"_blank\">SEGGER J-Link</a>" \
+link_segger_website="<a href=\"https://www.segger.com/products/development-tools/embedded-studio/?L=0\" target=\"_blank\">SEGGER website</a>" \
 link_seggerstudio="<a href=\"https://www.segger.com/products/development-tools/embedded-studio/?L=0\" target=\"_blank\">SEGGER Embedded Studio</a>" \
-link_seggerstudio_macros="<a href=\"https://studio.segger.com/ide_project_macros.htm \">SES Project macros</a>" \
+link_seggerstudio_macros="<a href=\"https://studio.segger.com/ide_project_macros.htm \" target=\"_blank\">SES Project macros</a>" \
 link_armnone="<a href=\"https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads\" target=\"_blank\">arm-none-eabi-gcc</a>" \
-link_armnone_extended="<a href="https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads" target="_blank">GNU ARM Embedded Toolchain</a>" \
+link_armnone_extended="<a href="https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads\" target="_blank">GNU ARM Embedded Toolchain</a>" \
+link_armnone_q4major_bug="<a href="https://bugs.launchpad.net/gcc-arm-embedded/+bug/1810274\" target="_blank">a bug that breaks the CMake building process on Windows</a>" \
 link_armcc="<a href=\"https://developer.arm.com/products/software-development-tools/compilers/arm-compiler/downloads/version-5\" target=\"_blank\">armcc v5</a>" \
 link_keil="<a href=\"http://www2.keil.com/mdk5/compiler/5/\" target=\"_blank\">Keil</a>" \
-link_keil_extended="<a href="http://www2.keil.com/mdk5/compiler/5/" target="_blank">ARM Compiler Version 5</a>" \
+link_keil_extended="<a href="http://www2.keil.com/mdk5/compiler/5/\" target="_blank">ARM Compiler Version 5</a>" \
 link_keiluvision="<a href=\"http://www2.keil.com/mdk5/uvision/\" target=\"_blank\">Keil uVision IDE</a>" \
-link_ninja="<a href=\"https://ninja-build.org/\" target=\"_blank\">Ninja</a>" \
 link_make="<a href=\"http://pubs.opengroup.org/onlinepubs/9699919799/utilities/make.html\" target=\"_blank\">make</a>" \
-link_GCC="<a href=\"https://gcc.gnu.org/\" target=\"_blank\">GCC</a>" \
 link_unity="<a href=\"https://github.com/ThrowTheSwitch/Unity\" target=\"_blank\">Unity</a>" \
 link_cmock="<a href=\"https://github.com/ThrowTheSwitch/CMock\" target=\"_blank\">CMock</a>" \
 link_ruby="<a href=\"https://www.ruby-lang.org/\" target=\"_blank\">Ruby</a>" \
-link_about_cmake="<a href=\"https://cmake.org/overview/\" target=\"_blank\">official CMake website</a>" \
 link_mingw="<a href=\"https://sourceforge.net/projects/mingw/files/\" target=\"_blank\">MinGW</a>" \
-link_btsig_intro="<a href=\"https://blog.bluetooth.com/introducing-bluetooth-mesh-networking\" target=\"_blank\">Bluetooth SIG's introduction to Bluetooth Mesh</a>" \
-link_btsig_spec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications?_ga=2.18257471.723078495.1501226603-93769939.1480503530\" target=\"_blank\">Bluetooth Mesh Networking Specifications</a>" \
-link_doxygen="<a href=\"https://www.stack.nl/~dimitri/doxygen/\" target=\"_blank\">Doxygen</a>" \
+link_doxygen="<a href=\"http://www.doxygen.nl\" target=\"_blank\">Doxygen</a>" \
 link_git="<a href=\"https://git-scm.com\" target=\"_blank\">Git</a>" \
 link_graphviz="<a href=\"http://www.graphviz.org\" target=\"_blank\">Graphviz</a>" \
 link_mscgen="<a href=\"http://www.mcternan.me.uk/mscgen\" target=\"_blank\">Mscgen</a>" \
-link_infocenter="<a href=\"https://www.nordicsemi.com/DocLib\" target=\"_blank\">Nordic Documentation</a>" \
-link_nrf5x_cmd_line_tools_w32="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF5-Command-Line-Tools\" target=\"_blank\">nRFx Command Line Tools for Windows</a>" \
-link_nrf5x_cmd_line_tools_linux="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF5-Command-Line-Tools\" target=\"_blank\">nRFx Command Line Tools for Linux (64-bit)</a>" \
+link_nrf5x_cmd_line_tools_w32="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Command-Line-Tools\" target=\"_blank\">nRFx Command Line Tools for Windows</a>" \
+link_nrf5x_cmd_line_tools_linux="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Command-Line-Tools\" target=\"_blank\">nRFx Command Line Tools for Linux (64-bit)</a>" \
 link_rtt="<a href=\"https://www.segger.com/products/debug-probes/j-link/technology/real-time-transfer/about-real-time-transfer/\" target=\"_blank\">SEGGER RTT</a>" \
-link_nRFConnectDesktop="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Connect-for-desktop\" target=\"_blank\">nRF Connect for Desktop</a>" \
-link_nRFConnectMobile="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Connect-for-mobile\" target=\"_blank\">nRF Connect for Mobile</a>" \
 link_enocean_ds="<a href=\"https://www.enocean.com/en/enocean_modules_2.4ghz_ble/ptm-215b/\" target=\"_blank\">EnOcean PTM215B Datasheet</a>" \
-link_APIref="<a href=\"modules.html\">API Reference</a>" \
-link_Structref="<a href=\"annotated.html\">Data structures</a>" \
-link_MeshSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\">Mesh Profile Specification</a>" \
-link_ModelSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\">Mesh Model Specification</a>" \
-link_MeshSdk_download="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Software/nRF5-SDK-for-Mesh\">Download</a>" \
-link_python_path_tutorial="<a href=\"https://datascience.com.co/how-to-install-python-2-7-and-3-6-in-windows-10-add-python-path-281e7eae62a \">install and add to PATH</a>" \
-link_zephyr="<a href="https://github.com/zephyrproject-rtos/zephyr" target="_blank_">Zephyr RTOS</a>" \
-link_nrf_mesh_app="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Mesh \" target="_blank_">nRF Mesh mobile app</a>" \
-link_nrf_mesh_app_ios="<a href=\"https://itunes.apple.com/us/app/nrf-mesh/id1380726771?mt=8 \" target="_blank_">iOS</a>" \
-link_nrf_mesh_app_android="<a href=\"https://play.google.com/store/apps/details?id=no.nordicsemi.android.nrfmeshprovisioner \" target="_blank_">Android</a>" \
-link_nrf52dk="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52-DK \" target="_blank_">nRF52 Development Kit</a>" \
-link_segger_jlink_download="<a href="https://www.segger.com/downloads/jlink/" target="_blank">SEGGER J-Link Software Pack</a>" \
+link_APIref="<a href=\"modules.html\" target=\"_blank\">API Reference</a>" \
+link_Structref="<a href=\"annotated.html\" target=\"_blank\">Data structures</a>" \
+link_MeshSdk_download="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Software/nRF5-SDK-for-Mesh\" target=\"_blank\">Download</a>" \
+link_python_path_tutorial="<a href=\"https://datascience.com.co/how-to-install-python-2-7-and-3-6-in-windows-10-add-python-path-281e7eae62a \" target=\"_blank\">install and add to PATH</a>" \
+link_python_interactive_command_line="<a href=\"http://ipython.readthedocs.io/en/stable/index.html \" target="_blank_">interactive Python command line</a>" \
 link_python27_download="<a href="https://www.python.org/downloads/" target="_blank">Python 2.7</a>" \
 link_python35_download="<a href="https://www.python.org/downloads/" target="_blank">Python 3.5</a>" \
-link_nrf5xclt_download="<a href="https://www.nordicsemi.com/DocLib/Content/User_Guides/nrf5x_cltools/latest/UG/cltools/nrf5x_installation" target="_blank">nRF5x Command Line Tools</a>" \
 link_cmake_download="<a href="https://cmake.org/download/" target="_blank">CMake</a>" \
 link_ninja_download="<a href="https://github.com/ninja-build/ninja/releases" target="_blank">Ninja</a>" \
-link_nrf5SDK_download="<a href="https://developer.nordicsemi.com/nRF5_SDK/nRF5_SDK_v15.x.x/" target="_blank">nRF5 SDK</a>" \
-link_nrf_connect_mobile_ios="<a href=\"https://itunes.apple.com/us/app/nrf-connect/id1054362403\">iOS</a>" \
-link_nrf_connect_mobile_android="<a href=\"https://play.google.com/store/apps/details?id=no.nordicsemi.android.mcp\">Android</a>" \
-link_nrf_connect_for_desktop="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Connect-for-desktop\">nRF Connect for Desktop</a>" \
+link_nrf5SDK_download="<a href="https://www.nordicsemi.com/Software-and-Tools/Software/nRF5-SDK/Download\" target="_blank">nRF5 SDK</a>" \
 
-# grfe: Links to the documentation library must provide the full path.
+# Toolchain (mobile)
 ALIASES               += \
-link_device_id="[FICR DEVICEID-0 Register](https://www.nordicsemi.com/-/media/DocLib/Other/Product_Spec/nRF52832PSv14.pdf)" \
-link_ic_SDtimeslotAPI="[SoftDevice Timeslot API](https://www.nordicsemi.com/DocLib/Content/SoftDevice_Spec/s132/latest/SDS/s1xx/concurrent_multiprotocol_tsl_api/concurrent_multiprotocol_tsl_api)" \
-link_ic_nrfutil="[nrfutil](https://www.nordicsemi.com/DocLib/Content/User_Guides/nrfutil/latest/UG/nrfutil/nrfutil_intro)" \
-link_ic_nRF51PS="[nRF51](https://www.nordicsemi.com/-/media/DocLib/Other/Product_Spec/nRF51822PSv33.pdf)" \
-link_ic_nRF52832PS="[nRF52832](https://www.nordicsemi.com/-/media/DocLib/Other/Product_Spec/nRF52832PSv14.pdf)" \
-link_52832_PPI="[nRF52832 PPI](https://www.nordicsemi.com/-/media/DocLib/Other/Product_Spec/nRF52832PSv14.pdf)" \
-link_52832_GPIOTE="[nRF52832 GPIOTE](https://www.nordicsemi.com/-/media/DocLib/Other/Product_Spec/nRF52832PSv14.pdf)" \
-link_app_timer="[App timer](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/lib_timer)" \
-link_app_timer_group="[App timer](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/group__app__timer)" \
-link_app_irq_priority_lowest="[APP_IRQ_PRIORITY_LOWEST](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/group__app__util__platform)" \
-link_app_irq_priority_low="[APP_IRQ_PRIORITY_LOW](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/group__app__util__platform)" \
-link_section_vars="[Section variables](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/lib_section_vars)" \
-link_SoftDevice_NVIC="[SoftDevice NVIC APIs](https://www.nordicsemi.com/DocLib/Content/SoftDevice_API_Doc/S132/v6-1-0/group__nrf__nvic__api)" \
-link_sd_nvic_criticial_region_enter="[sd_nvic_critical_region_enter()](https://www.nordicsemi.com/DocLib/Content/SoftDevice_API_Doc/S132/v6-1-0/group_nrf_nvic_functions?1994#gac3d990530890d81f388de7d507e170b8)" \
-link_sd_nvic_criticial_region_exit="[sd_nvic_critical_region_exit()](https://www.nordicsemi.com/DocLib/Content/SoftDevice_API_Doc/S132/v6-1-0/group_nrf_nvic_functions?1995#ga7bcafdd2cd546560174d688fdbeda7dd)" \
-link_SD_Handler="[SoftDevice Handler](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/group__nrf__sdh)" \
-link_BLE_stack="[BLE stack](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/group__nrf__sdh__ble)" \
-link_GAP="[Generic Access Profile (GAP)](https://www.nordicsemi.com/DocLib/Content/SoftDevice_API_Doc/S132/v6-1-0/group_ble_gap)" \
-link_BLE_CPN="[Connection Parameters Negotiation](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/group__ble__conn__params)" \
-link_ble_app_proximity_example="[ble_app_proximity](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/ble_sdk_app_proximity)" \
-link_ble_app_uart_example="[ble_app_uart](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/ble_sdk_app_nus_eval)" \
-link_buttonless_secure_dfu_service="[Buttonless Secure DFU Service](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/service_dfu.html)" \
-link_buttonless_secure_dfu_service_configuration="[Buttonless Secure DFU Service Configuration](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/service_dfu.html#secure_dfu_buttonless_configuration)" \
-link_bootloader_and_dfu_modules="[Bootloader and DFU modules](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/lib_bootloader_modules.html)" \
-link_working_with_keys="[Working with keys](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/lib_bootloader_dfu_keys.html)" \
-link_bootloader_signature_verification="[Signature Verification](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/lib_bootloader_dfu_validation.html#lib_bootloader_signatures)" \
-link_secure_bootloader="[Secure Bootloader example](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/ble_sdk_app_dfu_bootloader.html)" \
-link_bootloader_settings_page="[Bootloader Settings page](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/lib_bootloader.html#lib_bootloader_settings_page)" \
-link_programming_bootloader="[Programming the bootloader](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/lib_bootloader.html#lib_bootloader_programming)" \
-link_micro_ecc="[micro-ecc](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/lib_crypto_backend_micro_ecc.html#lib_crypto_backend_micro_ecc_install)" \
-link_nrfutil_nrf5_sdk="[nrfutil](https://www.nordicsemi.com/DocLib/Content/User_Guides/nrfutil/latest/UG/nrfutil/nrfutil_intro)" \
-link_nrfutil_installing="[Installing nrfutil](https://www.nordicsemi.com/en/DocLib/Content/User_Guides/nrfutil/latest/UG/nrfutil/nrfutil_installing)" \
-link_nrfutil_perform_dfu_over_ble="[Performing a DFU over BLE](https://www.nordicsemi.com/en/DocLib/Content/User_Guides/nrfutil/latest/UG/nrfutil/nrfutil_dfu_ble)" \
-link_nrfutil_bootloader_settings="[Generating and displaying bootloader settings](https://www.nordicsemi.com/en/DocLib/Content/User_Guides/nrfutil/latest/UG/nrfutil/nrfutil_settings_generate_display)" \
-link_nrfutil_generating_dfu_packages="[Generating DFU packages with nrfutil](https://www.nordicsemi.com/en/DocLib/Content/User_Guides/nrfutil/latest/UG/nrfutil/nrfutil_pkg)" \
-link_nrf_command_line_tools="[nRF5x Command Line Tools](https://www.nordicsemi.com/DocLib/Content/User_Guides/nrf5x_cltools/latest/UG/cltools/nrf5x_command_line_tools_lpage)" \
-link_app_data_area_size="[NRF_DFU_APP_DATA_AREA_SIZE](https://www.nordicsemi.com/DocLib/Content/SDK_Doc/nRF5_SDK/v15-2-0/group__nrf__dfu__config.html#gafeca0997c1671ecd32a25d6c17b16af3)" \
+link_nRFConnectDesktop="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Connect-for-desktop\" target=\"_blank\">nRF Connect for Desktop</a>" \
+link_nRFConnectMobile="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Connect-for-mobile\" target=\"_blank\">nRF Connect for Mobile</a>" \
+link_nrf_mesh_app="<a href=\"https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Mesh \" target="_blank">nRF Mesh mobile app</a>" \
+link_nrf_mesh_app_ios="<a href=\"https://itunes.apple.com/us/app/nrf-mesh/id1380726771?mt=8 \" target="_blank">iOS</a>" \
+link_nrf_mesh_app_android="<a href=\"https://play.google.com/store/apps/details?id=no.nordicsemi.android.nrfmeshprovisioner \" target="_blank">Android</a>" \
+link_nrf_connect_mobile_ios="<a href=\"https://itunes.apple.com/us/app/nrf-connect/id1054362403\" target=\"_blank\">iOS</a>" \
+link_nrf_connect_mobile_android="<a href=\"https://play.google.com/store/apps/details?id=no.nordicsemi.android.mcp\" target=\"_blank\">Android</a>" \
+
+# Zephyr RTOS
+ALIASES               += \
+link_zephyr="<a href="https://github.com/zephyrproject-rtos/zephyr" target="_blank_">Zephyr RTOS</a>" \
+link_zephyr_BTMesh_example="<a href="https://github.com/zephyrproject-rtos/zephyr/tree/zephyr-v1.13.0/samples/bluetooth/mesh" target="_blank">Bluetooth Mesh example</a>" \
+link_zephyr_apache_license="<a href="https://github.com/zephyrproject-rtos/zephyr/blob/master/LICENSE" target="_blank">Apache 2.0</a>" \
+link_zephyr_licensing="<a href="https://docs.zephyrproject.org/latest/LICENSING.html" target="_blank">Licensing of Zephyr Project components</a>" \
+
+## Internal documentation links (within Infocenter)
+# Links to the documentation library must omit the "https://infocenter.nordicsemi.com" part and replace it with "..".
+ALIASES               += \
+link_nrf5xclt_download="<a href="../topic/ug_nrf5x_cltools/UG/cltools/nrf5x_installation.html" target="_blank">nRF5x Command Line Tools</a>" \
+link_ic_SDtimeslotAPI="[SoftDevice Timeslot API](../sds_s132/SDS/s1xx/concurrent_multiprotocol_tsl_api/concurrent_multiprotocol_tsl_api.html)" \
+link_ic_nRF51PS="[nRF51](../pdf/nRF51822_PS_v3.3.pdf)" \
+link_ic_nRF52832PS="[nRF52832](../pdf/nRF52832_PS_v1.4.pdf)" \
+link_52832_PPI="[nRF52832 PPI](../pdf/nRF52832_PS_v1.4.pdf)" \
+link_52832_GPIOTE="[nRF52832 GPIOTE](../pdf/nRF52832_PS_v1.4.pdf)" \
+link_app_timer="[App timer](../com.nordic.infocenter.sdk5.v15.3.0/lib_timer.html)" \
+link_app_timer_group="[App timer](../com.nordic.infocenter.sdk5.v15.3.0/group__app__timer.html)" \
+link_app_irq_priority_lowest="[APP_IRQ_PRIORITY_LOWEST](../com.nordic.infocenter.sdk5.v15.3.0/group__app__util__platform.html)" \
+link_app_irq_priority_low="[APP_IRQ_PRIORITY_LOW](../com.nordic.infocenter.sdk5.v15.3.0/group__app__util__platform.html)" \
+link_section_vars="[Section variables](../com.nordic.infocenter.sdk5.v15.3.0/lib_section_vars.html)" \
+link_SoftDevice_NVIC="[SoftDevice NVIC APIs](../com.nordic.infocenter.s132.api.v6.1.1/group__nrf__nvic__api.html)" \
+link_softdevice_id="[SoftDevice identifier](../sds_s132/SDS/s1xx/sd_info_structure/sd_info_structure.html)" \
+link_sd_nvic_criticial_region_enter="[sd_nvic_critical_region_enter()](../com.nordic.infocenter.s132.api.v6.1.1/group___n_r_f___n_v_i_c___f_u_n_c_t_i_o_n_s.html#gac3d990530890d81f388de7d507e170b8)" \
+link_sd_nvic_criticial_region_exit="[sd_nvic_critical_region_exit()](../com.nordic.infocenter.s132.api.v6.1.1/group___n_r_f___n_v_i_c___f_u_n_c_t_i_o_n_s.html#ga7bcafdd2cd546560174d688fdbeda7dd)" \
+link_SD_Handler="[SoftDevice Handler](../com.nordic.infocenter.sdk5.v15.3.0/group__nrf__sdh.html)" \
+link_BLE_stack="[BLE stack](../com.nordic.infocenter.sdk5.v15.3.0/group__nrf__sdh__ble.html)" \
+link_GAP="[Generic Access Profile (GAP)](../com.nordic.infocenter.s132.api.v6.1.1/group___b_l_e___g_a_p.html)" \
+link_BLE_CPN="[Connection Parameters Negotiation](../com.nordic.infocenter.sdk5.v15.3.0/group__ble__conn__params.html)" \
+link_ble_app_proximity_example="[ble_app_proximity](../com.nordic.infocenter.sdk5.v15.3.0/ble_sdk_app_proximity.html)" \
+link_ble_app_uart_example="[ble_app_uart](../com.nordic.infocenter.sdk5.v15.3.0/ble_sdk_app_nus_eval.html)" \
+link_buttonless_secure_dfu_service="[Buttonless Secure DFU Service](../com.nordic.infocenter.sdk5.v15.3.0/service_dfu.html)" \
+link_bootloader_and_dfu_modules="[nRF5 SDK Bootloader and DFU modules](../com.nordic.infocenter.sdk5.v15.3.0/lib_bootloader_modules.html)" \
+link_working_with_keys="[Working with keys](../com.nordic.infocenter.sdk5.v15.3.0/lib_bootloader_dfu_keys.html)" \
+link_bootloader_signature_verification="[Signature Verification](../com.nordic.infocenter.sdk5.v15.3.0/lib_bootloader_dfu_validation.html#lib_bootloader_signatures)" \
+link_secure_bootloader="[Secure Bootloader example](../com.nordic.infocenter.sdk5.v15.3.0/ble_sdk_app_dfu_bootloader.html)" \
+link_bootloader_settings_page="[Bootloader Settings page](../com.nordic.infocenter.sdk5.v15.3.0/lib_bootloader.html#lib_bootloader_settings_page)" \
+link_programming_bootloader="[Programming the bootloader](../com.nordic.infocenter.sdk5.v15.3.0/lib_bootloader.html#lib_bootloader_programming)" \
+link_micro_ecc="[micro-ecc](../com.nordic.infocenter.sdk5.v15.3.0/lib_crypto_backend_micro_ecc.html#lib_crypto_backend_micro_ecc_install)" \
+link_ic_nrfutil="[nrfutil](../ug_nrfutil/UG/nrfutil/nrfutil_intro.html)" \
+link_nrfutil_installing="[Installing nrfutil](../ug_nrfutil/UG/nrfutil/nrfutil_installing.html)" \
+link_nrfutil_bootloader_settings="[Generating and displaying bootloader settings](../ug_nrfutil/UG/nrfutil/nrfutil_settings_generate_display.html)" \
+link_nrfutil_generating_dfu_packages="[Generating DFU packages with nrfutil](../ug_nrfutil/UG/nrfutil/nrfutil_pkg.html)" \
+link_nrf_command_line_tools="[nRF5x Command Line Tools](../ug_nrf5x_cltools/UG/cltools/nrf5x_command_line_tools_lpage.html)" \
+link_app_data_area_size="[NRF_DFU_APP_DATA_AREA_SIZE](../com.nordic.infocenter.sdk5.v15.3.0/group__nrf__dfu__config.html#gafeca0997c1671ecd32a25d6c17b16af3)" \
+link_SDK_configuration_header_file="[SDK configuration header file](../com.nordic.infocenter.sdk5.v15.3.0/sdk_config.html)" \
+
+## Other aliases
+# This section contains aliases that are not links to external or Nordic web pages.
+ALIASES               += \
+tagGreenTick="@htmlonly<CENTER><font color=\"green\">✔</font></CENTER>@endhtmlonly" \
+tagRedCross="@htmlonly<CENTER><font color=\"red\">✖</font></CENTER>@endhtmlonly" \
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"
@@ -888,6 +908,7 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/mesh/gatt/api" \
 "@PROJECT_SOURCE_DIR@/mesh/dfu/api" \
 "@PROJECT_SOURCE_DIR@/mesh/stack/api" \
+"@PROJECT_SOURCE_DIR@/mesh/friend/api" \
 "@PROJECT_SOURCE_DIR@/models/experimental/pb_remote/include" \
 "@PROJECT_SOURCE_DIR@/models/foundation/config/include" \
 "@PROJECT_SOURCE_DIR@/models/foundation/health/include" \
@@ -897,6 +918,10 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/models/model_spec/generic_onoff/include" \
 "@PROJECT_SOURCE_DIR@/models/model_spec/generic_level/include" \
 "@PROJECT_SOURCE_DIR@/models/model_spec/generic_ponoff/include" \
+"@PROJECT_SOURCE_DIR@/models/vendor/rssi_monitor/include" \
+"@PROJECT_SOURCE_DIR@/models/vendor/rssi_monitor/README.md" \
+"@PROJECT_SOURCE_DIR@/models/vendor/rssi_monitor/doc" \
+"@PROJECT_SOURCE_DIR@/models/vendor/simple_on_off/README.md" \
 "@PROJECT_SOURCE_DIR@/RELEASE_NOTES.md" \
 "@PROJECT_SOURCE_DIR@/MIGRATION_GUIDE.md" \
 "@PROJECT_SOURCE_DIR@/doc/OVERVIEW.md" \
@@ -907,11 +932,13 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/doc/introduction" \
 "@PROJECT_SOURCE_DIR@/doc/getting_started" \
 "@PROJECT_SOURCE_DIR@/doc/libraries" \
+"@PROJECT_SOURCE_DIR@/doc/libraries/dfu" \
 "@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/README.md" \
 "@PROJECT_SOURCE_DIR@/scripts/README.md" \
 "@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/doc/demo_loopback.md" \
 "@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/doc/demo_sending_packets.md" \
 "@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/doc/demo_configuration.md" \
+"@PROJECT_SOURCE_DIR@/tools/dfu/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/pb_remote/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/light_switch/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/light_switch/client/README.md" \
@@ -920,7 +947,6 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/examples/experimental_dimming/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/experimental_lpn/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/experimental_lpn/dfu_ble.md" \
-"@PROJECT_SOURCE_DIR@/examples/experimental_lpn/bin/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/enocean_switch/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/dfu/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/serial/README.md" \
@@ -1019,14 +1045,16 @@ EXAMPLE_RECURSIVE      = NO
 
 IMAGE_PATH             = "@PROJECT_SOURCE_DIR@/mesh/doc" \
                          "@PROJECT_SOURCE_DIR@/models/experimental/pb_remote/doc" \
+                         "@PROJECT_SOURCE_DIR@/models/vendor/rssi_monitor/doc/img" \
                          "@PROJECT_SOURCE_DIR@/examples/light_switch/img" \
                          "@PROJECT_SOURCE_DIR@/examples/light_switch/client/img" \
                          "@PROJECT_SOURCE_DIR@/examples/light_switch/server/img" \
                          "@PROJECT_SOURCE_DIR@/examples/light_switch/provisioner/img" \
                          "@PROJECT_SOURCE_DIR@/examples/enocean_switch/img" \
                          "@PROJECT_SOURCE_DIR@/doc/getting_started/img" \
-						 "@PROJECT_SOURCE_DIR@/doc/introduction/img" \
-                         "@PROJECT_SOURCE_DIR@/doc/libraries/img"
+                         "@PROJECT_SOURCE_DIR@/doc/introduction/img" \
+                         "@PROJECT_SOURCE_DIR@/doc/libraries/img" \
+                         "@PROJECT_SOURCE_DIR@/doc/libraries/dfu/img"
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program

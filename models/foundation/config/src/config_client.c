@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -182,6 +182,7 @@ static const config_message_lut_t m_config_message_lut[] =
     {CONFIG_OPCODE_NETKEY_LIST,                   0,                                                             PAYLOAD_LENGTH_MAX},
     {CONFIG_OPCODE_NODE_RESET_STATUS,             0,                                                             0},
     {CONFIG_OPCODE_RELAY_STATUS,                  sizeof(config_msg_relay_status_t),                             sizeof(config_msg_relay_status_t)},
+    {CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS,       sizeof(config_msg_network_transmit_status_t),                  sizeof(config_msg_network_transmit_status_t)},
     {CONFIG_OPCODE_KEY_REFRESH_PHASE_STATUS,      sizeof(config_msg_key_refresh_phase_status_t),                 sizeof(config_msg_key_refresh_phase_status_t)},
     {CONFIG_OPCODE_HEARTBEAT_PUBLICATION_STATUS,  sizeof(config_msg_heartbeat_publication_status_t),             sizeof(config_msg_heartbeat_publication_status_t)},
     {CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS, sizeof(config_msg_heartbeat_subscription_status_t),            sizeof(config_msg_heartbeat_subscription_status_t)},
@@ -201,6 +202,7 @@ static const access_opcode_handler_t m_opcode_handlers[] =
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETKEY_LIST),                   config_opcode_handler },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NODE_RESET_STATUS),             config_opcode_handler },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_RELAY_STATUS),                  config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS),       config_opcode_handler },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_KEY_REFRESH_PHASE_STATUS),      config_opcode_handler },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_HEARTBEAT_PUBLICATION_STATUS),  config_opcode_handler },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS), config_opcode_handler },
@@ -832,6 +834,40 @@ uint32_t config_client_relay_set(config_relay_state_t relay_state, uint8_t retra
     p_msg->relay_retransmit_interval_steps = retransmit_interval_steps;
 
     return send_reliable(CONFIG_OPCODE_RELAY_SET, length, CONFIG_OPCODE_RELAY_STATUS);
+}
+
+uint32_t config_client_network_transmit_get(void)
+{
+    return send_reliable(CONFIG_OPCODE_NETWORK_TRANSMIT_GET, 0, CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS);
+}
+
+uint32_t config_client_network_transmit_set(uint8_t transmit_count, uint8_t transmit_interval_steps)
+{
+    uint32_t status = NRF_SUCCESS;
+    if (client_in_wrong_state(&status))
+    {
+        return status;
+    }
+    else if (transmit_count > CONFIG_RETRANSMIT_COUNT_MAX ||
+             transmit_interval_steps > CONFIG_RETRANSMIT_INTERVAL_STEPS_MAX)
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+
+    NRF_MESH_ASSERT(mp_packet_buffer == NULL);
+
+    uint16_t length = sizeof(config_msg_network_transmit_set_t);
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
+    {
+        return NRF_ERROR_NO_MEM;
+    }
+
+    config_msg_network_transmit_set_t * p_msg = (config_msg_network_transmit_set_t *) mp_packet_buffer;
+    p_msg->network_transmit_count = transmit_count;
+    p_msg->network_transmit_interval_steps = transmit_interval_steps;
+
+    return send_reliable(CONFIG_OPCODE_NETWORK_TRANSMIT_SET, length, CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS);
 }
 
 uint32_t config_client_model_app_bind(uint16_t element_address, uint16_t appkey_index, access_model_id_t model_id)

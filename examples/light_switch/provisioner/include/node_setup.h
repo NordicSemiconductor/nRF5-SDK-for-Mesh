@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -83,10 +83,11 @@ typedef void (*node_setup_failed_cb_t)(void);
  * @param[in]  retry_cnt      Number of times a message can be resent if failed
  * @param[in]  p_appkey       Pointer to the appkey that will be used for configuring nodes
  * @param[in]  appkey_idx     Desired appkey index.
+ * @param[in]  netkey_idx     Desired netkey index for the appkey.
  * @param[in]  p_client_uri   Pointer to the client URI string
  */
 void node_setup_start(uint16_t address, uint8_t  retry_cnt, const uint8_t * p_appkey,
-                      uint16_t appkey_idx, const char * p_client_uri);
+                      uint16_t appkey_idx, uint16_t netkey_idx, const char * p_client_uri);
 
 /**
  * Sets the application callbacks to be called when node setup succeeds or fails.

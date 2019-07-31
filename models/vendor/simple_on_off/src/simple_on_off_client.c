@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -184,7 +184,6 @@ uint32_t simple_on_off_client_set(simple_on_off_client_t * p_client, bool on_off
         p_client->state.reliable_transfer_active = true;
     }
     return status;
-
 }
 
 uint32_t simple_on_off_client_set_unreliable(simple_on_off_client_t * p_client, bool on_off, uint8_t repeats)

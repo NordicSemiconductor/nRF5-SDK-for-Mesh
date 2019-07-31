@@ -43,7 +43,7 @@ to these nodes by the provisioner.
 
 
 ## Hardware requirements @anchor mesh_quick_start_hw_reqs
-You need at least three @link_nrf52dk <!-- https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52-DK --> boards for this example:
+You need at least three @link_nrf52dk boards for this example:
 
 - One nRF5 development board for the client.
 - One nRF5 development board for the provisioner.
@@ -60,12 +60,12 @@ See [Compatibility](@ref md_doc_introduction_mesh_compatibility) for information
 Although this example does not require you to install the complete toolchain, you still need the following software:
 
 - nRF5 SDK for Mesh.
-@link_MeshSdk_download <!-- nRF5 SDK for Mesh download: https://www.nordicsemi.com/Software-and-Tools/Software/nRF5-SDK-for-Mesh --> and extract the SDK archive.
+@link_MeshSdk_download and extract the SDK archive.
 
 - nrfjprog (recommended for flashing the devices). Download and install
-@link_nrf5x_cmd_line_tools_w32 <!-- Command line tools for Windows: https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF5-Command-Line-Tools --> or @link_nrf5x_cmd_line_tools_linux<!-- Command line tools for Linux: https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF5-Command-Line-Tools -->.
+@link_nrf5x_cmd_line_tools_w32 or @link_nrf5x_cmd_line_tools_linux.
 
-- <a href="https://www.python.org/downloads/" target="_blank">Python 3</a> or <a href="https://www.python.org/downloads/" target="_blank">Python 2.7</a>.
+- @link_python35_download or @link_python27_download.
 
 @note
 On Debian/Ubuntu, you must reload the udev rules after installing the nRF5x Command Line Tools:

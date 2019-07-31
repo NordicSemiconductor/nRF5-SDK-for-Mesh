@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -187,7 +187,8 @@ static uint32_t provisionee_start(void)
 #if MESH_FEATURE_PB_GATT_ENABLED
     bearers |= NRF_MESH_PROV_BEARER_GATT;
 #endif
-
+    /* Re-generate the keys each round. */
+    RETURN_ON_ERROR(nrf_mesh_prov_generate_keys(m_public_key, m_private_key));
     return nrf_mesh_prov_listen(&m_prov_ctx, m_params.p_device_uri, 0, bearers);
 }
 
@@ -279,7 +280,7 @@ uint32_t mesh_provisionee_prov_start(const mesh_provisionee_start_params_t * p_s
         return NRF_ERROR_INVALID_PARAM;
     }
 
-    RETURN_ON_ERROR(nrf_mesh_prov_generate_keys(m_public_key, m_private_key));
+    /* Public/private keys are (re-)generated in provisionee_start(). */
     RETURN_ON_ERROR(nrf_mesh_prov_init(&m_prov_ctx,
                                        m_public_key,
                                        m_private_key,

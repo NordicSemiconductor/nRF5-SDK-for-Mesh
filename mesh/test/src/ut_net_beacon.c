@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -60,17 +60,7 @@
 #include "nrf_mesh_events.h"
 #include "mesh_opt_core.h"
 
-typedef struct
-{
-    bool iv_update;
-    bool key_refresh;
-    uint8_t net_key[NRF_MESH_KEY_SIZE];
-    uint32_t iv_index;
-    nrf_mesh_beacon_info_t info;
-
-    uint8_t auth[NRF_MESH_KEY_SIZE];
-    uint8_t beacon[21]; /**< Without beacon type */
-} net_beacon_sample_data_t;
+#define BEACON_OBSERVATION_PERIOD_S (NRF_MESH_BEACON_SECURE_NET_BCAST_INTERVAL_SECONDS * NRF_MESH_BEACON_OBSERVATION_PERIODS)
 
 /* Secure network beacon sample packet 1: */
 #define SEC_NET_SAMPLE_DATA_1 {                                                                                                                          \
@@ -110,6 +100,18 @@ typedef struct
     .auth               = {0xc6, 0x2f, 0x09, 0xe4, 0xc9, 0x57, 0xf5, 0x9d, 0x96, 0xf5, 0x06, 0xf6, 0x46, 0x04, 0xbf, 0xc1},                              \
     .beacon             = {0x00, 0x3e, 0xca, 0xff, 0x67, 0x2f, 0x67, 0x33, 0x70, 0x12, 0x34, 0x56, 0x79, 0xc6, 0x2f, 0x09, 0xe4, 0xc9, 0x57, 0xf5, 0x9d} \
 }
+
+typedef struct
+{
+    bool iv_update;
+    bool key_refresh;
+    uint8_t net_key[NRF_MESH_KEY_SIZE];
+    uint32_t iv_index;
+    nrf_mesh_beacon_info_t info;
+
+    uint8_t auth[NRF_MESH_KEY_SIZE];
+    uint8_t beacon[21]; /**< Without beacon type */
+} net_beacon_sample_data_t;
 
 static uint8_t * mp_expected_net_id;
 static nrf_mesh_beacon_info_t ** mpp_infos;
@@ -217,7 +219,6 @@ static void advertiser_instance_init_cb(advertiser_t * p_adv, advertiser_tx_comp
 static void advertiser_enable_cb(advertiser_t * p_adv, int calls)
 {
     TEST_ASSERT_EQUAL(p_adv, mp_adv);
-    TEST_ASSERT_TRUE(calls == 0);
 }
 
 static void setup_module(void)
@@ -411,7 +412,7 @@ void test_packet_in(void)
         enc_aes_cmac_ReturnMemThruPtr_p_result(sample_data.auth, 16);
         event_handle_Expect(&evt);
         net_beacon_packet_in(sample_data.beacon, sizeof(sample_data.beacon), NULL);
-        TEST_ASSERT_EQUAL(1, sample_data.info.p_tx_info->rx_count[0]);
+        TEST_ASSERT_EQUAL(1, sample_data.info.p_tx_info->rx_count);
 
         /* Try again, should bump the tx count */
         m_info_index = 0;
@@ -420,7 +421,7 @@ void test_packet_in(void)
         enc_aes_cmac_ReturnMemThruPtr_p_result(sample_data.auth, 16);
         event_handle_Expect(&evt);
         net_beacon_packet_in(sample_data.beacon, sizeof(sample_data.beacon), NULL);
-        TEST_ASSERT_EQUAL(2, sample_data.info.p_tx_info->rx_count[0]);
+        TEST_ASSERT_EQUAL(2, sample_data.info.p_tx_info->rx_count);
 
         /* Try again without permitting IV update. Should still produce an event, and should count the RX */
         sample_data.info.iv_update_permitted = false;
@@ -430,30 +431,30 @@ void test_packet_in(void)
         enc_aes_cmac_ReturnMemThruPtr_p_result(sample_data.auth, 16);
         event_handle_Expect(&evt);
         net_beacon_packet_in(sample_data.beacon, sizeof(sample_data.beacon), NULL);
-        TEST_ASSERT_EQUAL(3, sample_data.info.p_tx_info->rx_count[0]);
+        TEST_ASSERT_EQUAL(3, sample_data.info.p_tx_info->rx_count);
 
 
         /* Don't roll over the rx count */
         m_info_index = 0;
         sample_data.info.iv_update_permitted = true;
-        sample_data.info.p_tx_info->rx_count[0] = 0xFFFF;
+        sample_data.info.p_tx_info->rx_count = 0xFFFF;
         enc_aes_cmac_ExpectWithArray(sample_data.info.secmat.key, NRF_MESH_KEY_SIZE, sample_data.beacon, 13, 13, NULL, 0);
         enc_aes_cmac_IgnoreArg_p_result();
         enc_aes_cmac_ReturnMemThruPtr_p_result(sample_data.auth, 16);
         event_handle_Expect(&evt);
         net_beacon_packet_in(sample_data.beacon, sizeof(sample_data.beacon), NULL);
-        TEST_ASSERT_EQUAL(0xFFFF, sample_data.info.p_tx_info->rx_count[0]);
+        TEST_ASSERT_EQUAL(0xFFFF, sample_data.info.p_tx_info->rx_count);
 
         /* Invalid auth, shouldn't handle the beacon: */
         uint8_t dummy_auth[NRF_MESH_KEY_SIZE];
         memset(dummy_auth, 0xDA, NRF_MESH_KEY_SIZE);
-        sample_data.info.p_tx_info->rx_count[0] = 0;
+        sample_data.info.p_tx_info->rx_count = 0;
         m_info_index = 0;
         enc_aes_cmac_ExpectWithArray(sample_data.info.secmat.key, NRF_MESH_KEY_SIZE, sample_data.beacon, 13, 13, NULL, 0);
         enc_aes_cmac_IgnoreArg_p_result();
         enc_aes_cmac_ReturnMemThruPtr_p_result(dummy_auth, 16);
         net_beacon_packet_in(sample_data.beacon, sizeof(sample_data.beacon), NULL);
-        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count[0]);
+        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count);
     }
 }
 
@@ -517,9 +518,9 @@ void test_pkt_in_multi(void)
         }
     }
     net_beacon_packet_in(sample_data.beacon, sizeof(sample_data.beacon), NULL);
-    TEST_ASSERT_EQUAL(1, tx_infos[0].rx_count[0]);
-    TEST_ASSERT_EQUAL(0, tx_infos[1].rx_count[0]); /* Had invalid auth, didn't get a match */
-    TEST_ASSERT_EQUAL(1, tx_infos[2].rx_count[0]);
+    TEST_ASSERT_EQUAL(1, tx_infos[0].rx_count);
+    TEST_ASSERT_EQUAL(0, tx_infos[1].rx_count); /* Had invalid auth, didn't get a match */
+    TEST_ASSERT_EQUAL(1, tx_infos[2].rx_count);
 }
 
 void test_beacon_state_change(void)
@@ -530,7 +531,7 @@ void test_beacon_state_change(void)
 
     TEST_ASSERT_NOT_NULL(m_net_beacon_enable_params.callbacks.getter);
     TEST_ASSERT_NOT_NULL(m_net_beacon_enable_params.callbacks.setter);
-    TEST_ASSERT_NULL(m_net_beacon_enable_params.callbacks.deleter);
+    TEST_ASSERT_NOT_NULL(m_net_beacon_enable_params.callbacks.deleter);
 
     setup_module();
     m_net_beacon_enable_params.callbacks.getter(entry_id, &get_state);
@@ -566,6 +567,21 @@ void test_beacon_state_change(void)
     TEST_ASSERT_EQUAL(NRF_SUCCESS, m_net_beacon_enable_params.callbacks.setter(entry_id, &set_state));
     m_net_beacon_enable_params.callbacks.getter(entry_id, &get_state);
     TEST_ASSERT_EQUAL(true, get_state);
+
+    /* Delete the beacon */
+#if MESH_FEATURE_LPN_ENABLED
+    advertiser_disable_ExpectAnyArgs();
+    timer_sch_abort_ExpectAnyArgs();
+    m_net_beacon_enable_params.callbacks.deleter(entry_id);
+    m_net_beacon_enable_params.callbacks.getter(entry_id, &get_state);
+    TEST_ASSERT_EQUAL(false, get_state);
+#else
+    timer_now_ExpectAndReturn(1000);
+    timer_sch_reschedule_ExpectAnyArgs();
+    m_net_beacon_enable_params.callbacks.deleter(entry_id);
+    m_net_beacon_enable_params.callbacks.getter(entry_id, &get_state);
+    TEST_ASSERT_EQUAL(true, get_state);
+#endif
 
     /* Check high level interface */
     mesh_config_entry_set_ExpectAndReturn(MESH_OPT_CORE_SEC_NWK_BCN_EID, NULL, NRF_SUCCESS);
@@ -612,31 +628,71 @@ void test_redundant_tx(void)
         TEST_ASSERT_EQUAL(m_time_now, sample_data.info.p_tx_info->tx_timestamp); // should be reset on each transmit.
 
         /* Observe one beacon this interval, don't expect it to fire: */
-        sample_data.info.p_tx_info->rx_count[0] = 1;
+        sample_data.info.p_tx_info->rx_count = 1;
         m_time_now += SEC_TO_US(10);
         m_info_index = 0;
         m_timer_cb(m_time_now, NULL);
 
-        /* Don't observe any beacons this interval, dropping the number of observed beacons to 0.5/interval, triggering a TX: */
-        m_time_now += SEC_TO_US(10);
-        m_info_index = 0;
-        net_state_beacon_iv_index_get_ExpectAndReturn(sample_data.iv_index);
-        net_state_iv_update_get_ExpectAndReturn(sample_data.iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL);
-        expect_tx(sample_data.info.secmat.key, sample_data.beacon, sample_data.auth, &adv_packet);
-        m_timer_cb(m_time_now, NULL);
-        tx_complete();
-        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count[0]); // should be reset on each interval
-        TEST_ASSERT_EQUAL(m_time_now, sample_data.info.p_tx_info->tx_timestamp); // should be reset on each transmit.
+        /* The observation period is expired. We have recalculated new interval */
+        TEST_ASSERT_EQUAL(BEACON_OBSERVATION_PERIOD_S * (1 + 1) / 2, sample_data.info.p_tx_info->interval);
+        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count); // should be reset on each observation period.
+
+        /* Don't observe any beacons this interval, triggering a TX: */
+        for (uint32_t j = 0; j < NRF_MESH_BEACON_OBSERVATION_PERIODS; ++j)
+        {
+            m_time_now += SEC_TO_US(10);
+            m_info_index = 0;
+            net_state_beacon_iv_index_get_ExpectAndReturn(sample_data.iv_index);
+            net_state_iv_update_get_ExpectAndReturn(sample_data.iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL);
+            expect_tx(sample_data.info.secmat.key, sample_data.beacon, sample_data.auth, &adv_packet);
+            m_timer_cb(m_time_now, NULL);
+            tx_complete();
+            TEST_ASSERT_EQUAL(m_time_now, sample_data.info.p_tx_info->tx_timestamp); // should be set on each transmit.
+        }
 
         /* Observe several beacons this interval, should cause it to skip the next two TX's: */
-        sample_data.info.p_tx_info->rx_count[0] = 4;
-        for (uint32_t j = 0; j < ARRAY_SIZE(sample_data.info.p_tx_info->rx_count); ++j)
+        sample_data.info.p_tx_info->rx_count = 4;
+        for (uint32_t j = 0; j < NRF_MESH_BEACON_OBSERVATION_PERIODS; ++j)
         {
             m_time_now += SEC_TO_US(10);
             m_info_index = 0;
             m_timer_cb(m_time_now, NULL);
         }
-        /* Finally, we reach < 1 beacon / interval, and should do another transmit: */
+
+        /* Verify that the beacon interval is changed every the broadcast interval according to received beacons within observation period */
+        sample_data.info.p_tx_info->interval = 100; // clear interval from the previous step (preset condition)
+        sample_data.info.p_tx_info->rx_count = 4;
+        m_time_now += SEC_TO_US(10);
+        m_info_index = 0;
+        m_timer_cb(m_time_now, NULL);
+        TEST_ASSERT_EQUAL(4, sample_data.info.p_tx_info->rx_count); // should be reset on each observation period.
+        TEST_ASSERT_EQUAL(BEACON_OBSERVATION_PERIOD_S * (4 + 1) / 2, sample_data.info.p_tx_info->interval);
+
+        sample_data.info.p_tx_info->rx_count = 7;
+        m_time_now += SEC_TO_US(10);
+        m_info_index = 0;
+        m_timer_cb(m_time_now, NULL);
+        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count); // should be reset on each observation period.
+        TEST_ASSERT_EQUAL(BEACON_OBSERVATION_PERIOD_S * (7 + 1) / 2, sample_data.info.p_tx_info->interval);
+
+        /* Verify that the beacon interval is set to maximum value 600 seconds */
+        sample_data.info.p_tx_info->interval = 100; // clear interval from the previous step (preset condition)
+        sample_data.info.p_tx_info->rx_count = 99;
+        m_time_now += SEC_TO_US(10);
+        m_info_index = 0;
+        m_timer_cb(m_time_now, NULL);
+        TEST_ASSERT_EQUAL(99, sample_data.info.p_tx_info->rx_count); // should be reset on each observation period.
+        TEST_ASSERT_EQUAL(600, sample_data.info.p_tx_info->interval);
+        m_time_now += SEC_TO_US(10);
+        m_info_index = 0;
+        m_timer_cb(m_time_now, NULL);
+        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count); // should be reset on each observation period.
+        TEST_ASSERT_NOT_EQUAL(BEACON_OBSERVATION_PERIOD_S * (99 + 1) / 2, sample_data.info.p_tx_info->interval);
+        TEST_ASSERT_EQUAL(600, sample_data.info.p_tx_info->interval);
+
+        /* Verify that the beacon interval is set to minimum value 10 seconds */
+        sample_data.info.p_tx_info->interval = 0; // clear interval from the previous step (preset condition)
+        sample_data.info.p_tx_info->rx_count = 0;
         m_time_now += SEC_TO_US(10);
         m_info_index = 0;
         net_state_beacon_iv_index_get_ExpectAndReturn(sample_data.iv_index);
@@ -644,21 +700,8 @@ void test_redundant_tx(void)
         expect_tx(sample_data.info.secmat.key, sample_data.beacon, sample_data.auth, &adv_packet);
         m_timer_cb(m_time_now, NULL);
         tx_complete();
-        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count[0]); // should be reset on each interval
-        TEST_ASSERT_EQUAL(m_time_now, sample_data.info.p_tx_info->tx_timestamp); // should be reset on each transmit.
-
-        /* Verify that the observations move one step back for every interval */
-        sample_data.info.p_tx_info->rx_count[0] = 4;
-        m_time_now += SEC_TO_US(10);
-        m_info_index = 0;
-        m_timer_cb(m_time_now, NULL);
-        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count[0]);
-        TEST_ASSERT_EQUAL(4, sample_data.info.p_tx_info->rx_count[1]);
-        m_time_now += SEC_TO_US(10);
-        m_info_index = 0;
-        m_timer_cb(m_time_now, NULL);
-        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count[0]);
-        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count[1]);
+        TEST_ASSERT_EQUAL(0, sample_data.info.p_tx_info->rx_count); // should be reset on each observation period.
+        TEST_ASSERT_EQUAL(10, sample_data.info.p_tx_info->interval);
     }
 }
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -344,6 +344,11 @@ void test_handle_set(void)
     ACCESS_MESSAGE_RX(request_msg, pkt, GENERIC_DTT_OPCODE_SET, sizeof(generic_dtt_set_msg_pkt_t) + 1);
     helper_call_opcode_handler(m_server.model_handle, &request_msg, &m_server);
 
+    /* case 3: Invalid transition time */
+    pkt.transition_time = 0x3F;
+    ACCESS_MESSAGE_RX(request_msg, pkt, GENERIC_DTT_OPCODE_SET, sizeof(generic_dtt_set_msg_pkt_t));
+    helper_call_opcode_handler(m_server.model_handle, &request_msg, &m_server);
+
     /* SET - Unacknowledged*/
     /* case 1: There is only one parameter */
     dtt_value = 300;
@@ -357,6 +362,11 @@ void test_handle_set(void)
     dtt_value = 400;
     pkt.transition_time = model_transition_time_encode(dtt_value);
     ACCESS_MESSAGE_RX(request_msg, pkt, GENERIC_DTT_OPCODE_SET_UNACKNOWLEDGED, sizeof(generic_dtt_set_msg_pkt_t) + 1);
+    helper_call_opcode_handler(m_server.model_handle, &request_msg, &m_server);
+
+    /* case 3: Invalid transition time */
+    pkt.transition_time = 0x3F;
+    ACCESS_MESSAGE_RX(request_msg, pkt, GENERIC_DTT_OPCODE_SET_UNACKNOWLEDGED, sizeof(generic_dtt_set_msg_pkt_t));
     helper_call_opcode_handler(m_server.model_handle, &request_msg, &m_server);
 }
 

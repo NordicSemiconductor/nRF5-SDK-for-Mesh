@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -63,9 +63,6 @@
 
 /**
  * Default advertisement interval used by the mesh stack.
- *
- * @warning If the advertisement interval is set below 200 ms, the mesh will not be able to
- * allocate sufficiently large timeslots from the SoftDevice for its persistent backend.
  */
 #define MESH_ADV_INTERVAL_DEFAULT (MSEC_TO_UNITS(200, UNIT_0_625_MS))
 /** Advertise indefinitely. */

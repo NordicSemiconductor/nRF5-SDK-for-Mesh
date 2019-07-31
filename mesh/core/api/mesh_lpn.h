@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -81,6 +81,12 @@
 #ifndef MESH_LPN_FRIEND_REQUEST_RETRY_COUNT
 #define MESH_LPN_FRIEND_REQUEST_RETRY_COUNT 5
 #endif
+
+/** The minimum interval between two individual consecutive polls.  */
+#ifndef MESH_LPN_POLL_SEPARATION_INTERVAL_MS
+#define MESH_LPN_POLL_SEPARATION_INTERVAL_MS 50
+#endif
+
 
 /** Parameters of the Friend node Criteria field. */
 typedef struct

@@ -14,6 +14,10 @@ Before you start using the examples, see the following pages:
 You can also quickly run an example without going through the complete toolchain installation.
 See [Running a first example](@ref md_doc_getting_started_mesh_quick_start) for details.
 
+In the nRF5 SDK for Mesh v3.2.0, [experimental support for the S113 SoftDevice](@ref compatibility_s113)
+has been added to various examples, except for the @ref md_examples_experimental_lpn_README
+and @ref md_examples_sdk_coexist_README.
+
 ## Available examples
 The following examples are provided with this SDK:
 

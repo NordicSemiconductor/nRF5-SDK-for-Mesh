@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -173,11 +173,11 @@ struct __generic_level_server_t
 };
 
 /**
- * Initializes Generic OnOff server.
+ * Initializes Generic Level server.
  *
  * @note The server handles the model allocation and adding.
  *
- * @param[in]     p_server                 Generic OnOff server context pointer.
+ * @param[in]     p_server                 Generic Level server context pointer.
  * @param[in]     element_index            Element index to add the model to.
  *
  * @retval   NRF_SUCCESS    If the model is initialized successfully.

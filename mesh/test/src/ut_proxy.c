@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -36,6 +36,7 @@
  */
 #include "unity.h"
 #include "cmock.h"
+#include "manual_mock_queue.h"
 
 #include "proxy.h"
 
@@ -49,9 +50,12 @@
 #include "net_packet_mock.h"
 #include "enc_mock.h"
 #include "net_beacon_mock.h"
+#include "beacon_mock.h"
 #include "rand_mock.h"
 #include "mesh_adv_mock.h"
 #include "cache_mock.h"
+#include "event_mock.h"
+#include "mesh_gatt_mock.h"
 #include "mesh_config_entry.h"
 #include "mesh_opt_gatt.h"
 
@@ -60,6 +64,15 @@
 
 #define CONFIG_MSG_OVERHEAD (9 /* network header */ + 8 /* mic */)
 #define TX_TOKEN (0x12345678)
+
+typedef enum
+{
+    CHECK_SETTING,
+    CHECK_REMOVING,
+    STEP_COUNT
+} opt_test_steps_t;
+
+MOCK_QUEUE_DEF(event_handler_mock, nrf_mesh_evt_t, NULL);
 
 static nrf_mesh_network_secmat_t m_rx_net_secmat;
 
@@ -75,19 +88,76 @@ uint32_t mesh_config_entry_get(mesh_config_entry_id_t id, void * p_entry)
     return NRF_SUCCESS;
 }
 
+static void expect_proxy_stopped_evt(void)
+{
+    nrf_mesh_evt_t expected_evt;
+    expected_evt.type = NRF_MESH_EVT_PROXY_STOPPED;
+    event_handler_mock_Expect(&expected_evt);
+}
+
+static void event_handle_mock(const nrf_mesh_evt_t* p_evt, int cmock_num_calls)
+{
+    UNUSED_PARAMETER(cmock_num_calls);
+
+    nrf_mesh_evt_t expected_evt;
+    event_handler_mock_Consume(&expected_evt);
+
+    TEST_ASSERT_EQUAL(expected_evt.type, p_evt->type);
+}
+
+static void start_proxy(void)
+{
+    /* Start an advertisement */
+    nrf_mesh_beacon_info_t beacon_info = {.secmat.net_id = NET_ID};
+    beacon_info_set(&beacon_info, 1);
+    timer_sch_reschedule_ExpectAnyArgs();
+
+    uint8_t service_data[9];
+    service_data[0] = 0;
+    memcpy(&service_data[1], beacon_info.secmat.net_id, 8);
+
+    mesh_adv_data_set_Expect(0x1828, service_data, sizeof(service_data));
+    mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_NETWORK_ID_ADV_INT_MS * 1000) / 625);
+    mesh_adv_start_Expect();
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(true));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_start());
+}
+
+static void send_packet(void)
+{
+    const core_tx_bearer_interface_t * p_if = core_tx_if_get();
+    core_tx_bearer_t * p_bearer = core_tx_bearer_get();
+    TEST_ASSERT_NOT_NULL(p_if);
+    TEST_ASSERT_NOT_NULL(p_bearer);
+
+    packet_mesh_net_packet_t net_packet;
+
+    network_packet_metadata_t net_metadata;
+    net_metadata.dst.value = 0x1234;
+    net_metadata.dst.type  = NRF_MESH_ADDRESS_TYPE_UNICAST;
+
+    core_tx_alloc_params_t params;
+    params.net_packet_len = 20;
+    params.role           = CORE_TX_ROLE_ORIGINATOR;
+    params.token          = TX_TOKEN;
+    params.p_metadata     = &net_metadata;
+
+    proxy_filter_accept_ExpectAndReturn(NULL, 0x1234, true);
+    proxy_filter_accept_IgnoreArg_p_filter();
+
+    TEST_ASSERT_EQUAL(CORE_TX_ALLOC_SUCCESS, p_if->packet_alloc(p_bearer, &params));
+    TEST_ASSERT_TRUE(gatt_tx_packet_is_allocated());
+    p_if->packet_send(p_bearer, net_packet.pdu, params.net_packet_len);
+    TEST_ASSERT_FALSE(gatt_tx_packet_is_allocated());
+}
 
 void setUp(void)
 {
     /* Clear the state */
     bool enabled;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_get(&enabled));
-    if (enabled)
-    {
-        /* Expect the proxy to kill the advertiser when disabling it. */
-        mesh_adv_stop_Expect();
-        timer_sch_abort_ExpectAnyArgs();
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(false));
-    }
+
     proxy_filter_mock_Init();
     timer_scheduler_mock_Init();
     network_mock_Init();
@@ -95,9 +165,21 @@ void setUp(void)
     net_packet_mock_Init();
     enc_mock_Init();
     net_beacon_mock_Init();
+    beacon_mock_Init();
     rand_mock_Init();
     mesh_adv_mock_Init();
     cache_mock_Init();
+    mesh_gatt_mock_Init();
+    event_handler_mock_Init();
+    event_mock_Init();
+    event_handle_StubWithCallback(event_handle_mock);
+    if (enabled)
+    {
+        /* Expect the proxy to kill the advertiser when disabling it. */
+        mesh_adv_stop_Expect();
+        timer_sch_abort_ExpectAnyArgs();
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(false));
+    }
 }
 
 void tearDown(void)
@@ -116,12 +198,20 @@ void tearDown(void)
     enc_mock_Destroy();
     net_beacon_mock_Verify();
     net_beacon_mock_Destroy();
+    beacon_mock_Verify();
+    beacon_mock_Destroy();
     rand_mock_Verify();
     rand_mock_Destroy();
     mesh_adv_mock_Verify();
     mesh_adv_mock_Destroy();
     cache_mock_Verify();
     cache_mock_Destroy();
+    mesh_gatt_mock_Verify();
+    mesh_gatt_mock_Destroy();
+    event_handler_mock_Verify();
+    event_handler_mock_Destroy();
+    event_mock_Verify();
+    event_mock_Destroy();
 }
 
 static uint8_t * net_packet_payload_get_callback(const packet_mesh_net_packet_t * p_net_packet, int count)
@@ -372,8 +462,8 @@ void test_rx_forward(void)
     gatt_evt_post(&rx_evt);
 
     rx_evt.params.rx.pdu_type = MESH_GATT_PDU_TYPE_MESH_BEACON;
-    net_beacon_packet_in_Expect(&incoming.pdu[0], rx_evt.params.rx.length, NULL);
-    net_beacon_packet_in_IgnoreArg_p_meta();
+    beacon_packet_in_ExpectAndReturn(&incoming.pdu[0], rx_evt.params.rx.length, NULL, NRF_SUCCESS);
+    beacon_packet_in_IgnoreArg_p_packet_meta();
     gatt_evt_post(&rx_evt);
 
     /* Unexpected PDU type, should be ignored */
@@ -599,39 +689,151 @@ void test_enable_get_set(void)
     cache_init_ExpectAnyArgs();
     init();
 
-    bool enabled = true;
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_get(&enabled));
-    TEST_ASSERT_FALSE(enabled);
+    for (opt_test_steps_t step = 0; step < STEP_COUNT; step++)
+    {
+        bool enabled = true;
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_get(&enabled));
+        TEST_ASSERT_FALSE(enabled);
 
-    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, mesh_opt_gatt_proxy_set(false));
+        TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, mesh_opt_gatt_proxy_set(false));
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(true));
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(true));
 
-    enabled = false;
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_get(&enabled));
-    TEST_ASSERT_TRUE(enabled);
+        enabled = false;
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_get(&enabled));
+        TEST_ASSERT_TRUE(enabled);
 
-    /* Start advertising */
-    nrf_mesh_beacon_info_t beacon_info = {.secmat.net_id = NET_ID};
-    beacon_info_set(&beacon_info, 1);
+        /* Start advertising */
+        nrf_mesh_beacon_info_t beacon_info = {.secmat.net_id = NET_ID};
+        beacon_info_set(&beacon_info, 1);
 
-    uint8_t service_data[9];
-    service_data[0] = 0;
-    memcpy(&service_data[1], beacon_info.secmat.net_id, 8);
+        uint8_t service_data[9];
+        service_data[0] = 0;
+        memcpy(&service_data[1], beacon_info.secmat.net_id, 8);
 
-    mesh_adv_data_set_Expect(0x1828, service_data, sizeof(service_data));
-    mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_NETWORK_ID_ADV_INT_MS * 1000) / 625);
-    mesh_adv_start_Expect();
+        mesh_adv_data_set_Expect(0x1828, service_data, sizeof(service_data));
+        mesh_adv_params_set_Expect(0, (MESH_GATT_PROXY_NETWORK_ID_ADV_INT_MS * 1000) / 625);
+        mesh_adv_start_Expect();
 
-    timer_sch_reschedule_ExpectAnyArgs();
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_start());
+        timer_sch_reschedule_ExpectAnyArgs();
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_start());
 
-    /* Expect the proxy to kill the advertiser when disabling it. */
-    mesh_adv_stop_Expect();
+        switch (step)
+        {
+            case CHECK_SETTING:
+            {
+                /* Expect the proxy to kill the advertiser when disabling it. */
+                mesh_adv_stop_Expect();
+                timer_sch_abort_ExpectAnyArgs();
+
+                TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(false));
+                break;
+            }
+            case CHECK_REMOVING:
+            {
+                mesh_config_entry_id_t entry_id = MESH_OPT_GATT_PROXY_EID;
+                /* Expect the proxy to kill the advertiser when deleting it. */
+                mesh_adv_stop_Expect();
+                timer_sch_abort_ExpectAnyArgs();
+                m_mesh_opt_gatt_proxy_params.callbacks.deleter(entry_id);
+                break;
+            }
+            default:
+                TEST_FAIL_MESSAGE("Wrong test behavior");
+        }
+
+        enabled = true;
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_get(&enabled));
+        TEST_ASSERT_FALSE(enabled);
+    }
+}
+
+void test_stop_no_connections(void)
+{
+    cache_init_ExpectAnyArgs();
+    init();
+    /* Deinit callback to monitor calls */
+    mesh_gatt_disconnect_StubWithCallback(NULL);
+
+    start_proxy();
+
+    /* proxy_stop() sends PROXY_STOPPED immediately */
     timer_sch_abort_ExpectAnyArgs();
+    mesh_adv_stop_Expect();
+    expect_proxy_stopped_evt();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_stop());
+}
+
+void test_stop_without_pending_packets(void)
+{
+    cache_init_ExpectAnyArgs();
+    init();
+
+    mesh_gatt_packet_is_pending_IgnoreAndReturn(false);
+    /* Deinit callback to monitor calls */
+    mesh_gatt_disconnect_StubWithCallback(NULL);
+
+    start_proxy();
+
+    establish_connection(0);
+
+    TEST_ASSERT_TRUE(proxy_is_connected());
+
+    mesh_gatt_disconnect_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_stop());
+
+    /* Send DISCONNECTED event */
+    expect_proxy_stopped_evt();
+    disconnect(0);
+}
+
+void test_stop_with_pending_packets(void)
+{
+    cache_init_ExpectAnyArgs();
+    init();
+    /* Deinit callback to monitor calls */
+    mesh_gatt_disconnect_StubWithCallback(NULL);
+
+    start_proxy();
+
+    establish_connection(0);
+
+    TEST_ASSERT_TRUE(proxy_is_connected());
+
+    send_packet();
+
+    mesh_gatt_packet_is_pending_ExpectAnyArgsAndReturn(true);
+
+    /* mesh_gatt_disconnect() should not be called */
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_stop());
+
+    /* Send TX_COMPLETE event */
+    mesh_gatt_packet_is_pending_ExpectAnyArgsAndReturn(false);
+    mesh_gatt_disconnect_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    mesh_gatt_evt_t tx_complete_evt;
+    tx_complete_evt.type = MESH_GATT_EVT_TYPE_TX_COMPLETE;
+    tx_complete_evt.conn_index = 0;
+    tx_complete_evt.params.tx_complete.pdu_type = MESH_GATT_PDU_TYPE_NETWORK_PDU;
+    tx_complete_evt.params.tx_complete.token = TX_TOKEN;
+    gatt_evt_post(&tx_complete_evt);
+
+    /* Send DISCONNECTED event */
+    expect_proxy_stopped_evt();
+    disconnect(0);
+}
+
+void test_stop_through_proxy_state(void)
+{
+    cache_init_ExpectAnyArgs();
+    init();
+
+    start_proxy();
+
+    establish_connection(0);
+
+    /* Shall NOT call disconnect */
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(false));
 
-    enabled = true;
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_get(&enabled));
-    TEST_ASSERT_FALSE(enabled);
+    /* Send DISCONNECTED event. PROXY_STOPPED event should not be generated */
+    disconnect(0);
 }

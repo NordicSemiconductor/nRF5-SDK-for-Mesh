@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -359,7 +359,6 @@ void test_packet_in(void)
         STEP_LENGTH_CHECK,
         STEP_DEOBFUSCATION_VERIFICATION,
         STEP_MSG_CACHE,
-        STEP_SRC_ADDRESS_IS_ME,
         STEP_DECRYPTION,
         STEP_SUCCESS,
     } step_t;
@@ -374,7 +373,6 @@ void test_packet_in(void)
         {{{NRF_MESH_ADDRESS_TYPE_GROUP, 0xFFFF}, 0x0001, 5, true, {SEQNUM, IV_INDEX}, &secmat}, 18, NET_PACKET_KIND_TRANSPORT, STEP_SUCCESS},
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, NET_PACKET_KIND_TRANSPORT, STEP_SUCCESS},
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, NET_PACKET_KIND_TRANSPORT, STEP_MSG_CACHE}, /* in cache */
-        {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, NET_PACKET_KIND_TRANSPORT, STEP_SRC_ADDRESS_IS_ME}, /* this device sent the packet, should discard. */
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0xFFFF, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, NET_PACKET_KIND_TRANSPORT, STEP_DEOBFUSCATION_VERIFICATION}, /* src is group */
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 9+3, NET_PACKET_KIND_TRANSPORT, STEP_DEOBFUSCATION_VERIFICATION}, /* Packet is too short for a mic */
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 9+4, NET_PACKET_KIND_TRANSPORT, STEP_SUCCESS}, /* just long enough */
@@ -440,14 +438,6 @@ void test_packet_in(void)
                                                    vector[i].fail_step == STEP_MSG_CACHE);
         }
 
-        if (vector[i].fail_step >= STEP_SRC_ADDRESS_IS_ME)
-        {
-            /* 5: Check that it's not from ourself */
-            nrf_mesh_rx_address_get_ExpectAndReturn(
-                vector[i].meta.src, NULL, vector[i].fail_step == STEP_SRC_ADDRESS_IS_ME);
-            nrf_mesh_rx_address_get_IgnoreArg_p_address();
-        }
-
         if (vector[i].fail_step >= STEP_DECRYPTION)
         {
             /* 6: decrypt */
@@ -468,7 +458,6 @@ void test_packet_in(void)
             [STEP_LENGTH_CHECK] = NRF_ERROR_INVALID_LENGTH,
             [STEP_DEOBFUSCATION_VERIFICATION] = NRF_ERROR_NOT_FOUND,
             [STEP_MSG_CACHE] = NRF_ERROR_NOT_FOUND,
-            [STEP_SRC_ADDRESS_IS_ME] = NRF_ERROR_NOT_FOUND,
             [STEP_DECRYPTION] = NRF_ERROR_NOT_FOUND,
             [STEP_SUCCESS] = NRF_SUCCESS,
         };

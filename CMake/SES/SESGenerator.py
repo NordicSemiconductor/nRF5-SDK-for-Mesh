@@ -149,11 +149,13 @@ def create_file_groups(files, out_dir):
 
 def calculate_flash_limits(config):
     bl_flash_size = NRF51_BOOTLOADER_FLASH_SIZE if "nrf51" in config["platform"]["config"]["name"].lower() else NRF52_BOOTLOADER_FLASH_SIZE
+    bl_flash_size = bl_flash_size if "nrf52810_xxAA" not in config["platform"]["config"]["name"] else 0
     flash_limits = application_flash_limits_get(config["softdevice"]["config"]["flash_size"], bl_flash_size, config["platform"]["config"]["flash_size"])
     return DataRegion(*flash_limits)
 
 def calculate_ram_limits(config):
     bl_ram_size = NRF51_BOOTLOADER_RAM_SIZE if "nrf51" in config["platform"]["config"]["name"].lower() else NRF52_BOOTLOADER_RAM_SIZE
+    bl_ram_size = bl_ram_size if "nrf52810_xxAA" not in config["platform"]["config"]["name"] else 0
     ram_limits = application_ram_limits_get(config["softdevice"]["config"]["ram_size"], bl_ram_size, config["platform"]["config"]["ram_size"])
     return DataRegion(*ram_limits)
 
@@ -167,7 +169,7 @@ def generate_ses_project(config, out_dir="."):
     config["target"]["ram"] = calculate_ram_limits(config)
     config["platform"]["fpu"] = config["platform"]["config"]["arch"] == "cortex-m4f"
     config["softdevice"]["hex_file"] = unix_relative_path_get(config["softdevice"]["hex_file"], out_dir)
-    config["sdk_default_path"] = unix_relative_path_get('../../../nRF5_SDK_15.2.0_9412b96', out_dir)
+    config["sdk_default_path"] = unix_relative_path_get('../../../nRF5_SDK_15.3.0_59ac345', out_dir)
     s = ""
 
     with open("ses.xml", "r") as f:

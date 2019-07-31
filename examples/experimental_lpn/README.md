@@ -29,12 +29,11 @@ over BLE. The DFU over BLE is disabled by default. See @link_bootloader_and_dfu_
         - [Provisioning and configuration](@ref examples_lpn_running_provisioning)
                 - [Configuring light switch server device](@ref examples_lpn_running_provisioning_server)
                 - [Configuring the LPN device](@ref examples_lpn_running_provisioning_lpn)
-                - [Provisioning the Friend device](@ref examples_lpn_running_provisioning_friend)
         - [Establishing the friendship](@ref examples_lpn_running_friendship)
         - [Sending messages](@ref examples_lpn_running_sending)
         - [Updating the LPN node firmware through DFU over BLE](@ref examples_lpn_perform_dfu)
         - [Resetting the device](@ref examples_lpn_running_resetting)
-        
+
 
 ---
 
@@ -42,20 +41,16 @@ over BLE. The DFU over BLE is disabled by default. See @link_bootloader_and_dfu_
 
 Running this example requires three PCA10040 Development Kits:
 - One development kit for the LPN device running the Low Power Node example.
-- One development kit for thr Friend device running mesh firmware with the Friend feature enabled.
-- One development kit for the light switch server device running the
-[light switch server example](@ref light_switch_demo_server).
+- Two development kits for the light switch server device running the
+[light switch server example](@ref light_switch_demo_server), which also includes a friend functionality.
 
 
 ---
 
 ## Software requirements @anchor examples_lpn_requirements_sw
 
-As the Friend feature is not supported by this version of the nRF5 SDK for Mesh, use a
-precompiled version of the Friend node from the @link_zephyr to fulfill the
-Friend device role. The precompiled Friend node hex files are available at
-`<InstallFolder>/examples/experimental_lpn/bin`. See @subpage md_examples_experimental_lpn_bin_README
-for additional information on how they were built.
+An experimental Friend feature is supported by this version of the nRF5 SDK for Mesh and it is enabled
+in the light switch server example.
 
 You can find the light switch server example files in the following folder: `<InstallFolder>/examples/light_switch/server`
 
@@ -97,7 +92,6 @@ To send messages between the LPN device and the light switch server device, comp
 - [Provisioning and configuration](@ref examples_lpn_running_provisioning)
 	- [Configuring light switch server device](@ref examples_lpn_running_provisioning_server)
 	- [Configuring the LPN device](@ref examples_lpn_running_provisioning_lpn)
-	- [Provisioning the Friend device](@ref examples_lpn_running_provisioning_friend)
 - [Establishing the friendship](@ref examples_lpn_running_friendship)
 - [Sending messages](@ref examples_lpn_running_sending)
 - [Updating the Low Power node example through DFU over BLE](@ref examples_lpn_perform_dfu)
@@ -116,21 +110,20 @@ To set up the example:
     - Use the node with DFU over BLE:
         - Follow the instructions on the @subpage md_examples_experimental_lpn_dfu_ble page and program
         the example onto one development kit.
-4. Build the Light switch server example. To build the example, follow the instructions
+2. Build the Light switch server example. To build the example, follow the instructions
 in [Building the mesh stack](@ref md_doc_getting_started_how_to_build).
-5. Program the Light Switch Server example onto another development kit.
+3. Program the Light Switch Server example onto two development kits.
 See @ref md_doc_getting_started_how_to_run_examples for the instructions.
-6. Choose the Friend node hex file appropriate for your hardware platform from
-`examples/experimental_lpn/bin/`, and program it to the third development kit using nrfjprog:
-
-```
-nrfjprog --program <path-to-hex-file> --chiperase -r
-```
-
-@note The Zephyr Friend node hex file does not require a SoftDevice, so it starts running
-immediately after nrfjprog finshes execution.
 
 All three devices are now running Bluetooth Mesh enabled firmware.
+
+@note When building and running the firmware, you might encounter the following error:
+```
+app_error_weak.c, 119, Mesh error 4 at 0x00000000
+```
+This error means that the bootloader is not flashed. Go to 
+[Building and programming the bootloader](@ref examples_lpn_dfu_ble_program_bootloader)
+to flash the bootloader.
 
 ### Provisioning and configuration @anchor examples_lpn_running_provisioning
 
@@ -140,10 +133,10 @@ only supports the PB-GATT bearer for provisioning, use @link_nrf_mesh_app
 (for @link_nrf_mesh_app_ios or @link_nrf_mesh_app_android) to provision and configure
 all three devices.
 
-#### Configuring light switch server device @anchor examples_lpn_running_provisioning_server
+#### Configuring light switch server devices @anchor examples_lpn_running_provisioning_server
 
-The light switch server device shows up in the nRF Mesh App as "nRF5x Mesh LPN Switch".
-
+The light switch server device shows up in the nRF Mesh App as "nRF5x Mesh Light". Complete the
+following procedure for both the devices:
 1. Provision the light switch server device with the nRF Mesh App.
 2. Give the light switch server device `Application key 1` through its configuration menu,
 if it doesn't already have it. This application key will represent the light switch application.
@@ -151,11 +144,10 @@ The key will be used by the Generic OnOff client on the LPN device and the Gener
 to communicate.
 3. Open the Generic OnOff Server model's configuration menu, and bind `Application key 1`
 to a Generic OnOff Server model that the light switch server device instantiates in its first element.
-4. Disconnect from the light switch server device, and go back to the scanner screen.
-5. Take note of the light switch server device's unicast address, as it is needed for the
-configuration of the LPN device.
+4. Add 0xC001 as a subscription address.
+5. Disconnect from the light switch server device, and go back to the scanner screen.
 
-The light switch server is now a part of the mesh network, and is ready to receive messages from
+The light switch servers are now a part of the mesh network, and are ready to receive messages from
 the LPN device.
 
 #### Configuring the LPN device @anchor examples_lpn_running_provisioning_lpn
@@ -166,20 +158,24 @@ The LPN device shows up in the nRF Mesh App as "nRF5x Mesh LPN".
 2. Give the LPN device `Application key 1` through its configuration menu, if it doesn't already
 have it. The key has the same role and usage as in the case of the light switch server device.
 3. Open the Generic OnOff Client model's configuration menu, and bind `Application key 1`
-to a Generic OnOff Client model that the LPN device instantiates in its first element.
+to a Generic OnOff Client model that the LPN device instantiates in its second element.
 4. Open the Generic OnOff Client model's publication settings.
-5. Set the Publish Address to the unicast address of the light switch server that you took note of.
-6. Disconnect from the LPN device, and go back to the scanner screen.
+5. Set the Publish Address to the group address 0xC001 to which the light switch servers are already subscribed.
+6. Note down the address of the second element of the LPN. This will be equal to the LPN's unicast address plus one.
+7. Disconnect from the LPN device, and go back to the scanner screen.
 
 The LPN device is now part of the mesh network and can control the LEDs of the light switch server
-device. It has not entered the low power mode yet, as it needs a Friend device to accept its Friend
-requests.
+device. It has not entered the low power mode yet, as the friendship is not established.
 
-#### Provisioning the Friend device @anchor examples_lpn_running_provisioning_friend
+Complete the following steps for both provisioned light switch servers to be able to see that
+the messages sent by these nodes to the LPN are cached by the Friend node and are delivered
+to the LPN when the LPN polls for them:
+1. Connect to the light switch server.
+2. Open the configuration menu of the Generic OnOff Server model.
+3. Set the publication address to the address of the second element of the LPN.
 
-The Friend shows up in the nRF Mesh App as "Zephyr".
-Provision the Friend device with the nRF Mesh App.
-No additional configuration is needed.
+Repeat the same procedure for the second server.
+You can see the messages received from the servers in the RTT log of the LPN.
 
 ### Establishing the friendship @anchor examples_lpn_running_friendship
 
@@ -204,12 +200,16 @@ and go back to the normal power mode.
 You can send on and off messages by pressing buttons 1 and 2, respectively.
 These buttons also control the LED 1 of the light switch server through the Generic OnOff client model.
 
-- Pressing button 1 turns on the LED 1 on the LPN device and sends message to the light switch server.
-This message turns on the LED 1 on the light switch server.
+- Pressing button 1 turns on the LED 1 on the LPN device and sends message to the light switch servers.
+This message turns on the LED 1 on both of the light switch servers.
 - Pressing button 2 turns off the LED 1 on the LPN device and sends message to the light switch server.
-This message turns off the LED 1 on the light switch server.
+This message turns off the LED 1 on both of the light switch servers.
 
 This behavior is identical to the one in the [light switch client](@ref light_switch_demo_client) example.
+
+If you connect the RTT viewer to the LPN device, you will see the status messages being received from
+the servers through the Friend node.
+
 
 ### Updating the LPN node firmware through DFU over BLE @anchor examples_lpn_perform_dfu
 

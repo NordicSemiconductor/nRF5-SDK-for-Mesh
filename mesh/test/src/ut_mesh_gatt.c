@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -432,13 +432,18 @@ void test_send_segmented_sample_data(void)
     sd_ble_gatts_hvx_StubWithCallback(sd_ble_gatts_hvx_cb);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_gatt_packet_send(0, p_packet));
 
+    TEST_ASSERT_TRUE(mesh_gatt_packet_is_pending(0));
 
     tx_complete_evt_send();
     tx_complete_evt_send();
     tx_complete_evt_send();
+
+    TEST_ASSERT_TRUE(mesh_gatt_packet_is_pending(0));
 
     tx_complete_evt_expect();
     tx_complete_evt_send();
+
+    TEST_ASSERT_FALSE(mesh_gatt_packet_is_pending(0));
 }
 
 void test_send_single_segment(void)
@@ -457,8 +462,12 @@ void test_send_single_segment(void)
     EXPECT_PDU({MESH_GATT_PDU_TYPE_PROV_PDU, 0xca, 0xfe, 0xba, 0xbe});
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_gatt_packet_send(0, p_packet));
 
+    TEST_ASSERT_TRUE(mesh_gatt_packet_is_pending(0));
+
     tx_complete_evt_expect();
     tx_complete_evt_send();
+
+    TEST_ASSERT_FALSE(mesh_gatt_packet_is_pending(0));
 }
 
 void test_hvx_sys_attr_missing(void)

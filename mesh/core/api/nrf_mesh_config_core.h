@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -532,12 +532,35 @@
 #endif
 
 /**
- * Number of friendship credentials to be supported by the mesh stack.
+ * Allow a node with the LPN feature to participate in a mesh network
+ * as a regular node when the friendship is not established.
  *
- * @note Shall be set to 1 if LPN feature is enabled
+ * @note When this option is used, the scanner and advertising network beacons
+ * are enabled, and the power consumption of the node is increased
+ * until a friendship is established.
  */
-#ifndef MESH_FRIENDSHIP_CREDENTIALS
-#define MESH_FRIENDSHIP_CREDENTIALS 1
+#ifndef MESH_FEATURE_LPN_ACT_AS_REGULAR_NODE_OUT_OF_FRIENDSHIP
+#define MESH_FEATURE_LPN_ACT_AS_REGULAR_NODE_OUT_OF_FRIENDSHIP 0
+#endif
+
+/** Friend feature. */
+#ifndef MESH_FEATURE_FRIEND_ENABLED
+#define MESH_FEATURE_FRIEND_ENABLED 0
+#endif
+
+/** Number of friendships supported simultaneously. */
+#ifndef MESH_FRIEND_FRIENDSHIP_COUNT
+#define MESH_FRIEND_FRIENDSHIP_COUNT 2
+#endif
+
+/** Size of the Friend Subscription List (per friendship). */
+#ifndef MESH_FRIEND_SUBLIST_SIZE
+#define MESH_FRIEND_SUBLIST_SIZE 16
+#endif
+
+/** Size of the Friend Queue (per friendship). */
+#ifndef MESH_FRIEND_QUEUE_SIZE
+#define MESH_FRIEND_QUEUE_SIZE 16
 #endif
 
 /** @} end of MESH_CONFIG_FRIENDSHIP */

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -46,6 +46,7 @@
 #include "uECC_mock.h"
 #include "rand_mock.h"
 #include "mesh_config_entry.h"
+#include "mesh_opt_prov.h"
 
 typedef struct
 {
@@ -345,7 +346,7 @@ void test_calculate_shared_secret(void)
     m_ctx.p_private_key  = privkey;
     uECC_secp256r1_ExpectAndReturn(NULL);
     uECC_valid_public_key_ExpectAndReturn(m_ctx.peer_public_key, NULL, 0);
-    TEST_ASSERT_EQUAL_HEX32(NRF_ERROR_INTERNAL, prov_utils_calculate_shared_secret(&m_ctx, shared_secret));
+    TEST_NRF_MESH_ASSERT_EXPECT(prov_utils_calculate_shared_secret(&m_ctx, shared_secret));
 
     uECC_secp256r1_ExpectAndReturn(NULL);
     uECC_valid_public_key_ExpectAndReturn(m_ctx.peer_public_key, NULL, 1);
@@ -608,3 +609,19 @@ void test_is_number(void)
     TEST_ASSERT_EQUAL(true, prov_utils_auth_data_is_valid_number((const uint8_t *) &eight_digits, 8));
 
 }
+
+void test_ecdh_deleter(void)
+{
+    mesh_config_entry_id_t entry_id = MESH_OPT_PROV_ECDH_OFFLOADING_EID;
+    bool result = true;
+    m_ecdh_offloading_params.callbacks.getter(entry_id, &result);
+    TEST_ASSERT_FALSE(result);
+    result = true;
+    m_ecdh_offloading_params.callbacks.setter(entry_id, &result);
+    m_ecdh_offloading_params.callbacks.getter(entry_id, &result);
+    TEST_ASSERT_TRUE(result);
+    m_ecdh_offloading_params.callbacks.deleter(entry_id);
+    m_ecdh_offloading_params.callbacks.getter(entry_id, &result);
+    TEST_ASSERT_FALSE(result);
+}
+

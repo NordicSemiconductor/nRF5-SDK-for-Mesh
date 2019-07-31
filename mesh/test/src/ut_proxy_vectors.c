@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -51,6 +51,7 @@
 #include "rand_mock.h"
 #include "advertiser_mock.h"
 #include "beacon_mock.h"
+#include "mesh_gatt_mock.h"
 #include "mesh_config_entry.h"
 #include "mesh_opt_gatt.h"
 
@@ -131,6 +132,7 @@ void setUp(void)
     rand_mock_Init();
     advertiser_mock_Init();
     beacon_mock_Init();
+    mesh_gatt_mock_Init();
 
     msg_cache_entry_exists_IgnoreAndReturn(false);
 }
@@ -153,6 +155,8 @@ void tearDown(void)
     advertiser_mock_Destroy();
     beacon_mock_Verify();
     beacon_mock_Destroy();
+    mesh_gatt_mock_Verify();
+    mesh_gatt_mock_Destroy();
 }
 /*****************************************************************************
 * Mock functions

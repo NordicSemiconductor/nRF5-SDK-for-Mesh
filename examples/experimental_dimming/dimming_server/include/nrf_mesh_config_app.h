@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -95,7 +95,7 @@
  * @note This value must equal @ref ACCESS_MODEL_COUNT minus the number of
  * models operating on shared states.
  */
-#define ACCESS_SUBSCRIPTION_LIST_COUNT (1)
+#define ACCESS_SUBSCRIPTION_LIST_COUNT (ACCESS_MODEL_COUNT)
 
 /**
  * The number of pages of flash storage reserved for the access layer for persistent data storage.

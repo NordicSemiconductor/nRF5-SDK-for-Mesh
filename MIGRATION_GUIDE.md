@@ -5,6 +5,12 @@ It describes practical actions you must take to update your code to a newer
 version of the nRF5 SDK for Mesh.
 
 **Table of contents**
+- [Migration from v3.1.0 to v3.2.0](@ref md_doc_migration_3_1_0_to_3_2_0)
+    - [Health Server subscription list addition](@ref health_server_subscription)
+    - [Freezing of access layer model configurations](@ref freezing_of_access_config)
+    - [AD Type filtering](@ref ad_type_filtering)
+    - [New nRF5 SDK version support](@ref new_nrf5_sdk_version_support)
+    - [Changes to Device State Manager API](@ref device_state_manager_api_changes)
 - [Migration from v3.0.0 to v3.1.0](@ref md_doc_migration_3_0_0_to_3_1_0)
     - [Example UUIDs updated](@ref migration_310_uuid_update)
     - [PB-ADV bearer selection define change](@ref migration_310_pb-adv_change)
@@ -16,10 +22,87 @@ version of the nRF5 SDK for Mesh.
 
 
 ---
+## Migration from v3.1.0 to v3.2.0 @anchor md_doc_migration_3_1_0_to_3_2_0
+
+Read this migration guide together with the [nRF5 SDK for Mesh v3.2.0 release notes](@ref release_notes_320).
+
+### Health Server subscription list addition @anchor health_server_subscription
+ - The Health Server model now allocates a subscription list during
+ the initialization procedure. Because of this change, an insufficient number of available subscription
+ lists can cause assertions during the mesh stack initialization procedure.
+
+#### Required actions
+
+- New projects:
+    - Ensure that a sufficient number of subscription lists is allocated for the models used by the
+    application and for the Health Server: update @ref ACCESS_SUBSCRIPTION_LIST_COUNT
+    in `nrf_mesh_config_app.h`.
+- Existing projects to be updated by DFU:
+    - Ensure that a sufficient number of subscription lists is allocated for the models used by the
+   application and for the Health Server: update @ref ACCESS_SUBSCRIPTION_LIST_COUNT
+   in `nrf_mesh_config_app.h`.
+        - After performing DFU, the node will boot up as an unprovisioned device due to changes
+        in the access configuration data.
+
+### Freezing of access layer model configurations @anchor freezing_of_access_config
+
+- After `access_flash_config_load()` API is called successfully, the configuration of
+the access layer will now be considered as frozen. Once frozen, it is not allowed to add new models
+or change the configurations of the model subscription list (allocation,
+de-allocation, or sharing).
+- Calls to `access_flash_config_store()` will now not store any access layer model configuration
+in non-volatile memory until the configuration of the access layer becomes frozen.
+
+#### Required actions
+
+- Ensure that all required models are initialized within the `models_init_cb()` callback
+in the application. The mesh stack calls the callback before `access_flash_config_load()`.
+
+### AD Type filtering @anchor ad_type_filtering
+
+- All non-mesh packets are now filtered out by the AD type at the scanner level before
+they are processed.
+
+#### Required actions
+
+- Make sure you call the @ref bearer_adtype_add function with the required AD Type if you want
+to receive non-mesh packets through the @ref nrf_mesh_rx_cb_set function.
+
+### New nRF5 SDK version support @anchor new_nrf5_sdk_version_support
+
+- Added support for the nRF5 SDK v15.3.0, which requires a different `SDK_ROOT` path in SEGGER Embedded Studio.
+
+#### Required changes
+
+- Make sure you set the correct `SDK_ROOT` path to the nRF5 SDK v15.3.0 location in SEGGER Embedded Studio.
+To set SDK_ROOT path, see the [First time setup](@ref how_to_build_segger_setup) page.
+- Make sure your GNU ARM Embedded Toolchain version is 7.3.1.
+
+### Changes to Device State Manager API @anchor device_state_manager_api_changes
+
+- The @ref dsm_address_is_rx function is now deprecated and has been replaced
+by the `nrf_mesh_is_address_rx` function.
+
+#### Required changes
+
+- Use the `nrf_mesh_is_address_rx` function instead of @ref dsm_address_is_rx
+if you need to check whether the device will process packets received on the given
+destination address.
+
+
+---
 
 ## Migration from v3.0.0 to v3.1.0 @anchor md_doc_migration_3_0_0_to_3_1_0
 
 Read this migration guide together with the [nRF5 SDK for Mesh v3.1.0 release notes](@ref release_notes_310).
+
+
+**Table of contents**
+- [Example UUIDs updated](@ref migration_310_uuid_update)
+- [PB-ADV bearer selection define change](@ref migration_310_pb-adv_change)
+- [Error checking on OOB input data](@ref migration_310_oob_error_checking)
+- [Generic Power OnOff API simplified](@ref migration_310_onoff_api)
+
 
 ### Example UUIDs updated @anchor migration_310_uuid_update
 
@@ -40,10 +123,10 @@ Setting `MESH_FEATURE_PB_ADV_ENABLED=1` (which replaces `MESH_PROVISIONEE_BEARER
 
 #### Required actions
 
-Make sure that your code reflects this change to avoid errors. 
+Make sure that your code reflects this change to avoid errors.
 
 ### Error checking on OOB input data @anchor migration_310_oob_error_checking
-  
+
 The interface for providing provisioning authentication data @ref nrf_mesh_prov_auth_data_provide() will now do stricter error checking on OOB input data.
 This ensures that the inputs are better tested and sanitized.
 

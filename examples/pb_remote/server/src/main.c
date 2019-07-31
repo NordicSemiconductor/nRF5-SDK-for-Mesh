@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -109,6 +109,11 @@ static void provisioning_aborted_cb(void)
 static void provisioning_complete_cb(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
+
+    dsm_local_unicast_address_t node_address;
+    dsm_local_unicast_addresses_get(&node_address);
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
+
     hal_led_blink_stop();
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
@@ -127,6 +132,7 @@ static void provisioning_complete_cb(void)
     ERROR_CHECK(access_model_publish_ttl_set(m_remote_server.model_handle, 6));
     ERROR_CHECK(pb_remote_server_enable(&m_remote_server));
     ERROR_CHECK(pb_remote_server_prov_bearer_set(&m_remote_server, nrf_mesh_prov_bearer_adv_interface_get(&m_prov_bearer_adv)));
+    access_flash_config_store();
 }
 
 static void mesh_init(void)
@@ -168,6 +174,11 @@ static void start(void)
             .p_device_uri = EX_URI_PBR_SERVER
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
+    }
+    else
+    {
+        ERROR_CHECK(pb_remote_server_enable(&m_remote_server));
+        ERROR_CHECK(pb_remote_server_prov_bearer_set(&m_remote_server, nrf_mesh_prov_bearer_adv_interface_get(&m_prov_bearer_adv)));
     }
 
     mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());

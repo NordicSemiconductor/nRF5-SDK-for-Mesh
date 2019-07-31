@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -41,6 +41,9 @@
 
 #include <nrf_error.h>
 
+#include "transport.h"
+#include "transport_internal.h"
+
 #include "utils.h"
 #include "log.h"
 #include "enc.h"
@@ -53,7 +56,6 @@
 #include "timer_scheduler.h"
 #include "bearer_event.h"
 #include "toolchain.h"
-#include "transport.h"
 #include "nrf_mesh_assert.h"
 #include "nrf_mesh_utils.h"
 #include "nrf_mesh_externs.h"
@@ -64,6 +66,30 @@
 #include "mesh_lpn.h"
 #include "mesh_lpn_internal.h"
 #endif
+
+#if MESH_FEATURE_FRIEND_ENABLED
+#include "friend_internal.h"
+#endif
+
+/* Note on replay protection implementation:
+ *
+ * Each incoming transport layer packet is checked against the replay list to prevent receiving the
+ * same message twice. In addition, the seqzero of an incoming SAR session is checked when the SAR
+ * session gets allocated. This is to prevent a SAR session from being received twice over different
+ * network packets. It can't be checked later than allocation, as there might be unsegmented packets
+ * coming in before all segments are received, which would make us wrongly abandon the SAR session.
+ *
+ * Packets are only added to the replay protection list once they've been successfully processed in
+ * upper transport. This implies that all SAR segments are (implicitly) added only when upper
+ * transport has processed the full SAR message. Note that SAR segments for messages we've already
+ * processed in upper transport are added retroactively. Messages that aren't processed successfully
+ * in upper transport aren't added to the replay protection list.
+ *
+ * Messages that are only destined for the friend module will not be added to replay protection, but
+ * their SAR sessions will be marked as handled, as the friend node is responsible for acking the
+ * transaction. The friend module itself can handle duplicates as long as the packets are still in
+ * the friend queue.
+ */
 
 /*********************
  * Local definitions *
@@ -106,40 +132,9 @@ typedef struct
     timestamp_t tx_retry_base_timeout;     /**< Base timeout for TX retries.*/
     timestamp_t tx_retry_per_hop_addition; /**< TX retry time added per hop in the transmission. */
     uint8_t tx_retries;                    /**< Number of retries before canceling SAR session. */
-    uint8_t segack_ttl; /**< Default TTL value for segment acknowledgment messages. */
-    uint8_t szmic;      /**< Use 32- or 64-bit MIC for application payload. */
+    uint8_t segack_ttl;                    /**< Default TTL value for segment acknowledgment messages. */
+    nrf_mesh_transmic_size_t szmic;        /**< Use 32- or 64-bit MIC for application payload. */
 } transport_config_t;
-
-typedef struct
-{
-    uint16_t seq_zero;
-    uint8_t segment_offset;
-    uint8_t last_segment;
-    uint8_t mic_size;
-} transport_segmentation_metadata_t;
-
-typedef struct
-{
-    bool segmented;
-    uint8_t mic_size;
-    union
-    {
-        struct
-        {
-            bool using_app_key;
-            uint8_t app_key_id;
-        } access;
-        struct
-        {
-            transport_control_opcode_t opcode;
-        } control;
-    } type;
-    transport_segmentation_metadata_t segmentation;
-    network_packet_metadata_t net;
-    const nrf_mesh_application_secmat_t * p_security_material;
-    nrf_mesh_tx_token_t token;
-    core_tx_bearer_type_t tx_bearer_selector; /**< The bearer on which the outgoing packets are to be sent on. */
-} transport_packet_metadata_t;
 
 /**
  * Transport SAR session types.
@@ -195,8 +190,11 @@ typedef struct
                 uint8_t  start_index;           /**< Segment index to start transmitting from. Used to recover from out-of-memory errors. */
                 uint8_t  retries;               /**< Number of retries left. */
                 bool payload_encrypted;         /**< Flag indicating whether the payload has been encrypted. */
-                bool seqzero_is_set;         /**< Flag indicating whether the seqzero has been set. */
+                bool seqzero_is_set;            /**< Flag indicating whether the seqzero has been set. */
                 nrf_mesh_tx_token_t token;      /**< TX Token set by the user. */
+                /** Source address of the device that acked the packet. Must be the same for every
+                 * ack, according to Mesh Profile Specification v1.0 section 3.5.3.3. */
+                uint16_t ack_src;
             } tx;
             /** Fields that are only valid for RX-sessions */
             struct
@@ -213,13 +211,12 @@ typedef struct
     uint8_t * payload;
 } trs_sar_ctx_t;
 
-/** Completed SAR session, used to cache previous sessions. */
+/** Completed SAR session, used to cache previous successful sessions. */
 typedef struct
 {
-    bool successful;
-    uint8_t ivi;
     uint16_t src;
-    uint32_t seqauth_seqnum;
+    transport_packet_receiver_t receivers; /**< Who received the session. */
+    uint64_t seqauth;
 } completed_sar_session_t;
 
 /** A consumer of control packets. */
@@ -260,7 +257,16 @@ static bool sar_payload_is_heap_allocated(trs_sar_ctx_t * p_sar_ctx)
 }
 #endif
 
-static inline uint32_t block_ack_full(transport_packet_metadata_t * p_metadata)
+static inline bool is_in_lpn_role(void)
+{
+#if MESH_FEATURE_LPN_ENABLED
+    return mesh_lpn_is_in_friendship();
+#else
+    return false;
+#endif
+}
+
+static inline uint32_t block_ack_full(const transport_packet_metadata_t * p_metadata)
 {
     NRF_MESH_ASSERT(p_metadata->segmented);
     return ((1u << (p_metadata->segmentation.last_segment + 1)) - 1);
@@ -282,6 +288,31 @@ static uint32_t seqauth_sequence_number_get(uint32_t seqnum, uint16_t seqzero)
     }
 }
 
+/**
+ * Get the SeqAuth value of the given metadata.
+ *
+ * The SeqAuth is a 56 bit value, compromised of the IV index and SeqZero sequence number:
+ *
+ * |  |  |  |  |  |  |  |
+ * |56       24|23     0|
+ * | IV Index  | SeqNum |
+ *
+ * The SeqAuth can be used to compare two SAR segments from the same source to determine which was sent first.
+ *
+ * @param[in] p_metadata Metadata to compute SeqAuth of.
+ *
+ * @returns The SeqAuth of the given metadata.
+ */
+static uint64_t seqauth_get(const transport_packet_metadata_t * p_metadata)
+{
+    // SeqAuth only makes sense for segmented messages
+    NRF_MESH_ASSERT_DEBUG(p_metadata->segmented);
+
+    return ((uint64_t) p_metadata->net.internal.iv_index << NETWORK_SEQNUM_BITS) +
+           seqauth_sequence_number_get(p_metadata->net.internal.sequence_number,
+                                       p_metadata->segmentation.seq_zero);
+}
+
 static void m_send_replay_cache_full_event(uint16_t src, uint8_t ivi, nrf_mesh_rx_failed_reason_t reason)
 {
     nrf_mesh_evt_t evt =
@@ -292,6 +323,20 @@ static void m_send_replay_cache_full_event(uint16_t src, uint8_t ivi, nrf_mesh_r
             .params.rx_failed.reason = reason
         };
     event_handle(&evt);
+}
+
+static uint32_t replay_list_add(const transport_packet_metadata_t * p_metadata)
+{
+    uint32_t status = replay_cache_add(p_metadata->net.src,
+                                       p_metadata->net.internal.sequence_number,
+                                       p_metadata->net.internal.iv_index);
+    if (status != NRF_SUCCESS)
+    {
+        m_send_replay_cache_full_event(p_metadata->net.src,
+                                       p_metadata->net.internal.iv_index & NETWORK_IVI_MASK,
+                                       NRF_MESH_RX_FAILED_REASON_REPLAY_CACHE_FULL);
+    }
+    return status;
 }
 
 static void m_send_sar_cancel_event(nrf_mesh_tx_token_t token, nrf_mesh_sar_session_cancel_reason_t reason)
@@ -316,27 +361,22 @@ static inline uint32_t tx_retry_timer_delay_get(uint8_t ttl)
 }
 
 /**
- * Check whether the RX SAR session has been handled before. As the sessions are stored in a FIFO
- * cache manner, getting a pointer to the completed session.
+ * Check whether the RX SAR session has been handled before.
  *
  * @param[in] p_metadata Metadata to check for.
  *
- * @retval Pointer to the completed session from the cache if there is. NULL otherwise.
+ * @returns A pointer to the completed session, or NULL if no session was found.
  */
-static completed_sar_session_t * sar_rx_session_previously_handled(const transport_packet_metadata_t * p_metadata)
+static const completed_sar_session_t * sar_rx_completed_session_find(const transport_packet_metadata_t * p_metadata)
 {
     NRF_MESH_ASSERT(p_metadata->segmented);
 
+    uint64_t seqauth = seqauth_get(p_metadata);
     uint16_t src = p_metadata->net.src;
-    uint8_t ivi = p_metadata->net.internal.iv_index & NETWORK_IVI_MASK;
-    uint32_t seqauth_seqnum = seqauth_sequence_number_get(p_metadata->net.internal.sequence_number,
-                                                          p_metadata->segmentation.seq_zero);
 
     for (uint32_t i = 0; i < TRANSPORT_SAR_RX_CACHE_LEN; ++i)
     {
-        if (seqauth_seqnum == m_sar_session_cache[i].seqauth_seqnum &&
-            src == m_sar_session_cache[i].src &&
-            ivi == m_sar_session_cache[i].ivi)
+        if (src == m_sar_session_cache[i].src && seqauth == m_sar_session_cache[i].seqauth)
         {
             return &m_sar_session_cache[i];
         }
@@ -344,25 +384,34 @@ static completed_sar_session_t * sar_rx_session_previously_handled(const transpo
     return NULL;
 }
 
-
 /**
- * Places completed SAR session into the session cache.
+ * Places a completed SAR session into the session cache.
  *
  * @param[in] p_metadata SAR metadata handled.
- * @param[in] succeeded  The session has been succeeded or not.
+ * @param[in] successful Flag indicating whether the session was successfully received or not.
  */
-static void sar_rx_session_mark_as_handled(const transport_packet_metadata_t * p_metadata, bool succeeded)
+static void sar_rx_session_mark_as_handled(const transport_packet_metadata_t * p_metadata, bool successful)
 {
     NRF_MESH_ASSERT(p_metadata->segmented);
 
-    completed_sar_session_t * p_completed_session = &m_sar_session_cache[m_sar_session_cache_head++ &
-                                                                         TRANSPORT_SAR_RX_CACHE_LEN_MASK];
+    /* Wipe any existing sessions from this source from the cache, as we shouldn't respond to
+     * older sessions.
+     */
+    for (uint32_t i = 0; i < TRANSPORT_SAR_RX_CACHE_LEN; ++i)
+    {
+        if (p_metadata->net.src == m_sar_session_cache[i].src)
+        {
+            m_sar_session_cache[i].src = NRF_MESH_ADDR_UNASSIGNED;
+            break;
+        }
+    }
+
+    completed_sar_session_t * p_completed_session =
+        &m_sar_session_cache[m_sar_session_cache_head++ & TRANSPORT_SAR_RX_CACHE_LEN_MASK];
 
     p_completed_session->src = p_metadata->net.src;
-    p_completed_session->seqauth_seqnum = seqauth_sequence_number_get(p_metadata->net.internal.sequence_number,
-                                                                      p_metadata->segmentation.seq_zero);
-    p_completed_session->ivi = p_metadata->net.internal.iv_index & NETWORK_IVI_MASK;
-    p_completed_session->successful = succeeded;
+    p_completed_session->receivers = (successful ? p_metadata->receivers : TRANSPORT_PACKET_RECEIVER_NONE);
+    p_completed_session->seqauth = seqauth_get(p_metadata);
 }
 
 /**
@@ -418,11 +467,6 @@ static trs_sar_ctx_t * sar_ctx_alloc(const transport_packet_metadata_t * p_metad
     memcpy(&p_sar_ctx->metadata, p_metadata, sizeof(transport_packet_metadata_t));
     p_sar_ctx->session.block_ack = 0;
     p_sar_ctx->session.length = length;
-    /* Set the network metadata sequence number and IV index to the values in the first segment in
-     * the session. */
-    p_sar_ctx->metadata.net.internal.sequence_number =
-        seqauth_sequence_number_get(p_metadata->net.internal.sequence_number,
-                                    p_metadata->segmentation.seq_zero);
 
     if (session_type == TRS_SAR_SESSION_TX)
     {
@@ -434,6 +478,7 @@ static trs_sar_ctx_t * sar_ctx_alloc(const transport_packet_metadata_t * p_metad
          * This way we'll know that we got a TX complete on a SAR packet, so we can forward the TX
          * complete when the entire SAR packet is done. */
         p_sar_ctx->session.params.tx.token = p_metadata->token;
+        p_sar_ctx->session.params.tx.ack_src = NRF_MESH_ADDR_UNASSIGNED;
         p_sar_ctx->metadata.token = NRF_MESH_SAR_TOKEN;
         p_sar_ctx->timer_event.cb = retry_timeout;
         p_sar_ctx->timer_event.p_context = p_sar_ctx;
@@ -464,13 +509,9 @@ static void sar_ctx_free(trs_sar_ctx_t * p_sar_ctx)
 
     /* Abort any ongoing timers. Timers may or may not be running depending on whether we're
      * entering, exiting or in a friendship. */
-    if (timer_sch_is_scheduled(&p_sar_ctx->timer_event))
-    {
-        timer_sch_abort(&p_sar_ctx->timer_event);
-    }
+    timer_sch_abort(&p_sar_ctx->timer_event);
 
-    if (p_sar_ctx->session.session_type == TRS_SAR_SESSION_RX &&
-        timer_sch_is_scheduled(&p_sar_ctx->session.params.rx.ack_timer))
+    if (p_sar_ctx->session.session_type == TRS_SAR_SESSION_RX)
     {
         timer_sch_abort(&p_sar_ctx->session.params.rx.ack_timer);
     }
@@ -485,20 +526,36 @@ static void sar_ctx_cancel(trs_sar_ctx_t * p_sar_ctx, nrf_mesh_sar_session_cance
 {
     NRF_MESH_ASSERT(p_sar_ctx != NULL);
 
-    __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_SAR_CANCELLED, reason, 0, NULL);
+    uint32_t seq = seqauth_sequence_number_get(p_sar_ctx->metadata.net.internal.sequence_number,
+                                               p_sar_ctx->metadata.segmentation.seq_zero);
+    (void) seq;
+    __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_SAR_CANCELLED, reason, sizeof(uint32_t), &seq);
 
-    sar_rx_session_mark_as_handled(&p_sar_ctx->metadata, false);
+    /* For RX sessions, the friend needs to know what happened. */
+#if MESH_FEATURE_FRIEND_ENABLED
+    if (p_sar_ctx->session.session_type == TRS_SAR_SESSION_RX &&
+        p_sar_ctx->metadata.receivers & TRANSPORT_PACKET_RECEIVER_FRIEND)
+    {
+        friend_sar_complete(p_sar_ctx->metadata.net.src,
+                            p_sar_ctx->metadata.segmentation.seq_zero,
+                            false);
+    }
+#endif
+
+    trs_sar_session_t type = p_sar_ctx->session.session_type;
+    if (type == TRS_SAR_SESSION_RX)
+    {
+        /* Even failing sessions should be marked as handled so we know to ignore them if we receive
+         * more segments for them later. */
+        sar_rx_session_mark_as_handled(&p_sar_ctx->metadata, false);
+    }
+
+
     m_send_sar_cancel_event(p_sar_ctx->session.params.tx.token, reason);
     sar_ctx_free(p_sar_ctx);
 
     __LOG(LOG_SRC_TRANSPORT, LOG_LEVEL_INFO, "Dropped SAR session %u, reason %u\n",
           p_sar_ctx->session.session_type, reason);
-}
-
-static void sar_ctx_rx_complete(trs_sar_ctx_t * p_sar_ctx)
-{
-    sar_rx_session_mark_as_handled(&p_sar_ctx->metadata, true);
-    sar_ctx_free(p_sar_ctx);
 }
 
 static void sar_ctx_tx_complete(trs_sar_ctx_t * p_sar_ctx)
@@ -612,6 +669,7 @@ static uint32_t sar_ack_send(const transport_packet_metadata_t * p_metadata, uin
         memset(&packet_buffer, 0, sizeof(packet_buffer));
         packet_mesh_trs_control_segack_seqzero_set(&packet_buffer, p_metadata->segmentation.seq_zero);
         packet_mesh_trs_control_segack_block_ack_set(&packet_buffer, block_ack);
+        packet_mesh_trs_control_segack_obo_set(&packet_buffer, (p_metadata->receivers == TRANSPORT_PACKET_RECEIVER_FRIEND));
 
         transport_control_packet_t control_packet;
         control_packet.data_len           = PACKET_MESH_TRS_CONTROL_SEGACK_SIZE;
@@ -674,13 +732,15 @@ static void sar_tx_session_continue(trs_sar_ctx_t * p_sar_ctx)
     }
 }
 
-static trs_sar_ctx_t * sar_active_tx_ctx_get(transport_packet_metadata_t * p_metadata, uint16_t seq_zero)
+static trs_sar_ctx_t * sar_active_tx_ctx_get(const transport_packet_metadata_t * p_metadata, uint16_t seq_zero)
 {
     for (uint32_t i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; i++)
     {
         if (m_trs_sar_sessions[i].session.session_type == TRS_SAR_SESSION_TX &&
             m_trs_sar_sessions[i].metadata.net.src == p_metadata->net.dst.value &&
-            m_trs_sar_sessions[i].metadata.segmentation.seq_zero == seq_zero)
+            m_trs_sar_sessions[i].metadata.segmentation.seq_zero == seq_zero &&
+            (m_trs_sar_sessions[i].session.params.tx.ack_src == NRF_MESH_ADDR_UNASSIGNED ||
+             m_trs_sar_sessions[i].session.params.tx.ack_src == p_metadata->net.src))
         {
             return &m_trs_sar_sessions[i];
         }
@@ -689,7 +749,7 @@ static trs_sar_ctx_t * sar_active_tx_ctx_get(transport_packet_metadata_t * p_met
     return NULL;
 }
 
-static trs_sar_ctx_t * sar_active_rx_ctx_get(transport_packet_metadata_t * p_metadata)
+static trs_sar_ctx_t * sar_active_rx_ctx_get(const transport_packet_metadata_t * p_metadata)
 {
     for (uint32_t i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; i++)
     {
@@ -702,8 +762,21 @@ static trs_sar_ctx_t * sar_active_rx_ctx_get(transport_packet_metadata_t * p_met
     return NULL;
 }
 
+static bool sar_rx_seqauth_is_old(const transport_packet_metadata_t * p_metadata)
+{
+    for (uint32_t i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; i++)
+    {
+        if (m_trs_sar_sessions[i].session.session_type == TRS_SAR_SESSION_RX &&
+            m_trs_sar_sessions[i].metadata.net.src == p_metadata->net.src &&
+            seqauth_get(p_metadata) < seqauth_get(&m_trs_sar_sessions[i].metadata))
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
-#if MESH_FEATURE_LPN_ENABLED
+
 static void sar_rx_ctx_cancel_all(nrf_mesh_sar_session_cancel_reason_t reason)
 {
     for (uint32_t i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; i++)
@@ -715,6 +788,7 @@ static void sar_rx_ctx_cancel_all(nrf_mesh_sar_session_cancel_reason_t reason)
     }
 }
 
+#if MESH_FEATURE_LPN_ENABLED
 static void sar_tx_pending_retries_send(void)
 {
     for (uint32_t i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; i++)
@@ -737,14 +811,20 @@ static void mesh_evt_handler(const nrf_mesh_evt_t * p_evt)
             break;
 
         case NRF_MESH_EVT_FRIENDSHIP_TERMINATED:
-            sar_rx_ctx_cancel_all(NRF_MESH_SAR_CANCEL_REASON_FRIENDSHIP_TERMINATED);
-            /* TODO: If the DST is unicast and we're not scanning ~100%, we might want to cancel any
-             * ongoing TX sessions (MBTLE-2825).  */
-            sar_tx_pending_retries_send();
+            if (p_evt->params.friendship_terminated.role == NRF_MESH_FRIENDSHIP_ROLE_LPN)
+            {
+                sar_rx_ctx_cancel_all(NRF_MESH_SAR_CANCEL_REASON_FRIENDSHIP_TERMINATED);
+                /* TODO: If the DST is unicast and we're not scanning ~100%, we might want to cancel any
+                 * ongoing TX sessions (MBTLE-2825).  */
+                sar_tx_pending_retries_send();
+            }
             break;
 
         case NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED:
-            sar_rx_ctx_cancel_all(NRF_MESH_SAR_CANCEL_REASON_FRIENDSHIP_ESTABLISHED);
+            if (p_evt->params.friendship_established.role == NRF_MESH_FRIENDSHIP_ROLE_LPN)
+            {
+                sar_rx_ctx_cancel_all(NRF_MESH_SAR_CANCEL_REASON_FRIENDSHIP_ESTABLISHED);
+            }
             break;
 
         default:
@@ -753,120 +833,150 @@ static void mesh_evt_handler(const nrf_mesh_evt_t * p_evt)
 }
 #endif  /* MESH_FEATURE_LPN_ENABLED */
 
-static void trs_sar_seg_packet_in(const uint8_t * p_segment_payload,
-                                  uint32_t segment_len,
-                                  transport_packet_metadata_t * p_metadata,
-                                  const nrf_mesh_rx_metadata_t * p_rx_metadata)
+/**
+ * Get a SAR ctx for the given metadata.
+ *
+ * Checks that we're allowed to receive a SAR session with the given metadata, and searches for the
+ * active session. If no active session exists for this src+seqzero combination, we'll create one.
+ *
+ * @param[in] p_metadata Metadata of a segment.
+ *
+ * @returns A pointer to a SAR context or NULL if the packet can't be received.
+ */
+static trs_sar_ctx_t * sar_rx_ctx_get(const transport_packet_metadata_t * p_metadata)
 {
-#if MESH_FEATURE_LPN_ENABLED
-    bool is_in_friendship = mesh_lpn_is_in_friendship();
-#endif
+    /* From Mesh Profile Specification v1.0, Section 3.5.3.4: Segments with a lower SeqAuth
+     * value than the most recent SeqAuth should be ignored. Note that this rule takes precendence
+     * over all the others - we should never act on old messages. */
+    if (sar_rx_seqauth_is_old(p_metadata))
+    {
+        if (is_in_lpn_role())
+        {
+            /* The Friend node should only send us segments for complete transactions. However, if
+             * the Friend misbehaves, all we can do is ignore the segment. */
+            __LOG(LOG_SRC_TRANSPORT,
+                  LOG_LEVEL_WARN,
+                  "Invalid segment from Friend (seqzero: %d)\n",
+                  p_metadata->segmentation.seq_zero);
+        }
+        return NULL;
+    }
+
+    /* Check if we've received this session before. */
+    const completed_sar_session_t * p_completed_session = sar_rx_completed_session_find(p_metadata);
+    if (p_completed_session != NULL)
+    {
+        /* Need to override the metadata receivers, in case it has changed since the segment was
+         * originally received, as the OBO flag depends on having the correct receiver. */
+        transport_packet_metadata_t ack_meta = *p_metadata;
+        ack_meta.receivers = p_completed_session->receivers;
+
+        if (p_completed_session->receivers != TRANSPORT_PACKET_RECEIVER_NONE)
+        {
+            /* The sender likely missed our ack, we should resend it. */
+            (void) sar_ack_send(&ack_meta, block_ack_full(&ack_meta));
+
+            if (p_completed_session->receivers & TRANSPORT_PACKET_RECEIVER_SELF)
+            {
+                /* This message is now the newest segment of a successful SAR session, and should be added to the replay list. */
+                (void) replay_list_add(p_metadata);
+            }
+        }
+        return NULL;
+    }
 
     /* Find ongoing session by src. */
     trs_sar_ctx_t * p_sar_ctx = sar_active_rx_ctx_get(p_metadata);
-    if (NULL != p_sar_ctx)
-    {
-        if (p_metadata->segmentation.seq_zero < p_sar_ctx->metadata.segmentation.seq_zero)
-        {
-#if MESH_FEATURE_LPN_ENABLED
-            if (is_in_friendship)
-            {
-                /* The Friend node should only send us segments for complete transactions. However, if
-                 * the Friend misbehaves, all we can do is ignore the segment. */
-                __LOG(LOG_SRC_TRANSPORT, LOG_LEVEL_WARN,
-                      "Invalid segment from Friend (seqzero: %d)\n", p_metadata->segmentation.seq_zero);
-            }
-#endif
-            return;
-        }
 
-        if (p_metadata->segmentation.seq_zero > p_sar_ctx->metadata.segmentation.seq_zero)
-        {
-            sar_ctx_cancel(p_sar_ctx, NRF_MESH_SAR_CANCEL_PEER_STARTED_ANOTHER_SESSION);
-            p_sar_ctx = NULL;
-        }
-    }
-#if MESH_FEATURE_LPN_ENABLED
-    else if (is_in_friendship)
+    if (NULL != p_sar_ctx && seqauth_get(p_metadata) > seqauth_get(&p_sar_ctx->metadata))
     {
-        /* The Friend node should prevent the scenario where we're starting a new session whilst
-         * still receiving another one, but we'll cancel anything ongoing to be sure. */
-        sar_rx_ctx_cancel_all(NRF_MESH_SAR_CANCEL_PEER_STARTED_ANOTHER_SESSION);
-    }
-    else
-#endif
-    {
-        /* If we're not in a friendship, but we're receiving PDUs, we should behave as normal. In a
-         * friendship, the Friend node should do all our acknowledgments for us. */
-
-        /* Look for session in the cache */
-        completed_sar_session_t * p_completed_session = sar_rx_session_previously_handled(p_metadata);
-        if (NULL != p_completed_session)
-        {
-            if (p_completed_session->successful)
-            {
-                /* Already successfully processed this session. */
-                (void) sar_ack_send(p_metadata, block_ack_full(p_metadata));
-            }
-            return;
-        }
+        /* As segments on older SeqAuths are discarded, there's no point in keeping the old session
+         * around. Its segments will only get rejected over and over until it times out. */
+        sar_ctx_cancel(p_sar_ctx, NRF_MESH_SAR_CANCEL_PEER_STARTED_ANOTHER_SESSION);
+        p_sar_ctx = NULL;
     }
 
-    /* Create session */
     if (NULL == p_sar_ctx)
     {
+        /* Create new session */
+
+        if (is_in_lpn_role())
+        {
+            /* The Friend node should prevent the scenario where we're starting a new session whilst
+            * still receiving another one, but we'll cancel anything ongoing to be sure. */
+            sar_rx_ctx_cancel_all(NRF_MESH_SAR_CANCEL_PEER_STARTED_ANOTHER_SESSION);
+        }
+
         uint32_t total_length = ((p_metadata->segmentation.last_segment + 1) *
-                                 TRANSPORT_SAR_PDU_LEN(p_metadata->net.control_packet));
+                                    TRANSPORT_SAR_PDU_LEN(p_metadata->net.control_packet));
         if (total_length > TRANSPORT_SAR_PACKET_MAX_SIZE(p_metadata->net.control_packet))
         {
             __LOG(LOG_SRC_TRANSPORT, LOG_LEVEL_ERROR, "Invalid length: %u\n", total_length);
-            return;
+            return NULL;
         }
 
-        p_sar_ctx = sar_ctx_alloc(p_metadata, TRS_SAR_SESSION_RX, total_length);
-
-        if (p_sar_ctx == NULL)
+        /* The sar session shouldn't be started if it's already in the replay protection list, as
+         * that could allow a spoofing device to replay it with higher segment seqnums. */
+        uint32_t seq = seqauth_sequence_number_get(p_metadata->net.internal.sequence_number,
+                                                   p_metadata->segmentation.seq_zero);
+        if (!replay_cache_has_elem(p_metadata->net.src, seq, p_metadata->net.internal.iv_index))
         {
-#if MESH_FEATURE_LPN_ENABLED
-            if (is_in_friendship)
+            /* Try allocating the new session */
+            p_sar_ctx = sar_ctx_alloc(p_metadata, TRS_SAR_SESSION_RX, total_length);
+
+            if (p_sar_ctx == NULL)
             {
                 /* We must assure that we always have room to receive a SAR message when in a
-                 * friendship. */
-                NRF_MESH_ASSERT_DEBUG(false);
-            }
-            else
-#endif
-            {
+                * friendship as an LPN, so if we got here as an LPN, something is wrong in the implementation. */
+                NRF_MESH_ASSERT_DEBUG(!is_in_lpn_role());
+
                 /* Send block ack=0 to indicate failure to receive. Transport is out of resources. */
                 (void) sar_ack_send(p_metadata, 0);
                 m_send_sar_cancel_event(NRF_MESH_INITIAL_TOKEN, NRF_MESH_SAR_CANCEL_REASON_NO_MEM);
-            }
 
-            return;
+                /* We do NOT add this message to the replay cache, as we hope to handle its SAR session
+                * at a later point. Adding it would make us reject the SAR session later, as we're
+                * checking for seqzero when we allocate it. */
+            }
+        }
+        else
+        {
+            __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_PACKET_DROPPED,
+                                  PACKET_DROPPED_REPLAY_CACHE,
+                                  sizeof(uint32_t),
+                                  &seq);
         }
     }
+    return p_sar_ctx;
+}
 
+static void trs_seg_packet_in(const packet_mesh_trs_packet_t * p_packet,
+                              uint32_t packet_len,
+                              const transport_packet_metadata_t * p_metadata,
+                              const nrf_mesh_rx_metadata_t * p_rx_metadata)
+{
+    trs_sar_ctx_t * p_sar_ctx = sar_rx_ctx_get(p_metadata);
+
+    if (p_sar_ctx == NULL)
+    {
+        return;
+    }
     __LOG(LOG_SRC_TRANSPORT, LOG_LEVEL_INFO, "Got segment %u\n", p_metadata->segmentation.segment_offset);
 
-#if MESH_FEATURE_LPN_ENABLED
     /* In a friendship, the Friend shall put segments in its Friend Queue when the message has been
      * fully received/assembled (ref. Mesh Profile v1.0, sec. 3.5.5). If we still have an active RX
      * context on NRF_MESH_EVT_LPN_FRIEND_POLL_COMPLETE, we regard the session as failed. Thus no
      * need to start the incomplete timer. */
-    if (!is_in_friendship)
-#endif
+    if (!is_in_lpn_role())
     {
         /* Reset timers, even if we already received this segment. */
         rx_incomplete_timer_reset(p_sar_ctx);
-    }
-    if (p_sar_ctx->metadata.net.dst.type == NRF_MESH_ADDRESS_TYPE_UNICAST &&
-        p_sar_ctx->session.params.rx.ack_state == SAR_ACK_STATE_IDLE
-#if MESH_FEATURE_LPN_ENABLED
-        && !is_in_friendship
-#endif
-        )
-    {
-        ack_timer_reset(p_sar_ctx);
+
+        if (p_sar_ctx->metadata.net.dst.type == NRF_MESH_ADDRESS_TYPE_UNICAST &&
+            p_sar_ctx->session.params.rx.ack_state == SAR_ACK_STATE_IDLE)
+        {
+            ack_timer_reset(p_sar_ctx);
+        }
     }
 
     if (p_sar_ctx->session.block_ack & (1u << p_metadata->segmentation.segment_offset))
@@ -877,12 +987,13 @@ static void trs_sar_seg_packet_in(const uint8_t * p_segment_payload,
 
     p_sar_ctx->session.block_ack |= (1u << p_metadata->segmentation.segment_offset);
 
+    uint32_t segment_len    = packet_len - PACKET_MESH_TRS_SEG_PDU_OFFSET;
+    uint32_t segment_offset = p_metadata->segmentation.segment_offset *
+                              TRANSPORT_SAR_PDU_LEN(p_metadata->net.control_packet);
     if (p_metadata->segmentation.segment_offset == p_sar_ctx->metadata.segmentation.last_segment)
     {
         /* Last segment might not be the full length of a normal segment, update total length */
-        p_sar_ctx->session.length =
-            segment_len + (p_sar_ctx->metadata.segmentation.last_segment *
-                           TRANSPORT_SAR_PDU_LEN(p_metadata->net.control_packet));
+        p_sar_ctx->session.length = segment_offset + segment_len;
     }
     else if (segment_len != TRANSPORT_SAR_PDU_LEN(p_metadata->net.control_packet))
     {
@@ -891,35 +1002,69 @@ static void trs_sar_seg_packet_in(const uint8_t * p_segment_payload,
         return;
     }
 
-    memcpy(&p_sar_ctx->payload[p_metadata->segmentation.segment_offset *
-                               TRANSPORT_SAR_PDU_LEN(p_metadata->net.control_packet)],
-           p_segment_payload,
-           segment_len);
+    /* Adopt the network metadata of the segment that was sent last to maintain the correct sequence
+     * number order in upper transport. This also ensures that once the packet is added to the
+     * replay list, the entry covers them all. */
+    if (p_sar_ctx->metadata.net.internal.sequence_number < p_metadata->net.internal.sequence_number)
+    {
+        p_sar_ctx->metadata.net = p_metadata->net;
+    }
 
+    memcpy(&p_sar_ctx->payload[segment_offset], packet_mesh_trs_seg_payload_get(p_packet), segment_len);
+
+#if MESH_FEATURE_FRIEND_ENABLED
+    // Now that all sanitizing checks have passed, we can send the packet to the friend module
+    if (p_metadata->receivers & TRANSPORT_PACKET_RECEIVER_FRIEND)
+    {
+        friend_packet_in(p_packet, packet_len, p_metadata, CORE_TX_ROLE_RELAY);
+    }
+#endif
+
+    /* All packets have arrived */
     if (p_sar_ctx->session.block_ack == block_ack_full(&p_sar_ctx->metadata))
     {
-        uint32_t ack_status = NRF_SUCCESS;
-#if MESH_FEATURE_LPN_ENABLED
-        if (!is_in_friendship)
-#endif
+        if (!is_in_lpn_role())
         {
-            /* Release and ack regardless of whether upper layer succeeds */
-            p_sar_ctx->session.params.rx.ack_state = SAR_ACK_STATE_PENDING;
-            ack_status = sar_ack_send(&p_sar_ctx->metadata, p_sar_ctx->session.block_ack);
+            /* Final ack. If it fails, we'll recover when the sender resends a segment. We'll find
+             * the cached session and respond. */
+            (void) sar_ack_send(&p_sar_ctx->metadata, p_sar_ctx->session.block_ack);
         }
 
-        /* All packets have arrived */
+#if MESH_FEATURE_FRIEND_ENABLED
+        // Give the packet to the friend first, in case the app decides to send something as a response
+        if (p_metadata->receivers & TRANSPORT_PACKET_RECEIVER_FRIEND)
+        {
+            friend_sar_complete(p_metadata->net.src, p_metadata->segmentation.seq_zero, true);
+        }
+#endif
+
         upper_transport_packet_in(p_sar_ctx->payload,
                                   p_sar_ctx->session.length,
                                   &p_sar_ctx->metadata,
                                   p_rx_metadata);
 
-        if (ack_status == NRF_SUCCESS)
-        {
-            p_sar_ctx->session.params.rx.ack_state = SAR_ACK_STATE_IDLE;
-            sar_ctx_rx_complete(p_sar_ctx);
-        }
+        sar_rx_session_mark_as_handled(&p_sar_ctx->metadata, true);
+        sar_ctx_free(p_sar_ctx);
     }
+}
+
+static void trs_unseg_packet_in(const packet_mesh_trs_packet_t * p_packet,
+                                uint32_t packet_len,
+                                transport_packet_metadata_t * p_metadata,
+                                const nrf_mesh_rx_metadata_t * p_rx_metadata)
+{
+
+#if MESH_FEATURE_FRIEND_ENABLED
+    if (p_metadata->receivers & TRANSPORT_PACKET_RECEIVER_FRIEND)
+    {
+        friend_packet_in(p_packet, packet_len, p_metadata, CORE_TX_ROLE_RELAY);
+    }
+#endif
+
+    upper_transport_packet_in(packet_mesh_trs_unseg_payload_get(p_packet),
+                              packet_len - PACKET_MESH_TRS_UNSEG_PDU_OFFSET,
+                              p_metadata,
+                              p_rx_metadata);
 }
 
 static bool test_transport_decrypt(const nrf_mesh_application_secmat_t * p_app_security_material, ccm_soft_data_t * p_ccm_data)
@@ -976,41 +1121,45 @@ static void upper_trs_packet_encrypt(const uint8_t * p_unencrypted_upper_trs_pac
     enc_aes_ccm_encrypt(&ccm_data);
 }
 
-static uint8_t mic_size_decode(uint8_t encoded_mic_opt_val)
+static uint8_t mic_size_get(nrf_mesh_transmic_size_t encoded_mic_opt_val)
 {
     return (encoded_mic_opt_val == NRF_MESH_TRANSMIC_SIZE_SMALL) ?
            PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE:
            PACKET_MESH_TRS_TRANSMIC_LARGE_SIZE;
 }
 
-static uint32_t transport_metadata_from_tx_params(transport_packet_metadata_t * p_metadata,
+static void transport_metadata_from_tx_params(transport_packet_metadata_t * p_metadata,
                                               const nrf_mesh_tx_params_t * p_tx_params)
 {
     p_metadata->type.access.app_key_id = p_tx_params->security_material.p_app->aid;
     p_metadata->type.access.using_app_key = (!p_tx_params->security_material.p_app->is_device_key);
     p_metadata->p_security_material = p_tx_params->security_material.p_app;
-    p_metadata->mic_size = (p_tx_params->transmic_size == NRF_MESH_TRANSMIC_SIZE_DEFAULT) ?
-                            mic_size_decode(m_trs_config.szmic) : mic_size_decode(p_tx_params->transmic_size);
 
-    /* Check for a valid MIC size and resultant packet length combination. Large MIC size is not
-    allowed for Unsegmented messages. See Table 3.42 of Mesh Profile Specification v1.0. */
-    if (p_tx_params->force_segmented == false &&
-       (p_tx_params->data_len <= (PACKET_MESH_TRS_UNSEG_ACCESS_PDU_MAX_SIZE - p_metadata->mic_size)) &&
-       (p_metadata->mic_size == PACKET_MESH_TRS_TRANSMIC_LARGE_SIZE))
-    {
-        return NRF_ERROR_INVALID_PARAM;
-    }
-
-    p_metadata->segmented = ((p_tx_params->data_len > PACKET_MESH_TRS_UNSEG_ACCESS_PDU_MAX_SIZE - p_metadata->mic_size) ||
-                             p_tx_params->force_segmented);
+    /* Messages should be segmented if:
+     * - They won't fit in an unsegmented message.
+     * - The user explicitly requested it.
+     * - The user forced a large MIC size.
+     */
+    p_metadata->segmented = ((p_tx_params->data_len > NRF_MESH_UNSEG_PAYLOAD_SIZE_MAX) ||
+                             p_tx_params->force_segmented ||
+                             p_tx_params->transmic_size == NRF_MESH_TRANSMIC_SIZE_LARGE);
 
     if (p_metadata->segmented)
     {
+        p_metadata->mic_size =
+            mic_size_get((p_tx_params->transmic_size == NRF_MESH_TRANSMIC_SIZE_DEFAULT)
+                             ? m_trs_config.szmic
+                             : p_tx_params->transmic_size);
+
         uint32_t num_segments = ((p_tx_params->data_len + p_metadata->mic_size +
                                   PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE - 1) /
                                  PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE);
         p_metadata->segmentation.last_segment = num_segments - 1;
         p_metadata->segmentation.segment_offset = 0;
+    }
+    else
+    {
+        p_metadata->mic_size = PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE;
     }
 
     p_metadata->net.control_packet = false;
@@ -1019,9 +1168,20 @@ static uint32_t transport_metadata_from_tx_params(transport_packet_metadata_t * 
     p_metadata->net.src = p_tx_params->src;
     p_metadata->net.ttl = p_tx_params->ttl;
     p_metadata->token = p_tx_params->tx_token;
-    p_metadata->tx_bearer_selector = CORE_TX_BEARER_TYPE_ALLOW_ALL;
+    p_metadata->tx_bearer_selector = CORE_TX_BEARER_TYPE_ALLOW_ALL ^ CORE_TX_BEARER_TYPE_LOCAL;
 
-    return NRF_SUCCESS;
+    if (nrf_mesh_is_address_rx(&p_tx_params->dst))
+    {
+        p_metadata->tx_bearer_selector = (p_tx_params->dst.type != NRF_MESH_ADDRESS_TYPE_UNICAST) ?
+                CORE_TX_BEARER_TYPE_ALLOW_ALL : CORE_TX_BEARER_TYPE_LOCAL;
+    }
+
+#if MESH_FEATURE_FRIEND_ENABLED
+    if (friend_needs_packet(p_metadata))
+    {
+        p_metadata->tx_bearer_selector |= CORE_TX_BEARER_TYPE_LOCAL;
+    }
+#endif
 }
 
 static void transport_metadata_from_control_tx_params(
@@ -1270,10 +1430,6 @@ static void trs_sar_rx_pending_ack_send(trs_sar_ctx_t * p_sar_ctx)
         if (sar_ack_send(&p_sar_ctx->metadata, p_sar_ctx->session.block_ack) == NRF_SUCCESS)
         {
             p_sar_ctx->session.params.rx.ack_state = SAR_ACK_STATE_IDLE;
-            if (p_sar_ctx->session.block_ack == block_ack_full(&p_sar_ctx->metadata))
-            {
-                sar_ctx_rx_complete(p_sar_ctx);
-            }
         }
     }
 }
@@ -1324,16 +1480,12 @@ static uint32_t upper_trs_packet_decrypt(transport_packet_metadata_t * p_metadat
     ccm_data.mic_len = p_metadata->mic_size;
     ccm_data.a_len = 0;
 
-    if (p_metadata->net.dst.type == NRF_MESH_ADDRESS_TYPE_VIRTUAL)
-    {
-        ccm_data.a_len = NRF_MESH_UUID_SIZE;
-    }
-
     if (p_metadata->type.access.using_app_key)
     {
         do {
             if (p_metadata->net.dst.type == NRF_MESH_ADDRESS_TYPE_VIRTUAL)
             {
+                ccm_data.a_len = NRF_MESH_UUID_SIZE;
                 ccm_data.p_a = p_metadata->net.dst.p_virtual_uuid;
             }
 
@@ -1355,38 +1507,101 @@ static uint32_t upper_trs_packet_decrypt(transport_packet_metadata_t * p_metadat
         } while (p_metadata->net.dst.type == NRF_MESH_ADDRESS_TYPE_VIRTUAL &&
                  nrf_mesh_rx_address_get(p_metadata->net.dst.value, &p_metadata->net.dst));
     }
-    else
+    else if (p_metadata->net.dst.type == NRF_MESH_ADDRESS_TYPE_UNICAST) // Device keys can only be used for unicast addresses.
     {
         /* Device key */
-        p_metadata->p_security_material = NULL;
-        if (p_metadata->net.dst.type == NRF_MESH_ADDRESS_TYPE_UNICAST)
+        /* Device keys are always attached to a unicast address. Try the devkey of both the source and the destination address: */
+        const uint16_t devkey_addrs[] = {
+            p_metadata->net.dst.value,
+            p_metadata->net.src
+        };
+        for (uint32_t i = 0; i < ARRAY_SIZE(devkey_addrs); ++i)
         {
-            nrf_mesh_devkey_secmat_get(p_metadata->net.dst.value, &p_metadata->p_security_material);
+            p_metadata->p_security_material = NULL;
+            nrf_mesh_devkey_secmat_get(devkey_addrs[i], &p_metadata->p_security_material);
             if (test_transport_decrypt(p_metadata->p_security_material, &ccm_data))
             {
                 return NRF_SUCCESS;
             }
-        }
-
-        /* try the src address */
-        p_metadata->p_security_material = NULL;
-        nrf_mesh_devkey_secmat_get(p_metadata->net.src, &p_metadata->p_security_material);
-        if (test_transport_decrypt(p_metadata->p_security_material, &ccm_data))
-        {
-            return NRF_SUCCESS;
         }
     }
 
     return NRF_ERROR_NOT_FOUND;
 }
 
-static void transport_metadata_build(const packet_mesh_trs_packet_t * p_transport_packet,
-                                     const network_packet_metadata_t * p_net_metadata,
-                                     const nrf_mesh_rx_metadata_t * p_rx_metadata,
-                                     transport_packet_metadata_t * p_trs_metadata)
+/**
+ * Validate transport packet metadata for both incoming and outgoing packets.
+ *
+ * @param[in] p_trs_metadata Transport metadata to validate.
+ *
+ * @returns A status code for the result of the validation.
+ */
+static uint32_t transport_metadata_validate(const transport_packet_metadata_t * p_trs_metadata)
 {
+    if (nrf_mesh_address_type_get(p_trs_metadata->net.src) != NRF_MESH_ADDRESS_TYPE_UNICAST ||
+        p_trs_metadata->net.dst.type == NRF_MESH_ADDRESS_TYPE_INVALID)
+    {
+        return NRF_ERROR_INVALID_ADDR;
+    }
+
+    if (p_trs_metadata->net.ttl > NRF_MESH_TTL_MAX)
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+
+    if (p_trs_metadata->net.control_packet)
+    {
+        /* Mesh Profile Specification v1.0.1 Section 3.4.3: Only unicast and group destination addresses are valid for control packets */
+        if (p_trs_metadata->net.dst.type == NRF_MESH_ADDRESS_TYPE_VIRTUAL)
+        {
+            return NRF_ERROR_INVALID_ADDR;
+        }
+
+        if ((uint8_t) p_trs_metadata->type.control.opcode > TRANSPORT_CONTROL_PACKET_OPCODE_MAX ||
+            p_trs_metadata->mic_size != PACKET_MESH_TRS_TRANSMIC_CONTROL_SIZE)
+        {
+            return NRF_ERROR_INVALID_PARAM;
+        }
+    }
+    else
+    {
+        /* Mesh Profile Specification v1.0.1 Section 3.4.3: Only unicast destination addresses are valid with device keys */
+        if (!p_trs_metadata->type.access.using_app_key && p_trs_metadata->net.dst.type != NRF_MESH_ADDRESS_TYPE_UNICAST)
+        {
+            return NRF_ERROR_INVALID_PARAM;
+        }
+
+        if (!p_trs_metadata->segmented && p_trs_metadata->mic_size != PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE)
+        {
+            return NRF_ERROR_INVALID_PARAM;
+        }
+    }
+
+    return NRF_SUCCESS;
+}
+
+static uint32_t transport_metadata_build(const packet_mesh_trs_packet_t * p_transport_packet,
+                                         uint32_t packet_len,
+                                         const network_packet_metadata_t * p_net_metadata,
+                                         const nrf_mesh_rx_metadata_t * p_rx_metadata,
+                                         transport_packet_metadata_t * p_trs_metadata)
+{
+    // Ensure that the read of the "seg" field isn't out of bounds:
+    if (packet_len < PACKET_MESH_TRS_COMMON_SEG_OFFSET + 1)
+    {
+        return NRF_ERROR_INVALID_LENGTH;
+    }
+
     memcpy(&p_trs_metadata->net, p_net_metadata, sizeof(network_packet_metadata_t));
+    p_trs_metadata->receivers = TRANSPORT_PACKET_RECEIVER_NONE; // will be filled in gradually
     p_trs_metadata->segmented = packet_mesh_trs_common_seg_get(p_transport_packet);
+
+    // Ensure that the rest of the fields aren't out of bounds:
+    uint32_t min_len = (p_trs_metadata->segmented ? PACKET_MESH_TRS_SEG_PDU_OFFSET : PACKET_MESH_TRS_UNSEG_PDU_OFFSET);
+    if (packet_len < min_len)
+    {
+        return NRF_ERROR_INVALID_LENGTH;
+    }
 
     if (p_trs_metadata->net.control_packet)
     {
@@ -1404,6 +1619,11 @@ static void transport_metadata_build(const packet_mesh_trs_packet_t * p_transpor
         else
         {
             p_trs_metadata->mic_size = PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE;
+
+            if (packet_len < min_len + p_trs_metadata->mic_size)
+            {
+                return NRF_ERROR_INVALID_LENGTH;
+            }
         }
     }
 
@@ -1417,16 +1637,16 @@ static void transport_metadata_build(const packet_mesh_trs_packet_t * p_transpor
     p_trs_metadata->p_security_material = NULL;
 
     /* Map RX source to the TX bearer we should use to send responses */
-    static const core_tx_bearer_type_t rx_source_to_tx_bearer[] = {
+    static const core_tx_bearer_selector_t rx_source_to_tx_bearer[] = {
         [NRF_MESH_RX_SOURCE_SCANNER]    = CORE_TX_BEARER_TYPE_ADV,
         [NRF_MESH_RX_SOURCE_GATT]       = CORE_TX_BEARER_TYPE_GATT_SERVER,
-        [NRF_MESH_RX_SOURCE_FRIEND]     = CORE_TX_BEARER_TYPE_ADV,
-        [NRF_MESH_RX_SOURCE_LOW_POWER]  = CORE_TX_BEARER_TYPE_FRIEND,
         [NRF_MESH_RX_SOURCE_INSTABURST] = CORE_TX_BEARER_TYPE_ADV,
-        [NRF_MESH_RX_SOURCE_LOOPBACK]   = CORE_TX_BEARER_TYPE_INVALID,
+        [NRF_MESH_RX_SOURCE_LOOPBACK]   = CORE_TX_BEARER_TYPE_LOCAL,
     };
-    NRF_MESH_ASSERT(p_rx_metadata->source < ARRAY_SIZE(rx_source_to_tx_bearer));
+    NRF_MESH_ASSERT((uint32_t) p_rx_metadata->source < ARRAY_SIZE(rx_source_to_tx_bearer));
     p_trs_metadata->tx_bearer_selector = rx_source_to_tx_bearer[p_rx_metadata->source];
+
+    return NRF_SUCCESS;
 }
 
 static void segack_packet_in(const packet_mesh_trs_control_packet_t * p_trs_control_packet,
@@ -1440,17 +1660,34 @@ static void segack_packet_in(const packet_mesh_trs_control_packet_t * p_trs_cont
     }
     uint16_t seq_zero = packet_mesh_trs_control_segack_seqzero_get(p_trs_control_packet);
     uint32_t block_ack = packet_mesh_trs_control_segack_block_ack_get(p_trs_control_packet);
+    bool obo = (bool) packet_mesh_trs_control_segack_obo_get(p_trs_control_packet);
 
     trs_sar_ctx_t * p_sar_ctx = sar_active_tx_ctx_get(p_metadata, seq_zero);
     if (p_sar_ctx == NULL)
     {
         __LOG(LOG_SRC_TRANSPORT, LOG_LEVEL_WARN, "Could not find active session for ACK packet\n");
     }
+    else if (!obo && p_sar_ctx->metadata.net.dst.value != p_metadata->net.src)
+    {
+        __LOG(LOG_SRC_TRANSPORT,
+              LOG_LEVEL_WARN,
+              "Got ACK packet from unexpected device (expected %04x, got %04x)\n",
+              p_sar_ctx->metadata.net.dst.value,
+              p_metadata->net.src);
+    }
     else
     {
-        __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_TRS_ACK_RECEIVED, 0, control_packet_len, p_trs_control_packet);
+        __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_TRS_ACK_RECEIVED, 0, sizeof(uint32_t), &p_metadata->net.internal.sequence_number);
+
+        if (obo)
+        {
+            /* Mesh Profile Specification v1.0, section 3.5.3.3 the source address of the first ack
+             * must be the source address of all the acks if the obo flag is set. */
+            p_sar_ctx->session.params.tx.ack_src = p_metadata->net.src;
+        }
 
         p_sar_ctx->session.block_ack |= block_ack;
+
         if (block_ack == 0)
         {
             sar_ctx_cancel(p_sar_ctx, NRF_MESH_SAR_CANCEL_BY_PEER);
@@ -1497,31 +1734,35 @@ static void transport_control_packet_in(const packet_mesh_trs_control_packet_t *
                                         transport_packet_metadata_t * p_metadata,
                                         const nrf_mesh_rx_metadata_t * p_rx_metadata)
 {
-    switch (p_metadata->type.control.opcode)
+    /* There's no further validation of control packets, add them to the replay list. */
+    if (replay_list_add(p_metadata) == NRF_SUCCESS)
     {
-        /* The Segack handler is internal to the lower transport layer, and is handled inline. */
-        case TRANSPORT_CONTROL_OPCODE_SEGACK:
-            segack_packet_in(p_trs_control_packet, control_packet_len, p_metadata, p_rx_metadata);
-            break;
-
-        default:
+        switch (p_metadata->type.control.opcode)
         {
-            transport_control_packet_callback_t callback = control_packet_callback_get(p_metadata->type.control.opcode);
-            if (callback != NULL)
+            /* The Segack handler is internal to the lower transport layer, and is handled inline. */
+            case TRANSPORT_CONTROL_OPCODE_SEGACK:
+                segack_packet_in(p_trs_control_packet, control_packet_len, p_metadata, p_rx_metadata);
+                break;
+
+            default:
             {
-                transport_control_packet_t control_packet;
-                control_packet.opcode          = p_metadata->type.control.opcode;
-                control_packet.p_net_secmat    = p_metadata->net.p_security_material;
-                control_packet.src             = p_metadata->net.src;
-                control_packet.dst             = p_metadata->net.dst;
-                control_packet.ttl             = p_metadata->net.ttl;
-                control_packet.p_data          = p_trs_control_packet;
-                control_packet.data_len        = control_packet_len;
-                control_packet.reliable        = p_metadata->segmented;
-                control_packet.bearer_selector = p_metadata->tx_bearer_selector;
-                callback(&control_packet, p_rx_metadata);
+                transport_control_packet_callback_t callback = control_packet_callback_get(p_metadata->type.control.opcode);
+                if (callback != NULL)
+                {
+                    transport_control_packet_t control_packet;
+                    control_packet.opcode          = p_metadata->type.control.opcode;
+                    control_packet.p_net_secmat    = p_metadata->net.p_security_material;
+                    control_packet.src             = p_metadata->net.src;
+                    control_packet.dst             = p_metadata->net.dst;
+                    control_packet.ttl             = p_metadata->net.ttl;
+                    control_packet.p_data          = p_trs_control_packet;
+                    control_packet.data_len        = control_packet_len;
+                    control_packet.reliable        = p_metadata->segmented;
+                    control_packet.bearer_selector = p_metadata->tx_bearer_selector;
+                    callback(&control_packet, p_rx_metadata);
+                }
+                break;
             }
-            break;
         }
     }
 }
@@ -1536,25 +1777,29 @@ static void upper_transport_access_packet_in(const uint8_t * p_upper_trs_packet,
     uint32_t status = upper_trs_packet_decrypt(p_metadata, p_upper_trs_packet, upper_trs_packet_len, decrypt_buffer);
     if (status == NRF_SUCCESS)
     {
-        __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_DECRYPT_TRS,
-                                0,
-                                upper_trs_packet_len - p_metadata->mic_size,
-                                p_upper_trs_packet);
+        /* This message has passed all checks and can be added to the replay list. */
+        if (replay_list_add(p_metadata) == NRF_SUCCESS)
+        {
+            __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_DECRYPT_TRS,
+                                    0,
+                                    upper_trs_packet_len - p_metadata->mic_size,
+                                    p_upper_trs_packet);
 
-        nrf_mesh_address_t src_address = {.type = NRF_MESH_ADDRESS_TYPE_UNICAST,
-                                        .value = p_metadata->net.src,
-                                        .p_virtual_uuid = NULL};
-        nrf_mesh_evt_t rx_event;
-        rx_event.type = NRF_MESH_EVT_MESSAGE_RECEIVED;
-        rx_event.params.message.p_buffer = decrypt_buffer;
-        rx_event.params.message.length = upper_trs_packet_len - p_metadata->mic_size;
-        rx_event.params.message.src = src_address;
-        rx_event.params.message.dst = p_metadata->net.dst;
-        rx_event.params.message.ttl = p_metadata->net.ttl;
-        rx_event.params.message.secmat.p_net = p_metadata->net.p_security_material;
-        rx_event.params.message.secmat.p_app = p_metadata->p_security_material;
-        rx_event.params.message.p_metadata = p_rx_metadata;
-        event_handle(&rx_event);
+            nrf_mesh_address_t src_address = {.type = NRF_MESH_ADDRESS_TYPE_UNICAST,
+                                            .value = p_metadata->net.src,
+                                            .p_virtual_uuid = NULL};
+            nrf_mesh_evt_t rx_event;
+            rx_event.type = NRF_MESH_EVT_MESSAGE_RECEIVED;
+            rx_event.params.message.p_buffer = decrypt_buffer;
+            rx_event.params.message.length = upper_trs_packet_len - p_metadata->mic_size;
+            rx_event.params.message.src = src_address;
+            rx_event.params.message.dst = p_metadata->net.dst;
+            rx_event.params.message.ttl = p_metadata->net.ttl;
+            rx_event.params.message.secmat.p_net = p_metadata->net.p_security_material;
+            rx_event.params.message.secmat.p_app = p_metadata->p_security_material;
+            rx_event.params.message.p_metadata = p_rx_metadata;
+            event_handle(&rx_event);
+        }
     }
     else
     {
@@ -1573,16 +1818,19 @@ static void upper_transport_packet_in(const uint8_t * p_upper_trs_packet,
                                       transport_packet_metadata_t * p_metadata,
                                       const nrf_mesh_rx_metadata_t * p_rx_metadata)
 {
-    if (p_metadata->net.control_packet)
+    if (p_metadata->receivers & TRANSPORT_PACKET_RECEIVER_SELF)
     {
-        transport_control_packet_in((packet_mesh_trs_control_packet_t *) p_upper_trs_packet,
-                                    upper_trs_packet_len,
-                                    p_metadata,
-                                    p_rx_metadata);
-    }
-    else
-    {
-        upper_transport_access_packet_in(p_upper_trs_packet, upper_trs_packet_len, p_metadata, p_rx_metadata);
+        if (p_metadata->net.control_packet)
+        {
+            transport_control_packet_in((packet_mesh_trs_control_packet_t *) p_upper_trs_packet,
+                                        upper_trs_packet_len,
+                                        p_metadata,
+                                        p_rx_metadata);
+        }
+        else
+        {
+            upper_transport_access_packet_in(p_upper_trs_packet, upper_trs_packet_len, p_metadata, p_rx_metadata);
+        }
     }
 }
 
@@ -1591,10 +1839,7 @@ static void ack_timeout(timestamp_t timestamp, void * p_context)
     trs_sar_ctx_t * p_sar_ctx = p_context;
     NRF_MESH_ASSERT(p_sar_ctx->session.session_type == TRS_SAR_SESSION_RX);
     p_sar_ctx->session.params.rx.ack_state = SAR_ACK_STATE_PENDING;
-    if (sar_ack_send(&p_sar_ctx->metadata, p_sar_ctx->session.block_ack) == NRF_SUCCESS)
-    {
-        p_sar_ctx->session.params.rx.ack_state = SAR_ACK_STATE_IDLE;
-    }
+    trs_sar_rx_pending_ack_send(p_sar_ctx);
 }
 
 static void retry_timeout(timestamp_t timestamp, void * p_context)
@@ -1605,7 +1850,7 @@ static void retry_timeout(timestamp_t timestamp, void * p_context)
 #if MESH_FEATURE_LPN_ENABLED
     if (mesh_lpn_is_in_friendship())
     {
-        mesh_lpn_friend_poll(0);
+        (void) mesh_lpn_friend_poll(0);
         p_sar_ctx->timeout_state = SAR_TIMEOUT_STATE_WAIT_POLL_COMPLETE;
     }
     else
@@ -1636,15 +1881,10 @@ static void tx_complete(core_tx_role_t role, uint32_t bearer_index, uint32_t tim
 
 static uint32_t upper_transport_tx(transport_packet_metadata_t * p_metadata, const uint8_t * p_data, uint32_t data_len)
 {
-    if (nrf_mesh_address_type_get(p_metadata->net.src) != NRF_MESH_ADDRESS_TYPE_UNICAST ||
-        p_metadata->net.dst.type == NRF_MESH_ADDRESS_TYPE_INVALID ||
-        (p_metadata->net.dst.type == NRF_MESH_ADDRESS_TYPE_VIRTUAL && p_metadata->net.dst.p_virtual_uuid == NULL))
+    uint32_t status = transport_metadata_validate(p_metadata);
+    if (status != NRF_SUCCESS)
     {
-        return NRF_ERROR_INVALID_ADDR;
-    }
-    if (p_metadata->net.ttl > NRF_MESH_TTL_MAX)
-    {
-        return NRF_ERROR_INVALID_PARAM;
+        return status;
     }
 
     if (p_metadata->segmented)
@@ -1663,7 +1903,7 @@ static uint32_t upper_transport_tx(transport_packet_metadata_t * p_metadata, con
 /**************
  * Public API *
  **************/
-void transport_init(const nrf_mesh_init_params_t * p_init_params)
+void transport_init(void)
 {
     memset(&m_trs_sar_sessions[0], 0, sizeof(m_trs_sar_sessions));
 
@@ -1708,6 +1948,19 @@ uint32_t transport_packet_in(const packet_mesh_trs_packet_t * p_packet,
         return NRF_ERROR_NULL;
     }
 
+    transport_packet_metadata_t trs_metadata;
+    status = transport_metadata_build(p_packet, trs_packet_len, p_net_metadata, p_rx_metadata, &trs_metadata);
+    if (status != NRF_SUCCESS)
+    {
+        return status;
+    }
+
+    status = transport_metadata_validate(&trs_metadata);
+    if (status != NRF_SUCCESS)
+    {
+        return status;
+    }
+
 #if MESH_FEATURE_LPN_ENABLED
     /* Notify the LPN about a successfully decrypted network PDU. It should be notified before
      * checking the replay cache as it means that the Friend Poll got a reply and the LPN can cancel
@@ -1716,11 +1969,37 @@ uint32_t transport_packet_in(const packet_mesh_trs_packet_t * p_packet,
     mesh_lpn_rx_notify(p_net_metadata);
 #endif
 
-    /* nrf_mesh_rx_address_get requires a clean address structure on the first call. */
-    nrf_mesh_address_t dst_addr;
-    memset(&dst_addr, 0, sizeof(nrf_mesh_address_t));
+    if (replay_cache_has_elem(p_net_metadata->src,
+                              p_net_metadata->internal.sequence_number,
+                              p_net_metadata->internal.iv_index))
+    {
+        __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_PACKET_DROPPED,
+                              PACKET_DROPPED_REPLAY_CACHE,
+                              sizeof(uint32_t),
+                              &p_net_metadata->internal.sequence_number);
+        return status;
+    }
 
-    if (!nrf_mesh_rx_address_get(p_net_metadata->dst.value, &dst_addr))
+#if MESH_FEATURE_FRIEND_ENABLED
+    if (friend_needs_packet(&trs_metadata))
+    {
+        trs_metadata.receivers |= TRANSPORT_PACKET_RECEIVER_FRIEND;
+    }
+#endif
+
+    /* Don't overwrite the dst in the transport metadata, in case the message is
+     * for one of our friends. */
+    nrf_mesh_address_t dst;
+    memset(&dst, 0, sizeof(dst));
+    if (nrf_mesh_rx_address_get(p_net_metadata->dst.value, &dst))
+    {
+        trs_metadata.receivers |= TRANSPORT_PACKET_RECEIVER_SELF;
+        /* Copy in the virtual UUID if the address was found, the rest is
+         * already there. */
+        trs_metadata.net.dst.p_virtual_uuid = dst.p_virtual_uuid;
+    }
+
+    if (trs_metadata.receivers == TRANSPORT_PACKET_RECEIVER_NONE)
     {
         __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_PACKET_DROPPED,
                               PACKET_DROPPED_UNKNOWN_ADDRESS,
@@ -1729,53 +2008,14 @@ uint32_t transport_packet_in(const packet_mesh_trs_packet_t * p_packet,
         return status;
     }
 
-    if (replay_cache_has_elem(p_net_metadata->src,
-                              p_net_metadata->internal.sequence_number,
-                              p_net_metadata->internal.iv_index))
-    {
-        __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_PACKET_DROPPED,
-                              PACKET_DROPPED_REPLAY_CACHE,
-                              trs_packet_len,
-                              p_packet);
-        return status;
-    }
-
-    status = replay_cache_add(p_net_metadata->src,
-                              p_net_metadata->internal.sequence_number,
-                              p_net_metadata->internal.iv_index);
-    if (status != NRF_SUCCESS)
-    {
-        m_send_replay_cache_full_event(p_net_metadata->src,
-                                       p_net_metadata->internal.iv_index & NETWORK_IVI_MASK,
-                                       NRF_MESH_RX_FAILED_REASON_REPLAY_CACHE_FULL);
-        return status;
-    }
-
-    transport_packet_metadata_t trs_metadata;
-    transport_metadata_build(p_packet, p_net_metadata, p_rx_metadata, &trs_metadata);
-    /* Insert the lookup-address in case it's different from the one in p_net_metadata. */
-    trs_metadata.net.dst = dst_addr;
-
-    /* The packet handler functions operate on static global state, that potentially can be accessed
-     * from timers. */
-    bearer_event_critical_section_begin();
-
     if (trs_metadata.segmented)
     {
-        trs_sar_seg_packet_in(packet_mesh_trs_seg_payload_get(p_packet),
-                              trs_packet_len - PACKET_MESH_TRS_SEG_PDU_OFFSET,
-                              &trs_metadata,
-                              p_rx_metadata);
+        trs_seg_packet_in(p_packet, trs_packet_len, &trs_metadata, p_rx_metadata);
     }
     else
     {
-        upper_transport_packet_in(packet_mesh_trs_unseg_payload_get(p_packet),
-                                  trs_packet_len - PACKET_MESH_TRS_UNSEG_PDU_OFFSET,
-                                  &trs_metadata,
-                                  p_rx_metadata);
+        trs_unseg_packet_in(p_packet, trs_packet_len, &trs_metadata, p_rx_metadata);
     }
-
-    bearer_event_critical_section_end();
 
     return NRF_SUCCESS;
 }
@@ -1791,11 +2031,7 @@ uint32_t transport_tx(const nrf_mesh_tx_params_t * p_params, uint32_t * const p_
     }
 
     transport_packet_metadata_t metadata;
-    uint32_t status = transport_metadata_from_tx_params(&metadata, p_params);
-    if (status != NRF_SUCCESS)
-    {
-        return status;
-    }
+    transport_metadata_from_tx_params(&metadata, p_params);
 
     return upper_transport_tx(&metadata, p_params->p_data, p_params->data_len);
 }
@@ -1807,15 +2043,6 @@ uint32_t transport_control_tx(const transport_control_packet_t * p_params, nrf_m
         p_params->p_net_secmat == NULL)
     {
         return NRF_ERROR_NULL;
-    }
-    if (p_params->dst.type == NRF_MESH_ADDRESS_TYPE_VIRTUAL ||
-        p_params->dst.type == NRF_MESH_ADDRESS_TYPE_INVALID)
-    {
-        return NRF_ERROR_INVALID_ADDR;
-    }
-    if ((uint8_t) p_params->opcode > TRANSPORT_CONTROL_PACKET_OPCODE_MAX)
-    {
-        return NRF_ERROR_INVALID_PARAM;
     }
 
     transport_packet_metadata_t metadata;
@@ -1904,7 +2131,7 @@ uint32_t transport_opt_set(nrf_mesh_opt_id_t id, const nrf_mesh_opt_t * const p_
             {
                 return NRF_ERROR_INVALID_PARAM;
             }
-            m_trs_config.szmic = p_opt->opt.val;
+            m_trs_config.szmic = (nrf_mesh_transmic_size_t) p_opt->opt.val;
             break;
 
         default:

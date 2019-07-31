@@ -15,6 +15,8 @@ set(header_globbing_expression
     "${CMAKE_SOURCE_DIR}/mesh/gatt/include/*.h"
     "${CMAKE_SOURCE_DIR}/mesh/stack/api/*.h"
     "${CMAKE_SOURCE_DIR}/mesh/stack/include/*.h"
+    "${CMAKE_SOURCE_DIR}/mesh/friend/api/*.h"
+    "${CMAKE_SOURCE_DIR}/mesh/friend/include/*.h"
     "${CMAKE_SOURCE_DIR}/mesh/test/include/device_wrappers/*.h"
     "${CMAKE_SOURCE_DIR}/models/foundation/config/include/*.h"
     "${CMAKE_SOURCE_DIR}/models/foundation/health/include/*.h"
@@ -36,7 +38,7 @@ set(header_exclude_regex "nrf_mesh_hw|nrf_nvic")
 set(CMOCK_SETTINGS_FILE_IN "${CMAKE_CURRENT_SOURCE_DIR}/cmock_config.yaml.in")
 set(CMOCK_SETTINGS_FILE "${CMAKE_CURRENT_BINARY_DIR}/cmock_config.yaml")
 configure_file(${CMOCK_SETTINGS_FILE_IN} ${CMOCK_SETTINGS_FILE})
-generate_mock_targets("${header_globbing_expression}" "${header_exclude_regex}")
+generate_mock_targets("${header_globbing_expression}" "${header_exclude_regex}" "${CMAKE_CURRENT_SOURCE_DIR}/include/test_helper.h")
 
 set(include_directories
     "${CMAKE_SOURCE_DIR}/mesh/test/include"
@@ -55,6 +57,8 @@ set(include_directories
     "${CMAKE_SOURCE_DIR}/mesh/serial/include"
     "${CMAKE_SOURCE_DIR}/mesh/gatt/api"
     "${CMAKE_SOURCE_DIR}/mesh/gatt/include"
+    "${CMAKE_SOURCE_DIR}/mesh/friend/api"
+    "${CMAKE_SOURCE_DIR}/mesh/friend/include"
     "${CMAKE_SOURCE_DIR}/mesh/test/include/device_wrappers"
     "${CMAKE_SOURCE_DIR}/models/foundation/config/include"
     "${CMAKE_SOURCE_DIR}/models/remote_provisioning/include"
@@ -155,6 +159,7 @@ set(network_test_srcs
     ../core/src/network.c
     ../core/src/toolchain.c
     ../core/src/log.c
+    ../core/src/queue.c # for mock queue
     ${CMOCK_BIN}/msg_cache_mock.c
     ${CMOCK_BIN}/transport_mock.c
     ${CMOCK_BIN}/net_state_mock.c
@@ -167,8 +172,39 @@ set(network_test_srcs
     ${CMOCK_BIN}/nrf_mesh_externs_mock.c
     ${CMOCK_BIN}/net_packet_mock.c
     ${CMOCK_BIN}/mesh_opt_core_mock.c
+    ${CMOCK_BIN}/friend_internal_mock.c
     )
-add_unit_test(network "${network_test_srcs}" "${include_directories}" "${compile_options}")
+set(network_test_defines
+-DMESH_FEATURE_LPN_ENABLED=0
+-DMESH_FEATURE_FRIEND_ENABLED=1
+-DMESH_FEATURE_GATT_PROXY_ENABLED=0
+-DMESH_FEATURE_RELAY_ENABLED=1)
+add_unit_test(network "${network_test_srcs}" "${include_directories}" "${compile_options};${network_test_defines}")
+
+set(network_proxy_test_srcs
+    src/ut_network_proxy.c
+    ../core/src/network.c
+    ../core/src/toolchain.c
+    ../core/src/log.c
+    ../core/src/queue.c # for mock queue
+    ${CMOCK_BIN}/msg_cache_mock.c
+    ${CMOCK_BIN}/transport_mock.c
+    ${CMOCK_BIN}/net_state_mock.c
+    ${CMOCK_BIN}/net_beacon_mock.c
+    ${CMOCK_BIN}/net_packet_mock.c
+    ${CMOCK_BIN}/core_tx_mock.c
+    ${CMOCK_BIN}/core_tx_adv_mock.c
+    ${CMOCK_BIN}/enc_mock.c
+    ${CMOCK_BIN}/heartbeat_mock.c
+    ${CMOCK_BIN}/nrf_mesh_externs_mock.c
+    ${CMOCK_BIN}/net_packet_mock.c
+    ${CMOCK_BIN}/mesh_opt_core_mock.c
+    ${CMOCK_BIN}/proxy_mock.c
+    )
+set(network_proxy_test_defines
+    -DMESH_FEATURE_GATT_PROXY_ENABLED=1
+    )
+add_unit_test(network_proxy "${network_proxy_test_srcs}" "${include_directories}" "${compile_options};${network_proxy_test_defines}")
 
 # Network Layer - net packet
 set(net_packet_srcs
@@ -370,14 +406,20 @@ set(prov_provisioning_test_srcs
     src/ut_prov_provisioning.c
     ../prov/src/prov_provisioner.c
     ../prov/src/prov_provisionee.c
+    ../prov/src/prov_utils.c
     ../core/src/log.c
     ${CMOCK_BIN}/provisioning_mock.c
-    ${CMOCK_BIN}/prov_utils_mock.c
+    ${CMOCK_BIN}/uECC_mock.c
+    ${CMOCK_BIN}/rand_mock.c
+    ${CMOCK_BIN}/mesh_config_entry_mock.c
     ${CMOCK_BIN}/enc_mock.c
     ${CMOCK_BIN}/nrf_mesh_utils_mock.c
     )
 add_unit_test(prov_provisioning "${prov_provisioning_test_srcs}" "${include_directories}" "${compile_options}")
 target_link_libraries(ut_prov_provisioning)
+
+add_unit_test(prov_provisioning_secure "${prov_provisioning_test_srcs}" "${include_directories}" "${compile_options};-DNRF_MESH_PROV_FORCE_SECURE_PROVISIONING")
+target_link_libraries(ut_prov_provisioning_secure)
 
 # Linked list:
 set(linked_list_srcs
@@ -443,10 +485,10 @@ set(serial_handler_mesh_srcs
     ${CMOCK_BIN}/net_state_mock.c
     ${CMOCK_BIN}/device_state_manager_mock.c
     ${CMOCK_BIN}/flash_manager_mock.c
+    ${CMOCK_BIN}/nrf_mesh_externs_mock.c
     )
 set(serial_handler_mesh_defines
-    -DMESH_FEATURE_LPN_ENABLED=1
-    -DMESH_FRIENDSHIP_CREDENTIALS=1)
+    -DMESH_FEATURE_LPN_ENABLED=1)
 add_unit_test(serial_handler_mesh "${serial_handler_mesh_srcs}" "${include_directories}" "${compile_options};${serial_handler_mesh_defines}")
 
 # Serial handler device
@@ -540,6 +582,8 @@ set(nrf_mesh_srcs
     ${CMOCK_BIN}/ad_listener_mock.c
     ${CMOCK_BIN}/mesh_config_mock.c
     ${CMOCK_BIN}/mesh_opt_mock.c
+    ${CMOCK_BIN}/core_tx_local_mock.c
+    ${CMOCK_BIN}/ad_type_filter_mock.c
     )
 add_unit_test(nrf_mesh "${nrf_mesh_srcs}" "${include_directories}" "${compile_options}")
 
@@ -565,6 +609,7 @@ add_unit_test(serial "${serial_srcs}" "${include_directories}" "${compile_option
 # Serial bearer unit test - serial_bearer_slip_enc
 set(serial_bearer_slip_enc_srcs
     src/ut_serial_bearer_slip_enc.c
+    src/test_serial_bearer_common.c
     ../serial/src/serial_bearer.c
     ${CMOCK_BIN}/serial_mock.c
     ${CMOCK_BIN}/serial_uart_mock.c
@@ -572,12 +617,11 @@ set(serial_bearer_slip_enc_srcs
     ${CMOCK_BIN}/bearer_event_mock.c
     )
 add_unit_test(serial_bearer_slip_enc "${serial_bearer_slip_enc_srcs}" "${include_directories}" "${compile_options};-DNRF52;-DNRF52_SERIES;-DSERIAL_SLIP_ENCODING")
-target_sources(ut_serial_bearer_slip_enc PUBLIC
-    src/test_serial_bearer_common.c)
 
 # Serial bearer unit test - serial_bearer_simple
 set(serial_bearer_simple_srcs
     src/ut_serial_bearer_simple.c
+    src/test_serial_bearer_common.c
     ../serial/src/serial_bearer.c
     ${CMOCK_BIN}/serial_mock.c
     ${CMOCK_BIN}/serial_uart_mock.c
@@ -585,8 +629,6 @@ set(serial_bearer_simple_srcs
     ${CMOCK_BIN}/bearer_event_mock.c
     )
 add_unit_test(serial_bearer_simple "${serial_bearer_simple_srcs}" "${include_directories}" "${compile_options};-DNRF52")
-target_sources(ut_serial_bearer_simple PUBLIC
-    src/test_serial_bearer_common.c)
 
 set(queue_srcs
   src/ut_queue.c
@@ -655,16 +697,15 @@ add_unit_test(prov_utils "${prov_utils_srcs}" "${include_directories}" "${compil
 set(access_srcs
     src/ut_access.c
     ../access/src/access.c
-    ../access/src/access_loopback.c
     ../core/src/log.c
     ../core/src/fifo.c
-    ../core/src/list.c
     ../core/src/queue.c
     ${CMOCK_BIN}/device_state_manager_mock.c
     ${CMOCK_BIN}/flash_manager_mock.c
     ${CMOCK_BIN}/nrf_mesh_mock.c
     ${CMOCK_BIN}/nrf_mesh_events_mock.c
     ${CMOCK_BIN}/nrf_mesh_utils_mock.c
+    ${CMOCK_BIN}/nrf_mesh_externs_mock.c
     ${CMOCK_BIN}/mesh_mem_mock.c
     ${CMOCK_BIN}/access_publish_mock.c
     ${CMOCK_BIN}/access_publish_retransmission_mock.c
@@ -678,9 +719,9 @@ set(access_defines
     -DACCESS_MODEL_COUNT=16
     -DACCESS_SUBSCRIPTION_LIST_COUNT=15    # One less than the number of models
     -DDSM_NONVIRTUAL_ADDR_MAX=30
-    -DMESH_FEATURE_LPN_ENABLED=1
-    -DMESH_FRIENDSHIP_CREDENTIALS=1)
+    -DMESH_FEATURE_LPN_ENABLED=1)
 add_unit_test(access "${access_srcs}" "${include_directories}" "${compile_options};${access_defines}")
+add_unit_test(access_publish_period_restore "${access_srcs}" "${include_directories}" "${compile_options};${access_defines};-DACCESS_MODEL_PUBLISH_PERIOD_RESTORE=1")
 
 set(access_reliable_srcs
     src/ut_access_reliable.c
@@ -735,6 +776,7 @@ set(config_server_srcs
     ${CMAKE_SOURCE_DIR}/models/foundation/config/src/config_server.c
     ${CMAKE_SOURCE_DIR}/models/foundation/config/src/packed_index_list.c
     ../core/src/nrf_mesh_utils.c
+    ../core/src/queue.c # for mock queue
     ${CMOCK_BIN}/composition_data_mock.c
     ${CMOCK_BIN}/access_mock.c
     ${CMOCK_BIN}/access_config_mock.c
@@ -750,8 +792,27 @@ set(config_server_srcs
     ${CMOCK_BIN}/event_mock.c
     ${CMOCK_BIN}/mesh_stack_mock.c
     ${CMOCK_BIN}/nrf_mesh_mock.c
+    ${CMOCK_BIN}/friend_internal_mock.c
+    ${CMOCK_BIN}/mesh_friend_mock.c
     )
-add_unit_test(config_server "${config_server_srcs}" "${include_directories}" "${compile_options};-DACCESS_ELEMENT_COUNT=64;-DACCESS_SUBSCRIPTION_LIST_COUNT=3;-DFRIEND_FEATURE")
+set(config_server_defines
+    -DACCESS_ELEMENT_COUNT=64
+    -DACCESS_SUBSCRIPTION_LIST_COUNT=3
+    -DMESH_FEATURE_FRIEND_ENABLED=1
+    )
+add_unit_test(config_server "${config_server_srcs}" "${include_directories}" "${compile_options};${config_server_defines}")
+
+set(config_server_proxy_srcs
+    ${config_server_srcs}
+    ${CMOCK_BIN}/proxy_mock.c
+    ${CMOCK_BIN}/mesh_opt_gatt_mock.c
+    )
+
+set(config_server_proxy_defines
+    ${config_server_defines}
+    -DMESH_FEATURE_GATT_PROXY_ENABLED=1
+    )
+add_unit_test(config_server_proxy "${config_server_proxy_srcs}" "${include_directories}" "${compile_options};${config_server_proxy_defines}")
 
 set(composition_data_srcs
     src/ut_composition_data.c
@@ -774,6 +835,7 @@ set(device_state_manager_srcs
     ../access/src/device_state_manager.c
     ../core/src/nrf_mesh_utils.c
     ../core/src/queue.c
+    ../core/src/log.c
     ${CMOCK_BIN}/rand_mock.c
     ${CMOCK_BIN}/nrf_mesh_mock.c
     ${CMOCK_BIN}/nrf_mesh_events_mock.c
@@ -787,11 +849,36 @@ set(device_state_manager_srcs
     ${CMOCK_BIN}/mesh_lpn_internal_mock.c
     ${CMOCK_BIN}/mesh_lpn_mock.c
     ${CMOCK_BIN}/heartbeat_mock.c
+    ${CMOCK_BIN}/mesh_opt_friend_mock.c
     )
 set(device_state_manager_defines
     -DMESH_FEATURE_LPN_ENABLED=1
-    -DMESH_FRIENDSHIP_CREDENTIALS=1)
+    -DMESH_FEATURE_FRIEND_ENABLED=1)
 add_unit_test(device_state_manager "${device_state_manager_srcs}" "${include_directories}" "${compile_options};${device_state_manager_defines}")
+
+set(device_state_manager_friend_srcs
+    src/ut_device_state_manager_friend.c
+    ../access/src/device_state_manager.c
+    ../core/src/nrf_mesh_utils.c
+    ../core/src/queue.c
+    ../core/src/log.c
+    ${CMOCK_BIN}/rand_mock.c
+    ${CMOCK_BIN}/nrf_mesh_mock.c
+    ${CMOCK_BIN}/nrf_mesh_events_mock.c
+    ${CMOCK_BIN}/nrf_mesh_keygen_mock.c
+    ${CMOCK_BIN}/net_state_mock.c
+    ${CMOCK_BIN}/flash_manager_mock.c
+    ${CMOCK_BIN}/event_mock.c
+    ${CMOCK_BIN}/bearer_event_mock.c
+    ${CMOCK_BIN}/mesh_opt_core_mock.c
+    ${CMOCK_BIN}/heartbeat_mock.c
+    ${CMOCK_BIN}/mesh_opt_friend_mock.c
+    ${CMOCK_BIN}/mesh_lpn_mock.c
+    )
+set(device_state_manager_friend_defines
+    -DMESH_FEATURE_LPN_ENABLED=0
+    -DMESH_FEATURE_FRIEND_ENABLED=1)
+add_unit_test(device_state_manager_friend "${device_state_manager_friend_srcs}" "${include_directories}" "${compile_options};${device_state_manager_friend_defines}")
 
 set(net_state_srcs
     src/ut_net_state.c
@@ -870,6 +957,7 @@ add_unit_test(advertiser "${advertiser_srcs}" "${include_directories}" "${compil
 
 set(health_server_srcs
     src/ut_health_server.c
+    ../core/src/log.c
     ${CMAKE_SOURCE_DIR}/models/foundation/health/src/health_server.c
     ${CMOCK_BIN}/access_mock.c
     ${CMOCK_BIN}/access_config_mock.c
@@ -877,8 +965,10 @@ set(health_server_srcs
     ${CMOCK_BIN}/bearer_event_mock.c
     ${CMOCK_BIN}/timer_scheduler_mock.c
     ${CMOCK_BIN}/nrf_mesh_mock.c
+    ${CMOCK_BIN}/mesh_config_mock.c
+    ${CMOCK_BIN}/mesh_opt_mock.c
     )
-add_unit_test(health_server "${health_server_srcs}" "${include_directories}" "${compile_options}")
+add_unit_test(health_server "${health_server_srcs}" "${include_directories}" "${compile_options};-DACCESS_ELEMENT_COUNT=5")
 
 set(health_client_srcs
     src/ut_health_client.c
@@ -940,7 +1030,7 @@ src/ut_core_tx_adv.c
 ${CMOCK_BIN}/advertiser_mock.c
 ${CMOCK_BIN}/core_tx_mock.c
 )
-add_unit_test(core_tx_adv "${core_tx_adv_srcs}" "${include_directories}" "${compile_options}")
+add_unit_test(core_tx_adv "${core_tx_adv_srcs}" "${include_directories}" "${compile_options};-DMESH_FEATURE_RELAY_ENABLED=1")
 
 # Filters
 set(filters_srcs
@@ -969,7 +1059,11 @@ set(heartbeat_srcs
     ${CMOCK_BIN}/nrf_mesh_externs_mock.c
     ../core/src/log.c
     )
-add_unit_test(heartbeat "${heartbeat_srcs}" "${include_directories}" "${compile_options};-DMESH_FEATURE_GATT_PROXY_ENABLED=1")
+set(heartbeat_defines
+    -DMESH_FEATURE_GATT_PROXY_ENABLED=1
+    -DMESH_FEATURE_FRIEND_ENABLED=1
+    -DMESH_FEATURE_LPN_ENABLED=1)
+add_unit_test(heartbeat "${heartbeat_srcs}" "${include_directories}" "${compile_options};${heartbeat_defines}")
 
 set(mesh_lpn_subman_srcs
     src/ut_mesh_lpn_subman.c
@@ -979,6 +1073,7 @@ set(mesh_lpn_subman_srcs
     ${CMOCK_BIN}/transport_mock.c
     ${CMOCK_BIN}/mesh_lpn_mock.c
     ${CMOCK_BIN}/event_mock.c
+    ${CMOCK_BIN}/nrf_mesh_mock.c
     )
 set(device_state_manager_defines
     -DMESH_FEATURE_LPN_ENABLED=1
@@ -1010,6 +1105,7 @@ add_unit_test(mesh_gatt "${mesh_gatt_srcs}" "${include_directories}" "${compile_
 set(mesh_stack_srcs
     src/ut_mesh_stack.c
     ../stack/src/mesh_stack.c
+    ../core/src/log.c
     ${CMOCK_BIN}/config_server_mock.c
     ${CMOCK_BIN}/health_server_mock.c
     ${CMOCK_BIN}/device_state_manager_mock.c
@@ -1030,6 +1126,7 @@ set(proxy_srcs
     src/proxy_test_common.c
     ../gatt/src/proxy.c
     ../core/src/log.c
+    ../core/src/queue.c # for mock queue
     ${CMOCK_BIN}/proxy_filter_mock.c
     ${CMOCK_BIN}/timer_scheduler_mock.c
     ${CMOCK_BIN}/network_mock.c
@@ -1037,10 +1134,13 @@ set(proxy_srcs
     ${CMOCK_BIN}/net_packet_mock.c
     ${CMOCK_BIN}/enc_mock.c
     ${CMOCK_BIN}/net_beacon_mock.c
+    ${CMOCK_BIN}/beacon_mock.c
     ${CMOCK_BIN}/rand_mock.c
     ${CMOCK_BIN}/mesh_adv_mock.c
+    ${CMOCK_BIN}/mesh_gatt_mock.c
+    ${CMOCK_BIN}/event_mock.c
     ${CMOCK_BIN}/cache_mock.c)
-add_unit_test(proxy "${proxy_srcs}" "${include_directories}" "${compile_options};-DMESH_FEATURE_GATT_PROXY_ENABLED")
+add_unit_test(proxy "${proxy_srcs}" "${include_directories}" "${compile_options};-DMESH_FEATURE_GATT_PROXY_ENABLED;-DPROXY_ENABLED_DEFAULT=false")
 
 
 # Proxy module - Sample data verifications
@@ -1067,6 +1167,7 @@ set(proxy_vectors_srcs
     ${CMOCK_BIN}/advertiser_mock.c
     ${CMOCK_BIN}/beacon_mock.c
     ${CMOCK_BIN}/rand_mock.c
+    ${CMOCK_BIN}/mesh_gatt_mock.c
     ${CMOCK_BIN}/mesh_adv_mock.c)
 add_unit_test(proxy_vectors "${proxy_vectors_srcs}" "${include_directories}" "${compile_options};-DMESH_FEATURE_GATT_PROXY_ENABLED")
 
@@ -1270,3 +1371,95 @@ set(core_tx_lpn_srcs
     ${CMOCK_BIN}/advertiser_mock.c
     )
 add_unit_test(core_tx_lpn "${core_tx_lpn_srcs}" "${include_directories}" "${compile_options};-DMESH_FEATURE_LPN_ENABLED=1")
+
+set(core_tx_local_srcs
+    src/ut_core_tx_local.c
+    ../core/src/core_tx_local.c
+    ../core/src/queue.c
+    ${CMOCK_BIN}/core_tx_mock.c
+    ${CMOCK_BIN}/bearer_event_mock.c
+    ${CMOCK_BIN}/mesh_mem_mock.c
+    ${CMOCK_BIN}/timer_mock.c
+    ${CMOCK_BIN}/network_mock.c
+    )
+add_unit_test(core_tx_local "${core_tx_local_srcs}" "${include_directories}" "${compile_options}")
+
+set(friend_srcs
+    src/ut_friend.c
+    ../friend/src/friend.c
+    ../core/src/log.c
+    ../core/src/queue.c
+    ../core/src/nrf_mesh_utils.c
+    ../core/src/rand.c
+    ../friend/src/friend_queue.c
+    ${CMOCK_BIN}/nrf_mesh_events_mock.c
+    ${CMOCK_BIN}/network_mock.c
+    ${CMOCK_BIN}/timer_scheduler_mock.c
+    ${CMOCK_BIN}/mesh_config_entry_mock.c
+    ${CMOCK_BIN}/transport_mock.c
+    ${CMOCK_BIN}/core_tx_friend_mock.c
+    ${CMOCK_BIN}/friend_sublist_mock.c
+    ${CMOCK_BIN}/nrf_mesh_externs_mock.c
+    ${CMOCK_BIN}/event_mock.c
+    ${CMOCK_BIN}/net_state_mock.c)
+add_unit_test(friend "${friend_srcs}" "${include_directories}" "${compile_options};-DMESH_FEATURE_FRIEND_ENABLED")
+
+set(friend_sublist_test_srcs
+    src/ut_friend_sublist.c
+    ../friend/src/friend_sublist.c
+    ../core/src/nrf_mesh_utils.c
+    ../core/src/rand.c
+    )
+add_unit_test(friend_sublist "${friend_sublist_test_srcs}" "${include_directories}" "${compile_options};-DFRIEND_DEBUG")
+
+set(transport_replay_srcs
+    src/ut_transport_replay.c
+    src/transport_test_common.c
+    ../core/src/transport.c
+    ../core/src/replay_cache.c
+    ../core/src/log.c
+    ../core/src/nrf_mesh_utils.c
+    ../core/src/mesh_mem_stdlib.c
+    ${CMOCK_BIN}/event_mock.c
+    ${CMOCK_BIN}/enc_mock.c
+    ${CMOCK_BIN}/timer_scheduler_mock.c
+    ${CMOCK_BIN}/network_mock.c
+    ${CMOCK_BIN}/rand_mock.c
+    )
+add_unit_test(transport_replay "${transport_replay_srcs}" "${include_directories}" "${compile_options}")
+
+set(transport_friend_srcs
+    src/ut_transport_friend.c
+    src/transport_test_common.c
+    ../core/src/transport.c
+    ../core/src/replay_cache.c
+    ../core/src/log.c
+    ../core/src/nrf_mesh_utils.c
+    ../core/src/mesh_mem_stdlib.c
+    ${CMOCK_BIN}/event_mock.c
+    ${CMOCK_BIN}/enc_mock.c
+    ${CMOCK_BIN}/timer_scheduler_mock.c
+    ${CMOCK_BIN}/network_mock.c
+    ${CMOCK_BIN}/rand_mock.c
+    ${CMOCK_BIN}/friend_internal_mock.c
+    )
+add_unit_test(transport_friend "${transport_friend_srcs}" "${include_directories}" "${compile_options};-DMESH_FEATURE_FRIEND_ENABLED")
+
+set(core_tx_friend_srcs
+    src/ut_core_tx_friend.c
+    ../friend/src/core_tx_friend.c
+    ${CMOCK_BIN}/core_tx_mock.c
+    ${CMOCK_BIN}/bearer_event_mock.c
+    ${CMOCK_BIN}/broadcast_mock.c
+    ${CMOCK_BIN}/advertiser_mock.c
+    ${CMOCK_BIN}/timer_scheduler_mock.c
+    ${CMOCK_BIN}/timer_mock.c
+    )
+add_unit_test(core_tx_friend "${core_tx_friend_srcs}" "${include_directories}" "${compile_options};-DMESH_FEATURE_FRIEND_ENABLED=1;-DNRF52_SERIES")
+
+set(friend_queue_test_srcs
+    src/ut_friend_queue.c
+    ../friend/src/friend_queue.c
+    ../core/src/queue.c
+    )
+add_unit_test(friend_queue "${friend_queue_test_srcs}" "${include_directories}" "${compile_options};-DFRIEND_DEBUG")

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -49,6 +49,10 @@
 
 #if MESH_FEATURE_GATT_PROXY_ENABLED
 #include "proxy.h"
+#endif
+
+#if MESH_FEATURE_FRIEND_ENABLED
+#include "mesh_friend.h"
 #endif
 
 static health_server_t m_health_server;
@@ -106,7 +110,11 @@ uint32_t mesh_stack_init(const mesh_stack_init_params_t * p_init_params,
     mesh_config_load();
 
     (void) dsm_flash_config_load();
-    (void) access_flash_config_load();
+
+    if (access_flash_config_load())
+    {
+        access_flash_config_store();
+    }
 
     bool is_provisioned = mesh_stack_is_device_provisioned();
 
@@ -115,6 +123,11 @@ uint32_t mesh_stack_init(const mesh_stack_init_params_t * p_init_params,
     {
         proxy_init();
     }
+#endif
+
+#if MESH_FEATURE_FRIEND_ENABLED
+    status = mesh_friend_init();
+    NRF_MESH_ERROR_CHECK(status);
 #endif
 
     if (p_device_provisioned != NULL)
@@ -135,6 +148,10 @@ uint32_t mesh_stack_start(void)
     {
         (void) proxy_start();
     }
+#endif
+
+#if MESH_FEATURE_FRIEND_ENABLED
+    mesh_friend_enable();
 #endif
 
     return nrf_mesh_enable();
@@ -175,6 +192,8 @@ uint32_t mesh_stack_provisioning_data_store(const nrf_mesh_prov_provisioning_dat
         return status;
     }
 
+    __LOG(LOG_SRC_CORE, LOG_LEVEL_DBG3, "iv_index: 0x%08x  flag:ivu: %d\n", p_prov_data->iv_index, p_prov_data->flags.iv_update);
+
     /* Store new config server binding. */
     access_flash_config_store();
     return status;
@@ -193,6 +212,7 @@ void mesh_stack_config_clear(void)
     // mesh_config_clear();
 }
 
+
 bool mesh_stack_is_device_provisioned(void)
 {
     dsm_local_unicast_address_t addr;
@@ -203,7 +223,14 @@ bool mesh_stack_is_device_provisioned(void)
 #if PERSISTENT_STORAGE
 static void mesh_evt_handler(const nrf_mesh_evt_t * p_evt)
 {
-    if (p_evt->type == NRF_MESH_EVT_FLASH_STABLE)
+    /* It may be possible that the `mesh_stack_device_reset()` is triggered from inside of the
+     * mesh event handler callback which is receiving NRF_MESH_EVT_FLASH_STABLE. That will
+     * result in this event handler getting added at the end of the event handler list and getting
+     * called immediately. To prevent incorrect conclusion, this handler must recheck if the
+     * flash is really stable before processing NRF_MESH_EVT_FLASH_STABLE. If the flash is not
+     * stable, this handler will receive another event anyway.
+     */
+    if (flash_manager_is_stable() && p_evt->type == NRF_MESH_EVT_FLASH_STABLE)
     {
         device_reset();
     }

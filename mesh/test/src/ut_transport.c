@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -59,6 +59,7 @@
 
 static nrf_mesh_rx_metadata_t m_rx_meta;
 static nrf_mesh_network_secmat_t m_net_secmat;
+static bool is_network_allocation_count_checked;
 
 void setUp(void)
 {
@@ -76,6 +77,8 @@ void setUp(void)
 
     bearer_event_critical_section_begin_Ignore();
     bearer_event_critical_section_end_Ignore();
+
+    is_network_allocation_count_checked = true;
 }
 
 void tearDown(void)
@@ -133,12 +136,16 @@ static struct
     uint8_t * p_buffer;
     uint32_t retval;
     uint32_t calls;
-    core_tx_bearer_type_t bearer;
+    core_tx_bearer_selector_t bearer;
     network_tx_packet_buffer_t * p_tx_buffer;
 } m_expect_network_packet_alloc;
+
 static uint32_t network_packet_alloc_callback(network_tx_packet_buffer_t * p_buf, int calls)
 {
-    TEST_ASSERT_TRUE(m_expect_network_packet_alloc.calls > 0);
+    if (is_network_allocation_count_checked)
+    {
+        TEST_ASSERT_TRUE(m_expect_network_packet_alloc.calls > 0);
+    }
 
     TEST_ASSERT_EQUAL(m_expect_network_packet_alloc.payload_len, p_buf->user_data.payload_len);
     TEST_ASSERT_EQUAL(m_expect_network_packet_alloc.tx_token, p_buf->user_data.token);
@@ -175,7 +182,7 @@ static void expect_init(void)
 void test_control_handlers(void)
 {
     expect_init();
-    transport_init(NULL);
+    transport_init();
     replay_cache_has_elem_IgnoreAndReturn(false);
     replay_cache_add_IgnoreAndReturn(NRF_SUCCESS);
     /* register a control packet consumer */
@@ -247,7 +254,7 @@ void test_control_handlers(void)
 
     /* reset handler array */
     expect_init();
-    transport_init(NULL);
+    transport_init();
 
     /* builtin opcode, considered duplicate: */
     transport_control_packet_handler_t duplicate_handler = {
@@ -277,7 +284,7 @@ void test_control_handlers(void)
 void test_control_tx(void)
 {
     expect_init();
-    transport_init(NULL);
+    transport_init();
     uint8_t control_packet_buffer[64];
 
     for (uint32_t i = 0; i < sizeof(control_packet_buffer); ++i)
@@ -324,9 +331,9 @@ void test_control_tx(void)
 void test_duplicate_sar_tx(void)
 {
     expect_init();
-    transport_init(NULL);
+    transport_init();
     nrf_mesh_network_secmat_t net_secmat;
-    nrf_mesh_application_secmat_t app_secmat;
+    nrf_mesh_application_secmat_t app_secmat = {0};
 
     uint8_t buffer[PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE - PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE];
 
@@ -355,9 +362,300 @@ void test_duplicate_sar_tx(void)
     network_packet_alloc_ExpectAnyArgsAndReturn(NRF_SUCCESS);
     network_packet_alloc_ReturnMemThruPtr_p_buffer(&packet_buffer, sizeof(packet_buffer));
     network_packet_send_Expect(&packet_buffer);
+    nrf_mesh_is_address_rx_ExpectAndReturn(&tx_params.dst, false);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_tx(&tx_params, NULL));
 
     // Allocating again with the same src+dst should result in FORBIDDEN:
+    nrf_mesh_is_address_rx_ExpectAndReturn(&tx_params.dst, false);
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, transport_tx(&tx_params, NULL));
+}
+
+void test_unseg_tx(void)
+{
+    expect_init();
+    transport_init();
+    nrf_mesh_network_secmat_t net_secmat;
+    nrf_mesh_application_secmat_t app_secmat = {};
+
+    uint8_t buffer[PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE - PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE];
+
+    nrf_mesh_tx_params_t tx_params;
+    tx_params.data_len           = sizeof(buffer);
+    tx_params.dst.p_virtual_uuid = NULL;
+    tx_params.dst.value          = 0x0001;
+    tx_params.dst.type           = NRF_MESH_ADDRESS_TYPE_UNICAST;
+    tx_params.p_data             = buffer;
+    tx_params.security_material.p_net = &net_secmat;
+    tx_params.security_material.p_app = &app_secmat;
+    tx_params.force_segmented    = false;
+    tx_params.src                = 0x0002;
+    tx_params.ttl                = 9;
+    tx_params.tx_token           = TX_TOKEN;
+    tx_params.transmic_size      = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
+
+    net_state_iv_index_lock_Ignore();
+    enc_nonce_generate_Ignore();
+    enc_aes_ccm_encrypt_Ignore();
+    timer_now_IgnoreAndReturn(0);
+    timer_sch_reschedule_Ignore();
+
+    network_tx_packet_buffer_t packet_buffer;
+    packet_mesh_net_packet_t net_buffer;
+    packet_buffer.p_payload = net_buffer.pdu;
+
+    m_expect_network_packet_alloc.calls                        = 1;
+    m_expect_network_packet_alloc.net_meta.control_packet      = false;
+    m_expect_network_packet_alloc.net_meta.dst                 = tx_params.dst;
+    m_expect_network_packet_alloc.net_meta.src                 = tx_params.src;
+    m_expect_network_packet_alloc.net_meta.ttl                 = tx_params.ttl;
+    m_expect_network_packet_alloc.net_meta.p_security_material = &net_secmat;
+    m_expect_network_packet_alloc.payload_len                  = PACKET_MESH_TRS_UNSEG_PDU_OFFSET + tx_params.data_len + PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE;
+    m_expect_network_packet_alloc.tx_token                     = TX_TOKEN;
+    m_expect_network_packet_alloc.p_buffer                     = (uint8_t *) &packet_buffer;
+    m_expect_network_packet_alloc.bearer                       = CORE_TX_BEARER_TYPE_ALLOW_ALL ^ CORE_TX_BEARER_TYPE_LOCAL;
+
+    network_packet_alloc_StubWithCallback(network_packet_alloc_callback);
+    nrf_mesh_is_address_rx_ExpectAndReturn(&tx_params.dst, false);
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_tx(&tx_params, NULL));
+}
+
+void test_core_tx_selection(void)
+{
+    // this tests selection of core_tx for access data considering dst address
+    printf("The test checks selection of core_tx for access data considering dst address\n");
+
+    expect_init();
+    transport_init();
+    nrf_mesh_network_secmat_t net_secmat;
+    nrf_mesh_application_secmat_t app_secmat = {};
+
+    uint8_t buffer[PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE - PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE];
+    uint8_t uuid[16];
+    is_network_allocation_count_checked = false;
+
+    nrf_mesh_tx_params_t tx_params;
+    tx_params.data_len           = sizeof(buffer);
+    tx_params.dst.p_virtual_uuid = NULL;
+    tx_params.dst.value          = 0x0001;
+    tx_params.dst.type           = NRF_MESH_ADDRESS_TYPE_UNICAST;
+    tx_params.p_data             = buffer;
+    tx_params.security_material.p_net = &net_secmat;
+    tx_params.security_material.p_app = &app_secmat;
+    tx_params.force_segmented    = false;
+    tx_params.src                = 0x0002;
+    tx_params.ttl                = 9;
+    tx_params.tx_token           = TX_TOKEN;
+    tx_params.transmic_size      = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
+
+    net_state_iv_index_lock_Ignore();
+    enc_nonce_generate_Ignore();
+    enc_aes_ccm_encrypt_Ignore();
+    timer_now_IgnoreAndReturn(0);
+    timer_sch_reschedule_Ignore();
+
+    network_tx_packet_buffer_t packet_buffer;
+    packet_mesh_net_packet_t net_buffer;
+    packet_buffer.p_payload = net_buffer.pdu;
+
+    m_expect_network_packet_alloc.calls                        = 1;
+    m_expect_network_packet_alloc.net_meta.control_packet      = false;
+    m_expect_network_packet_alloc.net_meta.dst                 = tx_params.dst;
+    m_expect_network_packet_alloc.net_meta.src                 = tx_params.src;
+    m_expect_network_packet_alloc.net_meta.ttl                 = tx_params.ttl;
+    m_expect_network_packet_alloc.net_meta.p_security_material = &net_secmat;
+    m_expect_network_packet_alloc.payload_len                  = PACKET_MESH_TRS_UNSEG_PDU_OFFSET + tx_params.data_len + PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE;
+    m_expect_network_packet_alloc.tx_token                     = TX_TOKEN;
+    m_expect_network_packet_alloc.p_buffer                     = (uint8_t *) &packet_buffer;
+    m_expect_network_packet_alloc.bearer                       = CORE_TX_BEARER_TYPE_ALLOW_ALL ^ CORE_TX_BEARER_TYPE_LOCAL;
+
+    printf("1. Not own unicast\n");
+    network_packet_alloc_StubWithCallback(network_packet_alloc_callback);
+    nrf_mesh_is_address_rx_ExpectAndReturn(&tx_params.dst, false);
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_tx(&tx_params, NULL));
+
+    printf("2. Own unicast\n");
+    m_expect_network_packet_alloc.bearer = CORE_TX_BEARER_TYPE_LOCAL;
+    network_packet_alloc_StubWithCallback(network_packet_alloc_callback);
+    nrf_mesh_is_address_rx_ExpectAndReturn(&tx_params.dst, true);
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_tx(&tx_params, NULL));
+
+    printf("3. Not own virtual\n");
+    tx_params.dst.type = NRF_MESH_ADDRESS_TYPE_VIRTUAL;
+    tx_params.dst.p_virtual_uuid = uuid;
+    m_expect_network_packet_alloc.net_meta.dst = tx_params.dst;
+    m_expect_network_packet_alloc.bearer = CORE_TX_BEARER_TYPE_ALLOW_ALL ^ CORE_TX_BEARER_TYPE_LOCAL;
+    network_packet_alloc_StubWithCallback(network_packet_alloc_callback);
+    nrf_mesh_is_address_rx_ExpectAndReturn(&tx_params.dst, false);
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_tx(&tx_params, NULL));
+
+    printf("4. Own virtual\n");
+    tx_params.dst.type = NRF_MESH_ADDRESS_TYPE_VIRTUAL;
+    tx_params.dst.p_virtual_uuid = uuid;
+    m_expect_network_packet_alloc.net_meta.dst = tx_params.dst;
+    m_expect_network_packet_alloc.bearer = CORE_TX_BEARER_TYPE_ALLOW_ALL;
+    network_packet_alloc_StubWithCallback(network_packet_alloc_callback);
+    nrf_mesh_is_address_rx_ExpectAndReturn(&tx_params.dst, true);
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_tx(&tx_params, NULL));
+
+    printf("5. Not own group\n");
+    tx_params.dst.type = NRF_MESH_ADDRESS_TYPE_GROUP;
+    m_expect_network_packet_alloc.net_meta.dst = tx_params.dst;
+    m_expect_network_packet_alloc.bearer = CORE_TX_BEARER_TYPE_ALLOW_ALL ^ CORE_TX_BEARER_TYPE_LOCAL;
+    network_packet_alloc_StubWithCallback(network_packet_alloc_callback);
+    nrf_mesh_is_address_rx_ExpectAndReturn(&tx_params.dst, false);
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_tx(&tx_params, NULL));
+
+    printf("6. Own group\n");
+    tx_params.dst.type = NRF_MESH_ADDRESS_TYPE_GROUP;
+    m_expect_network_packet_alloc.bearer = CORE_TX_BEARER_TYPE_ALLOW_ALL;
+    m_expect_network_packet_alloc.net_meta.dst = tx_params.dst;
+    network_packet_alloc_StubWithCallback(network_packet_alloc_callback);
+    nrf_mesh_is_address_rx_ExpectAndReturn(&tx_params.dst, true);
+
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_tx(&tx_params, NULL));
+}
+
+/**
+ * Test the various micsize configurations and parameter values, and ensure that the packet
+ * segmentation and micsize is done according to the documentation.
+ */
+void test_segmentation_and_micsize_rules(void)
+{
+    nrf_mesh_network_secmat_t net_secmat;
+    nrf_mesh_application_secmat_t app_secmat = {};
+
+    uint8_t buffer[NRF_MESH_SEG_PAYLOAD_SIZE_MAX];
+    is_network_allocation_count_checked = false;
+
+    nrf_mesh_tx_params_t tx_params;
+
+    tx_params.dst.p_virtual_uuid = NULL;
+    tx_params.dst.value          = 0x0001;
+    tx_params.dst.type           = NRF_MESH_ADDRESS_TYPE_UNICAST;
+    tx_params.p_data             = buffer;
+    tx_params.security_material.p_net = &net_secmat;
+    tx_params.security_material.p_app = &app_secmat;
+    tx_params.src                = 0x0002;
+    tx_params.ttl                = 9;
+    tx_params.tx_token           = TX_TOKEN;
+
+
+    net_state_iv_index_lock_Ignore();
+    enc_nonce_generate_Ignore();
+    enc_aes_ccm_encrypt_Ignore();
+    timer_now_IgnoreAndReturn(0);
+    timer_sch_reschedule_Ignore();
+    nrf_mesh_is_address_rx_IgnoreAndReturn(false);
+    network_packet_send_Ignore();
+
+    uint8_t net_payload[PACKET_MESH_NET_MAX_SIZE];
+    network_packet_metadata_t net_meta; // dummy
+    network_tx_packet_buffer_t net_buf;
+    net_buf.user_data.role = CORE_TX_ROLE_ORIGINATOR;
+    net_buf.user_data.token = TX_TOKEN;
+    net_buf.user_data.p_metadata = &net_meta;
+    net_buf.user_data.bearer_selector = CORE_TX_BEARER_TYPE_ALLOW_ALL ^ CORE_TX_BEARER_TYPE_LOCAL;
+    net_buf.p_payload = net_payload;
+
+    /* Run test vectors for various combinations.
+     *
+     * @note The expected mic size should take the micsize_param if it's a segmented message, and
+     * small micsize for unsegmented messages. If the param is DEFAULT, we should rely on the
+     * configured value.
+     */
+    static const struct
+    {
+        nrf_mesh_transmic_size_t micsize_config;
+        bool force_segmented;
+        nrf_mesh_transmic_size_t micsize_param;
+        uint32_t data_len;
+
+        struct
+        {
+            uint8_t mic_size;
+            bool segmented;
+        } expected;
+    } test_vector[] = {
+        /* No conditions triggering: */
+        {NRF_MESH_TRANSMIC_SIZE_SMALL, false, NRF_MESH_TRANSMIC_SIZE_DEFAULT, 5,    .expected = {4, false}},
+        {NRF_MESH_TRANSMIC_SIZE_LARGE, false, NRF_MESH_TRANSMIC_SIZE_DEFAULT, 5,    .expected = {4, false}},
+        {NRF_MESH_TRANSMIC_SIZE_SMALL, false, NRF_MESH_TRANSMIC_SIZE_SMALL, 5,      .expected = {4, false}},
+        {NRF_MESH_TRANSMIC_SIZE_LARGE, false, NRF_MESH_TRANSMIC_SIZE_SMALL, 5,      .expected = {4, false}},
+        /* Explicitly require large micsize: */
+        {NRF_MESH_TRANSMIC_SIZE_SMALL, false, NRF_MESH_TRANSMIC_SIZE_LARGE, 5,      .expected = {8, true}},
+        {NRF_MESH_TRANSMIC_SIZE_LARGE, false, NRF_MESH_TRANSMIC_SIZE_LARGE, 5,      .expected = {8, true}},
+        /* Packet can't fit: */
+        {NRF_MESH_TRANSMIC_SIZE_SMALL, false, NRF_MESH_TRANSMIC_SIZE_DEFAULT, 15,   .expected = {4, true}},
+        {NRF_MESH_TRANSMIC_SIZE_LARGE, false, NRF_MESH_TRANSMIC_SIZE_DEFAULT, 15,   .expected = {8, true}},
+        {NRF_MESH_TRANSMIC_SIZE_SMALL, false, NRF_MESH_TRANSMIC_SIZE_SMALL, 15,     .expected = {4, true}},
+        {NRF_MESH_TRANSMIC_SIZE_LARGE, false, NRF_MESH_TRANSMIC_SIZE_SMALL, 15,     .expected = {4, true}},
+        {NRF_MESH_TRANSMIC_SIZE_SMALL, false, NRF_MESH_TRANSMIC_SIZE_LARGE, 15,     .expected = {8, true}},
+        {NRF_MESH_TRANSMIC_SIZE_LARGE, false, NRF_MESH_TRANSMIC_SIZE_LARGE, 15,     .expected = {8, true}},
+        /* Forced segmentation: */
+        {NRF_MESH_TRANSMIC_SIZE_SMALL, true, NRF_MESH_TRANSMIC_SIZE_DEFAULT, 5,    .expected = {4, true}},
+        {NRF_MESH_TRANSMIC_SIZE_LARGE, true, NRF_MESH_TRANSMIC_SIZE_DEFAULT, 5,    .expected = {8, true}},
+        {NRF_MESH_TRANSMIC_SIZE_SMALL, true, NRF_MESH_TRANSMIC_SIZE_SMALL, 5,      .expected = {4, true}},
+        {NRF_MESH_TRANSMIC_SIZE_LARGE, true, NRF_MESH_TRANSMIC_SIZE_SMALL, 5,      .expected = {4, true}},
+        {NRF_MESH_TRANSMIC_SIZE_SMALL, true, NRF_MESH_TRANSMIC_SIZE_LARGE, 5,      .expected = {8, true}},
+        {NRF_MESH_TRANSMIC_SIZE_LARGE, true, NRF_MESH_TRANSMIC_SIZE_LARGE, 5,      .expected = {8, true}},
+
+        {NRF_MESH_TRANSMIC_SIZE_SMALL, true, NRF_MESH_TRANSMIC_SIZE_DEFAULT, 15,   .expected = {4, true}},
+        {NRF_MESH_TRANSMIC_SIZE_LARGE, true, NRF_MESH_TRANSMIC_SIZE_DEFAULT, 15,   .expected = {8, true}},
+        {NRF_MESH_TRANSMIC_SIZE_SMALL, true, NRF_MESH_TRANSMIC_SIZE_SMALL, 15,     .expected = {4, true}},
+        {NRF_MESH_TRANSMIC_SIZE_LARGE, true, NRF_MESH_TRANSMIC_SIZE_SMALL, 15,     .expected = {4, true}},
+        {NRF_MESH_TRANSMIC_SIZE_SMALL, true, NRF_MESH_TRANSMIC_SIZE_LARGE, 15,     .expected = {8, true}},
+        {NRF_MESH_TRANSMIC_SIZE_LARGE, true, NRF_MESH_TRANSMIC_SIZE_LARGE, 15,     .expected = {8, true}},
+    };
+
+    for (uint32_t i = 0; i < ARRAY_SIZE(test_vector); ++i)
+    {
+        expect_init();
+        transport_init();
+
+        nrf_mesh_opt_t opt;
+        opt.len = 1;
+        opt.opt.val = test_vector[i].micsize_config;
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_opt_set(NRF_MESH_OPT_TRS_SZMIC, &opt));
+
+        tx_params.transmic_size = test_vector[i].micsize_param;
+        tx_params.data_len = test_vector[i].data_len;
+        tx_params.force_segmented = test_vector[i].force_segmented;
+
+        network_tx_packet_buffer_t segment_buffers[10]; // We need to separate the memory for each network alloc call, as CMock only stores the pointer.
+
+        if (test_vector[i].expected.segmented)
+        {
+            net_buf.user_data.token = NRF_MESH_SAR_TOKEN;
+            const uint32_t total_len = test_vector[i].data_len + test_vector[i].expected.mic_size;
+
+            network_tx_packet_buffer_t * p_net_buf = &segment_buffers[0];
+
+            for (uint32_t len = 0; len < total_len; len += PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE)
+            {
+                net_buf.user_data.payload_len = PACKET_MESH_TRS_SEG_PDU_OFFSET + MIN(PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, total_len - len);
+                *p_net_buf = net_buf;
+                network_packet_alloc_ExpectAndReturn(p_net_buf, NRF_SUCCESS);
+                network_packet_alloc_ReturnThruPtr_p_buffer(p_net_buf); // CMock stores the pointer only
+                p_net_buf++;
+                TEST_ASSERT_NOT_EQUAL(&segment_buffers[ARRAY_SIZE(segment_buffers)], p_net_buf); // just make sure we don't go out of bounds
+            }
+        }
+        else
+        {
+            net_buf.user_data.token = TX_TOKEN;
+            net_buf.user_data.payload_len = PACKET_MESH_TRS_UNSEG_PDU_OFFSET + test_vector[i].data_len + test_vector[i].expected.mic_size;
+            network_packet_alloc_ExpectAndReturn(&net_buf, NRF_SUCCESS);
+            network_packet_alloc_ReturnThruPtr_p_buffer(&net_buf);
+        }
+
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_tx(&tx_params, NULL));
+        network_mock_Verify();
+    }
 }

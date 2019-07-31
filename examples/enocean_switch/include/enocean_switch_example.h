@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -56,12 +56,6 @@
 
 /** Static authentication data */
 #define STATIC_AUTH_DATA {0x6E, 0x6F, 0x72, 0x64, 0x69, 0x63, 0x5F, 0x65, 0x78, 0x61, 0x6D, 0x70, 0x6C, 0x65, 0x5F, 0x31}
-
-/** UUID prefix length */
-#define NODE_UUID_PREFIX_LEN         (4)
-
-/** Light switch client UUID */
-#define CLIENT_NODE_UUID_PREFIX      {0x00, 0x59, 0xCC, 0xAA}
 
 /** @} end of ENOCEAN_SWITCH_EXAMPLE_DEFS */
 

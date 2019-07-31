@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -203,11 +203,19 @@ static void initialize_contexts(void)
         }
 
         uint8_t ttl = 0;
+
+        if ((i & 1) == 0)
+        {
+            ttl = ACCESS_TTL_USE_DEFAULT;
+            access_default_ttl_get_ExpectAndReturn(0);
+        }
+
         access_model_publish_ttl_get_ExpectAndReturn(m_reliables[i].model_handle, NULL, NRF_SUCCESS);
         access_model_publish_ttl_get_IgnoreArg_p_ttl();
         access_model_publish_ttl_get_ReturnThruPtr_p_ttl(&ttl);
         access_model_publish_ExpectAndReturn(m_reliables[i].model_handle, &m_reliables[i].message, NRF_SUCCESS);
         TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_reliable_publish(&m_reliables[i]));
+
         if (i == 0)
         {
             TEST_ASSERT_NOT_NULL(m_timer.p_evt);
@@ -306,7 +314,7 @@ void test_reliable_publish(void)
     time = ACCESS_RELIABLE_TIMEOUT_MIN;
     /* . */
     uint32_t remove_bitfield = (1 << 0) | (1 << (ACCESS_RELIABLE_TRANSFER_COUNT-1)) | (1 << (ACCESS_RELIABLE_TRANSFER_COUNT / 2));
-    access_message_rx_t rx_message = {0};
+    access_message_rx_t rx_message = {{0}};
     for (uint32_t i = 0; i < ACCESS_RELIABLE_TRANSFER_COUNT; ++i)
     {
         if (((1 << i) & remove_bitfield) == 0)
@@ -602,7 +610,7 @@ void test_rx_wrong_opcode(void)
     /* Initialize all contexts */
     initialize_contexts();
 
-    access_message_rx_t rx_message = {0};
+    access_message_rx_t rx_message = {{0}};
     uint32_t time = ACCESS_RELIABLE_INTERVAL_DEFAULT;
 
     for (uint32_t i = 0; i < ACCESS_RELIABLE_TRANSFER_COUNT; ++i)
@@ -673,7 +681,7 @@ void test_access_reliable_model_is_free(void)
     time = ACCESS_RELIABLE_TIMEOUT_MIN;
     /* . */
     uint32_t remove_bitfield = (1 << 0) | (1 << (ACCESS_RELIABLE_TRANSFER_COUNT-1)) | (1 << (ACCESS_RELIABLE_TRANSFER_COUNT / 2));
-    access_message_rx_t rx_message = {0};
+    access_message_rx_t rx_message = {{0}};
     for (uint32_t i = 0; i < ACCESS_RELIABLE_TRANSFER_COUNT; ++i)
     {
         if (((1 << i) & remove_bitfield) == 0)

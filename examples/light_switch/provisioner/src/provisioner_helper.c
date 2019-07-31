@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -107,6 +107,7 @@ static void start_provisioning(const uint8_t * p_uuid)
             .flags.key_refresh = false
         };
     memcpy(prov_data.netkey, m_provisioner.p_nw_data->netkey, NRF_MESH_KEY_SIZE);
+    ERROR_CHECK(nrf_mesh_prov_generate_keys(m_public_key, m_private_key));
     ERROR_CHECK(nrf_mesh_prov_provision(&m_prov_ctx, p_uuid, m_provisioner.attention_duration_s, &prov_data, NRF_MESH_PROV_BEARER_ADV));
 }
 
@@ -115,8 +116,7 @@ static void prov_helper_provisioner_init(void)
     if (!m_provisioner_init_done)
     {
         nrf_mesh_prov_oob_caps_t capabilities = NRF_MESH_PROV_OOB_CAPS_DEFAULT(ACCESS_ELEMENT_COUNT);
-
-        ERROR_CHECK(nrf_mesh_prov_generate_keys(m_public_key, m_private_key));
+        /* Keys are generated upon start_provisioning(). */
         ERROR_CHECK(nrf_mesh_prov_init(&m_prov_ctx, m_public_key, m_private_key, &capabilities, prov_evt_handler));
         ERROR_CHECK(nrf_mesh_prov_bearer_add(&m_prov_ctx, nrf_mesh_prov_bearer_adv_interface_get(&m_prov_bearer_adv)));
     }
@@ -196,7 +196,7 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
                       m_provisioner.p_nw_data->last_device_address, m_target_elements);
 
                 node_setup_start(m_provisioner.p_nw_data->last_device_address, PROVISIONER_RETRY_COUNT,
-                m_provisioner.p_nw_data->appkey, APPKEY_INDEX, m_provisioner.p_nw_data->p_client_uri);
+                m_provisioner.p_nw_data->appkey, APPKEY_INDEX, NETKEY_INDEX, m_provisioner.p_nw_data->p_client_uri);
                 m_prov_state = PROV_STATE_IDLE;
 
             }
@@ -310,8 +310,12 @@ void prov_helper_device_handles_load(void)
 
     /* Load net key handles: This application has only 1 netkey */
     uint32_t count = 1;
-    ERROR_CHECK(dsm_subnet_get_all(&m_provisioner.p_dev_data->m_netkey_handle, &count));
+    mesh_key_index_t netkey_index;
+
+    ERROR_CHECK(dsm_subnet_get_all(&netkey_index, &count));
     NRF_MESH_ASSERT(count == 1);
+    m_provisioner.p_dev_data->m_netkey_handle = dsm_net_key_index_to_subnet_handle(netkey_index);
+    NRF_MESH_ASSERT(m_provisioner.p_dev_data->m_netkey_handle != DSM_HANDLE_INVALID);
     ERROR_CHECK(dsm_appkey_get_all(m_provisioner.p_dev_data->m_netkey_handle, &m_provisioner.p_dev_data->m_appkey_handle, &count));
 
     /* Load self address handle */
@@ -346,9 +350,9 @@ void prov_helper_provision_self(void)
     rand_hw_rng_get(m_provisioner.p_nw_data->self_devkey, NRF_MESH_KEY_SIZE);
 
     /* Add default Netkey and App Key */
-    ERROR_CHECK(dsm_subnet_add(0, m_provisioner.p_nw_data->netkey, &m_provisioner.p_dev_data->m_netkey_handle));
+    ERROR_CHECK(dsm_subnet_add(NETKEY_INDEX, m_provisioner.p_nw_data->netkey, &m_provisioner.p_dev_data->m_netkey_handle));
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "netkey_handle: %d\n", m_provisioner.p_dev_data->m_netkey_handle);
-    ERROR_CHECK(dsm_appkey_add(0, m_provisioner.p_dev_data->m_netkey_handle, m_provisioner.p_nw_data->appkey, &m_provisioner.p_dev_data->m_appkey_handle));
+    ERROR_CHECK(dsm_appkey_add(APPKEY_INDEX, m_provisioner.p_dev_data->m_netkey_handle, m_provisioner.p_nw_data->appkey, &m_provisioner.p_dev_data->m_appkey_handle));
 
     /* Add device key for the own config server */
     ERROR_CHECK(dsm_devkey_add(PROVISIONER_ADDRESS, m_provisioner.p_dev_data->m_netkey_handle, m_provisioner.p_nw_data->self_devkey, &m_provisioner.p_dev_data->m_self_devkey_handle));

@@ -15,4 +15,7 @@
         - "${CMAKE_CURRENT_SOURCE_DIR}/include/test_helper.h"
     :includes_c_post_header:
         - "test_helper.h"
+    :treat_as:
+        'timestamp_t': 'INT'
+        'ts_timestamp_t': 'INT'
 colour: true

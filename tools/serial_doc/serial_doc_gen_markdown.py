@@ -1,4 +1,4 @@
-# Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+# Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,28 +35,36 @@ import os
 CMD_INTRO = """
 # Serial commands
 
-# Serial command overview {#serial-commands}
 @ingroup LIBRARIES
 Serial commands are messages sent from the host controller to the nRF5. Most
 serial commands result in a _CMD RSP_ event, indicating whether the command was
 successful and returning any relevant data depending on the command type.
 
-The serial commands are broken into groups:
+# Serial command groups {#serial-commands}
+
+The serial commands are broken into the following groups:
 
 """
 
 CMD_OVERVIEW = """
 
-See the tables below for a list of serial commands available for each command
-group in the nRF5 mesh serial interface and their opcodes. Each entry links
-to their respective "Details" section, where the parameters and effect of each
+See the tables in the following subsections for lists of serial commands available for each command
+group in the nRF5 mesh serial interface, along with their opcodes. Each entry links
+to the respective details section, where the parameters and effects of each
 command are described.
+
+---
 
 """
 
 CMD_DETAILS = """
-## Serial Command Details {#serial-command-details}
+## Serial command details {#serial-command-details}
 
+This subsection contains detailed description of each serial command, including opcodes, total length,
+description, and parameters (if any are taken).
+
+The commands are listed in order corresponding to groups. The group name precedes the name of the command
+in each case.
 
 """
 
@@ -66,20 +74,26 @@ EVT_INTRO = """
 
 
 EVT_OVERVIEW = """
-# Serial Event Overview {#serial-events}
+# Serial event overview {#serial-events}
 
 Serial Events are messages sent from the nRF5 to the host controller. Messages
-are either sent asynchronously as a result of some interaction in the mesh or
-as a response to a command.
+are sent in one of the following ways:
+- asynchronously as a result of some interaction in the mesh;
+- as a response to a command.
 
-See the table below for an overview over the various events pushed by the nRF5
-to the host. Each entry links to their respective "Details" section, where the
+See the following table for an overview of the various events pushed by the nRF5
+to the host. Each entry links to the details section, where the
 parameters and reason for each event are described.
 
 """
 
 EVT_DETAILS = """
-## Serial Event Details {#serial-event-details}
+---
+
+## Serial event details {#serial-event-details}
+
+This subsection contains detailed description of each serial event, including opcodes, total length,
+description, and parameters (if any exist).
 
 """
 
@@ -95,7 +109,7 @@ class MarkdownGenerator(gen.DocGenerator):
         with open(self.cmd_filename, 'w') as f:
             f.write(CMD_INTRO)
             for group in parser.groups:
-                f.write('- **' + group.name + ':** ' + group.description + '\n\n')
+                f.write('- [' + group.name + '](#' + group.name.lower().replace(' ', '-') + '-commands' + '): ' + group.description + '\n\n')
             f.write(CMD_OVERVIEW)
 
             # sort command groups based on their opcodes
@@ -110,22 +124,26 @@ class MarkdownGenerator(gen.DocGenerator):
                 if len([cmd for cmd in parser.commands if cmd.group == group]) == 0:
                     continue
                 f.write('\n')
-                f.write('## ' + group.name + ' Commands {#' + group.name.lower().replace(' ', '-') + '-commands' + '}\n\n')
+                f.write('## ' + group.name + ' commands {#' + group.name.lower().replace(' ', '-') + '-commands' + '}\n\n')
                 f.write('Command                                 | Opcode\n')
                 f.write('----------------------------------------|-------\n')
                 for cmd in parser.commands:
                     if cmd.group == group:
                         f.write('[' + cmd.name + '](#' + cmd.full_name().lower().replace(' ', '-') + ')' + ' ' * (40 - len(cmd.full_name())) + '| `' + '0x' + format(cmd.opcode, '02x') + '`\n')
                 f.write('\n')
+                f.write('---')
+                f.write('\n')
 
             f.write(CMD_DETAILS)
             for cmd in parser.commands:
+                f.write('---')
+                f.write('\n')
                 f.write('### ' + cmd.full_name() + ' {#' + cmd.full_name().lower().replace(' ', '-') + '}\n\n')
                 f.write('_Opcode:_ `' + '0x' + format(cmd.opcode, '02x') + '`\n\n')
-                f.write('_Total length: ' + cmd.length() + ' byte')
+                f.write('_Total length:_ ' + cmd.length() + ' byte')
                 if cmd.length() != '1':
                     f.write('s')
-                f.write('_\n\n')
+                f.write('\n\n')
                 f.write(cmd.description + '\n\n')
                 if len(cmd.params) is 0:
                     f.write('_' + cmd.name + ' takes no parameters._\n\n')
@@ -141,14 +159,14 @@ class MarkdownGenerator(gen.DocGenerator):
                                 + param.description + '\n')
                     f.write('\n')
                 # command response:
-                f.write('### Response\n\n')
+                f.write('#### Response\n\n')
                 if cmd.response:
                     if len(cmd.response.statuses) > 0:
                         f.write('Potential status codes:\n\n')
                         f.write('\n\n'.join(['- `' + status + '`' for status in cmd.response.statuses]))
                         f.write('\n\n')
                     if len(cmd.response.params) > 0:
-                        f.write('_' + cmd.name + ' Response Parameters:_\n\n')
+                        f.write('_' + cmd.name + ' Response Parameters_\n\n')
                         f.write('Type          | Name                                    | Size | Offset | Description\n')
                         f.write('--------------|-----------------------------------------|------|--------|------------\n')
                         for param in cmd.response.params:
@@ -178,15 +196,18 @@ class MarkdownGenerator(gen.DocGenerator):
             for evt in parser.events:
                 f.write('### ' + evt.name + '          {#' + evt.name.lower().replace(' ', '-') + '}\n\n')
                 f.write('_Opcode:_ `' + '0x' + format(evt.opcode, '02x') + '`\n\n')
-                f.write('_Total length: ' + evt.length() + ' byte')
+                f.write('_Total length:_ ' + evt.length() + ' byte')
                 if evt.length() != '1':
                     f.write('s')
-                f.write('_\n\n')
+                f.write('\n\n')
                 f.write(evt.description + '\n\n')
                 if len(evt.params) is 0:
                     f.write('_' + evt.name + ' has no parameters._\n\n')
+                    f.write('\n')
+                    f.write('---')
+                    f.write('\n')
                 else:
-                    f.write('_' + evt.name + ' Parameters_\n\n')
+                    f.write('_' + evt.name + ' Parameters:_\n\n')
                     f.write('Type              | Name                                    | Size  | Offset | Description\n')
                     f.write('------------------|-----------------------------------------|-------|--------|------------\n')
                     for param in evt.params:
@@ -195,6 +216,8 @@ class MarkdownGenerator(gen.DocGenerator):
                                 + str(param.lengthrepr()) + ' ' * (5 - len(str(param.lengthrepr()))) + ' | '
                                 + str(param.offset) + ' ' * (6 - len(str(param.offset))) + ' | '
                                 + param.description + '\n')
+                    f.write('\n')
+                    f.write('---')
                     f.write('\n')
 
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -55,8 +55,7 @@
 #define VENDOR_MODELS_COUNT 1
 #define ELEMENT_LOCATION 0x0100 /* Front */
 
-const access_model_id_t models[SIG_MODELS_COUNT +
-                               VENDOR_MODELS_COUNT] = {SIG_MODELS, VENDOR_MODELS};
+const access_model_id_t models[SIG_MODELS_COUNT + VENDOR_MODELS_COUNT] = {SIG_MODELS, VENDOR_MODELS};
 
 const uint8_t composition_data[] = {0x0C, 0x00, /* CID (Company identifier) */
                                     0x1A, 0x00, /* PID (Product identifier) */

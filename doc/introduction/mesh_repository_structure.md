@@ -14,9 +14,7 @@ The nRF5 SDK for Mesh repository is organized as follows:
   
 ## GitHub repository @anchor github-repo
 
-The repository is also <a href="https://github.com/NordicSemiconductor/nRF5-SDK-for-Mesh/" target="_blank">available on GitHub</a>.
-
-The GitHub repository contains all the files from the official release zip package. It is provided for reference only. Currently, we do not have a system in place for integrating fixes through the public GitHub mirror.
-For this reason, we cannot accept any pull requests.
+The @link_meshsdk_github contains all the files from the official release zip package. It is provided for reference only. Currently, there is no system in place for integrating fixes through the public GitHub mirror.
+For this reason, pull requests on GitHub are not accepted.
 
 @note Markdown documentation files in GitHub are placed as close as possible to the code. This placement does not correspond to the structure of the @link_mesh_doclib. However, the contents of the files and the documentation website are the same.

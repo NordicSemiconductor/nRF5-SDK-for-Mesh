@@ -33,8 +33,21 @@
             "flash_start": 4096,
             "flash_size": 102400,
             "ram_size": 5760,
-            "version": "0x00B0",
-            "ignore": false
+            "version": "0x00B0"
+        },
+        {
+            "name": "s112_6.1.1",
+            "flash_start": 4096,
+            "flash_size": 102400,
+            "ram_size": 5760,
+            "version": "0x00B8"
+        },
+        {
+            "name": "s113_7.0.0",
+            "flash_start": 4096,
+            "flash_size": 114688,
+            "ram_size": 8016,
+            "version": "0x00C3"
         },
         {
             "name": "s132_6.0.0",
@@ -48,8 +61,14 @@
             "flash_start": 4096,
             "flash_size": 155648,
             "ram_size": 11680,
-            "version": "0x00AF",
-            "ignore": false
+            "version": "0x00AF"
+        },
+        {
+            "name": "s132_6.1.1",
+            "flash_start": 4096,
+            "flash_size": 155648,
+            "ram_size": 11680,
+            "version": "0x00B7"
         },
         {
             "name": "s140_6.0.0",
@@ -63,8 +82,14 @@
             "flash_start": 4096,
             "flash_size": 155648,
             "ram_size": 11680,
-            "version": "0x00AE",
-            "ignore": false
+            "version": "0x00AE"
+        },
+        {
+            "name": "s140_6.1.1",
+            "flash_start": 4096,
+            "flash_size": 155648,
+            "ram_size": 11680,
+            "version": "0x00B6"
         }
     ]
 }

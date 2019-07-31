@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -231,6 +231,16 @@ uint32_t mesh_gatt_packet_send(uint16_t conn_index, const uint8_t * p_packet);
  * @param[in]     p_packet   Pointer to the previously allocated packet to discard.
  */
 void mesh_gatt_packet_discard(uint16_t conn_index, const uint8_t * p_packet);
+
+/**
+ * Checks if the given Mesh GATT connection has pending packets.
+ *
+ * @param[in] conn_index Connection index
+ *
+ * @retval true     If the connection has pending packets.
+ * @retval false    If there is no pending packets for the given connection.
+ */
+bool mesh_gatt_packet_is_pending(uint16_t conn_index);
 
 /**
  * Disconnects the given Mesh GATT connection.

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -291,14 +291,13 @@ void test_rx(void)
     /* Check behavior when packet buffer does not return a packet */
     packet_buffer_pop_ExpectAndReturn(&m_scanner.packet_buffer, NULL, NRF_ERROR_NOT_FOUND);
     packet_buffer_pop_IgnoreArg_pp_packet();
-    fen_filters_apply_IgnoreAndReturn(false);
     TEST_ASSERT_NULL(scanner_rx());
 
     /* Check behavior when packet buffer returns a packet */
     packet_buffer_pop_ExpectAndReturn(&m_scanner.packet_buffer, NULL, NRF_SUCCESS);
     packet_buffer_pop_IgnoreArg_pp_packet();
     packet_buffer_pop_ReturnThruPtr_pp_packet(&p_packet_buffer_packet);
-    fen_filters_apply_IgnoreAndReturn(false);
+    fen_filters_apply_ExpectAndReturn(FILTER_TYPE_POST_PROC, (scanner_packet_t *)p_packet_buffer_packet->packet, false);
     TEST_ASSERT_EQUAL_PTR(p_packet_buffer_packet->packet, scanner_rx());
 }
 
@@ -656,6 +655,7 @@ void test_radio_irq_handler_END_EVENT_SUCCESSFUL(void)
     p_scanner_packet->packet.header.length = 2;
 
     /* Set up radio_handle_end_event() */
+    fen_filters_apply_ExpectAndReturn(FILTER_TYPE_PRE_PROC, (scanner_packet_t *)m_scanner.p_buffer_packet->packet, false);
     ts_timer_to_device_time_ExpectAndReturn(TIME_NOW, TIME_NOW + 100);
     packet_buffer_commit_Expect(&m_scanner.packet_buffer,
                                 m_scanner.p_buffer_packet,
@@ -801,6 +801,7 @@ void test_radio_irq_handler_WINDOW_END_AFTER_RX(void)
     p_scanner_packet->packet.header.length = 2;
 
     /* Set up radio_handle_end_event() */
+    fen_filters_apply_ExpectAndReturn(FILTER_TYPE_PRE_PROC, (scanner_packet_t *)m_scanner.p_buffer_packet->packet, false);
     ts_timer_to_device_time_ExpectAndReturn(TIME_NOW, TIME_NOW + 100);
     packet_buffer_commit_Expect(&m_scanner.packet_buffer,
                                 m_scanner.p_buffer_packet,

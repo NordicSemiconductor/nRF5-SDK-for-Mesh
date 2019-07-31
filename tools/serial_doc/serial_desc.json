@@ -3,11 +3,11 @@
         {
             "name": "Device",
             "shorthand": "DEVICE",
-            "description": "HW commands for device operation",
+            "description": "Hardware commands for device operation.",
             "commands": [
                 {
                     "name": "Echo",
-                    "description": "A simple loopback test command, to verify that the serial transport layer is working as intended.",
+                    "description": "A simple loopback test command. Used to verify that the serial transport layer is working as intended.",
                     "response": {
                         "status": [],
                         "params": "device_echo"
@@ -112,11 +112,11 @@
         {
             "name": "Application",
             "shorthand": "APP",
-            "description": "Single opcode made available to the application",
+            "description": "Single opcode made available to the application.",
             "commands": [
                 {
                     "name": "Application",
-                    "description": "Application specific command, has no functionality in the framework, but is forwarded to the application.",
+                    "description": "Application-specific command. Has no functionality in the framework, but is forwarded to the application.",
                     "response": {
                         "status": [
                             "SUCCESS"
@@ -127,9 +127,9 @@
             ]
         },
         {
-            "name": "Segmentation And Reassembly",
+            "name": "Segmentation and Reassembly",
             "shorthand": "SAR",
-            "description": "Segmentation and reassembly of serial packets, to allow packets larger than the largest serial packet size",
+            "description": "Segmentation and reassembly of serial packets. Used to allow packets larger than the largest serial packet size.",
             "commands": [
                 {
                     "name": "Start",
@@ -156,7 +156,7 @@
         {
             "name": "Configuration",
             "shorthand": "CONFIG",
-            "description": "Configuration of various device parameter, like addresses and radio properties",
+            "description": "Configuration of various device parameters, like addresses and radio properties.",
             "commands": [
                 {
                     "name": "Adv Addr Set",
@@ -180,7 +180,7 @@
                 },
                 {
                     "name": "Channel Map Set",
-                    "description": "Set the channel map for advertisement packets. The device will send the advertisement packets on all enabled channels in increasing order. The channel map parameter is a bitmap, where the first bit represents channel 37, the second bit channel 38 and the third bit channel 39. The rest of the byte is ignored. Set to `0x07` to enable all channels, `0x01` to only enable channel 37, and so on.",
+                    "description": "Set the channel map for advertisement packets. The device will send the advertisement packets on all enabled channels in increasing order. The channel map parameter is a bitmap, where the first bit represents channel 37, the second bit channel 38, and the third bit channel 39. The rest of the byte is ignored. Set to `0x07` to enable all channels, `0x01` to only enable channel 37, and so on.",
                     "response": {
                         "status": [
                             "SUCCESS", "ERROR_INVALID_PARAMETER"
@@ -243,7 +243,7 @@
         {
             "name": "Provisioning",
             "shorthand": "PROV",
-            "description": "Provisioning-specific commands and operations",
+            "description": "Provisioning-specific commands and operations.",
             "commands": [
                 {
                     "name": "Scan Start",
@@ -287,7 +287,7 @@
                 },
                 {
                     "name": "OOB Use",
-                    "description": "Used to respond to the _Provisioning Capabilities Received_ event. It is used to select which kind of OOB authentication method to use. The values can be found in nrf_mesh_prov.h.  If authentication is enabled, the application will receive a _Provisioning Auth Request_ event requesting authentication data.  A _Provisioning ECDH Request_ will be received when the provisioner needs to calculate the ECDH shared secret for the nodes.  The _Provisioning Complete_ event is received when the provisioning procedure has completed successfully. At this point, a provisioner must wait for the _Provisioning Link Closed_ event before re-using the provisioning context.",
+                    "description": "Used to respond to the _Provisioning Capabilities Received_ event. It is used to select which kind of OOB authentication method to use. The values can be found in nrf_mesh_prov.h.<br><br>If authentication is enabled, the application will receive a _Provisioning Auth Request_ event requesting authentication data.  A _Provisioning ECDH Request_ will be received when the provisioner needs to calculate the ECDH shared secret for the nodes.  The _Provisioning Complete_ event is received when the provisioning procedure has completed successfully. At this point, a provisioner must wait for the _Provisioning Link Closed_ event before re-using the provisioning context.",
                     "response": {
                         "status": [
                             "SUCCESS", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER", "ERROR_REJECTED"
@@ -340,7 +340,7 @@
         {
             "name": "nRF Open Mesh",
             "shorthand": "OPENMESH",
-            "description": "Set of commands used by the nRF Open Mesh",
+            "description": "Set of commands used by the nRF Open Mesh.",
             "commands": [
                 {
                     "name": "Init",
@@ -487,7 +487,7 @@
         {
             "name": "Bluetooth Mesh",
             "shorthand": "MESH",
-            "description": "Bluetooth Mesh commands for controlling a device's behavior on the mesh",
+            "description": "Bluetooth Mesh commands for controlling the behavior of a device on the mesh.",
             "commands": [
                 {
                     "name": "Enable",
@@ -681,7 +681,7 @@
                 },
                 {
                     "name": "Addr Nonvirtual Count Max Get",
-                    "description": "Get the maximum number of nonvirtual addresses the device can fit.",
+                    "description": "Get the maximum number of non-virtual addresses the device can fit.",
                     "response": {
                         "status": [
                             "SUCCESS"
@@ -782,7 +782,7 @@
         {
             "name": "Direct Firmware Upgrade",
             "shorthand": "DFU",
-            "description": "Commands controlling the behavior of the Device Firmware Update part of the mesh stack",
+            "description": "Commands controlling the behavior of the Device Firmware Update part of the mesh stack.",
             "commands": [
                 {
                     "name": "Jump To Bootloader",
@@ -816,7 +816,7 @@
                 },
                 {
                     "name": "Abort",
-                    "description": "Abort the ongoing DFU transfer. Will fail if there's no ongoing transfer.",
+                    "description": "Abort the ongoing DFU transfer. Fails if there is no ongoing transfer.",
                     "response": {
                         "status": [
                             "SUCCESS", "ERROR_INVALID_STATE", "ERROR_REJECTED"
@@ -836,7 +836,7 @@
                 },
                 {
                     "name": "Bank Flash",
-                    "description": "Flash the bank with the given firmware type. If successful, this serial call does not produce a command response. Note that all volatile memory will be lost, as the device will restart. If the new firmware supports serial communication, the device issues a device started event when it's ready to receive new commands.",
+                    "description": "Flash the bank with the given firmware type. If successful, this serial call does not produce a command response. Note that all volatile memory will be lost, as the device will restart.<br><br>If the new firmware supports serial communication, the device issues a device started event when it is ready to receive new commands.",
                     "response": {
                         "status": [
                             "SUCCESS", "ERROR_INVALID_STATE", "ERROR_REJECTED"
@@ -859,7 +859,7 @@
         {
             "name": "Access Layer",
             "shorthand": "ACCESS",
-            "description": "Commands to interface the access layer on mesh",
+            "description": "Commands to interface the access layer on mesh.",
             "commands": [
                 {
                     "name": "Model Pub Addr Set",
@@ -983,7 +983,7 @@
                 },
                 {
                     "name": "Model Pub TTL Set",
-                    "description": "Set the default ttl value used when publishing for a model instance.",
+                    "description": "Set the default TTL value used when publishing for a model instance.",
                     "response": {
                         "status": [
                             "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER"
@@ -993,7 +993,7 @@
                 },
                 {
                     "name": "Model Pub Ttl Get",
-                    "description": "Get the default ttl value used when publishing for a model instance.",
+                    "description": "Get the default TTL value used when publishing for a model instance.",
                     "response": {
                         "status": [
                             "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE"
@@ -1085,7 +1085,7 @@
         {
             "name": "Model Specific",
             "shorthand": "MODEL_SPECIFIC",
-            "description": "Commands for initializing and commanding specific models",
+            "description": "Commands for initializing and commanding specific models.",
             "commands": [
                 {
                     "name": "Models Get",
@@ -1099,7 +1099,7 @@
                 },
                 {
                     "name": "Init",
-                    "description": "Calls the initializer of the addressed model in order to create a new instance.",
+                    "description": "Call the initializer of the addressed model to create a new instance.",
                     "response": {
                         "status": [
                             "SUCCESS", "ERROR_REJECTED"
@@ -1109,7 +1109,7 @@
                 },
                 {
                     "name": "Command",
-                    "description": "Forwards a model specific command to a model instance. See the serial handler for the specific model being commanded for more information.",
+                    "description": "Forward a model specific command to a model instance. See the serial handler for the specific model being commanded for more information.",
                     "response": {
                         "status": [
                             "SUCCESS", "ERROR_REJECTED", "INVALID_STATE"
@@ -1211,11 +1211,11 @@
         },
         {
             "name": "Prov Invite Received",
-            "description": "The device received provisioning invite so it can start identifying itself using anymeans it can."
+            "description": "The device received provisioning invite, so it can start identifying itself using any means it can."
         },
         {
             "name": "Prov Start Received",
-            "description": "The device received provisioning start meaning that the provisioning process has been started and shall stop identifying itself."
+            "description": "The device received provisioning start meaning that the provisioning process has been started and will stop identifying itself."
         },
         {
             "name": "Prov Complete",
@@ -1263,7 +1263,7 @@
         },
         {
             "name": "Model Specific",
-            "description": "An event generated by one of the initialized models. Model id and event type is provided by each event, further model specific information is provided as part of the data field."
+            "description": "An event generated by one of the initialized models. Model ID and event type is provided by each event. Further model specific information is provided as part of the data field."
         }
     ]
 }

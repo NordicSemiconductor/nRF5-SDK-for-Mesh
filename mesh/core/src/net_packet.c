@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -128,13 +128,6 @@ static inline bool deobfuscated_header_is_valid(const network_packet_metadata_t 
     if (msg_cache_entry_exists(p_net_metadata->src, p_net_metadata->internal.sequence_number))
     {
         __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_PACKET_DROPPED, PACKET_DROPPED_NETWORK_CACHE, net_packet_len, p_net_packet);
-        return false;
-    }
-    /* If the source address is one of our unicast rx addresses, we sent it ourselves, and shouldn't
-     * process it: */
-    nrf_mesh_address_t dummy;
-    if (nrf_mesh_rx_address_get(p_net_metadata->src, &dummy))
-    {
         return false;
     }
 

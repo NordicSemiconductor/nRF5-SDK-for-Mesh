@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -60,9 +60,13 @@
 
 #define CONFIRMATION_INPUTS_SIZE     (PROV_CONFIRMATION_INPUT_LEN + 2 * NRF_MESH_PROV_PUBKEY_SIZE)
 
-NRF_MESH_STATIC_ASSERT(NRF_MESH_PROV_OOB_SIZE_MAX == 8);
+/* Used to optimize lookup of valid PDUs. */
+#define PDU_VALID_PROVISIONER 0x40
+#define PDU_VALID_PROVISIONEE 0x80
 
-MESH_CONFIG_ENTRY_IMPLEMENTATION(ecdh_offloading, MESH_OPT_PROV_ECDH_OFFLOADING_EID, 1, bool, true, true);
+/* We reserve the two upper bits for PDU lookup. */
+NRF_MESH_STATIC_ASSERT(PROV_PDU_TYPE_COUNT <= 0x3f);
+NRF_MESH_STATIC_ASSERT(NRF_MESH_PROV_OOB_SIZE_MAX == 8);
 
 /* Parameter digits is somewhere from 1 to @ref NRF_MESH_PROV_OOB_SIZE_MAX.
  * We're storing the largest number permitted for each value in a lookup
@@ -72,6 +76,37 @@ static const uint32_t m_numeric_max[] =
 {
     0, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000
 };
+
+static bool m_enabled;
+
+/*****************************************************************************
+ * Mesh Config wrapper functions
+ *****************************************************************************/
+static uint32_t ecdh_setter(mesh_config_entry_id_t entry_id, const void * p_entry)
+{
+    m_enabled = *(bool *)p_entry;
+
+    return NRF_SUCCESS;
+}
+
+static void ecdh_getter(mesh_config_entry_id_t entry_id, void * p_entry)
+{
+    *(bool *)p_entry = m_enabled;
+}
+
+static void ecdh_deleter(mesh_config_entry_id_t entry_id)
+{
+    m_enabled = false;
+}
+
+MESH_CONFIG_ENTRY(ecdh_offloading,
+                  MESH_OPT_PROV_ECDH_OFFLOADING_EID,
+                  1,
+                  sizeof(m_enabled),
+                  ecdh_setter,
+                  ecdh_getter,
+                  ecdh_deleter,
+                  true);
 
 static void create_confirmation_salt(const nrf_mesh_prov_ctx_t * p_ctx, uint8_t * p_confirmation_salt)
 {
@@ -245,13 +280,17 @@ void prov_utils_derive_keys(const nrf_mesh_prov_ctx_t * p_ctx,
            p_device_key);
 }
 
+bool prov_utils_is_valid_public_key(const uint8_t * p_public_key)
+{
+    return uECC_valid_public_key(p_public_key, uECC_secp256r1());
+}
+
 uint32_t prov_utils_calculate_shared_secret(const nrf_mesh_prov_ctx_t * p_ctx, uint8_t * p_shared_secret)
 {
 #if NRF_MESH_UECC_ENABLE
-    if (!uECC_valid_public_key(p_ctx->peer_public_key, uECC_secp256r1()))
-    {
-        return NRF_ERROR_INTERNAL;
-    }
+    /* We should have validated the public key before this point. */
+    NRF_MESH_ASSERT_DEBUG(prov_utils_is_valid_public_key(p_ctx->peer_public_key));
+
     if (!uECC_shared_secret(p_ctx->peer_public_key, p_ctx->p_private_key, p_shared_secret, uECC_secp256r1()))
     {
         return NRF_ERROR_INTERNAL;
@@ -365,4 +404,42 @@ uint32_t mesh_opt_prov_ecdh_offloading_set(bool enabled)
 uint32_t mesh_opt_prov_ecdh_offloading_get(bool * p_enabled)
 {
     return mesh_config_entry_get(MESH_OPT_PROV_ECDH_OFFLOADING_EID, p_enabled);
+}
+
+bool prov_utils_is_valid_pdu(nrf_mesh_prov_role_t role, nrf_mesh_prov_state_t state, prov_pdu_type_t pdu_type)
+{
+    static const uint8_t pdu_lookup[] = {
+        /* NRF_MESH_PROV_STATE_IDLE                   */ PROV_PDU_TYPE_INVALID,
+        /* NRF_MESH_PROV_STATE_WAIT_LINK              */ PROV_PDU_TYPE_INVALID,
+        /* NRF_MESH_PROV_STATE_INVITE                 */ PROV_PDU_TYPE_INVITE         | PDU_VALID_PROVISIONEE,
+        /* NRF_MESH_PROV_STATE_WAIT_CAPS              */ PROV_PDU_TYPE_CAPABILITIES   | PDU_VALID_PROVISIONER,
+        /* NRF_MESH_PROV_STATE_WAIT_CAPS_CONFIRM      */ PROV_PDU_TYPE_INVALID,
+        /* NRF_MESH_PROV_STATE_WAIT_START             */ PROV_PDU_TYPE_START          | PDU_VALID_PROVISIONEE,
+        /* NRF_MESH_PROV_STATE_WAIT_START_ACK         */ PROV_PDU_TYPE_INVALID,
+        /* NRF_MESH_PROV_STATE_WAIT_PUB_KEY_ACK       */ PROV_PDU_TYPE_INVALID,
+        /* NRF_MESH_PROV_STATE_WAIT_PUB_KEY           */ PROV_PDU_TYPE_PUBLIC_KEY     | PDU_VALID_PROVISIONEE | PDU_VALID_PROVISIONER,
+        /* NRF_MESH_PROV_STATE_WAIT_OOB_PUB_KEY       */ PROV_PDU_TYPE_INVALID,
+        /* NRF_MESH_PROV_STATE_WAIT_EXTERNAL_ECDH     */ PROV_PDU_TYPE_INVALID,
+        /* NRF_MESH_PROV_STATE_WAIT_OOB_INPUT         */ PROV_PDU_TYPE_INVALID,
+        /* NRF_MESH_PROV_STATE_WAIT_OOB_STATIC        */ PROV_PDU_TYPE_CONFIRMATION   | PDU_VALID_PROVISIONEE,
+        /* NRF_MESH_PROV_STATE_WAIT_OOB_STATIC_C_RCVD */ PROV_PDU_TYPE_INVALID,
+        /* NRF_MESH_PROV_STATE_WAIT_CONFIRMATION_ACK  */ PROV_PDU_TYPE_INVALID,
+        /* NRF_MESH_PROV_STATE_WAIT_CONFIRMATION      */ PROV_PDU_TYPE_CONFIRMATION   | PDU_VALID_PROVISIONEE | PDU_VALID_PROVISIONER,
+        /* NRF_MESH_PROV_STATE_WAIT_INPUT_COMPLETE    */ PROV_PDU_TYPE_INPUT_COMPLETE | PDU_VALID_PROVISIONER,
+        /* NRF_MESH_PROV_STATE_WAIT_RANDOM            */ PROV_PDU_TYPE_RANDOM         | PDU_VALID_PROVISIONEE | PDU_VALID_PROVISIONER,
+        /* NRF_MESH_PROV_STATE_WAIT_DATA              */ PROV_PDU_TYPE_DATA           | PDU_VALID_PROVISIONEE,
+        /* NRF_MESH_PROV_STATE_WAIT_COMPLETE          */ PROV_PDU_TYPE_COMPLETE       | PDU_VALID_PROVISIONER,
+        /* NRF_MESH_PROV_STATE_COMPLETE               */ PROV_PDU_TYPE_INVALID,
+        /* NRF_MESH_PROV_STATE_FAILED                 */ PROV_PDU_TYPE_INVALID,
+    };
+
+    if (role == NRF_MESH_PROV_ROLE_PROVISIONER)
+    {
+        return ((pdu_lookup[state] & ~PDU_VALID_PROVISIONEE) == (pdu_type | PDU_VALID_PROVISIONER) ||
+                pdu_type == PROV_PDU_TYPE_FAILED);
+    }
+    else
+    {
+        return ((pdu_lookup[state] & ~PDU_VALID_PROVISIONER) == (pdu_type | PDU_VALID_PROVISIONEE));
+    }
 }

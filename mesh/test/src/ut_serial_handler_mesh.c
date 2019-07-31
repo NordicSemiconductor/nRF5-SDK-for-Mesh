@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -47,6 +47,7 @@
 #include "device_state_manager_mock.h"
 #include "nrf_mesh_mock.h"
 #include "nrf_mesh_events_mock.h"
+#include "nrf_mesh_externs_mock.h"
 
 #include "utils.h"
 #include "test_assert.h"
@@ -111,6 +112,7 @@ void setUp(void)
     nrf_mesh_events_mock_Init();
     net_state_mock_Init();
     access_mock_Init();
+    nrf_mesh_externs_mock_Init();
     m_expected_packet_send = 0;
     m_packet_send_return = 0;
     memset(&m_expected_tx_params, 0, sizeof(m_expected_tx_params));
@@ -131,6 +133,8 @@ void tearDown(void)
     net_state_mock_Destroy();
     access_mock_Verify();
     access_mock_Destroy();
+    nrf_mesh_externs_mock_Verify();
+    nrf_mesh_externs_mock_Destroy();
 }
 
 /*****************************************************************************
@@ -458,7 +462,7 @@ void test_addresses(void)
     dsm_address_get_ExpectAndReturn(0x1234, NULL, NRF_SUCCESS);
     dsm_address_get_IgnoreArg_p_address();
     dsm_address_get_ReturnThruPtr_p_address(&addr);
-    dsm_address_is_rx_ExpectAndReturn(&addr, true);
+    nrf_mesh_is_address_rx_ExpectAndReturn(&addr, true);
     serial_evt_cmd_rsp_data_raw_addr_t raw_addr_rsp;
     raw_addr_rsp.addr_type = addr.type;
     raw_addr_rsp.subscribed = true;
@@ -486,7 +490,7 @@ void test_addresses(void)
     dsm_address_get_ExpectAndReturn(0x1234, NULL, NRF_SUCCESS);
     dsm_address_get_IgnoreArg_p_address();
     dsm_address_get_ReturnThruPtr_p_address(&addr);
-    dsm_address_is_rx_ExpectAndReturn(&addr, false);
+    nrf_mesh_is_address_rx_ExpectAndReturn(&addr, false);
     raw_addr_rsp.addr_type = addr.type;
     raw_addr_rsp.subscribed = false;
     raw_addr_rsp.raw_short_addr = addr.value;

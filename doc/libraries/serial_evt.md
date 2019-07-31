@@ -1,14 +1,15 @@
 
 # Serial events
 
-# Serial Event Overview {#serial-events}
+# Serial event overview {#serial-events}
 
 Serial Events are messages sent from the nRF5 to the host controller. Messages
-are either sent asynchronously as a result of some interaction in the mesh or
-as a response to a command.
+are sent in one of the following ways:
+- asynchronously as a result of some interaction in the mesh;
+- as a response to a command.
 
-See the table below for an overview over the various events pushed by the nRF5
-to the host. Each entry links to their respective "Details" section, where the
+See the following table for an overview of the various events pushed by the nRF5
+to the host. Each entry links to the details section, where the
 parameters and reason for each event are described.
 
 
@@ -51,17 +52,22 @@ Event                                                                    | Opcod
 [Mesh SAR Failed](#mesh-sar-failed)                                      | 0xd7
 [Model Specific](#model-specific)                                        | 0xf0
 
-## Serial Event Details {#serial-event-details}
+---
+
+## Serial event details {#serial-event-details}
+
+This subsection contains detailed description of each serial event, including opcodes, total length,
+description, and parameters (if any exist).
 
 ### Cmd Rsp          {#cmd-rsp}
 
 _Opcode:_ `0x84`
 
-_Total length: 3..255 bytes_
+_Total length:_ 3..255 bytes
 
 Command response. Each command (except the Echo command) immediately gets a command response. See the individual commands for their responses.
 
-_Cmd Rsp Parameters_
+_Cmd Rsp Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -69,15 +75,16 @@ Type              | Name                                    | Size  | Offset | D
 `uint8_t`         | Status                                  | 1     | 1      | Return status of the serial command.
 `uint8_t[252]`    | Data                                    | 0..252 | 2      | Optional command response data.
 
+---
 ### Device Started          {#device-started}
 
 _Opcode:_ `0x81`
 
-_Total length: 4 bytes_
+_Total length:_ 4 bytes
 
 The device has started, and is ready for commands. No commands will be accepted before this event, and it is guaranteed to be the first event to cross the serial.
 
-_Device Started Parameters_
+_Device Started Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -85,29 +92,31 @@ Type              | Name                                    | Size  | Offset | D
 `uint8_t`         | Hw Error                                | 1     | 1      | Hardware error code, or 0 if no error occurred.
 `uint8_t`         | Data Credit Available                   | 1     | 2      | The number of bytes available in each of the tx and rx buffers.
 
+---
 ### Device Echo Rsp          {#device-echo-rsp}
 
 _Opcode:_ `0x82`
 
-_Total length: 1..255 bytes_
+_Total length:_ 1..255 bytes
 
 Response to the Echo command. Contains the exact same data as received in the echo command.
 
-_Device Echo Rsp Parameters_
+_Device Echo Rsp Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
 `uint8_t[254]`    | Data                                    | 0..254 | 0      | Data received in the echo command.
 
+---
 ### Device Internal Event          {#device-internal-event}
 
 _Opcode:_ `0x83`
 
-_Total length: 35 bytes_
+_Total length:_ 35 bytes
 
 Internal stack event occurred.
 
-_Device Internal Event Parameters_
+_Device Internal Event Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -116,49 +125,55 @@ Type              | Name                                    | Size  | Offset | D
 `uint8_t`         | Packet Size                             | 1     | 2      | Size (in bytes) of the packet.
 `uint8_t[31]`     | Packet                                  | 31    | 3      | Event data.
 
+---
 ### Application          {#application}
 
 _Opcode:_ `0x8a`
 
-_Total length: 1..255 bytes_
+_Total length:_ 1..255 bytes
 
 Application event, only sent by the device application.
 
-_Application Parameters_
+_Application Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
 `uint8_t[254]`    | Data                                    | 0..254 | 0      | Application data.
 
+---
 ### SAR Start          {#sar-start}
 
 _Opcode:_ `0x8b`
 
-_Total length: 1 byte_
+_Total length:_ 1 byte
 
 Start of a Segmentation and Reassembly message from the device.
 
 _SAR Start has no parameters._
 
+
+---
 ### SAR Continue          {#sar-continue}
 
 _Opcode:_ `0x8c`
 
-_Total length: 1 byte_
+_Total length:_ 1 byte
 
 Continuation of a Segmentation and Reassembly message from the device.
 
 _SAR Continue has no parameters._
 
+
+---
 ### DFU Req Relay          {#dfu-req-relay}
 
 _Opcode:_ `0xa0`
 
-_Total length: 13 bytes_
+_Total length:_ 13 bytes
 
 Received a request from another device to act as a relay in a DFU transaction.
 
-_DFU Req Relay Parameters_
+_DFU Req Relay Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -166,29 +181,31 @@ Type              | Name                                    | Size  | Offset | D
 `nrf_mesh_fwid_t` | FWID                                    | 10    | 1      | Firmware ID of the requested transfer.
 `uint8_t`         | Authority                               | 1     | 11     | Authority level of the transfer.
 
+---
 ### DFU Req Source          {#dfu-req-source}
 
 _Opcode:_ `0xa1`
 
-_Total length: 2 bytes_
+_Total length:_ 2 bytes
 
 Recevied a request from another device to act as a source in a DFU transaction.
 
-_DFU Req Source Parameters_
+_DFU Req Source Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
 `uint8_t`         | DFU Type                                | 1     | 0      | DFU type of the transfer. See @ref nrf_mesh_dfu_type_t.
 
+---
 ### DFU Start          {#dfu-start}
 
 _Opcode:_ `0xa2`
 
-_Total length: 13 bytes_
+_Total length:_ 13 bytes
 
 The current DFU operation started its data transfer stage.
 
-_DFU Start Parameters_
+_DFU Start Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -196,15 +213,16 @@ Type              | Name                                    | Size  | Offset | D
 `uint8_t`         | DFU Type                                | 1     | 1      | DFU type of the transfer. See @ref nrf_mesh_dfu_type_t.
 `nrf_mesh_fwid_t` | FWID                                    | 10    | 2      | Firmware ID of the transfer.
 
+---
 ### DFU End          {#dfu-end}
 
 _Opcode:_ `0xa3`
 
-_Total length: 14 bytes_
+_Total length:_ 14 bytes
 
 The current DFU operation ended its data transfer stage.
 
-_DFU End Parameters_
+_DFU End Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -213,15 +231,16 @@ Type              | Name                                    | Size  | Offset | D
 `nrf_mesh_fwid_t` | FWID                                    | 10    | 2      | Firmware ID of the transfer.
 `uint8_t`         | End Reason                              | 1     | 12     | Reason for ending the transfer. See @ref nrf_mesh_dfu_end_t.
 
+---
 ### DFU Bank Available          {#dfu-bank-available}
 
 _Opcode:_ `0xa4`
 
-_Total length: 21 bytes_
+_Total length:_ 21 bytes
 
 A DFU firmware bank is available for flashing.
 
-_DFU Bank Available Parameters_
+_DFU Bank Available Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -231,15 +250,16 @@ Type              | Name                                    | Size  | Offset | D
 `uint32_t`        | Length                                  | 4     | 15     | Length of the banked firmware.
 `uint8_t`         | Is Signed                               | 1     | 19     | Whether the bank is signed or not.
 
+---
 ### DFU Firmware Outdated          {#dfu-firmware-outdated}
 
 _Opcode:_ `0xa5`
 
-_Total length: 22 bytes_
+_Total length:_ 22 bytes
 
 The mesh has received a secure notification indicating that the framework is out of date. Call _DFU Request_ to initiate a request to receive the firmware upgrade.
 
-_DFU Firmware Outdated Parameters_
+_DFU Firmware Outdated Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -247,15 +267,16 @@ Type              | Name                                    | Size  | Offset | D
 `nrf_mesh_fwid_t` | Available FWID                          | 10    | 1      | Firmware ID of the newest firmware available.
 `nrf_mesh_fwid_t` | Current FWID                            | 10    | 11     | Firmware ID of the current version of the outdated firmware.
 
+---
 ### DFU Firmware Outdated No Auth          {#dfu-firmware-outdated-no-auth}
 
 _Opcode:_ `0xa6`
 
-_Total length: 22 bytes_
+_Total length:_ 22 bytes
 
 The mesh has received an insecure notification indicating that the framework is out of date. Call _Direct Firmware Upgrade Request_ to initiate a request to receive the firmware upgrade.
 
-_DFU Firmware Outdated No Auth Parameters_
+_DFU Firmware Outdated No Auth Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -263,55 +284,64 @@ Type              | Name                                    | Size  | Offset | D
 `nrf_mesh_fwid_t` | Available FWID                          | 10    | 1      | Firmware ID of the newest firmware available.
 `nrf_mesh_fwid_t` | Current FWID                            | 10    | 11     | Firmware ID of the current version of the outdated firmware.
 
+---
 ### Openmesh New          {#openmesh-new}
 
 _Opcode:_ `0xb3`
 
-_Total length: 1 byte_
+_Total length:_ 1 byte
 
 Not implemented.
 
 _Openmesh New has no parameters._
 
+
+---
 ### Openmesh Update          {#openmesh-update}
 
 _Opcode:_ `0xb4`
 
-_Total length: 1 byte_
+_Total length:_ 1 byte
 
 Not implemented.
 
 _Openmesh Update has no parameters._
 
+
+---
 ### Openmesh Conflicting          {#openmesh-conflicting}
 
 _Opcode:_ `0xb5`
 
-_Total length: 1 byte_
+_Total length:_ 1 byte
 
 Not implemented.
 
 _Openmesh Conflicting has no parameters._
 
+
+---
 ### Openmesh TX          {#openmesh-tx}
 
 _Opcode:_ `0xb6`
 
-_Total length: 1 byte_
+_Total length:_ 1 byte
 
 Not implemented.
 
 _Openmesh TX has no parameters._
 
+
+---
 ### Prov Unprovisioned Received          {#prov-unprovisioned-received}
 
 _Opcode:_ `0xc0`
 
-_Total length: 26 bytes_
+_Total length:_ 26 bytes
 
 The node received an unprovisioned beacon. Requires scanning to be enabled with the _Provisioning Scan Enable_ command.
 
-_Prov Unprovisioned Received Parameters_
+_Prov Unprovisioned Received Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -321,44 +351,47 @@ Type              | Name                                    | Size  | Offset | D
 `uint8_t`         | Adv Addr Type                           | 1     | 18     | The advertisement address type of the sender of the unprovisioned beacon.
 `uint8_t[6]`      | Adv Addr                                | 6     | 19     | The advertisement address of the sender of the unprovisioned beacon.
 
+---
 ### Prov Link Established          {#prov-link-established}
 
 _Opcode:_ `0xc1`
 
-_Total length: 2 bytes_
+_Total length:_ 2 bytes
 
 The given provisioning link has been established.
 
-_Prov Link Established Parameters_
+_Prov Link Established Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
 `uint8_t`         | Context ID                              | 1     | 0      | Context ID of the established link.
 
+---
 ### Prov Link Closed          {#prov-link-closed}
 
 _Opcode:_ `0xc2`
 
-_Total length: 3 bytes_
+_Total length:_ 3 bytes
 
 The given provisioning link has been closed. If received before a _Provisioning Complete_ event, the link was closed because of an error.
 
-_Prov Link Closed Parameters_
+_Prov Link Closed Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
 `uint8_t`         | Context ID                              | 1     | 0      | Context ID of the closed link.
 `uint8_t`         | Close Reason                            | 1     | 1      | Reason for closing the link.
 
+---
 ### Prov Caps Received          {#prov-caps-received}
 
 _Opcode:_ `0xc3`
 
-_Total length: 11 bytes_
+_Total length:_ 11 bytes
 
 The device received provisioning capabilities on the provisioning link with the given context ID.
 
-_Prov Caps Received Parameters_
+_Prov Caps Received Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -371,44 +404,47 @@ Type              | Name                                    | Size  | Offset | D
 `uint8_t`         | Input OOB Size                          | 1     | 7      | Maximum size of the input OOB supported.
 `uint16_t`        | Input OOB Actions                       | 2     | 8      | Available OOB input actions.
 
+---
 ### Prov Invite Received          {#prov-invite-received}
 
 _Opcode:_ `0xc4`
 
-_Total length: 3 bytes_
+_Total length:_ 3 bytes
 
-The device received provisioning invite so it can start identifying itself using anymeans it can.
+The device received provisioning invite, so it can start identifying itself using any means it can.
 
-_Prov Invite Received Parameters_
+_Prov Invite Received Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
 `uint8_t`         | Context ID                              | 1     | 0      | Context ID of the provisioning link.
 `uint8_t`         | Attention Duration S                    | 1     | 1      | Time in seconds during which the device will identify itself using any means it can.
 
+---
 ### Prov Start Received          {#prov-start-received}
 
 _Opcode:_ `0xca`
 
-_Total length: 2 bytes_
+_Total length:_ 2 bytes
 
-The device received provisioning start meaning that the provisioning process has been started and shall stop identifying itself.
+The device received provisioning start meaning that the provisioning process has been started and will stop identifying itself.
 
-_Prov Start Received Parameters_
+_Prov Start Received Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
 `uint8_t`         | Context ID                              | 1     | 0      | Context ID of the provisioning link.
 
+---
 ### Prov Complete          {#prov-complete}
 
 _Opcode:_ `0xc5`
 
-_Total length: 44 bytes_
+_Total length:_ 44 bytes
 
 The provisioning process was successfully completed.
 
-_Prov Complete Parameters_
+_Prov Complete Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -421,15 +457,16 @@ Type              | Name                                    | Size  | Offset | D
 `uint8_t[16]`     | Device Key                              | 16    | 11     | The device key of the provisioned device.
 `uint8_t[16]`     | Net Key                                 | 16    | 27     | The network key of the provisioned device.
 
+---
 ### Prov Auth Request          {#prov-auth-request}
 
 _Opcode:_ `0xc6`
 
-_Total length: 5 bytes_
+_Total length:_ 5 bytes
 
 Static authentication data is required to continue. Use the _Provisioning AuthData_ command to respond to this event.
 
-_Prov Auth Request Parameters_
+_Prov Auth Request Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -438,15 +475,16 @@ Type              | Name                                    | Size  | Offset | D
 `uint8_t`         | Action                                  | 1     | 2      | Authentication action.
 `uint8_t`         | Size                                    | 1     | 3      | Authentication size.
 
+---
 ### Prov ECDH Request          {#prov-ecdh-request}
 
 _Opcode:_ `0xc7`
 
-_Total length: 98 bytes_
+_Total length:_ 98 bytes
 
 An ECDH shared secret must be calculated. Use the _Provisioning ECDH Secret_ command to respond to this event.
 
-_Prov ECDH Request Parameters_
+_Prov ECDH Request Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -454,15 +492,16 @@ Type              | Name                                    | Size  | Offset | D
 `uint8_t[64]`     | Peer Public                             | 64    | 1      | ECDH public key.
 `uint8_t[32]`     | Node Private                            | 32    | 65     | ECDH private key.
 
+---
 ### Prov Output Request          {#prov-output-request}
 
 _Opcode:_ `0xc8`
 
-_Total length: 3..19 bytes_
+_Total length:_ 3..19 bytes
 
 The device is required to do an action the user can recognize and use for authentication.
 
-_Prov Output Request Parameters_
+_Prov Output Request Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -470,30 +509,32 @@ Type              | Name                                    | Size  | Offset | D
 `uint8_t`         | Output Action                           | 1     | 1      | Output action requested.
 `uint8_t[16]`     | Data                                    | 0..16 | 2      | Data for the output request.
 
+---
 ### Prov Failed          {#prov-failed}
 
 _Opcode:_ `0xc9`
 
-_Total length: 3 bytes_
+_Total length:_ 3 bytes
 
 The provisioning procedure failed.
 
-_Prov Failed Parameters_
+_Prov Failed Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
 `uint8_t`         | Context ID                              | 1     | 0      | Context ID of the link the error happened on.
 `uint8_t`         | Error Code                              | 1     | 1      | Provisioning error code.
 
+---
 ### Mesh Message Received Unicast          {#mesh-message-received-unicast}
 
 _Opcode:_ `0xd0`
 
-_Total length: 20..255 bytes_
+_Total length:_ 20..255 bytes
 
 The mesh framework received a message matching a registered local unicast address, with the given parameters and data.
 
-_Mesh Message Received Unicast Parameters_
+_Mesh Message Received Unicast Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -508,15 +549,16 @@ Type              | Name                                    | Size  | Offset | D
 `uint16_t`        | Actual Length                           | 2     | 17     | Length of the received message, may be larger than the data reported if @ref SERIAL_EVT_MESH_MESSAGE_RECEIVED_DATA_MAXLEN is not big enough.
 `uint8_t[235]`    | Data                                    | 0..235 | 19     | Data payload of the packet.
 
+---
 ### Mesh Message Received Subscription          {#mesh-message-received-subscription}
 
 _Opcode:_ `0xd1`
 
-_Total length: 20..255 bytes_
+_Total length:_ 20..255 bytes
 
 The mesh framework received a message matching one of the registered subscription addresses, with the given parameters and data.
 
-_Mesh Message Received Subscription Parameters_
+_Mesh Message Received Subscription Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
@@ -531,71 +573,78 @@ Type              | Name                                    | Size  | Offset | D
 `uint16_t`        | Actual Length                           | 2     | 17     | Length of the received message, may be larger than the data reported if @ref SERIAL_EVT_MESH_MESSAGE_RECEIVED_DATA_MAXLEN is not big enough.
 `uint8_t[235]`    | Data                                    | 0..235 | 19     | Data payload of the packet.
 
+---
 ### Mesh TX Complete          {#mesh-tx-complete}
 
 _Opcode:_ `0xd2`
 
-_Total length: 5 bytes_
+_Total length:_ 5 bytes
 
 A radio packet TX has completed.
 
-_Mesh TX Complete Parameters_
+_Mesh TX Complete Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
 `nrf_mesh_tx_token_t` | Token                                   | 4     | 0      | TX token for the completed packet.
 
+---
 ### Mesh IV Update Notification          {#mesh-iv-update-notification}
 
 _Opcode:_ `0xd3`
 
-_Total length: 5 bytes_
+_Total length:_ 5 bytes
 
 The IV update procedure has been triggered for the network with the given index.
 
-_Mesh IV Update Notification Parameters_
+_Mesh IV Update Notification Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
 `uint32_t`        | Iv Index                                | 4     | 0      | IV index updated to.
 
+---
 ### Mesh Key Refresh Notification          {#mesh-key-refresh-notification}
 
 _Opcode:_ `0xd4`
 
-_Total length: 4 bytes_
+_Total length:_ 4 bytes
 
 A network has entered a new phase in the key refresh procedure.
 
-_Mesh Key Refresh Notification Parameters_
+_Mesh Key Refresh Notification Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
 `uint16_t`        | Netkey Index                            | 2     | 0      | Network key index of the network key being updated.
 `uint8_t`         | Phase                                   | 1     | 2      | Current key refresh phase for the network key being updated.
 
+---
 ### Mesh SAR Failed          {#mesh-sar-failed}
 
 _Opcode:_ `0xd7`
 
-_Total length: 1 byte_
+_Total length:_ 1 byte
 
 A Mesh transmission of a SAR packet failed.
 
 _Mesh SAR Failed has no parameters._
 
+
+---
 ### Model Specific          {#model-specific}
 
 _Opcode:_ `0xf0`
 
-_Total length: 6..255 bytes_
+_Total length:_ 6..255 bytes
 
-An event generated by one of the initialized models. Model id and event type is provided by each event, further model specific information is provided as part of the data field.
+An event generated by one of the initialized models. Model ID and event type is provided by each event. Further model specific information is provided as part of the data field.
 
-_Model Specific Parameters_
+_Model Specific Parameters:_
 
 Type              | Name                                    | Size  | Offset | Description
 ------------------|-----------------------------------------|-------|--------|------------
 `serial_evt_model_specific_header_t` | Model Evt Info                          | 5     | 0      | Contains the model id the event generates from and the model specific event type.
 `uint8_t[249]`    | Data                                    | 0..249 | 5      | Additional data provided by the event
 
+---

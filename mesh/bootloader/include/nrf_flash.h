@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -53,7 +53,7 @@ void nrf_flash_erase(uint32_t * page_address, uint32_t size);
  * @param[in] address Address of the first word in the page to be filled.
  * @param[in] value Value to be written to flash.
  */
-void nrf_flash_store(uint32_t * p_dest, uint8_t * p_src, uint32_t size, uint32_t offset);
+void nrf_flash_store(uint32_t * p_dest, const uint8_t * p_src, uint32_t size, uint32_t offset);
 
 #endif //NRF_FLASH_H__
 

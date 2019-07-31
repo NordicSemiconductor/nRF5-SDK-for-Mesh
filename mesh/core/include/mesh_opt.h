@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -62,6 +62,10 @@
 #define MESH_OPT_PROV_ID_END   (0x020F)
 #define MESH_OPT_GATT_ID_START (0x0210)
 #define MESH_OPT_GATT_ID_END   (0x021F)
+#define MESH_OPT_FRND_ID_START (0x0220)
+#define MESH_OPT_FRND_ID_END   (0x022F)
+#define MESH_OPT_HEALTH_ID_START (0x0230)
+#define MESH_OPT_HEALTH_ID_END   (0x024F)
 
 /** Initialize the mesh options module. */
 void mesh_opt_init(void);

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -104,7 +104,7 @@ static void led_timeout_handler(void * p_context)
     if (m_blink_count == 0)
     {
         (void) app_timer_stop(m_blink_timer);
-        NRF_GPIO->OUT = m_prev_state;
+        NRF_GPIO->OUT = (NRF_GPIO->OUT & ~m_blink_mask) | m_prev_state;
     }
 }
 
@@ -148,13 +148,13 @@ void hal_led_blink_ms(uint32_t led_mask, uint32_t delay_ms, uint32_t blink_count
 
     m_blink_mask  = led_mask;
     m_blink_count = blink_count * 2 - 1;
-    m_prev_state = NRF_GPIO->OUT;
+    m_prev_state = NRF_GPIO->OUT & m_blink_mask;
 
     if (app_timer_start(m_blink_timer, APP_TIMER_TICKS(delay_ms), NULL) == NRF_SUCCESS)
     {
         /* Start by "clearing" the mask, i.e., turn the LEDs on -- in case a user calls the
          * function twice. */
-        NRF_GPIO->OUT &= ~m_blink_mask;
+        NRF_GPIO->OUTCLR = m_blink_mask;
     }
 }
 

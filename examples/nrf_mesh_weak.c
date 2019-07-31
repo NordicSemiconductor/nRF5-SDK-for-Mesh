@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -104,7 +104,7 @@ uint32_t __attribute__((weak, alias ("_weak_handler"))) nrf_mesh_dfu_relay(nrf_m
         const nrf_mesh_fwid_t* p_fwid);
 uint32_t __attribute__((weak, alias ("_weak_handler"))) nrf_mesh_dfu_request(nrf_mesh_dfu_type_t type,
         const nrf_mesh_fwid_t* p_fwid,
-        uint32_t* p_bank_addr);
+        const uint32_t* p_bank_addr);
 uint32_t __attribute__((weak, alias ("_weak_handler"))) nrf_mesh_dfu_rx(const uint8_t * p_packet, uint32_t length, const nrf_mesh_rx_metadata_t * p_metadata);
 uint32_t __attribute__((weak, alias ("_weak_handler"))) nrf_mesh_dfu_state_get(nrf_mesh_dfu_transfer_state_t* p_dfu_transfer_state);
 void __attribute__((weak, alias ("_weak_handler"))) mesh_flash_op_execute(timestamp_t available_time);

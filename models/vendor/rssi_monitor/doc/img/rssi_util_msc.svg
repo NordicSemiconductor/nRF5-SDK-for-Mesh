@@ -1,0 +1,499 @@
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1"
+ width="600px" height="495px"
+ viewBox="0 0 600 495"
+ xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges"
+ stroke-width="1" text-rendering="geometricPrecision">
+<polygon fill="white" points="35,7 83,7 83,16 35,16"/>
+<text x="60" y="16" textLength="46" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+NODE E
+</text>
+<polygon fill="white" points="36,18 82,18 82,27 36,27"/>
+<text x="60" y="27" textLength="45" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+(sees B)
+</text>
+<polygon fill="white" points="155,7 203,7 203,16 155,16"/>
+<text x="180" y="16" textLength="46" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+NODE B
+</text>
+<polygon fill="white" points="137,18 221,18 221,27 137,27"/>
+<text x="180" y="27" textLength="83" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+(sees A, C &amp; E)
+</text>
+<polygon fill="white" points="275,7 323,7 323,16 275,16"/>
+<text x="300" y="16" textLength="46" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+NODE A
+</text>
+<polygon fill="white" points="264,18 334,18 334,27 264,27"/>
+<text x="300" y="27" textLength="68" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+(sees B &amp; C)
+</text>
+<polygon fill="white" points="395,7 443,7 443,16 395,16"/>
+<text x="420" y="16" textLength="47" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+NODE C
+</text>
+<polygon fill="white" points="377,18 461,18 461,27 377,27"/>
+<text x="420" y="27" textLength="83" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+(sees A, B &amp; D)
+</text>
+<polygon fill="white" points="515,7 563,7 563,16 515,16"/>
+<text x="540" y="16" textLength="47" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+NODE D
+</text>
+<polygon fill="white" points="516,18 562,18 562,27 516,27"/>
+<text x="540" y="27" textLength="45" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+(sees D)
+</text>
+<line x1="60" y1="33" x2="60" y2="83" stroke="black"/>
+<line x1="180" y1="33" x2="180" y2="83" stroke="black"/>
+<line x1="300" y1="33" x2="300" y2="83" stroke="black"/>
+<line x1="420" y1="33" x2="420" y2="83" stroke="black"/>
+<line x1="540" y1="33" x2="540" y2="83" stroke="black"/>
+<polygon fill="white" points="254,33 346,33 346,77 254,77"/>
+<polygon fill="white" points="248,39 352,39 352,71 248,71"/>
+<circle fill="white" cx="254" cy="39" r="6"/>
+<circle fill="white" cx="346" cy="39" r="6"/>
+<circle fill="white" cx="254" cy="71" r="6"/>
+<circle fill="white" cx="346" cy="71" r="6"/>
+<line x1="254" y1="33" x2="346" y2="33" stroke="black"/>
+<line x1="254" y1="77" x2="346" y2="77" stroke="black"/>
+<line x1="248" y1="39" x2="248" y2="71" stroke="black"/>
+<line x1="352" y1="39" x2="352" y2="71" stroke="black"/>
+<path d="M 248 39 A6,6 0 0,1 254,33" stroke="black" fill="none"/><path d="M 346 33 A6,6 0 0,1 352,39" stroke="black" fill="none"/><path d="M 352 71 A6,6 0 0,1 346,77" stroke="black" fill="none"/><path d="M 254 77 A6,6 0 0,1 248,71" stroke="black" fill="none"/><polygon fill="white" points="255,34 343,34 343,43 255,43"/>
+<text x="256" y="43" textLength="86" font-family="Helvetica" font-size="12" fill="black">
+RSSI_util model
+</text>
+<polygon fill="white" points="257,45 341,45 341,54 257,54"/>
+<text x="258" y="54" textLength="82" font-family="Helvetica" font-size="12" fill="black">
+unable to find a
+</text>
+<polygon fill="white" points="262,56 337,56 337,65 262,65"/>
+<text x="263" y="65" textLength="73" font-family="Helvetica" font-size="12" fill="black">
+MAC/element
+</text>
+<polygon fill="white" points="279,67 320,67 320,76 279,76"/>
+<text x="280" y="76" textLength="39" font-family="Helvetica" font-size="12" fill="black">
+context
+</text>
+<line x1="60" y1="83" x2="60" y2="111" stroke="black"/>
+<line x1="180" y1="83" x2="180" y2="111" stroke="black"/>
+<line x1="300" y1="83" x2="300" y2="111" stroke="black"/>
+<line x1="420" y1="83" x2="420" y2="111" stroke="black"/>
+<line x1="540" y1="83" x2="540" y2="111" stroke="black"/>
+<line x1="30" y1="94" x2="570" y2="94" stroke="black" stroke-dasharray="2,2"/>
+<polygon fill="white" points="185,84 414,84 414,93 185,93"/>
+<text x="186" y="93" textLength="227" font-family="Helvetica" font-size="12" fill="black">
+Node_A sends a database beacon request
+</text>
+<polygon fill="white" points="216,95 383,95 383,104 216,104"/>
+<text x="217" y="104" textLength="165" font-family="Helvetica" font-size="12" fill="black">
+ to nodes within radio proximity
+</text>
+<line x1="60" y1="111" x2="60" y2="139" stroke="black"/>
+<line x1="180" y1="111" x2="180" y2="139" stroke="black"/>
+<line x1="300" y1="111" x2="300" y2="139" stroke="black"/>
+<line x1="420" y1="111" x2="420" y2="139" stroke="black"/>
+<line x1="540" y1="111" x2="540" y2="139" stroke="black"/>
+<line x1="300" y1="122" x2="180" y2="122" stroke="red"/>
+<line x1="180" y1="122" x2="190" y2="128" stroke="red"/>
+<polygon fill="white" points="191,112 287,112 287,121 191,121"/>
+<text x="192" y="121" textLength="94" font-family="Helvetica" font-size="12" fill="red">
+Database beacon
+</text>
+<polygon fill="white" points="217,123 262,123 262,132 217,132"/>
+<text x="218" y="132" textLength="43" font-family="Helvetica" font-size="12" fill="red">
+ request
+</text>
+<line x1="300" y1="122" x2="420" y2="122" stroke="red"/>
+<line x1="420" y1="122" x2="410" y2="128" stroke="red"/>
+<polygon fill="white" points="311,112 407,112 407,121 311,121"/>
+<text x="312" y="121" textLength="94" font-family="Helvetica" font-size="12" fill="red">
+Database beacon
+</text>
+<polygon fill="white" points="337,123 382,123 382,132 337,132"/>
+<text x="338" y="132" textLength="43" font-family="Helvetica" font-size="12" fill="red">
+ request
+</text>
+<line x1="60" y1="139" x2="60" y2="167" stroke="black"/>
+<line x1="180" y1="139" x2="180" y2="167" stroke="black"/>
+<line x1="300" y1="139" x2="300" y2="167" stroke="black"/>
+<line x1="420" y1="139" x2="420" y2="167" stroke="black"/>
+<line x1="540" y1="139" x2="540" y2="167" stroke="black"/>
+<path d="M 300 144 A60,6 0 0,1 300,156" stroke="red" fill="none"/><line x1="300" y1="156" x2="310" y2="162" stroke="red"/>
+<polygon fill="white" points="159,140 298,140 298,149 159,149"/>
+<text x="160" y="149" textLength="137" font-family="Helvetica" font-size="12" fill="red">
+Database beacon request
+</text>
+<line x1="60" y1="167" x2="60" y2="195" stroke="black"/>
+<line x1="180" y1="167" x2="180" y2="195" stroke="black"/>
+<line x1="300" y1="167" x2="300" y2="195" stroke="black"/>
+<line x1="420" y1="167" x2="420" y2="195" stroke="black"/>
+<line x1="540" y1="167" x2="540" y2="195" stroke="black"/>
+<line x1="30" y1="178" x2="570" y2="178" stroke="black" stroke-dasharray="2,2"/>
+<polygon fill="white" points="126,168 472,168 472,177 126,177"/>
+<text x="127" y="177" textLength="344" font-family="Helvetica" font-size="12" fill="black">
+All nodes who recived the request sends out a database beacon 
+</text>
+<polygon fill="white" points="209,179 389,179 389,188 209,188"/>
+<text x="210" y="188" textLength="178" font-family="Helvetica" font-size="12" fill="black">
+ nodes within their radio proximity
+</text>
+<line x1="60" y1="195" x2="60" y2="223" stroke="black"/>
+<line x1="180" y1="195" x2="180" y2="223" stroke="black"/>
+<line x1="300" y1="195" x2="300" y2="223" stroke="black"/>
+<line x1="420" y1="195" x2="420" y2="223" stroke="black"/>
+<line x1="540" y1="195" x2="540" y2="223" stroke="black"/>
+<line x1="180" y1="206" x2="60" y2="206" stroke="green"/>
+<line x1="60" y1="206" x2="70" y2="212" stroke="green"/>
+<polygon fill="white" points="71,196 167,196 167,205 71,205"/>
+<text x="72" y="205" textLength="94" font-family="Helvetica" font-size="12" fill="green">
+Database beacon
+</text>
+<line x1="180" y1="206" x2="300" y2="206" stroke="green"/>
+<line x1="300" y1="206" x2="290" y2="212" stroke="green"/>
+<line x1="180" y1="206" x2="420" y2="206" stroke="green"/>
+<line x1="420" y1="206" x2="410" y2="212" stroke="green"/>
+<polygon fill="white" points="251,196 347,196 347,205 251,205"/>
+<text x="252" y="205" textLength="94" font-family="Helvetica" font-size="12" fill="green">
+Database beacon
+</text>
+<line x1="60" y1="223" x2="60" y2="295" stroke="black"/>
+<line x1="180" y1="223" x2="180" y2="295" stroke="black"/>
+<line x1="300" y1="223" x2="300" y2="295" stroke="black"/>
+<line x1="420" y1="223" x2="420" y2="295" stroke="black"/>
+<line x1="540" y1="223" x2="540" y2="295" stroke="black"/>
+<polygon fill="white" points="14,223 106,223 106,289 14,289"/>
+<polygon fill="white" points="8,229 112,229 112,283 8,283"/>
+<circle fill="white" cx="14" cy="229" r="6"/>
+<circle fill="white" cx="106" cy="229" r="6"/>
+<circle fill="white" cx="14" cy="283" r="6"/>
+<circle fill="white" cx="106" cy="283" r="6"/>
+<line x1="14" y1="223" x2="106" y2="223" stroke="black"/>
+<line x1="14" y1="289" x2="106" y2="289" stroke="black"/>
+<line x1="8" y1="229" x2="8" y2="283" stroke="black"/>
+<line x1="112" y1="229" x2="112" y2="283" stroke="black"/>
+<path d="M 8 229 A6,6 0 0,1 14,223" stroke="black" fill="none"/><path d="M 106 223 A6,6 0 0,1 112,229" stroke="black" fill="none"/><path d="M 112 283 A6,6 0 0,1 106,289" stroke="black" fill="none"/><path d="M 14 289 A6,6 0 0,1 8,283" stroke="black" fill="none"/><polygon fill="white" points="41,224 78,224 78,233 41,233"/>
+<text x="42" y="233" textLength="35" font-family="Helvetica" font-size="12" fill="black">
+Stores
+</text>
+<polygon fill="white" points="22,235 97,235 97,244 22,244"/>
+<text x="23" y="244" textLength="73" font-family="Helvetica" font-size="12" fill="black">
+MAC/element
+</text>
+<polygon fill="white" points="25,246 93,246 93,255 25,255"/>
+<text x="26" y="255" textLength="66" font-family="Helvetica" font-size="12" fill="black">
+context from
+</text>
+<polygon fill="white" points="19,257 100,257 100,266 19,266"/>
+<text x="20" y="266" textLength="79" font-family="Helvetica" font-size="12" fill="black">
+NODE B in the
+</text>
+<polygon fill="white" points="28,268 91,268 91,277 28,277"/>
+<text x="29" y="277" textLength="61" font-family="Helvetica" font-size="12" fill="black">
+local model
+</text>
+<polygon fill="white" points="34,279 85,279 85,288 34,288"/>
+<text x="35" y="288" textLength="49" font-family="Helvetica" font-size="12" fill="black">
+database
+</text>
+<polygon fill="white" points="254,223 346,223 346,289 254,289"/>
+<polygon fill="white" points="248,229 352,229 352,283 248,283"/>
+<circle fill="white" cx="254" cy="229" r="6"/>
+<circle fill="white" cx="346" cy="229" r="6"/>
+<circle fill="white" cx="254" cy="283" r="6"/>
+<circle fill="white" cx="346" cy="283" r="6"/>
+<line x1="254" y1="223" x2="346" y2="223" stroke="black"/>
+<line x1="254" y1="289" x2="346" y2="289" stroke="black"/>
+<line x1="248" y1="229" x2="248" y2="283" stroke="black"/>
+<line x1="352" y1="229" x2="352" y2="283" stroke="black"/>
+<path d="M 248 229 A6,6 0 0,1 254,223" stroke="black" fill="none"/><path d="M 346 223 A6,6 0 0,1 352,229" stroke="black" fill="none"/><path d="M 352 283 A6,6 0 0,1 346,289" stroke="black" fill="none"/><path d="M 254 289 A6,6 0 0,1 248,283" stroke="black" fill="none"/><polygon fill="white" points="281,224 318,224 318,233 281,233"/>
+<text x="282" y="233" textLength="35" font-family="Helvetica" font-size="12" fill="black">
+Stores
+</text>
+<polygon fill="white" points="262,235 337,235 337,244 262,244"/>
+<text x="263" y="244" textLength="73" font-family="Helvetica" font-size="12" fill="black">
+MAC/element
+</text>
+<polygon fill="white" points="265,246 333,246 333,255 265,255"/>
+<text x="266" y="255" textLength="66" font-family="Helvetica" font-size="12" fill="black">
+context from
+</text>
+<polygon fill="white" points="259,257 340,257 340,266 259,266"/>
+<text x="260" y="266" textLength="79" font-family="Helvetica" font-size="12" fill="black">
+NODE B in the
+</text>
+<polygon fill="white" points="268,268 331,268 331,277 268,277"/>
+<text x="269" y="277" textLength="61" font-family="Helvetica" font-size="12" fill="black">
+local model
+</text>
+<polygon fill="white" points="274,279 325,279 325,288 274,288"/>
+<text x="275" y="288" textLength="49" font-family="Helvetica" font-size="12" fill="black">
+database
+</text>
+<polygon fill="white" points="374,223 466,223 466,289 374,289"/>
+<polygon fill="white" points="368,229 472,229 472,283 368,283"/>
+<circle fill="white" cx="374" cy="229" r="6"/>
+<circle fill="white" cx="466" cy="229" r="6"/>
+<circle fill="white" cx="374" cy="283" r="6"/>
+<circle fill="white" cx="466" cy="283" r="6"/>
+<line x1="374" y1="223" x2="466" y2="223" stroke="black"/>
+<line x1="374" y1="289" x2="466" y2="289" stroke="black"/>
+<line x1="368" y1="229" x2="368" y2="283" stroke="black"/>
+<line x1="472" y1="229" x2="472" y2="283" stroke="black"/>
+<path d="M 368 229 A6,6 0 0,1 374,223" stroke="black" fill="none"/><path d="M 466 223 A6,6 0 0,1 472,229" stroke="black" fill="none"/><path d="M 472 283 A6,6 0 0,1 466,289" stroke="black" fill="none"/><path d="M 374 289 A6,6 0 0,1 368,283" stroke="black" fill="none"/><polygon fill="white" points="401,224 438,224 438,233 401,233"/>
+<text x="402" y="233" textLength="35" font-family="Helvetica" font-size="12" fill="black">
+Stores
+</text>
+<polygon fill="white" points="382,235 457,235 457,244 382,244"/>
+<text x="383" y="244" textLength="73" font-family="Helvetica" font-size="12" fill="black">
+MAC/element
+</text>
+<polygon fill="white" points="385,246 453,246 453,255 385,255"/>
+<text x="386" y="255" textLength="66" font-family="Helvetica" font-size="12" fill="black">
+context from
+</text>
+<polygon fill="white" points="379,257 460,257 460,266 379,266"/>
+<text x="380" y="266" textLength="79" font-family="Helvetica" font-size="12" fill="black">
+NODE B in the
+</text>
+<polygon fill="white" points="388,268 451,268 451,277 388,277"/>
+<text x="389" y="277" textLength="61" font-family="Helvetica" font-size="12" fill="black">
+local model
+</text>
+<polygon fill="white" points="394,279 445,279 445,288 394,288"/>
+<text x="395" y="288" textLength="49" font-family="Helvetica" font-size="12" fill="black">
+database
+</text>
+<line x1="60" y1="295" x2="60" y2="323" stroke="black"/>
+<line x1="180" y1="295" x2="180" y2="323" stroke="black"/>
+<line x1="300" y1="295" x2="300" y2="323" stroke="black"/>
+<line x1="420" y1="295" x2="420" y2="323" stroke="black"/>
+<line x1="540" y1="295" x2="540" y2="323" stroke="black"/>
+<line x1="420" y1="306" x2="300" y2="306" stroke="green"/>
+<line x1="300" y1="306" x2="310" y2="312" stroke="green"/>
+<line x1="420" y1="306" x2="540" y2="306" stroke="green"/>
+<line x1="540" y1="306" x2="530" y2="312" stroke="green"/>
+<polygon fill="white" points="431,296 527,296 527,305 431,305"/>
+<text x="432" y="305" textLength="94" font-family="Helvetica" font-size="12" fill="green">
+Database beacon
+</text>
+<line x1="420" y1="306" x2="180" y2="306" stroke="green"/>
+<line x1="180" y1="306" x2="190" y2="312" stroke="green"/>
+<polygon fill="white" points="251,296 347,296 347,305 251,305"/>
+<text x="252" y="305" textLength="94" font-family="Helvetica" font-size="12" fill="green">
+Database beacon
+</text>
+<line x1="60" y1="323" x2="60" y2="395" stroke="black"/>
+<line x1="180" y1="323" x2="180" y2="395" stroke="black"/>
+<line x1="300" y1="323" x2="300" y2="395" stroke="black"/>
+<line x1="420" y1="323" x2="420" y2="395" stroke="black"/>
+<line x1="540" y1="323" x2="540" y2="395" stroke="black"/>
+<polygon fill="white" points="254,323 346,323 346,389 254,389"/>
+<polygon fill="white" points="248,329 352,329 352,383 248,383"/>
+<circle fill="white" cx="254" cy="329" r="6"/>
+<circle fill="white" cx="346" cy="329" r="6"/>
+<circle fill="white" cx="254" cy="383" r="6"/>
+<circle fill="white" cx="346" cy="383" r="6"/>
+<line x1="254" y1="323" x2="346" y2="323" stroke="black"/>
+<line x1="254" y1="389" x2="346" y2="389" stroke="black"/>
+<line x1="248" y1="329" x2="248" y2="383" stroke="black"/>
+<line x1="352" y1="329" x2="352" y2="383" stroke="black"/>
+<path d="M 248 329 A6,6 0 0,1 254,323" stroke="black" fill="none"/><path d="M 346 323 A6,6 0 0,1 352,329" stroke="black" fill="none"/><path d="M 352 383 A6,6 0 0,1 346,389" stroke="black" fill="none"/><path d="M 254 389 A6,6 0 0,1 248,383" stroke="black" fill="none"/><polygon fill="white" points="281,324 318,324 318,333 281,333"/>
+<text x="282" y="333" textLength="35" font-family="Helvetica" font-size="12" fill="black">
+Stores
+</text>
+<polygon fill="white" points="262,335 337,335 337,344 262,344"/>
+<text x="263" y="344" textLength="73" font-family="Helvetica" font-size="12" fill="black">
+MAC/element
+</text>
+<polygon fill="white" points="265,346 333,346 333,355 265,355"/>
+<text x="266" y="355" textLength="66" font-family="Helvetica" font-size="12" fill="black">
+context from
+</text>
+<polygon fill="white" points="259,357 340,357 340,366 259,366"/>
+<text x="260" y="366" textLength="79" font-family="Helvetica" font-size="12" fill="black">
+NODE C in the
+</text>
+<polygon fill="white" points="268,368 331,368 331,377 268,377"/>
+<text x="269" y="377" textLength="61" font-family="Helvetica" font-size="12" fill="black">
+local model
+</text>
+<polygon fill="white" points="274,379 325,379 325,388 274,388"/>
+<text x="275" y="388" textLength="49" font-family="Helvetica" font-size="12" fill="black">
+database
+</text>
+<polygon fill="white" points="134,323 226,323 226,389 134,389"/>
+<polygon fill="white" points="128,329 232,329 232,383 128,383"/>
+<circle fill="white" cx="134" cy="329" r="6"/>
+<circle fill="white" cx="226" cy="329" r="6"/>
+<circle fill="white" cx="134" cy="383" r="6"/>
+<circle fill="white" cx="226" cy="383" r="6"/>
+<line x1="134" y1="323" x2="226" y2="323" stroke="black"/>
+<line x1="134" y1="389" x2="226" y2="389" stroke="black"/>
+<line x1="128" y1="329" x2="128" y2="383" stroke="black"/>
+<line x1="232" y1="329" x2="232" y2="383" stroke="black"/>
+<path d="M 128 329 A6,6 0 0,1 134,323" stroke="black" fill="none"/><path d="M 226 323 A6,6 0 0,1 232,329" stroke="black" fill="none"/><path d="M 232 383 A6,6 0 0,1 226,389" stroke="black" fill="none"/><path d="M 134 389 A6,6 0 0,1 128,383" stroke="black" fill="none"/><polygon fill="white" points="161,324 198,324 198,333 161,333"/>
+<text x="162" y="333" textLength="35" font-family="Helvetica" font-size="12" fill="black">
+Stores
+</text>
+<polygon fill="white" points="142,335 217,335 217,344 142,344"/>
+<text x="143" y="344" textLength="73" font-family="Helvetica" font-size="12" fill="black">
+MAC/element
+</text>
+<polygon fill="white" points="145,346 213,346 213,355 145,355"/>
+<text x="146" y="355" textLength="66" font-family="Helvetica" font-size="12" fill="black">
+context from
+</text>
+<polygon fill="white" points="139,357 220,357 220,366 139,366"/>
+<text x="140" y="366" textLength="79" font-family="Helvetica" font-size="12" fill="black">
+NODE C in the
+</text>
+<polygon fill="white" points="148,368 211,368 211,377 148,377"/>
+<text x="149" y="377" textLength="61" font-family="Helvetica" font-size="12" fill="black">
+local model
+</text>
+<polygon fill="white" points="154,379 205,379 205,388 154,388"/>
+<text x="155" y="388" textLength="49" font-family="Helvetica" font-size="12" fill="black">
+database
+</text>
+<polygon fill="white" points="494,323 586,323 586,389 494,389"/>
+<polygon fill="white" points="488,329 592,329 592,383 488,383"/>
+<circle fill="white" cx="494" cy="329" r="6"/>
+<circle fill="white" cx="586" cy="329" r="6"/>
+<circle fill="white" cx="494" cy="383" r="6"/>
+<circle fill="white" cx="586" cy="383" r="6"/>
+<line x1="494" y1="323" x2="586" y2="323" stroke="black"/>
+<line x1="494" y1="389" x2="586" y2="389" stroke="black"/>
+<line x1="488" y1="329" x2="488" y2="383" stroke="black"/>
+<line x1="592" y1="329" x2="592" y2="383" stroke="black"/>
+<path d="M 488 329 A6,6 0 0,1 494,323" stroke="black" fill="none"/><path d="M 586 323 A6,6 0 0,1 592,329" stroke="black" fill="none"/><path d="M 592 383 A6,6 0 0,1 586,389" stroke="black" fill="none"/><path d="M 494 389 A6,6 0 0,1 488,383" stroke="black" fill="none"/><polygon fill="white" points="521,324 558,324 558,333 521,333"/>
+<text x="522" y="333" textLength="35" font-family="Helvetica" font-size="12" fill="black">
+Stores
+</text>
+<polygon fill="white" points="502,335 577,335 577,344 502,344"/>
+<text x="503" y="344" textLength="73" font-family="Helvetica" font-size="12" fill="black">
+MAC/element
+</text>
+<polygon fill="white" points="505,346 573,346 573,355 505,355"/>
+<text x="506" y="355" textLength="66" font-family="Helvetica" font-size="12" fill="black">
+context from
+</text>
+<polygon fill="white" points="499,357 580,357 580,366 499,366"/>
+<text x="500" y="366" textLength="79" font-family="Helvetica" font-size="12" fill="black">
+NODE C in the
+</text>
+<polygon fill="white" points="508,368 571,368 571,377 508,377"/>
+<text x="509" y="377" textLength="61" font-family="Helvetica" font-size="12" fill="black">
+local model
+</text>
+<polygon fill="white" points="514,379 565,379 565,388 514,388"/>
+<text x="515" y="388" textLength="49" font-family="Helvetica" font-size="12" fill="black">
+database
+</text>
+<line x1="60" y1="395" x2="60" y2="423" stroke="black"/>
+<line x1="180" y1="395" x2="180" y2="423" stroke="black"/>
+<line x1="300" y1="395" x2="300" y2="423" stroke="black"/>
+<line x1="420" y1="395" x2="420" y2="423" stroke="black"/>
+<line x1="540" y1="395" x2="540" y2="423" stroke="black"/>
+<line x1="300" y1="406" x2="180" y2="406" stroke="green"/>
+<line x1="180" y1="406" x2="190" y2="412" stroke="green"/>
+<polygon fill="white" points="191,396 287,396 287,405 191,405"/>
+<text x="192" y="405" textLength="94" font-family="Helvetica" font-size="12" fill="green">
+Database beacon
+</text>
+<line x1="300" y1="406" x2="420" y2="406" stroke="green"/>
+<line x1="420" y1="406" x2="410" y2="412" stroke="green"/>
+<polygon fill="white" points="311,396 407,396 407,405 311,405"/>
+<text x="312" y="405" textLength="94" font-family="Helvetica" font-size="12" fill="green">
+Database beacon
+</text>
+<line x1="60" y1="423" x2="60" y2="495" stroke="black"/>
+<line x1="180" y1="423" x2="180" y2="495" stroke="black"/>
+<line x1="300" y1="423" x2="300" y2="495" stroke="black"/>
+<line x1="420" y1="423" x2="420" y2="495" stroke="black"/>
+<line x1="540" y1="423" x2="540" y2="495" stroke="black"/>
+<polygon fill="white" points="374,423 466,423 466,489 374,489"/>
+<polygon fill="white" points="368,429 472,429 472,483 368,483"/>
+<circle fill="white" cx="374" cy="429" r="6"/>
+<circle fill="white" cx="466" cy="429" r="6"/>
+<circle fill="white" cx="374" cy="483" r="6"/>
+<circle fill="white" cx="466" cy="483" r="6"/>
+<line x1="374" y1="423" x2="466" y2="423" stroke="black"/>
+<line x1="374" y1="489" x2="466" y2="489" stroke="black"/>
+<line x1="368" y1="429" x2="368" y2="483" stroke="black"/>
+<line x1="472" y1="429" x2="472" y2="483" stroke="black"/>
+<path d="M 368 429 A6,6 0 0,1 374,423" stroke="black" fill="none"/><path d="M 466 423 A6,6 0 0,1 472,429" stroke="black" fill="none"/><path d="M 472 483 A6,6 0 0,1 466,489" stroke="black" fill="none"/><path d="M 374 489 A6,6 0 0,1 368,483" stroke="black" fill="none"/><polygon fill="white" points="401,424 438,424 438,433 401,433"/>
+<text x="402" y="433" textLength="35" font-family="Helvetica" font-size="12" fill="black">
+Stores
+</text>
+<polygon fill="white" points="382,435 457,435 457,444 382,444"/>
+<text x="383" y="444" textLength="73" font-family="Helvetica" font-size="12" fill="black">
+MAC/element
+</text>
+<polygon fill="white" points="385,446 453,446 453,455 385,455"/>
+<text x="386" y="455" textLength="66" font-family="Helvetica" font-size="12" fill="black">
+context from
+</text>
+<polygon fill="white" points="379,457 460,457 460,466 379,466"/>
+<text x="380" y="466" textLength="79" font-family="Helvetica" font-size="12" fill="black">
+NODE A in the
+</text>
+<polygon fill="white" points="388,468 451,468 451,477 388,477"/>
+<text x="389" y="477" textLength="61" font-family="Helvetica" font-size="12" fill="black">
+local model
+</text>
+<polygon fill="white" points="394,479 445,479 445,488 394,488"/>
+<text x="395" y="488" textLength="49" font-family="Helvetica" font-size="12" fill="black">
+database
+</text>
+<polygon fill="white" points="134,423 226,423 226,489 134,489"/>
+<polygon fill="white" points="128,429 232,429 232,483 128,483"/>
+<circle fill="white" cx="134" cy="429" r="6"/>
+<circle fill="white" cx="226" cy="429" r="6"/>
+<circle fill="white" cx="134" cy="483" r="6"/>
+<circle fill="white" cx="226" cy="483" r="6"/>
+<line x1="134" y1="423" x2="226" y2="423" stroke="black"/>
+<line x1="134" y1="489" x2="226" y2="489" stroke="black"/>
+<line x1="128" y1="429" x2="128" y2="483" stroke="black"/>
+<line x1="232" y1="429" x2="232" y2="483" stroke="black"/>
+<path d="M 128 429 A6,6 0 0,1 134,423" stroke="black" fill="none"/><path d="M 226 423 A6,6 0 0,1 232,429" stroke="black" fill="none"/><path d="M 232 483 A6,6 0 0,1 226,489" stroke="black" fill="none"/><path d="M 134 489 A6,6 0 0,1 128,483" stroke="black" fill="none"/><polygon fill="white" points="161,424 198,424 198,433 161,433"/>
+<text x="162" y="433" textLength="35" font-family="Helvetica" font-size="12" fill="black">
+Stores
+</text>
+<polygon fill="white" points="142,435 217,435 217,444 142,444"/>
+<text x="143" y="444" textLength="73" font-family="Helvetica" font-size="12" fill="black">
+MAC/element
+</text>
+<polygon fill="white" points="145,446 213,446 213,455 145,455"/>
+<text x="146" y="455" textLength="66" font-family="Helvetica" font-size="12" fill="black">
+context from
+</text>
+<polygon fill="white" points="139,457 220,457 220,466 139,466"/>
+<text x="140" y="466" textLength="79" font-family="Helvetica" font-size="12" fill="black">
+NODE A in the
+</text>
+<polygon fill="white" points="148,468 211,468 211,477 148,477"/>
+<text x="149" y="477" textLength="61" font-family="Helvetica" font-size="12" fill="black">
+local model
+</text>
+<polygon fill="white" points="154,479 205,479 205,488 154,488"/>
+<text x="155" y="488" textLength="49" font-family="Helvetica" font-size="12" fill="black">
+database
+</text>
+<line x1="60" y1="489" x2="60" y2="495" stroke="black"/>
+<line x1="180" y1="489" x2="180" y2="495" stroke="black"/>
+<line x1="300" y1="489" x2="300" y2="495" stroke="black"/>
+<line x1="420" y1="489" x2="420" y2="495" stroke="black"/>
+<line x1="540" y1="489" x2="540" y2="495" stroke="black"/>
+</svg>

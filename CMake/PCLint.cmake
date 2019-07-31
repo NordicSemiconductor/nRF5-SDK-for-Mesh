@@ -4,7 +4,7 @@ find_program(PC_LINT_EXECUTABLE
 
 if (PC_LINT_EXECUTABLE)
     set(PC_LINT_FLAGS "-b" CACHE STRING "Additional PC-Lint command line options")
-    set(PC_LINT_SETTINGS_FILE "${CMAKE_CONFIG_DIR}/mesh.lnt" CACHE FILE "PC-Lint configuration file")
+    set(PC_LINT_SETTINGS_FILE "${CMAKE_CONFIG_DIR}/mesh.lnt" CACHE FILEPATH "PC-Lint configuration file")
     add_custom_target(lint)
     function (add_pc_lint target sources include_dirs defines)
         file(TO_NATIVE_PATH "${PC_LINT_SETTINGS_FILE}" __filedata)

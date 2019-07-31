@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -79,6 +79,7 @@ void bearer_adv_packet_filtering_set(bool onoff)
     if (onoff)
     {
         m_adv_packet_filter.filter.handler = adv_filter_handle;
+        m_adv_packet_filter.filter.type = FILTER_TYPE_POST_PROC;
         fen_filter_start(&m_adv_packet_filter.filter);
     }
     else

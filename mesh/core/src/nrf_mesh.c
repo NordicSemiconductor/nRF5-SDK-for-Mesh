@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -73,11 +73,13 @@
 #include "core_tx_adv.h"
 #include "core_tx_instaburst.h"
 #include "core_tx_lpn.h"
+#include "core_tx_local.h"
 #include "instaburst_rx.h"
 #include "heartbeat.h"
 #include "prov_bearer_adv.h"
 #include "mesh_config.h"
 #include "mesh_opt.h"
+#include "ad_type_filter.h"
 
 #if MESH_FEATURE_GATT_PROXY_ENABLED
 #include "proxy.h"
@@ -364,8 +366,9 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
 #if MESH_FEATURE_LPN_ENABLED
     core_tx_lpn_init();
 #endif
+    core_tx_local_init();
     network_init(p_init_params);
-    transport_init(p_init_params);
+    transport_init();
     heartbeat_init();
 
 #if !defined(HOST)
@@ -377,6 +380,19 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
 #endif
 
     (void) ad_listener_subscribe(&m_nrf_mesh_listener);
+
+    /* Filter out non mesh related packets by the scanner.
+     *
+     * The ad_listener_subscribe() function called above sets whitelist mode
+     * for AD type filter by calling bearer_adtype_mode_set() and enables it
+     * y calling bearer_adtype_filtering_set().
+     * Therefore, at this point AD type filter is already enabled and
+     * here there only added additional AD types that should not be filtered out
+     * by the scanner. */
+    bearer_adtype_add(AD_TYPE_MESH);
+    bearer_adtype_add(AD_TYPE_BEACON);
+    bearer_adtype_add(AD_TYPE_PB_ADV);
+    bearer_adtype_add(AD_TYPE_DFU);
 
     m_rx_cb = NULL;
     m_mesh_state = MESH_STATE_INITIALIZED;
@@ -390,7 +406,7 @@ uint32_t nrf_mesh_enable(void)
     switch (m_mesh_state)
     {
         case MESH_STATE_INITIALIZED:
-#if !MESH_FEATURE_LPN_ENABLED
+#if !MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_LPN_ACT_AS_REGULAR_NODE_OUT_OF_FRIENDSHIP
             scanner_enable();
 #endif
             network_enable();

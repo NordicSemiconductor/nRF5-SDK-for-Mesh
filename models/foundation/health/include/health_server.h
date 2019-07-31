@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -105,8 +105,6 @@ struct __health_server_t
 {
     access_model_handle_t            model_handle;          /**< Model handle. */
     uint8_t                          fast_period_divisor;   /**< Fast period divisor, used to increase publishing interval when faults are present. */
-    access_publish_resolution_t      regular_publish_res;   /**< Regular publication interval resolution. */
-    uint8_t                          regular_publish_steps; /**< Regular publication interval steps. */
     const health_server_selftest_t * p_selftests;           /**< Pointer to an array of self-tests. */
     uint8_t                          num_selftests;         /**< Number of self-tests in @c p_selftests. */
     uint8_t                          previous_test_id;      /**< ID of the latest self-test run by the model. */

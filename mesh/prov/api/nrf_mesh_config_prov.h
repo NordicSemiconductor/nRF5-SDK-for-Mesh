@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -89,9 +89,6 @@
 
 /**
  * The default advertisement interval of the unprovisioned beacon. Meant for PB-GATT.
- *
- * @warning If the advertisement interval is set to below 200 ms, the mesh will not be able to
- * allocate sufficiently large timeslots for its persistent backend from the SoftDevice.
  */
 #ifndef NRF_MESH_PROV_BEARER_GATT_UNPROV_BEACON_INTERVAL_MS
 #define NRF_MESH_PROV_BEARER_GATT_UNPROV_BEACON_INTERVAL_MS 200
@@ -103,6 +100,18 @@
 #endif
 
 /** @} end of NRF_MESH_CONFIG_PROV_BEARER */
+
+/**
+ * @defgroup MESH_CONFIG_PROVISIONEE Provisionee configuration
+ * @{
+ */
+
+/** Set to 1 to force the mesh stack to use secure provisioning. */
+#ifndef NRF_MESH_PROV_FORCE_SECURE_PROVISIONING
+#define NRF_MESH_PROV_FORCE_SECURE_PROVISIONING (0)
+#endif
+
+/** @} end of MESH_CONFIG_PROVISIONEE */
 
 /** @} end of NRF_MESH_CONFIG_PROV */
 

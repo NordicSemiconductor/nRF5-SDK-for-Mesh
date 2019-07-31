@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -39,6 +39,7 @@
 
 #include "nrf_mesh.h"
 #include "nrf.h"
+#include "app_util.h"
 
 /**
  * @defgroup MESH_ASSERT Assert API
@@ -94,9 +95,8 @@ extern void mesh_assertion_handler(uint32_t pc);
 
 /**
  * Compile-time assertion.
- * @param[in] cond Condition to evaluate. If @c false, the compilation will be aborted with an error.
  */
-#define NRF_MESH_STATIC_ASSERT(cond) typedef char static_assert[(cond) ? 1 : -1]
+#define NRF_MESH_STATIC_ASSERT(...) STATIC_ASSERT(__VA_ARGS__)
 
 /** @} */
 

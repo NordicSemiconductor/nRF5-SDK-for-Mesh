@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -68,6 +68,7 @@ typedef enum
     INTERNAL_EVENT_FM_DEFRAG,            /**< Flash Manager Defrag Completed. */
     INTERNAL_EVENT_SAR_SUCCESS,          /**< SAR transaction cancelled. */
     INTERNAL_EVENT_NET_PACKET_RECEIVED,  /**< Network layer packet data used for PTS. */
+    INTERNAL_EVENT_GATT_PROV_PDU_IGNORED,    /**< Invalid provisioning PDU was ignored. */
 
     /** @internal Largest number in the enum. */
     INTERNAL_EVENT__LAST
@@ -121,41 +122,27 @@ typedef struct
 typedef uint32_t (*internal_event_report_cb_t) (internal_event_t * p_event);
 
 /**
- * Initializes the internal event FIFO.
+ * Initializes the internal event module.
  *
- * @param[in]  report_cb    A callback function for reporting internal events. This can be a @c NULL
- *                          pointer, in which case the events will be stored internally in a buffer
- *                          size of @ref INTERNAL_EVENT_BUFFER_SIZE.
+ * @param[in]  report_cb    A callback function for reporting internal events.
  */
 void internal_event_init(internal_event_report_cb_t report_cb);
 
 /**
- * Pushes an internal event.
+ * Pushes an internal event to the callback function provided at the initialization.
  *
  * @param[in] p_event Pointer to internal event structure.
  *
- * @retval NRF_SUCCESS         Successfully pushed event to FIFO.
- * @retval NRF_ERROR_NO_MEM    FIFO is full.
+ * @retval NRF_SUCCESS         Successfully pushed event to the callback function.
  * @retval NRF_ERROR_NULL      NULL pointer supplied to function.
  */
 uint32_t internal_event_push(internal_event_t * p_event);
 
 /**
- * Pops an internal event.
+ * Pushes an internal event to the callback function provided at the initialization.
  *
- * @param[out] p_event Pointer to internal event structure.
- *
- * @retval NRF_SUCCESS         Successfully popped event from FIFO.
- * @retval NRF_ERROR_NOT_FOUND No more events to pop from FIFO.
- * @retval NRF_ERROR_NULL      NULL pointer supplied to function.
- */
-uint32_t internal_event_pop(internal_event_t * p_event);
-
-/**
- * Pushes an internal event to the internal event FIFO.
- *
- * @warning The macro will not return any error codes as a result of, e.g. the
- * FIFO being full.
+ * @warning The macro will not return any error codes as a result of the callback
+ * call.
  *
  * @param[in] EVENT_TYPE  Type of internal event.
  * @param[in] ADDATA      Context data for event. May be NULL.
@@ -175,7 +162,7 @@ uint32_t internal_event_pop(internal_event_t * p_event);
         uint32_t RESULT = internal_event_push(&EVT);                       \
         if (RESULT != NRF_SUCCESS)                                         \
         {                                                                  \
-            __LOG(LOG_SRC_INTERNAL, LOG_LEVEL_WARN, "Unable to push to internal event queue [er%d]", RESULT); \
+            __LOG(LOG_SRC_INTERNAL, LOG_LEVEL_WARN, "Unable to push the internal event to the callback function [er%d]", RESULT); \
         }                                                               \
     } while (0)
 #else
