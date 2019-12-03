@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -87,6 +87,17 @@ bool friend_needs_packet(const transport_packet_metadata_t * p_metadata);
 void friend_sar_complete(uint16_t src, uint32_t seqzero, bool success);
 
 /**
+ * Check whether the Friend module has a packet with the specified SeqAuth.
+ *
+ * @param[in] src       Source address for the SAR transaction.
+ * @param[in] seqauth   SeqAuth for the SAR transaction to check.
+ *
+ * @retval true Friend module has the packet.
+ * @retval false Friend module does not have the packet.
+ */
+bool friend_sar_exists(uint16_t src, uint64_t seqauth);
+
+/**
  * Checks if the given LPN address has an active friendship established.
  *
  * @param[in] src       Source address of the LPN.
@@ -107,6 +118,15 @@ bool friend_friendship_established(uint16_t src);
  *                         sec. 4.3.2.68). In practice, this means the same.
  */
 uint32_t friend_remaining_poll_timeout_time_get(uint16_t src);
+
+#if FRIEND_TEST_HOOK
+/**
+ * Sets TX delay for any message sent by the friend.
+ *
+ * @param[in] tx_delay_ms TX delay in ms.
+ */
+void friend_tx_delay_set(uint16_t tx_delay_ms);
+#endif
 
 /** @} */
 

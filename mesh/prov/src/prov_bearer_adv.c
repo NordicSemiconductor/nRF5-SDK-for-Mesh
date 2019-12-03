@@ -47,6 +47,7 @@
 #include "nrf_mesh_prov.h"
 #include "nrf_mesh_configure.h"
 #include "nrf_mesh.h"
+#include "ad_listener.h"
 
 #if MESH_FEATURE_PB_ADV_ENABLED
 
@@ -115,7 +116,14 @@ NRF_MESH_STATIC_ASSERT(PROV_BEARER_ADV_PACKET_CONTINUATION_PAYLOAD_MAXLEN == 23)
 /** Transaction TX retry interval. */
 #define PROV_BEARER_ADV_TRANSACTION_BASE_RETRY_INTERVAL_US      ( 2000000)
 /** Number of repeats when sending a packet for unacked messages, such as LINK_CLOSE. */
-#define PROV_BEARER_ADV_UNACKED_REPEAT_COUNT                    (4)
+#define PROV_BEARER_ADV_UNACKED_REPEAT_COUNT                    (6)
+/** Advertiser interval for link open sending.
+ *  Interval is stretched to avoid collision between the next link open and ack on the previous one. */
+#define PROV_BEARER_ADV_LINK_OPEN_ADVERTISER_INTERVAL_MS        (3 * BEARER_ADV_INT_DEFAULT_MS)
+/** Length of the link establishment procedure.
+ *  It includes time of the link open attempts + time for the last acknowledgment (including randomization time). */
+#define PROV_BEARER_ADV_LINK_ESTABLISHMENT_LENGTH_US            ((MS_TO_US(PROV_BEARER_ADV_LINK_OPEN_ADVERTISER_INTERVAL_MS) + ADVERTISER_INTERVAL_RANDOMIZATION_US) * \
+                                                                 (PROV_BEARER_ADV_UNACKED_REPEAT_COUNT + 1))
 
 /**
  * @defgroup PB_ADV_PACKET_CONTROL_FIELD_VALUES
@@ -497,7 +505,6 @@ static uint32_t send_link_open(nrf_mesh_prov_bearer_adv_t * p_pb_adv, const uint
     pb_adv_pdu.pdu.id = PB_ADV_PACKET_CONTROL_ID_LINK_OPEN;
     memcpy(pb_adv_pdu.pdu.payload.control.link_open.uuid, p_peer_uuid, NRF_MESH_UUID_SIZE);
 
-    /* Repeat the packet multiple times, but use long intervals */
     return send_packet(p_pb_adv,
             &pb_adv_pdu,
             PB_ADV_PACKET_OVERHEAD + PROV_BEARER_PACKET_LINK_OPEN_LEN,
@@ -1012,6 +1019,51 @@ static bool async_process(void)
     return true;
 }
 
+
+static void packet_in(const uint8_t * p_data, uint32_t data_len, const nrf_mesh_rx_metadata_t * p_metadata)
+{
+    NRF_MESH_ASSERT(p_data != NULL);
+    NRF_MESH_ASSERT(p_metadata != NULL);
+
+    pb_adv_pdu_t * p_packet = (pb_adv_pdu_t *) p_data;
+
+    nrf_mesh_prov_bearer_adv_t * p_pb_adv = get_bearer_from_link_id(BE2LE32(p_packet->link_id));
+
+    switch (p_packet->pdu.control)
+    {
+        case PB_ADV_PACKET_C_TRANSACTION_START:
+            if (p_pb_adv != NULL && p_pb_adv->state == PROV_BEARER_ADV_STATE_LINK_OPEN)
+            {
+                handle_transaction_start_packet(p_pb_adv, p_packet, data_len);
+            }
+            break;
+        case PB_ADV_PACKET_C_TRANSACTION_ACK:
+            if (p_pb_adv != NULL && p_pb_adv->state == PROV_BEARER_ADV_STATE_LINK_OPEN)
+            {
+                handle_transaction_ack_packet(p_pb_adv, p_packet);
+            }
+            break;
+        case PB_ADV_PACKET_C_TRANSACTION_CONTINUE:
+            if (p_pb_adv != NULL && p_pb_adv->state == PROV_BEARER_ADV_STATE_LINK_OPEN)
+            {
+                handle_transaction_continuation_packet(p_pb_adv, p_packet, data_len);
+            }
+            break;
+        case PB_ADV_PACKET_C_CONTROL:
+            handle_control_packet(p_pb_adv, p_packet, data_len);
+            break;
+        default:
+            /* Ignore */
+            break;
+    }
+}
+
+AD_LISTENER(m_pb_adv_ad_listener) = {
+    .ad_type = AD_TYPE_PB_ADV,
+    .adv_packet_type = BLE_PACKET_TYPE_ADV_NONCONN_IND,
+    .handler = packet_in,
+};
+
 /**** Misc. ****/
 
 static void close_link(nrf_mesh_prov_bearer_adv_t * p_pb_adv, nrf_mesh_prov_link_close_reason_t reason)
@@ -1105,8 +1157,10 @@ static uint32_t prov_bearer_adv_link_open(prov_bearer_t * p_bearer, const uint8_
     if (status == NRF_SUCCESS)
     {
         /* Start the link timeout timer: */
-        reset_timeout_timer(p_pb_adv);
+        timer_sch_reschedule(&p_pb_adv->link_timeout_event,
+                             timer_now() + PROV_BEARER_ADV_LINK_ESTABLISHMENT_LENGTH_US);
 
+        advertiser_interval_set(&p_pb_adv->advertiser, PROV_BEARER_ADV_LINK_OPEN_ADVERTISER_INTERVAL_MS);
         advertiser_enable(&p_pb_adv->advertiser);
         add_active_bearer(p_pb_adv);
         p_pb_adv->state = PROV_BEARER_ADV_STATE_LINK_OPENING;
@@ -1213,44 +1267,6 @@ prov_bearer_t * nrf_mesh_prov_bearer_adv_interface_get(nrf_mesh_prov_bearer_adv_
     p_bearer_adv->prov_bearer.p_interface = &interface;
 
     return &p_bearer_adv->prov_bearer;
-}
-
-void prov_bearer_adv_packet_in(const uint8_t * p_data, uint8_t data_len, const nrf_mesh_rx_metadata_t * p_metadata)
-{
-    NRF_MESH_ASSERT(p_data != NULL);
-    NRF_MESH_ASSERT(p_metadata != NULL);
-
-    pb_adv_pdu_t * p_packet = (pb_adv_pdu_t *) p_data;
-
-    nrf_mesh_prov_bearer_adv_t * p_pb_adv = get_bearer_from_link_id(BE2LE32(p_packet->link_id));
-
-    switch (p_packet->pdu.control)
-    {
-        case PB_ADV_PACKET_C_TRANSACTION_START:
-            if (p_pb_adv != NULL && p_pb_adv->state == PROV_BEARER_ADV_STATE_LINK_OPEN)
-            {
-                handle_transaction_start_packet(p_pb_adv, p_packet, data_len);
-            }
-            break;
-        case PB_ADV_PACKET_C_TRANSACTION_ACK:
-            if (p_pb_adv != NULL && p_pb_adv->state == PROV_BEARER_ADV_STATE_LINK_OPEN)
-            {
-                handle_transaction_ack_packet(p_pb_adv, p_packet);
-            }
-            break;
-        case PB_ADV_PACKET_C_TRANSACTION_CONTINUE:
-            if (p_pb_adv != NULL && p_pb_adv->state == PROV_BEARER_ADV_STATE_LINK_OPEN)
-            {
-                handle_transaction_continuation_packet(p_pb_adv, p_packet, data_len);
-            }
-            break;
-        case PB_ADV_PACKET_C_CONTROL:
-            handle_control_packet(p_pb_adv, p_packet, data_len);
-            break;
-        default:
-            /* Ignore */
-            break;
-    }
 }
 
 #endif /* MESH_FEATURE_PB_ADV_ENABLED */

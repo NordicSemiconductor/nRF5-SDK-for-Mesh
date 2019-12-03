@@ -132,7 +132,6 @@ static void provisioning_complete_cb(void)
     ERROR_CHECK(access_model_publish_ttl_set(m_remote_server.model_handle, 6));
     ERROR_CHECK(pb_remote_server_enable(&m_remote_server));
     ERROR_CHECK(pb_remote_server_prov_bearer_set(&m_remote_server, nrf_mesh_prov_bearer_adv_interface_get(&m_prov_bearer_adv)));
-    access_flash_config_store();
 }
 
 static void mesh_init(void)
@@ -143,7 +142,18 @@ static void mesh_init(void)
         .core.lfclksrc         = DEV_BOARD_LF_CLK_CFG,
         .models.models_init_cb = models_init_cb
     };
-    ERROR_CHECK(mesh_stack_init(&init_params, &m_device_provisioned));
+
+    uint32_t status = mesh_stack_init(&init_params, &m_device_provisioned);
+    switch (status)
+    {
+        case NRF_ERROR_INVALID_DATA:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
+            break;
+        case NRF_SUCCESS:
+            break;
+        default:
+            ERROR_CHECK(status);
+    }
 }
 
 static void initialize(void)

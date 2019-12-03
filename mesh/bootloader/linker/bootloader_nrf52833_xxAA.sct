@@ -1,0 +1,25 @@
+; nRF5 SDK for Mesh Bootloader scatter file.
+
+LR_IROM1 0x00078000 0x00006000 {
+  ER_IROM1 0x00078000 0x00006000 {
+   *.o (RESET, +First)
+   *(InRoot$$Sections)
+   .ANY (+RO)
+  }
+
+  RW_IRAM1 0x20000004 0x0001fcfc {
+   .ANY (+RW +ZI)
+  }
+
+  RW_IRAM2 0x2001fd00 0x00000300 {
+    bootloader_app_bridge.o (+ZI +RW)
+    bootloader_info.o (+ZI +RW)
+    dfu_mesh.o (+ZI +RW)
+    dfu_transfer_mesh.o (+ZI +RW)
+    dfu_bank.o (+ZI +RW)
+    dfu_util.o (+ZI +RW)
+    ; sha256.o (+ZI +RW)   ; Does not contain any zero-initilized data.
+    ; uECC.o (+ZI +RW)     ; Does not contain any zero-initilized data.
+   .ANY (+RW +ZI)
+  }
+}

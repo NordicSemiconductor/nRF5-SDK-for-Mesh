@@ -41,6 +41,7 @@
 #include "mesh_stack.h"
 
 #include "nrf_mesh_mock.h"
+#include "nrf_mesh_externs_mock.h"
 #include "device_state_manager_mock.h"
 #include "access_mock.h"
 #include "access_config_mock.h"
@@ -52,6 +53,7 @@
 #include "hal_mock.h"
 #include "nrf_mesh_events.h"
 #include "mesh_config_backend_glue_mock.h"
+#include "mesh_opt_mock.h"
 
 /********** Additional mock functions **********/
 
@@ -94,7 +96,7 @@ static void mesh_stack_models_init_cb_Verify(void)
     TEST_ASSERT_FALSE(m_mesh_stack_models_init_cb_expected);
 }
 
-static void successful_init_test(bool dsm_flash_config_load_return, bool access_flash_config_load_return)
+static void successful_init_test(bool dsm_load_config_apply_return, bool access_load_config_apply_return)
 {
     health_server_selftest_t test_array[] = {{ .test_id = 1, .selftest_function = NULL }};
     bool device_provisioned;
@@ -117,28 +119,29 @@ static void successful_init_test(bool dsm_flash_config_load_return, bool access_
     config_server_init_ExpectAndReturn(config_server_evt_cb, NRF_SUCCESS);
     health_server_init_ExpectAndReturn(NULL, 0, DEVICE_COMPANY_ID, health_server_attention_cb, test_array, sizeof(test_array) / sizeof(test_array[0]), NRF_SUCCESS);
     health_server_init_IgnoreArg_p_server();
-    dsm_flash_config_load_ExpectAndReturn(dsm_flash_config_load_return);
-    access_flash_config_load_ExpectAndReturn(access_flash_config_load_return);
+    dsm_load_config_apply_ExpectAndReturn(dsm_load_config_apply_return ? NRF_SUCCESS : NRF_ERROR_INVALID_DATA);
+    access_load_config_apply_ExpectAndReturn(access_load_config_apply_return ? NRF_SUCCESS : NRF_ERROR_INVALID_DATA);
     mesh_config_load_Expect();
-    dsm_local_unicast_addresses_get_Expect(NULL);
-    dsm_local_unicast_addresses_get_IgnoreArg_p_address();
+    nrf_mesh_is_device_provisioned_ExpectAndReturn(dsm_load_config_apply_return && access_load_config_apply_return);
 
-    if (access_flash_config_load_return)
+    if (dsm_load_config_apply_return && access_load_config_apply_return)
     {
-        access_flash_config_store_Expect();
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_stack_init(&init_params, &device_provisioned));
+    }
+    else
+    {
+        mesh_opt_clear_Expect();
+        dsm_clear_Expect();
+        access_clear_Expect();
+        net_state_reset_Expect();
+        TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_DATA, mesh_stack_init(&init_params, &device_provisioned));
     }
 
-    dsm_local_unicast_address_t addresses = {.address_start = NRF_MESH_ADDR_UNASSIGNED, .count = 0};
-    if (dsm_flash_config_load_return)
-    {
-        addresses.address_start = 1;
-        addresses.count = 1;
-    }
-    dsm_local_unicast_addresses_get_ReturnThruPtr_p_address(&addresses);
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_stack_init(&init_params, &device_provisioned));
+    TEST_ASSERT_EQUAL(dsm_load_config_apply_return && access_load_config_apply_return, device_provisioned);
 
-    TEST_ASSERT_EQUAL(addresses.address_start != NRF_MESH_ADDR_UNASSIGNED, device_provisioned);
     mesh_stack_models_init_cb_Verify();
+    device_state_manager_mock_Verify();
+    access_mock_Verify();
 }
 
 
@@ -157,6 +160,8 @@ void setUp(void)
     hal_mock_Init();
     mesh_config_mock_Init();
     mesh_config_backend_glue_mock_Init();
+    nrf_mesh_externs_mock_Init();
+    mesh_opt_mock_Init();
     m_mesh_stack_models_init_cb_expected = false;
     m_mesh_evt_cb = NULL;
 }
@@ -185,6 +190,10 @@ void tearDown(void)
     mesh_config_mock_Destroy();
     mesh_config_backend_glue_mock_Verify();
     mesh_config_backend_glue_mock_Destroy();
+    nrf_mesh_externs_mock_Verify();
+    nrf_mesh_externs_mock_Destroy();
+    mesh_opt_mock_Verify();
+    mesh_opt_mock_Destroy();
 
     mesh_stack_models_init_cb_Verify();
 }
@@ -235,17 +244,16 @@ void test_provisioning_data_store(void)
     dsm_devkey_add_IgnoreArg_p_devkey_handle();
     net_state_iv_index_set_ExpectAndReturn(prov_data.iv_index, prov_data.flags.iv_update, NRF_SUCCESS);
     config_server_bind_IgnoreAndReturn(NRF_SUCCESS);
-    access_flash_config_store_Expect();
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_stack_provisioning_data_store(&prov_data, devkey));
 }
 
 void test_mesh_stack_config_clear(void)
 {
+    mesh_opt_clear_Expect();
     access_clear_Expect();
     dsm_clear_Expect();
     net_state_reset_Expect();
-    mesh_config_clear_Expect();
 
     mesh_stack_config_clear();
 }
@@ -308,10 +316,8 @@ void test_mesh_stack_persistence_flash_usage(void)
     mesh_config_usage.length = 0;
     mesh_config_backend_flash_usage_get_ExpectAnyArgs();
     mesh_config_backend_flash_usage_get_ReturnThruPtr_p_usage(&mesh_config_usage);
-    access_flash_area_get_ExpectAndReturn((void*) 1024);
-    flash_manager_recovery_page_get_ExpectAndReturn((void *) 4096);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_stack_persistence_flash_usage(&p_start, &length));
-    TEST_ASSERT_EQUAL(1024, (uint32_t) p_start);
-    TEST_ASSERT_EQUAL(4096 - 1024 + PAGE_SIZE, length);
+    TEST_ASSERT_EQUAL(NULL, (uint32_t) p_start);
+    TEST_ASSERT_EQUAL(0, length);
 #endif
 }

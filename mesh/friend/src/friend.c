@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -49,6 +49,7 @@
 #include "mesh_opt_friend.h"
 #include "mesh_config_entry.h"
 #include "net_state.h"
+#include "internal_event.h"
 
 /* For range defines. */
 #include "mesh_lpn.h"
@@ -65,6 +66,12 @@ NRF_MESH_STATIC_ASSERT((NRF_MESH_FRIEND_TOKEN_END - NRF_MESH_FRIEND_TOKEN_BEGIN)
 #define FRIEND_OFFER_TIMEOUT_MS 1000
 #define FRIEND_CLEAR_INITIAL_TIMEOUT_MS 1000
 #define FRIEND_POLL_TIMEOUT_MAX_US (UINT32_MAX / 2)
+#define FRIEND_RECENT_LPNS_LIST_COUNT (MESH_FRIEND_FRIENDSHIP_COUNT + 1)
+
+#define FACTOR_MULTIPLY(factor, value) ((factor * 0.5 + 1) * value)
+
+#define FRIEND_QUEUE_IS_EMPTY     0
+#define FRIEND_QUEUE_IS_NOT_EMPTY 1
 
 /*****************************************************************************
  * Local typedefs
@@ -95,11 +102,23 @@ typedef struct
 
 typedef struct
 {
+    uint16_t last_lpn;                /**< Address of the recently seen LPN. */
+    uint16_t last_req_count;          /**< Value of the LPN counter received in the friend request. */
+    nrf_mesh_tx_token_t token;        /**< Bearer TX token. */
+    timer_event_t confirm_send_timer; /**< Respond to valid Friend clear message in this period. */
+} recent_lpns_t;
+
+typedef struct
+{
     bool enabled;
     uint8_t default_receive_window_ms;
     uint16_t friend_counter;
     nrf_mesh_evt_handler_t mesh_evt_handler;
     friendship_t friends[MESH_FRIEND_FRIENDSHIP_COUNT];
+    recent_lpns_t recent_lpns[FRIEND_RECENT_LPNS_LIST_COUNT];
+#if FRIEND_TEST_HOOK
+    uint16_t tx_delay_ms;
+#endif
 } friend_t;
 
 /*****************************************************************************
@@ -158,6 +177,86 @@ MESH_CONFIG_ENTRY(mesh_opt_friend,
                   true);
 
 /* Utility functions */
+
+/* Find entry matching with given LPN address */
+static uint32_t confirm_timer_entry_find(uint16_t lpn_addr)
+{
+    uint32_t i;
+
+    for (i = 0; i < FRIEND_RECENT_LPNS_LIST_COUNT; i++)
+    {
+        if (m_friend.recent_lpns[i].last_lpn == lpn_addr)
+        {
+            break;
+        }
+    }
+
+    return i;
+}
+
+/* Find empty entry, and if not found, then nearest expiring entry. */
+static uint32_t confirm_timer_entry_get(void)
+{
+    uint32_t i;
+    timestamp_t nearest_expiry = timer_now();
+    uint32_t nearest_expiry_idx = FRIEND_RECENT_LPNS_LIST_COUNT;
+    for (i = 0; i < FRIEND_RECENT_LPNS_LIST_COUNT; i++)
+    {
+        if (m_friend.recent_lpns[i].last_lpn == NRF_MESH_ADDR_UNASSIGNED)
+        {
+            break;
+        }
+        else if ((i == 0) ||
+                 !(TIMER_OLDER_THAN(nearest_expiry, m_friend.recent_lpns[i].confirm_send_timer.timestamp)))
+        {
+            nearest_expiry = m_friend.recent_lpns[i].confirm_send_timer.timestamp;
+            nearest_expiry_idx = i;
+        }
+    }
+
+    if (i == FRIEND_RECENT_LPNS_LIST_COUNT)
+    {
+        i = nearest_expiry_idx;
+    }
+
+    return i;
+}
+
+static void confirm_timer_add(uint16_t lpn_addr, uint32_t poll_timeout_ms, uint32_t req_count)
+{
+    uint32_t entry;
+
+    /* Find entry to store LPN parameters. If entry already exist, replace existing entry,
+     * otherwise, find suitable entry to be filled (either empty or nearest expiring) */
+    entry = confirm_timer_entry_find(lpn_addr);
+    if (entry == FRIEND_RECENT_LPNS_LIST_COUNT)
+    {
+        entry = confirm_timer_entry_get();
+    }
+
+    __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Adding recently seen LPN: LPN 0x%04x  PT %d  entry %d\n",
+          lpn_addr, poll_timeout_ms, entry);
+    m_friend.recent_lpns[entry].last_lpn = lpn_addr;
+    m_friend.recent_lpns[entry].last_req_count = req_count;
+    timer_sch_reschedule(&m_friend.recent_lpns[entry].confirm_send_timer,
+                         timer_now() + MS_TO_US(poll_timeout_ms));
+
+}
+
+static void confirm_timer_clear(uint16_t lpn_addr)
+{
+    __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Clearing recently seen LPN: LPN 0x%04x\n", lpn_addr);
+    for(uint32_t i = 0; i < FRIEND_RECENT_LPNS_LIST_COUNT; i++)
+    {
+        if (m_friend.recent_lpns[i].last_lpn == lpn_addr)
+        {
+            __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Cleared\n");
+            m_friend.recent_lpns[i].last_lpn = NRF_MESH_ADDR_UNASSIGNED;
+            timer_sch_abort(&m_friend.recent_lpns[i].confirm_send_timer);
+        }
+    }
+}
+
 static timestamp_t remaining_poll_timeout_time_get(const friendship_t * p_friendship)
 {
     const timestamp_t time_now = timer_now();
@@ -207,6 +306,10 @@ static void friend_tx(friendship_t * p_friendship,
     uint32_t status = transport_control_tx(&control_packet,
                                            p_friendship->bearer.token);
 
+#if FRIEND_TEST_HOOK
+    tx_time += MS_TO_US(m_friend.tx_delay_ms);
+#endif
+
     if (status != NRF_SUCCESS)
     {
         __LOG(LOG_SRC_FRIEND, LOG_LEVEL_WARN, "TX failed: status: %d\n", status);
@@ -241,9 +344,12 @@ static void friendship_terminate(friendship_t * p_friendship,
                                  &dummy_element_count);
 
     evt.type = NRF_MESH_EVT_FRIENDSHIP_TERMINATED;
+    evt.params.friendship_terminated.role = NRF_MESH_FRIENDSHIP_ROLE_FRIEND;
     evt.params.friendship_terminated.lpn_src = p_friendship->friendship.lpn.src;
     evt.params.friendship_terminated.reason = reason;
 
+    confirm_timer_add(p_friendship->friendship.lpn.src, p_friendship->friendship.poll_timeout_ms,
+                      p_friendship->friendship.lpn.request_count);
     friendship_state_reset(p_friendship);
     event_handle(&evt);
 
@@ -268,8 +374,8 @@ static timestamp_t friend_offer_delay_get(mesh_friendship_receive_window_factor_
                                           uint16_t receive_window_ms,
                                           int8_t rssi)
 {
-    int delay = ((int) receive_window_factor * receive_window_ms -
-                 (int) rssi_factor * rssi);
+    int delay = (int)(FACTOR_MULTIPLY(receive_window_factor, receive_window_ms) -
+                      FACTOR_MULTIPLY(rssi_factor, rssi));
 
     /* Mesh Profile v1.0, 3.6.6.3.1 p. 79: Local Delay shall have a lower bound
      * of 100ms. */
@@ -459,15 +565,13 @@ static void friend_update_tx(friendship_t * p_friendship,
     packet_mesh_trs_control_packet_t friend_update;
     memset(&friend_update, 0, PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_SIZE);
 
-    packet_mesh_trs_control_friend_update_key_refresh_flag_set(
-        &friend_update, (nrf_mesh_key_refresh_phase_get(p_net_secmat)
-                          == NRF_MESH_KEY_REFRESH_PHASE_2));
-    packet_mesh_trs_control_friend_update_iv_update_flag_set(
-        &friend_update, (net_state_iv_update_get() == NET_STATE_IV_UPDATE_IN_PROGRESS));
-    packet_mesh_trs_control_friend_update_iv_index_set(
-        &friend_update, net_state_beacon_iv_index_get());
-    packet_mesh_trs_control_friend_update_md_set(
-        &friend_update, !friend_queue_is_empty(&p_friendship->queue));
+    packet_mesh_trs_control_friend_update_key_refresh_flag_set(&friend_update,
+        (nrf_mesh_key_refresh_phase_get(p_net_secmat) == NRF_MESH_KEY_REFRESH_PHASE_2));
+    packet_mesh_trs_control_friend_update_iv_update_flag_set(&friend_update,
+        (net_state_iv_update_get() == NET_STATE_IV_UPDATE_IN_PROGRESS));
+    packet_mesh_trs_control_friend_update_iv_index_set(&friend_update, net_state_beacon_iv_index_get());
+    packet_mesh_trs_control_friend_update_md_set(&friend_update,
+        friend_queue_is_empty(&p_friendship->queue) ? FRIEND_QUEUE_IS_EMPTY : FRIEND_QUEUE_IS_NOT_EMPTY);
 
     friend_tx(p_friendship,
               TRANSPORT_CONTROL_OPCODE_FRIEND_UPDATE,
@@ -506,11 +610,11 @@ static void friend_relay(friendship_t * p_friendship,
 
     if (packet_mesh_trs_control_opcode_get(&p_packet->packet) == TRANSPORT_CONTROL_OPCODE_FRIEND_UPDATE)
     {
-        /* The queue may have gotten additional packets since we pushed the
-         * update. */
+        /* The queue may have gotten additional packets since we pushed the update.
+         * We always keep the ongoing packet in the queue until receive Friend Poll with changed fsn. */
         packet_mesh_trs_control_friend_update_md_set(
             (packet_mesh_trs_control_packet_t*) &p_packet->packet.pdu[PACKET_MESH_TRS_UNSEG_PDU_OFFSET],
-            !friend_queue_is_empty(&p_friendship->queue));
+            friend_queue_packet_counter_get(&p_friendship->queue) > 1 ? FRIEND_QUEUE_IS_NOT_EMPTY : FRIEND_QUEUE_IS_EMPTY);
     }
 
     uint32_t status = network_packet_alloc(&net_buf);
@@ -588,15 +692,16 @@ static void friend_clear_tx(friendship_t * p_friendship)
                           status == NRF_ERROR_NO_MEM);
 }
 
-static void friend_clear_confirm_tx(friendship_t * p_friendship,
+static void friend_clear_confirm_tx(uint16_t lpn_src, uint16_t lpn_req_count,
+                                    nrf_mesh_tx_token_t bearer_token,
                                     const transport_control_packet_t * p_clear_packet)
 {
     packet_mesh_trs_control_packet_t friend_clear_confirm;
     memset(&friend_clear_confirm, 0, sizeof(friend_clear_confirm));
     packet_mesh_trs_control_friend_clear_confirm_lpn_address_set(
-        &friend_clear_confirm, p_friendship->friendship.lpn.src);
+        &friend_clear_confirm, lpn_src);
     packet_mesh_trs_control_friend_clear_confirm_lpn_counter_set(
-        &friend_clear_confirm, p_friendship->friendship.lpn.request_count);
+        &friend_clear_confirm, lpn_req_count);
 
     transport_control_packet_t control_packet;
     memset(&control_packet, 0, sizeof(control_packet));
@@ -610,7 +715,7 @@ static void friend_clear_confirm_tx(friendship_t * p_friendship,
     control_packet.ttl = p_clear_packet->ttl == 0 ? 0 : NRF_MESH_TTL_MAX;
     control_packet.bearer_selector = CORE_TX_BEARER_TYPE_ALLOW_ALL;
     uint32_t status = transport_control_tx(&control_packet,
-                                           p_friendship->bearer.token);
+                                           bearer_token);
     NRF_MESH_ASSERT_DEBUG(status == NRF_SUCCESS ||
                           status == NRF_ERROR_FORBIDDEN);
 }
@@ -638,6 +743,64 @@ static void friend_clear_timeout_cb(timestamp_t timeout, void * p_context)
     }
 }
 
+static void confirm_send_timer_cb(timestamp_t timeout, void * p_context)
+{
+    recent_lpns_t * p_recent_lpns = p_context;
+    __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Removing last seen LPN: 0x%04x\n", p_recent_lpns->last_lpn);
+
+    p_recent_lpns->last_lpn = NRF_MESH_ADDR_UNASSIGNED;
+    timer_sch_abort(&p_recent_lpns->confirm_send_timer);
+}
+
+static recent_lpns_t * recent_lpns_get(const transport_control_packet_t * p_control_packet,
+                                       uint16_t exp_size)
+{
+    if ((exp_size > 0) && (p_control_packet->data_len != exp_size))
+    {
+        return NULL;
+    }
+
+    uint16_t lpn_addr = packet_mesh_trs_control_friend_clear_lpn_address_get(p_control_packet->p_data);
+
+    for (uint32_t i = 0; i < FRIEND_RECENT_LPNS_LIST_COUNT; i++)
+    {
+        if (m_friend.recent_lpns[i].last_lpn == lpn_addr)
+        {
+            return &m_friend.recent_lpns[i];
+        }
+    }
+
+    return NULL;
+}
+
+static friendship_t * friendship_get(const transport_control_packet_t * p_control_packet,
+                                     uint16_t exp_size)
+{
+    if (!m_friend.enabled || ((exp_size > 0) && (p_control_packet->data_len != exp_size)))
+    {
+        return NULL;
+    }
+
+    uint16_t lpn_address = p_control_packet->src;
+    if (p_control_packet->opcode == TRANSPORT_CONTROL_OPCODE_FRIEND_CLEAR ||
+        p_control_packet->opcode == TRANSPORT_CONTROL_OPCODE_FRIEND_CLEAR_CONFIRM)
+    {
+        lpn_address = packet_mesh_trs_control_friend_clear_lpn_address_get(
+            p_control_packet->p_data);
+        __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Clearing friendship for LPN 0x%04x\n",
+              lpn_address);
+    }
+
+    friendship_t * p_friendship = friendship_find(lpn_address);
+    if (p_friendship == NULL)
+    {
+        __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Received opcode %d from unkown LPN 0x%04x (src 0x%04x)\n",
+            p_control_packet->opcode, lpn_address, p_control_packet->src);
+    }
+
+    return p_friendship;
+}
+
 /*******************************************************************************
  * Transport opcode handler callbacks
  *******************************************************************************/
@@ -645,19 +808,12 @@ static void friend_clear_timeout_cb(timestamp_t timeout, void * p_context)
 static void friend_poll_handle(const transport_control_packet_t * p_control_packet,
                                const nrf_mesh_rx_metadata_t * p_rx_metadata)
 {
-    NRF_MESH_ASSERT_DEBUG(p_control_packet != NULL);
-    NRF_MESH_ASSERT_DEBUG(p_rx_metadata != NULL);
-    if (!m_friend.enabled ||
-        p_control_packet->data_len != PACKET_MESH_TRS_CONTROL_FRIEND_POLL_SIZE ||
+    friendship_t * p_friendship = friendship_get(p_control_packet,
+        PACKET_MESH_TRS_CONTROL_FRIEND_POLL_SIZE);
+    if (p_friendship == NULL ||
         (p_control_packet->p_data->pdu[PACKET_MESH_TRS_CONTROL_FRIEND_POLL_FSN_OFFSET] &
          PACKET_MESH_TRS_CONTROL_FRIEND_POLL_FSN_MASK_INV) != 0)
     {
-        return;
-    }
-    friendship_t * p_friendship = friendship_find(p_control_packet->src);
-    if (p_friendship == NULL)
-    {
-        __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Received poll from unkown LPN 0x%04x\n", p_control_packet->src);
         return;
     }
 
@@ -687,6 +843,15 @@ static void friend_poll_handle(const transport_control_packet_t * p_control_pack
             }
             __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Friendship established (0x%04x)\n",
                   p_friendship->friendship.lpn.src);
+
+            confirm_timer_clear(p_friendship->friendship.lpn.src);
+
+            nrf_mesh_evt_t evt;
+            evt.type = NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED;
+            evt.params.friendship_established.role = NRF_MESH_FRIENDSHIP_ROLE_FRIEND;
+            evt.params.friendship_established.lpn_src = p_friendship->friendship.lpn.src;
+            evt.params.friendship_established.friend_src = unicast_address;
+            event_handle(&evt);
             break;
         }
         case FRIEND_STATE_ESTABLISHED:
@@ -826,73 +991,80 @@ static void friend_request_handle(const transport_control_packet_t * p_control_p
 static void friend_clear_handle(const transport_control_packet_t * p_control_packet,
                                 const nrf_mesh_rx_metadata_t * p_rx_metadata)
 {
-    NRF_MESH_ASSERT_DEBUG(p_control_packet != NULL);
-    NRF_MESH_ASSERT_DEBUG(p_rx_metadata != NULL);
-    if (!m_friend.enabled ||
-        p_control_packet->data_len != PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_SIZE)
+    uint16_t friend_req_count = 0;
+    uint16_t lpn_counter = 0;
+
+    if (p_control_packet->data_len != PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_SIZE)
     {
         return;
     }
 
-    uint16_t lpn_address = packet_mesh_trs_control_friend_clear_lpn_address_get(
-        p_control_packet->p_data);
-    uint16_t lpn_counter = packet_mesh_trs_control_friend_clear_lpn_counter_get(
-        p_control_packet->p_data);
+    lpn_counter = packet_mesh_trs_control_friend_clear_lpn_counter_get(p_control_packet->p_data);
 
-    friendship_t * p_friendship = friendship_find(lpn_address);
-    if (p_friendship == NULL)
+    friendship_t * p_friendship = friendship_get(p_control_packet,
+                                                 PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_SIZE);
+
+    recent_lpns_t * p_recent_lpn  = recent_lpns_get(p_control_packet,
+                                                    PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_SIZE);
+
+    /* Handle corner case that can occur during establishment process: `p_friendship` and
+     * `p_recent_lpn` are both valid. If this happens, the friend will allow establishment
+     * to continue without terminating (otherwise this will cause wasted effort for LPN).*/
+    if ((p_friendship != NULL && p_recent_lpn != NULL) ||
+        (p_friendship == NULL && p_recent_lpn == NULL))
     {
-        __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1,
-              "Received Friend Clear for unknown LPN 0x%04x from 0x%04x\n",
-              lpn_address, p_control_packet->src);
         return;
     }
-    else if (!friend_clear_is_valid_lpn_counter(p_friendship->friendship.lpn.request_count,
-                                                lpn_counter))
+
+    if (p_friendship != NULL)
+    {
+        friend_req_count = p_friendship->friendship.lpn.request_count;
+    }
+
+    if (p_recent_lpn != NULL)
+    {
+        friend_req_count = p_recent_lpn->last_req_count;
+    }
+
+    if (!friend_clear_is_valid_lpn_counter(friend_req_count, lpn_counter))
     {
         __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Invalid LPNCounter: %u != %u\n",
-              lpn_counter, p_friendship->friendship.lpn.request_count);
+              lpn_counter, friend_req_count);
         return;
     }
 
-    /* FIXME: The Friend should cache old friends until the poll timeout of the
-     * friendship. This is to adhere to the requirement (Mesh Profile v1.0, sec.
-     * 3.6.5.6):
-     *
-     * > The message should only be sent in response to a valid Friend Clear
-     *   message received within the Poll Timeout of the previous friend
-     *   relationship, but it should send a Friend Clear Confirm message for
-     *   each valid Friend Clear message that it receives in that period.
-     */
-    friend_clear_confirm_tx(p_friendship, p_control_packet);
-    friendship_terminate(p_friendship, NRF_MESH_EVT_FRIENDSHIP_TERMINATED_REASON_NEW_FRIEND);
+    if (p_friendship != NULL)
+    {
+        friend_clear_confirm_tx(p_friendship->friendship.lpn.src,
+                                p_friendship->friendship.lpn.request_count,
+                                p_friendship->bearer.token,
+                                p_control_packet);
+        friendship_terminate(p_friendship, NRF_MESH_EVT_FRIENDSHIP_TERMINATED_REASON_NEW_FRIEND);
+
+    }
+
+    if (p_recent_lpn != NULL)
+    {
+        friend_clear_confirm_tx(p_recent_lpn->last_lpn,
+                                p_recent_lpn->last_req_count,
+                                p_recent_lpn->token,
+                                p_control_packet);
+    }
 }
 
 static void friend_clear_confirm_handle(const transport_control_packet_t * p_control_packet,
                                         const nrf_mesh_rx_metadata_t * p_rx_metadata)
 {
-    NRF_MESH_ASSERT_DEBUG(p_control_packet != NULL);
-    NRF_MESH_ASSERT_DEBUG(p_rx_metadata != NULL);
-    if (!m_friend.enabled ||
-        p_control_packet->data_len != PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_SIZE)
-    {
-        return;
-    }
-
-    uint16_t lpn_address = packet_mesh_trs_control_friend_clear_confirm_lpn_address_get(
-        p_control_packet->p_data);
-    uint16_t lpn_counter = packet_mesh_trs_control_friend_clear_confirm_lpn_counter_get(
-        p_control_packet->p_data);
-
-    friendship_t * p_friendship = friendship_find(lpn_address);
+    friendship_t * p_friendship = friendship_get(p_control_packet,
+        PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_SIZE);
     if (p_friendship == NULL)
     {
-        __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1,
-              "Received Friend Clear Confirm for unknown LPN 0x%04x from 0x%04x\n",
-              lpn_address, p_control_packet->src);
         return;
     }
-    else if (p_friendship->friendship.lpn.request_count != lpn_counter)
+
+    uint16_t lpn_counter = packet_mesh_trs_control_friend_clear_confirm_lpn_counter_get(
+        p_control_packet->p_data);
+    if (p_friendship->friendship.lpn.request_count != lpn_counter)
     {
         __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Unexpected LPNCounter: %u != %u\n",
               lpn_counter, p_friendship->friendship.lpn.request_count);
@@ -905,18 +1077,9 @@ static void friend_clear_confirm_handle(const transport_control_packet_t * p_con
 static void friend_sublist_add_handle(const transport_control_packet_t * p_control_packet,
                                       const nrf_mesh_rx_metadata_t * p_rx_metadata)
 {
-    NRF_MESH_ASSERT_DEBUG(p_control_packet != NULL);
-    NRF_MESH_ASSERT_DEBUG(p_rx_metadata != NULL);
-
-    if (!m_friend.enabled)
-    {
-        return;
-    }
-
-    friendship_t * p_friendship = friendship_find(p_control_packet->src);
+    friendship_t * p_friendship = friendship_get(p_control_packet, 0);
     if (p_friendship == NULL)
     {
-        __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Received sublist add from unkown LPN 0x%04x\n", p_control_packet->src);
         return;
     }
 
@@ -942,7 +1105,7 @@ static void friend_sublist_add_handle(const transport_control_packet_t * p_contr
 
     if (status != NRF_SUCCESS)
     {
-        __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Error %u: adding to sublist 0x%04x\n",
+        __LOG(LOG_SRC_FRIEND, LOG_LEVEL_WARN, "Error %u: adding to sublist 0x%04x\n",
               status, p_friendship->friendship.lpn.src);
     }
     else
@@ -958,18 +1121,9 @@ static void friend_sublist_add_handle(const transport_control_packet_t * p_contr
 static void friend_sublist_remove_handle(const transport_control_packet_t * p_control_packet,
                                          const nrf_mesh_rx_metadata_t * p_rx_metadata)
 {
-    NRF_MESH_ASSERT_DEBUG(p_control_packet != NULL);
-    NRF_MESH_ASSERT_DEBUG(p_rx_metadata != NULL);
-
-    if (!m_friend.enabled)
-    {
-        return;
-    }
-
-    friendship_t * p_friendship = friendship_find(p_control_packet->src);
+    friendship_t * p_friendship = friendship_get(p_control_packet, 0);
     if (p_friendship == NULL)
     {
-        __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Received sublist remove from unkown LPN 0x%04x\n", p_control_packet->src);
         return;
     }
 
@@ -1035,6 +1189,7 @@ static void friend_update_enqueue(friendship_t * p_friendship)
     };
 
     packet_mesh_trs_packet_t friend_update_packet;
+    memset(&friend_update_packet, 0, sizeof(packet_mesh_trs_packet_t));
     packet_mesh_trs_control_opcode_set(&friend_update_packet,
                                        TRANSPORT_CONTROL_OPCODE_FRIEND_UPDATE);
 
@@ -1056,6 +1211,7 @@ static void friend_update_enqueue(friendship_t * p_friendship)
     __LOG_XB(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Friend Update Queue",
              p_friend_update->pdu,
              PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_SIZE);
+    __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_FRIEND_PACKET_QUEUED, 0, PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_SIZE, p_friend_update->pdu);
     friend_queue_packet_push(&p_friendship->queue,
                              &friend_update_packet,
                              PACKET_MESH_TRS_CONTROL_FRIEND_UPDATE_SIZE +
@@ -1092,9 +1248,13 @@ static void key_refresh_handle(const nrf_mesh_evt_key_refresh_notification_t * p
 {
     for (uint32_t i = 0; i < MESH_FRIEND_FRIENDSHIP_COUNT; ++i)
     {
-        if (m_friend.friends[i].state == FRIEND_STATE_ESTABLISHED &&
-            is_subnet_of_friend(&m_friend.friends[i],
-                                nrf_mesh_net_secmat_from_index_get(p_evt->subnet_index)))
+        if (m_friend.friends[i].state != FRIEND_STATE_ESTABLISHED)
+        {
+            continue;
+        }
+
+        if (is_subnet_of_friend(&m_friend.friends[i], nrf_mesh_net_secmat_from_index_get(p_evt->subnet_index)) &&
+            p_evt->phase == NRF_MESH_KEY_REFRESH_PHASE_2)
         {
             friend_update_enqueue(&m_friend.friends[i]);
         }
@@ -1145,6 +1305,14 @@ uint32_t mesh_friend_init(void)
         core_tx_friend_init(&m_friend.friends[i].bearer,
                             NRF_MESH_FRIEND_TOKEN_BEGIN + i);
     }
+
+    for (uint32_t i = 0; i < FRIEND_RECENT_LPNS_LIST_COUNT; i++)
+    {
+        m_friend.recent_lpns[i].last_lpn = NRF_MESH_ADDR_UNASSIGNED;
+        m_friend.recent_lpns[i].confirm_send_timer.p_context = &m_friend.recent_lpns[i];
+        m_friend.recent_lpns[i].confirm_send_timer.cb = confirm_send_timer_cb;
+    }
+
     /* TODO: Handle enabled/disabled state. */
     m_friend.default_receive_window_ms = MESH_FRIEND_RECEIVE_WINDOW_DEFAULT_MS;
     NRF_MESH_ASSERT_DEBUG((transport_control_packet_consumer_add(
@@ -1154,6 +1322,9 @@ uint32_t mesh_friend_init(void)
 
     m_friend.mesh_evt_handler.evt_cb = mesh_evt_cb;
     nrf_mesh_evt_handler_add(&m_friend.mesh_evt_handler);
+#if FRIEND_TEST_HOOK
+    m_friend.tx_delay_ms = 0;
+#endif
     return NRF_SUCCESS;
 }
 
@@ -1220,7 +1391,7 @@ uint32_t mesh_friend_receive_window_set(uint8_t receive_window_ms)
 
 uint32_t mesh_friend_friendships_get(const mesh_friendship_t ** pp_friendships, uint8_t * p_count)
 {
-    if (p_count == NULL || pp_friendships == NULL || *pp_friendships == NULL)
+    if (p_count == NULL || pp_friendships == NULL)
     {
         return NRF_ERROR_NULL;
     }
@@ -1291,11 +1462,18 @@ void friend_packet_in(const packet_mesh_trs_packet_t * p_packet,
     for (uint32_t i = 0; i < MESH_FRIEND_FRIENDSHIP_COUNT; ++i)
     {
         friendship_t * p_friendship = &m_friend.friends[i];
+
+        if (p_friendship->state != FRIEND_STATE_ESTABLISHED)
+        {
+            continue;
+        }
+
         if (friend_address_is_known(p_friendship,
                                     p_metadata->net.dst))
         {
             NRF_MESH_ASSERT_DEBUG(p_friendship != NULL);
             __LOG_XB(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Packet Queue", p_packet->pdu, length);
+            __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_FRIEND_PACKET_QUEUED, 0, length, p_packet->pdu);
             friend_queue_packet_push(&p_friendship->queue,
                                      p_packet,
                                      length,
@@ -1319,8 +1497,21 @@ bool friend_needs_packet(const transport_packet_metadata_t * p_metadata)
         return false;
     }
 
+    /* No reason to receive a segmented packet if it doesn't fit into friend queue. */
+    if (p_metadata->segmented &&
+        (p_metadata->segmentation.last_segment + 1) > MESH_FRIEND_QUEUE_SIZE)
+    {
+        __LOG(LOG_SRC_FRIEND, LOG_LEVEL_WARN, "Can not receive the segmented message, the friend queue size is too small!\n");
+        return false;
+    }
+
     for (uint32_t i = 0; i < MESH_FRIEND_FRIENDSHIP_COUNT; ++i)
     {
+        if (m_friend.friends[i].state != FRIEND_STATE_ESTABLISHED)
+        {
+            continue;
+        }
+
         if (friend_address_is_known(&m_friend.friends[i],
                                     p_metadata->net.dst))
         {
@@ -1344,6 +1535,24 @@ void friend_sar_complete(uint16_t src, uint32_t seqzero, bool success)
             friend_queue_sar_complete(&m_friend.friends[i].queue, src, success);
         }
     }
+}
+
+bool friend_sar_exists(uint16_t src, uint64_t seqauth)
+{
+    if (!m_friend.enabled)
+    {
+        return false;
+    }
+
+    for (uint32_t i = 0; i < MESH_FRIEND_FRIENDSHIP_COUNT; ++i)
+    {
+        if (m_friend.friends[i].state == FRIEND_STATE_ESTABLISHED)
+        {
+            return friend_queue_sar_exists(&m_friend.friends[i].queue, src, seqauth);
+        }
+    }
+
+    return false;
 }
 
 bool friend_friendship_established(uint16_t src)
@@ -1375,5 +1584,12 @@ uint32_t friend_remaining_poll_timeout_time_get(uint16_t src)
         return 0;
     }
 }
+
+#if FRIEND_TEST_HOOK
+void friend_tx_delay_set(uint16_t tx_delay_ms)
+{
+    m_friend.tx_delay_ms = tx_delay_ms;
+}
+#endif
 
 #endif  /* MESH_FEATURE_FRIEND_ENABLED */

@@ -48,8 +48,11 @@
  *
  * This module implements the remote provisioning client (PB-Remote client) model.
  *
+ * For conceptual information, see @ref md_doc_getting_started_provisioning_pb-remote.
+ *
  * @mscfile pb_remote_client_init.msc Initializing the Remote Provisioning Client
  * @dotfile pb_remote_client.dot Remote Provisioning Client state diagram
+ *
  * @{
  */
 
@@ -145,6 +148,8 @@ typedef struct
     access_reliable_t reliable;
     /** User event callback. */
     pb_remote_client_event_cb_t event_cb;
+    /** Current Provisioning PDU Type. */
+    uint8_t current_prov_pdu_type;
 } pb_remote_client_t;
 
 /**

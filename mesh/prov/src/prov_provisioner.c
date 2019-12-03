@@ -52,7 +52,7 @@
 #include "nrf_mesh_prov_events.h"
 
 #include "provisioning.h"
-#include "nrf_mesh_prov_bearer.h"
+#include "nrf_mesh_prov_bearer_adv.h"
 #include "prov_pdu.h"
 #include "prov_utils.h"
 
@@ -148,7 +148,7 @@ static uint32_t request_authentication(nrf_mesh_prov_ctx_t * p_ctx)
             event.type = NRF_MESH_PROV_EVT_OUTPUT_REQUEST;
             event.params.output_request.p_context =  p_ctx;
             event.params.output_request.size = p_ctx->oob_size;
-            event.params.output_request.action = (nrf_mesh_prov_output_action_t) p_ctx->oob_action;
+            event.params.output_request.action = p_ctx->oob_action;
             event.params.output_request.p_data = p_ctx->auth_value;
             p_ctx->state = NRF_MESH_PROV_STATE_WAIT_INPUT_COMPLETE;
             p_ctx->event_handler(&event);
@@ -161,7 +161,7 @@ static uint32_t request_authentication(nrf_mesh_prov_ctx_t * p_ctx)
             event.type = NRF_MESH_PROV_EVT_INPUT_REQUEST;
             event.params.input_request.p_context =  p_ctx;
             event.params.input_request.size = p_ctx->oob_size;
-            event.params.input_request.action = (nrf_mesh_prov_input_action_t) p_ctx->oob_action;
+            event.params.input_request.action = p_ctx->oob_action;
             p_ctx->state = NRF_MESH_PROV_STATE_WAIT_OOB_INPUT;
             p_ctx->event_handler(&event);
 
@@ -496,17 +496,16 @@ uint32_t prov_provisioner_oob_use(nrf_mesh_prov_ctx_t * p_ctx,
         return NRF_ERROR_INVALID_STATE;
     }
 
-    if (size > PROV_AUTH_LEN
-            || (size == 0             && method != NRF_MESH_PROV_OOB_METHOD_NONE)
-            || (size != 0             && method == NRF_MESH_PROV_OOB_METHOD_NONE)
-            || (size != PROV_AUTH_LEN && method == NRF_MESH_PROV_OOB_METHOD_STATIC))
+    if (method != NRF_MESH_PROV_OOB_METHOD_STATIC && (size > PROV_AUTH_LEN
+            || (size == 0 && method != NRF_MESH_PROV_OOB_METHOD_NONE)
+            || (size != 0 && method == NRF_MESH_PROV_OOB_METHOD_NONE)))
     {
         return NRF_ERROR_INVALID_LENGTH;
     }
 
     p_ctx->oob_method = method;
     p_ctx->oob_action = action;
-    p_ctx->oob_size = size;
+    p_ctx->oob_size = method == NRF_MESH_PROV_OOB_METHOD_STATIC ? PROV_AUTH_LEN : size;
     p_ctx->pubkey_oob = p_ctx->capabilities.pubkey_type & NRF_MESH_PROV_OOB_PUBKEY_TYPE_OOB;
 
     prov_pdu_prov_start_t pdu;
@@ -515,8 +514,17 @@ uint32_t prov_provisioner_oob_use(nrf_mesh_prov_ctx_t * p_ctx,
     pdu.algorithm = PROV_PDU_START_ALGO_FIPS_P256; /* FIPS P256 EC is the only supported algorithm. */
     pdu.public_key = p_ctx->capabilities.pubkey_type & NRF_MESH_PROV_OOB_PUBKEY_TYPE_OOB;
     pdu.auth_method = (uint8_t) p_ctx->oob_method;
-    pdu.auth_action = p_ctx->oob_method == NRF_MESH_PROV_OOB_METHOD_STATIC ? 0 : p_ctx->oob_action;
-    pdu.auth_size = p_ctx->oob_method == NRF_MESH_PROV_OOB_METHOD_STATIC ? 0 : p_ctx->oob_size;
+    if (p_ctx->oob_method == NRF_MESH_PROV_OOB_METHOD_STATIC
+            || p_ctx->oob_method == NRF_MESH_PROV_OOB_METHOD_NONE)
+    {
+        pdu.auth_action = 0;
+        pdu.auth_size = 0;
+    }
+    else
+    {
+        pdu.auth_action = p_ctx->oob_action;
+        pdu.auth_size = p_ctx->oob_size;
+    }
 
     uint32_t retval = prov_tx_start(p_ctx->p_active_bearer, &pdu, p_ctx->confirmation_inputs);
     if (retval == NRF_SUCCESS)

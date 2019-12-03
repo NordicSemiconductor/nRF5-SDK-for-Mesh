@@ -39,6 +39,22 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "compiler_abstraction.h"
+#include "nordic_common.h"
+#include "nrf.h"
+
+#if defined(MBR_PRESENT) || defined(SOFTDEVICE_PRESENT)
+#include "nrf_mbr.h"
+/**< The currently configured start address of the bootloader. If 0xFFFFFFFF, no bootloader start
+ * address is configured. */
+#define BOOTLOADERADDR()      ((*(uint32_t *)MBR_BOOTLOADER_ADDR) == 0xFFFFFFFF ? \
+                                *MBR_UICR_BOOTLOADER_ADDR : *(uint32_t *)MBR_BOOTLOADER_ADDR)
+#else
+/**< Check UICR, just in case. */
+#define BOOTLOADERADDR()      (NRF_UICR->NRFFW[0])
+#endif
+
+
 
 #ifdef NRF51
 #define PAGE_SIZE          (0x400)
@@ -49,14 +65,13 @@
 
 #define END_OF_RAM         (0x20000000 + NRF_FICR->SIZERAMBLOCKS * NRF_FICR->NUMRAMBLOCK)
 
-#define BOOTLOADERADDR()   (NRF_UICR->BOOTLOADERADDR)
 #endif
 
 #ifdef NRF52_SERIES
 #define PAGE_SIZE          (0x1000)
 
 #ifndef FLASH_SIZE
-#ifdef NRF52840_XXAA
+#if defined NRF52840_XXAA
 #define FLASH_SIZE         (1024 * 1024)
 #else
 #define FLASH_SIZE         (1024 * 512)
@@ -66,7 +81,6 @@
 
 #define END_OF_RAM         (0x20000000 + NRF_FICR->INFO.RAM * 1024)
 
-#define BOOTLOADERADDR()   (NRF_UICR->NRFFW[0])
 #endif
 
 

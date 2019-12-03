@@ -38,10 +38,10 @@
 #define AD_LISTENER_H_
 
 #include <stdint.h>
-#include "list.h"
 #include "packet.h"
 #include "nrf_mesh.h"
 #include "scanner.h"
+#include "nrf_mesh_section.h"
 
 /**
  * @defgroup AD_LISTENER AD listener
@@ -67,40 +67,26 @@ typedef struct
     uint8_t           ad_type;
     ble_packet_type_t adv_packet_type;
     ad_handler_t      handler;
-    list_node_t       node;
 } ad_listener_t;
 
 /**
- * Subscribe component to the certain AD.
+ * Define an AD listener.
  *
- * The component shall provide pointer to a listener structure with AD value,
- * priority for the listener and handler.
- *
- * @warning It is prohibited subscribing one listener twice.
- *
- * @param[in] p_adl Pointer to the listener structure
- *
- * @retval NRF_SUCCESS The listener was subscribed successfully.
- * @retval NRF_ERROR_INVALID_PARAM adv_packet_type is incorrect
- * @retval NRF_ERROR_NULL handler is NULL
+ * Its value should be assigned as part of the declaration:
+ * @code{.c}
+ * AD_LISTENER(my_listener) = {
+ *     .ad_type = AD_TYPE_BEACON,
+ *     .adv_packet_type = BLE_PACKET_TYPE_ADV_NONCONN_IND,
+ *     .handler = my_handler_function,
+ * };
+ * @endcode
  */
-uint32_t ad_listener_subscribe(ad_listener_t * p_adl);
+#define AD_LISTENER(name) NRF_MESH_SECTION_ITEM_REGISTER_FLASH(ad_listeners, const ad_listener_t name)
 
 /**
- * Unsubscribe component from the certain AD.
- *
- * The component shall provide pointer to a listener structure with AD value,
- * priority for the listener and handler.
- *
- * @warning The listener shall be subscribed previously.
- *
- * @param[in] p_adl Pointer to the listener structure
- *
- * @retval NRF_SUCCESS The listener was unsubscribed successfully.
- * @retval NRF_ERROR_INVALID_PARAM adv_packet_type is incorrect
- * @retval NRF_ERROR_NULL handler is NULL
+ * Initialize the AD listener module.
  */
-uint32_t ad_listener_unsubscribe(ad_listener_t * p_adl);
+void ad_listener_init(void);
 
 /**
  * Process the incoming data from the scanner.

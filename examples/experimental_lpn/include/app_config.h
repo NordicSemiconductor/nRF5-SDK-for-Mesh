@@ -78,6 +78,7 @@
 
 #define APP_TIMER_ENABLED 1
 #define APP_TIMER_KEEPS_RTC_ACTIVE 1
+#define APP_TIMER_CONFIG_RTC_FREQUENCY  0
 
 /** Configuration for the BLE DFU support module to be enabled. */
 #define FDS_ENABLED 1
@@ -90,6 +91,9 @@
 #define NRF_SDH_BLE_SERVICE_CHANGED 1
 #define NRF_SDH_BLE_VS_UUID_COUNT 1
 #define PEER_MANAGER_ENABLED 1
+#define PM_CENTRAL_ENABLED 0
+#define NRFX_POWER_ENABLED 0
+#define POWER_ENABLED 0
 
 /** @} end of APP_SDK_CONFIG */
 

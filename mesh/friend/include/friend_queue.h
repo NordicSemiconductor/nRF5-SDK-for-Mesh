@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -176,6 +176,18 @@ void friend_queue_packet_push(friend_queue_t * p_queue,
 void friend_queue_sar_complete(friend_queue_t * p_queue, uint16_t src, bool success);
 
 /**
+ * Check whether a packet with the specified SeqAuth is in the queue.
+ *
+ * @param[in,out]     p_queue     Queue to check.
+ * @param[in]         src         Source address of the SAR transaction.
+ * @param[in]         seqauth     SeqAuth to check.
+ *
+ * @retval true The packet is in the queue.
+ * @retval false The packet is not in the queue.
+ */
+bool friend_queue_sar_exists(friend_queue_t * p_queue, uint16_t src, uint64_t seqauth);
+
+/**
  * Checks whether the Friend Queue is empty.
  *
  * @param[in] p_queue Queue to check.
@@ -191,6 +203,15 @@ bool friend_queue_is_empty(const friend_queue_t * p_queue);
  * @warning All data present in the queue will be lost.
  */
 void friend_queue_clear(friend_queue_t * p_queue);
+
+/**
+ * Calculates and returns committed packets for LPN.
+ *
+ * @param[in] p_queue Queue to check.
+ *
+ * @retval @c Number of committed packets.
+ */
+uint32_t friend_queue_packet_counter_get(friend_queue_t * p_queue);
 
 /** @} */
 

@@ -5,7 +5,7 @@ Before building the mesh examples with SEGGER Embedded Studio, you must complete
 a one-time setup of the `SDK_ROOT` macro in SEGGER Embedded Studio. 
 
 You can either:
-- Use the default settings of the `SDK_ROOT` macro. It defaults to an nRF5 SDK 15.3.0
+- Use the default settings of the `SDK_ROOT` macro. It defaults to an nRF5 SDK 16.0.0
 instance unzipped right next to the mesh folder.
 - Set the `SDK_ROOT` macro to a custom nRF5 SDK instance.
 

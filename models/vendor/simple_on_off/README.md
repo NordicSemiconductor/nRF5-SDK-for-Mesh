@@ -314,6 +314,8 @@ struct __simple_on_off_client
     access_model_handle_t model_handle;
     /** Status callback called after status received from server. */
     simple_on_off_status_cb_t status_cb;
+    /** Periodic timer timeout callback used for periodic publication. */
+    simple_on_off_timeout_cb_t timeout_cb;
     /** Internal client state. */
     struct
     {

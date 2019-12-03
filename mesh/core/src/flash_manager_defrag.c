@@ -85,6 +85,7 @@
 #include "hal.h"
 #include "utils.h"
 #include "internal_event.h"
+#include "log.h"
 
 /*****************************************************************************
 * Local defines
@@ -611,6 +612,8 @@ bool flash_manager_defrag_init(void)
     mp_recovery_area = p_flash_end - FLASH_MANAGER_RECOVERY_PAGE_OFFSET_PAGES - 1; /* pointer arithmetic */
 #endif
 
+    __LOG(LOG_SRC_FM, LOG_LEVEL_DBG3, "BOOTLOADERADDR(): 0x%08x fm_recovery_area: 0x%08x\n",
+          BOOTLOADERADDR(), mp_recovery_area);
     return recover_defrag_progress();
 }
 

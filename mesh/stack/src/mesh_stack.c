@@ -37,6 +37,7 @@
 
 #include "mesh_stack.h"
 #include "nrf_mesh_events.h"
+#include "nrf_mesh_externs.h"
 #include "access_config.h"
 #include "flash_manager.h"
 #include "device_state_manager.h"
@@ -46,6 +47,7 @@
 #include "hal.h"
 #include "mesh_config.h"
 #include "mesh_config_backend_glue.h"
+#include "mesh_opt.h"
 
 #if MESH_FEATURE_GATT_PROXY_ENABLED
 #include "proxy.h"
@@ -109,11 +111,13 @@ uint32_t mesh_stack_init(const mesh_stack_init_params_t * p_init_params,
     /* Load configuration, and check if the device has already been provisioned */
     mesh_config_load();
 
-    (void) dsm_flash_config_load();
+    uint32_t dsm_result = dsm_load_config_apply();
+    uint32_t access_result = access_load_config_apply();
 
-    if (access_flash_config_load())
+    if (dsm_result == NRF_ERROR_INVALID_DATA || access_result == NRF_ERROR_INVALID_DATA)
     {
-        access_flash_config_store();
+        mesh_stack_config_clear();
+        status = NRF_ERROR_INVALID_DATA;
     }
 
     bool is_provisioned = mesh_stack_is_device_provisioned();
@@ -126,8 +130,7 @@ uint32_t mesh_stack_init(const mesh_stack_init_params_t * p_init_params,
 #endif
 
 #if MESH_FEATURE_FRIEND_ENABLED
-    status = mesh_friend_init();
-    NRF_MESH_ERROR_CHECK(status);
+    NRF_MESH_ERROR_CHECK(mesh_friend_init());
 #endif
 
     if (p_device_provisioned != NULL)
@@ -135,7 +138,7 @@ uint32_t mesh_stack_init(const mesh_stack_init_params_t * p_init_params,
         *p_device_provisioned = is_provisioned;
     }
 
-    return NRF_SUCCESS;
+    return status;
 }
 
 uint32_t mesh_stack_start(void)
@@ -194,30 +197,21 @@ uint32_t mesh_stack_provisioning_data_store(const nrf_mesh_prov_provisioning_dat
 
     __LOG(LOG_SRC_CORE, LOG_LEVEL_DBG3, "iv_index: 0x%08x  flag:ivu: %d\n", p_prov_data->iv_index, p_prov_data->flags.iv_update);
 
-    /* Store new config server binding. */
-    access_flash_config_store();
     return status;
 }
 
 void mesh_stack_config_clear(void)
 {
-    mesh_config_clear();
+    mesh_opt_clear();
     access_clear();
     dsm_clear();
     net_state_reset();
-    // invoking of the function was moved to the top.
-    // It causes assertion with the flash manager substates
-    // it is known issue MBTLE-1972
-    // TODO Return this string back after flash manager fixing
-    // mesh_config_clear();
 }
 
 
 bool mesh_stack_is_device_provisioned(void)
 {
-    dsm_local_unicast_address_t addr;
-    dsm_local_unicast_addresses_get(&addr);
-    return (addr.address_start != NRF_MESH_ADDR_UNASSIGNED);
+    return nrf_mesh_is_device_provisioned();
 }
 
 #if PERSISTENT_STORAGE
@@ -276,13 +270,14 @@ uint32_t mesh_stack_persistence_flash_usage(const uint32_t ** pp_start, uint32_t
     if (mesh_config_usage.p_start != NULL)
     {
         *pp_start = mesh_config_usage.p_start;
+        *p_length = (((const uint8_t *) flash_manager_recovery_page_get()) - ((const uint8_t *) *pp_start) + PAGE_SIZE);
     }
     else
     {
-        /* If there's no mesh config present in flash, access holds the lowest flash area. */
-        *pp_start = access_flash_area_get();
+        /* If there's no mesh config present in flash, stack does not use flash. */
+        *pp_start = NULL;
+        *p_length = 0;
     }
-    *p_length = (((const uint8_t *) flash_manager_recovery_page_get()) - ((const uint8_t *) *pp_start) + PAGE_SIZE);
 #else
     *pp_start = NULL;
     *p_length = 0;

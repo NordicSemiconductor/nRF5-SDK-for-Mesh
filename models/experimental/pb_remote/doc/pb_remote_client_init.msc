@@ -14,7 +14,7 @@ msc {
     ...;
     a => client[label="pb_remote_client_remote_scan_start(&client)"];
     ...;
-    a => client[label="pb_remote_client_remote_provision(&client, ...)"];
+    a => client[label="nrf_mesh_prov_provision(&m_prov_ctx, ...)"];
 
 
 }

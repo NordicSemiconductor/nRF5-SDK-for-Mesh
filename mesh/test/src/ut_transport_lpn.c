@@ -389,6 +389,9 @@ static void receive_first_segment(void)
     const network_packet_metadata_t net_metadata = ACCESS_NET_METADATA;
     const nrf_mesh_rx_metadata_t rx_metadata = {0};
 
+    replay_cache_has_seqauth_IgnoreAndReturn(false);
+    replay_cache_seqauth_add_IgnoreAndReturn(NRF_SUCCESS);
+
     transport_packet_in_Expect();
 
     if (!m_in_friendship)

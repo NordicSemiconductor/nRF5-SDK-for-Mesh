@@ -85,20 +85,6 @@ void net_state_enable(void);
 uint32_t net_state_iv_index_set(uint32_t iv_index, bool iv_update);
 
 /**
- * Recover network state from flash storage.
- *
- * @warning The user should not call this function while the flash manager is unstable.
- */
-void net_state_recover_from_flash(void);
-
-/**
- * Get a pointer to the net state flash area.
- *
- * @returns A pointer to the net state flash area.
- */
-const void * net_state_flash_area_get(void);
-
-/**
  * Reset the sequence number and IV index, and wipe the flashed state.
  */
 void net_state_reset(void);

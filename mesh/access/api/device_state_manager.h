@@ -101,27 +101,16 @@ typedef struct
 void dsm_init(void);
 
 /**
- * Load DSM state from flash, to recover state.
+ * Apply data loaded from the mesh configuration system into Device State Manager structures.
  *
- * If this fails, the device will be unable to join any network it has previously been part of.
+ * @note Actual metadata is restored automatically if it was not found or
+ * if read out data is not equal configuration parameters.
  *
- * @returns Whether there was any valid data available for loading from flash.
+ * @retval     NRF_ERROR_NOT_FOUND    Device State Manager metadata was not found.
+ * @retval     NRF_ERROR_INVALID_DATA Data stored in the persistent memory was corrupted.
+ * @retval     NRF_SUCCESS            Data was restored and applied successfully.
  */
-bool dsm_flash_config_load(void);
-
-/**
- * Check whether there's data waiting to be flashed.
- *
- * @returns Whether there's data waiting to be flashed.
- */
-bool dsm_has_unflashed_data(void);
-
-/**
- * Get a pointer to the flash area used by the device state manager.
- *
- * @returns A pointer to the device state manager flash area.
- */
-const void * dsm_flash_area_get(void);
+uint32_t dsm_load_config_apply(void);
 
 /**
  * Clear all stored state in the Device State Manager, including flash state.

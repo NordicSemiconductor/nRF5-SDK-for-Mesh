@@ -804,7 +804,6 @@ void test_publication_set(void)
         access_model_publish_application_set_ExpectAndReturn(model_handle, appkey_handle, NRF_SUCCESS);
         access_model_publish_ttl_set_ExpectAndReturn(model_handle, messages[i].state.publish_ttl, NRF_SUCCESS);
         access_model_publish_friendship_credential_flag_set_ExpectAndReturn(model_handle, credential_flag[i], NRF_SUCCESS);
-        access_flash_config_store_Expect();
         /* The following functions are called when the server assembles the response packet: */
         access_model_id_get_ExpectAndReturn(model_handle, NULL, NRF_SUCCESS);
         access_model_id_get_IgnoreArg_p_model_id();
@@ -1320,7 +1319,6 @@ void test_model_app_bind_unbind(void)
 
         dsm_handle_t appkey_handle = 15;
         dsm_appkey_index_to_appkey_handle_ExpectAndReturn(messages[i % 2].appkey_index, appkey_handle);
-        access_flash_config_store_Expect();
 
         if (i < 2)
         {
@@ -1546,7 +1544,6 @@ void test_subscription_add(void)
         dsm_address_subscription_add_ReturnThruPtr_p_address_handle(&address_handle);
 
         access_model_subscription_add_ExpectAndReturn(model_handle, address_handle, NRF_SUCCESS);
-        access_flash_config_store_Expect();
 
         config_server_evt_mock_Expect(&evt);
 
@@ -1641,7 +1638,6 @@ void test_subscription_delete(void)
 
         access_model_subscription_remove_ExpectAndReturn(model_handle, address_handle, NRF_SUCCESS);
         dsm_address_subscription_remove_ExpectAndReturn(address_handle, NRF_SUCCESS);
-        access_flash_config_store_Expect();
 
         config_server_evt_mock_Expect(&evt);
 
@@ -1710,7 +1706,6 @@ void test_subscription_overwrite(void)
         dsm_address_subscription_add_IgnoreArg_p_address_handle();
         dsm_address_subscription_add_ReturnThruPtr_p_address_handle(&address_handle);
         access_model_subscription_add_ExpectAndReturn(model_handle, address_handle, NRF_SUCCESS);
-        access_flash_config_store_Expect();
 
         config_server_evt_mock_Expect(&evt);
 
@@ -1773,7 +1768,6 @@ void test_subscription_delete_all(void)
 
         config_server_evt_mock_Expect(&evt);
 
-        access_flash_config_store_Expect();
         m_previous_reply_received = false;
         send_message(CONFIG_OPCODE_MODEL_SUBSCRIPTION_DELETE_ALL, (const uint8_t *) &messages[i], sizeof(messages[i]) - sig_model * sizeof(uint16_t));
 
@@ -1827,7 +1821,6 @@ void test_subscription_virtual_add(void)
         dsm_address_subscription_virtual_add_ReturnThruPtr_p_address_handle(&address_handle);
 
         access_model_subscription_add_ExpectAndReturn(model_handle, address_handle, NRF_SUCCESS);
-        access_flash_config_store_Expect();
 
         nrf_mesh_address_t address = { .type = NRF_MESH_ADDRESS_TYPE_VIRTUAL, .value = 0x8331 /* Not a real address */ };
         dsm_address_get_ExpectAndReturn(address_handle, NULL, NRF_SUCCESS);
@@ -1901,7 +1894,6 @@ void test_subscription_virtual_overwrite(void)
         dsm_address_subscription_virtual_add_ReturnThruPtr_p_address_handle(&address_handle);
 
         access_model_subscription_add_ExpectAndReturn(model_handle, address_handle, NRF_SUCCESS);
-        access_flash_config_store_Expect();
 
         nrf_mesh_address_t address = { .type = NRF_MESH_ADDRESS_TYPE_VIRTUAL, .value = 0x8331 /* Not a real address */ };
         dsm_address_get_ExpectAndReturn(address_handle, NULL, NRF_SUCCESS);
@@ -1969,7 +1961,6 @@ void test_subscription_virtual_delete(void)
         dsm_address_handle_get_ReturnThruPtr_p_address_handle(&address_handle);
 
         access_model_subscription_remove_ExpectAndReturn(model_handle, address_handle, NRF_SUCCESS);
-        access_flash_config_store_Expect();
         dsm_address_subscription_remove_ExpectAndReturn(address_handle, NRF_SUCCESS);
 
         config_server_evt_mock_Expect(&evt);

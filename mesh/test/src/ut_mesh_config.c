@@ -94,6 +94,7 @@ static entry_t m_load_entries[NRF_SECTION_ENTRIES];
 static bool m_active[NRF_SECTION_ENTRIES + EXTRA_ENTRIES];
 static mesh_config_backend_evt_cb_t m_backend_evt_cb;
 static const mesh_config_entry_id_t m_invalid_id = {0, 0};
+static bool m_is_legacy_handled;
 
 static uint32_t entry_set(mesh_config_entry_id_t id, const void * p_entry);
 static void entry_get(mesh_config_entry_id_t id, void * p_entry);
@@ -122,6 +123,14 @@ static void mesh_config_backend_init_callback(const mesh_config_entry_params_t *
     TEST_ASSERT_EQUAL(NRF_SECTION_ENTRIES, file_count);
     TEST_ASSERT_NOT_NULL(cb);
     m_backend_evt_cb = cb;
+}
+
+void dsm_legacy_pretreatment_do(mesh_config_entry_id_t * p_id, uint32_t entry_len)
+{
+    (void)p_id;
+    (void)entry_len;
+
+    m_is_legacy_handled = true;
 }
 
 void setUp(void)
@@ -309,11 +318,13 @@ void test_load(void)
         entry_set_Expect(&expect_params);
     }
     mesh_config_backend_read_all_StubWithCallback(mesh_config_backend_read_all_cb);
+    m_is_legacy_handled = false;
 
     mesh_config_load();
 
     TEST_ASSERT_EQUAL_MEMORY(m_load_entries, m_entries, NRF_SECTION_ENTRIES * sizeof(entry_t));
     TEST_ASSERT_EACH_EQUAL_UINT8(true, m_active, NRF_SECTION_ENTRIES);
+    TEST_ASSERT_TRUE(m_is_legacy_handled);
 
     /* Load again, should work even if we've already loaded once: */
     for (uint32_t i = 0; i < NRF_SECTION_ENTRIES; ++i)
@@ -327,10 +338,13 @@ void test_load(void)
         };
         entry_set_Expect(&expect_params);
     }
+    m_is_legacy_handled = false;
+
     mesh_config_load();
 
     TEST_ASSERT_EQUAL_MEMORY(m_load_entries, m_entries, NRF_SECTION_ENTRIES * sizeof(entry_t));
     TEST_ASSERT_EACH_EQUAL_UINT8(true, m_active, NRF_SECTION_ENTRIES);
+    TEST_ASSERT_TRUE(m_is_legacy_handled);
 }
 
 void test_custom_load(void)
@@ -373,7 +387,9 @@ void test_custom_load(void)
         custom_load_Expect(&vector_broken[i].load);
     }
 
+    m_is_legacy_handled = false;
     mesh_config_load();
+    TEST_ASSERT_TRUE(m_is_legacy_handled);
 
     /* Corner cases */
 }
@@ -629,6 +645,20 @@ void test_fail_delete(void)
             TEST_ASSERT_EQUAL_HEX8(MESH_CONFIG_ENTRY_FLAG_DIRTY, mesh_config_entries[i].p_state[j]); // dirty and inactive
         }
     }
+}
+
+void test_delete_when_write_in_progress(void)
+{
+    /* Run set-test to populate the entries: */
+    test_set();
+
+    /* Case when entry removing is started but entry has been changed but not yet written to the backend. */
+    mesh_config_entry_id_t id = *mesh_config_entries[0].p_id;
+
+    mesh_config_backend_erase_ExpectAndReturn(*mesh_config_entries[0].p_id, NRF_ERROR_NOT_FOUND);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_config_entry_delete(id));
+
+    TEST_ASSERT_EQUAL_HEX8(0, mesh_config_entries[0].p_state[0]); // clean and inactive
 }
 
 /**

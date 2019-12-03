@@ -456,7 +456,6 @@ uint32_t config_client_server_set(dsm_handle_t server_devkey_handle, dsm_handle_
     }
     else
     {
-        access_flash_config_store();
         return status;
     }
 
@@ -468,10 +467,6 @@ uint32_t config_client_server_bind(dsm_handle_t server_devkey_handle)
     if (!client_in_wrong_state(&status))
     {
         status = access_model_application_bind(m_client.model_handle, server_devkey_handle);
-        if (status == NRF_SUCCESS)
-        {
-            access_flash_config_store();
-        }
     }
 
     return status;

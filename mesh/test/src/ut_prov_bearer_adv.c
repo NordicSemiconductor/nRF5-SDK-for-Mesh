@@ -52,7 +52,7 @@
 #include "nrf_mesh_configure_mock.h"
 #include "timer_mock.h"
 #include "bearer_event_mock.h"
-#include "utils.h"
+#include "ad_listener.h"
 
 #include "test_assert.h"
 #include "utils.h"
@@ -89,7 +89,10 @@
 #define PROV_TRANS_START_OPCODE_WITH_GPCF_FIELD (0)
 #define PROV_TRANS_CONTINUE_OPCODE_WITH_GPCF_FIELD  (2)
 
-#define PROV_BEARER_ADV_UNACKED_REPEAT_COUNT    (4)
+#define PROV_BEARER_ADV_UNACKED_REPEAT_COUNT    (6)
+#define PROV_BEARER_ADV_LINK_OPEN_ADVERTISER_INTERVAL_MS  (3 * BEARER_ADV_INT_DEFAULT_MS)
+#define PROV_BEARER_ADV_LINK_ESTABLISHMENT_LENGTH_US      ((MS_TO_US(PROV_BEARER_ADV_LINK_OPEN_ADVERTISER_INTERVAL_MS) + ADVERTISER_INTERVAL_RANDOMIZATION_US) * \
+                                                           (PROV_BEARER_ADV_UNACKED_REPEAT_COUNT + 1))
 
 /** Flag the module should use to trigger async callback. */
 #define ASYNC_FLAG  0xF1A6F1A6
@@ -127,7 +130,6 @@ static nrf_mesh_rx_metadata_t m_dummy_metadata;
 
 static advertiser_tx_complete_cb_t m_tx_complete_cb;
 static bearer_event_flag_callback_t m_async_cb;
-
 
 static struct
 {
@@ -176,6 +178,15 @@ static bearer_event_flag_t bearer_event_flag_add_cb(bearer_event_flag_callback_t
     TEST_ASSERT_NOT_NULL(cb);
     m_async_cb = cb;
     return ASYNC_FLAG;
+}
+
+static void prov_bearer_adv_packet_in(const uint8_t * p_data, uint32_t data_len, const nrf_mesh_rx_metadata_t * p_metadata)
+{
+    /* Extern definition of the PB-ADV ad_listener */
+    extern const ad_listener_t m_pb_adv_ad_listener;
+
+    m_pb_adv_ad_listener.handler(p_data, data_len, p_metadata);
+
 }
 
 #define PARENT_POINTER ((void*) 0xCAFEBABE)
@@ -473,7 +484,8 @@ static void tx_link_open(prov_bearer_t * p_bearer, uint8_t * p_uuid, uint32_t li
 
     rand_hw_rng_get_Expect((uint8_t*) &p_bearer_adv->link_id, sizeof(p_bearer_adv->link_id));
     timer_now_ExpectAndReturn(1000);
-    timer_sch_reschedule_Expect(&p_bearer_adv->link_timeout_event, 1000 + NRF_MESH_PROV_LINK_TIMEOUT_MIN_US);
+    timer_sch_reschedule_Expect(&p_bearer_adv->link_timeout_event, 1000 + PROV_BEARER_ADV_LINK_ESTABLISHMENT_LENGTH_US);
+    advertiser_interval_set_Expect(&p_bearer_adv->advertiser, PROV_BEARER_ADV_LINK_OPEN_ADVERTISER_INTERVAL_MS);
     advertiser_enable_Expect(&p_bearer_adv->advertiser);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, prov_bearer_adv_link_open(p_bearer, p_uuid, NRF_MESH_PROV_LINK_TIMEOUT_MIN_US));
     TEST_ASSERT_EQUAL(PROV_BEARER_ADV_UNACKED_REPEAT_COUNT, m_packet.config.repeats);

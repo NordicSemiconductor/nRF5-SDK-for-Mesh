@@ -43,13 +43,11 @@ to these nodes by the provisioner.
 
 
 ## Hardware requirements @anchor mesh_quick_start_hw_reqs
-You need at least three @link_nrf52dk boards for this example:
+You need at least three [supported boards](@ref md_doc_introduction_mesh_compatibility) for this example:
 
 - One nRF5 development board for the client.
 - One nRF5 development board for the provisioner.
 - One or more nRF5 development boards for the servers (maximum up to 30 boards).
-
-See [Compatibility](@ref md_doc_introduction_mesh_compatibility) for information about the supported boards.
 
 
 ---
@@ -179,8 +177,8 @@ If you want to see the RTT logs printed during the provisioning and configuratio
 1. Connect the nRF5 boards to the USB ports.
 2. Start J-Link RTT viewer. The Configuration window appears.
 @note You can also press the **F2** button or select **File > Connect** to open the Configuration window.
-3. In the Configuration window, depending on the development kit board chip number you are using,
-make sure that either `NRF52832_XXAA` or `NRF52840_XXAA` is selected in the Specify Target Device dropdown menu.
+3. In the Configuration window, depending on the [development kit board chip number](@ref compatibility_list) you are using, make sure
+that the appropriate SoC is selected in the Specify Target Device dropdown menu.
 4. Click OK. The Emulator selection window appears.
 5. Choose the desired board by selecting its USB Identification (SEGGER ID).
 @note You can open several RTT viewer sessions to observe the RTT log of all the connected boards. In this case, you have to repeat steps 2 to 5 for each board. 

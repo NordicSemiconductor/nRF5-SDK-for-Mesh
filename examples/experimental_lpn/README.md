@@ -1,5 +1,7 @@
 # Low Power node example (experimental)
 
+@tag52810nosupport
+
 This example shows the implementation of a device supporting the Low Power node (LPN) feature. It
 emulates an occupancy sensor device through button presses and a timer.
 
@@ -12,9 +14,9 @@ this example turns on the LED on the light switch server device upon a button pr
 triggering the occupancy sensor. It also sends an off message to the light switch server device after
 five seconds to emulate inactivity.
 
-This example uses [GATT for provisioning](@ref md_doc_getting_started_gatt_proxy), and instantiates
-a [Generic OnOff Client model](@ref GENERIC_ONOFF_CLIENT) that can be used to control light switch
-servers.
+This example uses [GATT provisioning](@ref md_doc_getting_started_provisioning_gatt_proxy),
+and instantiates a [Generic OnOff Client model](@ref GENERIC_ONOFF_CLIENT) that can be used
+to control light switch servers.
 
 This example also supports the @link_buttonless_secure_dfu_service to perform Device Firmware Upgrade
 over BLE. The DFU over BLE is disabled by default. See @link_bootloader_and_dfu_modules for more information.
@@ -27,8 +29,6 @@ over BLE. The DFU over BLE is disabled by default. See @link_bootloader_and_dfu_
 - [Testing the example](@ref examples_lpn_running)
         - [Building and flashing](@ref examples_lpn_initial_building)
         - [Provisioning and configuration](@ref examples_lpn_running_provisioning)
-                - [Configuring light switch server device](@ref examples_lpn_running_provisioning_server)
-                - [Configuring the LPN device](@ref examples_lpn_running_provisioning_lpn)
         - [Establishing the friendship](@ref examples_lpn_running_friendship)
         - [Sending messages](@ref examples_lpn_running_sending)
         - [Updating the LPN node firmware through DFU over BLE](@ref examples_lpn_perform_dfu)
@@ -90,8 +90,6 @@ These assignments refer to the LPN device only.
 To send messages between the LPN device and the light switch server device, complete the following steps:
 - [Building and flashing](@ref examples_lpn_initial_building)
 - [Provisioning and configuration](@ref examples_lpn_running_provisioning)
-	- [Configuring light switch server device](@ref examples_lpn_running_provisioning_server)
-	- [Configuring the LPN device](@ref examples_lpn_running_provisioning_lpn)
 - [Establishing the friendship](@ref examples_lpn_running_friendship)
 - [Sending messages](@ref examples_lpn_running_sending)
 - [Updating the Low Power node example through DFU over BLE](@ref examples_lpn_perform_dfu)
@@ -128,54 +126,38 @@ to flash the bootloader.
 ### Provisioning and configuration @anchor examples_lpn_running_provisioning
 
 Before a friendship can be established between the LPN device and the Friend device,
-they both must be provisioned to the same mesh network. As the Low Power node example
-only supports the PB-GATT bearer for provisioning, use @link_nrf_mesh_app
+they both must be provisioned to the same mesh network.
+
+As the Low Power node example only supports the PB-GATT bearer for provisioning, use @link_nrf_mesh_app
 (for @link_nrf_mesh_app_ios or @link_nrf_mesh_app_android) to provision and configure
-all three devices.
+all three devices. See @ref nrf-mesh-mobile-app "the information on the main Examples page" for detailed steps.
 
-#### Configuring light switch server devices @anchor examples_lpn_running_provisioning_server
+The following naming convention is used in the app:
+- Each server board is `nRF5x Mesh Light`.
+- The LPN device client board is `nRF5x Mesh LPN`.
 
-The light switch server device shows up in the nRF Mesh App as "nRF5x Mesh Light". Complete the
-following procedure for both the devices:
-1. Provision the light switch server device with the nRF Mesh App.
-2. Give the light switch server device `Application key 1` through its configuration menu,
-if it doesn't already have it. This application key will represent the light switch application.
-The key will be used by the Generic OnOff client on the LPN device and the Generic OnOff server
-to communicate.
-3. Open the Generic OnOff Server model's configuration menu, and bind `Application key 1`
-to a Generic OnOff Server model that the light switch server device instantiates in its first element.
-4. Add 0xC001 as a subscription address.
-5. Disconnect from the light switch server device, and go back to the scanner screen.
+The following model instances must be configured in the app for this example:
+- For the `nRF5x Mesh Light` server boards: Generic On Off Server.
+- For the `nRF5x Mesh LPN` client board: Generic On Off Client.
 
-The light switch servers are now a part of the mesh network, and are ready to receive messages from
-the LPN device.
+When [setting publication with nRF Mesh](@ref nrf-mesh-mobile-app-publication), use the following procedure specific to the LPN example:
+1. On `nRF5x Mesh LPN`, in the publication section of the Generic On Off Client model instance menu, tap **Set Publication**.
+2. Tap the publication address field. A dropdown menu appears.
+3. Set the publication to a group address:
+    1. Select an existing group to subscribe or create a new one.
+    2. Apply the changes for the client node.
+    3. On the server nodes, set the Subscription Address of the Generic On Off Server model instance menu to the selected group address.
+    4. Apply the changes for the server nodes.
+4. On `nRF5x Mesh Light`, in the publication section of the Generic On Off Server model instance menu, tap **Set Publication**.
+5. Tap the publication address field. A dropdown menu appears.
+6. Set the publication to a unicast address of the `nRF5x Mesh LPN` node.
 
-#### Configuring the LPN device @anchor examples_lpn_running_provisioning_lpn
+At the end of the configuration process:
+- The light switch servers are part of the mesh network, and are ready to receive messages from the LPN device.
+- The LPN device is part of the mesh network and can control the LEDs of the light switch server device.
+It has not entered the low power mode yet, as the friendship is not established.
+- After assigning the addresses of the server nodes to the client, you can see the messages received from the servers in the RTT log of the LPN device.
 
-The LPN device shows up in the nRF Mesh App as "nRF5x Mesh LPN".
-
-1. Provision the LPN device with the nRF Mesh App.
-2. Give the LPN device `Application key 1` through its configuration menu, if it doesn't already
-have it. The key has the same role and usage as in the case of the light switch server device.
-3. Open the Generic OnOff Client model's configuration menu, and bind `Application key 1`
-to a Generic OnOff Client model that the LPN device instantiates in its second element.
-4. Open the Generic OnOff Client model's publication settings.
-5. Set the Publish Address to the group address 0xC001 to which the light switch servers are already subscribed.
-6. Note down the address of the second element of the LPN. This will be equal to the LPN's unicast address plus one.
-7. Disconnect from the LPN device, and go back to the scanner screen.
-
-The LPN device is now part of the mesh network and can control the LEDs of the light switch server
-device. It has not entered the low power mode yet, as the friendship is not established.
-
-Complete the following steps for both provisioned light switch servers to be able to see that
-the messages sent by these nodes to the LPN are cached by the Friend node and are delivered
-to the LPN when the LPN polls for them:
-1. Connect to the light switch server.
-2. Open the configuration menu of the Generic OnOff Server model.
-3. Set the publication address to the address of the second element of the LPN.
-
-Repeat the same procedure for the second server.
-You can see the messages received from the servers in the RTT log of the LPN.
 
 ### Establishing the friendship @anchor examples_lpn_running_friendship
 

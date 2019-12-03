@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -195,6 +195,20 @@ static void remove_duplicate_segack(friend_queue_t * p_queue,
     }
 }
 
+static bool is_segmented(const packet_mesh_trs_packet_t * p_packet)
+{
+    return packet_mesh_trs_common_seg_get(p_packet);
+}
+
+static uint64_t get_seqauth(const friend_packet_t *p_packet)
+{
+    uint16_t seqzero = packet_mesh_trs_seg_seqzero_get(&p_packet->packet);
+    uint64_t seqauth = transport_sar_seqauth_get(p_packet->net_metadata.iv_index,
+                                                 p_packet->net_metadata.seqnum,
+                                                 seqzero);
+    return seqauth;
+}
+
 /*****************************************************************************
 * Interface functions
 *****************************************************************************/
@@ -316,6 +330,23 @@ void friend_queue_sar_complete(friend_queue_t * p_queue, uint16_t src, bool succ
     }
 }
 
+bool friend_queue_sar_exists(friend_queue_t * p_queue, uint16_t src, uint64_t seqauth)
+{
+    QUEUE_FOREACH(&p_queue->committed_packets, it)
+    {
+        friend_packet_t * p_queue_packet = PARENT_BY_FIELD_GET(friend_packet_t, queue_elem, *it.pp_elem);
+
+        if (p_queue_packet->net_metadata.src == src
+            && is_segmented(&p_queue_packet->packet)
+            && (get_seqauth(p_queue_packet) == seqauth))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool friend_queue_is_empty(const friend_queue_t * p_queue)
 {
     return (queue_peek(&p_queue->committed_packets) == NULL);
@@ -324,4 +355,16 @@ bool friend_queue_is_empty(const friend_queue_t * p_queue)
 void friend_queue_clear(friend_queue_t * p_queue)
 {
     friend_queue_init(p_queue);
+}
+
+uint32_t friend_queue_packet_counter_get(friend_queue_t * p_queue)
+{
+    uint32_t pkt_counter = 0;
+
+    QUEUE_FOREACH(&p_queue->committed_packets, it)
+    {
+        pkt_counter++;
+    }
+
+    return pkt_counter;
 }

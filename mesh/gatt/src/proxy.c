@@ -576,7 +576,7 @@ static void rx_handle(proxy_connection_t * p_connection,
             (void) network_packet_in(p_data, length, &rx_metadata);
             break;
         case MESH_GATT_PDU_TYPE_MESH_BEACON:
-            (void) beacon_packet_in(p_data, length, &rx_metadata);
+            net_beacon_packet_in(((beacon_packet_t *)p_data)->payload, length - BEACON_PACKET_OVERHEAD, &rx_metadata);
             break;
         case MESH_GATT_PDU_TYPE_PROXY_CONFIG:
             config_packet_in(p_connection, p_data, length);

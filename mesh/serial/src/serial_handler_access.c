@@ -239,12 +239,6 @@ static void elem_models_get(const serial_packet_t * p_cmd)
     }
 }
 
-static void access_flash_store(const serial_packet_t * p_cmd)
-{
-    access_flash_config_store();
-    serial_cmd_rsp_send(p_cmd->opcode, SERIAL_STATUS_SUCCESS, NULL, 0);
-}
-
 /*****************************************************************************
  * Callback table to be used with serial_handler_common_rx
  *****************************************************************************/
@@ -280,8 +274,7 @@ static const serial_handler_common_opcode_to_fp_map_t m_cmd_handlers[] =
     {SERIAL_OPCODE_CMD_ACCESS_ELEM_VENDOR_MODEL_COUNT_GET, ELEMENT_INDEX_T_SIZE,     0, elem_vendor_model_cnt_get},
     {SERIAL_OPCODE_CMD_ACCESS_MODEL_ID_GET,                MODEL_HANDLE_T_SIZE,      0, model_id_get},
     {SERIAL_OPCODE_CMD_ACCESS_HANDLE_GET,                  HANDLE_GET_T_SIZE,        0, handle_get},
-    {SERIAL_OPCODE_CMD_ACCESS_ELEM_MODELS_GET,             ELEMENT_INDEX_T_SIZE,     0, elem_models_get},
-    {SERIAL_OPCODE_CMD_ACCESS_ACCESS_FLASH_STORE,          0,                        0, access_flash_store}
+    {SERIAL_OPCODE_CMD_ACCESS_ELEM_MODELS_GET,             ELEMENT_INDEX_T_SIZE,     0, elem_models_get}
 };
 
 void serial_handler_access_rx(const serial_packet_t* p_cmd)

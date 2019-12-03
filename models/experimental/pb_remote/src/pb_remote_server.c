@@ -519,7 +519,7 @@ static pb_remote_server_state_t local_link_open(pb_remote_server_t * p_ctx, pb_r
         reply.transmic_size = NRF_MESH_TRANSMIC_SIZE_DEFAULT;
         reply.access_token = nrf_mesh_unique_token_get();
 
-        p_ctx->ctid = 0xFF;
+        p_ctx->current_prov_pdu_type = PROV_PDU_TYPE_INVALID;
         link_status.status = PB_REMOTE_REMOTE_LINK_STATUS_OPENING;
         link_status.bearer_type = PB_REMOTE_BEARER_TYPE_PB_ADV;
         send_reply(p_ctx, p_evt->evt.p_message, &reply);
@@ -868,24 +868,29 @@ static pb_remote_server_state_t pb_remote_server_event_packet_transfer_cb(pb_rem
     switch (p_ctx->state)
     {
         case PB_REMOTE_SERVER_STATE_LINK_OPENING:
-        case PB_REMOTE_SERVER_STATE_WAIT_ACK_LINK_OPEN:
             return p_ctx->state;
 
+        case PB_REMOTE_SERVER_STATE_WAIT_ACK_LINK_OPEN:
+        case PB_REMOTE_SERVER_STATE_WAIT_ACK_TRANSFER:
+        case PB_REMOTE_SERVER_STATE_WAIT_ACK_LOCAL:
         case PB_REMOTE_SERVER_STATE_LINK_ESTABLISHED:
         {
             pb_remote_msg_packet_transfer_t * p_packet_transfer = (pb_remote_msg_packet_transfer_t *) &p_evt->evt.p_message->p_data[0];
-            if (p_packet_transfer->buffer[0] != p_ctx->ctid)
+
+            if (p_packet_transfer->buffer[0] == p_ctx->current_prov_pdu_type)
             {
-                p_ctx->ctid = p_packet_transfer->buffer[0];
+                __LOG(LOG_SRC_ACCESS, LOG_LEVEL_INFO, "Got old Provisioning PDU: %d, current: %d", p_packet_transfer->buffer[0], p_ctx->current_prov_pdu_type);
+                return p_ctx->state;
+            }
+            else
+            {
+                uint32_t status = access_model_reliable_cancel(p_ctx->model_handle);
+                NRF_MESH_ASSERT(status == NRF_SUCCESS || status == NRF_ERROR_NOT_FOUND);
+
+                p_ctx->current_prov_pdu_type = p_packet_transfer->buffer[0];
                 return relay_to_pb_adv_with_ack(p_ctx, p_evt, &reply, &packet_transfer_status);
             }
         }
-        /* fall through */
-        case PB_REMOTE_SERVER_STATE_WAIT_ACK_LOCAL:
-            /** @todo Assume this was the previous buffer? If not the following is a complete lie. */
-            packet_transfer_status.status = PB_REMOTE_PACKET_TRANSFER_STATUS_BUFFER_ACCEPTED;
-            send_reply(p_ctx, p_evt->evt.p_message, &reply);
-            return p_ctx->state;
 
         default:
             __LOG(LOG_SRC_ACCESS, LOG_LEVEL_INFO, "Got unexpected packet transfer in state %u.\n", p_ctx->state);
@@ -1342,8 +1347,9 @@ uint32_t pb_remote_server_disable(pb_remote_server_t * p_remote_server)
     {
         return NRF_ERROR_NULL;
     }
-    else if (PB_REMOTE_SERVER_STATE_IDLE != p_remote_server->state ||
-             PB_REMOTE_SERVER_STATE_SCANNING != p_remote_server->state)
+    else if (PB_REMOTE_SERVER_STATE_IDLE != p_remote_server->state &&
+             PB_REMOTE_SERVER_STATE_SCANNING != p_remote_server->state &&
+             PB_REMOTE_SERVER_STATE_SCANNING_FILTER != p_remote_server->state)
     {
         return NRF_ERROR_INVALID_STATE;
     }

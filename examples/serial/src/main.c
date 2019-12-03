@@ -58,7 +58,18 @@ static void mesh_init(void)
         .core.irq_priority = NRF_MESH_IRQ_PRIORITY_LOWEST,
         .core.lfclksrc     = DEV_BOARD_LF_CLK_CFG
     };
-    ERROR_CHECK(mesh_stack_init(&init_params, &m_device_provisioned));
+
+    uint32_t status = mesh_stack_init(&init_params, &m_device_provisioned);
+    switch (status)
+    {
+        case NRF_ERROR_INVALID_DATA:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
+            break;
+        case NRF_SUCCESS:
+            break;
+        default:
+            ERROR_CHECK(status);
+    }
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Enabling ECDH offloading...\n");
     ERROR_CHECK(mesh_opt_prov_ecdh_offloading_set(true));

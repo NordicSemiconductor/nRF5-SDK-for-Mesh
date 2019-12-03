@@ -50,9 +50,10 @@
 #include "nrf_mesh_assert.h"
 #include "access_config.h"
 #include "device_state_manager.h"
-#include "flash_manager.h"
 #include "mesh_stack.h"
 #include "net_state.h"
+#include "mesh_opt_provisioner.h"
+#include "mesh_config_entry.h"
 
 /* Provisioning and configuration */
 #include "provisioner_helper.h"
@@ -75,9 +76,6 @@
 #include "ble_softdevice_support.h"
 #include "example_common.h"
 
-#define APP_NETWORK_STATE_ENTRY_HANDLE (0x0001)
-#define APP_FLASH_PAGE_COUNT           (1)
-
 #define APP_PROVISIONING_LED            BSP_LED_0
 #define APP_CONFIGURATION_LED           BSP_LED_1
 
@@ -87,6 +85,10 @@ static network_stats_data_stored_t m_nw_state;
 static bool m_node_prov_setup_started;
 
 /* Forward declarations */
+/* Forward declarations */
+static uint32_t light_switch_provisioner_setter(mesh_config_entry_id_t id, const void * p_entry);
+static void light_switch_provisioner_getter(mesh_config_entry_id_t id, void * p_entry);
+static void light_switch_provisioner_deleter(mesh_config_entry_id_t id);
 static void app_health_event_cb(const health_client_t * p_client, const health_client_evt_t * p_event);
 static void app_config_successful_cb(void);
 static void app_config_failed_cb(void);
@@ -96,146 +98,70 @@ static void app_start(void);
 
 static nrf_mesh_evt_handler_t m_mesh_core_event_handler = { .evt_cb = app_mesh_core_event_cb };
 
-/*****************************************************************************/
-/**** Flash handling ****/
-#if PERSISTENT_STORAGE
+/* ********** Static functions ********** */
+MESH_CONFIG_ENTRY(light_switch_provisioner,
+                  LIGHT_SWITCH_PROVISIONER_ENTRY_ID,
+                  1,
+                  sizeof(network_stats_data_stored_t),
+                  light_switch_provisioner_setter,
+                  light_switch_provisioner_getter,
+                  light_switch_provisioner_deleter,
+                  false);
 
-static flash_manager_t m_flash_manager;
-
-static void app_flash_manager_add(void);
-
-static void flash_write_complete(const flash_manager_t * p_manager, const fm_entry_t * p_entry, fm_result_t result)
+static uint32_t light_switch_provisioner_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
-     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Flash write complete\n");
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Provisioner setter ...\n");
+    NRF_MESH_ASSERT_DEBUG(LIGHT_SWITCH_PROVISIONER_FILE_ID == id.file);
 
-    /* If we get an AREA_FULL then our calculations for flash space required are buggy. */
-    NRF_MESH_ASSERT(result != FM_RESULT_ERROR_AREA_FULL);
-
-    /* We do not invalidate in this module, so a NOT_FOUND should not be received. */
-    NRF_MESH_ASSERT(result != FM_RESULT_ERROR_NOT_FOUND);
-    if (result == FM_RESULT_ERROR_FLASH_MALFUNCTION)
+    network_stats_data_stored_t * p_nsds = (network_stats_data_stored_t *) p_entry;
+    if (memcmp(&m_nw_state, p_nsds, sizeof(network_stats_data_stored_t)) != 0)
     {
-        ERROR_CHECK(NRF_ERROR_NO_MEM);
-    }
-}
-
-static void flash_invalidate_complete(const flash_manager_t * p_manager, fm_handle_t handle, fm_result_t result)
-{
-    /* This application does not expect invalidate complete calls. */
-    ERROR_CHECK(NRF_ERROR_INTERNAL);
-}
-
-typedef void (*flash_op_func_t) (void);
-static void flash_manager_mem_available(void * p_args)
-{
-    ((flash_op_func_t) p_args)(); /*lint !e611 Suspicious cast */
-}
-
-
-static void flash_remove_complete(const flash_manager_t * p_manager)
-{
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Flash remove complete\n");
-}
-
-static void app_flash_manager_add(void)
-{
-
-    static fm_mem_listener_t flash_add_mem_available_struct = {
-        .callback = flash_manager_mem_available,
-        .p_args = app_flash_manager_add
-    };
-
-    const uint32_t * start_address;
-    uint32_t allocated_area_size;
-    ERROR_CHECK(mesh_stack_persistence_flash_usage(&start_address, &allocated_area_size));
-
-    flash_manager_config_t manager_config;
-    manager_config.write_complete_cb = flash_write_complete;
-    manager_config.invalidate_complete_cb = flash_invalidate_complete;
-    manager_config.remove_complete_cb = flash_remove_complete;
-    manager_config.min_available_space = WORD_SIZE;
-    manager_config.p_area = (const flash_manager_page_t *)((uint32_t)start_address - PAGE_SIZE * APP_FLASH_PAGE_COUNT);
-    manager_config.page_count = APP_FLASH_PAGE_COUNT;
-    uint32_t status = flash_manager_add(&m_flash_manager, &manager_config);
-    if (NRF_SUCCESS != status)
-    {
-        flash_manager_mem_listener_register(&flash_add_mem_available_struct);
-        __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Unable to add flash manager for app data\n");
-    }
-}
-
-static bool load_app_data(void)
-{
-    uint32_t length = sizeof(m_nw_state);
-    uint32_t status = flash_manager_entry_read(&m_flash_manager,
-                                               APP_NETWORK_STATE_ENTRY_HANDLE,
-                                               &m_nw_state,
-                                               &length);
-    if (status != NRF_SUCCESS)
-    {
-        memset(&m_nw_state, 0x00, sizeof(m_nw_state));
-    }
-
-    return (status == NRF_SUCCESS);
-}
-
-static uint32_t store_app_data(void)
-{
-    fm_entry_t * p_entry = flash_manager_entry_alloc(&m_flash_manager, APP_NETWORK_STATE_ENTRY_HANDLE, sizeof(m_nw_state));
-    static fm_mem_listener_t flash_add_mem_available_struct = {
-        .callback = flash_manager_mem_available,
-        .p_args = store_app_data
-    };
-
-    if (p_entry == NULL)
-    {
-        flash_manager_mem_listener_register(&flash_add_mem_available_struct);
-    }
-    else
-    {
-        network_stats_data_stored_t * p_nw_state = (network_stats_data_stored_t *) p_entry->data;
-        memcpy(p_nw_state, &m_nw_state, sizeof(m_nw_state));
-        flash_manager_entry_commit(p_entry);
+        memcpy(&m_nw_state, p_nsds, sizeof(network_stats_data_stored_t));
     }
 
     return NRF_SUCCESS;
 }
 
-static void clear_app_data(void)
+static void light_switch_provisioner_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Provisioner getter ...\n");
+    NRF_MESH_ASSERT_DEBUG(LIGHT_SWITCH_PROVISIONER_FILE_ID == id.file);
+
+    network_stats_data_stored_t * p_nw_state = (network_stats_data_stored_t *) p_entry;
+    memcpy(p_nw_state, &m_nw_state, sizeof(m_nw_state));
+}
+
+static void light_switch_provisioner_deleter(mesh_config_entry_id_t id)
+{
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Provisioner deleter ...\n");
+    NRF_MESH_ASSERT_DEBUG(LIGHT_SWITCH_PROVISIONER_FILE_ID == id.file);
+
+    /* Clear and set default values. */
     memset(&m_nw_state, 0x00, sizeof(m_nw_state));
-
-    if (flash_manager_remove(&m_flash_manager) != NRF_SUCCESS)
-    {
-        /* Register the listener and wait for some memory to be freed up before we retry. */
-        static fm_mem_listener_t mem_listener = {.callback = flash_manager_mem_available,
-                                                 .p_args = clear_app_data};
-        flash_manager_mem_listener_register(&mem_listener);
-    }
+    m_nw_state.next_device_address = UNPROV_START_ADDRESS;
 }
 
-#else
-
-static void clear_app_data(void)
+static void light_switch_provisioner_store(void)
 {
-    return;
+    mesh_config_entry_id_t id = LIGHT_SWITCH_PROVISIONER_ENTRY_ID;
+
+    NRF_MESH_ERROR_CHECK(mesh_config_entry_set(id, &m_nw_state));
 }
 
-bool load_app_data(void)
+static void light_switch_provisioner_invalidate(void)
 {
-    return false;
-}
-static uint32_t store_app_data(void)
-{
-    return NRF_SUCCESS;
+    /* Stop scanner. */
+    prov_helper_scan_stop();
+
+    /* Delete all old values and remove from mesh config. */
+    (void)mesh_config_entry_delete(LIGHT_SWITCH_PROVISIONER_ENTRY_ID);
 }
 
-#endif
-
+/*****************************************************************************/
 
 static void app_data_store_cb(void)
 {
-    ERROR_CHECK(store_app_data());
+    light_switch_provisioner_store();
 }
 
 static const char * server_uri_index_select(const char * p_client_uri)
@@ -265,8 +191,7 @@ static void app_config_successful_cb(void)
     hal_led_pin_set(APP_CONFIGURATION_LED, 0);
 
     m_nw_state.configured_devices++;
-    access_flash_config_store();
-    ERROR_CHECK(store_app_data());
+    light_switch_provisioner_store();
 
     if (m_nw_state.configured_devices < (SERVER_NODE_COUNT + CLIENT_NODE_COUNT))
     {
@@ -300,7 +225,7 @@ static void app_prov_success_cb(void)
     hal_led_pin_set(APP_PROVISIONING_LED, 0);
     hal_led_pin_set(APP_CONFIGURATION_LED, 1);
 
-    ERROR_CHECK(store_app_data());
+    light_switch_provisioner_store();
 }
 
 static void app_prov_failed_cb(void)
@@ -408,7 +333,7 @@ static void check_network_state(void)
     }
     else
     {
-         __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Waiting for previous procedure to finish ...\n");
+        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Waiting for previous procedure to finish ...\n");
     }
 }
 
@@ -450,25 +375,21 @@ void app_default_models_bind_setup(void)
 }
 
 
-static bool app_flash_config_load(void)
+static bool app_mesh_config_load(void)
 {
-    bool app_load = false;
-#if PERSISTENT_STORAGE
-    app_flash_manager_add();
-    app_load = load_app_data();
-#endif
-    if (!app_load)
+    uint32_t status = mesh_config_entry_get(LIGHT_SWITCH_PROVISIONER_ENTRY_ID, &m_nw_state);
+    if (status != NRF_SUCCESS)
     {
         m_nw_state.provisioned_devices = 0;
         m_nw_state.configured_devices = 0;
         m_nw_state.next_device_address = UNPROV_START_ADDRESS;
-        ERROR_CHECK(store_app_data());
+        light_switch_provisioner_store();
     }
     else
     {
         __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Restored: App data\n");
     }
-    return app_load;
+    return (status == NRF_SUCCESS);
 }
 
 static void button_event_handler(uint32_t button_number)
@@ -489,7 +410,7 @@ static void button_event_handler(uint32_t button_number)
             /* Clear all the states to reset the node. */
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset -----\n");
 
-            clear_app_data();
+            light_switch_provisioner_invalidate();
             mesh_stack_config_clear();
 
             hal_led_blink_ms(1 << BSP_LED_3, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
@@ -535,12 +456,23 @@ static void mesh_init(void)
         .models.models_init_cb   = models_init_cb,
         .models.config_server_cb = app_config_server_event_cb
     };
-    ERROR_CHECK(mesh_stack_init(&init_params, &device_provisioned));
+
+    uint32_t status = mesh_stack_init(&init_params, &device_provisioned);
+    switch (status)
+    {
+        case NRF_ERROR_INVALID_DATA:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
+            break;
+        case NRF_SUCCESS:
+            break;
+        default:
+            ERROR_CHECK(status);
+    }
 
     nrf_mesh_evt_handler_add(&m_mesh_core_event_handler);
 
     /* Load application configuration, if available */
-    m_dev_handles.flash_load_success = app_flash_config_load();
+    (void)app_mesh_config_load();
 
     /* Initialize the provisioner */
     mesh_provisioner_init_params_t m_prov_helper_init_info =
@@ -561,7 +493,6 @@ static void mesh_init(void)
 
         prov_helper_provision_self();
         app_default_models_bind_setup();
-        access_flash_config_store();
         app_data_store_cb();
     }
     else

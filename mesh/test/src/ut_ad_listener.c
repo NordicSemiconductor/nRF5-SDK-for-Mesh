@@ -42,7 +42,6 @@
 #include "test_assert.h"
 
 #include "ad_type_filter_mock.h"
-#include "list_mock.h"
 
 #define INCORRECT_ADV         0xEBu
 #define TEST_AD               AD_TYPE_MESH
@@ -64,57 +63,6 @@ static uint8_t m_test_cnt;
 static uint8_t m_pb_adv_cnt;
 static uint8_t m_beacon_cnt;
 static uint8_t m_wildcard_cnt;
-static list_node_t ** mpp_head;
-
-static void ll_insert(list_node_t * p_prev, list_node_t * p_next)
-{
-    p_next->p_next = p_prev->p_next;
-    p_prev->p_next = p_next;
-}
-
-static void list_add_cb(list_node_t ** pp_head, list_node_t * p_new, int num_calls)
-{
-    (void)num_calls;
-    mpp_head = pp_head;
-
-    if (*pp_head == NULL)
-    {
-        *pp_head = p_new;
-        p_new->p_next = NULL;
-        return;
-    }
-
-    list_node_t * p_node = *pp_head;
-    while (p_node->p_next != NULL)
-    {
-        p_node = p_node->p_next;
-    }
-
-    ll_insert(p_node, p_new);
-}
-
-static uint32_t list_remove_cb(list_node_t ** pp_head, list_node_t * p_node, int num_calls)
-{
-    (void)num_calls;
-
-    if (p_node == *pp_head)
-    {
-        *pp_head = p_node->p_next;
-        p_node->p_next = NULL;
-        return NRF_SUCCESS;
-    }
-
-    list_node_t * p_item = *pp_head;
-    while (p_item->p_next != NULL && p_item->p_next != p_node)
-    {
-        p_item = p_item->p_next;
-    }
-
-    p_item->p_next = p_node->p_next;
-    p_node->p_next = NULL;
-
-    return NRF_SUCCESS;
-}
 
 static void dummy(const uint8_t * p_packet,
                   uint32_t ad_packet_length,
@@ -211,6 +159,8 @@ static void corrupt_cb(const uint8_t * p_packet,
     tmp[0] = !tmp[0];
 }
 
+ad_listener_t ad_listeners[NRF_SECTION_ENTRIES];
+
 static void scanner_packet_init(scanner_packet_t * p_pkt, uint8_t * payload, uint8_t length)
 {
     p_pkt->packet.header.length = BLE_ADV_PACKET_OVERHEAD + length;
@@ -230,184 +180,68 @@ static void scanner_packet_init(scanner_packet_t * p_pkt, uint8_t * payload, uin
 
 void setUp(void)
 {
+    for (uint32_t i = 0; i < ARRAY_SIZE(ad_listeners); ++i)
+    {
+        ad_listeners[i] = (ad_listener_t) {
+            .ad_type = ADL_WILDCARD_AD_TYPE,
+            .adv_packet_type = ADL_WILDCARD_ADV_TYPE,
+            .handler = dummy,
+        };
+    }
     ad_type_filter_mock_Init();
-    list_mock_Init();
-
-    list_add_StubWithCallback(list_add_cb);
-    list_remove_StubWithCallback(list_remove_cb);
 }
 
 void tearDown(void)
 {
     ad_type_filter_mock_Verify();
     ad_type_filter_mock_Destroy();
-    list_mock_Verify();
-    list_mock_Destroy();
 }
 
 void test_incoming_param_checker(void)
 {
-    ad_listener_t * p_adl = NULL;
-    ad_listener_t adl =
-    {
-        .handler = NULL,
-        .adv_packet_type = INCORRECT_ADV
-    };
-
-    TEST_ASSERT_TRUE(NRF_ERROR_NULL == ad_listener_subscribe(p_adl));
-
-    p_adl = &adl;
-
-    TEST_ASSERT_TRUE(NRF_ERROR_NULL == ad_listener_subscribe(p_adl));
-
-    p_adl->handler = dummy;
-
-    TEST_ASSERT_TRUE(NRF_ERROR_INVALID_PARAM == ad_listener_subscribe(p_adl));
-
-    p_adl->adv_packet_type = ADL_WILDCARD_ADV_TYPE;
     bearer_adtype_add_Ignore();
-    bearer_adtype_mode_set_ExpectAnyArgs();
-    bearer_adtype_filtering_set_ExpectAnyArgs();
-    list_add_Ignore();
+    bearer_adtype_mode_set_Ignore();
+    bearer_adtype_filtering_set_Ignore();
 
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_subscribe(p_adl));
+    ad_listeners[0].handler = NULL;
+    TEST_NRF_MESH_ASSERT_EXPECT(ad_listener_init());
+
+    ad_listeners[0].handler = dummy;
+    ad_listeners[1].adv_packet_type = INCORRECT_ADV;
+    TEST_NRF_MESH_ASSERT_EXPECT(ad_listener_init());
+
+    // no errors:
+    ad_listeners[1].adv_packet_type = ADL_WILDCARD_ADV_TYPE;
+    ad_listener_init();
 }
 
 void test_ad_filter_set(void)
 {
-    ad_listener_t adl1 =
-    {
+    ad_listeners[0] = (ad_listener_t) {
         .handler = dummy,
         .ad_type = TEST_AD,
         .adv_packet_type = ADL_WILDCARD_ADV_TYPE
     };
 
-    ad_listener_t adl2 =
-    {
-        .handler = dummy,
-        .ad_type = ADL_WILDCARD_AD_TYPE,
-        .adv_packet_type = ADL_WILDCARD_ADV_TYPE
-    };
-
-    bearer_adtype_add_Expect(TEST_AD);
     bearer_adtype_mode_set_Expect(AD_FILTER_WHITELIST_MODE);
     bearer_adtype_filtering_set_Expect(true);
-    list_add_Expect(mpp_head, &adl1.node);
 
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_subscribe(&adl1));
-
-    for (uint16_t i = 0; i <= UINT8_MAX; i++)
-    {
-        bearer_adtype_add_Expect(i);
-    }
-    list_add_Expect(mpp_head, &adl2.node);
-
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_subscribe(&adl2));
-
-    // clean up queue
-    *mpp_head = NULL;
-}
-
-void test_simple_unsubscription(void)
-{
-    ad_listener_t adl =
-    {
-        .handler = dummy,
-        .ad_type = TEST_AD,
-        .adv_packet_type = ADL_WILDCARD_ADV_TYPE
-    };
-
-    bearer_adtype_add_Ignore();
-    bearer_adtype_mode_set_Ignore();
-    bearer_adtype_filtering_set_Ignore();
-    list_add_Expect(mpp_head, &adl.node);
-
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_subscribe(&adl));
-
-    list_remove_ExpectAndReturn(mpp_head, &adl.node, NRF_SUCCESS);
-    bearer_adtype_remove_Expect(TEST_AD);
-    bearer_adtype_filtering_set_Expect(false);
-
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_unsubscribe(&adl));
-}
-
-void test_wildcard_unsubscription(void)
-{
-    ad_listener_t adl =
-    {
-        .handler = dummy,
-        .ad_type = ADL_WILDCARD_AD_TYPE,
-        .adv_packet_type = ADL_WILDCARD_ADV_TYPE
-    };
-
-    bearer_adtype_add_Ignore();
-    bearer_adtype_mode_set_Ignore();
-    bearer_adtype_filtering_set_Ignore();
-    list_add_Expect(mpp_head, &adl.node);
-
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_subscribe(&adl));
-
-    list_remove_ExpectAndReturn(mpp_head, &adl.node, NRF_SUCCESS);
-    bearer_adtype_clear_Expect();
-    bearer_adtype_filtering_set_Expect(false);
-
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_unsubscribe(&adl));
-}
-
-void test_mixed_unsubscription(void)
-{
-    ad_listener_t adl1 =
-    {
-        .handler = dummy,
-        .ad_type = TEST_AD,
-        .adv_packet_type = ADL_WILDCARD_ADV_TYPE
-    };
-
-    ad_listener_t adl2 =
-    {
-        .handler = dummy,
-        .ad_type = ADL_WILDCARD_AD_TYPE,
-        .adv_packet_type = ADL_WILDCARD_ADV_TYPE
-    };
-
-    ad_listener_t adl3 =
-    {
-        .handler = dummy,
-        .ad_type = ADL_WILDCARD_AD_TYPE,
-        .adv_packet_type = ADL_WILDCARD_ADV_TYPE
-    };
-
-    bearer_adtype_add_Ignore();
-    bearer_adtype_mode_set_Ignore();
-    bearer_adtype_filtering_set_Ignore();
-
-    list_add_Expect(mpp_head, &adl1.node);
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_subscribe(&adl1));
-    list_add_Expect(mpp_head, &adl2.node);
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_subscribe(&adl2));
-    list_add_Expect(mpp_head, &adl3.node);
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_subscribe(&adl3));
-
-    list_remove_ExpectAndReturn(mpp_head, &adl2.node, NRF_SUCCESS);
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_unsubscribe(&adl2));
-
-    bearer_adtype_clear_Expect();
     bearer_adtype_add_Expect(TEST_AD);
 
-    list_remove_ExpectAndReturn(mpp_head, &adl3.node, NRF_SUCCESS);
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_unsubscribe(&adl3));
 
-    bearer_adtype_remove_Expect(TEST_AD);
-    bearer_adtype_filtering_set_Expect(false);
-
-    list_remove_ExpectAndReturn(mpp_head, &adl1.node, NRF_SUCCESS);
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_unsubscribe(&adl1));
+    for (uint32_t i = 1; i < ARRAY_SIZE(ad_listeners); ++i)
+    {
+        for (uint16_t j = 0; j <= UINT8_MAX; j++)
+        {
+            bearer_adtype_add_Expect(j);
+        }
+    }
+    ad_listener_init();
 }
 
 void test_simple_listener_many_frames_process(void)
 {
-    ad_listener_t adl =
-    {
+    ad_listeners[0] = (ad_listener_t) {
         .handler = ad_test_cb,
         .ad_type = TEST_AD,
         .adv_packet_type = BLE_PACKET_TYPE_ADV_NONCONN_IND
@@ -431,13 +265,6 @@ void test_simple_listener_many_frames_process(void)
     scanner_packet_t pkt;
     scanner_packet_init(&pkt, payload, sizeof(payload));
 
-    bearer_adtype_add_Ignore();
-    bearer_adtype_mode_set_Ignore();
-    bearer_adtype_filtering_set_Ignore();
-
-    list_add_Expect(mpp_head, &adl.node);
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_subscribe(&adl));
-
     m_test_cnt = 0;
 
     for (uint8_t i = 0; i < SEND_CYCLE_AMOUNT; i++)
@@ -448,15 +275,11 @@ void test_simple_listener_many_frames_process(void)
     }
 
     TEST_ASSERT_EQUAL_INT8(SEND_CYCLE_AMOUNT, m_test_cnt);
-
-    // clean up queue
-    *mpp_head = NULL;
 }
 
 void test_wildcard_listener_many_frames_process(void)
 {
-    ad_listener_t adl =
-    {
+    ad_listeners[0] = (ad_listener_t) {
         .handler = wildcard_cb,
         .ad_type = ADL_WILDCARD_AD_TYPE,
         .adv_packet_type = ADL_WILDCARD_ADV_TYPE
@@ -480,13 +303,6 @@ void test_wildcard_listener_many_frames_process(void)
     scanner_packet_t pkt;
     scanner_packet_init(&pkt, payload, sizeof(payload));
 
-    bearer_adtype_add_Ignore();
-    bearer_adtype_mode_set_Ignore();
-    bearer_adtype_filtering_set_Ignore();
-
-    list_add_Expect(mpp_head, &adl.node);
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_subscribe(&adl));
-
     m_wildcard_cnt = 0;
 
     for (uint8_t i = 0; i < SEND_CYCLE_AMOUNT; i++)
@@ -497,35 +313,29 @@ void test_wildcard_listener_many_frames_process(void)
     }
 
     TEST_ASSERT_EQUAL_INT8(3 * SEND_CYCLE_AMOUNT, m_wildcard_cnt);
-
-    // clean up queue
-    *mpp_head = NULL;
 }
 
 void test_many_listeners_many_frames_process(void)
 {
-    ad_listener_t adl[] =
-    {
-        {
-            .handler = wildcard_cb,
-            .ad_type = ADL_WILDCARD_AD_TYPE,
-            .adv_packet_type = ADL_WILDCARD_ADV_TYPE
-        },
-        {
-            .handler = ad_test_cb,
-            .ad_type = TEST_AD,
-            .adv_packet_type = BLE_PACKET_TYPE_ADV_NONCONN_IND
-        },
-        {
-            .handler = pb_adv_cb,
-            .ad_type = AD_TYPE_PB_ADV,
-            .adv_packet_type = BLE_PACKET_TYPE_ADV_NONCONN_IND
-        },
-        {
-            .handler = beacon_cb,
-            .ad_type = AD_TYPE_BEACON,
-            .adv_packet_type = BLE_PACKET_TYPE_ADV_NONCONN_IND
-        }
+    ad_listeners[0] = (ad_listener_t) {
+        .handler = wildcard_cb,
+        .ad_type = ADL_WILDCARD_AD_TYPE,
+        .adv_packet_type = ADL_WILDCARD_ADV_TYPE
+    };
+    ad_listeners[1] = (ad_listener_t) {
+        .handler = ad_test_cb,
+        .ad_type = TEST_AD,
+        .adv_packet_type = BLE_PACKET_TYPE_ADV_NONCONN_IND
+    };
+    ad_listeners[2] = (ad_listener_t) {
+        .handler = pb_adv_cb,
+        .ad_type = AD_TYPE_PB_ADV,
+        .adv_packet_type = BLE_PACKET_TYPE_ADV_NONCONN_IND
+    };
+    ad_listeners[3] = (ad_listener_t) {
+        .handler = beacon_cb,
+        .ad_type = AD_TYPE_BEACON,
+        .adv_packet_type = BLE_PACKET_TYPE_ADV_NONCONN_IND
     };
 
     uint8_t payload[] =
@@ -545,16 +355,6 @@ void test_many_listeners_many_frames_process(void)
 
     scanner_packet_t pkt;
     scanner_packet_init(&pkt, payload, sizeof(payload));
-
-    bearer_adtype_add_Ignore();
-    bearer_adtype_mode_set_Ignore();
-    bearer_adtype_filtering_set_Ignore();
-
-    for (uint8_t i = 0; i < 4; i++)
-    {
-        list_add_Expect(mpp_head, &adl[i].node);
-        TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_subscribe(&adl[i]));
-    }
 
     m_test_cnt = 0;
     m_pb_adv_cnt = 0;
@@ -572,15 +372,11 @@ void test_many_listeners_many_frames_process(void)
     TEST_ASSERT_EQUAL_INT8(SEND_CYCLE_AMOUNT, m_pb_adv_cnt);
     TEST_ASSERT_EQUAL_INT8(SEND_CYCLE_AMOUNT, m_beacon_cnt);
     TEST_ASSERT_EQUAL_INT8(3 * SEND_CYCLE_AMOUNT, m_wildcard_cnt);
-
-    // clean up queue
-    *mpp_head = NULL;
 }
 
 void test_hash_check(void)
 {
-    ad_listener_t adl =
-    {
+    ad_listeners[0] = (ad_listener_t) {
         .handler = corrupt_cb,
         .ad_type = TEST_AD,
         .adv_packet_type = BLE_PACKET_TYPE_ADV_NONCONN_IND
@@ -596,25 +392,14 @@ void test_hash_check(void)
     scanner_packet_t pkt;
     scanner_packet_init(&pkt, payload, sizeof(payload));
 
-    bearer_adtype_add_Ignore();
-    bearer_adtype_mode_set_Ignore();
-    bearer_adtype_filtering_set_Ignore();
-
-    list_add_Expect(mpp_head, &adl.node);
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_subscribe(&adl));
-
     nrf_mesh_rx_metadata_t metadata = {.source         = NRF_MESH_RX_SOURCE_SCANNER,
                                         .params.scanner = pkt.metadata};
     TEST_NRF_MESH_ASSERT_EXPECT(ad_listener_process(pkt.packet.header.type, pkt.packet.payload, sizeof(payload), &metadata));
-
-    // clean up queue
-    *mpp_head = NULL;
 }
 
 void test_empty_ad_skip(void)
 {
-    ad_listener_t adl =
-    {
+    ad_listeners[0] = (ad_listener_t) {
         .handler = wildcard_cb,
         .ad_type = ADL_WILDCARD_AD_TYPE,
         .adv_packet_type = ADL_WILDCARD_ADV_TYPE
@@ -624,13 +409,6 @@ void test_empty_ad_skip(void)
 
     scanner_packet_t pkt;
     scanner_packet_init(&pkt, payload, sizeof(payload));
-
-    bearer_adtype_add_Ignore();
-    bearer_adtype_mode_set_Ignore();
-    bearer_adtype_filtering_set_Ignore();
-
-    list_add_Expect(mpp_head, &adl.node);
-    TEST_ASSERT_TRUE(NRF_SUCCESS == ad_listener_subscribe(&adl));
 
     m_wildcard_cnt = 0;
 
@@ -642,7 +420,4 @@ void test_empty_ad_skip(void)
     }
 
     TEST_ASSERT_EQUAL_INT8(0, m_wildcard_cnt);
-
-    // clean up queue
-    *mpp_head = NULL;
 }

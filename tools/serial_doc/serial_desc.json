@@ -776,6 +776,14 @@
                         "status": [ "SUCCESS"
                         ]
                     }
+                },
+                {
+                    "name": "Config Server Bind",
+                    "description": "Binds the config server model instance to given device key handle.",
+                    "response": {
+                        "status": [ "SUCCESS"
+                        ]
+                    }
                 }
             ]
         },
@@ -883,7 +891,7 @@
                 },
                 {
                     "name": "Model Pub Period Set",
-                    "description": "Set the publish address for a model instance.",
+                    "description": "Set the publish period for a model instance.",
                     "response": {
                         "status": [
                             "SUCCESS", "ERROR_REJECTED", "ERROR_INVALID_STATE", "ERROR_INVALID_PARAMETER"
@@ -1070,15 +1078,6 @@
                         ],
                         "params": "cmd_rsp_data_elem_models_get"
                     }
-                },
-                {
-                    "name": "Access Flash Store",
-                    "description": "Store the access layer information to flash.",
-                    "response": {
-                        "status": [
-                            "SUCCESS"
-                        ]
-                    }
                 }
             ]
         },
@@ -1256,6 +1255,10 @@
         {
             "name": "Mesh Key Refresh Notification",
             "description": "A network has entered a new phase in the key refresh procedure."
+        },
+        {
+            "name": "Mesh Heartbeat Received",
+            "description": "A heartbeat message has been received. To control the heartbeat subscriptions of the device through the local Configuration Client, add any mesh device key through _Device Key_ and bind the provided handle to the device Configuration Server through _Config Server Bind_. Use the provided device key handle to configure the device."
         },
         {
             "name": "Mesh SAR Failed",

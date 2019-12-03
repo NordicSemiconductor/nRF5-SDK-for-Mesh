@@ -55,26 +55,20 @@
  */
 
 /**
- * Recover access layer configuration from flash.
+ * Applies data loaded from the mesh configuration system on the access layer structures.
  *
- * @warning All models have to be added before this function is called. Calling this function will
- *          prevent any further changes to composition of the device (Freezing of model
- *          configurations and device composition data.)
+ * @note Actual metadata is restored automatically if it was not found or
+ * if read out data is not equal configuration parameters.
  *
- * @returns @c True If a valid state was successfully restored from flash, or if this function is
- *                  called for the first time when no configuration exist in the flash.
+ * @note The function also stores data which was provided within
+ * application-specific model initialization stage @ref mesh_stack_models_init_cb_t
+ * @see mesh_stack_init_params_t
  *
+ * @retval     NRF_ERROR_NOT_FOUND    Access layer metadata was not found.
+ * @retval     NRF_ERROR_INVALID_DATA Data stored in the persistent memory was corrupted.
+ * @retval     NRF_SUCCESS            Data was restored and applied successfully.
  */
-bool access_flash_config_load(void);
-
-/**
- * Store the current state of access layer - information related to element and model configuration -
- * in non volatile memory.
- *
- * @warning Calls to this API will not result in any storage of information if the access
- *          configuration is not yet frozen. See @ref access_flash_config_load() API.
- */
-void access_flash_config_store(void);
+uint32_t access_load_config_apply(void);
 
 /**
  * Sets the default TTL for the node.
@@ -420,8 +414,7 @@ uint32_t access_model_p_args_get(access_model_handle_t handle, void ** pp_args);
  * @retval     NRF_ERROR_NO_MEM         No more subscription lists available in memory pool.
  *                                      @see ACCESS_SUBSCRIPTION_LIST_COUNT.
  * @retval     NRF_ERROR_NOT_FOUND      Access handle invalid.
- * @retval     NRF_ERROR_INVALID_STATE  A subscription list is already allocated for model.
- * @retval     NRF_ERROR_FORBIDDEN      Model configuration is frozen and changes to model
+ * @retval     NRF_ERROR_FORBIDDEN      Device has been provisioned and changes to model
  *                                      subscription list are not allowed.
  */
 uint32_t access_model_subscription_list_alloc(access_model_handle_t handle);
@@ -438,7 +431,7 @@ uint32_t access_model_subscription_list_alloc(access_model_handle_t handle);
  *
  * @retval     NRF_SUCCESS              Successfully de-allocated subscription list.
  * @retval     NRF_ERROR_NOT_FOUND      Access handle invalid.
- * @retval     NRF_ERROR_FORBIDDEN      Model configuration is frozen and changes to model
+ * @retval     NRF_ERROR_FORBIDDEN      Device has been provisioned and changes to model
  *                                      subscription list are not allowed.
  *
  */
@@ -460,7 +453,7 @@ uint32_t access_model_subscription_list_dealloc(access_model_handle_t handle);
  * @retval     NRF_ERROR_NOT_FOUND      Access handle invalid for one or more of the models.
  * @retval     NRF_ERROR_INVALID_STATE  Invalid parameter combination. The owner must have a
  *                                      subscription list allocated.
- * @retval     NRF_ERROR_FORBIDDEN      Model configuration is frozen and changes to model
+ * @retval     NRF_ERROR_FORBIDDEN      Device has been provisioned and changes to model
  *                                      subscription list are not allowed.
  */
 uint32_t access_model_subscription_lists_share(access_model_handle_t owner, access_model_handle_t other);
@@ -555,14 +548,6 @@ uint32_t access_element_models_get(uint16_t element_index, access_model_handle_t
  * @retval NRF_ERROR_NOT_FOUND Couldn't find a model handle for the given ID.
  */
 uint32_t access_handle_get(uint16_t element_index, access_model_id_t model_id, access_model_handle_t * p_handle);
-
-
-/**
- * Gets a pointer to the flash area used by access.
- *
- * @returns A pointer to access flash area.
- */
-const void * access_flash_area_get(void);
 
 /** @} */
 #endif  /* ACCESS_CONFIG_H__ */

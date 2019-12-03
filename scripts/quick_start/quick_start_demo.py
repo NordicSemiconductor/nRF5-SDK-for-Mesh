@@ -92,6 +92,8 @@ def device_type_get(device_id):
         return "52840"
     elif (device_id[2] == "4"):
         return "52810"
+    elif (device_id[2] == "5"):
+        return "52833"
     elif (device_id[2] == "0" or device_id[2] == "1"):
         return "51"
     else:
@@ -138,7 +140,7 @@ def find_file(path, filename_filter):
     return flist
 #---------------------------------------------------------------------------------------------------
 def printBoards(devices):
-    print ("\nBoards with nRF52832 or nRF52840 devices: \n(Board index : Segger ID)")
+    print ("\nBoards with nRF52832, nRF52833 or nRF52840 devices: \n(Board index : Segger ID)")
     for i in range(len(devices)):
         print(str(i) + ' : ' + devices[i])
 
@@ -171,16 +173,20 @@ ec = 0
 eList = errorList()
 server_devices = []
 
-provisioner_hex52832 = find_file(os.path.join(cwd, "bin"), 'light_switch_provisioner_nrf52832_xxAA_s132_6.1.1_merged_sd.hex')[0]
-client_hex52832 = find_file(os.path.join(cwd, "bin"), "light_switch_client_nrf52832_xxAA_s132_6.1.1_merged_sd.hex")[0]
-server_hex52832 = find_file(os.path.join(cwd, "bin"), "light_switch_server_nrf52832_xxAA_s132_6.1.1_merged_sd.hex")[0]
+provisioner_hex52832 = find_file(os.path.join(cwd, "bin"), 'light_switch_provisioner_nrf52832_xxAA_s132_7.0.1_merged_sd.hex')[0]
+client_hex52832 = find_file(os.path.join(cwd, "bin"), "light_switch_client_nrf52832_xxAA_s132_7.0.1_merged_sd.hex")[0]
+server_hex52832 = find_file(os.path.join(cwd, "bin"), "light_switch_server_nrf52832_xxAA_s132_7.0.1_merged_sd.hex")[0]
 
-provisioner_hex52840 = find_file(cwd, 'light_switch_provisioner_nrf52840_xxAA_s140_6.1.1_merged_sd.hex')[0]
-client_hex52840 = find_file(cwd, "light_switch_client_nrf52840_xxAA_s140_6.1.1_merged_sd.hex")[0]
-server_hex52840 = find_file(cwd, "light_switch_server_nrf52840_xxAA_s140_6.1.1_merged_sd.hex")[0]
+provisioner_hex52833 = find_file(cwd, 'light_switch_provisioner_nrf52833_xxAA_s113_7.0.1_merged_sd.hex')[0]
+client_hex52833 = find_file(cwd, "light_switch_client_nrf52833_xxAA_s113_7.0.1_merged_sd.hex")[0]
+server_hex52833 = find_file(cwd, "light_switch_server_nrf52833_xxAA_s113_7.0.1_merged_sd.hex")[0]
+
+provisioner_hex52840 = find_file(cwd, 'light_switch_provisioner_nrf52840_xxAA_s140_7.0.1_merged_sd.hex')[0]
+client_hex52840 = find_file(cwd, "light_switch_client_nrf52840_xxAA_s140_7.0.1_merged_sd.hex")[0]
+server_hex52840 = find_file(cwd, "light_switch_server_nrf52840_xxAA_s140_7.0.1_merged_sd.hex")[0]
 
 # All files must be valid
-for f in [provisioner_hex52832, client_hex52832, server_hex52832, provisioner_hex52840, client_hex52840, server_hex52840]:
+for f in [provisioner_hex52832, client_hex52832, server_hex52832, provisioner_hex52833, client_hex52833, server_hex52833, provisioner_hex52840, client_hex52840, server_hex52840]:
     if (not os.path.isfile(f)):
         print("Error: File ", f, " does not exist")
         quit()
@@ -189,7 +195,7 @@ for f in [provisioner_hex52832, client_hex52832, server_hex52832, provisioner_he
 cmd = CmdExecutor()
 (log, ec) = cmd.run(['nrfjprog', '-i'])
 devices = log.splitlines()
-devices = [d for d in devices if (device_type_get(d) in ["52832", "52840"])]
+devices = [d for d in devices if (device_type_get(d) in ["52832", "52833", "52840"])]
 
 
 # Ask user input if required.
@@ -235,6 +241,8 @@ for d in devices:
     if (d == str(args.provisioner)):
         if (device_type_get(d) == "52832"):
             ec = programmer.program(provisioner_hex52832, d)
+        elif (device_type_get(d) == "52833"):
+            ec = programmer.program(provisioner_hex52833, d)
         else:
             ec = programmer.program(provisioner_hex52840, d)
 
@@ -249,6 +257,8 @@ for d in devices:
     elif (d == str(args.client)):
         if (device_type_get(d) == "52832"):
             ec =  programmer.program(client_hex52832, d)
+        elif (device_type_get(d) == "52833"):
+            ec =  programmer.program(client_hex52833, d)
         else:
             ec =  programmer.program(client_hex52840, d)
 
@@ -263,6 +273,8 @@ for d in devices:
     else:
         if (device_type_get(d) == "52832"):
             ec =  programmer.program(server_hex52832, d)
+        elif (device_type_get(d) == "52833"):
+            ec =  programmer.program(server_hex52833, d)
         else:
             ec =  programmer.program(server_hex52840, d)
 

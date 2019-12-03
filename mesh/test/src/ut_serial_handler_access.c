@@ -564,17 +564,6 @@ static void test_access_elem_models_get()
 
 }
 
-static void test_access_flash_store()
-{
-    serial_packet_t cmd;
-    cmd.opcode = SERIAL_OPCODE_CMD_ACCESS_ACCESS_FLASH_STORE;
-    RX_PACK_INVALID_PACK_LENGTH(cmd, SERIAL_PACKET_LENGTH_OVERHEAD, SERIAL_PACKET_LENGTH_OVERHEAD);
-    cmd.length = SERIAL_PACKET_LENGTH_OVERHEAD;
-    access_flash_config_store_Expect();
-    serial_cmd_rsp_send_Expect(SERIAL_OPCODE_CMD_ACCESS_ACCESS_FLASH_STORE, SERIAL_STATUS_SUCCESS, NULL, 0);
-    serial_handler_access_rx(&cmd);
-}
-
 void setUp(void)
 {
     serial_mock_Init();
@@ -602,7 +591,7 @@ static void (*opcode_test_fp[])() ={test_access_model_pub_addr_set, test_access_
     test_access_model_pub_app_get, test_access_model_pub_ttl_set, test_access_model_pub_ttl_get,
     test_access_elem_loc_set, test_access_elem_loc_get, test_access_elem_sig_model_count_get,
     test_access_elem_vendor_model_count_get, test_access_model_id_get, test_access_handle_get,
-    test_access_elem_models_get, test_access_flash_store};
+    test_access_elem_models_get};
 /*****************************************************************************
 * Tests
 *****************************************************************************/

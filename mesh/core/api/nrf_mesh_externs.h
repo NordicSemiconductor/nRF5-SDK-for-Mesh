@@ -217,6 +217,14 @@ const nrf_mesh_network_secmat_t * nrf_mesh_net_secmat_from_index_get(uint16_t su
  */
 extern bool nrf_mesh_is_address_rx(const nrf_mesh_address_t * p_addr);
 
+/**
+ * Checks if the device has been provisioned.
+ *
+ * @retval true   The device has been provisioned.
+ * @retval false  The device has not been provisioned.
+ */
+extern bool nrf_mesh_is_device_provisioned(void);
+
 /** @} end of NRF_MESH_EXTERNS */
 
 #endif /* NRF_MESH_EXTERNS_H__ */

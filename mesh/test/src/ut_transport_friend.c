@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -119,7 +119,9 @@ void test_friend_packet_rx_unseg(void)
     packet_unseg_rx(&meta, packet_len);
     TEST_ASSERT_FALSE(replay_cache_has_elem(src, seq-1, m_iv_index));
 
-    // receive a unicast packet destined for the friend, but it hits replay protection. Should not go anywhere.
+    // receive a unicast packet destined for the friend with SEQ in RPL. Should avoid RPL and go to the friend.
+    expect_friend_needs_packet(true);
+    expect_unseg_friend_packet_in(packet_len, CORE_TX_ROLE_RELAY);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_add(src, seq, m_iv_index));
     net_meta_build(src, seq++, m_iv_index, NRF_MESH_ADDRESS_TYPE_UNICAST, &meta);
     packet_unseg_rx(&meta, packet_len);
@@ -132,7 +134,7 @@ void test_friend_packet_rx_sar_single_segment(void)
 
     network_packet_metadata_t meta;
     uint16_t src = 1;
-    uint32_t seq = 0;
+    uint32_t seq = 9001; // Start high to have all values represented in seqauth
 
     sar_session_t sar_session = {
         .seqzero = 0,
@@ -140,79 +142,116 @@ void test_friend_packet_rx_sar_single_segment(void)
         .total_len = PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE,
     };
 
+    uint64_t seqauth = transport_sar_seqauth_get(m_iv_index, seq, sar_session.seqzero);
+
     // receive a unicast packet for ourself, but not the friend. Should go to app, but friend_sar_complete shouldn't be called
+    expect_sar_ctx_alloc();
     expect_friend_needs_packet(false);
     expect_access_rx(sar_session.total_len - PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE,
                      src,
                      NRF_MESH_ADDRESS_TYPE_UNICAST);
+    expect_friend_needs_packet(false);
     expect_sar_ack(&sar_session, 1);
+    friend_sar_exists_ExpectAndReturn(src, seqauth, false);
+    expect_sar_ctx_free();
     net_meta_build(src, seq++, m_iv_index, NRF_MESH_ADDRESS_TYPE_UNICAST, &meta);
     packet_seg_rx(&meta, PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, 0, &sar_session);
+    TEST_ASSERT_TRUE(replay_cache_has_seqauth(src, seq-1, m_iv_index, sar_session.seqzero));
     TEST_ASSERT_TRUE(replay_cache_has_elem(src, seq-1, m_iv_index));
     event_mock_Verify();
 
     // receive a group packet for ourself, but not the friend. Should go to app, but friend_sar_complete shouldn't be called
-    sar_session.seqzero = seq;
+    sar_session.seqzero = seq & TRANSPORT_SAR_SEQZERO_MASK;
+    expect_sar_ctx_alloc();
     expect_friend_needs_packet(false);
     expect_access_rx(sar_session.total_len - PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE,
                      src,
                      NRF_MESH_ADDRESS_TYPE_GROUP);
+    seqauth = transport_sar_seqauth_get(m_iv_index, seq, sar_session.seqzero);
+    friend_sar_exists_ExpectAndReturn(src, seqauth, false);
+    expect_sar_ctx_free();
     net_meta_build(src, seq++, m_iv_index, NRF_MESH_ADDRESS_TYPE_GROUP, &meta);
     packet_seg_rx(&meta, PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, 0, &sar_session);
+    TEST_ASSERT_TRUE(replay_cache_has_seqauth(src, seq-1, m_iv_index, sar_session.seqzero));
     TEST_ASSERT_TRUE(replay_cache_has_elem(src, seq-1, m_iv_index));
     event_mock_Verify();
 
     // receive a packet for ourself and the friend. Should go to app, and friend_sar_complete should be called with a success-value
-    sar_session.seqzero = seq;
+    sar_session.seqzero = seq & TRANSPORT_SAR_SEQZERO_MASK;
+    expect_sar_ctx_alloc();
     expect_friend_needs_packet(true);
     expect_sar_friend_packet_in(PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, CORE_TX_ROLE_RELAY);
+    seqauth = transport_sar_seqauth_get(m_iv_index, seq, sar_session.seqzero);
+    friend_sar_exists_ExpectAndReturn(src, seqauth, false);
     friend_sar_complete_Expect(src, sar_session.seqzero, true);
     expect_access_rx(sar_session.total_len - PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE,
                      src,
                      NRF_MESH_ADDRESS_TYPE_GROUP);
+    expect_sar_ctx_free();
     net_meta_build(src, seq++, m_iv_index, NRF_MESH_ADDRESS_TYPE_GROUP, &meta);
     packet_seg_rx(&meta, PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, 0, &sar_session);
+    TEST_ASSERT_TRUE(replay_cache_has_seqauth(src, seq-1, m_iv_index, sar_session.seqzero));
     TEST_ASSERT_TRUE(replay_cache_has_elem(src, seq-1, m_iv_index));
     event_mock_Verify();
 
     // receive a unicast packet for the friend. Should not go to app, and friend_sar_complete should be called with a success-value. Ack should have OBO set
     m_rx_addr_ok = false;
     m_ack_on_behalf_of_friend = true;
-    sar_session.seqzero = seq;
+    sar_session.seqzero = seq & TRANSPORT_SAR_SEQZERO_MASK;
+    expect_sar_ctx_alloc();
     expect_friend_needs_packet(true);
     expect_sar_friend_packet_in(PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, CORE_TX_ROLE_RELAY);
+    seqauth = transport_sar_seqauth_get(m_iv_index, seq, sar_session.seqzero);
+    friend_sar_exists_ExpectAndReturn(src, seqauth, false);
     friend_sar_complete_Expect(src, sar_session.seqzero, true);
+    expect_friend_needs_packet(true);
     expect_sar_ack(&sar_session, 1);
+    expect_sar_ctx_free();
     net_meta_build(src, seq++, m_iv_index, NRF_MESH_ADDRESS_TYPE_UNICAST, &meta);
     packet_seg_rx(&meta, PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, 0, &sar_session);
+    TEST_ASSERT_FALSE(replay_cache_has_seqauth(src, seq-1, m_iv_index, sar_session.seqzero));
     TEST_ASSERT_FALSE(replay_cache_has_elem(src, seq-1, m_iv_index)); // friend packets aren't added to the replay list
 
     // The sender didn't get our ack, and sends the segment again. This should be acked with OBO set, and the packet should NOT be added to replay (just like the rest of the session)
     m_ack_on_behalf_of_friend = true;
     expect_friend_needs_packet(true);
+    seqauth = transport_sar_seqauth_get(m_iv_index, seq, sar_session.seqzero);
+    friend_sar_exists_ExpectAndReturn(src, seqauth, true);
+    expect_friend_needs_packet(true);
     expect_sar_ack(&sar_session, 1);
     net_meta_build(src, seq++, m_iv_index, NRF_MESH_ADDRESS_TYPE_UNICAST, &meta);
     packet_seg_rx(&meta, PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, 0, &sar_session);
+    TEST_ASSERT_FALSE(replay_cache_has_seqauth(src, seq-2, m_iv_index, sar_session.seqzero));
     TEST_ASSERT_FALSE(replay_cache_has_elem(src, seq-2, m_iv_index));
 
     // receive a group packet for the friend. Should not go to app, and friend_sar_complete should be called with a success-value.
     m_rx_addr_ok = false;
     m_ack_on_behalf_of_friend = true;
-    sar_session.seqzero = seq;
+    sar_session.seqzero = seq & TRANSPORT_SAR_SEQZERO_MASK;
+    expect_sar_ctx_alloc();
     expect_friend_needs_packet(true);
     expect_sar_friend_packet_in(PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, CORE_TX_ROLE_RELAY);
+    seqauth = transport_sar_seqauth_get(m_iv_index, seq, sar_session.seqzero);
+    friend_sar_exists_ExpectAndReturn(src, seqauth, false);
     friend_sar_complete_Expect(src, sar_session.seqzero, true);
+    expect_sar_ctx_free();
     net_meta_build(src, seq++, m_iv_index, NRF_MESH_ADDRESS_TYPE_GROUP, &meta);
     packet_seg_rx(&meta, PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, 0, &sar_session);
+    TEST_ASSERT_FALSE(replay_cache_has_seqauth(src, seq-1, m_iv_index, sar_session.seqzero));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(src, seq-1, m_iv_index));
 
     // The sender sends the segment again, but we've already added the packet to our own RX list.
     // This still shouldn't make it go to the app, as it has been processed already, and the packet
     // should NOT be added to replay (just like the rest of the session)
     m_rx_addr_ok = true;
     expect_friend_needs_packet(true);
+    seqauth = transport_sar_seqauth_get(m_iv_index, seq, sar_session.seqzero);
+    friend_sar_exists_ExpectAndReturn(src, seqauth, true);
     net_meta_build(src, seq++, m_iv_index, NRF_MESH_ADDRESS_TYPE_GROUP, &meta);
     packet_seg_rx(&meta, PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, 0, &sar_session);
-    TEST_ASSERT_FALSE(replay_cache_has_elem(src, seq-2, m_iv_index)); // we don't add messages for the friend to replay
+    // we don't add messages for the friend to replay
+    TEST_ASSERT_FALSE(replay_cache_has_seqauth(src, seq-2, m_iv_index, sar_session.seqzero));
+    TEST_ASSERT_FALSE(replay_cache_has_elem(src, seq-2, m_iv_index));
 }
 
 void test_sar_multisegment(void)
@@ -222,7 +261,7 @@ void test_sar_multisegment(void)
 
     network_packet_metadata_t meta;
     uint16_t src = 1;
-    uint32_t seq = 0;
+    uint32_t seq = 9001; // Start high to have all values represented in seqauth
 
     sar_session_t sar_session = {
         .seqzero = 0,
@@ -230,8 +269,12 @@ void test_sar_multisegment(void)
         .total_len = 4 * PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE,
     };
 
+    uint64_t seqauth = transport_sar_seqauth_get(m_iv_index, seq, sar_session.seqzero);
+
     // receive a packet for ourself and the friend. Should go to app, and friend_sar_complete should be called with a success-value
+    expect_sar_ctx_alloc();
     expect_friend_needs_packet(true);
+    friend_sar_exists_ExpectAndReturn(src, seqauth, false);
     expect_sar_friend_packet_in(PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, CORE_TX_ROLE_RELAY);
     net_meta_build(src, seq++, m_iv_index, NRF_MESH_ADDRESS_TYPE_GROUP, &meta);
     packet_seg_rx(&meta, PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, 0, &sar_session);
@@ -250,6 +293,7 @@ void test_sar_multisegment(void)
     expect_friend_needs_packet(true);
     expect_sar_friend_packet_in(PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, CORE_TX_ROLE_RELAY);
     friend_sar_complete_Expect(src, sar_session.seqzero, true);
+    expect_sar_ctx_free();
     expect_access_rx(sar_session.total_len - PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE,
                      src,
                      NRF_MESH_ADDRESS_TYPE_GROUP);
@@ -269,7 +313,7 @@ void test_sar_concurrent_multisegment(void)
 
     network_packet_metadata_t meta;
     uint16_t src[2] = {1, 2};
-    uint32_t seq[2] = {0, 0};
+    uint32_t seq[2] = {9001, 9001}; // Start high to have all values represented in seqauth
 
     sar_session_t sar_session[2] = {
         {
@@ -284,14 +328,23 @@ void test_sar_concurrent_multisegment(void)
         },
     };
 
+    uint64_t seqauth[2] = {
+        transport_sar_seqauth_get(m_iv_index, seq[0], sar_session[0].seqzero),
+        transport_sar_seqauth_get(m_iv_index, seq[1], sar_session[1].seqzero)
+    };
+
     // device A, segment 1
+    expect_sar_ctx_alloc();
     expect_friend_needs_packet(true);
+    friend_sar_exists_ExpectAndReturn(src[0], seqauth[0], false);
     expect_sar_friend_packet_in(PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, CORE_TX_ROLE_RELAY);
     net_meta_build(src[0], seq[0]++, m_iv_index, NRF_MESH_ADDRESS_TYPE_GROUP, &meta);
     packet_seg_rx(&meta, PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, 0, &sar_session[0]);
 
     // device B, segment 1
+    expect_sar_ctx_alloc();
     expect_friend_needs_packet(true);
+    friend_sar_exists_ExpectAndReturn(src[1], seqauth[1], false);
     expect_sar_friend_packet_in(PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, CORE_TX_ROLE_RELAY);
     net_meta_build(src[1], seq[1]++, m_iv_index, NRF_MESH_ADDRESS_TYPE_GROUP, &meta);
     packet_seg_rx(&meta, PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, 0, &sar_session[1]);
@@ -325,6 +378,7 @@ void test_sar_concurrent_multisegment(void)
     expect_access_rx(sar_session[0].total_len - PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE,
                      src[0],
                      NRF_MESH_ADDRESS_TYPE_GROUP);
+    expect_sar_ctx_free();
     net_meta_build(src[0], seq[0]++, m_iv_index, NRF_MESH_ADDRESS_TYPE_GROUP, &meta);
     packet_seg_rx(&meta, PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, 3, &sar_session[0]);
 
@@ -335,6 +389,7 @@ void test_sar_concurrent_multisegment(void)
     expect_access_rx(sar_session[1].total_len - PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE,
                      src[1],
                      NRF_MESH_ADDRESS_TYPE_GROUP);
+    expect_sar_ctx_free();
     net_meta_build(src[1], seq[1]++, m_iv_index, NRF_MESH_ADDRESS_TYPE_GROUP, &meta);
     packet_seg_rx(&meta, PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, 3, &sar_session[1]);
 }

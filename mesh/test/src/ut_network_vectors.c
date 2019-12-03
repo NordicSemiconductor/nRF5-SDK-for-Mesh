@@ -423,7 +423,6 @@ void setUp(void)
 
     net_state_init_Expect();
     net_beacon_init_Expect();
-    net_state_recover_from_flash_Expect();
     network_init(&init_params);
 }
 

@@ -70,6 +70,10 @@
 /** Shortest length to try to extend before giving up. Smaller increments are
  * considered too insignificant to be worth the overhead. */
 #define TIMESLOT_EXTEND_LENGTH_MIN_US (3800UL)
+/** The worst case for the shortest possible timeout for the earliest timeslot
+ * request. This is the time between sd_radio_request(earliest) call and
+ * the actual timeslot START signal. */
+#define TIMESLOT_SHORTEST_START_TIME_US  (1900)
 
 #if defined(HOST)
 /** Time spent inside the end-timer handler. */

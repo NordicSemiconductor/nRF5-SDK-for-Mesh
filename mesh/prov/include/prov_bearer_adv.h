@@ -82,17 +82,6 @@ typedef struct
     uint8_t payload[PROV_PDU_MAX_LENGTH]; /**< Payload of the buffer. */
 } prov_bearer_adv_buffer_t;
 
-/**
- * Process an incoming PB-ADV packet. Takes a pointer to the AD-data payload.
- *
- * @todo To be removed when scanner mux is in place.
- *
- * @param[in] p_data Pointer to an PB-ADV AD packet payload.
- * @param[in] data_len Length of @p p_data.
- * @param[in] p_metadata Pointer to a metadata structure representing the data that came in.
- */
-void prov_bearer_adv_packet_in(const uint8_t * p_data, uint8_t data_len, const nrf_mesh_rx_metadata_t * p_metadata);
-
 /** @} end of PROV_BEARER_ADV */
 #endif
 

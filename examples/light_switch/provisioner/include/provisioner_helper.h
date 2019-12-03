@@ -124,6 +124,9 @@ void prov_helper_init(mesh_provisioner_init_params_t * p_prov_init_info);
  */
 void prov_helper_scan_start(void);
 
+/** Stops the scanning for unprovisioned nodes */
+void prov_helper_scan_stop(void);
+
 /**
  * This API sets the address and UUID that will be used by the provisioner library.
  *

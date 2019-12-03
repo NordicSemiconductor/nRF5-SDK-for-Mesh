@@ -134,6 +134,8 @@ typedef struct
  *
  * @retval NRF_ERROR_NULL          The @c p_params parameter was @c NULL.
  * @retval NRF_ERROR_INVALID_STATE The device has already been configured.
+ * @retval NRF_ERROR_INVALID_DATA  Data in the persistent memory was corrupted.
+ *                                 Stack is reset to default settings, and it will start as unprovisioned device.
  * @retval NRF_ERROR_INVALID_PARAM One or more of the parameters in the @c p_params structure
  *                                 were invalid.
  * @retval NRF_SUCCESS             Initialization was successful.
@@ -173,6 +175,7 @@ uint32_t mesh_stack_start(void);
  *                                 were invalid.
  * @retval NRF_ERROR_NO_MEM        The subnetwork or device key storage is out of space,
  *                                 @see DSM_SUBNET_MAX or DSM_DEVICE_MAX.
+ * @retval NRF_ERROR_NOT_FOUND     Config server is not initialized.
  */
 uint32_t mesh_stack_provisioning_data_store(const nrf_mesh_prov_provisioning_data_t * p_prov_data,
                                             const uint8_t * p_devkey);

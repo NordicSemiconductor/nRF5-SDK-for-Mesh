@@ -54,6 +54,7 @@
 #include "nrf_mesh_externs.h"
 #include "nrf_mesh_keygen.h"
 #include "nordic_common.h"
+#include "timeslot.h"
 
 #if MESH_FEATURE_LPN_ENABLED
 
@@ -661,9 +662,18 @@ static void receive_delay_handle(timestamp_t timestamp, void * p_context)
 {
     (void)timestamp;
 
+    /* Note: ReceiveDelay already takes into account the timeslot start time,
+     * ReceiveWindow timeout should also consider it:
+     *                            |          Actual ReceiveDelay          |  Actual ReceiveWindow  |
+     * --|------------------------|--------------|------------------------|------------------------|--> time
+     *   |  TS start time (adv)   |   Sleeping   |  TS start time (scan)  |        Listening       |
+     *   |                                       |
+     *   \ (receive_delay_ms + TIMER_JITTER_US)  \ (receive_window_ms + TIMESLOT_SHORTEST_START_TIME_US)
+     */
+
     scanner_enable();
     m_lpn.timeout_scheduler.cb = timeout_handle;
-    timestamp_t new_timestamp = timer_now() + ((uint32_t) p_context);
+    timestamp_t new_timestamp = timer_now() + ((uint32_t) p_context) + TIMESLOT_SHORTEST_START_TIME_US;
     timer_sch_reschedule(&m_lpn.timeout_scheduler, new_timestamp);
 }
 

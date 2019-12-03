@@ -45,19 +45,44 @@
 #include "prov_beacon.h"
 #include "nrf_mesh_assert.h"
 #include "net_beacon.h"
+#include "ad_listener.h"
 
 #include "beacon.h"
 
 /************************
  * Packet Type Typedefs *
  ************************/
-
-/** Generic beacon packet */
-typedef struct
+static void beacon_packet_in(const uint8_t * p_beacon_data, uint32_t data_len, const nrf_mesh_rx_metadata_t * p_packet_meta)
 {
-    uint8_t beacon_type;  /**< Beacon type, see @ref BEACON_TYPE */
-    uint8_t payload[];    /**< Beacon payload. */
-} beacon_packet_t;
+    NRF_MESH_ASSERT(p_beacon_data != NULL);
+
+    if (data_len < BEACON_PACKET_OVERHEAD)
+    {
+        return;
+    }
+    beacon_packet_t * p_beacon = (beacon_packet_t*) p_beacon_data;
+
+    const uint8_t beacon_data_len = data_len - BEACON_PACKET_OVERHEAD;
+    switch (p_beacon->beacon_type)
+    {
+        case BEACON_TYPE_UNPROV:
+            prov_beacon_unprov_packet_in(p_beacon->payload, beacon_data_len, p_packet_meta);
+            break;
+        case BEACON_TYPE_SEC_NET_BCAST:
+            net_beacon_packet_in(p_beacon->payload, beacon_data_len, p_packet_meta);
+            break;
+
+        default:
+            __LOG(LOG_SRC_BEACON, LOG_LEVEL_WARN, "Got unrecognised beacon ID: 0x%.02x.\n", p_beacon->beacon_type);
+            __LOG_XB(LOG_SRC_BEACON, LOG_LEVEL_INFO, "Beacon raw data:", &p_beacon->payload[0], data_len);
+            break;
+    }
+}
+AD_LISTENER(m_beacon_listener) = {
+    .ad_type = AD_TYPE_BEACON,
+    .adv_packet_type = BLE_PACKET_TYPE_ADV_NONCONN_IND,
+    .handler = beacon_packet_in,
+};
 /**************/
 /* Public API */
 /**************/
@@ -82,35 +107,4 @@ adv_packet_t * beacon_create(advertiser_t * p_adv, uint8_t beacon_type, const vo
     }
 
     return p_packet;
-}
-
-uint32_t beacon_packet_in(const uint8_t * p_beacon_data, uint8_t data_len, const nrf_mesh_rx_metadata_t * p_packet_meta)
-{
-    NRF_MESH_ASSERT(p_beacon_data != NULL);
-
-    if (data_len < BEACON_PACKET_OVERHEAD)
-    {
-        return NRF_ERROR_INVALID_LENGTH;
-    }
-    beacon_packet_t * p_beacon = (beacon_packet_t*) p_beacon_data;
-
-    const uint8_t beacon_data_len = data_len - BEACON_PACKET_OVERHEAD;
-    uint32_t status = NRF_SUCCESS;
-    switch (p_beacon->beacon_type)
-    {
-        case BEACON_TYPE_UNPROV:
-            prov_beacon_unprov_packet_in(p_beacon->payload, beacon_data_len, p_packet_meta);
-            break;
-        case BEACON_TYPE_SEC_NET_BCAST:
-            net_beacon_packet_in(p_beacon->payload, beacon_data_len, p_packet_meta);
-            break;
-
-        default:
-            __LOG(LOG_SRC_BEACON, LOG_LEVEL_WARN, "Got unrecognised beacon ID: 0x%.02x.\n", p_beacon->beacon_type);
-            __LOG_XB(LOG_SRC_BEACON, LOG_LEVEL_INFO, "Beacon raw data:", &p_beacon->payload[0], data_len);
-            status = NRF_ERROR_INVALID_DATA;
-            break;
-    }
-
-    return status;
 }

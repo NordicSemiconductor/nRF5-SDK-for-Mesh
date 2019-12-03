@@ -9,7 +9,7 @@ else ()
 endif ()
 
 set(data_flags "-ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin --short-enums -m32")
-set(warning_flags "-Wall -Wextra -Werror=implicit-function-declaration -Wno-format -Wno-unused-parameter -Wno-missing-field-initializers")
+set(warning_flags "-Wall -Wextra -Werror=implicit-function-declaration -Wno-format -Wno-unused-parameter -Wno-missing-field-initializers -Wno-expansion-to-defined")
 
 set(CMAKE_C_FLAGS_INIT "--std=gnu99 ${data_flags} ${warning_flags} ${CMAKE_C_FLAGS_INIT}")
 set(CMAKE_C_FLAGS_DEBUG_INIT "-O0 -g")

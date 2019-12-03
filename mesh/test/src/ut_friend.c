@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -52,12 +52,19 @@
 #include "nrf_mesh_events_mock.h"
 #include "manual_mock_queue.h"
 #include "test_helper.h"
+#include "test_assert.h"
+#include "device_state_manager_mock.h"
 
 #include "mesh_opt_friend.h"
 #include "log.h"
 
 #define FRIEND_SRC 0x0010
-#define LPN_SRC    0x00A0
+#define FRIEND_SRC2 0x0011
+#define LPN_SRC     0x00A0
+#define LPN_SRC2    0x00A2
+#define LPN_SRC3    0x00A3
+#define LPN_SRC4    0x00A4
+#define LPN_SRC5    0x00A5
 #define LPN_ELEMENT_COUNT 3
 #define DEFAULT_TTL 125
 #define FRIEND_OPCODE_HANDLER_COUNT 6
@@ -67,6 +74,8 @@
 #define RSSI_FACTOR MESH_FRIENDSHIP_RSSI_FACTOR_1_0
 #define RECEIVE_WINDOW_FACTOR MESH_FRIENDSHIP_RECEIVE_WINDOW_FACTOR_2_0
 #define MIN_FRIEND_QUEUE_SIZE MESH_FRIENDSHIP_MIN_FRIEND_QUEUE_SIZE_8
+
+#define FRIEND_RECENT_LPNS_LIST_COUNT (MESH_FRIEND_FRIENDSHIP_COUNT + 1)
 
 /******************************************************************************
  * Static variables
@@ -78,10 +87,15 @@ static nrf_mesh_network_secmat_t m_default_secmat;
 static nrf_mesh_network_secmat_t m_friend_secmat;
 static uint16_t m_friend_counter;
 static uint16_t m_lpn_src = LPN_SRC;
+static uint32_t m_time_now;
+static timer_event_t * mp_confirm_send_timer;
 static nrf_mesh_rx_metadata_t m_rx_metadata;
 static network_tx_packet_buffer_t m_net_buf;
 static uint8_t m_trs_pdu[PACKET_MESH_TRS_UNSEG_ACCESS_MAX_SIZE];
 static packet_mesh_trs_packet_t m_expected_trs_pdu;
+static mesh_friendship_t m_friendship;
+
+static nrf_mesh_evt_handler_cb_t frnd_event_hndlr;
 
 MOCK_QUEUE_DEF(event_queue, nrf_mesh_evt_t, NULL);
 /******************************************************************************
@@ -159,7 +173,7 @@ static void unicast_address_get_Expect(void)
     nrf_mesh_unicast_address_get_IgnoreArg_p_addr_start();
     nrf_mesh_unicast_address_get_IgnoreArg_p_addr_count();
     nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&local_address);
-    nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_start(&local_address_count);
+    nrf_mesh_unicast_address_get_ReturnThruPtr_p_addr_count(&local_address_count);
 }
 
 static void friendship_secmat_get_Expect(void)
@@ -178,7 +192,10 @@ static void transport_control_tx_Expect(transport_control_opcode_t opcode,
                                         core_tx_bearer_type_t bearer_selector,
                                         const nrf_mesh_network_secmat_t * p_net_secmat)
 {
-    unicast_address_get_Expect();
+    if (opcode != TRANSPORT_CONTROL_OPCODE_FRIEND_CLEAR_CONFIRM)
+    {
+        unicast_address_get_Expect();
+    }
     m_expected_ctrl_pdu.opcode = opcode;
     m_expected_ctrl_pdu.p_data =  p_data;
     m_expected_ctrl_pdu.data_len = length;
@@ -192,9 +209,34 @@ static void transport_control_tx_Expect(transport_control_opcode_t opcode,
     transport_control_tx_StubWithCallback(transport_control_tx_stub);
 }
 
+static void friendship_established_event_Expect(void)
+{
+    nrf_mesh_evt_t evt;
+    evt.type = NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED;
+    evt.params.friendship_established.role = NRF_MESH_FRIENDSHIP_ROLE_FRIEND;
+    evt.params.friendship_established.lpn_src = m_lpn_src;
+    evt.params.friendship_established.friend_src = FRIEND_SRC;
+    event_queue_Expect(&evt);
+}
+
 timestamp_t timer_now(void)
 {
-    return TIME_NOW;
+    return m_time_now;
+}
+
+static void timer_sch_reschedule_stub(timer_event_t* p_timer_evt, timestamp_t new_timestamp, int num)
+{
+    TEST_ASSERT(p_timer_evt != NULL);
+    TEST_ASSERT(p_timer_evt->cb != NULL);
+
+    mp_confirm_send_timer = p_timer_evt;
+    mp_confirm_send_timer->timestamp = new_timestamp;
+}
+
+static void timer_trigger(timer_event_t * p_timer)
+{
+    timer_sch_abort_Expect(p_timer);
+    p_timer->cb(timer_now(), p_timer->p_context);
 }
 
 static void friend_rx(transport_control_opcode_t opcode,
@@ -239,6 +281,29 @@ static void friend_poll_Receive(uint8_t fsn)
               m_lpn_src,
               FRIEND_SRC,
               &m_rx_metadata);
+}
+
+static void friend_clear_Receive(uint16_t lpn_addr, uint16_t lpn_counter_new_friend)
+{
+    static packet_mesh_trs_control_packet_t friend_clear;
+    packet_mesh_trs_control_friend_clear_lpn_address_set(&friend_clear, lpn_addr);
+    packet_mesh_trs_control_friend_clear_lpn_counter_set(&friend_clear, lpn_counter_new_friend);
+
+    friend_rx(TRANSPORT_CONTROL_OPCODE_FRIEND_CLEAR,
+              &friend_clear,
+              PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_SIZE,
+              FRIEND_SRC2,
+              FRIEND_SRC,
+              &m_rx_metadata);
+}
+
+static void friend_friendships_Verify(void)
+{
+    const mesh_friendship_t * p_friendships[MESH_FRIEND_FRIENDSHIP_COUNT];
+    uint8_t count = MESH_FRIEND_FRIENDSHIP_COUNT;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_friend_friendships_get(&p_friendships[0], &count));
+    TEST_ASSERT_EQUAL_UINT8(1, count);
+    TEST_ASSERT_EQUAL_MEMORY(&m_friendship, p_friendships[0], sizeof(mesh_friendship_t));
 }
 
 static void friend_request_Receive(uint16_t prev_address, uint16_t dst)
@@ -300,7 +365,7 @@ static void friend_relay_Expect(const packet_mesh_trs_packet_t * p_packet,
     m_net_buf.user_data.token = 0; /* TODO: Fix tokens */
     m_net_buf.user_data.payload_len = length;
     m_net_buf.user_data.bearer_selector = CORE_TX_BEARER_TYPE_FRIEND;
-    m_net_buf.user_data.role = CORE_TX_ROLE_RELAY;
+    m_net_buf.user_data.role = p_metadata->net.control_packet ? CORE_TX_ROLE_ORIGINATOR : CORE_TX_ROLE_RELAY;
     m_net_buf.p_payload = m_trs_pdu;
 
     memcpy(&m_expected_trs_pdu, p_packet, length);
@@ -315,7 +380,7 @@ static void friend_relay_Expect(const packet_mesh_trs_packet_t * p_packet,
                                  MS_TO_US(POLL_TIMEOUT_MS));
 }
 
-static void friend_update_Expect(void)
+static void friend_update_Expect(nrf_mesh_key_refresh_phase_t phase)
 {
     static packet_mesh_trs_control_packet_t friend_update;
     memset(&friend_update, 0, sizeof(friend_update));
@@ -329,7 +394,7 @@ static void friend_update_Expect(void)
         &friend_update, 0);
 
     net_state_iv_update_get_ExpectAndReturn(NET_STATE_IV_UPDATE_NORMAL);
-    nrf_mesh_key_refresh_phase_get_ExpectAndReturn(NULL, NRF_MESH_KEY_REFRESH_PHASE_0);
+    nrf_mesh_key_refresh_phase_get_ExpectAndReturn(NULL, phase);
     nrf_mesh_key_refresh_phase_get_IgnoreArg_p_secmat();
     net_state_beacon_iv_index_get_ExpectAndReturn(0x1234);
 
@@ -347,6 +412,45 @@ static void friend_update_Expect(void)
     core_tx_friend_schedule_IgnoreArg_p_bearer();
     poll_timeout_schedule_Expect(m_rx_metadata.params.scanner.timestamp +
                                  MS_TO_US(POLL_TIMEOUT_MS));
+}
+
+
+static void friend_clear_confirm_Expect(uint16_t lpn_addr, uint16_t lpn_counter)
+{
+    static packet_mesh_trs_control_packet_t friend_clear_confirm;
+
+    memset(&friend_clear_confirm, 0, sizeof(friend_clear_confirm));
+    packet_mesh_trs_control_friend_clear_confirm_lpn_address_set(&friend_clear_confirm, lpn_addr);
+    packet_mesh_trs_control_friend_clear_confirm_lpn_counter_set(&friend_clear_confirm, lpn_counter);
+
+    transport_control_tx_Expect(TRANSPORT_CONTROL_OPCODE_FRIEND_CLEAR_CONFIRM,
+                                &friend_clear_confirm,
+                                PACKET_MESH_TRS_CONTROL_FRIEND_CLEAR_CONFIRM_SIZE,
+                                FRIEND_SRC2,
+                                CORE_TX_BEARER_TYPE_ALLOW_ALL,
+                                &m_default_secmat);
+}
+
+static void friend_update_enqueue_Expect(void)
+{
+    static packet_mesh_trs_control_packet_t friend_update;
+    memset(&friend_update, 0, sizeof(friend_update));
+    packet_mesh_trs_control_friend_update_key_refresh_flag_set(
+        &friend_update, 0);
+    packet_mesh_trs_control_friend_update_iv_update_flag_set(
+        &friend_update, 0);
+    packet_mesh_trs_control_friend_update_iv_index_set(
+        &friend_update, 0x1234);
+    packet_mesh_trs_control_friend_update_md_set(
+        &friend_update, 0);
+
+    unicast_address_get_Expect();
+    friendship_secmat_get_Expect();
+
+    net_state_iv_update_get_ExpectAndReturn(NET_STATE_IV_UPDATE_NORMAL);
+    nrf_mesh_key_refresh_phase_get_ExpectAndReturn(NULL, NRF_MESH_KEY_REFRESH_PHASE_2);
+    nrf_mesh_key_refresh_phase_get_IgnoreArg_p_secmat();
+    net_state_beacon_iv_index_get_ExpectAndReturn(0x1234);
 }
 
 static void friend_offer_Expect(void)
@@ -372,31 +476,93 @@ static void friend_offer_Expect(void)
                                 &m_default_secmat);
 
     timestamp_t offer_delay = m_rx_metadata.params.scanner.timestamp
-        + MS_TO_US(MAX((RECEIVE_WINDOW_FACTOR * MESH_FRIEND_RECEIVE_WINDOW_DEFAULT_MS -
-                       RSSI_FACTOR * m_rx_metadata.params.scanner.rssi),
+        + MS_TO_US(MAX(((RECEIVE_WINDOW_FACTOR * 0.5 + 1) * MESH_FRIEND_RECEIVE_WINDOW_DEFAULT_MS -
+                       (RSSI_FACTOR * 0.5 + 1) * m_rx_metadata.params.scanner.rssi),
                        100));
     core_tx_friend_schedule_Expect(NULL, offer_delay);
     core_tx_friend_schedule_IgnoreArg_p_bearer();
 
 
-    static mesh_friendship_t friendship;
-    friendship.lpn.src = m_lpn_src;
-    friendship.lpn.prev_friend_src = 0;
-    friendship.lpn.element_count = LPN_ELEMENT_COUNT;
-    friendship.lpn.request_count = 0;
-    friendship.poll_timeout_ms = POLL_TIMEOUT_MS;
-    friendship.poll_count = 0;
-    friendship.receive_delay_ms = RECEIVE_DELAY_MS;
-    friendship.receive_window_ms = MESH_FRIEND_RECEIVE_WINDOW_DEFAULT_MS;
-    friendship.avg_rssi = m_rx_metadata.params.scanner.rssi;
+    m_friendship.lpn.src = m_lpn_src;
+    m_friendship.lpn.prev_friend_src = 0;
+    m_friendship.lpn.element_count = LPN_ELEMENT_COUNT;
+    m_friendship.lpn.request_count = 0;
+    m_friendship.poll_timeout_ms = POLL_TIMEOUT_MS;
+    m_friendship.poll_count = 0;
+    m_friendship.receive_delay_ms = RECEIVE_DELAY_MS;
+    m_friendship.receive_window_ms = MESH_FRIEND_RECEIVE_WINDOW_DEFAULT_MS;
+    m_friendship.avg_rssi = m_rx_metadata.params.scanner.rssi;
 
     nrf_mesh_evt_t evt;
     evt.type = NRF_MESH_EVT_FRIEND_REQUEST;
-    evt.params.friend_request.p_friendship = &friendship;
+    evt.params.friend_request.p_friendship = &m_friendship;
     evt.params.friend_request.p_net = &m_default_secmat;
     evt.params.friend_request.p_metadata = &m_rx_metadata;
     event_queue_Expect(&evt);
     poll_timeout_schedule_Expect(offer_delay + SEC_TO_US(1));
+}
+
+static void friendship_state_reset_Expect(void)
+{
+    core_tx_friend_disable_ExpectAnyArgs();
+    friend_sublist_clear_ExpectAnyArgs();
+    timer_sch_abort_ExpectAnyArgs();
+}
+
+static void friendship_terminated_event_Expect(void)
+{
+    nrf_mesh_evt_t evt;
+    evt.type = NRF_MESH_EVT_FRIENDSHIP_TERMINATED;
+    evt.params.friendship_terminated.role = NRF_MESH_FRIENDSHIP_ROLE_FRIEND;
+    evt.params.friendship_terminated.lpn_src = m_lpn_src;
+    evt.params.friendship_terminated.friend_src = FRIEND_SRC;
+    evt.params.friendship_terminated.reason = NRF_MESH_EVT_FRIENDSHIP_TERMINATED_REASON_USER;
+    event_queue_Expect(&evt);
+}
+
+static void friendship_terminated_event_Expect_reason6(void)
+{
+    nrf_mesh_evt_t evt;
+    evt.type = NRF_MESH_EVT_FRIENDSHIP_TERMINATED;
+    evt.params.friendship_terminated.role = NRF_MESH_FRIENDSHIP_ROLE_FRIEND;
+    evt.params.friendship_terminated.lpn_src = m_lpn_src;
+    evt.params.friendship_terminated.friend_src = FRIEND_SRC;
+    evt.params.friendship_terminated.reason = NRF_MESH_EVT_FRIENDSHIP_TERMINATED_REASON_NEW_FRIEND;
+    event_queue_Expect(&evt);
+}
+
+static void friendship_Terminate(void)
+{
+    unicast_address_get_Expect();
+    friendship_state_reset_Expect();
+    friendship_terminated_event_Expect();
+    const mesh_friendship_t * p_friendships[MESH_FRIEND_FRIENDSHIP_COUNT];
+    uint8_t count = MESH_FRIEND_FRIENDSHIP_COUNT;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_friend_friendships_get(&p_friendships[0], &count));
+    timer_sch_reschedule_StubWithCallback(timer_sch_reschedule_stub);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_friend_friendship_terminate(p_friendships[0]));
+}
+
+static void friendship_Terminate_by_friend_clear(void)
+{
+    unicast_address_get_Expect();
+    friendship_state_reset_Expect();
+    friendship_terminated_event_Expect_reason6();
+    const mesh_friendship_t * p_friendships[MESH_FRIEND_FRIENDSHIP_COUNT];
+    uint8_t count = MESH_FRIEND_FRIENDSHIP_COUNT;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_friend_friendships_get(&p_friendships[0], &count));
+    timer_sch_reschedule_StubWithCallback(timer_sch_reschedule_stub);
+    friend_clear_confirm_Expect(p_friendships[0]->lpn.src, p_friendships[0]->lpn.request_count);
+
+    friend_clear_Receive(p_friendships[0]->lpn.src, p_friendships[0]->lpn.request_count);
+}
+
+void nrf_mesh_evt_handler_add_cb(nrf_mesh_evt_handler_t * p_handler_params, int num_calls)
+{
+    UNUSED_PARAMETER(num_calls);
+    TEST_ASSERT_NOT_NULL(p_handler_params);
+    frnd_event_hndlr = p_handler_params->evt_cb;
+    TEST_ASSERT_NOT_NULL(frnd_event_hndlr);
 }
 
 /*******************************************************************************
@@ -415,6 +581,7 @@ void setUp(void)
     network_mock_Init();
     event_queue_Init();
     nrf_mesh_events_mock_Init();
+    device_state_manager_mock_Init();
 
     __LOG_INIT(0xFFFFFFFF, LOG_LEVEL_DBG3, LOG_CALLBACK_DEFAULT);
 
@@ -422,6 +589,7 @@ void setUp(void)
     m_rx_metadata.params.scanner.timestamp = TIME_NOW;
     m_friend_counter = 0;
     m_lpn_src = LPN_SRC;
+    m_time_now = TIME_NOW;
     memset(&m_net_buf, 0, sizeof(m_net_buf));
     memset(m_trs_pdu, 0, sizeof(m_trs_pdu));
     memset(&m_expected_trs_pdu, 0, sizeof(m_expected_trs_pdu));
@@ -430,7 +598,7 @@ void setUp(void)
     mesh_config_entry_set_StubWithCallback(mesh_config_entry_set_mock);
     mesh_config_entry_get_StubWithCallback(mesh_config_entry_get_mock);
     mesh_config_entry_delete_StubWithCallback(mesh_config_entry_delete_mock);
-    nrf_mesh_evt_handler_add_ExpectAnyArgs();
+    nrf_mesh_evt_handler_add_StubWithCallback(nrf_mesh_evt_handler_add_cb);
 
     for (uint32_t i = 0; i < MESH_FRIEND_FRIENDSHIP_COUNT; ++i)
     {
@@ -482,6 +650,8 @@ void tearDown(void)
     network_mock_Destroy();
     nrf_mesh_events_mock_Verify();
     nrf_mesh_events_mock_Destroy();
+    device_state_manager_mock_Verify();
+    device_state_manager_mock_Destroy();
 }
 
 /*******************************************************************************
@@ -573,9 +743,11 @@ void test_lower_bound_of_friend_offer_delay_is_100ms(void)
 static void friendship_Establish(void)
 {
     test_friend_offer();
-    friend_update_Expect();
+    friend_update_Expect(NRF_MESH_KEY_REFRESH_PHASE_0);
     unicast_address_get_Expect();
+    friendship_established_event_Expect();
     friend_poll_Receive(0);
+    friend_friendships_Verify();
 }
 
 void test_friend_relay(void)
@@ -597,6 +769,7 @@ void test_friend_relay(void)
         },
         .segmentation = {0},
         .net = {
+            .control_packet = false,
             .src = 0x00AA,
             .dst = {.value = m_lpn_src + LPN_ELEMENT_COUNT - 1, .type = NRF_MESH_ADDRESS_TYPE_UNICAST}
         },
@@ -615,6 +788,214 @@ void test_friend_relay(void)
     friend_poll_Receive(1);
 
     /* Now there are no more data, we should get a Friend Update. */
-    friend_update_Expect();
+    friend_update_Expect(NRF_MESH_KEY_REFRESH_PHASE_0);
+    friend_poll_Receive(0);
+
+    friendship_Terminate();
+}
+
+void test_friend_needs_packet(void)
+{
+    TEST_NRF_MESH_ASSERT_EXPECT(friend_needs_packet(NULL));
+
+    transport_packet_metadata_t trs_metadata = {
+        .segmented = false,
+        .receivers = TRANSPORT_PACKET_RECEIVER_FRIEND,
+        .mic_size = 4,
+        .type.access = {
+            .using_app_key = true,
+            .app_key_id = 0x0c
+        },
+        .segmentation = {0},
+        .net = {
+            .control_packet = false,
+            .src = 0x00AA,
+            .dst = {
+                .value = m_lpn_src,
+                .type = NRF_MESH_ADDRESS_TYPE_UNICAST
+            },
+            .ttl = 3,
+        },
+        .p_security_material = NULL,
+        .token = 0xDEAD1337,
+        .tx_bearer_selector = CORE_TX_BEARER_TYPE_FRIEND
+    };
+
+    /* Friend feature disabled. */
+    TEST_ASSERT_FALSE(friend_needs_packet(&trs_metadata));
+
+    /* Enabling friend feature. */
+    mesh_friend_enable();
+    friendship_Establish();
+    TEST_ASSERT_TRUE(friend_needs_packet(&trs_metadata));
+
+    /* No relaying for TTL < 2 (Mesh profile v1.0,  sec. 3.5.5). */
+    trs_metadata.net.ttl = 1;
+    TEST_ASSERT_FALSE(friend_needs_packet(&trs_metadata));
+    trs_metadata.net.ttl = 3;
+
+    /* Friend queue is less than number of segments. */
+    trs_metadata.segmented = true;
+    trs_metadata.segmentation.last_segment = MESH_FRIEND_QUEUE_SIZE;
+    TEST_ASSERT_FALSE(friend_needs_packet(&trs_metadata));
+    trs_metadata.segmented = false;
+
+    /* Unknown unicast address. */
+    trs_metadata.net.dst.value = m_lpn_src + LPN_ELEMENT_COUNT;
+    TEST_ASSERT_FALSE(friend_needs_packet(&trs_metadata));
+    trs_metadata.net.dst.value = m_lpn_src;
+
+    /* LPN does not have a group address in subscription. */
+    trs_metadata.net.dst.type = NRF_MESH_ADDRESS_TYPE_GROUP;
+    trs_metadata.net.dst.value = 0xC001;
+    friend_sublist_contains_ExpectAndReturn(NULL, trs_metadata.net.dst.value, NRF_ERROR_NOT_FOUND);
+    friend_sublist_contains_IgnoreArg_p_sublist();
+    TEST_ASSERT_FALSE(friend_needs_packet(&trs_metadata));
+
+    friend_sublist_contains_ExpectAndReturn(NULL, trs_metadata.net.dst.value, NRF_SUCCESS);
+    friend_sublist_contains_IgnoreArg_p_sublist();
+    TEST_ASSERT_TRUE(friend_needs_packet(&trs_metadata));
+}
+
+void test_confirm_send_timer(void)
+{
+    mesh_friend_enable();
+
+    /* Case 1: Friendship is established and terminated with Friend Clear.
+       Check that the response to friend clear is received afterwards. */
+    nrf_mesh_externs_mock_Verify();
+
+    friendship_Establish();
+    friendship_Terminate_by_friend_clear();
+
+    nrf_mesh_externs_mock_Verify();
+
+    // Receive a new friend clear, and expect confirm
+    friend_clear_confirm_Expect(LPN_SRC, 0);
+    friend_clear_Receive(LPN_SRC, 0);
+
+    // Expire the timer, and receive a new friend clear, don't expect confirm
+    timer_trigger(mp_confirm_send_timer);
+    friend_clear_Receive(LPN_SRC, 1);
+
+    /* Case 2: Friendship is established and terminated.
+      Check that the response to friend clear is received afterwards. */
+    friendship_Establish();
+    friendship_Terminate();
+
+    // Receive a new friend clear, and expect confirm
+    friend_clear_confirm_Expect(LPN_SRC, 0);
+    friend_clear_Receive(LPN_SRC, 0);
+
+    // Receive a new out of range friend clear, and don't expect confirm
+    friend_clear_Receive(LPN_SRC, 257);
+
+    // Expire the timer, and receive a new friend clear, don't expect confirm
+    timer_trigger(mp_confirm_send_timer);
+    friend_clear_Receive(LPN_SRC, 1);
+
+    /* Case 3: Friendship is established with many LPNs */
+    uint32_t i;
+
+    /* Last termination should over-write the first entry (corresponding to LPN_SRC) */
+    for (i = 0; i < (FRIEND_RECENT_LPNS_LIST_COUNT + 1); i++)
+    {
+        friendship_Establish();
+        friendship_Terminate();
+
+        m_time_now++;
+        m_lpn_src++;
+    }
+
+    m_lpn_src = LPN_SRC;
+    for (i = 0; i < (FRIEND_RECENT_LPNS_LIST_COUNT + 1); i++)
+    {
+        if (m_lpn_src == LPN_SRC)
+        {
+            friend_clear_Receive(LPN_SRC, 1);
+        }
+        else
+        {
+            friend_clear_confirm_Expect(LPN_SRC2, 0);
+            friend_clear_Receive(LPN_SRC2, 0);
+        }
+
+        m_lpn_src++;
+    }
+}
+
+void test_key_refresh_queueing(void)
+{
+    nrf_mesh_evt_t evt =
+    {
+        .type = NRF_MESH_EVT_KEY_REFRESH_NOTIFICATION,
+    };
+
+    /* Enabling friend feature. */
+    mesh_friend_enable();
+    friendship_Establish();
+
+    evt.params.key_refresh.phase = NRF_MESH_KEY_REFRESH_PHASE_0;
+    nrf_mesh_net_secmat_from_index_get_ExpectAnyArgsAndReturn(&m_friend_secmat);
+    friendship_secmat_get_Expect();
+    nrf_mesh_net_master_secmat_get_ExpectAnyArgsAndReturn(&m_friend_secmat);
+    frnd_event_hndlr(&evt);
+    friend_update_Expect(NRF_MESH_KEY_REFRESH_PHASE_0);
+    friend_poll_Receive(1);
+
+    evt.params.key_refresh.phase = NRF_MESH_KEY_REFRESH_PHASE_1;
+    nrf_mesh_net_secmat_from_index_get_ExpectAnyArgsAndReturn(&m_friend_secmat);
+    friendship_secmat_get_Expect();
+    nrf_mesh_net_master_secmat_get_ExpectAnyArgsAndReturn(&m_friend_secmat);
+    frnd_event_hndlr(&evt);
+    friend_update_Expect(NRF_MESH_KEY_REFRESH_PHASE_1);
+    friend_poll_Receive(0);
+
+    evt.params.key_refresh.phase = NRF_MESH_KEY_REFRESH_PHASE_2;
+    nrf_mesh_net_secmat_from_index_get_ExpectAnyArgsAndReturn(&m_friend_secmat);
+    friendship_secmat_get_Expect();
+    nrf_mesh_net_master_secmat_get_ExpectAnyArgsAndReturn(&m_friend_secmat);
+    friend_update_enqueue_Expect();
+
+    frnd_event_hndlr(&evt);
+
+    const packet_mesh_trs_packet_t friend_update_pdu = {.pdu = {
+            0x02,                    /* Friend Update opcode */
+            0x01,                    /* Flag key refresh in Phase 2 */
+            0x00, 0x00, 0x12, 0x34,  /* IV index */
+            0x00,                    /* MD queue is empty */
+        }};
+
+    transport_packet_metadata_t trs_metadata = {
+        .segmented = false,
+        .receivers = TRANSPORT_PACKET_RECEIVER_FRIEND,
+        .mic_size = 4,
+        .type.control = {
+            .opcode = TRANSPORT_CONTROL_OPCODE_FRIEND_UPDATE
+        },
+        .segmentation = {0},
+        .net = {
+            .control_packet = true,
+            .src = 0x00AA,
+            .dst = {
+                .value = m_lpn_src,
+                .type = NRF_MESH_ADDRESS_TYPE_UNICAST
+            },
+            .ttl = 3,
+        },
+        .p_security_material = NULL,
+        .token = 0xDEAD1337,
+        .tx_bearer_selector = CORE_TX_BEARER_TYPE_FRIEND
+    };
+
+    friend_relay_Expect(&friend_update_pdu, 7, &trs_metadata);
+    friend_poll_Receive(1);
+
+    evt.params.key_refresh.phase = NRF_MESH_KEY_REFRESH_PHASE_3;
+    nrf_mesh_net_secmat_from_index_get_ExpectAnyArgsAndReturn(&m_friend_secmat);
+    friendship_secmat_get_Expect();
+    nrf_mesh_net_master_secmat_get_ExpectAnyArgsAndReturn(&m_friend_secmat);
+    frnd_event_hndlr(&evt);
+    friend_update_Expect(NRF_MESH_KEY_REFRESH_PHASE_3);
     friend_poll_Receive(0);
 }

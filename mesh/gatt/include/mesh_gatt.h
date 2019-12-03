@@ -149,6 +149,7 @@ typedef struct
         packet_buffer_t packet_buffer;
         uint8_t packet_buffer_data[MESH_GATT_TX_BUFFER_SIZE];
         mesh_gatt_transaction_t transaction;
+        bool tx_complete_process;
     } tx;
     struct
     {

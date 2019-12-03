@@ -84,7 +84,7 @@ Provisioning is the act of adding a device to a mesh network. The Provisioning m
 of both sides of this process, by implementing a provisioner role (the network owner)
 and a provisionee role (the device to add).
 
-For detailed information about the provisioning process, see @ref md_doc_getting_started_provisioning.
+For detailed information about the provisioning process, see @ref md_doc_getting_started_provisioning_procedure-api.
 
 The mesh stack provides two ways to provision a device:
 - Provisioning directly through the PB-ADV/PB-GATT provisioning bearer, which can only happen between a provisioner and a provisionee that are within radio range of each other.

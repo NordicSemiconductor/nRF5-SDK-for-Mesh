@@ -48,6 +48,7 @@
 #include "nrf_mesh_utils.h"
 #include "nrf_mesh_assert.h"
 #include "nrf_mesh_externs.h"
+#include "config_server.h"
 #include "hal.h"
 
 /* Ensure that we're mapping the size of the serial parameter to the
@@ -430,6 +431,13 @@ static void handle_cmd_clear(const serial_packet_t * p_cmd)
     serial_cmd_rsp_send(p_cmd->opcode, SERIAL_STATUS_SUCCESS, NULL, 0);
 }
 
+static void handle_config_devkey_bind(const serial_packet_t * p_cmd)
+{
+    uint32_t status = config_server_bind(p_cmd->payload.cmd.mesh.config_server_devkey_bind.address_handle);
+    serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, NULL, 0);
+}
+
+
 /*****************************************************************************
 * Static functions
 *****************************************************************************/
@@ -466,7 +474,8 @@ static const mesh_serial_cmd_handler_t m_handlers[] =
     {SERIAL_OPCODE_CMD_MESH_ADDR_NONVIRTUAL_COUNT_MAX_GET,  0,                                                       0,  handle_cmd_addr_nonvirtual_count_max_get},
     {SERIAL_OPCODE_CMD_MESH_ADDR_VIRTUAL_COUNT_MAX_GET,     0,                                                       0,  handle_cmd_addr_virtual_count_max_get},
     {SERIAL_OPCODE_CMD_MESH_PACKET_SEND, SERIAL_CMD_MESH_PACKET_SEND_OVERHEAD, sizeof(serial_cmd_mesh_packet_send_t) - SERIAL_CMD_MESH_PACKET_SEND_OVERHEAD,  handle_cmd_packet_send},
-    {SERIAL_OPCODE_CMD_MESH_STATE_CLEAR,                    0,                                                       0,  handle_cmd_clear}
+    {SERIAL_OPCODE_CMD_MESH_STATE_CLEAR,                    0,                                                       0,  handle_cmd_clear},
+    {SERIAL_OPCODE_CMD_MESH_CONFIG_SERVER_BIND,             sizeof(serial_cmd_mesh_config_server_devkey_bind_t),     0,  handle_config_devkey_bind}
 };
 
 static void serial_handler_mesh_evt_handle(const nrf_mesh_evt_t* p_evt)
@@ -536,6 +545,18 @@ static void serial_handler_mesh_evt_handle(const nrf_mesh_evt_t* p_evt)
                 p_serial_evt->opcode = SERIAL_OPCODE_EVT_MESH_KEY_REFRESH_NOTIFICATION;
                 p_serial_evt->payload.evt.mesh.key_refresh.netkey_index = p_evt->params.key_refresh.subnet_index;
                 p_serial_evt->payload.evt.mesh.key_refresh.phase = p_evt->params.key_refresh.phase;
+                serial_tx(p_serial_evt);
+            }
+            break;
+        case NRF_MESH_EVT_HB_MESSAGE_RECEIVED:
+            status = serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + sizeof(serial_evt_mesh_hb_message_t), &p_serial_evt);
+            if (status == NRF_SUCCESS)
+            {
+                p_serial_evt->opcode = SERIAL_OPCODE_EVT_MESH_HEARTBEAT_RECEIVED;
+                p_serial_evt->payload.evt.mesh.heartbeat.init_ttl = p_evt->params.hb_message.init_ttl;
+                p_serial_evt->payload.evt.mesh.heartbeat.hops = p_evt->params.hb_message.hops;
+                p_serial_evt->payload.evt.mesh.heartbeat.features = p_evt->params.hb_message.features;
+                p_serial_evt->payload.evt.mesh.heartbeat.src = p_evt->params.hb_message.src;
                 serial_tx(p_serial_evt);
             }
             break;

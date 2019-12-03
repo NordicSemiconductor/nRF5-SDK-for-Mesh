@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -786,4 +786,40 @@ void test_dont_discard_friend_update(void)
 
     // no more packets:
     TEST_ASSERT_NULL(friend_queue_packet_get(&m_queue));
+}
+
+void test_check_sar_seqauth_exists(void)
+{
+    packet_mesh_trs_packet_t packet = {.pdu = {1, 2, 3, 4, 5, 6, 7, 8, 9}};
+    transport_packet_metadata_t metadata = m_initial_metadata;
+    metadata.segmented = true;
+    metadata.net.internal.iv_index = 0;
+    metadata.net.internal.sequence_number = 1;
+    packet_mesh_trs_common_seg_set(&packet, true);
+    packet_mesh_trs_seg_seqzero_set(&packet, 1);
+
+    friend_queue_packet_push(&m_queue, &packet, 8, &metadata, CORE_TX_ROLE_RELAY);
+    // The packet is not added yet
+    TEST_ASSERT_FALSE(friend_queue_sar_exists(&m_queue, metadata.net.src, 1));
+
+    // Now the packet should be in the queue
+    friend_queue_sar_complete(&m_queue, metadata.net.src, true);
+    TEST_ASSERT_TRUE(friend_queue_sar_exists(&m_queue, metadata.net.src, 1));
+
+    // Overflow the queue so that the first packet will be dropped from the queue
+    uint16_t seqzero = 1;
+    for (size_t i = 0; i < MESH_FRIEND_QUEUE_SIZE + 1; i++)
+    {
+        metadata.net.internal.sequence_number++;
+        packet_mesh_trs_seg_seqzero_set(&packet, seqzero++);
+
+        friend_queue_packet_push(&m_queue, &packet, 8, &metadata, CORE_TX_ROLE_RELAY);
+        friend_queue_sar_complete(&m_queue, metadata.net.src, true);
+
+        // seqauth in this case is equal to seqzero of the added packet
+        TEST_ASSERT_TRUE(friend_queue_sar_exists(&m_queue, metadata.net.src, seqzero - 1));
+    }
+
+    // Check that packet doesn't exist anymore in the queue
+    TEST_ASSERT_FALSE(friend_queue_sar_exists(&m_queue, metadata.net.src, 1));
 }

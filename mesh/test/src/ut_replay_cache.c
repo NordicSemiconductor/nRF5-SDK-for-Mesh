@@ -39,6 +39,7 @@
 #include <string.h>
 
 #include <unity.h>
+#include "test_assert.h"
 
 #include <nrf_error.h>
 
@@ -237,3 +238,93 @@ void test_adding_old_entry(void)
     TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE, 10, 0));
     TEST_ASSERT_TRUE(replay_cache_has_elem(ADDR_BASE, 9, 0));
 }
+
+void test_seqauth_init(void)
+{
+    // Check that no seqauth in the replay cache yet
+    for (uint32_t src = 0; src <= 0xFFFF; src++)
+    {
+        TEST_ASSERT_FALSE(replay_cache_has_seqauth(src, 0, 0, 0));
+    }
+}
+
+void test_seqauth_seq_less_than_seqzero(void)
+{
+    TEST_NRF_MESH_ASSERT_EXPECT(replay_cache_seqauth_add(ADDR_BASE, 10, 0, 12));
+    TEST_NRF_MESH_ASSERT_EXPECT(replay_cache_has_seqauth(ADDR_BASE, 10, 0, 12));
+}
+
+void test_seqauth_adding_less_than_exists(void)
+{
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_seqauth_add(ADDR_BASE, 10, 0, 10));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_seqauth_add(ADDR_BASE, 5, 0, 5));
+    TEST_ASSERT_TRUE(replay_cache_has_seqauth(ADDR_BASE, 10, 0, 10));
+}
+
+void test_last_seqauth_in_cache(void)
+{
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_seqauth_add(ADDR_BASE, 10, 0, 10));
+    TEST_ASSERT_TRUE(replay_cache_is_seqauth_last(ADDR_BASE, 10, 0, 10));
+    TEST_ASSERT_FALSE(replay_cache_is_seqauth_last(ADDR_BASE, 9, 0, 9));
+    TEST_ASSERT_FALSE(replay_cache_is_seqauth_last(ADDR_BASE, 11, 0, 11));
+}
+
+void test_seqauth_cache(void)
+{
+    struct {
+        uint32_t iv_index;
+        uint32_t seqnum;
+        uint16_t seqzero;
+        uint32_t seqnum_first;
+        uint32_t seqnum_last;
+    } seqauth_variants[] = {
+            {0, 0, 0, 0, 8191},  // SeqAuth = 0
+            {0, 10, 10, 10, 8201},  // SeqAuth = 10
+            {0, 8191, 8191, 8191, 8191 + 8191},  // SeqAuth = 8191
+            {0, 0x801FFF, 0x1FFF, 0x801FFF, 0x801FFF + 8191},  // SeqAuth = 0x801FFF
+            {1, 0x801FFF, 0x1FFF, 0x801FFF, 0x801FFF + 8191},  // SeqAuth = 0x1801FFF
+    };
+
+    for (size_t i = 0; i < ARRAY_SIZE(seqauth_variants); i++)
+    {
+        do_iv_update(seqauth_variants[i].iv_index);
+
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, replay_cache_seqauth_add(ADDR_BASE,
+                                                                seqauth_variants[i].seqnum,
+                                                                seqauth_variants[i].iv_index,
+                                                                seqauth_variants[i].seqzero));
+
+        for (size_t segment_seqnum = seqauth_variants[i].seqnum_first;
+             segment_seqnum <= seqauth_variants[i].seqnum_last;
+             segment_seqnum++)
+        {
+            TEST_ASSERT_TRUE(replay_cache_has_seqauth(ADDR_BASE,
+                                                      segment_seqnum,
+                                                      seqauth_variants[i].iv_index,
+                                                      seqauth_variants[i].seqzero));
+        }
+
+        // The next seqnum after the last one should correspond to a new SeqAuth
+        TEST_ASSERT_FALSE(replay_cache_has_seqauth(ADDR_BASE,
+                                                   seqauth_variants[i].seqnum_last + 1,
+                                                   seqauth_variants[i].iv_index,
+                                                   seqauth_variants[i].seqzero));
+
+        // The next seqzero should correspond to a new SeqAuth
+        TEST_ASSERT_FALSE(replay_cache_has_seqauth(ADDR_BASE,
+                                                   seqauth_variants[i].seqnum_last + 1,
+                                                   seqauth_variants[i].iv_index,
+                                                   (seqauth_variants[i].seqzero + 1) & 0x1FFF));
+
+        if (seqauth_variants[i].seqnum_first > 0
+            && seqauth_variants[i].seqzero > 0)
+        {
+            // The previous seqzero should correspond to an old SeqAuth
+            TEST_ASSERT_TRUE(replay_cache_has_seqauth(ADDR_BASE,
+                                                      seqauth_variants[i].seqnum_first - 1,
+                                                      seqauth_variants[i].iv_index,
+                                                      seqauth_variants[i].seqzero - 1));
+        }
+    }
+}
+

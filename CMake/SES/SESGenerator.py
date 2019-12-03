@@ -169,7 +169,7 @@ def generate_ses_project(config, out_dir="."):
     config["target"]["ram"] = calculate_ram_limits(config)
     config["platform"]["fpu"] = config["platform"]["config"]["arch"] == "cortex-m4f"
     config["softdevice"]["hex_file"] = unix_relative_path_get(config["softdevice"]["hex_file"], out_dir)
-    config["sdk_default_path"] = unix_relative_path_get('../../../nRF5_SDK_15.3.0_59ac345', out_dir)
+    config["sdk_default_path"] = unix_relative_path_get('../../../nRF5_SDK_16.0.0_98a08e2', out_dir)
     s = ""
 
     with open("ses.xml", "r") as f:

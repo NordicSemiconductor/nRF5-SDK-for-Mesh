@@ -44,10 +44,10 @@ Moreover, you must install the following tools.
 
  | Download link                | Recommended *minimum* version | Installation notes                               |
  |------------------------------|-------------------------------|--------------------------------------------------|
- | @link_segger_jlink       	| 6.16a                         |                                                  |
+ | @link_segger_jlink           | 6.16a                         |                                                  |
  | @link_python27_download      | 2.7                           | Required for DFU.                                |
  | @link_python35_download      | 3.5.1                         | Must be 32-bit for `nrfjprog` DLL to work. Ensure that `pip` is installed and that Python 3 is added to `PATH`.      |
- | @link_nrf5SDK_download		| 15.3.0						| Required for [building with SEGGER Embedded Studio](@ref how_to_build_segger). See [Downloading nRF5 SDK](@ref how_to_build_nrf_sdk).	|
+ | @link_nrf5SDK_download       | 16.0.0                        | Required for [building with SEGGER Embedded Studio](@ref how_to_build_segger). See [Downloading nRF5 SDK](@ref how_to_build_nrf_sdk).	|
  
 
 ---
@@ -74,7 +74,7 @@ The following tools are required if you want to work with the nRF5 SDK for Mesh 
 
  | Download link                | Recommended *minimum* version | Installation notes                               |
  |------------------------------|-------------------------------|--------------------------------------------------|
- | @link_nrf5xclt_download 		| 9.5.0                         | Ensure that all command line tools are available in a folder referenced by the system path (for example, the `PATH` environment variable).   |
+ | @link_nrf5xclt_download      | 9.5.0                         | Ensure that all command line tools are available in a folder referenced by the system path (for example, the `PATH` environment variable).   |
  | @link_segger_jlink           | 6.16a                         |                                                  |
  | @link_python27_download      | 2.7                           | Required for DFU.                                |
  | @link_python35_download      | 3.5.1                         | Must be 32-bit for `nrfjprog` DLL to work. Ensure that `pip` is installed and that Python 3 is added to `PATH`.      |
@@ -82,7 +82,7 @@ The following tools are required if you want to work with the nRF5 SDK for Mesh 
  | @link_ninja_download         | 1.7.2                         | Preferred build system on Windows. Download the binary and place it in a suitable folder. |
  | @link_armnone_extended       | 7-2018-q2-update (7.3.1)      | One of two alternative build systems available on Windows. Download the @link_armnone installer and follow the installation instructions.<br><br>@warning Do not use the `8-2018-q4-major` version released on December 20, 2018, as it contains @link_armnone_q4major_bug.  |
  | @link_keil_extended          | 5                             | The other alternative build system available on Windows. Follow the instructions provided for @link_armcc. The armcc v5 toolchain is also provided by @link_keil and comes bundled with the @link_keiluvision.   |
- | @link_nrf5SDK_download		| 15.3.0						| Required for [building with CMake](@ref how_to_build_cmake). See [Downloading nRF5 SDK with CMake](@ref how_to_build_nrf_sdk).	|
+ | @link_nrf5SDK_download       | 16.0.0                        | Required for [building with CMake](@ref how_to_build_cmake). See [Downloading nRF5 SDK with CMake](@ref how_to_build_nrf_sdk).	|
  
 You can also install [optional, additional tools for building unit tests](@ref toolchain_cmake_optional).
 
@@ -96,9 +96,9 @@ For Debian/Ubuntu, most tools are available from the system package manager `apt
 
 The following tools are required if you want to work with the nRF5 SDK for Mesh using CMake on Debian/Ubuntu.
 
- | Download link            	| Recommended *minimum* version | Installation notes                               |
+ | Download link                | Recommended *minimum* version | Installation notes                               |
  |------------------------------|-------------------------------|--------------------------------------------------|
- | @link_nrf5xclt_download 		| 9.5.0                         | Reload the udev rules after installing the nRF5x Command Line Tools with the following commands:<br><br>`sudo udevadm control --reload`<br>`sudo udevadm trigger --action=add`<br><br>Ensure that all command line tools are available in a folder referenced bythe system path (for example, the `PATH` environment variable). |
+ | @link_nrf5xclt_download      | 9.5.0                         | Reload the udev rules after installing the nRF5x Command Line Tools with the following commands:<br><br>`sudo udevadm control --reload`<br>`sudo udevadm trigger --action=add`<br><br>Ensure that all command line tools are available in a folder referenced bythe system path (for example, the `PATH` environment variable). |
  | @link_segger_jlink           | 6.16a                         |                                                  |
  | @link_python27_download      | 2.7                           | Required for DFU. See the [Installing Python on Debian/Ubuntu](@ref toolchain_cmake_debian_python) section below.                                |
  | @link_python35_download      | 3.5.1                         | Ensure that `pip` is installed and that Python 3 is added to `PATH`. See the [Installing Python on Debian/Ubuntu](@ref toolchain_cmake_debian_python) section below.     |
@@ -106,7 +106,7 @@ The following tools are required if you want to work with the nRF5 SDK for Mesh 
  | @link_armnone_extended       | 7-2018-q2-update (7.3.1)      | As the version usually found in the Debian package manager is quite old (4.9.3), install the toolchain in the following way (alongside GDB, the GNU Debugger for ARM):<br><br>`sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa`<br>`sudo apt-get update`<br>`sudo apt-get install gcc-arm-embedded`  |
  | @link_make                   | -                             | Default build system on Debian/Ubuntu. Usually comes with the distribution. As an alternative, you can use Ninja.
  | @link_ninja_download         | 1.7.2                         | Alternative build system on Debian/Ubuntu. You can install it with the following command: `sudo apt-get install ninja-build`  |
- | @link_nrf5SDK_download		| 15.3.0						| Required for [building with CMake](@ref how_to_build_cmake). See [Downloading nRF5 SDK with CMake](@ref how_to_build_nrf_sdk).	|
+ | @link_nrf5SDK_download       | 16.0.0                        | Required for [building with CMake](@ref how_to_build_cmake). See [Downloading nRF5 SDK with CMake](@ref how_to_build_nrf_sdk).	|
  
 You can also install [optional, additional tools for building unit tests](@ref toolchain_cmake_optional).
 
@@ -153,10 +153,15 @@ source virtualenvs/mesh/bin/activate
 
 #### Additional tools for building documentation @anchor toolchain_cmake_docs
 
-If you want to build the documentation, make sure that the following tools are installed and available from the command line:
-* @link_doxygen
-* @link_graphviz
-* @link_mscgen
+The nRF5 SDK for Mesh documentation is written in Markdown and Doxygen.
+If you want to build the documentation, make sure that the following tools are installed.
+Add them to `PATH` after installation to make them available from the command line.
+
+ | Download link    | Required version  | Notes                                                         |
+ |------------------|-------------------|---------------------------------------------------------------|
+ | @link_doxygen    | 1.8.13            | Required for rendering the conceptual and API documentation.  |
+ | @link_graphviz   | 2.38.0            | Required for visualizing graphs.                              |
+ | @link_mscgen     | 0.20              | Required for visualizing Message Sequence Charts.             |
 
 
 ---
@@ -172,7 +177,7 @@ The following tools are required for [building unit tests](@ref how_to_build_cma
  | Download link       													| Windows or Debian/Ubuntu				| Installation notes 	                            |
  |----------------------------------------------------------------------|---------------------------------------|---------------------------------------------------|
  | @link_git                                							| Both									| Required for the installation of CMock and Unity.<br>On Debian/Ubuntu, you can install it with: `$ sudo apt-get install git`	|
- | @link_cmock                                                      	| Both									| Used by the unit tests to generate mocks.<br>Make sure to clone the CMock repository recursively in the same directory as the nRF5 SDK for Mesh:<br><br>`git clone https://github.com/ThrowTheSwitch/CMock.git --recursive`<br><br>The directory structure should look like this:<br><br>`.`<br>`+-- CMock/`<br>`+-- nrf5_sdk_for_mesh/`			|
+ | @link_cmock                                                      	| Both									| Used by the unit tests to generate mocks.<br>Make sure to clone the CMock repository using the commit hash `7cc41dd`.<br>Do it recursively in the same directory as the nRF5 SDK for Mesh:<br><br>`git clone https://github.com/ThrowTheSwitch/CMock.git --recursive`<br><br>The directory structure should look like this:<br><br>`.`<br>`+-- CMock/`<br>`+-- nrf5_sdk_for_mesh/`			|
  | @link_ruby                                       					| Both									| Required by CMock.<br>On Debian/Ubuntu, you can install it with the following command: `sudo apt-get install ruby`	|
  | @link_unity                                                          | Both									| Unit testing framework that is used for running the tests.<br>CMock bundles Unity as a submodule, but you can also use a different version.	|
  | GCC compiler															| Both									| **Windows**: Available through MinGW.<br> **Debian/Ubuntu**: Available in the distribution by default.	| 
@@ -191,14 +196,14 @@ to be stored next to the nRF5 SDK for Mesh, in a directory structure that looks 
 
     .
     +-- nrf5_sdk_for_mesh/
-    +-- nRF5_SDK_15.3.0_59ac345/
+    +-- nRF5_SDK_16.0.0_98a08e2/
 
 
 You can get the correct SDK either manually or using a custom CMake target.
 
 ### Downloading nRF5 SDK manually @anchor how_to_build_nrf_sdk_manual
 
-Download the nRF5 SDK version 15.3.0 from the @link_nrf5SDK_download website.
+Download the nRF5 SDK version 16.0.0 from the @link_nrf5SDK_download website.
 Extract the package in the same folder as the nRF5 SDK for Mesh to match the folder structure above. 
 
 

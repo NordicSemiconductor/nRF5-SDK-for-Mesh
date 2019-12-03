@@ -317,7 +317,7 @@ static void a_listen_start(void * p_context)
 
     pb_gatt_service_data_t service_data;
     memcpy(service_data.device_uuid, nrf_mesh_configure_device_uuid_get(), NRF_MESH_UUID_SIZE);
-    service_data.oob_info = p_evt->oob_info;
+    service_data.oob_info = LE2BE16(p_evt->oob_info);
 
     mesh_adv_params_set(MESH_ADV_TIMEOUT_INFINITE,
                         MSEC_TO_UNITS(NRF_MESH_PROV_BEARER_GATT_UNPROV_BEACON_INTERVAL_MS,

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -58,6 +58,7 @@
 #include "timer_scheduler_mock.h"
 #include "network_mock.h"
 #include "rand_mock.h"
+#include "net_state_mock.h"
 
 
 #define UNICAST_ADDR    0x0100
@@ -81,6 +82,10 @@ extern uint32_t m_iv_index;
 /*****************************************************************************
 * Utility functions
 *****************************************************************************/
+
+void expect_sar_ctx_alloc(void);
+
+void expect_sar_ctx_free(void);
 
 void expect_sar_cancel(nrf_mesh_sar_session_cancel_reason_t reason);
 

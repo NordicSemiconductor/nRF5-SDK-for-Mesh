@@ -8,7 +8,7 @@ a low noise amplifier (LNA) (see the following figure). To ensure sufficient ram
 these signals must be activated some time before the start of the radio transmission or reception.
 
 @anchor pa-lna-Figure1
-![Interfacing PA/LNA with nRF52](img/pa-lna-block-dia.svg "Interfacing PA/LNA with nRF52")
+![Interfacing PA/LNA with an nRF52 device](img/pa-lna-block-dia.svg "Interfacing PA/LNA with an nRF52 device")
 
 The Mesh PA/LNA module enables users to control such external components using GPIOs
 that are synchronized to the radio operation. The PA/LNA module drives the chosen GPIO pins
@@ -17,6 +17,8 @@ according to the chosen polarity (Active High/Active Low).
 See the following section for an example of how to use the PA/LNA module.
 You can find more information about the available APIs
 in the [PA/LNA API documentation](@ref MESH_PA_LNA).
+
+The Mesh PA/LNA module works with all the [fully compatible configurations based on nRF52 devices](@ref compatibility_list).
 
 ---
 
@@ -28,10 +30,10 @@ and @ref md_examples_light_switch_server_README.
 
 To add the PA/LNA support:
 -# Select the unused GPIO pins that can be used by the PA/LNA module.
-    - For this example, we use GPIO 25 for controlling the LNA and GPIO 24 for controlling the PA.
-    - Let's assume that the control signals required by the external hardware module are Active High.
-    The Mesh PA/LNA module uses the @link_52832_PPI and @link_52832_GPIOTE hardware modules
-    to generate these signals.
+    - For this example, use GPIO 25 for controlling the LNA and GPIO 24 for controlling the PA.
+    - Also, assume that the control signals required by the external hardware module are Active High.
+    The Mesh PA/LNA module uses the PPI and GPIOTE hardware modules to generate these signals.
+    To read more about these modules in nRF52832, see the following documents: @link_52832_PPI and @link_52832_GPIOTE .
 -# Select the unused PPI channels 0 and 1, and the GPIOTE channel 0.
 -# Make the following changes in `light_switch/server/src/main.c`:
     -# Include the required module header file: `mesh_pa_lna.h`

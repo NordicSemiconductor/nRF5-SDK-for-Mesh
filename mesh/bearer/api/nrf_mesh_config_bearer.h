@@ -136,7 +136,17 @@
 
 /** Number of flags available for allocation. */
 #ifndef BEARER_EVENT_FLAG_COUNT
-#define BEARER_EVENT_FLAG_COUNT     10
+#define BEARER_EVENT_FLAG_COUNT     11
+#endif
+
+/**
+ * Configure the bearer event module to use the SWI0 IRQ handler for processing the events.
+ *
+ * By default, the bearer event module uses the QDEC IRQ handler.
+ * See @ref md_doc_introduction_mesh_hw_resources for details.
+ */
+#ifndef BEARER_EVENT_USE_SWI0
+#define BEARER_EVENT_USE_SWI0 0
 #endif
 
 /** @} end of MESH_CONFIG_BEARER_EVENT */

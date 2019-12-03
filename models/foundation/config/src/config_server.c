@@ -1336,7 +1336,6 @@ static void handle_config_model_publication_set(access_model_handle_t handle, co
         NRF_MESH_ASSERT(access_model_publication_stop(model_handle) == NRF_SUCCESS);
     }
 
-    access_flash_config_store();
     send_publication_status(handle, p_message, element_address, model_handle);
 
     const config_server_evt_t evt = {.type = CONFIG_SERVER_EVT_MODEL_PUBLICATION_SET,
@@ -1421,7 +1420,6 @@ static void handle_config_model_subscription_add(access_model_handle_t handle, c
     }
     else
     {
-        access_flash_config_store();
         send_subscription_status(handle, p_message, p_pdu->element_address, p_pdu->address,
                 p_pdu->model_id, sig_model);
         const config_server_evt_t evt = {
@@ -1492,7 +1490,6 @@ static void handle_config_model_subscription_delete(access_model_handle_t handle
         }
 
         NRF_MESH_ASSERT(dsm_address_subscription_remove(subscription_address_handle) == NRF_SUCCESS);
-        access_flash_config_store();
     }
     else if (status != NRF_ERROR_NOT_FOUND)
     {
@@ -1547,7 +1544,6 @@ static void handle_config_model_subscription_delete_all(access_model_handle_t ha
     }
     else
     {
-        access_flash_config_store();
         send_subscription_status(handle, p_message, p_pdu->element_address, NRF_MESH_ADDR_UNASSIGNED,
                 p_pdu->model_id, sig_model);
 
@@ -1643,7 +1639,6 @@ static void handle_config_model_subscription_overwrite(access_model_handle_t han
     }
     else
     {
-        access_flash_config_store();
         send_subscription_status(handle, p_message, p_pdu->element_address, p_pdu->address,
                 p_pdu->model_id, sig_model);
 
@@ -1723,7 +1718,6 @@ static void handle_config_model_subscription_virtual_address_add(access_model_ha
     {
         nrf_mesh_address_t target_address;
         NRF_MESH_ASSERT(dsm_address_get(subscription_address_handle, &target_address) == NRF_SUCCESS);
-        access_flash_config_store();
         send_subscription_status(handle, p_message, p_pdu->element_address,
                 target_address.value, p_pdu->model_id, sig_model);
 
@@ -1793,7 +1787,6 @@ static void handle_config_model_subscription_virtual_address_delete(access_model
     }
 
     NRF_MESH_ASSERT(dsm_address_subscription_remove(subscription_address_handle) == NRF_SUCCESS);
-    access_flash_config_store();
     send_subscription_status(handle, p_message, p_pdu->element_address, virtual_address.value,
             p_pdu->model_id, sig_model);
 
@@ -1892,7 +1885,6 @@ static void handle_config_model_subscription_virtual_address_overwrite(access_mo
             app_evt_send(&evt);
         }
     }
-    access_flash_config_store();
 }
 
 static void send_relay_status(access_model_handle_t handle, const access_message_rx_t * p_message)
@@ -2481,7 +2473,6 @@ static void handle_model_app_bind_unbind(access_model_handle_t handle, const acc
     {
         case NRF_SUCCESS:
             response.status = ACCESS_STATUS_SUCCESS;
-            access_flash_config_store();
             break;
         case NRF_ERROR_NOT_FOUND:
             response.status = ACCESS_STATUS_INVALID_MODEL;

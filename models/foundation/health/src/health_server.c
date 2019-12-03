@@ -56,32 +56,35 @@
 #define ATTENTION_TIMER_INTERVAL 1000000u
 #define FAST_PERIOD_DIVISOR_MAX  15
 
-/* Health server entry IDs */
-#define MESH_OPT_HEALTH_PRIMARY_EID     MESH_OPT_CORE_ID(MESH_OPT_HEALTH_ID_START + 0)
-
 /* Attention timer context: */
 static timer_event_t     m_attention_timer;
 /* List of health servers with a non-zero attention timer: */
 static health_server_t * mp_attention_list = NULL;
 
 /* Forward declarations */
-static uint32_t health_server_fpd_set(mesh_config_entry_id_t id, const void * p_entry);
-static void health_server_fpd_get(mesh_config_entry_id_t id, void * p_entry);
-static void health_server_fpd_delete(mesh_config_entry_id_t id);
+static uint32_t health_server_setter(mesh_config_entry_id_t id, const void * p_entry);
+static void health_server_getter(mesh_config_entry_id_t id, void * p_entry);
+static void health_server_deleter(mesh_config_entry_id_t id);
 
 static void send_fault_status(health_server_t * p_server, uint16_t opcode, const access_message_rx_t * p_message);
 
-/* All possible health server settings for the fast period divisor (FPD) will be stored as part of
- * the core options in a single entry. Individual records in a entry correspond to different health
- * server instances.
+typedef struct
+{
+  uint8_t                     fast_period_divisor;
+  health_server_fault_array_t registered_faults;
+} health_server_mesh_config_t;
+
+/* All possible health server settings for the fast period divisor (FPD) and registered fault will
+ * be stored as part of the core options in a single entry. Individual records in a entry correspond
+ * to different health server instances.
  */
 MESH_CONFIG_ENTRY(mesh_opt_health,
                   MESH_OPT_HEALTH_PRIMARY_EID,
-                  ACCESS_ELEMENT_COUNT,
-                  sizeof(uint8_t),
-                  health_server_fpd_set,
-                  health_server_fpd_get,
-                  health_server_fpd_delete,
+                  HEALTH_SERVER_ELEMENT_COUNT,
+                  sizeof(health_server_mesh_config_t),
+                  health_server_setter,
+                  health_server_getter,
+                  health_server_deleter,
                   true);
 
 NRF_MESH_STATIC_ASSERT((MESH_OPT_HEALTH_ID_START + ACCESS_ELEMENT_COUNT) <= MESH_OPT_HEALTH_ID_END);
@@ -103,18 +106,18 @@ static uint32_t get_server_index(const health_server_t * p_server, uint16_t * p_
     return NRF_ERROR_NOT_FOUND;
 }
 
-/* Set fast period divisor via Mesh config */
-static uint32_t health_server_fpd_set(mesh_config_entry_id_t id, const void * p_entry)
+/* Set fast period divisor and register faults via Mesh config */
+static uint32_t health_server_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
     uint32_t status = NRF_SUCCESS;
     uint16_t server_index = id.record - MESH_OPT_HEALTH_ID_START;
     health_server_t * p_server = mp_server_contexts[server_index];
 
-    uint8_t * p_fpd = (uint8_t *) p_entry;
+    health_server_mesh_config_t * p_hsmc = (health_server_mesh_config_t *) p_entry;
 
-    if (p_server->fast_period_divisor != *p_fpd)
+    if (p_server->fast_period_divisor != p_hsmc->fast_period_divisor)
     {
-        p_server->fast_period_divisor = *p_fpd;
+        p_server->fast_period_divisor = p_hsmc->fast_period_divisor;
 
         if (health_server_fault_count_get(p_server) > 0)
         {
@@ -122,26 +125,33 @@ static uint32_t health_server_fpd_set(mesh_config_entry_id_t id, const void * p_
         }
     }
 
+    if (memcmp(p_server->registered_faults, p_hsmc->registered_faults, sizeof(health_server_fault_array_t)) != 0)
+    {
+        memcpy(p_server->registered_faults, p_hsmc->registered_faults, sizeof(health_server_fault_array_t));
+    }
+
     return status;
 }
 
-/* Get fast period divisor  via Mesh config */
-static void health_server_fpd_get(mesh_config_entry_id_t id, void * p_entry)
+/* Get fast period divisor and register faults via Mesh config */
+static void health_server_getter(mesh_config_entry_id_t id, void * p_entry)
 {
-    uint8_t * p_fpd = (uint8_t *) p_entry;
+    health_server_mesh_config_t * p_hsmc = (health_server_mesh_config_t *) p_entry;
     uint16_t server_index = id.record - MESH_OPT_HEALTH_ID_START;
     health_server_t * p_server = mp_server_contexts[server_index];
 
-    *p_fpd = p_server->fast_period_divisor;
+    p_hsmc->fast_period_divisor = p_server->fast_period_divisor;
+    memcpy(p_hsmc->registered_faults, p_server->registered_faults, sizeof(health_server_fault_array_t));
 }
 
-/* Delete fast period divisor  via Mesh config */
-static void health_server_fpd_delete(mesh_config_entry_id_t id)
+/* Delete fast period divisor and register faults via Mesh config */
+static void health_server_deleter(mesh_config_entry_id_t id)
 {
     uint16_t server_index = id.record - MESH_OPT_HEALTH_ID_START;
     health_server_t * p_server = mp_server_contexts[server_index];
 
     p_server->fast_period_divisor = 0;
+    bitfield_clear_all(p_server->registered_faults, HEALTH_SERVER_FAULT_ARRAY_SIZE);
 }
 
 static void health_publish_timeout_handler(access_model_handle_t handle, void * p_args)
@@ -344,8 +354,23 @@ static void handle_fault_clear(access_model_handle_t handle, const access_messag
         return;
     }
 
-    bitfield_clear_all(p_server->registered_faults, HEALTH_SERVER_FAULT_ARRAY_SIZE);
-    if (p_message->opcode.opcode == HEALTH_OPCODE_FAULT_CLEAR)
+    uint16_t server_index;
+    uint32_t status = get_server_index(p_server, &server_index);
+    if (status == NRF_SUCCESS)
+    {
+        mesh_config_entry_id_t id = MESH_OPT_HEALTH_PRIMARY_EID;
+        id.record += server_index;
+
+        health_server_mesh_config_t hsmc;
+        status = mesh_config_entry_get(id, &hsmc);
+        if (status == NRF_SUCCESS)
+        {
+            bitfield_clear_all(hsmc.registered_faults, HEALTH_SERVER_FAULT_ARRAY_SIZE);
+            status = mesh_config_entry_set(id, &hsmc);
+        }
+    }
+
+    if ((status == NRF_SUCCESS) && (p_message->opcode.opcode == HEALTH_OPCODE_FAULT_CLEAR))
     {
         send_fault_status(p_server, HEALTH_OPCODE_FAULT_STATUS, p_message);
     }
@@ -407,7 +432,7 @@ static void handle_period_set(access_model_handle_t handle, const access_message
     const health_msg_period_set_t * p_pdu = (const health_msg_period_set_t *) p_message->p_data;
     health_server_t * p_server = p_args;
 
-    if (p_pdu->fast_period_divisor < FAST_PERIOD_DIVISOR_MAX)
+    if (p_pdu->fast_period_divisor <= FAST_PERIOD_DIVISOR_MAX)
     {
         uint16_t server_index;
         status = get_server_index(p_server, &server_index);
@@ -417,7 +442,13 @@ static void handle_period_set(access_model_handle_t handle, const access_message
             mesh_config_entry_id_t id = MESH_OPT_HEALTH_PRIMARY_EID;
             id.record += server_index;
 
-            status = mesh_config_entry_set(id, &p_pdu->fast_period_divisor);
+            health_server_mesh_config_t hsmc;
+            status = mesh_config_entry_get(id, &hsmc);
+            if (status == NRF_SUCCESS)
+            {
+                hsmc.fast_period_divisor = p_pdu->fast_period_divisor;
+                status = mesh_config_entry_set(id, &hsmc);
+            }
         }
     }
 
@@ -474,10 +505,26 @@ static const access_opcode_handler_t m_opcode_handlers[] =
 
 void health_server_fault_register(health_server_t * p_server, uint8_t fault_code)
 {
-    bool faults_present = health_server_fault_count_get(p_server) > 0;
+    uint32_t status = NRF_SUCCESS;
+    uint16_t server_index;
 
+    bool faults_present = health_server_fault_count_get(p_server) > 0;
     bitfield_set(p_server->current_faults, fault_code);
-    bitfield_set(p_server->registered_faults, fault_code);
+
+    status = get_server_index(p_server, &server_index);
+    if (status == NRF_SUCCESS)
+    {
+        mesh_config_entry_id_t id = MESH_OPT_HEALTH_PRIMARY_EID;
+        id.record += server_index;
+
+        health_server_mesh_config_t hsmc;
+        status = mesh_config_entry_get(id, &hsmc);
+        if (status == NRF_SUCCESS)
+        {
+            bitfield_set(hsmc.registered_faults, fault_code);
+            (void) mesh_config_entry_set(id, &hsmc);
+        }
+    }
 
     /* If no faults were present before registering the new fault, set the publish interval to the fast interval: */
     if (!faults_present)

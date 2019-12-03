@@ -25,7 +25,7 @@ reducing application downtime during updates.
 
 The bootloader is limited to 22 kilobytes flash and 768 bytes RAM. In addition to the 22 kilobytes
 flash, the bootloader reserves the two last pages of the flash. This means that the total size of
-the bootloader is 32 kilobytes for the nRF52-series and 24 kilobytes for the nRF51-series.
+the bootloader is 32 kilobytes for the nRF52 Series and 24 kilobytes for the nRF51 Series.
 The actual size of the bootloader depends on whether it is compiled with the serial (UART)
 transport in addition to toolchain and optimization settings.
 
@@ -35,7 +35,8 @@ transport in addition to toolchain and optimization settings.
 
 ## Compatibility @anchor bootloader_compatibility
 
-The mesh bootloader supports all devices in the nRF51-series as well as nRF52832.
+The Mesh Bootloader is compatible with the same mesh stack configurations as the nRF5 SDK for Mesh.
+For details, see the [Compatibility](@ref md_doc_introduction_mesh_compatibility) page.
 
 
 ---

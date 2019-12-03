@@ -49,8 +49,6 @@ typedef struct
     dsm_handle_t m_appkey_handle;
 
     health_client_t m_health_client_instance;
-
-    bool flash_load_success;
 } network_dsm_handles_data_volatile_t;
 
 /** Structure to store the state of the provisioning process of the network nodes */

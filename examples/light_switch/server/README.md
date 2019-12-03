@@ -15,7 +15,7 @@ The light switch server instantiates one instance of the Generic OnOff server mo
 
 The server can either be provisioned and configured:
 - by the provisioner device (for example, static provisioner example);
-- by a GATT-based provisioner (for example, nRF Mesh app).
+- by a GATT-based provisioner (for example, @link_nrf_mesh_app).
 
 The provisioner configures this server model instance to communicate with the client model.
 
@@ -26,9 +26,6 @@ with Mesh Proxy Service present, which a Proxy Client can connect to in order to
 
 The Proxy Client acts like any other mesh device, but sends all of its mesh communication
 over a BLE connection to a Proxy Server, which relays it into the mesh.
-
-@note
-As proxy is only supported on the nRF52, cmake will not generate the proxy server example for nRF51.
 
 
 ---

@@ -49,7 +49,7 @@
 #include "nrf_mesh_config_bearer.h"
 #include "nrf_nvic.h"
 
-#ifdef BEARER_EVENT_USE_SWI0
+#if BEARER_EVENT_USE_SWI0
 #define EVENT_IRQn          SWI0_IRQn
 #define EVENT_IRQHandler    SWI0_IRQHandler
 #else

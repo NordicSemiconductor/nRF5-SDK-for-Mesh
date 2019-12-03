@@ -39,8 +39,8 @@
 #include "mesh_config_entry.h"
 
 /**
- * @defgroup MESH_OPT Mesh options API
- * Provides a consistent toplevel API for runtime configuration options.
+ * @defgroup MESH_OPT Mesh options internal API
+ * Provides a consistent API for runtime configuration options.
  *
  * @warning This API must be called in the same IRQ priority as the one used by the mesh stack
  * (see @ref md_doc_introduction_mesh_interrupt_priorities).
@@ -49,8 +49,16 @@
  * @{
  */
 
-/** File ID for the persistent storage options file. */
-#define MESH_OPT_CORE_FILE_ID      (0x0003)
+/** File IDs for the stack subsystems that store their parameters in the persistence memory.
+ * The IDs must be unique within stack. */
+enum
+{
+    MESH_OPT_NET_STATE_FILE_ID  = 0x0000,
+    MESH_OPT_DSM_FILE_ID        = 0x0001,
+    MESH_OPT_ACCESS_FILE_ID     = 0x0002,
+    MESH_OPT_CORE_FILE_ID       = 0x0003,
+    MESH_OPT_FIRST_FREE_ID
+};
 
 /** Macro for mesh option entry IDs */
 #define MESH_OPT_CORE_ID(id)      MESH_CONFIG_ENTRY_ID(MESH_OPT_CORE_FILE_ID, id)
@@ -67,8 +75,15 @@
 #define MESH_OPT_HEALTH_ID_START (0x0230)
 #define MESH_OPT_HEALTH_ID_END   (0x024F)
 
+// todo move it in the health model public options API MBTLE-3458
+/** Health server entry IDs */
+#define MESH_OPT_HEALTH_PRIMARY_EID     MESH_OPT_CORE_ID(MESH_OPT_HEALTH_ID_START + 0)
+
 /** Initialize the mesh options module. */
 void mesh_opt_init(void);
+
+/** Clear the mesh options module. */
+void mesh_opt_clear(void);
 
 /** @} */
 

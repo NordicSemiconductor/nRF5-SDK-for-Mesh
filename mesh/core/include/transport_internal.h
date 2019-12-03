@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -42,10 +42,16 @@
 #include "transport.h"
 
 /**
- * @defgroup TRANSPORT_INTERNAL Internal Transport types
+ * @defgroup TRANSPORT_INTERNAL Internal Transport declarations, types, and functions
  * @internal
  * @{
  */
+
+/** Offset to the IV Index in SeqAuth. */
+#define TRANSPORT_SAR_SEQAUTH_IV_INDEX_OFFSET (NETWORK_SEQNUM_BITS)
+
+/** Mask for SeqZero in SeqAuth. */
+#define TRANSPORT_SAR_SEQZERO_MASK (TRANSPORT_SAR_SEQNUM_DIFF_MAX)
 
 /** Receivers for incoming transport packets. */
 typedef enum
@@ -85,6 +91,50 @@ typedef struct
     nrf_mesh_tx_token_t token;
     core_tx_bearer_selector_t tx_bearer_selector; /**< The bearer on which the outgoing packets are to be sent on. */
 } transport_packet_metadata_t;
+
+/**
+ * Derives the sequence number (SEQ) of the first segment.
+ *
+ * @param[in] sequence_number   SEQ of any of the segments.
+ * @param[in] seq_zero          SeqZero derived from the segmented message.
+ *
+ * @returns SEQ of the first SAR segment.
+ */
+static inline uint32_t transport_sar_first_seq_num_get(uint32_t sequence_number, uint16_t seq_zero)
+{
+    if ((sequence_number & TRANSPORT_SAR_SEQZERO_MASK) < seq_zero)
+    {
+        return ((sequence_number - ((sequence_number & TRANSPORT_SAR_SEQZERO_MASK) - seq_zero) - (TRANSPORT_SAR_SEQZERO_MASK + 1)));
+    }
+    else
+    {
+        return ((sequence_number - ((sequence_number & TRANSPORT_SAR_SEQZERO_MASK) - seq_zero)));
+    }
+}
+
+/**
+ * Derives SeqAuth from the IV Index, SeqZero, and the sequence number (SEQ) of
+ * any of the segments.
+ *
+ * The SeqAuth is a 56-bit value, composed of the IV index and the sequence
+ * number (SEQ) of the first segment:
+ *
+ * |  |  |  |  |  |  |  |
+ * |56       24|23     0|
+ * | IV Index  |  SEQ   |
+ *
+ * The SeqZero is the least significant 13 bits of the SeqAuth, included in
+ * the Segmented message and the Segment Acknowledgment message.
+ *
+ * @param[in] iv_index          The current IV Index.
+ * @param[in] sequence_number   SEQ of any of the segments.
+ * @param[in] seq_zero          SeqZero derived from the segmented message.
+ */
+static inline uint64_t transport_sar_seqauth_get(uint32_t iv_index, uint32_t sequence_number, uint16_t seq_zero)
+{
+    return ((uint64_t) iv_index << TRANSPORT_SAR_SEQAUTH_IV_INDEX_OFFSET)
+            + transport_sar_first_seq_num_get(sequence_number, seq_zero);
+}
 
 /** @} */
 

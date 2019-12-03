@@ -12,6 +12,9 @@ DFU over BLE functionality:
 - @link_buttonless_secure_dfu_service that enables entering DFU mode from the application.
 - @link_secure_bootloader to perform the DFU.
 
+The DFU over BLE does not support the side-by-side mode. Once the DFU process starts, the device reboots
+to the bootloader and the application will not work until the bootloader finishes.
+
 For more information about these features, see @link_bootloader_and_dfu_modules.
 
 @warning
@@ -34,7 +37,7 @@ to 1 in `examples/experimental_lpn/include/app_config.h`.
 
 ## Hardware requirements @anchor examples_lpn_dfu_ble_requirements_hw
 
-Performing DFU over BLE using PC requires one @link_nrf52dk, in addition to the boards required by @ref md_examples_experimental_lpn_README.
+Performing DFU over BLE using PC requires one additional [supported board](@ref md_doc_introduction_mesh_compatibility), besides the boards required by @ref md_examples_experimental_lpn_README.
 
 ---
 
@@ -107,7 +110,15 @@ in examples/experimental_lpn/include/app_config.h).
 3. Generate a firmware package with the Low Power node example by using the
 Low Power node hex file and the private key generated when building the example:
 ```
-nrfutil pkg generate --application <path-to-lpn-example-hex-file> --application-version 1 --hw-version 52 --sd-req 0xAF --key-file lpn_private_key.pem lpn_dfu_package.zip
+nrfutil pkg generate --application <path-to-lpn-example-hex-file> --application-version <application-version> --hw-version 52 --sd-req 0xCB --key-file lpn_private_key.pem lpn_dfu_package.zip
+```
+    In this command:
+        - Replace `<path-to-lpn-example-hex-file>` with the path to the LPN example HEX file and the file name.
+        - Replace `<application-version>` with any positive number.
+            - After the first time upgrade, make sure that each next update has the application version number greater than the current.
+        - `--sd-req` can be obtained with the following command:
+```
+nrfutil pkg generate --help
 ```
 
 @note See @link_nrfutil_generating_dfu_packages for more information.
@@ -127,8 +138,20 @@ To build the bootloader:
     instruction.
     - Compile using `make`: Run `make` under `.../armgcc`.
 3. Optionally, complete the following steps:
-    1. Generate a HEX file that contains the @link_bootloader_settings_page. See the @link_nrfutil_bootloader_settings for instructions.
+    1. Generate a HEX file that contains the Bootloader settings page:
+```
+nrfutil settings generate --family <board-family> --application <path-to-lpn-example-hex-file> --application-version <application-version> --bootloader-version 2 --bl-settings-version 1 settings.hex
+```
+    In this command, replace:
+        - `<board-family>` either with `NRF52` to generate the file for nRF5832 and nRF52833 or with `NRF52840` to generate the file for nRF52840. These values can be checked with the following command:
+```
+nrfutil settings generate --help
+```
+        - `<path-to-lpn-example-hex-file>` with the path to the LPN example HEX file and the file name.
+        - `<application-version>` should be the same as for the generated firmware package.
     2. Use mergehex (part of the @link_nrf_command_line_tools) to merge the bootloader HEX file and the bootloader settings HEX file.
+
+For more information about generating a HEX file that contains the Bootloader settings, see @link_nrfutil_bootloader_settings.
 
 **Programming**<br>
 To program the bootloader:

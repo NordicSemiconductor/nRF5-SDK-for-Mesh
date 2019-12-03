@@ -160,6 +160,7 @@ Command                                 | Opcode
 [Addr Publication Remove](#bluetooth-mesh-addr-publication-remove)  | `0xa6`
 [Packet Send](#bluetooth-mesh-packet-send)              | `0xab`
 [State Clear](#bluetooth-mesh-state-clear)              | `0xac`
+[Config Server Bind](#bluetooth-mesh-config-server-bind)       | `0xad`
 
 ---
 
@@ -202,7 +203,6 @@ Command                                 | Opcode
 [Model ID Get](#access-layer-model-id-get)               | `0xf2`
 [Handle Get](#access-layer-handle-get)                 | `0xf3`
 [Elem Models Get](#access-layer-elem-models-get)            | `0xf4`
-[Access Flash Store](#access-layer-access-flash-store)         | `0xf5`
 
 ---
 
@@ -2262,6 +2262,31 @@ Potential status codes:
 _The response has no parameters._
 
 ---
+### Bluetooth Mesh Config Server Bind {#bluetooth-mesh-config-server-bind}
+
+_Opcode:_ `0xad`
+
+_Total length:_ 3 bytes
+
+Binds the config server model instance to given device key handle.
+
+_Config Server Bind Parameters:_
+
+Type          | Name                                    | Size | Offset | Description
+--------------|-----------------------------------------|------|--------|------------
+`uint16_t`    | Address Handle                          | 2    | 0      | Handle of the address to get the raw representation of.
+
+#### Response
+
+Potential status codes:
+
+- `SUCCESS`
+
+- `INVALID_LENGTH`
+
+_The response has no parameters._
+
+---
 ### Direct Firmware Upgrade Jump To Bootloader {#direct-firmware-upgrade-jump-to-bootloader}
 
 _Opcode:_ `0xd0`
@@ -2540,7 +2565,7 @@ _Opcode:_ `0xe2`
 
 _Total length:_ 5 bytes
 
-Set the publish address for a model instance.
+Set the publish period for a model instance.
 
 _Model Pub Period Set Parameters:_
 
@@ -3160,27 +3185,6 @@ Type          | Name                                    | Size | Offset | Descri
 `uint16_t`    | Count                                   | 2    | 0      | Number of available handles in @c model_handles
 `access_model_handle_t[125]` | Model Handles                           | 250  | 2      | List of the address handles of all subscription addresses bound to the given model
 
-
----
-### Access Layer Access Flash Store {#access-layer-access-flash-store}
-
-_Opcode:_ `0xf5`
-
-_Total length:_ 1 byte
-
-Store the access layer information to flash.
-
-_Access Flash Store takes no parameters._
-
-#### Response
-
-Potential status codes:
-
-- `SUCCESS`
-
-- `INVALID_LENGTH`
-
-_The response has no parameters._
 
 ---
 ### Model Specific Models Get {#model-specific-models-get}

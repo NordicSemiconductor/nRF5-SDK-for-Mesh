@@ -47,7 +47,7 @@
  * @link_GAP, and the @link_BLE_CPN module.
  *
  * The GAP and the Connection Parameters Negotiation module are required
- * for @ref md_doc_getting_started_gatt_proxy features to run.
+ * for @ref md_doc_getting_started_provisioning_gatt_proxy features.
  *
  * @{
  */

@@ -40,16 +40,11 @@
 #include "utils.h"
 #include "ad_type_filter.h"
 
-typedef struct
-{
-    list_node_t * p_list_head;
-#ifdef AD_LISTENER_DEBUG_MODE
-    /* To check integrity in case of multiple listeners for one AD type. */
-    uint8_t     frame_hash;
+#ifdef UNIT_TEST
+NRF_MESH_SECTION_DEF_FLASH(ad_listeners, ad_listener_t);
+#else
+NRF_MESH_SECTION_DEF_FLASH(ad_listeners, const ad_listener_t);
 #endif
-} ad_subscribers_t;
-
-static ad_subscribers_t  m_subscribers;
 
 #ifdef AD_LISTENER_DEBUG_MODE
 /* longitudinal redundancy check x^8+1 */
@@ -66,22 +61,7 @@ static uint8_t hash_count(const uint8_t * p_data, uint8_t size)
 }
 #endif
 
-static ad_listener_t * item_by_ad_get(list_node_t * p_list, uint8_t ad)
-{
-    LIST_FOREACH(p_iterator, p_list)
-    {
-        ad_listener_t * p_listener = PARENT_BY_FIELD_GET(ad_listener_t, node, p_iterator);
-
-        if (p_listener->ad_type == ad || p_listener->ad_type == ADL_WILDCARD_AD_TYPE)
-        {
-            return p_listener;
-        }
-    }
-
-    return NULL;
-}
-
-static void ad_to_filter_add(ad_listener_t * p_adl)
+static void ad_to_filter_add(const ad_listener_t * p_adl)
 {
     if (p_adl->ad_type == ADL_WILDCARD_AD_TYPE)
     {
@@ -96,37 +76,14 @@ static void ad_to_filter_add(ad_listener_t * p_adl)
     }
 }
 
-static void ad_from_filter_remove(ad_listener_t * p_adl)
-{
-    if (item_by_ad_get(m_subscribers.p_list_head, ADL_WILDCARD_AD_TYPE) != NULL)
-    {
-        return;
-    }
-
-    if (p_adl->ad_type == ADL_WILDCARD_AD_TYPE)
-    {
-        bearer_adtype_clear();
-
-        LIST_FOREACH(p_iterator, m_subscribers.p_list_head)
-        {
-            ad_listener_t * p_listener = PARENT_BY_FIELD_GET(ad_listener_t, node, p_iterator);
-            bearer_adtype_add(p_listener->ad_type);
-        }
-    }
-    else
-    {
-        bearer_adtype_remove(p_adl->ad_type);
-    }
-}
-
-static uint32_t input_param_check(ad_listener_t * p_adl)
+static uint32_t input_param_check(const ad_listener_t * p_adl)
 {
     if (p_adl == NULL || p_adl->handler == NULL)
     {
         return NRF_ERROR_NULL;
     }
 
-    if (p_adl->adv_packet_type > BLE_PACKET_TYPE_ADV_DISCOVER_IND &&
+    if (p_adl->adv_packet_type > BLE_PACKET_TYPE_ADV_EXT && /*lint !e685 Relational operator '>' always evaluates to 'false' */
         p_adl->adv_packet_type != ADL_WILDCARD_ADV_TYPE)    /*lint !e650 Constant '255' out of range for operator '!=' */
     {
         return NRF_ERROR_INVALID_PARAM;
@@ -135,76 +92,33 @@ static uint32_t input_param_check(ad_listener_t * p_adl)
     return NRF_SUCCESS;
 }
 
-uint32_t ad_listener_subscribe(ad_listener_t * p_adl)
+void ad_listener_init(void)
 {
-    uint32_t status = input_param_check(p_adl);
-    if (status != NRF_SUCCESS)
+    bearer_adtype_mode_set(AD_FILTER_WHITELIST_MODE);
+    bearer_adtype_filtering_set(true);
+
+    NRF_MESH_SECTION_FOR_EACH(ad_listeners, const ad_listener_t, p_listener)
     {
-        return status;
+        /* Check that all AD-listeners are correctly configured: */
+        NRF_MESH_ERROR_CHECK(input_param_check(p_listener));
+        ad_to_filter_add(p_listener);
     }
-
-    bool empty = m_subscribers.p_list_head == NULL;
-    ad_to_filter_add(p_adl);
-    list_add(&m_subscribers.p_list_head, &p_adl->node);
-
-    if (empty)
-    {
-        bearer_adtype_mode_set(AD_FILTER_WHITELIST_MODE);
-        bearer_adtype_filtering_set(true);
-    }
-
-    return NRF_SUCCESS;
-}
-
-uint32_t ad_listener_unsubscribe(ad_listener_t * p_adl)
-{
-    uint32_t status = input_param_check(p_adl);
-    if (status != NRF_SUCCESS)
-    {
-        return status;
-    }
-
-    status = list_remove(&m_subscribers.p_list_head, &p_adl->node);
-    if (status != NRF_SUCCESS)
-    {
-        return status;
-    }
-
-    ad_from_filter_remove(p_adl);
-
-    if (m_subscribers.p_list_head == NULL)
-    {
-        bearer_adtype_filtering_set(false);
-    }
-
-    return NRF_SUCCESS;
 }
 
 void ad_listener_process(ble_packet_type_t adv_type, const uint8_t * p_payload, uint32_t payload_length, const nrf_mesh_rx_metadata_t * p_metadata)
 {
 #ifdef AD_LISTENER_DEBUG_MODE
-    m_subscribers.frame_hash = hash_count(p_payload, payload_length);
+    uint8_t frame_hash = hash_count(p_payload, payload_length);
 #endif
 
     for (ble_ad_data_t * p_ad_data = (ble_ad_data_t *)p_payload;
-         (uint8_t *)p_ad_data < &p_payload[payload_length];
+         (uint8_t *)p_ad_data < &p_payload[payload_length] && p_ad_data->length > 0;
          p_ad_data = packet_ad_type_get_next((ble_ad_data_t *)p_ad_data))
     {
-        list_node_t * p_list = m_subscribers.p_list_head;
-
-        while (p_list != NULL)
+        NRF_MESH_SECTION_FOR_EACH(ad_listeners, const ad_listener_t, p_listener)
         {
-            ad_listener_t * p_listener = item_by_ad_get(p_list, p_ad_data->type);
-
-            if (p_listener == NULL)
-            {
-                break;
-            }
-
-            p_list = p_listener->node.p_next;
-
-            if (adv_type != p_listener->adv_packet_type &&
-                p_listener->adv_packet_type != ADL_WILDCARD_ADV_TYPE)   /*lint !e650 Constant '255' out of range for operator '!=' */
+            if ((adv_type != p_listener->adv_packet_type && (uint8_t) p_listener->adv_packet_type != ADL_WILDCARD_ADV_TYPE) ||
+                (p_listener->ad_type != p_ad_data->type && p_listener->ad_type != ADL_WILDCARD_AD_TYPE))
             {
                 continue;
             }
@@ -212,8 +126,7 @@ void ad_listener_process(ble_packet_type_t adv_type, const uint8_t * p_payload, 
             p_listener->handler(p_ad_data->data, p_ad_data->length - BLE_AD_DATA_OVERHEAD, p_metadata);
 
 #ifdef AD_LISTENER_DEBUG_MODE
-            uint8_t hash = hash_count(p_payload, payload_length);
-            NRF_MESH_ASSERT(hash == m_subscribers.frame_hash);
+            NRF_MESH_ASSERT(hash_count(p_payload, payload_length) == frame_hash);
 #endif
          }
      }

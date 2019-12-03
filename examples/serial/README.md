@@ -1,6 +1,6 @@
 # Serial example
 
-@note This example is not supported by the nRF52810 Series.
+@tag52810nosupport
 
 This example implements the serial interface for the mesh stack. It can be used
 unaltered as connectivity firmware for mesh devices. You can also modify the example

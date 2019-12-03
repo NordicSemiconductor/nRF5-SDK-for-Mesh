@@ -49,10 +49,8 @@
  *
  * This module defines the Remote Provisioning Models. This model consists of two submodules, the
  * Remote Provisioning Client and the Remote Provisioning Server.
- * @{
- *
- * @defgroup  PB_REMOTE_MSCS Provisioning over Mesh MSCs
- * @brief Remote provisioning sequence diagrams
+ * 
+ * For conceptual information, see @ref md_doc_getting_started_provisioning_pb-remote.
  *
  * @{
  * @mscfile pb_remote_provisioning.msc  Remote Provisioning Scenario
@@ -60,6 +58,7 @@
  * @mscfile pb_remote_link_close.msc    Link Close Scenarios
  * @mscfile pb_remote_scanning.msc      Scanning Scenarios
  * @}
+ *
  */
 
 /**

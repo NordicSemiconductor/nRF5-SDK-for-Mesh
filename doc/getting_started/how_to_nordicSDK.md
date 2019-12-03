@@ -8,8 +8,8 @@ See @ref md_doc_getting_started_how_to_build for information on how to download 
 Check @ref md_examples_sdk_coexist_README to see how the nRF5 SDK features can be simultaneously used with nRF5 SDK for Mesh.
 
 @note
-* nRF5 SDK integration is only tested with nRF5 SDK version 15.2.
-* nRF5 SDK version 15.2 does not support nRF51.
+* nRF5 SDK integration is only tested with the nRF5 SDK version 16.0.
+* The nRF5 SDK version 16.0 does not support the nRF51 series SoCs.
 
 **Table of contents**
 - [Dynamic memory](@ref coexistence_memory)
@@ -18,10 +18,6 @@ Check @ref md_examples_sdk_coexist_README to see how the nRF5 SDK features can b
 - [Including nRF5 SDK for Mesh functionality in an nRF5 SDK example](@ref coexistence_mesh_in_nrf5_sdk)
     - [Optional changes](@ref coexistence_mesh_in_nrf5_sdk_optional)
     - [nRF5 SDK NVM storage modules](@ref coexistence_mesh_in_nrf5_sdk_nvm)
-    - [Estimated sizes](@ref coexistence_mesh_in_nrf5_sdk_sizes)
-        - [Definitions](@ref coexistence_mesh_in_nrf5_sdk_sizes_definitions)
-        - [Base sizes](@ref coexistence_mesh_in_nrf5_sdk_sizes_base_sizes)
-        - [Results](@ref coexistence_mesh_in_nrf5_sdk_sizes_results)
 
 
 
@@ -239,91 +235,8 @@ problematic due to long `timeslot` events occupied by the mesh stack. Use the
 @ref md_doc_libraries_flash_manager module provided by the mesh stack instead.
 
 Furthermore, when writing to flash, ensure not to write or erase areas utilized by the mesh stack
-modules and the bootloader (if present). By default, the mesh modules utilize the last `x` number of
-pages before the start of the bootloader, if present, or the last `x` number of pages of the
-available flash on the Nordic SoC.
-The value of `x` depends on the configuration of the mesh stack and can be calculated by:
-
-    x = 2 + ACCESS_FLASH_PAGE_COUNT + DSM_FLASH_PAGE_COUNT
-
-In this equation:
-- `ACCESS_FLASH_PAGE_COUNT` must be equal to or greater than:
-
-        (1 + ((DATA_SIZE) / (FLASH_MANAGER_DATA_PER_PAGE - LARGEST_ENTRY_SIZE)))
-
-    - `DATA_SIZE` is
-```
-         (ALIGN_VAL((sizeof(fm_header_t) + sizeof(access_model_state_data_t)), WORD_SIZE) * ACCESS_MODEL_COUNT) +
-         (ALIGN_VAL((sizeof(fm_header_t) + sizeof(access_flash_subscription_list_t)), WORD_SIZE) * ACCESS_SUBSCRIPTION_LIST_COUNT) +
-         (ALIGN_VAL((sizeof(fm_header_t) + sizeof(uint16_t)), WORD_SIZE) * ACCESS_ELEMENT_COUNT) +
-```
-    - `ALIGN_VAL` returns the total field size aligned to WORD boundaries.
-    - `FLASH_MANAGER_DATA_PER_PAGE` is
-```
-         (PAGE_SIZE - sizeof(flash_manager_metadata_t))
-```
-    - `LARGEST_ENTRY_SIZE` is `ACCESS_MODEL_STATE_FLASH_SIZE`
-
-- `DSM_FLASH_PAGE_COUNT` shall be equal to or greater than
-
-         (1 + ((DATA_SIZE) / (FLASH_MANAGER_DATA_PER_PAGE - LARGEST_ENTRY_SIZE)))
-
-    - `DATA_SIZE` is
-```
-         (ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_unicast_t)), WORD_SIZE) +
-         ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_nonvirtual_t)), WORD_SIZE)  * DSM_NONVIRTUAL_ADDR_MAX +
-         ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_virtual_t)), WORD_SIZE)     * DSM_VIRTUAL_ADDR_MAX +
-         ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_subnet_t)), WORD_SIZE)           * DSM_SUBNET_MAX +
-         ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_devkey_t)), WORD_SIZE)           * DSM_DEVICE_MAX +
-         ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_appkey_t)), WORD_SIZE)           * DSM_APP_MAX)
-```
-    - `FLASH_MANAGER_DATA_PER_PAGE` is
-```
-         (PAGE_SIZE - sizeof(flash_manager_metadata_t))
-```
-    - `LARGEST_ENTRY_SIZE` is
-```
-         (sizeof(fm_header_t) + sizeof(dsm_flash_entry_t))
-```
-
-### Estimated sizes @anchor coexistence_mesh_in_nrf5_sdk_sizes
-
-The following table lists estimated sizes based on the
-[Light switch server example](@ref md_examples_light_switch_README),
-built using Keil v5 with optimization level `O3` for nRF52832.
-
-#### Definitions @anchor coexistence_mesh_in_nrf5_sdk_sizes_definitions
-|Definition                      |Value|
-|:-------------------------------|----:|
-|`ACCESS_MODEL_COUNT`            | 3   |
-|`ACCESS_SUBSCRIPTION_LIST_COUNT`| 1   |
-|`ACCESS_ELEMENT_COUNT`          | 1   |
-|`DSM_NONVIRTUAL_ADDR_MAX`       | 3   |
-|`DSM_VIRTUAL_ADDR_MAX`          | 1   |
-|`DSM_SUBNET_MAX`                | 1   |
-|`DSM_DEVICE_MAX`                | 1   |
-|`DSM_APP_MAX`                   | 1   |
-
-#### Base sizes @anchor coexistence_mesh_in_nrf5_sdk_sizes_base_sizes
-| Structure/union                   | Size in bytes |
-|:--------------------------------- |--------------:|
-|`fm_header_t`                      |     4         |
-|`access_model_state_data_t`        |    20         |
-|`access_flash_subscription_list_t` |     4         |
-|`dsm_local_unicast_address_t`      |     4         |
-|`dsm_flash_entry_addr_nonvirtual_t`|     2         |
-|`dsm_flash_entry_addr_virtual_t`   |    16         |
-|`dsm_flash_entry_subnet_t`         |    36         |
-|`dsm_flash_entry_devkey_t`         |    20         |
-|`dsm_flash_entry_appkey_t`         |    36         |
-|`flash_manager_metadata_t`         |     8         |
-|`dsm_flash_entry_t`                |    36         |
-
-#### Results @anchor coexistence_mesh_in_nrf5_sdk_sizes_results
-| Count name                | Value |
-|:--------------------------|------:|
-|`ACCESS_FLASH_PAGE_COUNT`  |     1 |
-|`DSM_FLASH_PAGE_COUNT`     |     1 |
-|Total page count           |     4 |
-
-
+modules and the bootloader (if present). The flash area used by the mesh stack is returned by
+`mesh_stack_persistence_flash_usage`. This will work even when the stack is built with the legacy
+persistence mode enabled. Note, however, that if any of the flash areas have been specified manually
+by `ACCESS_FLASH_AREA_LOCATION`, `NET_FLASH_AREA_LOCATION`, or `DSM_FLASH_AREA_LOCATION`, these
+pages will not be included in the flash usage count.

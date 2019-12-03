@@ -48,6 +48,7 @@
 #include "nrf_mesh_mock.h"
 #include "nrf_mesh_events_mock.h"
 #include "nrf_mesh_externs_mock.h"
+#include "config_server_mock.h"
 
 #include "utils.h"
 #include "test_assert.h"
@@ -113,6 +114,7 @@ void setUp(void)
     net_state_mock_Init();
     access_mock_Init();
     nrf_mesh_externs_mock_Init();
+    config_server_mock_Init();
     m_expected_packet_send = 0;
     m_packet_send_return = 0;
     memset(&m_expected_tx_params, 0, sizeof(m_expected_tx_params));
@@ -135,6 +137,8 @@ void tearDown(void)
     access_mock_Destroy();
     nrf_mesh_externs_mock_Verify();
     nrf_mesh_externs_mock_Destroy();
+    config_server_mock_Verify();
+    config_server_mock_Destroy();
 }
 
 /*****************************************************************************
@@ -168,7 +172,7 @@ void test_enable_disable(void)
     serial_handler_mesh_rx(&cmd);
 }
 
-void test_stateclear()
+void test_stateclear(void)
 {
     serial_packet_t cmd;
     cmd.opcode = SERIAL_OPCODE_CMD_MESH_STATE_CLEAR;
@@ -177,6 +181,19 @@ void test_stateclear()
     access_clear_Expect();
     net_state_reset_Expect();
     serial_cmd_rsp_send_Expect(SERIAL_OPCODE_CMD_MESH_STATE_CLEAR, SERIAL_STATUS_SUCCESS, NULL, 0);
+    serial_handler_mesh_rx(&cmd);
+}
+
+void test_config_server_bind(void)
+{
+    serial_packet_t cmd;
+    cmd.opcode = SERIAL_OPCODE_CMD_MESH_CONFIG_SERVER_BIND;
+    cmd.payload.cmd.mesh.config_server_devkey_bind.address_handle = 0x0001;
+    cmd.length = 3;
+
+    config_server_bind_ExpectAndReturn(cmd.payload.cmd.mesh.config_server_devkey_bind.address_handle, NRF_SUCCESS);
+    serial_cmd_rsp_send_Expect(SERIAL_OPCODE_CMD_MESH_CONFIG_SERVER_BIND, SERIAL_STATUS_SUCCESS, NULL, 0);
+    serial_translate_error_ExpectAndReturn(0x00, 0x00);
     serial_handler_mesh_rx(&cmd);
 }
 

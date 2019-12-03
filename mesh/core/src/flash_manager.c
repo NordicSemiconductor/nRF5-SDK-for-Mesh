@@ -46,6 +46,7 @@
 #include "nrf_mesh_assert.h"
 #include "internal_event.h"
 #include "queue.h"
+#include "log.h"
 
 #define HEADER_LEN       (sizeof(fm_header_t))
 #define ACTION_BUFFER_SIZE_NO_PARAMS     (offsetof(action_t, params))
@@ -818,6 +819,8 @@ void flash_manager_init(void)
 uint32_t flash_manager_add(flash_manager_t * p_manager,
         const flash_manager_config_t * p_config)
 {
+    __LOG(LOG_SRC_FM, LOG_LEVEL_DBG3, "FM area: 0x%08x\n", p_config->p_area);
+
     uint32_t status = NRF_SUCCESS;
     p_manager->internal.state = FM_STATE_UNINITIALIZED;
 

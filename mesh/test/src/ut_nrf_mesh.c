@@ -77,20 +77,12 @@ static uint32_t m_rx_cb_expect;
 static nrf_mesh_adv_packet_rx_data_t m_adv_packet_rx_data_expect;
 static int m_scanner_init_callback_cnt;
 static bearer_event_flag_callback_t m_scanner_packet_process_cb;
-static ad_listener_t * mp_listener;
 static scanner_packet_t m_test_packet;
 static nrf_mesh_rx_metadata_t m_metadata;
 static uint8_t m_ad_buffer[32];
 static ble_ad_data_t * mp_ad_data = (ble_ad_data_t *)m_ad_buffer;
 
 /*************** Static Helper Functions ***************/
-static uint32_t ad_subscriber_cb(ad_listener_t * p_listener, int num_calls)
-{
-    TEST_ASSERT_EQUAL(0, num_calls);
-    mp_listener = p_listener;
-
-    return NRF_SUCCESS;
-}
 
 static void ad_listener_process_cb(ble_packet_type_t adv_type,
                                    const uint8_t * p_payload,
@@ -98,23 +90,16 @@ static void ad_listener_process_cb(ble_packet_type_t adv_type,
                                    const nrf_mesh_rx_metadata_t * p_metadata,
                                    int num_calls)
 {
-    (void)num_calls;
-    TEST_ASSERT_NOT_NULL(mp_listener);
-    TEST_ASSERT_NOT_NULL(mp_listener->handler);
+    // Mesh packet AD listener extern:
+    extern ad_listener_t m_mesh_packet_listener;
+    TEST_ASSERT_EQUAL(AD_TYPE_MESH, m_mesh_packet_listener.ad_type);
+    TEST_ASSERT_EQUAL(BLE_PACKET_TYPE_ADV_NONCONN_IND, m_mesh_packet_listener.adv_packet_type);
+    TEST_ASSERT_NOT_NULL(m_mesh_packet_listener.handler);
+
     TEST_ASSERT_EQUAL(&m_test_packet.packet.payload, p_payload);
     TEST_ASSERT_EQUAL(m_test_packet.packet.header.length - BLE_ADV_PACKET_OVERHEAD, payload_size);
-
-    mp_listener->handler(mp_ad_data->data, mp_ad_data->length, p_metadata);
-}
-
-static void bearer_adtype_add_cb(uint8_t type, int num_calls)
-{
-    UNUSED_VARIABLE(num_calls);
-
-    TEST_ASSERT((AD_TYPE_PB_ADV == type)
-                || (AD_TYPE_MESH == type)
-                || (AD_TYPE_BEACON == type)
-                || (AD_TYPE_DFU == type));
+    TEST_ASSERT_EQUAL(AD_TYPE_MESH, mp_ad_data->type);
+    m_mesh_packet_listener.handler(mp_ad_data->data, mp_ad_data->length - BLE_AD_DATA_OVERHEAD, p_metadata);
 }
 
 static void scanner_init_callback(bearer_event_flag_callback_t packet_process_cb, int cmock_num_calls)
@@ -147,8 +132,7 @@ static void initialize_mesh(nrf_mesh_init_params_t * p_init_params)
     core_tx_adv_init_Expect();
     mesh_opt_init_Expect();
     core_tx_local_init_Expect();
-    bearer_adtype_add_StubWithCallback(bearer_adtype_add_cb);
-    ad_listener_subscribe_StubWithCallback(ad_subscriber_cb);
+    ad_listener_init_Expect();
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_init(p_init_params));
 
@@ -361,52 +345,6 @@ void test_scanner_packet_process_cb(void)
     scanner_rx_pending_ExpectAndReturn(false);
     TEST_ASSERT_EQUAL(true, m_scanner_packet_process_cb());
 
-    /* Process a PB-ADV packet: */
-    m_test_packet.metadata.adv_type = BLE_PACKET_TYPE_ADV_NONCONN_IND;
-    mp_ad_data->length = 2;
-    mp_ad_data->type = AD_TYPE_PB_ADV;
-    mp_ad_data->data[0] = 3; /* Some random packet data */
-    m_test_packet.packet.header.length = BLE_ADV_PACKET_OVERHEAD + 3;
-
-    scanner_rx_ExpectAndReturn(&m_test_packet);
-    ad_listener_process_StubWithCallback(ad_listener_process_cb);
-    prov_bearer_adv_packet_in_Expect(&mp_ad_data->data[0], 1, &m_metadata);
-    prov_bearer_adv_packet_in_IgnoreArg_p_metadata();
-    scanner_packet_release_Expect(&m_test_packet);
-    scanner_rx_pending_ExpectAndReturn(false);
-    TEST_ASSERT_EQUAL(true, m_scanner_packet_process_cb());
-
-    /* Process a mesh beacon: */
-    m_test_packet.metadata.adv_type = BLE_PACKET_TYPE_ADV_NONCONN_IND;
-    mp_ad_data->length = 2;
-    mp_ad_data->type = AD_TYPE_BEACON;
-    mp_ad_data->data[0] = 3; /* Some random packet data */
-    m_test_packet.packet.header.length = BLE_ADV_PACKET_OVERHEAD + 3;
-
-    scanner_rx_ExpectAndReturn(&m_test_packet);
-    ad_listener_process_StubWithCallback(ad_listener_process_cb);
-    beacon_packet_in_ExpectAndReturn(&mp_ad_data->data[0], 1, &m_metadata, NRF_SUCCESS);
-    beacon_packet_in_IgnoreArg_p_packet_meta();
-    scanner_packet_release_Expect(&m_test_packet);
-    scanner_rx_pending_ExpectAndReturn(false);
-    TEST_ASSERT_EQUAL(true, m_scanner_packet_process_cb());
-
-    /* Process a DFU packet: */
-    mp_ad_data->length = 4;
-    mp_ad_data->type = AD_TYPE_DFU;
-    mp_ad_data->data[0] = BLE_ADV_SERVICE_DATA_UUID_DFU & 0xff;
-    mp_ad_data->data[1] = BLE_ADV_SERVICE_DATA_UUID_DFU >> 8;
-    mp_ad_data->data[2] = 5;  // Some random packet data
-    m_test_packet.packet.header.length = BLE_ADV_PACKET_OVERHEAD + 4;
-
-    scanner_rx_ExpectAndReturn(&m_test_packet);
-    ad_listener_process_StubWithCallback(ad_listener_process_cb);
-    nrf_mesh_dfu_rx_ExpectAndReturn(&mp_ad_data->data[2], 1, &m_metadata, NRF_SUCCESS);
-    nrf_mesh_dfu_rx_IgnoreArg_p_metadata();
-    scanner_packet_release_Expect(&m_test_packet);
-    scanner_rx_pending_ExpectAndReturn(false);
-    TEST_ASSERT_EQUAL(true, m_scanner_packet_process_cb());
-
     /* Test application rx cb */
     nrf_mesh_rx_cb_set(rx_cb);
 
@@ -436,6 +374,7 @@ void test_scanner_packet_process_cb(void)
     scanner_packet_release_Expect(&m_test_packet);
     scanner_rx_pending_ExpectAndReturn(false);
     TEST_ASSERT_EQUAL(true, m_scanner_packet_process_cb());
+    TEST_ASSERT_EQUAL(0, m_rx_cb_expect);
 
     /* Remove the callback, shouldn't get it again. */
     nrf_mesh_rx_cb_clear();

@@ -113,8 +113,9 @@ static inline void randomize_channels(advertiser_channels_t * p_channels)
 
 static inline void schedule_first_time(timer_event_t * p_timer_evt, uint32_t max_delay)
 {
-    uint32_t rand_offset = rand_prng_get(&m_adv_prng) % max_delay;
-    timer_sch_reschedule(p_timer_evt, timer_now() + rand_offset);
+    NRF_MESH_ASSERT(max_delay >= MS_TO_US(BEARER_ADV_INT_MIN_MS) + ADVERTISER_INTERVAL_RANDOMIZATION_US);
+    uint32_t rand_offset = rand_prng_get(&m_adv_prng) % (max_delay - MS_TO_US(BEARER_ADV_INT_MIN_MS));
+    timer_sch_reschedule(p_timer_evt, timer_now() + MS_TO_US(BEARER_ADV_INT_MIN_MS) + rand_offset);
 }
 
 static inline void setup_next_timeout(timer_event_t * p_timer_evt, uint32_t base_interval)
@@ -319,7 +320,7 @@ void advertiser_enable(advertiser_t * p_adv)
         p_adv->enabled = true;
         if (p_adv->p_packet != NULL || packet_buffer_can_pop(&p_adv->buf))
         {
-            schedule_first_time(&p_adv->timer, p_adv->config.advertisement_interval_us);
+            schedule_first_time(&p_adv->timer, p_adv->config.advertisement_interval_us + ADVERTISER_INTERVAL_RANDOMIZATION_US);
         }
     }
 }
@@ -367,7 +368,7 @@ void advertiser_packet_send(advertiser_t * p_adv, adv_packet_t * p_packet)
     packet_buffer_commit(&p_adv->buf, p_buf_packet, p_buf_packet->size);
     if (p_adv->enabled && !is_active(p_adv))
     {
-        schedule_first_time(&p_adv->timer, p_adv->config.advertisement_interval_us);
+        schedule_first_time(&p_adv->timer, p_adv->config.advertisement_interval_us + ADVERTISER_INTERVAL_RANDOMIZATION_US);
     }
 }
 
@@ -426,7 +427,7 @@ void advertiser_interval_set(advertiser_t * p_adv, uint32_t interval_ms)
     {
         /* Instead of waiting for the slow advertisement interval to fire the next advertisement,
          * reschedule it to let the interval take immediate effect. */
-        schedule_first_time(&p_adv->timer, p_adv->config.advertisement_interval_us);
+        schedule_first_time(&p_adv->timer, p_adv->config.advertisement_interval_us + ADVERTISER_INTERVAL_RANDOMIZATION_US);
     }
 }
 

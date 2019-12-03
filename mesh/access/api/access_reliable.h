@@ -44,43 +44,43 @@
 #include "nrf_mesh_config_bearer.h"
 
 /**
- * @defgroup ACCESS_RELIABLE Reliable messages
+ * @defgroup ACCESS_RELIABLE Acknowledged messages
  * @ingroup ACCESS
- * Reliable message sending for the access layer.
+ * Acknowledged message sending for the access layer.
  * @{
  * @defgroup ACCESS_RELIABLE_MSCS Message sequence charts
- * @brief Reliable publishing sequence diagrams
+ * @brief Acknowledged publishing sequence diagrams
  *
  * @{
- * @mscfile access_reliable_publish.msc "Reliable publish API usage"
- * @mscfile access_reliable_publish_fail.msc "Reliable publish API errors"
+ * @mscfile access_reliable_publish.msc "Acknowledged publish API usage"
+ * @mscfile access_reliable_publish_fail.msc "Acknowledged publish API errors"
  * @}
  */
 
 /**
  * @defgroup ACCESS_RELIABLE_DEFINES Defines
- * Access reliable message defines
+ * Access acknowledged message defines
  * @{
  */
 
 /**
- * Minimum timeout for a reliable message in microseconds.
+ * Minimum timeout for an acknowledged message in microseconds.
  * @note Mesh Profile Specification v1.0 recommends this to be minimum 60s.
  */
 #define ACCESS_RELIABLE_TIMEOUT_MIN  (SEC_TO_US(2))
 
-/** Maximum timeout for a reliable message in microseconds. */
+/** Maximum timeout for an acknowledged message in microseconds. */
 #define ACCESS_RELIABLE_TIMEOUT_MAX  (SEC_TO_US(60))
 
-/** Penalty in microseconds for each hop for a reliable message. */
+/** Penalty in microseconds for each hop for an acknowledged message. */
 #define ACCESS_RELIABLE_HOP_PENALTY (MS_TO_US(BEARER_ADV_INT_DEFAULT_MS))
 
-/** Penalty for each segment in a reliable transfer. */
+/** Penalty for each segment in an acknowledged transfer. */
 #define ACCESS_RELIABLE_SEGMENT_COUNT_PENALTY MS_TO_US(BEARER_ADV_INT_DEFAULT_MS)
 
 /**
- * Base interval in microseconds for a reliable message.
- * I.e., the interval given TTL=0 and an unsegmented message.
+ * Base interval in microseconds for an acknowledged message.
+ * That is, the interval given TTL=0 and an unsegmented message.
  */
 #define ACCESS_RELIABLE_INTERVAL_DEFAULT (MS_TO_US(BEARER_ADV_INT_DEFAULT_MS) * 10)
 
@@ -97,38 +97,38 @@
 
 /**
  * @defgroup ACCESS_RELIABLE_TYPES Types
- * Access reliable message types.
+ * Access acknowledged message types.
  * @{
  */
 
-/** Access reliable transfer status codes. */
+/** Access acknowledged transfer status codes. */
 typedef enum
 {
     /**
-     * The reliable transfer was completed successfully.
+     * The acknowledged transfer was completed successfully.
      * @note This status is only used for @ref NRF_MESH_ADDRESS_TYPE_UNICAST addresses.
      */
     ACCESS_RELIABLE_TRANSFER_SUCCESS,
-    /** The reliable transfer reached its timeout. */
+    /** The acknowledged transfer reached its timeout. */
     ACCESS_RELIABLE_TRANSFER_TIMEOUT,
-    /** The reliable transfer has been cancelled. */
+    /** The acknowledged transfer has been cancelled. */
     ACCESS_RELIABLE_TRANSFER_CANCELLED
 } access_reliable_status_t;
 
 /**
- * Access layer reliable message callback type.
- * Used to indicate a successful or unsuccessful reliable transfer.
+ * Access layer acknowledged message callback type.
+ * Used to indicate a successful or unsuccessful acknowledged transfer.
  *
  * @param[in] model_handle Access layer model handle.
  * @param[in] p_args       Generic argument pointer.
- * @param[in] status       Access reliable transfer status code.
+ * @param[in] status       Access acknowledged transfer status code.
  */
 typedef void (*access_reliable_cb_t)(access_model_handle_t model_handle,
                                      void * p_args,
                                      access_reliable_status_t status);
 
 /**
- * Access layer reliable publish parameter structure.
+ * Access layer acknowledged publish parameter structure.
  * @todo MBTLE-1540: Use internal general purpose memory manager to store retain the data for the user.
  */
 typedef struct
@@ -137,25 +137,26 @@ typedef struct
     access_model_handle_t model_handle;
     /**
      * Access layer message.
-     * @note The data pointed to must be retained for the entire reliable
-     * transfer.
+     * @note The user must retain the data provided in @ref access_message_tx_t::p_buffer
+     * until the acknowledged transfer has ended (see @ref access_reliable_t::status_cb) or
+     * the message is cancelled by @ref access_model_reliable_cancel.
      */
     access_message_tx_t message;
     /** Opcode of the expected reply. */
     access_opcode_t reply_opcode;
     /**
-     * Relative reliable message timeout.
-     * I.e., the time from access_model_reliable_publish() is called to the message is timed out.
+     * Relative acknowledged message timeout.
+     * That is, the time from access_model_reliable_publish() is called to the message is timed out.
      */
     uint32_t timeout;
-    /** Callback to call after the reliable transfer has ended. */
+    /** Callback to call after the acknowledged transfer has ended. */
     access_reliable_cb_t status_cb;
 } access_reliable_t;
 
 /** @} */
 
 /**
- * Initializes the reliable publication framework.
+ * Initializes the acknowledged publication framework.
  */
 void access_reliable_init(void);
 
@@ -163,33 +164,37 @@ void access_reliable_init(void);
  * Cancels all ongoing transfers.
  *
  * @warning This will _not_ notify the about the canceled transfer. Thus calling this function in
- * the middle of a reliable transfer may cause unexpected behavior for the affected models.
+ * the middle of an acknowledged transfer may cause unexpected behavior for the affected models.
  */
 void access_reliable_cancel_all(void);
 
 /**
- * Starts publishing a reliable message.
+ * Starts publishing an acknowledged message.
  *
- * @param[in] p_reliable Reliable message parameter structure pointer.
+ * @note The user must retain the data provided in @ref access_message_tx_t::p_buffer
+ * until the acknowledged transfer has ended (see @ref access_reliable_t::status_cb) or
+ * the message is cancelled by @ref access_model_reliable_cancel.
  *
- * @retval NRF_SUCCESS              Successfully started the reliable message publication.
+ * @param[in] p_reliable acknowledged message parameter structure pointer.
+ *
+ * @retval NRF_SUCCESS              Successfully started the acknowledged message publication.
  * @retval NRF_ERROR_NULL           NULL pointer given to function.
  * @retval NRF_ERROR_NO_MEM         No memory available to send the message at this point.
  * @retval NRF_ERROR_NOT_FOUND      Invalid model handle or model not bound to element.
  * @retval NRF_ERROR_INVALID_PARAM  Model not bound to application key, publish address not set or wrong
  *                                  opcode format.
- * @retval NRF_ERROR_INVALID_STATE  Message already scheduled for a reliable transfer.
+ * @retval NRF_ERROR_INVALID_STATE  Message already scheduled for an acknowledged transfer.
  * @retval NRF_ERROR_INVALID_LENGTH Attempted to send message larger than @ref ACCESS_MESSAGE_LENGTH_MAX.
  */
 uint32_t access_model_reliable_publish(const access_reliable_t * p_reliable);
 
 /**
- * Cancels an ongoing reliable message.
+ * Cancels an ongoing acknowledged message.
  *
  * @param[in] model_handle Access layer model handle that owns the transfer.
  *
- * @retval NRF_SUCCESS         Successfully canceled the reliable message.
- * @retval NRF_ERROR_NOT_FOUND No active reliable message for given handle.
+ * @retval NRF_SUCCESS         Successfully canceled the acknowledged message.
+ * @retval NRF_ERROR_NOT_FOUND No active acknowledged message for given handle.
  * @retval NRF_ERROR_NOT_FOUND Invalid model handle or model not bound to element.
  */
 uint32_t access_model_reliable_cancel(access_model_handle_t model_handle);

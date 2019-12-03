@@ -1,0 +1,12 @@
+@startuml
+
+node "PBR Client\n(Provisioner)" as pbrclient
+database "Mesh network" as mesh
+node "PBR Server" as pbrserver
+node "Provisionee" as provisionee
+
+pbrclient -> mesh
+mesh -> pbrserver
+pbrserver -> provisionee
+
+@enduml

@@ -61,7 +61,7 @@ void replay_cache_enable(void);
 /**
  * Add an element to the replay protection cache.
  *
- * @param[in] src Source address.
+ * @param[in] src Source address of the element.
  * @param[in] seqno Message sequence number.
  * @param[in] iv_index IV index of the packet.
  *
@@ -71,14 +71,33 @@ void replay_cache_enable(void);
 uint32_t replay_cache_add(uint16_t src, uint32_t seqno, uint32_t iv_index);
 
 /**
+ * Add a sequence authentication (SeqAuth) value of the element to
+ * the replay protection cache.
+ *
+ * If the entry for the element does not exist in the cache, the entry will be created.
+ *
+ * This function does not store the entire SeqAuth. Instead, it stores the IV Index,
+ * sequence number, and SeqZero.
+ *
+ * @param[in] src Source address of the element.
+ * @param[in] seqno Message sequence number.
+ * @param[in] iv_index IV index of the packet.
+ * @param[in] SeqZero SeqZero of the segmented message.
+ *
+ * @retval NRF_SUCCESS      Successfully added SeqAuth.
+ * @retval NRF_ERROR_NO_MEM No more memory available in the cache.
+ */
+uint32_t replay_cache_seqauth_add(uint16_t src, uint32_t seqno, uint32_t iv_index, uint16_t seqzero);
+
+/**
  * Check if an element is in the cache.
  *
  * @note If the IV index bit is different than the one present in the cache, it
  * will be assumed that the index and sequence number has been reset. This is
- * valid since the packet has already passed network decryption, i.e., the IV
- * index is valid.
+ * valid since the packet has already passed network decryption, that is since the IV
+ * index has become valid.
  *
- * @param[in] src Source address.
+ * @param[in] src Source address of the element.
  * @param[in] seqno Message sequence number.
  * @param[in] iv_index IV index.
  *
@@ -86,6 +105,50 @@ uint32_t replay_cache_add(uint16_t src, uint32_t seqno, uint32_t iv_index);
  * @retval false Otherwise.
  */
 bool replay_cache_has_elem(uint16_t src, uint32_t seqno, uint32_t iv_index);
+
+/**
+ * Check if a sequence authentication (SeqAuth) value of the element is in
+ * the replay protection cache.
+ *
+ * This function restores the SeqAuth from IV Index, sequence number, and
+ * SeqZero stored in the cache.
+ *
+ * @note If the IV index bit is different than the one present in the cache, it
+ * will be assumed that the index and sequence number has been reset. This is
+ * valid since the packet has already passed network decryption, that is since the IV
+ * index has become valid.
+ *
+ * @param[in] src Source address of the element.
+ * @param[in] seqno Message sequence number.
+ * @param[in] iv_index IV index.
+ * @param[in] seqzero SeqZero of the segmented message.
+ *
+ * @retval true  If the SeqAuth exists in the cache.
+ * @retval false Otherwise.
+ */
+bool replay_cache_has_seqauth(uint16_t src, uint32_t seqno, uint32_t iv_index, uint16_t seqzero);
+
+/**
+ * Check if a sequence authentication (SeqAuth) value of the element is the last
+ * one that is stored in the replay protection cache.
+ *
+ * This function restores the SeqAuth from IV Index, sequence number, and
+ * SeqZero stored in the cache.
+ *
+ * @note If the IV index bit is different than the one present in the cache, it
+ * will be assumed that the index and sequence number has been reset. This is
+ * valid since the packet has already passed network decryption, that is since the IV
+ * index has become valid.
+ *
+ * @param[in] src Source address of the element.
+ * @param[in] seqno Message sequence number.
+ * @param[in] iv_index IV index.
+ * @param[in] seqzero SeqZero of the segmented message.
+ *
+ * @retval true  If the SeqAuth is the last one stored in the cache.
+ * @retval false Otherwise.
+ */
+bool replay_cache_is_seqauth_last(uint16_t src, uint32_t seqno, uint32_t iv_index, uint16_t seqzero);
 
 /**
  * Function to call in IV update.

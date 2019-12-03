@@ -55,20 +55,22 @@
 /** Internal event types. */
 typedef enum
 {
-    INTERNAL_EVENT_DECRYPT_APP,          /**< @todo Not used. */
-    INTERNAL_EVENT_DECRYPT_TRS,          /**< Transport layer decrypted packet. */
-    INTERNAL_EVENT_DECRYPT_TRS_SEG,      /**< Transport layer decrypted packet segment. */
-    INTERNAL_EVENT_PACKET_DROPPED,       /**< Packet dropped with reason @ref internal_event_packet_dropped_t. */
-    INTERNAL_EVENT_PACKET_RELAYED,       /**< Packet was relayed by the network layer. */
-    INTERNAL_EVENT_NET_PACKET_QUEUED_TX, /**< Network queued packet in bearer for TX. */
-    INTERNAL_EVENT_TRS_ACK_RECEIVED,     /**< ACK for transport SAR segment received. */
-    INTERNAL_EVENT_ACK_QUEUED,           /**< ACK for transport SAR queued in bearer. */
-    INTERNAL_EVENT_SAR_CANCELLED,        /**< SAR transaction cancelled. */
-    INTERNAL_EVENT_FM_ACTION,            /**< Flash Manager Action Completed. */
-    INTERNAL_EVENT_FM_DEFRAG,            /**< Flash Manager Defrag Completed. */
-    INTERNAL_EVENT_SAR_SUCCESS,          /**< SAR transaction cancelled. */
-    INTERNAL_EVENT_NET_PACKET_RECEIVED,  /**< Network layer packet data used for PTS. */
-    INTERNAL_EVENT_GATT_PROV_PDU_IGNORED,    /**< Invalid provisioning PDU was ignored. */
+    INTERNAL_EVENT_DECRYPT_APP,           /**< @todo Not used. */
+    INTERNAL_EVENT_DECRYPT_TRS,           /**< Transport layer decrypted packet. */
+    INTERNAL_EVENT_DECRYPT_TRS_SEG,       /**< Transport layer decrypted packet segment. */
+    INTERNAL_EVENT_PACKET_DROPPED,        /**< Packet dropped with reason @ref internal_event_packet_dropped_t. */
+    INTERNAL_EVENT_PACKET_RELAYED,        /**< Packet was relayed by the network layer. */
+    INTERNAL_EVENT_NET_PACKET_QUEUED_TX,  /**< Network queued packet in bearer for TX. */
+    INTERNAL_EVENT_TRS_ACK_RECEIVED,      /**< ACK for transport SAR segment received. */
+    INTERNAL_EVENT_ACK_QUEUED,            /**< ACK for transport SAR queued in bearer. */
+    INTERNAL_EVENT_SAR_CANCELLED,         /**< SAR transaction cancelled. */
+    INTERNAL_EVENT_FM_ACTION,             /**< Flash Manager Action Completed. */
+    INTERNAL_EVENT_FM_DEFRAG,             /**< Flash Manager Defrag Completed. */
+    INTERNAL_EVENT_SAR_SUCCESS,           /**< SAR transaction cancelled. */
+    INTERNAL_EVENT_NET_PACKET_RECEIVED,   /**< Network layer packet data used for PTS. */
+    INTERNAL_EVENT_GATT_PROV_PDU_IGNORED, /**< Invalid provisioning PDU was ignored. */
+    INTERNAL_EVENT_FRIEND_PACKET_QUEUED,  /**< Packet to LPN is queued on Friend node. */
+    INTERNAL_EVENT_NET_BEACON_TX,         /**< Network beacon is transmitted. */
 
     /** @internal Largest number in the enum. */
     INTERNAL_EVENT__LAST

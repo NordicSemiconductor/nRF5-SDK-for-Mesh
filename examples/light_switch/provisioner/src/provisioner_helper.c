@@ -304,6 +304,12 @@ void prov_helper_scan_start(void)
     ERROR_CHECK(nrf_mesh_prov_scan_start(prov_evt_handler));
 }
 
+void prov_helper_scan_stop(void)
+{
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Stop Scanning For Unprovisioned Devices\n");
+    nrf_mesh_prov_scan_stop();
+}
+
 void prov_helper_device_handles_load(void)
 {
     dsm_local_unicast_address_t local_addr;

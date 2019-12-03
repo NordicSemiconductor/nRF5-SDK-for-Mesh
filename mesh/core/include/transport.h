@@ -124,7 +124,7 @@ typedef struct
     transport_control_opcode_t opcode; /**< Opcode of the control packet. */
     const packet_mesh_trs_control_packet_t * p_data; /**< Control packet data. */
     uint32_t data_len; /**< Length of the control packet data. */
-    bool reliable; /**< Whether or not the packet is a reliable message. */
+    bool reliable; /**< Whether or not the packet is an acknowledged message. */
     uint16_t src; /**< Source address (must be a unicast address). */
     nrf_mesh_address_t dst; /**< Packet destination address. */
     const nrf_mesh_network_secmat_t * p_net_secmat; /**< Network security material used during network encryption/decryption. */

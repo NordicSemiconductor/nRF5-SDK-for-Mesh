@@ -57,11 +57,11 @@ Depending on you choice, you have to use different commands:
 3. Flash the example by running one of the following commands from the `build` directory:
 	- for ninja: `ninja flash_<target-name>`. Example:
 	
-			build $ ninja flash_light_switch_server_nrf52832_xxAA_s132_6.1.1
+			build $ ninja flash_light_switch_server_nrf52832_xxAA_s132_7.0.1
 			
 	- for make: `make flash_<target-name>`. Example:
 			
-			build $ make flash_light_switch_server_nrf52832_xxAA_s132_6.1.1
+			build $ make flash_light_switch_server_nrf52832_xxAA_s132_7.0.1
 			
 	@note
 	Targets that flash examples start with "flash_".
@@ -82,7 +82,7 @@ You need to know the path to SoftDevice binaries to run examples with `nrfjprog`
 The SoftDevice binaries are located in the `bin/softdevice/` folder. The example binaries are built in the corresponding example folder, in the `build/` directory.
 
 If you do not know the SoftDevice version that was used to build the mesh stack, check the name of the example binary.
-For example, if the example's binary name is `light_switch_client_nrf52832_xxAA_s132_6.1.1.hex`, the required SoftDevice binary is `s132_nrf52_6.1.1_softdevice.hex`.
+For example, if the example's binary name is `light_switch_client_nrf52832_xxAA_s132_7.0.1.hex`, the required SoftDevice binary is `s132_nrf52_7.0.1_softdevice.hex`.
 
 To run an example with `nrfjprog`:
 1. Connect a Development Kit to your computer with a USB cable.
@@ -91,11 +91,11 @@ To run an example with `nrfjprog`:
 	1. Download the SoftDevice that you want to build mesh stack with.
 	2. Run the following command: `nrfjprog --program <path_to_the_example_binary_file> --chiperase`. Example:
 	
-			nrf5_sdk_for_mesh$ nrfjprog --program ./bin/softdevice/s132_nrf52_6.1.1_softdevice.hex --chiperase
+			nrf5_sdk_for_mesh$ nrfjprog --program ./bin/softdevice/s132_nrf52_7.0.1_softdevice.hex --chiperase
 		
 4. Program the example application with the following command: `nrfjprog --program <path_to_the_example_binary_file> --sectorerase`. Example: 
 
-		nrf5_sdk_for_mesh$ nrfjprog --program ./build/examples/light_switch/client/light_switch_client_nrf52832_xxAA_s132_6.1.1.hex --sectorerase
+		nrf5_sdk_for_mesh$ nrfjprog --program ./build/examples/light_switch/client/light_switch_client_nrf52832_xxAA_s132_7.0.1.hex --sectorerase
 		
 5. Launch the example by using one of the following options:
 	- power the device off and on;
@@ -131,10 +131,10 @@ To see the RTT log of single development boards in this tool, make sure you conn
 When the boards are connected, complete the following steps for each board:
 1. Start J-Link RTT viewer. The Configuration window appears. 
 @note You can also press the **F2** button or select **File > Connect** to open the Configuration window.
-3. In the Configuration window, depending on the development kit board chip number you are using, make sure
-that either NRF52832_XXAA or NRF52840_XXAA is selected in the Specify Target Device dropdown menu.
-4. Click **OK**. The Emulator selection window appears.
-5. Choose the desired board by selecting its USB Identification (SEGGER ID). 
+2. In the Configuration window, depending on the [development kit board chip number](@ref compatibility_list) you are using, make sure
+that the appropriate SoC is selected in the Specify Target Device dropdown menu.
+3. Click **OK**. The Emulator selection window appears.
+4. Choose the desired board by selecting its USB Identification (SEGGER ID). 
 
 After flashing the example firmware and running the example, you will see output printed in the RTT log while testing.
 

@@ -1,6 +1,6 @@
 # EnOcean switch translator client example
 
-@note This example is not supported by the nRF52810 Series.
+@tag52810nosupport
 
 This example demonstrates:
 - how a PTM215B EnOcean switch can be integrated in the mesh ecosystem;
@@ -155,34 +155,20 @@ for a certain node, you can reset the provisioner to restart this process for th
 
 ### Evaluating using the nRF Mesh mobile app @anchor enocean_example_testing_app
 
-1. Flash the examples by following the instructions in @ref md_doc_getting_started_how_to_run_examples,
-including:
-    1. Erase the flash of your development boards and program the SoftDevice on each board.
-    2. Flash this example on one board and the server firmware on other board or boards.
-2. Decide whether to start [capturing the commissioning data](@ref enocean_example_testing_capturing)
-at this point. You can also do this after the translator client provisioning.
-3. Open the nRF Mesh app.
-4. Provision the nodes. The switch board is `nRF5x Mesh Enocean Translator`, the server board is `nRF5x Mesh Light`.
-5. Bind the Generic OnOff client and server model instances on the nodes with the same app key:
-    1. Select the Network tab.
-    2. On the server board tile, tap the **Configure** button to open Node Configuration.
-    3. Expand the Elements section and tap **Generic Level Server**.
-    4. In the Bound App Keys section, tap the **Bind Key** button and select the app key.
-    5. On the switch board tile, tap the **Configure** button to open Node Configuration.
-    6. Expand the Elements section and tap **Generic OnOff Client**.
-    7. In the Bound App Keys section, tap the **Bind Key** button and select the app key.
-6. In the client Node Configuration, expand the Elements section. 
-7. Select the first Generic OnOff Client model instance.
-8. In the Publish section, set the Publish Address to one of the following addresses of the server nodes:
-    - unicast address of any server node;
-    - group addresses -- if you choose this option, remember to subscribe the server nodes
-    to these group addresses.
+See @ref nrf-mesh-mobile-app "the information on the main Examples page" for detailed steps required
+to provision and configure the boards using the nRF Mesh mobile app.
 
-@note You can also configure the Publish Address of the second Generic OnOff Client model instance
-to the unicast address of any other server node.
+When using the nRF Mesh app with this example, take the following information into account:
+- After flashing the examples, you can decide whether to start [capturing the commissioning data](@ref enocean_example_testing_capturing).
+This can also be done after the translator client provisioning.
+- The following naming convention is used in the app:
+    - The switch board is `nRF5x Mesh Enocean Translator`.
+    - The server board is `nRF5x Mesh Light`.
+    
+The following model instances must be configured in the app for this example:
+- For the `nRF5x Mesh Light` server board: Generic On Off Server.
+- For the `nRF5x Mesh Enocean Translator` switch board: Generic On Off Client.
 
-Any unhandled error is indicated by turning on all the LEDs on the board in steady state.
-You will need to reset the board to restart the application.
 
 ### Capturing the commissioning data of the EnOcean switch @anchor enocean_example_testing_capturing
 

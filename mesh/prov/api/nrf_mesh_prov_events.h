@@ -50,35 +50,48 @@
 
 typedef enum
 {
-    /** Received an unprovisioned node beacon. */
+    /** Received an unprovisioned node beacon.
+     * Event parameters: @ref nrf_mesh_prov_evt_t::unprov */
     NRF_MESH_PROV_EVT_UNPROVISIONED_RECEIVED,
-    /** Provisioning link established. */
+    /** Provisioning link established.
+     * Event parameters: @ref nrf_mesh_prov_evt_t::link_established */
     NRF_MESH_PROV_EVT_LINK_ESTABLISHED,
-    /** Provisioning link lost. */
+    /** Provisioning link lost.
+     * Event parameters: @ref nrf_mesh_prov_evt_t::link_closed */
     NRF_MESH_PROV_EVT_LINK_CLOSED,
-    /** Provisioning invite received. */
+    /** Provisioning invite received.
+     * Event parameters: @ref nrf_mesh_prov_evt_t::invite_received */
     NRF_MESH_PROV_EVT_INVITE_RECEIVED,
-    /** Provisioning start received. */
+    /** Provisioning start received.
+     * Event parameters: @ref nrf_mesh_prov_evt_t::start_received */
     NRF_MESH_PROV_EVT_START_RECEIVED,
-    /** Provisioning output request. */
+    /** Provisioning output request.
+     * Event parameters: @ref nrf_mesh_prov_evt_t::output_request */
     NRF_MESH_PROV_EVT_OUTPUT_REQUEST,
     /** Provisioning input request. Reply to this event with
-     * @ref nrf_mesh_prov_auth_data_provide(). */
+     * @ref nrf_mesh_prov_auth_data_provide().
+     * Event parameters: @ref nrf_mesh_prov_evt_t::input_request */
     NRF_MESH_PROV_EVT_INPUT_REQUEST,
     /** Provisioning static data request. Reply to this event with
-     * @ref nrf_mesh_prov_auth_data_provide(). */
+     * @ref nrf_mesh_prov_auth_data_provide().
+     * Event parameters: @ref nrf_mesh_prov_evt_t::static_request */
     NRF_MESH_PROV_EVT_STATIC_REQUEST,
     /** OOB public key requested. Reply to this event with
-     * @ref nrf_mesh_prov_pubkey_provide(). */
+     * @ref nrf_mesh_prov_pubkey_provide().
+     * Event parameters: @ref nrf_mesh_prov_evt_t::oob_pubkey_request */
     NRF_MESH_PROV_EVT_OOB_PUBKEY_REQUEST,
-    /** Provisionee capabilities received. */
+    /** Provisionee capabilities received.
+     * Event parameters: @ref nrf_mesh_prov_evt_t::oob_caps_received */
     NRF_MESH_PROV_EVT_CAPS_RECEIVED,
-    /** Provisioning completed. */
+    /** Provisioning completed.
+     * Event parameters: @ref nrf_mesh_prov_evt_t::complete */
     NRF_MESH_PROV_EVT_COMPLETE,
     /** ECDH calculation requested. Reply to this event with
-     * @ref nrf_mesh_prov_shared_secret_provide(). */
+     * @ref nrf_mesh_prov_shared_secret_provide().
+     * Event parameters: @ref nrf_mesh_prov_evt_t::ecdh_request */
     NRF_MESH_PROV_EVT_ECDH_REQUEST,
-    /** Provisioning failed message received. */
+    /** Provisioning failed message received.
+     * Event parameters: @ref nrf_mesh_prov_evt_t::failed */
     NRF_MESH_PROV_EVT_FAILED
 } nrf_mesh_prov_evt_type_t;
 
@@ -146,8 +159,10 @@ typedef struct
 {
     /** Provisioning context pointer. */
     nrf_mesh_prov_ctx_t * p_context;
-    /** Input action requested. */
-    nrf_mesh_prov_input_action_t action;
+    /** Requested action. When the device is acting as **provisionee**, the action field
+     * contains value from @ref nrf_mesh_prov_input_action_t. When the device is acting as
+     * **provisioner**, the action field contains value from @ref nrf_mesh_prov_output_action_t. */
+    uint8_t action;
     /** Size of the input data requested. */
     uint8_t size;
 } nrf_mesh_prov_evt_input_request_t;
@@ -159,8 +174,10 @@ typedef struct
 {
     /** Provisioning context pointer. */
     nrf_mesh_prov_ctx_t * p_context;
-    /** Requested action. */
-    nrf_mesh_prov_output_action_t action;
+    /** Requested action. When the device is acting as **provisionee**, the action field
+     * contains value from @ref nrf_mesh_prov_output_action_t. When the device is acting as
+     * **provisioner**, the action field contains value from @ref nrf_mesh_prov_input_action_t. */
+    uint8_t action;
     /** Size of the output data provided. */
     uint8_t size;
     /** Pointer to the data to output. */
@@ -255,31 +272,31 @@ typedef struct
     /* Event paramenters. */
     union
     {
-        /** Unprovisioned beacon received event. */
+        /** Unprovisioned beacon received event (@ref NRF_MESH_PROV_EVT_UNPROVISIONED_RECEIVED). */
         nrf_mesh_prov_evt_unprov_t              unprov;
-        /** Provisioning link established event. */
+        /** Provisioning link established event (@ref NRF_MESH_PROV_EVT_LINK_ESTABLISHED). */
         nrf_mesh_prov_evt_link_established_t    link_established;
-        /** Provisioning link lost event. */
+        /** Provisioning link lost event (@ref NRF_MESH_PROV_EVT_LINK_CLOSED). */
         nrf_mesh_prov_evt_link_closed_t         link_closed;
-        /** Provisioning invite event */
+        /** Provisioning invite event (@ref NRF_MESH_PROV_EVT_INVITE_RECEIVED). */
         nrf_mesh_prov_evt_invite_received_t     invite_received;
-        /** Provisioning start event */
+        /** Provisioning start event (@ref NRF_MESH_PROV_EVT_START_RECEIVED). */
         nrf_mesh_prov_evt_start_received_t      start_received;
-        /** Provisioning input requested. */
+        /** Provisioning input requested (@ref NRF_MESH_PROV_EVT_INPUT_REQUEST). */
         nrf_mesh_prov_evt_input_request_t       input_request;
-        /** Provisioning output requested. */
+        /** Provisioning output requested (@ref NRF_MESH_PROV_EVT_OUTPUT_REQUEST). */
         nrf_mesh_prov_evt_output_request_t      output_request;
-        /** Static provisioning data requested. */
+        /** Static provisioning data requested (@ref NRF_MESH_PROV_EVT_STATIC_REQUEST). */
         nrf_mesh_prov_evt_static_request_t      static_request;
-        /** OOB public key requested. */
+        /** OOB public key requested (@ref NRF_MESH_PROV_EVT_OOB_PUBKEY_REQUEST). */
         nrf_mesh_prov_evt_oob_pubkey_request_t  oob_pubkey_request;
-        /** Provisioning capabilities received. */
+        /** Provisioning capabilities received (@ref NRF_MESH_PROV_EVT_CAPS_RECEIVED). */
         nrf_mesh_prov_evt_caps_received_t       oob_caps_received;
-        /** Provisioning complete. */
+        /** Provisioning complete (@ref NRF_MESH_PROV_EVT_COMPLETE). */
         nrf_mesh_prov_evt_complete_t            complete;
-        /** ECDH request. */
+        /** ECDH request (@ref NRF_MESH_PROV_EVT_ECDH_REQUEST). */
         nrf_mesh_prov_evt_ecdh_request_t        ecdh_request;
-        /** Provisioning failed. */
+        /** Provisioning failed (@ref NRF_MESH_PROV_EVT_FAILED). */
         nrf_mesh_prov_evt_failed_t              failed;
     } params;
 } nrf_mesh_prov_evt_t;

@@ -117,7 +117,7 @@ typedef enum
  */
 typedef enum
 {
-#ifdef NRF52840_XXAA
+#if defined NRF52840_XXAA || defined NRF52833_XXAA
     RADIO_POWER_NRF_POS8DBM  = 0x08,
     RADIO_POWER_NRF_POS7DBM  = 0x07,
     RADIO_POWER_NRF_POS6DBM  = 0x06,
@@ -127,7 +127,7 @@ typedef enum
 #ifdef NRF52_SERIES
     RADIO_POWER_NRF_POS3DBM  = 0x03,
 #endif
-#ifdef NRF52840_XXAA
+#if defined NRF52840_XXAA || defined NRF52833_XXAA
     RADIO_POWER_NRF_POS2DBM  = 0x02,
 #endif
     RADIO_POWER_NRF_0DBM     = 0x00,

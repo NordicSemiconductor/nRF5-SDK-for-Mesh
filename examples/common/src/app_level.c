@@ -507,7 +507,7 @@ static void generic_level_state_delta_set_cb(const generic_level_server_t * p_se
 
     /* Update internal representation of Level value, process timing. */
     /* Requirement: If TID is same as previous TID for the same message, delta value is cumulative. */
-    int32_t delta = p_in->delta_level % UINT16_MAX;
+    int32_t delta = p_in->delta_level % ((int32_t)UINT16_MAX + 1);
     if (!model_transaction_is_new(&p_server->server.tid_tracker))
     {
         __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "tid: %d Same TID, assuming cumulative delta set.\n", p_in->tid);

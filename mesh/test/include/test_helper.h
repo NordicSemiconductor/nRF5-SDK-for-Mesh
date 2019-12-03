@@ -341,7 +341,29 @@
                         msg);                                                                        \
                 }                                                                                    \
                 break;                                                                               \
+            case NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED:                                                \
+                UNITY_TEST_ASSERT_EQUAL_INT(                                                         \
+                    (expected).params.friendship_established.role,                                   \
+                    (actual).params.friendship_established.role,                                     \
+                    line,                                                                            \
+                    msg);                                                                            \
+                UNITY_TEST_ASSERT_EQUAL_INT(                                                         \
+                    (expected).params.friendship_established.lpn_src,                                \
+                    (actual).params.friendship_established.lpn_src,                                  \
+                    line,                                                                            \
+                    msg);                                                                            \
+                UNITY_TEST_ASSERT_EQUAL_INT(                                                         \
+                    (expected).params.friendship_established.friend_src,                             \
+                    (actual).params.friendship_established.friend_src,                               \
+                    line,                                                                            \
+                    msg);                                                                            \
+                break;                                                                               \
             case NRF_MESH_EVT_FRIENDSHIP_TERMINATED:                                                 \
+                UNITY_TEST_ASSERT_EQUAL_INT(                                                         \
+                    (expected).params.friendship_terminated.role,                                    \
+                    (actual).params.friendship_terminated.role,                                      \
+                    line,                                                                            \
+                    msg);                                                                            \
                 UNITY_TEST_ASSERT_EQUAL_INT(                                                         \
                     (expected).params.friendship_terminated.lpn_src,                                 \
                     (actual).params.friendship_terminated.lpn_src,                                   \

@@ -114,11 +114,6 @@
 #define ACCESS_SUBSCRIPTION_LIST_COUNT (ACCESS_MODEL_COUNT)
 
 /**
- * The number of pages of flash storage reserved for the access layer for persistent data storage.
- */
-#define ACCESS_FLASH_PAGE_COUNT (1)
-
-/**
  * @defgroup ACCESS_RELIABLE_CONFIG Configuration of access layer reliable transfer
  * @{
  */
@@ -130,6 +125,17 @@
 
 
 /** @} end of ACCESS_CONFIG */
+
+
+/**
+ * @ingroup HEALTH_MODEL
+ * @{
+ */
+
+/** The number of instances of the health server model. */
+#define HEALTH_SERVER_ELEMENT_COUNT (1)
+
+/** @} end of HEALTH_MODEL */
 
 
 /**
@@ -152,8 +158,6 @@
                                                          GROUP_ADDR_COUNT + /* Group addresses.  */\
                                                          CLIENT_NODE_COUNT + /* One client address. */\
                                                          SERVER_NODE_COUNT /* For each server. */)
-/** Number of flash pages reserved for the DSM storage. */
-#define DSM_FLASH_PAGE_COUNT                            (3)
 /** @} end of DSM_CONFIG */
 
 /** @} */

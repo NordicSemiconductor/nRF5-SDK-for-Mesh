@@ -43,6 +43,10 @@
 #include "utils.h"
 #include "net_state.h"
 #include "nrf_mesh_events.h"
+#include "transport_internal.h"
+
+/** Definition for the invalid SeqZero cache entry. */
+#define SEQZERO_CACHE_ENTRY_INVALID 0xFFFF
 
 typedef struct
 {
@@ -62,6 +66,9 @@ typedef struct
 static uint32_t m_current_iv_index;
 static replay_cache_entry_t m_replay_cache[REPLAY_CACHE_ENTRIES];
 static uint32_t m_entry_count;
+
+/** Cache for SeqZero values where each index corresponds to the m_replay_cache index. */
+static uint16_t m_seqzero_cache[REPLAY_CACHE_ENTRIES];
 
 /**
  * Reconstruct the IV index from the entry's trimmed value and the current IV index.
@@ -103,7 +110,9 @@ static void on_iv_update(void)
         if (iv_index != new_iv_index && iv_index != (new_iv_index - 1))
         {
             // copy the last entry to this one and reduce count, wiping this entry while avoiding holes:
-            m_replay_cache[i] = m_replay_cache[--m_entry_count];
+            m_entry_count--;
+            m_seqzero_cache[i] = m_seqzero_cache[m_entry_count];
+            m_replay_cache[i] = m_replay_cache[m_entry_count];
         }
         else
         {
@@ -133,6 +142,56 @@ static inline bool packet_is_new(const replay_cache_entry_t * p_entry, uint32_t 
             (new_iv_index > entry_iv_index));
 }
 
+static inline bool seqauth_is_new(uint32_t entry_index, uint32_t new_iv_index, uint32_t new_seqnum, uint16_t new_seqzero)
+{
+    uint64_t entry_seqauth = transport_sar_seqauth_get(iv_index_get(&m_replay_cache[entry_index]),
+                                                       m_replay_cache[entry_index].seqnum,
+                                                       m_seqzero_cache[entry_index]);
+    uint64_t new_seqauth = transport_sar_seqauth_get(new_iv_index, new_seqnum, new_seqzero);
+
+    return new_seqauth > entry_seqauth;
+}
+
+static uint32_t entry_add(uint16_t src, uint32_t seqnum, uint32_t iv_index, uint32_t *p_index)
+{
+    for (uint_fast8_t i = 0; i < m_entry_count; ++i)
+    {
+        if (m_replay_cache[i].src == src)
+        {
+            if (packet_is_new(&m_replay_cache[i], iv_index, seqnum))
+            {
+                m_replay_cache[i].iv_index = (uint16_t) iv_index;
+                m_replay_cache[i].seqnum = seqnum;
+                /* Do not modify SeqZero. */
+            }
+
+            if (p_index != NULL)
+            {
+                *p_index = i;
+            }
+            return NRF_SUCCESS;
+        }
+    }
+    if (m_entry_count < REPLAY_CACHE_ENTRIES)
+    {
+        m_replay_cache[m_entry_count].src = src;
+        m_replay_cache[m_entry_count].iv_index = (uint16_t) iv_index;
+        m_replay_cache[m_entry_count].seqnum = seqnum;
+
+        /* Reset SeqZero cache entry since the address is new. */
+        m_seqzero_cache[m_entry_count] = SEQZERO_CACHE_ENTRY_INVALID;
+
+        if (p_index != NULL)
+        {
+            *p_index = m_entry_count;
+        }
+        m_entry_count++;
+        return NRF_SUCCESS;
+    }
+
+    return NRF_ERROR_NO_MEM;
+}
+
 void replay_cache_init(void)
 {
     static nrf_mesh_evt_handler_t event_handler = {.evt_cb = evt_handler};
@@ -146,40 +205,73 @@ void replay_cache_enable(void)
     m_current_iv_index = net_state_beacon_iv_index_get();
 }
 
-uint32_t replay_cache_add(uint16_t src, uint32_t seqnum, uint32_t iv_index)
+uint32_t replay_cache_add(uint16_t src, uint32_t seqno, uint32_t iv_index)
 {
-    for (uint_fast8_t i = 0; i < m_entry_count; ++i)
-    {
-        if (m_replay_cache[i].src == src)
-        {
-            if (packet_is_new(&m_replay_cache[i], iv_index, seqnum))
-            {
-                m_replay_cache[i].iv_index = (uint16_t) iv_index;
-                m_replay_cache[i].seqnum = seqnum;
-            }
-            return NRF_SUCCESS;
-        }
-    }
-    if (m_entry_count < REPLAY_CACHE_ENTRIES)
-    {
-        m_replay_cache[m_entry_count].src = src;
-        m_replay_cache[m_entry_count].iv_index = (uint16_t) iv_index;
-        m_replay_cache[m_entry_count].seqnum = seqnum;
-        m_entry_count++;
-        return NRF_SUCCESS;
-    }
-
-    return NRF_ERROR_NO_MEM;
+    return entry_add(src, seqno, iv_index, NULL);
 }
 
+uint32_t replay_cache_seqauth_add(uint16_t src, uint32_t seqno, uint32_t iv_index, uint16_t seqzero)
+{
+    uint32_t status;
+    uint32_t entry_index;
 
-bool replay_cache_has_elem(uint16_t src, uint32_t seqnum, uint32_t iv_index)
+    NRF_MESH_ASSERT(seqno >= (uint32_t) seqzero);
+
+    status = entry_add(src, seqno, iv_index, &entry_index);
+    if (status == NRF_SUCCESS
+        && (m_seqzero_cache[entry_index] == SEQZERO_CACHE_ENTRY_INVALID
+            || seqauth_is_new(entry_index, iv_index, seqno, seqzero)))
+    {
+        m_seqzero_cache[entry_index] = seqzero;
+    }
+
+    return status;
+}
+
+bool replay_cache_has_elem(uint16_t src, uint32_t seqno, uint32_t iv_index)
 {
     for (uint_fast8_t i = 0; i < m_entry_count; ++i)
     {
         if (m_replay_cache[i].src == src)
         {
-            return !packet_is_new(&m_replay_cache[i], iv_index, seqnum);
+            return !packet_is_new(&m_replay_cache[i], iv_index, seqno);
+        }
+    }
+
+    return false;
+}
+
+bool replay_cache_has_seqauth(uint16_t src, uint32_t seqno, uint32_t iv_index, uint16_t seqzero)
+{
+    NRF_MESH_ASSERT(seqno >= (uint32_t) seqzero);
+
+    for (uint_fast8_t i = 0; i < m_entry_count; ++i)
+    {
+        if (m_replay_cache[i].src == src)
+        {
+            return m_seqzero_cache[i] != SEQZERO_CACHE_ENTRY_INVALID
+                   && !seqauth_is_new(i, iv_index, seqno, seqzero);
+        }
+    }
+
+    return false;
+}
+
+bool replay_cache_is_seqauth_last(uint16_t src, uint32_t seqno, uint32_t iv_index, uint16_t seqzero)
+{
+    NRF_MESH_ASSERT(seqno >= (uint32_t) seqzero);
+
+    for (uint_fast8_t i = 0; i < m_entry_count; ++i)
+    {
+        if (m_replay_cache[i].src == src)
+        {
+            uint64_t entry_seqauth = transport_sar_seqauth_get(iv_index_get(&m_replay_cache[i]),
+                                                               m_replay_cache[i].seqnum,
+                                                               m_seqzero_cache[i]);
+            uint64_t new_seqauth = transport_sar_seqauth_get(iv_index, seqno, seqzero);
+
+            return m_seqzero_cache[i] != SEQZERO_CACHE_ENTRY_INVALID
+                   && new_seqauth == entry_seqauth;
         }
     }
 

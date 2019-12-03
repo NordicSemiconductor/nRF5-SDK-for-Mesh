@@ -52,6 +52,7 @@
 #include "log.h"
 #include "hal.h"
 #include "advertiser.h"
+#include "ad_listener.h"
 
 /** Check that the enums used for DFU enums for TYPE, STATE, END, and ROLE fit the assumptions */
 NRF_MESH_STATIC_ASSERT(NRF_MESH_DFU_TYPE__LAST      <= UINT8_MAX);
@@ -122,6 +123,20 @@ static const uint8_t                 m_adv_channels[] = NRF_MESH_ADV_CHAN_DEFAUL
 /*****************************************************************************
 * Static functions
 *****************************************************************************/
+static void ad_data_in(const uint8_t * p_ad_data, uint32_t ad_data_len, const nrf_mesh_rx_metadata_t * p_metadata)
+{
+    const ble_ad_data_service_data_t * p_service_data = (const ble_ad_data_service_data_t *) p_ad_data;
+    if (p_service_data->uuid == BLE_ADV_SERVICE_DATA_UUID_DFU)
+    {
+        (void) nrf_mesh_dfu_rx(p_service_data->data, ad_data_len - offsetof(ble_ad_data_service_data_t, data), p_metadata);
+    }
+}
+AD_LISTENER(m_dfu_ad_listener) = {
+    .ad_type = AD_TYPE_DFU,
+    .adv_packet_type = ADL_WILDCARD_ADV_TYPE,
+    .handler = ad_data_in,
+};
+
 static void reset_transfer_state(void)
 {
     timer_sch_abort(&m_timer_evt);

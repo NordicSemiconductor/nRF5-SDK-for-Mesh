@@ -42,6 +42,7 @@
 
 #include "utils.h"
 #include "proxy_test_common.h"
+#include "beacon.h"
 
 #include "proxy_filter_mock.h"
 #include "timer_scheduler_mock.h"
@@ -50,7 +51,6 @@
 #include "net_packet_mock.h"
 #include "enc_mock.h"
 #include "net_beacon_mock.h"
-#include "beacon_mock.h"
 #include "rand_mock.h"
 #include "mesh_adv_mock.h"
 #include "cache_mock.h"
@@ -165,7 +165,6 @@ void setUp(void)
     net_packet_mock_Init();
     enc_mock_Init();
     net_beacon_mock_Init();
-    beacon_mock_Init();
     rand_mock_Init();
     mesh_adv_mock_Init();
     cache_mock_Init();
@@ -198,8 +197,6 @@ void tearDown(void)
     enc_mock_Destroy();
     net_beacon_mock_Verify();
     net_beacon_mock_Destroy();
-    beacon_mock_Verify();
-    beacon_mock_Destroy();
     rand_mock_Verify();
     rand_mock_Destroy();
     mesh_adv_mock_Verify();
@@ -462,8 +459,8 @@ void test_rx_forward(void)
     gatt_evt_post(&rx_evt);
 
     rx_evt.params.rx.pdu_type = MESH_GATT_PDU_TYPE_MESH_BEACON;
-    beacon_packet_in_ExpectAndReturn(&incoming.pdu[0], rx_evt.params.rx.length, NULL, NRF_SUCCESS);
-    beacon_packet_in_IgnoreArg_p_packet_meta();
+    net_beacon_packet_in_Expect(&incoming.pdu[0 + BEACON_PACKET_OVERHEAD], rx_evt.params.rx.length - BEACON_PACKET_OVERHEAD, NULL);
+    net_beacon_packet_in_IgnoreArg_p_meta();
     gatt_evt_post(&rx_evt);
 
     /* Unexpected PDU type, should be ignored */

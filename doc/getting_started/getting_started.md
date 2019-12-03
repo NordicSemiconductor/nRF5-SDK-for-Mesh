@@ -8,12 +8,13 @@ You can then configure the required software toolchains and the process of build
 - @subpage md_doc_getting_started_how_to_toolchain
 - @subpage md_doc_getting_started_how_to_build
 - @subpage md_doc_getting_started_how_to_run_examples
+- @subpage md_doc_getting_started_examples_adding
 
 @note
 If you used one of the previous versions of the nRF SDK for Mesh, check the @subpage md_MIGRATION_GUIDE.
 
 The following sections provide further information about how to set up and use various features of nRF5 SDK for Mesh:
-- @subpage md_doc_getting_started_enabling_provisioning
+- @subpage md_doc_getting_started_provisioning_main
 - @subpage md_doc_getting_started_lpn_integration
 - @subpage md_doc_getting_started_how_to_nordicSDK
 

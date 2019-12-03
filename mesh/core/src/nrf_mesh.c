@@ -98,89 +98,30 @@ static nrf_mesh_rx_cb_t m_rx_cb;
 /** Unique Tx token. */
 static nrf_mesh_tx_token_t m_tx_token = NRF_MESH_INITIAL_TOKEN;
 
-static bool scanner_packet_process_cb(void);
-
-static void nrf_mesh_listen(const uint8_t * p_packet,
-                            uint32_t ad_packet_length,
-                            const nrf_mesh_rx_metadata_t * p_metadata);
-
-/* temporary stub to avoid on time relocation from the statically linked "listener" functions
- * to dynamic approach. */
-static ad_listener_t m_nrf_mesh_listener =
+static void packet_in(const uint8_t * p_packet,
+                      uint32_t ad_packet_length,
+                      const nrf_mesh_rx_metadata_t * p_metadata)
 {
-    .ad_type = ADL_WILDCARD_AD_TYPE,
-    .adv_packet_type = ADL_WILDCARD_ADV_TYPE,
-    .handler = nrf_mesh_listen
-};
-
-static void nrf_mesh_listen(const uint8_t * p_packet,
-                            uint32_t ad_packet_length,
-                            const nrf_mesh_rx_metadata_t * p_metadata)
-{
-    uint32_t status = NRF_SUCCESS;
-
-    ble_ad_data_t * p_ad_data = PARENT_BY_FIELD_GET(ble_ad_data_t, data, p_packet);
-
-    ble_packet_type_t adv_type;
-    switch (p_metadata->source)
+    uint32_t status = network_packet_in(p_packet, ad_packet_length, p_metadata);
+    if (status != NRF_SUCCESS)
     {
-        case NRF_MESH_RX_SOURCE_SCANNER:
-            adv_type = (ble_packet_type_t) p_metadata->params.scanner.adv_type;
-            break;
-        case NRF_MESH_RX_SOURCE_INSTABURST:
-            adv_type = BLE_PACKET_TYPE_ADV_EXT;
-            break;
-        default:
-            adv_type = BLE_PACKET_TYPE_ADV_IND;
-    }
-
-    switch (p_ad_data->type)
-    {
-        case AD_TYPE_MESH:
-            if (adv_type == BLE_PACKET_TYPE_ADV_NONCONN_IND ||
-                adv_type == BLE_PACKET_TYPE_ADV_EXT)
-            {
-                status = network_packet_in(p_ad_data->data, p_ad_data->length - BLE_AD_DATA_OVERHEAD, p_metadata);
-
-                if (status != NRF_SUCCESS)
-                {
-                    __LOG(LOG_SRC_API, LOG_LEVEL_WARN, "[er%d] Could not process mesh packet...\n", status);
-                }
-            }
-            break;
-
-        case AD_TYPE_PB_ADV:
-            if (adv_type  == BLE_PACKET_TYPE_ADV_NONCONN_IND)
-            {
-                prov_bearer_adv_packet_in(p_ad_data->data, p_ad_data->length - BLE_AD_DATA_OVERHEAD, p_metadata);
-            }
-            break;
-
-        case AD_TYPE_BEACON:
-            if (adv_type  == BLE_PACKET_TYPE_ADV_NONCONN_IND)
-            {
-                status = beacon_packet_in(p_ad_data->data, p_ad_data->length - BLE_AD_DATA_OVERHEAD, p_metadata);
-
-                if (status != NRF_SUCCESS)
-                {
-                    __LOG(LOG_SRC_API, LOG_LEVEL_WARN, "[er%d] Could not process beacon packet...\n", status);
-                }
-            }
-            break;
-        case AD_TYPE_DFU:
-        {
-            ble_ad_data_service_data_t* p_service_data = (ble_ad_data_service_data_t*) p_ad_data->data;
-            if (p_service_data->uuid == BLE_ADV_SERVICE_DATA_UUID_DFU)
-            {
-                /* Send dfu packet pointer. */
-                (void) nrf_mesh_dfu_rx(p_service_data->data, p_ad_data->length - DFU_PACKET_PAYLOAD_OVERHEAD, p_metadata);
-            }
-            break;
-        }
-        default:
-            break;
+        __LOG(LOG_SRC_API, LOG_LEVEL_WARN, "[er%d] Could not process mesh packet...\n", status);
     }
 }
+
+AD_LISTENER(m_mesh_packet_listener) = {
+    .ad_type = AD_TYPE_MESH,
+    .adv_packet_type = BLE_PACKET_TYPE_ADV_NONCONN_IND,
+    .handler = packet_in,
+};
+
+#if EXPERIMENTAL_INSTABURST_ENABLED
+AD_LISTENER(m_instaburst_mesh_packet_listener) = {
+    .ad_type = AD_TYPE_MESH,
+    .adv_packet_type = BLE_PACKET_TYPE_ADV_EXT,
+    .handler = packet_in,
+};
+#endif
 
 static bool scanner_packet_process_cb(void)
 {
@@ -351,6 +292,7 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
     bearer_handler_init();
     scanner_init(scanner_packet_process_cb);
     advertiser_init();
+    ad_listener_init();
 
     mesh_flash_init();
 #if PERSISTENT_STORAGE
@@ -378,21 +320,6 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
         return status;
     }
 #endif
-
-    (void) ad_listener_subscribe(&m_nrf_mesh_listener);
-
-    /* Filter out non mesh related packets by the scanner.
-     *
-     * The ad_listener_subscribe() function called above sets whitelist mode
-     * for AD type filter by calling bearer_adtype_mode_set() and enables it
-     * y calling bearer_adtype_filtering_set().
-     * Therefore, at this point AD type filter is already enabled and
-     * here there only added additional AD types that should not be filtered out
-     * by the scanner. */
-    bearer_adtype_add(AD_TYPE_MESH);
-    bearer_adtype_add(AD_TYPE_BEACON);
-    bearer_adtype_add(AD_TYPE_PB_ADV);
-    bearer_adtype_add(AD_TYPE_DFU);
 
     m_rx_cb = NULL;
     m_mesh_state = MESH_STATE_INITIALIZED;

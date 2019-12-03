@@ -1,6 +1,6 @@
 # Light switch example
 
-@note This example is not supported by the nRF52810 Series.
+@tag52810nosupport
 
 This example demonstrates the mesh ecosystem that contains devices acting in two roles: Provisioner role and Node role
 (also referred to as provisionee role). It also demonstrates how to use Mesh models by using the [Generic OnOff model](@ref GENERIC_ONOFF_MODEL)
@@ -49,7 +49,7 @@ to these nodes by the provisioner.
 
 Both the light switch server and light switch client examples have provisionee role.
 They support provisioning over Advertising bearer (PB-ADV) and GATT bearer (PB-GATT) and also support
-Mesh Proxy Service (Server). Read more about the Proxy feature in @ref md_doc_getting_started_gatt_proxy.
+Mesh Proxy Service (Server). Read more about the Proxy feature in @ref md_doc_getting_started_provisioning_gatt_proxy.
 
 @note The *Proxy Client* role is **not** supported.
 
@@ -164,36 +164,27 @@ you can reset the provisioner to restart this process for that node.
 
 ### Evaluating using the nRF Mesh mobile app @anchor light_switch_example_testing_app
 
-1. Flash the examples by following the instructions in @ref md_doc_getting_started_how_to_run_examples,
-including:
-    1. Erase the flash of your development boards and program the SoftDevice.
-    2. Flash the client firmware on individual boards and the server firmware on other board or boards.
-2. Open the nRF Mesh mobile app.
-3. Provision the nodes. The client board is `nRF5x Mesh Switch`,
-the server board is `nRF5x Mesh Light`.
-4. Bind the Generic OnOff client and server model instances on the nodes with the same app key:
-    1. Select the Network tab.
-    2. On the server board tile, tap the **Configure** button to open Node Configuration.
-    3. Expand the Elements section and tap **Generic OnOff Server**.
-    4. In the Bound App Keys section, tap the **Bind Key** button and select the app key.
-    5. On the client board tile, tap the **Configure** button to open Node Configuration.
-    6. Expand the Elements section and tap **Generic OnOff Client**.
-    7. In the Bound App Keys section, tap the **Bind Key** button and select the app key.
-6. In the client Node Configuration, expand the Elements section. 
-7. Select the first Generic OnOff Client model instance.
-8. In the Publish section, set the Publish Address to one of the following addresses of the server nodes:
-    - the unicast address of any server node. This configures the client example as follows:
-        - The Button 1 on the client board turns ON LED 1 on the corresponding server board.
-        - The Button 2 on the client board turns OFF LED 1 on the corresponding server board.
-    - group addresses -- if you choose this option, remember to subscribe the server nodes to these
-    group addresses.
-        
+See @ref nrf-mesh-mobile-app "the information on the main Examples page" for detailed steps required
+to provision and configure the boards using the nRF Mesh mobile app.
+
+When using the nRF Mesh app with this example, the following naming convention is used in the app:
+- The client board is `nRF5x Mesh Switch`.
+- The server board is `nRF5x Mesh Light`.
+    
+The following model instances must be configured in the app for this example:
+- For the `nRF5x Mesh Light` server board: Generic On Off Server.
+- For the `nRF5x Mesh Switch` client board: Generic On Off Client.
+
+At the end of the configuration process, the client example will be configured as follows:
+- The Button 1 on the client board turns ON LED 1 on the corresponding server board or boards.
+- The Button 2 on the client board turns OFF LED 1 on the corresponding server board or boards.
+
 @note
-You can also configure the publish address of the second Generic OnOff client model instance.
-Use one of the options mentioned in step 5 above. If you set the address the unicast address
-of any server node, the client example will be configured as follows:
-    - The Button 3 on the client board turns ON LED 1 on the corresponding server board.
-    - The Button 4 on the client board turns OFF LED 1 on the corresponding server board.
+You can also configure the publish address of the second Generic On Off client model instance.
+To do this, repeat [step 3 from binding nodes](@ref nrf-mesh-mobile-app-binding) and [all steps from setting publication](@ref nrf-mesh-mobile-app-publication).
+If you set the model instance's address to the Unicast Address of any server node, the client example will be configured as follows:
+- The Button 3 on the client board turns ON LED 1 on the corresponding server board.
+- The Button 4 on the client board turns OFF LED 1 on the corresponding server board.        
 
 
 ### Interacting with the boards @anchor light_switch_example_testing_interacting

@@ -1,0 +1,13 @@
+@startuml
+
+(*) -->[Initialize provisioning context] "nrf_mesh_prov_init()"
+-->[Listen for incoming links] "nrf_mesh_prov_listen()"
+-->[Process incoming events] "Wait for mesh events"
+-->[LINK_ESTABLISHED] "Wait for mesh events"
+-->[STATIC_REQUEST] "Provide authentication data:\nnrf_mesh_prov_auth_provide()"
+--> "Wait for mesh events"
+-->[INVITE_RECEIVED] "Identify device\nfor a provided period of time"
+"Wait for mesh events" -->[START_RECEIVED] "The device stops\nidentifying itself"
+"Wait for mesh events" -->[PROV_COMPLETE] "Provisioning complete"
+
+@enduml

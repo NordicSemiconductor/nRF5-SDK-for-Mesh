@@ -44,7 +44,7 @@ mesh.
     - To specify which device to use in which context, add the `-s <serial-number>` option for each
     call to the `nrfjprog` command, where `<serial-number>` is the SEGGER ID of your device. This will
     make `nrfjprog` execute its operations on the specified device only.
-- Make sure to use the correct precompiled bootloader for your chip variant (nRF51/nRF52, xxAA,
+- Make sure to use the correct precompiled bootloader for your chip variant (nRF51 or nRF52, xxAA,
 xxAB, xxAC). These variants have different flash and RAM sizes, as specified in the Product
 Specification for @link_ic_nRF51PS and @link_ic_nRF52832PS.
 - Build the mesh stack for your device by following the steps in
@@ -157,14 +157,14 @@ For example:
       --sd-req 0x0087 \
       --mesh dfu_test.zip
 ```
-- For nRF52:
+- For nRF52 (nrf52832):
 ```
-  mesh-sdk$ nrfutil dfu genpkg --application bin/blinky/blinky_nrf52832_xxAA_s132_6.1.1.hex \
+  mesh-sdk$ nrfutil dfu genpkg --application bin/blinky/blinky_nrf52832_xxAA_s132_7.0.1.hex \
       --company-id 0x00000059 \
       --application-id 1 \
       --application-version 2 \
       --key-file private_key.txt \
-      --sd-req 0x00B7 \
+      --sd-req 0x00CB \
       --mesh dfu_test.zip
 ```
 
@@ -197,10 +197,10 @@ generating the DFU archive in the previous step. Failing to match the SoftDevice
 parameters will make the device reject the transfer, as its own firmware ID will not match the one
 in the transfer.
 
-To generate a device page hex file for an nRF52 Series device using s132 SoftDevice version 6.1.1,
+To generate a device page hex file for an nRF52 Series device (for example, nRF52832) using s132 SoftDevice version 7.0.1,
 run the following command from inside the `tools/dfu` folder:
 ```
-dfu$ python device_page_generator.py -d nrf52832_xxAA -sd "s132_6.1.1"
+dfu$ python device_page_generator.py -d nrf52832_xxAA -sd "s132_7.0.1"
 ```
 
 This creates a device page HEX file in the `tools\dfu\bin` folder. This file
@@ -220,9 +220,9 @@ Run the following nrfjprog command with the correct name of the HEX file:
 mesh-sdk$ nrfjprog --program bin/softdevice/<SoftDevice HEX file> --chiperase
 ```
 
-For example, to erase data and flash the S132 SoftDevice v6.1.1, run the following command:
+For example, to erase data and flash the S132 SoftDevice v7.0.1, run the following command:
 ```
-mesh-sdk$ nrfjprog --program bin/softdevice/s132_nrf52_6.1.1_softdevice.hex --chiperase
+mesh-sdk$ nrfjprog --program bin/softdevice/s132_nrf52_7.0.1_softdevice.hex --chiperase
 ```
 
 ### Step 4: Flash the serial bootloader on all devices @anchor dfu_configuration_flash_bl
@@ -236,6 +236,7 @@ match your chip version, as per table.
 |----------------|---------------------------------------|
 | nRF51422_xxAC  | `mesh_bootloader_serial_<compiler>_nrf51422_xxAC.hex` |
 | nRF52832_xxAA  | `mesh_bootloader_serial_<compiler>_nrf52832_xxAA.hex` |
+| nRF52833_xxAA  | `mesh_bootloader_serial_<compiler>_nrf52833_xxAA.hex` |
 | nRF52840_xxAA  | `mesh_bootloader_serial_<compiler>_nrf52840_xxAA.hex` |
 
 Flash the precompiled bootloader with the following nrfjprog command:
@@ -260,19 +261,19 @@ To be able to do Device Firmware Updates, you must flash an application that
 supports DFU. You can use the DFU example application in `examples/dfu/`.
 
 You must flash the DFU example application from your build folder, using the HEX file that matches your chip version and
-SoftDevice. For example, `build/examples/dfu/dfu_nrf52832_xxAA_s132_6.1.1.hex`
-if your device is an `nRF52832_xxAA` with the s132 SoftDevice v6.1.1.
+SoftDevice. For example, `build/examples/dfu/dfu_nrf52832_xxAA_s132_7.0.1.hex`
+if your device is an `nRF52832_xxAA` with the s132 SoftDevice v7.0.1.
 
 Run the following nrfjprog command:
 ```
-mesh-sdk$ nrfjprog --program build/examples/dfu/dfu_nrf52832_xxAA_s132_6.1.1.hex
+mesh-sdk$ nrfjprog --program build/examples/dfu/dfu_nrf52832_xxAA_s132_7.0.1.hex
 ```
 
 ### Step 6: Flash the device page on all devices and reset the device @anchor dfu_configuration_flash_device_page
 
 To flash the [device page HEX file](@ref dfu_configuration_device_page) to the devices, run the following nrfjprog command:
 ```
-mesh-sdk$ nrfjprog --program tools/dfu/bin/device_page_nrf52832_xxAA_s132_6.1.1.hex
+mesh-sdk$ nrfjprog --program tools/dfu/bin/device_page_nrf52832_xxAA_s132_7.0.1.hex
 ```
 
 Then, reset the device to start the application:

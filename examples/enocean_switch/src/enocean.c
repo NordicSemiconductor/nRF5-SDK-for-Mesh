@@ -265,7 +265,7 @@ void enocean_packet_process(const nrf_mesh_adv_packet_rx_data_t * p_rx_data)
         switch (pkt.type)
         {
             case ENOCEAN_COMMISSIONING_PACKET:
-
+                __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Commissioning packet received\n");
                 LIST_FOREACH(p_iter, mp_secmats_list_head)
                 {
                     enocean_commissioning_secmat_t * p_secmat = PARENT_BY_FIELD_GET(enocean_commissioning_secmat_t,
@@ -284,6 +284,7 @@ void enocean_packet_process(const nrf_mesh_adv_packet_rx_data_t * p_rx_data)
                 break;
 
             case ENOCEAN_DATA_PACKET:
+                __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Data packet received\n");
                 evt.type = ENOCEAN_EVT_DATA_RECEIVED;
                 evt.p_ble_gap_addr = pkt.p_ble_gap_addr;
 

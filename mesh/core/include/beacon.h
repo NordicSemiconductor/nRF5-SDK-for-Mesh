@@ -70,6 +70,13 @@
 #define BEACON_PACKET_AD_LEN_OVERHEAD (BEACON_PACKET_OVERHEAD + BLE_AD_DATA_OVERHEAD) /**< Overhead of beacon packet for the AD length field. */
 #define BEACON_DATA_MAXLEN            (BLE_ADV_PACKET_PAYLOAD_MAX_LENGTH - (sizeof(ble_ad_header_t) + BEACON_PACKET_OVERHEAD)) /**< Maximum length of beacon data. */
 
+/** Generic beacon packet */
+typedef struct
+{
+    uint8_t beacon_type;  /**< Beacon type, see @ref BEACON_TYPE */
+    uint8_t payload[];    /**< Beacon payload. */
+} beacon_packet_t;
+
 /**
  * Create a mesh beacon with the given contents.
  *
@@ -84,19 +91,6 @@
  * @return Packet pointer with a single reference, or NULL if creation failed.
  */
 adv_packet_t * beacon_create(advertiser_t * p_adv, uint8_t beacon_type, const void* p_payload, uint8_t payload_len);
-
-/**
- * Function for passing beacon packets to the beacon module.
- *
- * @param[in] p_beacon_data Beacon data received.
- * @param[in] data_len Length of AD data contents.
- * @param[in] p_packet_meta Packet metadata.
- *
- * @retval NRF_SUCCESS Packet successfully processed.
- * @retval NRF_ERROR_INVALID_DATA Beacon type not recognized.
- */
-uint32_t beacon_packet_in(const uint8_t * p_beacon_data, uint8_t data_len, const nrf_mesh_rx_metadata_t * p_packet_meta);
-
 /**
  * @}
  */

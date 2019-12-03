@@ -5,7 +5,20 @@ Mesh devices are broadly categorized into two roles: a provisioner role and a no
 The nRF5 SDK for Mesh provides several example projects to demonstrate these roles, mesh models, and certain features that will
 help you get started on new mesh-based projects.
 
-## Read before testing
+**Table of contents**
+- [Read before testing](@ref read-before-testing)
+- [Available examples](@ref available-examples)
+- [Common example modules](@ref common-modules)
+- [Provisioning bearers in the nRF5 SDK for Mesh examples](@ref example_provisioning_bearers)
+- [Evaluating examples with the nRF Mesh mobile app](@ref nrf-mesh-mobile-app)
+
+
+---
+## Read before testing @anchor read-before-testing
+
+All examples are guaranteed to work with [fully compatible device configurations](@ref compatibility_list).
+Some of the examples are [not compatible with nRF52810](@ref compatibility_nRF52810).
+
 Before you start using the examples, see the following pages:
 - [Installing the toolchain](@ref md_doc_getting_started_how_to_toolchain)
 - [Building the mesh stack and examples](@ref md_doc_getting_started_how_to_build)
@@ -14,36 +27,29 @@ Before you start using the examples, see the following pages:
 You can also quickly run an example without going through the complete toolchain installation.
 See [Running a first example](@ref md_doc_getting_started_mesh_quick_start) for details.
 
-In the nRF5 SDK for Mesh v3.2.0, [experimental support for the S113 SoftDevice](@ref compatibility_s113)
-has been added to various examples, except for the @ref md_examples_experimental_lpn_README
-and @ref md_examples_sdk_coexist_README.
+---
+## Available examples @anchor available-examples
 
-## Available examples
 The following examples are provided with this SDK:
-
 * @subpage md_examples_light_switch_README is a mesh ecosystem example
   that contains four smaller examples: provisioner, client, server, and proxy-server.
-
 * @subpage md_examples_enocean_switch_README demonstrates how to implement a third party device in Mesh ecosystem,
   namely an EnOcean-to-Mesh translator. The EnOcean switches send the button status using BLE advertising packets.
   These packets can be captured and can be used to generate equivalent mesh messages for controlling other mesh nodes.
-
 * @subpage md_examples_beaconing_README implements custom beacon advertising
   and shows how to send and receive custom packets using the nRF5 SDK for Mesh.
-
 * @subpage md_examples_dfu_README shows how to use the mesh DFU framework to update the firmware of a device over the mesh.
-
 * @subpage md_examples_serial_README demonstrates how to  use the serial interface to create a mesh connectivity device.
-
 * @subpage md_examples_sdk_coexist_README demonstrate how the nRF5 SDK features can be simultaneously used with nRF5 SDK for Mesh.
 
 Moreover, the SDK comes with several @subpage md_examples_experimental_examples, such as:
-
 * @ref md_examples_experimental_dimming_README demonstrate how to use [Generic Level model](@ref GENERIC_LEVEL_MODEL)
   APIs in an application to implement dimming light and corresponding dimmer switch.
 * @ref md_examples_experimental_lpn_README demonstrates the Low Power node feature.
 * @ref md_examples_pb_remote_README demonstrates the use of remote provisioning to provision devices outside of the provisioner's radio range.
 
+
+---
 ## Common example modules @anchor common-modules
 
 The examples implement common functionalities through several common modules, including among others:
@@ -53,3 +59,114 @@ The examples implement common functionalities through several common modules, in
 - behaviors for several generic models.
 
 For full overview of all common modules and detailed information, check the \ref MESH_API_GROUP_APP_SUPPORT API section.
+
+
+---
+## Provisioning bearers in the nRF5 SDK for Mesh examples @anchor example_provisioning_bearers
+
+The nRF5 SDK for Mesh examples can be provisioned using both of the provided provisioning bearers, without the OOB authentication method or with the static OOB authentication method.
+See the following table for an overview of which example works with [PB-ADV](@ref provisioning_main_pb-adv) or [PB-GATT](@ref provisioning_main_pb-gatt), or both.
+
+| Example / Bearer                              | PB-ADV   | PB-GATT  |
+|-----------------------------------------------|----------|----------|
+| @ref md_examples_beaconing_README             |   X      |   -      |
+| @ref md_examples_dfu_README                   |   X      |   -      |
+| @ref md_examples_enocean_switch_README        |   X      |   X      |
+| @ref md_examples_experimental_dimming_README  |   X      |   X      |
+| @ref md_examples_light_switch_README          |   X      |   X      |
+| @ref md_examples_sdk_coexist_README           |   X      |   -      |
+| @ref md_examples_experimental_lpn_README      |   -      |   X      |
+| @ref md_examples_pb_remote_README*            |   X      |   -      |
+| @ref md_examples_serial_README*               |   X      |   -      |
+
+All these examples use the 16-byte static OOB value. The static OOB value is stored in `STATIC_AUTH_DATA`, which is defined in each of the examples.
+
+@note
+The following examples marked with (*) in the table are exceptions:
+- @ref md_examples_pb_remote_README -- uses PB-ADV with the static OOB authentication method. However, it uses a different 16-byte static OOB value than other examples. The reason is to prevent provisioning all devices around using the PB remote client.
+- @ref md_examples_serial_README -- uses PB-ADV. However, it can be provisioned through the static provisioner if the same 16-byte static OOB value is used to initialize the provisioner role.
+
+For more information about provisioning, see the following pages:
+- @ref md_doc_getting_started_provisioning_main
+- [Static OOB authentication method API](@ref NRF_MESH_PROV_OOB_METHOD_STATIC)
+- @ref provisioning-commands
+
+
+---
+## Evaluating examples using the nRF Mesh mobile application @anchor nrf-mesh-mobile-app
+
+You can use @link_nrf_mesh_app (available for @link_nrf_mesh_app_ios and @link_nrf_mesh_app_android) with almost all of the Mesh examples
+for provisioning and configuring the boards. The only example that does support the mobile application is the @ref md_examples_light_switch_README "light switch mesh provisioner".
+
+This said, the nRF Mesh mobile application is recommended for use with the following examples:
+- @ref md_examples_light_switch_README
+- @ref md_examples_enocean_switch_README
+- @ref md_examples_experimental_dimming_README
+- @ref md_examples_experimental_lpn_README
+
+Check the section about evaluating the example using the nRF Mesh mobile application on the documentation pages of these examples for example-specific information, like the name of the nodes in the application.
+
+@note
+The following procedures related to the nRF Mesh mobile application are referring to:
+- The nRF Mesh application on Android. However, there are no major differences in the UI of the iOS version.
+- Generic On Off Server and Generic On Off Client model instances.
+The model instances you need to bind can be different for your example -- check the documentation pages of recommended example. Moreover, for @ref md_examples_experimental_lpn_README, setting publication requires a [different procedure](@ref examples_lpn_running_provisioning).
+
+### Provisioning with nRF Mesh @anchor nrf-mesh-mobile-app-provisioning
+
+To provision Mesh examples with the nRF Mesh mobile app, complete the following steps:
+1. Flash the examples by following the instructions in @ref md_doc_getting_started_how_to_run_examples,
+including:
+    1. Erase the flash of your development boards and program the SoftDevice.
+    2. Flash the client firmware on individual boards and the server firmware on other board or boards.
+2. Open the nRF Mesh mobile app. The main application window appears.
+3. Add a new node. The application starts looking for unprovisioned nodes and lists them on the screen.
+    - See the example pages for information about the node naming conventions.
+4. Provision each node by completing the following steps for each of them:
+    1. Tap the node name to connect to it.
+    2. Identify the node.
+    3. Provision the node and select the desired OOB option. The application starts the provisioning process. When it is complete, you receive a notification.
+5. When all nodes are provisioned, note the addresses of the server nodes. You need them when @ref nrf-mesh-mobile-app-publication "setting the publication address".
+
+@note If the automatic configuration is broken, manually get the composition data, add application keys, and only then go to the following procedure.
+
+### Binding nodes with nRF Mesh @anchor nrf-mesh-mobile-app-binding
+
+To bind Mesh nodes with the nRF Mesh mobile app, complete the following steps:
+1. On the server nodes, bind the Generic On Off Server model instance with the same application key:
+    1. Tap the server node name. The node configuration menu opens.
+    2. In the expanded Elements section, tap the Generic On Off Server instance name.
+    3. In the section with bound application keys, tap the button for binding the application key and then tap the application key field. The key is now bound.
+2. Repeat step 5 and 6 for each server board node.
+3. On the client node, bind the Generic On Off Client model instance with the same application key:
+    1. On the list of provisioned nodes, tap the client node name. The configuration menu opens.
+    2. In the expanded Elements section, tap the first Generic On Off Client instance name.
+    3. In the section with bound application keys, tap the button for binding the application key and then tap the application key field. The key is now bound. The application goes back to the Generic On Off Client model instance menu.
+
+### Setting publication with nRF Mesh @anchor nrf-mesh-mobile-app-publication
+
+To set publication rules between nodes with the nRF Mesh mobile application, complete the following steps:
+1. On the client node, in the publication section of the Generic On Off Client model instance menu, tap **Set Publication**.
+2. Tap the publication address field. A dropdown menu appears.
+3. Choose one of the following address types to assign the addresses of the server nodes to the client:
+    - Unicast Address -- You need to complete the following steps:
+        1. Provide the address of any server node noted @ref nrf-mesh-mobile-app-provisioning "at the end of the provisioning procedure".
+        2. Apply the changes.
+    - Groups -- You need to complete the following steps:
+        1. Select an existing group to subscribe or create a new one.
+        2. Apply the changes for the client node.
+        3. On the server nodes, set the Subscription Address of the Generic On Off Server model instance menu to the selected group address.
+        4. Apply the changes for the server nodes.
+        
+
+@note
+You can also configure the publish address of the second Generic On Off client model instance.
+To do this, bind the model instance with the same application key and set the model instance's address to the Unicast Address
+of any server node.
+
+Any unhandled error is indicated by all LEDs on the board turning on in steady state.
+You will need to restart the application by resetting the board.
+To do this, switch the board on and off or use the following command:
+```
+nrfjprog -f nrf52 --reset
+```

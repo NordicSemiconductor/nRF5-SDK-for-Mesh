@@ -139,7 +139,6 @@ typedef struct
         const access_message_rx_t * p_message;
         nrf_mesh_prov_link_close_reason_t link_close_reason;
         pb_remote_event_prov_start_t prov_start;
-
     } evt;
 } pb_remote_client_event_t;
 
@@ -592,29 +591,33 @@ static pb_remote_client_state_t pb_remote_client_event_packet_transfer_cb(pb_rem
     switch (p_ctx->state)
     {
         case PB_REMOTE_CLIENT_STATE_WAIT_ACK_TRANSFER:
-            /* We do not allow two consecutive packet transfers. Assume the last ACK was lost. */
-            transfer_status.status = PB_REMOTE_PACKET_TRANSFER_STATUS_BUFFER_ACCEPTED;
-            send_reply(p_ctx, p_evt->evt.p_message, &reply);
-            return p_ctx->state;
-
         case PB_REMOTE_CLIENT_STATE_LINK_ESTABLISHED:
         {
             pb_remote_packet_t * p_pb_remote_packet = (pb_remote_packet_t *) &p_evt->evt.p_message->p_data[0];
 
-            /** @todo Check length against provisioning PDUs? */
+            if (p_pb_remote_packet->packet_transfer.buffer[0] < p_ctx->current_prov_pdu_type)
+            {
+                __LOG(LOG_SRC_ACCESS, LOG_LEVEL_INFO, "Got old Provisioning PDU: %d, current: %d", p_pb_remote_packet->packet_transfer.buffer[0], p_ctx->current_prov_pdu_type);
+                return p_ctx->state;
+            }
+            else
+            {
+                uint32_t status = access_model_reliable_cancel(p_ctx->model_handle);
+                NRF_MESH_ASSERT(status == NRF_SUCCESS || status == NRF_ERROR_NOT_FOUND);
 
-            transfer_status.status = PB_REMOTE_PACKET_TRANSFER_STATUS_BUFFER_ACCEPTED;
-            send_reply(p_ctx, p_evt->evt.p_message, &reply);
-            p_ctx->prov_bearer.p_callbacks->rx(&p_ctx->prov_bearer,
-                                               &p_pb_remote_packet->packet_transfer.buffer[0],
-                                               p_evt->evt.p_message->length);
-            return PB_REMOTE_CLIENT_STATE_LINK_ESTABLISHED;
+                /** @todo Check length against provisioning PDUs? */
+
+                transfer_status.status = PB_REMOTE_PACKET_TRANSFER_STATUS_BUFFER_ACCEPTED;
+                send_reply(p_ctx, p_evt->evt.p_message, &reply);
+                p_ctx->prov_bearer.p_callbacks->rx(&p_ctx->prov_bearer,
+                                                   &p_pb_remote_packet->packet_transfer.buffer[0],
+                                                   p_evt->evt.p_message->length);
+                return PB_REMOTE_CLIENT_STATE_LINK_ESTABLISHED;
+            }
         }
 
         default:
             __LOG(LOG_SRC_ACCESS, LOG_LEVEL_INFO, "Got unexpected packet transfer in state %u.\n", p_ctx->state);
-            transfer_status.status = PB_REMOTE_PACKET_TRANSFER_STATUS_LINK_NOT_ACTIVE;
-            send_reply(p_ctx, p_evt->evt.p_message, &reply);
             return p_ctx->state;
     }
 }
@@ -692,6 +695,7 @@ static pb_remote_client_state_t pb_remote_client_event_prov_start_cb(pb_remote_c
     {
         case PB_REMOTE_CLIENT_STATE_IDLE:
         {
+            p_ctx->current_prov_pdu_type = PROV_PDU_TYPE_INVALID;
             memcpy(m_packet.packet.link_open.uuid,
                    p_evt->evt.prov_start.uuid,
                    NRF_MESH_UUID_SIZE);
@@ -919,6 +923,8 @@ static uint32_t pb_if_tx_cb(prov_bearer_t * p_bearer, const uint8_t * p_data, ui
     evt.type = PB_REMOTE_CLIENT_EVENT_LOCAL_PACKET;
     evt.evt.pb_adv_pdu.length = length;
     memcpy(&evt.evt.pb_adv_pdu.payload[0], p_data, length);
+
+    mp_pb_remote_client_model->current_prov_pdu_type = p_data[0];
 
     uint32_t status = fifo_push(&m_pbr_client_event_queue, &evt);
     if (status != NRF_SUCCESS)

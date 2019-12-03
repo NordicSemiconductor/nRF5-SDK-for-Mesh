@@ -77,7 +77,8 @@ uint32_t prov_provisioner_provision(nrf_mesh_prov_ctx_t * p_ctx,
  * @param[in]     action Which action of the chosen OOB method to use.
  *                       The appropriate action shall be chosen from @ref nrf_mesh_prov_input_action_t
  *                       or @ref nrf_mesh_prov_output_action_t subsets.
- * @param[in]     size   Size of the OOB authentication data.
+ * @param[in]     size   Size of the OOB authentication data. This parameter will be ignored when the
+ *                       method is NRF_MESH_PROV_OOB_METHOD_STATIC.
  *
  * @retval NRF_SUCCESS The OOB authentication method was successfully chosen.
  * @retval NRF_ERROR_INVALID_STATE The provisioning context was not in the correct state for this function to be used.

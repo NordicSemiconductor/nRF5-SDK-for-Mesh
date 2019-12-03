@@ -72,9 +72,9 @@
 #include "nrf_mesh_config_examples.h"
 #include "nrf_mesh_configure.h"
 #include "enocean.h"
-#include "flash_helper.h"
 #include "example_common.h"
 #include "ble_softdevice_support.h"
+#include "ad_type_filter.h"
 
 /* Configure switch debounce timeout for EnOcean switch here */
 #define SWITCH_DEBOUNCE_INTERVAL_US (MS_TO_US(500))
@@ -87,6 +87,15 @@
 #define APP_UNACK_MSG_REPEAT_COUNT    (2)
 
 #define LIGHT_SWITCH_CLIENTS          (PTM215B_NUMBER_OF_SWITCHES/2)
+
+/** File IDs for the enocean example that store its parameters in the persistence memory.
+ * The IDs must be unique. */
+#define ENOCEAN_SWITCH_FILE_ID (0x0011)
+/** Range for the enocean record entry IDs */
+#define ENOCEAN_SWITCH_RECORD_START (0x0001)
+#define ENOCEAN_SWITCH_RECORD_END (ENOCEAN_SWITCH_RECORD_START + MAX_ENOCEAN_DEVICES_SUPPORTED - 1)
+/** Enocean switch mesh config data entry. */
+#define ENOCEAN_SWITCH_ENTRY_ID MESH_CONFIG_ENTRY_ID(ENOCEAN_SWITCH_FILE_ID, ENOCEAN_SWITCH_RECORD_START)
 
 typedef struct
 {
@@ -106,6 +115,9 @@ static uint8_t  m_enocean_dev_cnt;
 static app_switch_debounce_state_t m_switch_state[MAX_ENOCEAN_DEVICES_SUPPORTED];
 
 /* Forward declaration */
+static uint32_t enocean_switch_setter(mesh_config_entry_id_t id, const void * p_entry);
+static void enocean_switch_getter(mesh_config_entry_id_t id, void * p_entry);
+static void enocean_switch_deleter(mesh_config_entry_id_t id);
 static void app_gen_onoff_client_publish_interval_cb(access_model_handle_t handle, void * p_self);
 static void app_generic_onoff_client_status_cb(const generic_onoff_client_t * p_self,
                                                const access_message_rx_meta_t * p_meta,
@@ -125,21 +137,71 @@ const generic_onoff_client_callbacks_t client_cbs =
     .periodic_publish_cb = app_gen_onoff_client_publish_interval_cb
 };
 
-/* Try to store app data. If busy, ask user to manually initiate operation. */
-static void app_data_store_try(void)
+/* Declare a mesh config file with a unique file ID */
+MESH_CONFIG_FILE(m_enocean_switch_file, ENOCEAN_SWITCH_FILE_ID, MESH_CONFIG_STRATEGY_CONTINUOUS);
+
+MESH_CONFIG_ENTRY(light_switch_provisioner,
+                  ENOCEAN_SWITCH_ENTRY_ID,
+                  MAX_ENOCEAN_DEVICES_SUPPORTED,
+                  sizeof(app_secmat_flash_t),
+                  enocean_switch_setter,
+                  enocean_switch_getter,
+                  enocean_switch_deleter,
+                  false);
+
+static uint32_t enocean_switch_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
-    uint32_t status = app_flash_data_store(APP_DATA_ENTRY_HANDLE, &m_app_secmat_flash[0], sizeof(m_app_secmat_flash));
-    if (status == NRF_SUCCESS)
+    if (!IS_IN_RANGE(id.record, ENOCEAN_SWITCH_RECORD_START, ENOCEAN_SWITCH_RECORD_END))
     {
-        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Storing: Enocean security material\n");
+        return NRF_ERROR_NOT_FOUND;
     }
-    else if (status == NRF_ERROR_NOT_SUPPORTED)
+
+    uint16_t idx = id.record - ENOCEAN_SWITCH_RECORD_START;
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Enocean switch [%d] setter ...\n", idx);
+
+    const app_secmat_flash_t * p_app_secmat_flash = (const app_secmat_flash_t *) p_entry;
+
+    m_app_secmat_flash[idx].seq = p_app_secmat_flash->seq;
+    memcpy(m_app_secmat_flash[idx].ble_gap_addr, p_app_secmat_flash->ble_gap_addr, BLE_GAP_ADDR_LEN);
+    memcpy(m_app_secmat_flash[idx].key, p_app_secmat_flash->key, PTM215B_COMM_PACKET_KEY_SIZE);
+
+    return NRF_SUCCESS;
+}
+
+static void enocean_switch_getter(mesh_config_entry_id_t id, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(IS_IN_RANGE(id.record, ENOCEAN_SWITCH_RECORD_START, ENOCEAN_SWITCH_RECORD_END));
+
+    uint16_t idx = id.record - ENOCEAN_SWITCH_RECORD_START;
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Enocean switch [%d] getter ...\n", idx);
+
+    app_secmat_flash_t * p_app_secmat_flash = (app_secmat_flash_t *) p_entry;
+
+    p_app_secmat_flash->seq = m_app_secmat_flash[idx].seq;
+    memcpy(p_app_secmat_flash->ble_gap_addr, m_app_secmat_flash[idx].ble_gap_addr, BLE_GAP_ADDR_LEN);
+    memcpy(p_app_secmat_flash->key, m_app_secmat_flash[idx].key, PTM215B_COMM_PACKET_KEY_SIZE);
+}
+
+static void enocean_switch_deleter(mesh_config_entry_id_t id)
+{
+    NRF_MESH_ASSERT_DEBUG(IS_IN_RANGE(id.record, ENOCEAN_SWITCH_RECORD_START, ENOCEAN_SWITCH_RECORD_END));
+
+    uint16_t idx = id.record - ENOCEAN_SWITCH_RECORD_START;
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Enocean switch [%d] deleter ...\n", idx);
+
+    memset(&m_app_secmat_flash[idx], 0x00, sizeof(app_secmat_flash_t));
+}
+
+static void enocean_switch_invalidate(void)
+{
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Enocean switch data invalidated ...\n");
+
+    while (m_enocean_dev_cnt > 0)
     {
-       __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Cannot store: Persistent storage not enabled\n");
-    }
-    else
-    {
-        __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Flash busy. Cannot store. Press Button 2 to try again. \n");
+        mesh_config_entry_id_t entry_id = ENOCEAN_SWITCH_ENTRY_ID;
+        entry_id.record += m_enocean_dev_cnt - 1;
+        NRF_MESH_ERROR_CHECK(mesh_config_entry_delete(entry_id));
+        m_enocean_dev_cnt--;
     }
 }
 
@@ -250,20 +312,27 @@ static void app_enocean_cb(enocean_evt_t * p_evt)
     {
         if (m_enocean_dev_cnt < MAX_ENOCEAN_DEVICES_SUPPORTED)
         {
-            m_app_secmat_flash[m_enocean_dev_cnt].seq = p_evt->params.secmat.seq;
-            memcpy(&m_app_secmat_flash[m_enocean_dev_cnt].ble_gap_addr[0],
-                   p_evt->p_ble_gap_addr, BLE_GAP_ADDR_LEN);
-            memcpy(&m_app_secmat_flash[m_enocean_dev_cnt].key[0],
-                   p_evt->params.secmat.p_key, PTM215B_COMM_PACKET_KEY_SIZE);
+            app_secmat_flash_t app_secmat_flash;
 
-            app_data_store_try();
+            app_secmat_flash.seq = p_evt->params.secmat.seq;
+            memcpy(app_secmat_flash.ble_gap_addr, p_evt->p_ble_gap_addr, BLE_GAP_ADDR_LEN);
+            memcpy(app_secmat_flash.key, p_evt->params.secmat.p_key, PTM215B_COMM_PACKET_KEY_SIZE);
 
-            m_app_secmat[m_enocean_dev_cnt].p_seq =  &m_app_secmat_flash[m_enocean_dev_cnt].seq;
-            m_app_secmat[m_enocean_dev_cnt].p_ble_gap_addr = &m_app_secmat_flash[m_enocean_dev_cnt].ble_gap_addr[0];
-            m_app_secmat[m_enocean_dev_cnt].p_key = &m_app_secmat_flash[m_enocean_dev_cnt].key[0];
-            enocean_secmat_add(&m_app_secmat[m_enocean_dev_cnt]);
+            mesh_config_entry_id_t entry_id = ENOCEAN_SWITCH_ENTRY_ID;
+            entry_id.record += m_enocean_dev_cnt;
 
-            m_enocean_dev_cnt++;
+            uint32_t status = mesh_config_entry_set(entry_id, &app_secmat_flash);
+            if (status == NRF_SUCCESS)
+            {
+                __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Storing: Enocean security material\n");
+
+                m_app_secmat[m_enocean_dev_cnt].p_seq =  &m_app_secmat_flash[m_enocean_dev_cnt].seq;
+                m_app_secmat[m_enocean_dev_cnt].p_ble_gap_addr = &m_app_secmat_flash[m_enocean_dev_cnt].ble_gap_addr[0];
+                m_app_secmat[m_enocean_dev_cnt].p_key = &m_app_secmat_flash[m_enocean_dev_cnt].key[0];
+                enocean_secmat_add(&m_app_secmat[m_enocean_dev_cnt]);
+
+                m_enocean_dev_cnt++;
+            }
 
             hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
         }
@@ -339,7 +408,7 @@ static void config_server_evt_cb(const config_server_evt_t * p_evt)
     if (p_evt->type == CONFIG_SERVER_EVT_NODE_RESET)
     {
         /* Trigger clearing of application data and schedule node reset. */
-        app_flash_clear(&m_app_secmat_flash[0], sizeof(m_app_secmat_flash));
+        enocean_switch_invalidate();
         node_reset();
     }
 }
@@ -350,16 +419,6 @@ static void button_event_handler(uint32_t button_number)
 
     switch (button_number)
     {
-        /* Press SW1 to store latest sequence number.
-        USER_NOTE: End product should implement a mechanism to trigger this process upon
-        external event, such as power fail interrupt, and ensure that the device finishes flash writes
-        before running out of power. */
-        case 1:
-        {
-            app_data_store_try();
-            break;
-        }
-
         /* Initiate node reset */
         case 3:
         {
@@ -367,7 +426,7 @@ static void button_event_handler(uint32_t button_number)
 #if MESH_FEATURE_GATT_PROXY_ENABLED
             (void) proxy_stop();
 #endif
-            app_flash_clear(&m_app_secmat_flash[0], sizeof(m_app_secmat_flash));
+            enocean_switch_invalidate();
             mesh_stack_config_clear();
             node_reset();
             break;
@@ -470,7 +529,18 @@ static void mesh_init(void)
         .models.models_init_cb   = models_init_cb,
         .models.config_server_cb = config_server_evt_cb
     };
-    ERROR_CHECK(mesh_stack_init(&init_params, &m_device_provisioned));
+
+    uint32_t status = mesh_stack_init(&init_params, &m_device_provisioned);
+    switch (status)
+    {
+        case NRF_ERROR_INVALID_DATA:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
+            break;
+        case NRF_SUCCESS:
+            break;
+        default:
+            ERROR_CHECK(status);
+    }
 
     /* Register event handler to receive NRF_MESH_EVT_FLASH_STABLE. Application functionality will
     be started after this event */
@@ -498,7 +568,6 @@ static void initialize(void)
 
     mesh_init();
 
-    app_flash_init();
     enocean_translator_init(app_enocean_cb);
 }
 
@@ -507,25 +576,33 @@ static void app_start(void)
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Starting application \n");
 
     /* Load app specific data */
-    if (app_flash_data_load(APP_DATA_ENTRY_HANDLE, &m_app_secmat_flash[0], sizeof(m_app_secmat_flash)) == NRF_SUCCESS)
+    m_enocean_dev_cnt = 0;
+    mesh_config_entry_id_t idx = ENOCEAN_SWITCH_ENTRY_ID;
+
+    for (uint8_t i = 0; i < MAX_ENOCEAN_DEVICES_SUPPORTED; i++)
     {
-        for (uint8_t i = 0; i < MAX_ENOCEAN_DEVICES_SUPPORTED; i++)
+        app_secmat_flash_t app_secmat_flash;
+
+        uint32_t status = mesh_config_entry_get(idx, &app_secmat_flash);
+        if (status == NRF_SUCCESS)
         {
             m_app_secmat[i].p_ble_gap_addr = &m_app_secmat_flash[i].ble_gap_addr[0];
             m_app_secmat[i].p_key = &m_app_secmat_flash[i].key[0];
             m_app_secmat[i].p_seq = &m_app_secmat_flash[i].seq;
             m_enocean_dev_cnt++;
             enocean_secmat_add(&m_app_secmat[i]);
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Restored: Enocean security materials\n");
         }
-    }
-    else
-    {
-        m_enocean_dev_cnt = 0;
+        idx.record++;
     }
 
-    /* Install rx callback to intercept incoming ADV packets so that they can be passed to the
-    EnOcean packet processor */
+    if (m_enocean_dev_cnt > 0)
+    {
+        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Restored: Enocean security materials\n");
+    }
+
+    /* Enable reception of EnOcean specific AD types from the scanner and install rx callback to
+     * intercept incoming ADV packets so that they can be passed to the EnOcean packet processor. */
+    bearer_adtype_add(BLE_GAP_AD_TYPE_MANUFACTURER_SPECIFIC_DATA);
     nrf_mesh_rx_cb_set(rx_callback);
 }
 

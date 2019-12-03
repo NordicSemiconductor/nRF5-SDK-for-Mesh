@@ -42,10 +42,15 @@
 #include "net_beacon_mock.h"
 #include "prov_beacon_mock.h"
 #include "advertiser_mock.h"
+#include "ad_listener.h"
 
 #include "test_assert.h"
 
 #define BEACON_PACKET_ALLOC_OVERHEAD (2 /* AD data */ + 1 /* Beacon overhead */)
+
+// Extern defintion of the beacon.c ad_listener
+extern const ad_listener_t m_beacon_listener;
+
 void setUp(void)
 {
     advertiser_mock_Init();
@@ -94,20 +99,20 @@ void test_beacon_packet_in()
     uint8_t beacon_data[] = {BEACON_TYPE_UNPROV, 0x01, 0x02, 0x03, 0x04};
     nrf_mesh_rx_metadata_t meta; // don't really care about contents
     prov_beacon_unprov_packet_in_Expect(&beacon_data[1], 4, &meta);
-    TEST_ASSERT_EQUAL_HEX32(NRF_SUCCESS, beacon_packet_in(beacon_data, sizeof(beacon_data), &meta));
+    m_beacon_listener.handler(beacon_data, sizeof(beacon_data), &meta);
 
     beacon_data[0] = BEACON_TYPE_SEC_NET_BCAST;
     net_beacon_packet_in_Expect(&beacon_data[1], 4, &meta);
-    TEST_ASSERT_EQUAL_HEX32(NRF_SUCCESS, beacon_packet_in(beacon_data, sizeof(beacon_data), &meta));
+    m_beacon_listener.handler(beacon_data, sizeof(beacon_data), &meta);
 
     beacon_data[0] = 0x43;
-    TEST_ASSERT_EQUAL_HEX32(NRF_ERROR_INVALID_DATA, beacon_packet_in(beacon_data, sizeof(beacon_data), &meta));
+    m_beacon_listener.handler(beacon_data, sizeof(beacon_data), &meta);
     beacon_data[0] = BEACON_TYPE_SEC_NET_BCAST;
-    TEST_ASSERT_EQUAL_HEX32(NRF_ERROR_INVALID_LENGTH, beacon_packet_in(beacon_data, 0, &meta));
+    m_beacon_listener.handler(beacon_data, 0, &meta);
     /* NULL metadata */
     net_beacon_packet_in_Expect(&beacon_data[1], 4, NULL);
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, beacon_packet_in(beacon_data, sizeof(beacon_data), NULL));
+    m_beacon_listener.handler(beacon_data, sizeof(beacon_data), NULL);
 
-    TEST_NRF_MESH_ASSERT_EXPECT(beacon_packet_in(NULL, sizeof(beacon_data), &meta));
+    TEST_NRF_MESH_ASSERT_EXPECT(m_beacon_listener.handler(NULL, sizeof(beacon_data), &meta));
 }
 

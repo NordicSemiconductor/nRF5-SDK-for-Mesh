@@ -279,7 +279,18 @@ void mesh_init(void)
         .models.models_init_cb   = models_init_cb,
         .models.config_server_cb = config_server_evt_cb
     };
-    ERROR_CHECK(mesh_stack_init(&init_params, &m_device_provisioned));
+
+    uint32_t status = mesh_stack_init(&init_params, &m_device_provisioned);
+    switch (status)
+    {
+        case NRF_ERROR_INVALID_DATA:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
+            break;
+        case NRF_SUCCESS:
+            break;
+        default:
+            ERROR_CHECK(status);
+    }
 }
 
 void mesh_main_initialize(void)

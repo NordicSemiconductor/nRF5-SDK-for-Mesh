@@ -5,6 +5,9 @@ It describes practical actions you must take to update your code to a newer
 version of the nRF5 SDK for Mesh.
 
 **Table of contents**
+- [Migration from v3.2.0 to v4.0.0](@ref md_doc_migration_3_2_0_to_4_0_0)
+    - [Added Mesh configuration for DSM, net state and access layer](@ref mesh_config_for_dsm_and_access)
+    - [BEARER_EVENT_USE_SWI0 changed location](@ref BEARER_EVENT_USE_SWI0_location)
 - [Migration from v3.1.0 to v3.2.0](@ref md_doc_migration_3_1_0_to_3_2_0)
     - [Health Server subscription list addition](@ref health_server_subscription)
     - [Freezing of access layer model configurations](@ref freezing_of_access_config)
@@ -22,6 +25,43 @@ version of the nRF5 SDK for Mesh.
 
 
 ---
+
+## Migration from v3.2.0 to v4.0.0 @anchor md_doc_migration_3_2_0_to_4_0_0
+
+Read this migration guide together with the [nRF5 SDK for Mesh v4.0.0 release notes](@ref release_notes_400).
+
+### Added Mesh configuration for DSM, net state and access layer @anchor mesh_config_for_dsm_and_access
+- The DSM and the access layer now use the Mesh configuration module for persistent storage. 
+Moreover, the IV index and sequence number in the network state are now also stored using the module. 
+- Implemented backward compatibility for components that have been migrated onto the Mesh configuration module.
+It is still possible to provide the exact number of flash pages allocated for persistent parameters. 
+This allows keeping persistent parameters in the same area as it was in the previous version, for DFU necessities. 
+Otherwise, the Mesh configuration will calculate and allocate the persistent memory automatically.
+- This means that your applications should no longer invoke any special API to store or restore parameters. 
+The parameters will be stored or restored when they are changed via the appropriate API, for example @ref mesh_opt_core_tx_power_set() or mesh_opt_core_tx_power_get().
+
+#### Required actions
+
+- New projects:
+    - Do not define `ACCESS_FLASH_PAGE_COUNT`, `DSM_FLASH_PAGE_COUNT` or `NET_FLASH_PAGE_COUNT`
+    in new projects, as Mesh configuration now takes care of computing the required page counts.
+- Existing projects to be updated by DFU:
+    - Keep any definitions of `ACCESS_FLASH_PAGE_COUNT`, `DSM_FLASH_PAGE_COUNT` and
+    `NET_FLASH_PAGE_COUNT`, as well as definitions of `ACCESS_FLASH_AREA_LOCATION`,
+    `DSM_FLASH_AREA_LOCATION` and `NET_FLASH_AREA_LOCATION`. This will cause the Mesh
+    configuration backend to locate the pages according to the flash layout of the old persistence
+    system.
+
+
+### BEARER_EVENT_USE_SWI0 changed location @anchor BEARER_EVENT_USE_SWI0_location
+- The @ref BEARER_EVENT_USE_SWI0 option is now located at `nrf_mesh_config_bearer.h` header file.
+
+#### Required actions
+- Redefine @ref BEARER_EVENT_USE_SWI0 in your `nrf_mesh_config_app.h` to make the mesh stack use the `SWI0` IRQ for post processing.
+
+
+---
+
 ## Migration from v3.1.0 to v3.2.0 @anchor md_doc_migration_3_1_0_to_3_2_0
 
 Read this migration guide together with the [nRF5 SDK for Mesh v3.2.0 release notes](@ref release_notes_320).

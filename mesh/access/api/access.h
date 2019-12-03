@@ -357,6 +357,7 @@ void access_clear(void);
  * @retval     NRF_ERROR_NULL            One or more of the function parameters was NULL.
  * @retval     NRF_ERROR_FORBIDDEN       Either multiple model instances per element is not allowed
  *                                       or changes to device composition are not allowed.
+ *                                       Adding a new model after device provisioned is not allowed either.
  * @retval     NRF_ERROR_NOT_FOUND       Invalid access element index.
  * @retval     NRF_ERROR_INVALID_LENGTH  Number of opcodes was zero and pointer to the list of
  *                                       opcode handler callbacks is not NULL.
@@ -407,15 +408,15 @@ uint32_t access_model_publish(access_model_handle_t handle, const access_message
 /**
  * Replies to an access layer message.
  *
- * This function is intended to be used in pair with the opcode handle callbacks; the model
+ * This function is intended to be used in pair with the opcode handle callbacks. The model
  * gets a message through the @ref access_opcode_handler_cb_t "opcode handler callback" and
  * replies to the incoming message by calling this function.
  *
- * @note The message will be sent as a segmented message and reassembled on the peer side if one of
- * the following conditions are true:
+ * @note The reply is sent as a segmented message and reassembled on the peer side if one of
+ * the following conditions is true:
  * - The length of the message is greater than @ref NRF_MESH_UNSEG_PAYLOAD_SIZE_MAX.
- * - The @p force_segmented field of @p p_message is true.
- * - The @p transmic_size field of @p p_message is @ref NRF_MESH_TRANSMIC_SIZE_LARGE.
+ * - The @p force_segmented field of @p p_reply is true.
+ * - The @p transmic_size field of @p p_reply is @ref NRF_MESH_TRANSMIC_SIZE_LARGE.
  *
  * @param[in] handle    Access handle for the model that wants to send data.
  * @param[in] p_message Incoming message that the model is replying to.
@@ -425,11 +426,11 @@ uint32_t access_model_publish(access_model_handle_t handle, const access_message
  * @retval NRF_ERROR_NULL           NULL pointer supplied to function.
  * @retval NRF_ERROR_NO_MEM         Not enough memory available for message.
  * @retval NRF_ERROR_NOT_FOUND      Invalid model handle or model not bound to element.
- * @retval NRF_ERROR_INVALID_PARAM  Model not bound to appkey, publish address not set or wrong
+ * @retval NRF_ERROR_INVALID_PARAM  Model not bound to appkey, publish address not set, or wrong
  *                                  opcode format.
  * @retval NRF_ERROR_INVALID_LENGTH Attempted to send message larger than @ref ACCESS_MESSAGE_LENGTH_MAX.
  * @retval NRF_ERROR_FORBIDDEN      Failed to allocate a sequence number from network.
- * @retval NRF_ERROR_INVALID_STATE  There's already a segmented packet to this destination in
+ * @retval NRF_ERROR_INVALID_STATE  There is already a segmented packet to this destination in
  *                                  progress. Wait for it to finish before sending new segmented
  *                                  packets.
  */

@@ -49,6 +49,7 @@
 #include "nordic_common.h"
 #include "mesh_opt_core.h"
 #include "mesh_config_entry.h"
+#include "internal_event.h"
 
 /*****************************************************************************
 * Local defines
@@ -257,6 +258,8 @@ static void beacon_tx(timestamp_t time_now)
                       iv_index);
                 /* Start a new beacon interval for this beacon. */
                 mp_beacon_info->p_tx_info->tx_timestamp = time_now;
+
+                __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_NET_BEACON_TX, 0, 0, &net_beacon.payload);
             }
 
             /* We've scheduled a beacon, and should wait for the TX complete before we iterate */

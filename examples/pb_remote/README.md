@@ -9,9 +9,12 @@ in the network after all of them have been installed, for example in an ecosyste
 controller and a large set of preinstalled light fixtures spread on a considerable area.
 
 @note
-This example is experimental, meaning it is ready for use, but not qualified.
+- This example is experimental, meaning it is ready for use, but not qualified.
+- It also uses its own [static OOB value](@ref provisioning_provisionee_initialization).
+For this reason, this example cannot be used with other examples.
+For more information, see the [Examples main page](@ref example_provisioning_bearers).
 
-This example consists of two minor examples:
+The Remote provisioning example consists of two parts:
 - Remote provisioning _client model_ that acts as provisioner and provisions remote devices.
 - Remote provisioning _server_ that the client uses as relay for provisioning nodes that it
 cannot reach directly; this is the end-point for relayed provisioning packets when
@@ -52,6 +55,7 @@ Do not use them separately.
 
 You can find the source code of this example and its minor examples in the following folder:
 `<InstallFolder>/examples/pb_remote`
+
 
 ---
 

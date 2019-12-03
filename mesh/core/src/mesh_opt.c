@@ -37,6 +37,14 @@
 
 #include "mesh_opt.h"
 #include "mesh_config_entry.h"
+#include "mesh_opt_core.h"
+#if MESH_FEATURE_FRIEND_ENABLED
+#include "mesh_opt_friend.h"
+#endif
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+#include "mesh_opt_gatt.h"
+#endif
+#include "mesh_opt_prov.h"
 
 MESH_CONFIG_FILE(m_mesh_opt_core_file, MESH_OPT_CORE_FILE_ID, MESH_CONFIG_STRATEGY_CONTINUOUS);
 
@@ -44,4 +52,42 @@ void mesh_opt_init(void)
 {
     /* We have to reference a symbol in this file to avoid gcc incorrectly discarding the object if
      * it's building mesh as a library. */
+}
+
+void mesh_opt_clear(void)
+{
+    mesh_config_entry_id_t entry_id;
+
+    for (uint8_t cnt = 0; cnt < MESH_OPT_CORE_ADV_COUNT; cnt++)
+    {
+        entry_id = MESH_OPT_CORE_ADV_EID;
+        entry_id.record += cnt;
+        (void)mesh_config_entry_delete(entry_id);
+        entry_id = MESH_OPT_CORE_TX_POWER_EID;
+        entry_id.record += cnt;
+        (void)mesh_config_entry_delete(entry_id);
+        entry_id = MESH_OPT_CORE_ADV_ADDR_EID;
+        entry_id.record += cnt;
+        (void)mesh_config_entry_delete(entry_id);
+    }
+    entry_id = MESH_OPT_CORE_SEC_NWK_BCN_EID;
+    (void)mesh_config_entry_delete(entry_id);
+    entry_id = MESH_OPT_CORE_HB_PUBLICATION_EID;
+    (void)mesh_config_entry_delete(entry_id);
+
+    entry_id = MESH_OPT_PROV_ECDH_OFFLOADING_EID;
+    (void)mesh_config_entry_delete(entry_id);
+
+    entry_id = MESH_OPT_HEALTH_PRIMARY_EID;
+    (void)mesh_config_entry_delete(entry_id);
+
+#if MESH_FEATURE_FRIEND_ENABLED
+    entry_id = MESH_OPT_FRIEND_EID;
+    (void)mesh_config_entry_delete(entry_id);
+#endif
+
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    entry_id = MESH_OPT_GATT_PROXY_EID;
+    (void)mesh_config_entry_delete(entry_id);
+#endif
 }

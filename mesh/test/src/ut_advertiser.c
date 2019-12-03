@@ -301,7 +301,7 @@ void test_config(void)
     timer_now_ExpectAndReturn(20000);
     rand_prng_get_ExpectAndReturn(NULL, 10);
     rand_prng_get_IgnoreArg_p_prng();
-    timer_sch_reschedule_Expect(&m_adv.timer, 20010);
+    timer_sch_reschedule_Expect(&m_adv.timer, MS_TO_US(BEARER_ADV_INT_MIN_MS) + 20010);
     advertiser_interval_set(&m_adv, BEARER_ADV_INT_MAX_MS);
     /* invalid params: */
     TEST_NRF_MESH_ASSERT_EXPECT(advertiser_interval_set(&m_adv, BEARER_ADV_INT_MIN_MS - 1));
@@ -438,7 +438,7 @@ void test_packet_send(void)
     timer_now_ExpectAndReturn(1000);
     rand_prng_get_ExpectAndReturn(NULL, 1000);
     rand_prng_get_IgnoreArg_p_prng();
-    timer_sch_reschedule_Expect(&m_adv.timer, 2000);
+    timer_sch_reschedule_Expect(&m_adv.timer, MS_TO_US(BEARER_ADV_INT_MIN_MS) + 2000);
 
     advertiser_packet_send(&m_adv, p_packet);
     m_adv.timer.state = TIMER_EVENT_STATE_ADDED;
@@ -454,6 +454,18 @@ void test_packet_send(void)
     TEST_NRF_MESH_ASSERT_EXPECT(advertiser_packet_send(&m_adv, NULL));
     p_packet->config.repeats = 0; /* illegal */
     TEST_NRF_MESH_ASSERT_EXPECT(advertiser_packet_send(&m_adv, p_packet));
+
+    /* Check the divisor of the first schedule, by returning value bigger than the divisor. */
+    p_packet->config.repeats = 1;
+    m_adv.timer.state = TIMER_EVENT_STATE_UNUSED;
+    packet_buffer_commit_Expect(&m_adv.buf,
+                                p_packet_buf,
+                                DUMMY_BUFFER_SIZE);
+    timer_now_ExpectAndReturn(1000);
+    rand_prng_get_ExpectAndReturn(NULL, MS_TO_US(BEARER_ADV_INT_MIN_MS) + ADVERTISER_INTERVAL_RANDOMIZATION_US + 2000);
+    rand_prng_get_IgnoreArg_p_prng();
+    timer_sch_reschedule_Expect(&m_adv.timer, MS_TO_US(BEARER_ADV_INT_MIN_MS) + 3000);
+    advertiser_packet_send(&m_adv, p_packet);
 }
 
 void test_packet_discard(void)
@@ -593,7 +605,7 @@ void test_enable_disable(void)
     timer_now_ExpectAndReturn(1000);
     rand_prng_get_ExpectAndReturn(NULL, 5000);
     rand_prng_get_IgnoreArg_p_prng();
-    timer_sch_reschedule_Expect(&m_adv.timer, 1000 + 5000);
+    timer_sch_reschedule_Expect(&m_adv.timer, MS_TO_US(BEARER_ADV_INT_MIN_MS) + 1000 + 5000);
     advertiser_enable(&m_adv);
     TEST_ASSERT_TRUE(m_adv.enabled);
 
@@ -610,7 +622,7 @@ void test_enable_disable(void)
     timer_now_ExpectAndReturn(1000);
     rand_prng_get_ExpectAndReturn(NULL, 5000);
     rand_prng_get_IgnoreArg_p_prng();
-    timer_sch_reschedule_Expect(&m_adv.timer, 1000 + 5000);
+    timer_sch_reschedule_Expect(&m_adv.timer, MS_TO_US(BEARER_ADV_INT_MIN_MS) + 1000 + 5000);
     advertiser_enable(&m_adv);
     TEST_ASSERT_TRUE(m_adv.enabled);
 

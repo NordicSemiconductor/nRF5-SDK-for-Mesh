@@ -21,7 +21,7 @@ The following diagram shows the typical state transitions of the provisioner whi
 
 ![Light switch client state diagram](img/light_switch_client_state_diagram.svg "Light switch client state diagram")
 
-For more information on how a provisioning process works, see the [Mesh provisioning Guide](@ref md_doc_getting_started_provisioning).
+For more information on how a provisioning process works, see the [provisioning guide](@ref md_doc_getting_started_provisioning_main).
 
 ---
 

@@ -1,7 +1,7 @@
 # DFU example
 @anchor dfu_example
 
-@note This example is not supported by the nRF52810 Series.
+@tag52810nosupport
 
 This Device Firmware Update (DFU) example illustrates how to create an application that can be updated
 over the mesh using background mode DFU. In this mode, the new firmware is transferred in the background

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -36,6 +36,8 @@
  */
 #include "transport_test_common.h"
 
+#include "manual_mock_queue.h"
+
 static nrf_mesh_network_secmat_t m_net_secmat;
 static nrf_mesh_application_secmat_t m_app_secmat;
 static const uint8_t m_virtual_uuid[NRF_MESH_UUID_SIZE] = {1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8};
@@ -53,6 +55,7 @@ static core_tx_complete_cb_t m_tx_complete_cb;
 static nrf_mesh_evt_handler_t * mp_replay_cache_evt_handler;
 static packet_mesh_trs_packet_t m_packet_send_packet_expect;
 
+MOCK_QUEUE_DEF(net_state_iv_index_lock_queue, bool, NULL);
 
 /*****************************************************************************
 * Externed variables
@@ -179,14 +182,17 @@ void nrf_mesh_evt_handler_add(nrf_mesh_evt_handler_t * p_evt_handler)
     mp_replay_cache_evt_handler = p_evt_handler;
 }
 
-uint32_t net_state_beacon_iv_index_get(void)
+uint32_t net_state_beacon_iv_index_get_cb(int cmock_num_calls)
 {
+    UNUSED_VARIABLE(cmock_num_calls);
     return m_iv_index;
 }
 
-void net_state_iv_index_lock(bool lock)
+void net_state_iv_index_lock_cb(bool lock, int cmock_num_calls)
 {
-    // ignore
+    bool expected_lock;
+    net_state_iv_index_lock_queue_Consume(&expected_lock);
+    TEST_ASSERT_EQUAL_UINT8(expected_lock, lock);
 }
 
 timestamp_t timer_now(void)
@@ -203,6 +209,18 @@ bool nrf_mesh_is_address_rx(const nrf_mesh_address_t * p_addr)
 /*****************************************************************************
 * Utility functions
 *****************************************************************************/
+
+void expect_sar_ctx_alloc(void)
+{
+    bool lock = true;
+    net_state_iv_index_lock_queue_Expect(&lock);
+}
+
+void expect_sar_ctx_free(void)
+{
+    bool lock = false;
+    net_state_iv_index_lock_queue_Expect(&lock);
+}
 
 void expect_sar_cancel(nrf_mesh_sar_session_cancel_reason_t reason)
 {
@@ -345,6 +363,11 @@ void transport_test_common_setup(void)
     timer_scheduler_mock_Init();
     network_mock_Init();
     rand_mock_Init();
+    net_state_mock_Init();
+    net_state_iv_index_lock_queue_Init();
+
+    net_state_beacon_iv_index_get_StubWithCallback(net_state_beacon_iv_index_get_cb);
+    net_state_iv_index_lock_StubWithCallback(net_state_iv_index_lock_cb);
 
     enc_nonce_generate_Ignore();
     enc_aes_ccm_decrypt_StubWithCallback(enc_aes_ccm_decrypt_stub);
@@ -365,4 +388,8 @@ void transport_test_common_teardown(void)
     network_mock_Destroy();
     rand_mock_Verify();
     rand_mock_Destroy();
+    net_state_mock_Verify();
+    net_state_mock_Destroy();
+    net_state_iv_index_lock_queue_Verify();
+    net_state_iv_index_lock_queue_Destroy();
 }

@@ -1009,7 +1009,7 @@ ret_code_t app_timer_start(app_timer_id_t timer_id, uint32_t timeout_ticks, void
     {
         return NRF_ERROR_INVALID_STATE;
     }
-    if (timeout_ticks < APP_TIMER_MIN_TIMEOUT_TICKS)
+    if ((timeout_ticks < APP_TIMER_MIN_TIMEOUT_TICKS) || (timeout_ticks > MAX_RTC_COUNTER_VAL))
     {
         return NRF_ERROR_INVALID_PARAM;
     }

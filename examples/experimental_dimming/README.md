@@ -1,6 +1,6 @@
 # Dimming examples (experimental)
 
-@note The example is not supported by the nRF52810 Series.
+@tag52810nosupport
 
 This example demonstrates a mesh network scenario where a mesh dimmer controls and changes settings of a mesh dimmable light.
 It consists of two minor examples:
@@ -186,30 +186,17 @@ of the nodes, you can reset the provisioner to restart the process for that node
 
 ### Evaluating using the nRF Mesh mobile app @anchor dimming_prov_nrf_mesh
 
-1. Flash the examples by following the instructions in @ref md_doc_getting_started_how_to_run_examples,
-including:
-    1. Erase the flash of your development boards and program the SoftDevice.
-    2. Flash the client firmware on one board and the server firmware on the remaining board or boards.
-2. Open the nRF Mesh mobile app.
-3. Provision the nodes. The client board is `nRF5x Mesh Dimmer`,
-the server board is `nRF5x Mesh Dimmable Light`.
-5. Bind the Generic Level client and server model instances on the nodes with the same app key:
-    1. Select the Network tab.
-    2. On the server board tile, tap the **Configure** button to open Node Configuration.
-    3. Expand the Elements section and tap **Generic Level Server**.
-    4. In the Bound App Keys section, tap the **Bind Key** button and select the app key.
-    5. On the client board tile, tap the **Configure** button to open Node Configuration.
-    6. Expand the Elements section and tap **Generic Level Client**.
-    7. In the Bound App Keys section, tap the **Bind Key** button and select the app key.
-6. In the client Node Configuration, expand the Elements section. 
-7. Select the first Generic OnOff Client model instance.
-8. In the Publish section, set the Publish Address to one of the following addresses of the server nodes:
-    - unicast address of any server node;
-    - group addresses -- if you choose this option, remember to subscribe the server nodes to these
-    group addresses.
+See @ref nrf-mesh-mobile-app "the information on the main Examples page" for detailed steps required
+to provision and configure the boards using the nRF Mesh mobile app.
 
-@note You can also configure the publish address of the second Generic Level client model instance
-to the unicast address of any other server node.
+When using the nRF Mesh app with this example, the following naming convention is used in the app:
+- The server board is `nRF5x Mesh Dimmable Light`.
+- The client board is `nRF5x Mesh Dimmer`.
+
+The following model instances must be configured in the app for this example:
+- For the `nRF5x Mesh Dimmable Light` server board: Generic Level Server.
+- For the `nRF5x Mesh Dimmer` client board: Generic Level Client.
+
 
 ### Interacting with the boards @anchor dimming_example_testing_interacting
 

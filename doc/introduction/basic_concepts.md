@@ -19,10 +19,10 @@ Read more about basic Bluetooth Mesh concepts in the following sections:
 [relays](@ref concepts_network_topo_relays), [power consumption](@ref concepts_network_topo_power), and [GATT proxy](@ref concepts_network_topo_gatt).
 - [Addressing](@ref concepts_addressing)
 - [Models and elements](@ref concepts_models_and_elements)
-- [Provisioning](@ref concepts_provisioning)
-- [Network configuration](@ref concepts_network_config)
+- [Device life cycle](@ref concepts_lifecycle), including information about [provisioning](@ref concepts_lifecycle_provisioning) and [network configuration](@ref concepts_lifecycle_network_config).
 - [Security](@ref concepts_security), including information about [authentication](@ref concepts_security_authentication),
 [message encryption](@ref concepts_security_encryption), [privacy key](@ref concepts_security_privacy), and [replay protection](@ref concepts_security_replay_protection).
+
 
 
 ---
@@ -161,34 +161,52 @@ For more information about models in the nRF5 SDK for Mesh, see @ref md_doc_libr
 
 ---
 
+## Device life cycle @anchor concepts_lifecycle
 
-## Provisioning @anchor concepts_provisioning
+Every new device that is to be added to the mesh network must go through the following stages to become a mesh network node:
+- [Provisioning](@ref concepts_lifecycle_provisioning) -- after this stage, an unprovisioned device becomes a network node. This stage includes the following steps:
+    - Discovery
+    - [Authentication](@ref concepts_security_authentication)
+    - [Address](@ref concepts_addressing) assignment and network information exchange -- at the end of this step, the device becomes a node
+- [Configuration](@ref concepts_lifecycle_network_config) -- after this stage, a node is able to perform its tasks that require exchanging mesh messages with neighboring nodes. This stage includes the following steps:
+    - Configuration of the node using the mandatory Config Server model
+    - Addition of desired application keys and additional network keys
+    - Optional configuration of the application-specific [models](@ref concepts_models_and_elements), for example for key bindings, publications or subscriptions (or both)
+
+Both of these stages are typically carried out by one device that acts as provisioner and configurator.
+
+![Mesh node life cycle](img/mesh_device_lifecycle.svg)
+
+A mesh node can revert to being an unprovisioned device by performing a Node Reset procedure, which removes the node from the network.
+
+The node can be also forcibly excluded from participating in the network with the key refresh procedure.
+Once the key refresh procedure is completed for the rest of the nodes in a network, the node's unicast address
+can be allocated to a new unprovisioned device.
+
+### Provisioning @anchor concepts_lifecycle_provisioning
 
 Before a device can participate in normal mesh operation, it must be provisioned.
 
 The provisioning is done by a _Provisioner_, which is a trusted device with access to the full list of devices
-in the network, and their configuration data. After the new device has been provisioned,
+in the network, and their configuration data. After the new device, called _Provisionee_, has been provisioned,
 the provisioner uses the new device's device key to establish a secure channel to configure it.
 
-For more information about provisioning in the nRF5 SDK for Mesh, see @ref md_doc_getting_started_enabling_provisioning.
+For more information about provisioning in the nRF5 SDK for Mesh, see @ref md_doc_getting_started_provisioning_main.
 
----
-
-
-## Network configuration @anchor concepts_network_config
+### Configuration @anchor concepts_lifecycle_network_config
 
 Bluetooth Mesh leaves the network configuration to a central network configurator. Devices are not expected to do any sort of service
 discovery on their own.
 
-To control other devices, devices like a light or a light switch must be configured by a provisioner, either through user
-interaction or by loading a predetermined configuration from a database. Every device must implement a mandatory Configuration Server
-model in their first element, which is used to configure the rest of its models.
+To control other devices, new devices must be configured by a provisioner, either through user interaction or by loading a predetermined configuration from a database.
+Every device must implement a mandatory Configuration Server model in their first element, which is used to configure the rest of its models.
 
 As soon as provisioning is complete, the provisioner uses its instance of the Configuration Client model to give the new device a set
 of application keys and addresses. The device will use these keys and addresses for the duration of its lifetime on the network, unless
 it gets reconfigured.
 
-### Example scenario: A light bulb and a switch @anchor concepts_network_config_example
+
+#### Configuration example scenario: A light bulb and a switch @anchor concepts_lifecycle_network_config_example
 
 After a new light switch has been provisioned:
 -# The Configuration Client model in the provisioner reads out a list of the new device's
@@ -201,7 +219,6 @@ the light bulbs in the kitchen subscribe.
 The next time the new light switch is pressed, all light bulbs in the kitchen turn on.
 
 ---
-
 
 ## Security @anchor concepts_security
 

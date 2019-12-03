@@ -27,8 +27,10 @@ but not qualified yet:
 - GATT bearer
 - Config client
 - Mesh Proxy Service with Proxy Server
-- Low Power feature
 - Generic server and client models
+- Friendship feature, with both its parts:
+    - Low Power node
+    - Friend node
 
 For a quick demonstration of some of the basic concepts of the Bluetooth Mesh
 network using Nordic's nRF5 SDK for Mesh, see [Quick start guide: running a first example](@ref md_doc_getting_started_mesh_quick_start).

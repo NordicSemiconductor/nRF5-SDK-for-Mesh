@@ -155,6 +155,9 @@ NRF_BLE_GATT_DEF(m_gatt);                               /**< GATT module instanc
 NRF_BLE_QWR_DEF(m_qwr);                                 /**< Context for the Queued Write module.*/
 BLE_ADVERTISING_DEF(m_advertising);                     /**< Advertising module instance. */
 BLE_DB_DISCOVERY_DEF(m_ble_db_discovery);               /**< DB discovery module instance. */
+NRF_BLE_GQ_DEF(m_ble_gatt_queue,                        /**< BLE GATT Queue instance. */
+               NRF_SDH_BLE_PERIPHERAL_LINK_COUNT,
+               NRF_BLE_GQ_QUEUE_SIZE);
 
 static volatile bool m_is_high_alert_signalled;         /**< Variable to indicate whether a high alert has been signalled to the peer. */
 static volatile bool m_is_ias_present = false;          /**< Variable to indicate whether the immediate alert service has been discovered at the connected peer. */
@@ -580,6 +583,7 @@ static void ias_client_init(void)
 
     ias_c_init_obj.evt_handler   = on_ias_c_evt;
     ias_c_init_obj.error_handler = service_error_handler;
+    ias_c_init_obj.p_gatt_queue  = &m_ble_gatt_queue;
 
     err_code = ble_ias_c_init(&m_ias_c, &ias_c_init_obj);
     APP_ERROR_CHECK(err_code);
@@ -603,7 +607,14 @@ static void services_init(void)
  */
 static void db_discovery_init(void)
 {
-    ret_code_t err_code = ble_db_discovery_init(db_disc_handler);
+    ble_db_discovery_init_t db_init;
+
+    memset(&db_init, 0, sizeof(ble_db_discovery_init_t));
+
+    db_init.evt_handler  = db_disc_handler;
+    db_init.p_gatt_queue = &m_ble_gatt_queue;
+
+    ret_code_t err_code = ble_db_discovery_init(&db_init);
     APP_ERROR_CHECK(err_code);
 }
 

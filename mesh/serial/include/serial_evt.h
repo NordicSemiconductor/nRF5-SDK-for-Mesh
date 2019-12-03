@@ -95,6 +95,7 @@
 #define SERIAL_OPCODE_EVT_MESH_IV_UPDATE_NOTIFICATION        (0xD3) /**< Params: @ref serial_evt_mesh_iv_update_t */
 #define SERIAL_OPCODE_EVT_MESH_KEY_REFRESH_NOTIFICATION      (0xD4) /**< Params: @ref serial_evt_mesh_key_refresh_t */
 #define SERIAL_OPCODE_EVT_MESH_SAR_FAILED                    (0xD7) /**< Params: None. */
+#define SERIAL_OPCODE_EVT_MESH_HEARTBEAT_RECEIVED            (0xD8) /**< Params: @ref serial_evt_mesh_hb_message_t */
 
 #define SERIAL_OPCODE_EVT_MODEL_SPECIFIC                     (0xF0) /**< Params: @ref serial_evt_model_specific_t */
 
@@ -311,6 +312,19 @@ typedef struct __attribute((packed))
     uint8_t  phase;        /**< Current key refresh phase for the network key being updated. */
 } serial_evt_mesh_key_refresh_t;
 
+/** Mesh heartbeat event parameters. */
+typedef struct __attribute((packed))
+{
+    /** Initial TTL value used for sending this heartbeat message. */
+    uint8_t  init_ttl;
+    /** Number of hops equals: (Initial TTL - Received message TTL + 1). */
+    uint8_t  hops;
+    /** State bitmap of the feature. See @ref MESH_DEFINES_HEARTBEAT to interpret bit fields. */
+    uint16_t features;
+    /** Source address for the received heartbeat message. */
+    uint16_t src;
+} serial_evt_mesh_hb_message_t;
+
 /** Union of all serial event parameters */
 typedef union __attribute((packed))
 {
@@ -318,6 +332,7 @@ typedef union __attribute((packed))
     serial_evt_mesh_tx_complete_t       tx_complete;      /**< TX complete parameters. */
     serial_evt_mesh_iv_update_t         iv_update;        /**< IV update parameters. */
     serial_evt_mesh_key_refresh_t       key_refresh;      /**< Key refresh parameters. */
+    serial_evt_mesh_hb_message_t        heartbeat;        /**< Heartbeat message parameters. */
 } serial_evt_mesh_t;
 
 /********* DFU parameters *********/

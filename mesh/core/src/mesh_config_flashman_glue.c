@@ -42,6 +42,9 @@
 #include "flash_manager.h"
 #include "event.h"
 #include "utils.h"
+#include "mesh_opt.h"
+#include "nrf_mesh_config_core.h"
+#include "log.h"
 
 typedef struct
 {
@@ -49,19 +52,36 @@ typedef struct
     mesh_config_backend_file_t * p_file;
 } record_iterator_context_t;
 
-extern const void * access_flash_area_get(void);
-
 #define FLASH_TIME_PER_WORD_US        FLASH_TIME_TO_WRITE_ONE_WORD_US
 #define FLASH_ENTRY_TIME_OVERHEAD_US  100
 #define FLASH_BASE_TIME_OVERHEAD_US   500
 
+#ifndef NET_FLASH_PAGE_COUNT
+/* This is set to (1) to be compatible with old default value. The value of this is not used
+ * unless ACCESS_FLASH_PAGE_COUNT and DSM_FLASH_PAGE_COUNT are both defined and non-zero,
+ * which will trigger backward compatible persistence.
+ */
+#define NET_FLASH_PAGE_COUNT (1)
+#endif
+
+#ifndef ACCESS_FLASH_PAGE_COUNT
+#define ACCESS_FLASH_PAGE_COUNT (0)
+#endif
+
+#ifndef DSM_FLASH_PAGE_COUNT
+#define DSM_FLASH_PAGE_COUNT (0)
+#endif
+
+#define BACKWARD_COMPATIBLE_PERSISTENCE (NET_FLASH_PAGE_COUNT && \
+                                         ACCESS_FLASH_PAGE_COUNT && \
+                                         DSM_FLASH_PAGE_COUNT)
 
 static mesh_config_backend_evt_cb_t m_evt_cb;
 static uint8_t m_allocated_page_count;
 
 static const uint8_t * flash_area_end_get(void)
 {
-    return ((const uint8_t *) access_flash_area_get());
+    return ((const uint8_t *) flash_manager_recovery_page_get());
 }
 
 static void flash_stable_cb(void)
@@ -138,10 +158,76 @@ void mesh_config_backend_glue_init(mesh_config_backend_evt_cb_t evt_cb)
     flash_manager_action_queue_empty_cb_set(flash_stable_cb);
 }
 
+#if BACKWARD_COMPATIBLE_PERSISTENCE
+static const void * legacy_net_location_get(void)
+{
+#ifdef NET_FLASH_AREA_LOCATION
+    return NET_FLASH_AREA_LOCATION;
+#else
+    return NULL;
+#endif
+}
+
+static const void * legacy_dsm_location_get(void)
+{
+#ifdef DSM_FLASH_AREA_LOCATION
+    return DSM_FLASH_AREA_LOCATION;
+#else
+    const void * p_net_location = legacy_net_location_get();
+    return p_net_location != NULL ? p_net_location - (DSM_FLASH_PAGE_COUNT * PAGE_SIZE) : NULL;
+#endif
+}
+
+static const void * legacy_access_location_get(void)
+{
+#ifdef ACCESS_FLASH_AREA_LOCATION
+    return ACCESS_FLASH_AREA_LOCATION;
+#else
+    const void * p_dsm_location = legacy_dsm_location_get();
+    return p_dsm_location != NULL ? p_dsm_location - (ACCESS_FLASH_PAGE_COUNT * PAGE_SIZE) : NULL;
+#endif
+}
+
+static void legacy_flash_config_get(mesh_config_backend_file_t * p_file,
+                                    uint8_t *                    p_page_count,
+                                    flash_manager_page_t **      pp_area)
+{
+    switch (p_file->file_id)
+    {
+        case MESH_OPT_NET_STATE_FILE_ID:
+            *p_page_count = NET_FLASH_PAGE_COUNT;
+            *pp_area      = (flash_manager_page_t *)legacy_net_location_get();
+            break;
+        case MESH_OPT_ACCESS_FILE_ID:
+            *p_page_count = ACCESS_FLASH_PAGE_COUNT;
+            *pp_area      = (flash_manager_page_t *)legacy_access_location_get();
+            break;
+        case MESH_OPT_DSM_FILE_ID:
+            *p_page_count = DSM_FLASH_PAGE_COUNT;
+            *pp_area      = (flash_manager_page_t *)legacy_dsm_location_get();
+            break;
+        default:
+            *p_page_count = CEIL_DIV(p_file->size, FLASH_MANAGER_DATA_PER_PAGE);
+            *pp_area      = NULL;
+            break;
+    }
+}
+#endif /* BACKWARD_COMPATIBLE_PERSISTENCE */
+
 uint32_t mesh_config_backend_file_create(mesh_config_backend_file_t * p_file)
 {
-    uint8_t page_count = CEIL_DIV(p_file->size, FLASH_MANAGER_DATA_PER_PAGE);
-    m_allocated_page_count += page_count;
+    uint8_t page_count;
+    flash_manager_page_t * p_area;
+#if !(BACKWARD_COMPATIBLE_PERSISTENCE)
+    page_count = CEIL_DIV(p_file->size, FLASH_MANAGER_DATA_PER_PAGE);
+#else
+    legacy_flash_config_get(p_file, &page_count, &p_area);
+    if (p_area == NULL)
+#endif
+    {
+        m_allocated_page_count += page_count;
+        p_area = (flash_manager_page_t *)(flash_area_end_get() - (m_allocated_page_count * PAGE_SIZE));
+    }
     flash_manager_t * p_manager = &p_file->glue_data.flash_manager;
     const flash_manager_config_t config =
     {
@@ -149,10 +235,12 @@ uint32_t mesh_config_backend_file_create(mesh_config_backend_file_t * p_file)
         .invalidate_complete_cb = invalidate_complete_cb,
         .remove_complete_cb = remove_complete_cb,
         .min_available_space = p_file->size,
-        .p_area = (const flash_manager_page_t *)(flash_area_end_get() - (m_allocated_page_count * PAGE_SIZE)), /*lint !e446 side effect in initializer */
+        .p_area = p_area,
         .page_count = page_count
     };
 
+    __LOG(LOG_SRC_FM, LOG_LEVEL_DBG3, "Mesh config area: 0x%08x file_id: 0x%04x\n",
+          config.p_area, p_file->file_id);
     return flash_manager_add(p_manager, &config);
 }
 

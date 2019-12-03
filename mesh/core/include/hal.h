@@ -51,9 +51,18 @@
 /** Retention register bits that are relevant for the mesh stack. */
 #define NRF_MESH_GPREGRET_USED_BIT_MASK  (0x000000FF)
 
+#if defined(MBR_PRESENT) || defined(SOFTDEVICE_PRESENT)
+#include "nrf_mbr.h"
+/**< The currently configured start address of the bootloader. If 0xFFFFFFFF, no bootloader start
+ * address is configured. */
+#define BOOTLOADERADDR()      ((*(uint32_t *)MBR_BOOTLOADER_ADDR) == 0xFFFFFFFF ? \
+                                *MBR_UICR_BOOTLOADER_ADDR : *(uint32_t *)MBR_BOOTLOADER_ADDR)
+#else
+/**< Check UICR, just in case. */
+#define BOOTLOADERADDR()      (NRF_UICR->NRFFW[0])
+#endif
+
 #if NRF51
-/** Gets nRF51 bootloader address. */
-#define BOOTLOADERADDR() (NRF_UICR->BOOTLOADERADDR)
 /** nRF51 flash page size. */
 #define PAGE_SIZE        (0x400)
 /** nRF51 code RAM start. */
@@ -71,8 +80,6 @@
 /** Timer to write a single flash word. */
 #define FLASH_TIME_TO_WRITE_ONE_WORD_US     (48)
 #elif NRF52_SERIES
-/** Gets the nRF52 bootloader address. */
-#define BOOTLOADERADDR() (NRF_UICR->NRFFW[0])
 /** nRF52 flash page size. */
 #define PAGE_SIZE        (0x1000)
 /** nRF52 code RAM start address. */
@@ -96,6 +103,11 @@
 #define FLASH_TIME_TO_ERASE_PAGE_US         (89700)
 /** Timer to write a single flash word. */
 #define FLASH_TIME_TO_WRITE_ONE_WORD_US     (338)
+#elif defined(NRF52833)
+/** Timer to erase a single flash page. */
+#define FLASH_TIME_TO_ERASE_PAGE_US         (87500)
+/** Timer to write a single flash word. */
+#define FLASH_TIME_TO_WRITE_ONE_WORD_US     (43)
 #elif defined(NRF52840)
 /** Timer to erase a single flash page. */
 #define FLASH_TIME_TO_ERASE_PAGE_US         (85000)

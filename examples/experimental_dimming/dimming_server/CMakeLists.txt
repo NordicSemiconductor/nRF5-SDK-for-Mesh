@@ -79,5 +79,5 @@ get_property(target_include_dirs TARGET ${target} PROPERTY INCLUDE_DIRECTORIES)
 add_pc_lint(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c;${CMAKE_SOURCE_DIR}/examples/common/src/app_level.c"
     "${target_include_dirs}"
-    "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES}")
+    "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES};-DUSE_APP_CONFIG")
 add_ses_project(${target})

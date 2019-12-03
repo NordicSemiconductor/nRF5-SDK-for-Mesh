@@ -101,6 +101,7 @@
 #define LOG_SRC_FRIEND          (1 << 17) /**< Receive logs from the Friend node. */
 #define LOG_SRC_DSM             (1 << 18) /**< Receive logs from the DSM module. */
 #define LOG_SRC_CORE            (1 << 19) /**< Receive logs from the other core modules. */
+#define LOG_SRC_FM              (1 << 20) /**< Receive logs from the flash management modules. */
 
 /** Group for receiving logs from the core stack. */
 #define LOG_GROUP_STACK (LOG_SRC_BEARER | LOG_SRC_NETWORK | LOG_SRC_TRANSPORT)

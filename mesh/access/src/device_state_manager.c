@@ -67,10 +67,8 @@
 #include "mesh_opt_friend.h"
 #endif
 
-#if PERSISTENT_STORAGE
-#include "flash_manager.h"
-#include "device_state_manager_flash.h"
-#endif
+#include "mesh_opt_dsm.h"
+#include "mesh_config_entry.h"
 
 #if MESH_FEATURE_GATT_PROXY_ENABLED
 #include "proxy.h"
@@ -93,38 +91,6 @@
 /** In order for the two to share address space, the first virtual address
  * handle starts after the last nonvirtual handle */
 #define DSM_VIRTUAL_HANDLE_START     DSM_NONVIRTUAL_ADDR_MAX
-
-#if PERSISTENT_STORAGE
-/** Margin to leave on each flash page, to accommodate padding. We'll never pad more than what's
- * required to fit the largest entry. */
-#define DSM_FLASH_PAGE_MARGIN (sizeof(fm_header_t) + sizeof(dsm_flash_entry_t))
-
-/** We must be able to store at least all the entries that go into the RAM representation in the
- * flash. Calculate the minimum and static assert. */
-#define DSM_FLASH_DATA_SIZE_MINIMUM                                                                                  \
-     (ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_unicast_t)), WORD_SIZE) +                               \
-      ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_nonvirtual_t)), WORD_SIZE)  * DSM_NONVIRTUAL_ADDR_MAX + \
-      ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_addr_virtual_t)), WORD_SIZE)     * DSM_VIRTUAL_ADDR_MAX +    \
-      ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_subnet_t)), WORD_SIZE)           * DSM_SUBNET_MAX +          \
-      ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_devkey_t)), WORD_SIZE)           * DSM_DEVICE_MAX +          \
-      ALIGN_VAL((sizeof(fm_header_t) + sizeof(dsm_flash_entry_appkey_t)), WORD_SIZE)           * DSM_APP_MAX)
-
-#define DSM_FLASH_PAGE_COUNT_MINIMUM FLASH_MANAGER_PAGE_COUNT_MINIMUM(DSM_FLASH_DATA_SIZE_MINIMUM, DSM_FLASH_PAGE_MARGIN)
-
-#ifdef DSM_FLASH_AREA_LOCATION
-NRF_MESH_STATIC_ASSERT(IS_PAGE_ALIGNED(DSM_FLASH_AREA_LOCATION));
-#endif
-
-/* If this fails, increase the DSM_FLASH_PAGE_COUNT: */
-NRF_MESH_STATIC_ASSERT((DSM_FLASH_PAGE_COUNT) >= DSM_FLASH_PAGE_COUNT_MINIMUM);
-NRF_MESH_STATIC_ASSERT(DSM_APP_MAX < DSM_FLASH_HANDLE_FILTER_MASK);
-NRF_MESH_STATIC_ASSERT(DSM_SUBNET_MAX < DSM_FLASH_HANDLE_FILTER_MASK);
-NRF_MESH_STATIC_ASSERT(DSM_DEVICE_MAX < DSM_FLASH_HANDLE_FILTER_MASK);
-NRF_MESH_STATIC_ASSERT(DSM_FLASH_HANDLE_FILTER_MASK <= UINT16_MAX);
-NRF_MESH_STATIC_ASSERT(DSM_FLASH_HANDLE_FILTER_MASK <= DSM_HANDLE_INVALID);
-NRF_MESH_STATIC_ASSERT(DSM_NONVIRTUAL_ADDR_MAX < DSM_FLASH_HANDLE_FILTER_MASK);
-NRF_MESH_STATIC_ASSERT(DSM_VIRTUAL_HANDLE_START + DSM_VIRTUAL_ADDR_MAX < DSM_FLASH_HANDLE_FILTER_MASK);
-#endif /* PERSISTENT_STORAGE */
 
 NRF_MESH_STATIC_ASSERT(DSM_APP_MAX >= 1 && DSM_APP_MAX <= DSM_APP_MAX_LIMIT);
 NRF_MESH_STATIC_ASSERT(DSM_SUBNET_MAX >= 1 && DSM_SUBNET_MAX <= DSM_SUBNET_MAX_LIMIT);
@@ -217,44 +183,12 @@ typedef enum
     DSM_ADDRESS_ROLE_PUBLISH
 } dsm_address_role_t;
 
-typedef enum
-{
-    DSM_ENTRY_TYPE_LOCAL_UNICAST,
-    DSM_ENTRY_TYPE_ADDR_NONVIRTUAL,
-    DSM_ENTRY_TYPE_ADDR_VIRTUAL,
-    DSM_ENTRY_TYPE_SUBNET,
-    DSM_ENTRY_TYPE_APPKEY,
-    DSM_ENTRY_TYPE_DEVKEY,
-    DSM_ENTRY_TYPES
-} dsm_entry_type_t;
-
-#if PERSISTENT_STORAGE
-
-/* Callback function for converting a DSM entry into a flash entry. */
-typedef void (*dsm_entry_to_flash_entry_t)(uint32_t index, dsm_flash_entry_t * p_dst, uint16_t * p_entry_len);
-/* Callback function for converting a flash entry into a DSM entry. */
-typedef void (*flash_entry_to_dsm_entry_t)(uint32_t index, const dsm_flash_entry_t * p_src, uint16_t entry_len);
-
 typedef struct
 {
-    uint32_t entry_count;
-    uint32_t * p_allocated_bitfield;
-    uint32_t * p_needs_flashing_bitfield;
-    fm_handle_t flash_start_handle;
-    uint32_t flash_entry_data_size;
-    dsm_entry_to_flash_entry_t to_flash_entry;
-    flash_entry_to_dsm_entry_t to_dsm_entry;
-} flash_group_t;
-
-typedef enum
-{
-    FLASH_STATE_READY,
-    FLASH_STATE_WAITING_FOR_MEMORY,
-    FLASH_STATE_REMOVING,
-    FLASH_STATE_REMOVED,
-    FLASH_STATE_REBUILDING
-} flash_state_t;
-#endif /* PERSISTENT_STORAGE */
+    uint8_t is_metadata_stored : 1;
+    uint8_t is_load_failed : 1;
+    uint8_t is_legacy_found : 1;
+} local_dsm_status_t;
 
 /*****************************************************************************
 * Static globals
@@ -290,22 +224,16 @@ static uint32_t m_addr_virtual_allocated[BITFIELD_BLOCK_COUNT(DSM_VIRTUAL_ADDR_M
 static uint32_t m_subnet_allocated[BITFIELD_BLOCK_COUNT(DSM_SUBNET_MAX)];
 static uint32_t m_appkey_allocated[BITFIELD_BLOCK_COUNT(DSM_APP_MAX)];
 static uint32_t m_devkey_allocated[BITFIELD_BLOCK_COUNT(DSM_DEVICE_MAX)];
-/* Bitfields for all entry types, indicating whether or not they need their flash representation to
- * be updated. */
-static uint32_t m_addr_unicast_needs_flashing[BITFIELD_BLOCK_COUNT(1)];
-static uint32_t m_addr_nonvirtual_needs_flashing[BITFIELD_BLOCK_COUNT(DSM_NONVIRTUAL_ADDR_MAX)];
-static uint32_t m_addr_virtual_needs_flashing[BITFIELD_BLOCK_COUNT(DSM_VIRTUAL_ADDR_MAX)];
-static uint32_t m_subnet_needs_flashing[BITFIELD_BLOCK_COUNT(DSM_SUBNET_MAX)];
-static uint32_t m_appkey_needs_flashing[BITFIELD_BLOCK_COUNT(DSM_APP_MAX)];
-static uint32_t m_devkey_needs_flashing[BITFIELD_BLOCK_COUNT(DSM_DEVICE_MAX)];
+
+/** Set of the global flags to keep track of the dsm changes.*/
+static local_dsm_status_t m_status;
+
+static void dsm_entry_store(uint16_t record_id, dsm_handle_t handle, uint32_t * p_property);
+static void dsm_entry_invalidate(uint16_t record_id, dsm_handle_t handle, uint32_t * p_property);
 
 /*****************************************************************************
 * Static functions
 *****************************************************************************/
-
-static bool flash_save(dsm_entry_type_t type, uint32_t index);
-static bool flash_invalidate(dsm_entry_type_t type, uint32_t index);
-
 /* Checks if a given address handle is a valid non-virtual address handle. */
 static inline bool address_handle_nonvirtual_valid(dsm_handle_t address_handle)
 {
@@ -999,7 +927,6 @@ static void subnet_set(mesh_key_index_t net_key_index, const uint8_t * p_key, ds
     m_subnets[handle].net_key_index = net_key_index;
     m_subnets[handle].key_refresh_phase = NRF_MESH_KEY_REFRESH_PHASE_0;
     bitfield_set(m_subnet_allocated, handle);
-    bitfield_set(m_subnet_needs_flashing, handle);
 }
 
 static void appkey_set(mesh_key_index_t app_key_index, dsm_handle_t subnet_handle, const uint8_t * p_key, dsm_handle_t handle)
@@ -1012,7 +939,6 @@ static void appkey_set(mesh_key_index_t app_key_index, dsm_handle_t subnet_handl
     m_appkeys[handle].app_key_index = app_key_index;
     m_appkeys[handle].subnet_handle = subnet_handle;
     bitfield_set(m_appkey_allocated, handle);
-    bitfield_set(m_appkey_needs_flashing, handle);
 }
 
 static void devkey_set(uint16_t key_owner, dsm_handle_t subnet_handle, const uint8_t * p_key, dsm_handle_t handle)
@@ -1024,7 +950,6 @@ static void devkey_set(uint16_t key_owner, dsm_handle_t subnet_handle, const uin
     m_devkeys[index].subnet_handle = subnet_handle;
     m_devkeys[index].key_owner = key_owner;
     bitfield_set(m_devkey_allocated, index);
-    bitfield_set(m_devkey_needs_flashing, index);
 }
 
 static void nonvirtual_address_set(uint16_t raw_address, dsm_handle_t handle)
@@ -1033,7 +958,6 @@ static void nonvirtual_address_set(uint16_t raw_address, dsm_handle_t handle)
     m_addresses[handle].subscription_count = 0;
     m_addresses[handle].publish_count = 0;
     bitfield_set(m_addr_nonvirtual_allocated, handle);
-    bitfield_set(m_addr_nonvirtual_needs_flashing, handle);
 }
 
 static void virtual_address_set(const uint8_t * p_label_uuid, dsm_handle_t handle)
@@ -1042,7 +966,6 @@ static void virtual_address_set(const uint8_t * p_label_uuid, dsm_handle_t handl
     memcpy(m_virtual_addresses[index].uuid, p_label_uuid, NRF_MESH_UUID_SIZE);
     NRF_MESH_ASSERT(nrf_mesh_keygen_virtual_address(p_label_uuid, &m_virtual_addresses[index].address) == NRF_SUCCESS);
     bitfield_set(m_addr_virtual_allocated, index);
-    bitfield_set(m_addr_virtual_needs_flashing, index);
 }
 
 static uint32_t address_delete_if_unused(dsm_handle_t address_handle)
@@ -1051,23 +974,21 @@ static uint32_t address_delete_if_unused(dsm_handle_t address_handle)
     {
         if (m_addresses[address_handle].publish_count == 0 && m_addresses[address_handle].subscription_count == 0)
         {
-            bitfield_clear(m_addr_nonvirtual_allocated, address_handle);
             m_addresses[address_handle].address = NRF_MESH_ADDR_UNASSIGNED;
-            (void) flash_invalidate(DSM_ENTRY_TYPE_ADDR_NONVIRTUAL, address_handle);
+            dsm_entry_invalidate(MESH_OPT_DSM_NONVIRTUAL_ADDR_RECORD, address_handle, m_addr_nonvirtual_allocated);
         }
 
         return NRF_SUCCESS;
     }
     else if (address_handle_virtual_valid(address_handle))
     {
-        uint32_t addr_virtual_index = address_handle - DSM_VIRTUAL_HANDLE_START;
+        uint16_t addr_virtual_index = address_handle - DSM_VIRTUAL_HANDLE_START;
 
         if (m_virtual_addresses[addr_virtual_index].publish_count == 0 &&
             m_virtual_addresses[addr_virtual_index].subscription_count == 0)
         {
-            bitfield_clear(m_addr_virtual_allocated, addr_virtual_index);
             m_virtual_addresses[addr_virtual_index].address = NRF_MESH_ADDR_UNASSIGNED;
-            (void) flash_invalidate(DSM_ENTRY_TYPE_ADDR_VIRTUAL, addr_virtual_index);
+            dsm_entry_invalidate(MESH_OPT_DSM_VIRTUAL_ADDR_RECORD, addr_virtual_index, m_addr_virtual_allocated);
         }
 
         return NRF_SUCCESS;
@@ -1109,7 +1030,7 @@ static uint32_t add_address(uint16_t raw_address, dsm_handle_t * p_address_handl
         else
         {
             nonvirtual_address_set(raw_address, handle);
-            (void) flash_save(DSM_ENTRY_TYPE_ADDR_NONVIRTUAL, handle);
+            dsm_entry_store(MESH_OPT_DSM_NONVIRTUAL_ADDR_RECORD, handle, m_addr_nonvirtual_allocated);
         }
     }
 
@@ -1131,6 +1052,7 @@ static uint32_t add_address(uint16_t raw_address, dsm_handle_t * p_address_handl
             m_addresses[*p_address_handle].publish_count++;
         }
     }
+
     return status;
 }
 
@@ -1152,7 +1074,7 @@ static uint32_t add_address_virtual(const uint8_t * p_label_uuid, dsm_handle_t *
         }
 
         virtual_address_set(p_label_uuid, handle);
-        (void) flash_save(DSM_ENTRY_TYPE_ADDR_VIRTUAL, dest);
+        dsm_entry_store(MESH_OPT_DSM_VIRTUAL_ADDR_RECORD, dest, m_addr_virtual_allocated);
     }
     *p_address_handle = handle;
     if (role == DSM_ADDRESS_ROLE_SUBSCRIBE)
@@ -1169,6 +1091,7 @@ static uint32_t add_address_virtual(const uint8_t * p_label_uuid, dsm_handle_t *
     {
         m_virtual_addresses[dest].publish_count++;
     }
+
     return NRF_SUCCESS;
 }
 
@@ -1304,565 +1227,588 @@ static void mesh_evt_handler(const nrf_mesh_evt_t * p_evt)
                         NRF_SUCCESS);
                 }
             }
+            break;
 #endif
+
+        case NRF_MESH_EVT_CONFIG_LOAD_FAILURE:
+            if (p_evt->params.config_load_failure.id.file == MESH_OPT_DSM_FILE_ID)
+            {
+                m_status.is_load_failed = 1;
+            }
+            break;
+
         default:
             break;
     }
 }
-/******************************* FLASH STORAGE MANAGEMENT *****************************************/
-
-#if PERSISTENT_STORAGE
-/** Flash manager owning the flash storage area. */
-static flash_manager_t m_flash_manager;
-/** State of our flash system */
-static bool m_flash_is_available;
-/** Memory listener used to recover from no-mem returns on the flash manager. */
-static fm_mem_listener_t m_flash_mem_listener_update_all;
-
-/* Flash utility functions */
-static void addr_unicast_to_flash_entry(uint32_t index, dsm_flash_entry_t * p_dst, uint16_t * p_entry_len);
-
-static void addr_nonvirtual_to_flash_entry(uint32_t index, dsm_flash_entry_t * p_dst, uint16_t * p_entry_len);
-static void addr_virtual_to_flash_entry(uint32_t index, dsm_flash_entry_t * p_dst, uint16_t * p_entry_len);
-static void subnet_to_flash_entry(uint32_t index, dsm_flash_entry_t * p_dst, uint16_t * p_entry_len);
-static void appkey_to_flash_entry(uint32_t index, dsm_flash_entry_t * p_dst, uint16_t * p_entry_len);
-static void devkey_to_flash_entry(uint32_t index, dsm_flash_entry_t * p_dst, uint16_t * p_entry_len);
-
-static void addr_unicast_to_dsm_entry(uint32_t index, const dsm_flash_entry_t * p_dst, uint16_t entry_len);
-
-static void addr_nonvirtual_to_dsm_entry(uint32_t index, const dsm_flash_entry_t * p_dst, uint16_t entry_len);
-static void addr_virtual_to_dsm_entry(uint32_t index, const dsm_flash_entry_t * p_dst, uint16_t entry_len);
-static void subnet_to_dsm_entry(uint32_t index, const dsm_flash_entry_t * p_dst, uint16_t entry_len);
-static void appkey_to_dsm_entry(uint32_t index, const dsm_flash_entry_t * p_dst, uint16_t entry_len);
-static void devkey_to_dsm_entry(uint32_t index, const dsm_flash_entry_t * p_dst, uint16_t entry_len);
-static void build_flash_area(void);
-
-
-/* Each entry type is represented as a flash group. The flash group contains information about the
- * entry type on flash status and behavior, to enable generalizing of the flash access. */
-
-/** Macro to improve readability of flash group definitions. */
-#define FLASH_GROUP(NAME, COUNT, FLASH_START_HANDLE)                                \
-    {                                                                               \
-        .entry_count               = COUNT,                                         \
-        .p_allocated_bitfield      = m_##NAME##_allocated,                          \
-        .p_needs_flashing_bitfield = m_##NAME##_needs_flashing,                     \
-        .flash_start_handle        = FLASH_START_HANDLE,                            \
-        .flash_entry_data_size     = sizeof(dsm_flash_entry_##NAME##_t),            \
-        .to_flash_entry            = NAME##_to_flash_entry,                         \
-        .to_dsm_entry              = NAME##_to_dsm_entry                            \
-    }
-
-/** Flash groups representing each entry type's behavior and status */
-static const flash_group_t m_flash_groups[] =
+/******************************* PERSISTENT STORAGE MANAGEMENT *****************************************/
+void dsm_legacy_pretreatment_do(mesh_config_entry_id_t * p_id, uint32_t entry_len)
 {
-    FLASH_GROUP(addr_unicast,    1,                       DSM_FLASH_HANDLE_UNICAST),
-    FLASH_GROUP(addr_nonvirtual, DSM_NONVIRTUAL_ADDR_MAX, DSM_FLASH_GROUP_ADDR_NONVIRTUAL),
-    FLASH_GROUP(addr_virtual,    DSM_VIRTUAL_ADDR_MAX,    DSM_FLASH_GROUP_ADDR_VIRTUAL),
-    FLASH_GROUP(subnet,          DSM_SUBNET_MAX,          DSM_FLASH_GROUP_SUBNETS),
-    FLASH_GROUP(appkey,          DSM_APP_MAX,             DSM_FLASH_GROUP_APPKEYS),
-    FLASH_GROUP(devkey,          DSM_DEVICE_MAX,          DSM_FLASH_GROUP_DEVKEYS)
-};
-#undef FLASH_GROUP
-
-/* Make sure we have a group for each entry type. */
-NRF_MESH_STATIC_ASSERT(sizeof(m_flash_groups) / sizeof(m_flash_groups[0]) == DSM_ENTRY_TYPES);
-
-
-/*****************************************************************************
-* Flash utility functions
-*****************************************************************************/
-static void addr_unicast_to_dsm_entry(uint32_t index, const dsm_flash_entry_t * p_entry, uint16_t entry_len)
-{
-    /* Ignore the index, as there can only be one. */
-    const dsm_flash_entry_addr_unicast_t * p_unicast = &p_entry->addr_unicast;
-    memcpy(&m_local_unicast_addr, &p_unicast->addr, sizeof(m_local_unicast_addr));
-}
-
-static void subnet_to_dsm_entry(uint32_t index, const dsm_flash_entry_t * p_entry, uint16_t entry_len)
-{
-    const dsm_flash_entry_subnet_t * p_key_data = &p_entry->subnet;
-    subnet_set(p_key_data->key_index, p_key_data->key, index);
-
-    m_subnets[index].key_refresh_phase = p_key_data->key_refresh_phase;
-    if (m_subnets[index].key_refresh_phase != NRF_MESH_KEY_REFRESH_PHASE_0)
+    if (p_id->file == MESH_OPT_DSM_FILE_ID &&
+        IS_IN_RANGE(p_id->record, MESH_OPT_DSM_SUBNETS_RECORD, MESH_OPT_DSM_SUBNETS_RECORD + DSM_SUBNET_MAX - 1) &&
+        entry_len == ALIGN_VAL(sizeof(dsm_entry_subnet_t) - NRF_MESH_KEY_SIZE, WORD_SIZE))
     {
-        NRF_MESH_ASSERT(entry_len == ALIGN_VAL(sizeof(dsm_flash_entry_subnet_t), WORD_SIZE));
-        memcpy(m_subnets[index].root_key_updated, p_key_data->key_updated, NRF_MESH_KEY_SIZE);
-        NRF_MESH_ASSERT(nrf_mesh_keygen_network_secmat(p_key_data->key_updated, &m_subnets[index].secmat_updated) == NRF_SUCCESS);
+        p_id->record += MESH_OPT_DSM_LEGACY_SUBNETS_RECORD - MESH_OPT_DSM_SUBNETS_RECORD;
     }
-    else
+    else if (p_id->file == MESH_OPT_DSM_FILE_ID &&
+        IS_IN_RANGE(p_id->record, MESH_OPT_DSM_APPKEYS_RECORD, MESH_OPT_DSM_APPKEYS_RECORD + DSM_APP_MAX - 1))
     {
-        NRF_MESH_ASSERT(entry_len == ALIGN_VAL(sizeof(dsm_flash_entry_subnet_t) - sizeof(p_key_data->key_updated), WORD_SIZE));
-    }
-}
-
-static void appkey_to_dsm_entry(uint32_t index, const dsm_flash_entry_t * p_entry, uint16_t entry_len)
-{
-    const dsm_flash_entry_appkey_t * p_key_data = &p_entry->appkey;
-    appkey_set(p_key_data->key_index, p_key_data->subnet_handle, p_key_data->key, index);
-
-    /* The length of this entry is used to determine if the key is currently being updated: */
-    if (entry_len == ALIGN_VAL(sizeof(dsm_flash_entry_appkey_t), WORD_SIZE))
-    {
-        m_appkeys[index].key_updated = true;
-        memcpy(m_appkeys[index].secmat_updated.key, p_key_data->key_updated, NRF_MESH_KEY_SIZE);
-        NRF_MESH_ASSERT(nrf_mesh_keygen_aid(p_key_data->key_updated, &m_appkeys[index].secmat_updated.aid) == NRF_SUCCESS);
-        m_appkeys[index].secmat_updated.is_device_key = m_appkeys[index].secmat.is_device_key;
-    }
-    else
-    {
-        NRF_MESH_ASSERT(entry_len == ALIGN_VAL(sizeof(dsm_flash_entry_appkey_t) - sizeof(p_key_data->key_updated), WORD_SIZE));
-    }
-}
-
-static void devkey_to_dsm_entry(uint32_t index, const dsm_flash_entry_t * p_entry, uint16_t entry_len)
-{
-    const dsm_flash_entry_devkey_t * p_key_data = &p_entry->devkey;
-    devkey_set(p_key_data->key_owner,
-               p_key_data->subnet_handle,
-               p_key_data->key,
-               DSM_DEVKEY_HANDLE_START + index);
-}
-
-static void addr_nonvirtual_to_dsm_entry(uint32_t index, const dsm_flash_entry_t * p_entry, uint16_t entry_len)
-{
-    const dsm_flash_entry_addr_nonvirtual_t * p_addr_data = &p_entry->addr_nonvirtual;
-    nonvirtual_address_set(p_addr_data->addr, index);
-}
-
-static void addr_virtual_to_dsm_entry(uint32_t index, const dsm_flash_entry_t * p_entry, uint16_t entry_len)
-{
-    const dsm_flash_entry_addr_virtual_t * p_addr_data = &p_entry->addr_virtual;
-    virtual_address_set(p_addr_data->uuid, DSM_VIRTUAL_HANDLE_START + index);
-}
-
-
-/******************************************************************************/
-
-static void addr_unicast_to_flash_entry(uint32_t index, dsm_flash_entry_t * p_dst, uint16_t * p_entry_len)
-{
-    /* Ignore the index, as there can only be one. */
-    dsm_flash_entry_addr_unicast_t * p_entry = &p_dst->addr_unicast;
-    memcpy(&p_entry->addr, &m_local_unicast_addr, sizeof(dsm_local_unicast_address_t));
-}
-
-static void subnet_to_flash_entry(uint32_t index, dsm_flash_entry_t * p_dst, uint16_t * p_entry_len)
-{
-    dsm_flash_entry_subnet_t * p_entry = &p_dst->subnet;
-    memset(p_entry, 0, sizeof(dsm_flash_entry_subnet_t));
-
-    p_entry->key_index = m_subnets[index].net_key_index;
-    p_entry->key_refresh_phase = m_subnets[index].key_refresh_phase;
-    memcpy(p_entry->key, m_subnets[index].root_key, NRF_MESH_KEY_SIZE);
-
-    if (m_subnets[index].key_refresh_phase != NRF_MESH_KEY_REFRESH_PHASE_0)
-    {
-        memcpy(p_entry->key_updated, m_subnets[index].root_key_updated, NRF_MESH_KEY_SIZE);
-    }
-    else
-    {
-        *p_entry_len -= sizeof(p_entry->key_updated) / WORD_SIZE;
-    }
-}
-
-static void appkey_to_flash_entry(uint32_t index, dsm_flash_entry_t * p_dst, uint16_t * p_entry_len)
-{
-    dsm_flash_entry_appkey_t * p_entry = &p_dst->appkey;
-    memset(p_entry, 0, sizeof(dsm_flash_entry_appkey_t));
-
-    memcpy(p_entry->key, m_appkeys[index].secmat.key, NRF_MESH_KEY_SIZE);
-    p_entry->key_index = m_appkeys[index].app_key_index;
-    p_entry->subnet_handle = m_appkeys[index].subnet_handle;
-
-    if (m_appkeys[index].key_updated)
-    {
-        memcpy(p_entry->key_updated, m_appkeys[index].secmat_updated.key, NRF_MESH_KEY_SIZE);
-    }
-    else
-    {
-        *p_entry_len -= sizeof(p_entry->key_updated) / WORD_SIZE;
-    }
-}
-
-static void devkey_to_flash_entry(uint32_t index, dsm_flash_entry_t * p_dst, uint16_t * p_entry_len)
-{
-    dsm_flash_entry_devkey_t * p_entry = &p_dst->devkey;
-    memcpy(p_entry->key, m_devkeys[index].secmat.key, NRF_MESH_KEY_SIZE);
-    p_entry->key_owner = m_devkeys[index].key_owner;
-    p_entry->subnet_handle = m_devkeys[index].subnet_handle;
-}
-
-static void addr_nonvirtual_to_flash_entry(uint32_t index, dsm_flash_entry_t * p_dst, uint16_t * p_entry_len)
-{
-    dsm_flash_entry_addr_nonvirtual_t * p_entry = &p_dst->addr_nonvirtual;
-    p_entry->addr = m_addresses[index].address;
-}
-
-static void addr_virtual_to_flash_entry(uint32_t index, dsm_flash_entry_t * p_dst, uint16_t * p_entry_len)
-{
-    dsm_flash_entry_addr_virtual_t * p_entry = &p_dst->addr_virtual;
-    memcpy(p_entry->uuid, m_virtual_addresses[index].uuid, NRF_MESH_UUID_SIZE);
-}
-
-/** Flash operation function to call when the memory returns. */
-typedef void (*flash_op_func_t)(void);
-
-static void flash_mem_listener_callback(void * p_args)
-{
-    NRF_MESH_ASSERT(p_args != NULL);
-    flash_op_func_t func = (flash_op_func_t) p_args; /*lint !e611 Suspicious cast */
-    func();
-}
-
-static inline dsm_entry_type_t flash_handle_to_entry_type(fm_handle_t flash_handle)
-{
-    fm_handle_t flash_group = DSM_FLASH_HANDLE_FILTER_MASK & flash_handle;
-    switch (flash_group)
-    {
-        case 0:
-            return (dsm_entry_type_t)((flash_handle & DSM_FLASH_HANDLE_TO_DSM_HANDLE_MASK) -
-                                       DSM_FLASH_COLLECTION_HANDLE_FIRST);
-        case DSM_FLASH_GROUP_SUBNETS:         return DSM_ENTRY_TYPE_SUBNET;
-        case DSM_FLASH_GROUP_APPKEYS:         return DSM_ENTRY_TYPE_APPKEY;
-        case DSM_FLASH_GROUP_DEVKEYS:         return DSM_ENTRY_TYPE_DEVKEY;
-        case DSM_FLASH_GROUP_ADDR_NONVIRTUAL: return DSM_ENTRY_TYPE_ADDR_NONVIRTUAL;
-        case DSM_FLASH_GROUP_ADDR_VIRTUAL:    return DSM_ENTRY_TYPE_ADDR_VIRTUAL;
-    }
-    /* Found entry that doesn't belong to a flash group */
-    NRF_MESH_ASSERT(false);
-    return (dsm_entry_type_t) 0;
-}
-
-static inline fm_entry_t * dsm_flash_entry_alloc(fm_handle_t flash_handle, uint32_t data_size)
-{
-    return flash_manager_entry_alloc(&m_flash_manager,
-                                     flash_handle,
-                                     data_size);
-}
-
-static bool flash_store_metainfo(void)
-{
-    fm_entry_t * p_entry =
-        dsm_flash_entry_alloc(DSM_FLASH_HANDLE_METAINFO, sizeof(dsm_flash_entry_metainfo_t));
-    bool succeeded = (p_entry != NULL);
-    if (succeeded)
-    {
-        dsm_flash_entry_metainfo_t * p_metainfo = (dsm_flash_entry_metainfo_t *) p_entry->data;
-        p_metainfo->max_addrs_nonvirtual = DSM_NONVIRTUAL_ADDR_MAX;
-        p_metainfo->max_addrs_virtual = DSM_VIRTUAL_ADDR_MAX;
-        p_metainfo->max_subnets = DSM_SUBNET_MAX;
-        p_metainfo->max_appkeys = DSM_APP_MAX;
-        p_metainfo->max_devkeys = DSM_DEVICE_MAX;
-        flash_manager_entry_commit(p_entry);
-    }
-    return succeeded;
-}
-
-static void flash_load(dsm_entry_type_t type, uint32_t index, const dsm_flash_entry_t * p_entry, uint16_t entry_len)
-{
-    NRF_MESH_ASSERT(type < DSM_ENTRY_TYPES);
-    const flash_group_t * p_group = &m_flash_groups[type];
-
-    p_group->to_dsm_entry(index, p_entry, entry_len);
-    bitfield_set(p_group->p_allocated_bitfield, index);
-}
-
-static bool flash_save(dsm_entry_type_t type, uint32_t index)
-{
-    bearer_event_critical_section_begin();
-    NRF_MESH_ASSERT(type < DSM_ENTRY_TYPES);
-    const flash_group_t * p_group = &m_flash_groups[type];
-
-    bool success = false;
-    if (m_flash_is_available)
-    {
-        fm_entry_t * p_entry = dsm_flash_entry_alloc(p_group->flash_start_handle + index,
-                                                     p_group->flash_entry_data_size);
-        if (p_entry != NULL)
+        if (entry_len == ALIGN_VAL(sizeof(dsm_legacy_entry_appkey_t), WORD_SIZE))
         {
-            p_group->to_flash_entry(index, (dsm_flash_entry_t *) p_entry->data, &p_entry->header.len_words);
-            flash_manager_entry_commit(p_entry);
-            success = true;
+            p_id->record += MESH_OPT_DSM_FULL_LEGACY_APPKEYS_RECORD - MESH_OPT_DSM_APPKEYS_RECORD;
+        }
+        else if (entry_len == ALIGN_VAL(sizeof(dsm_legacy_entry_appkey_t) - NRF_MESH_KEY_SIZE, WORD_SIZE))
+        {
+            p_id->record += MESH_OPT_DSM_REDUCED_LEGACY_APPKEYS_RECORD - MESH_OPT_DSM_APPKEYS_RECORD;
         }
     }
-
-    if (!success)
-    {
-        /* Mark the entry for later flashing */
-        bitfield_set(p_group->p_needs_flashing_bitfield, index);
-        flash_manager_mem_listener_register(&m_flash_mem_listener_update_all);
-    }
-    bearer_event_critical_section_end();
-    return success;
 }
 
-static bool flash_invalidate(dsm_entry_type_t type, uint32_t index)
+static uint32_t dsm_metadata_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
-    bearer_event_critical_section_begin();
-    NRF_MESH_ASSERT(type < DSM_ENTRY_TYPES);
-    const flash_group_t * p_group = &m_flash_groups[type];
+    NRF_MESH_ASSERT_DEBUG(MESH_OPT_DSM_METADATA_RECORD == id.record);
 
-    bool success = false;
-    if (m_flash_is_available)
+    dsm_entry_metainfo_t * p_metadata = (dsm_entry_metainfo_t *)p_entry;
+
+    if (p_metadata->max_subnets == DSM_SUBNET_MAX &&
+        p_metadata->max_devkeys == DSM_DEVICE_MAX &&
+        p_metadata->max_appkeys == DSM_APP_MAX &&
+        p_metadata->max_addrs_virtual == DSM_VIRTUAL_ADDR_MAX &&
+        p_metadata->max_addrs_nonvirtual == DSM_NONVIRTUAL_ADDR_MAX)
     {
-        success =
-            (NRF_SUCCESS ==
-             flash_manager_entry_invalidate(&m_flash_manager, p_group->flash_start_handle + index));
+        m_status.is_metadata_stored = 1;
+    }
+    else
+    {
+        return NRF_ERROR_INVALID_DATA;
     }
 
-    if (!success)
-    {
-        /* Mark the entry for later flashing */
-        bitfield_set(p_group->p_needs_flashing_bitfield, index);
-        flash_manager_mem_listener_register(&m_flash_mem_listener_update_all);
-    }
-    bearer_event_critical_section_end();
-    return success;
+    return NRF_SUCCESS;
 }
 
-/** Run through all entries, and update the flash state for the ones that need it. */
-static void flash_update_all(void)
+static void dsm_metadata_getter(mesh_config_entry_id_t id, void * p_entry)
 {
-    bool flash_is_available = true;
-    for (dsm_entry_type_t type = (dsm_entry_type_t) 0;
-         type < DSM_ENTRY_TYPES && flash_is_available;
-         ++type)
+    NRF_MESH_ASSERT_DEBUG(MESH_OPT_DSM_METADATA_RECORD == id.record);
+
+    dsm_entry_metainfo_t * p_metadata = (dsm_entry_metainfo_t *)p_entry;
+    p_metadata->max_subnets = DSM_SUBNET_MAX;
+    p_metadata->max_devkeys = DSM_DEVICE_MAX;
+    p_metadata->max_appkeys = DSM_APP_MAX;
+    p_metadata->max_addrs_virtual = DSM_VIRTUAL_ADDR_MAX;
+    p_metadata->max_addrs_nonvirtual = DSM_NONVIRTUAL_ADDR_MAX;
+}
+
+static uint32_t dsm_unicast_addr_setter(mesh_config_entry_id_t id, const void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(MESH_OPT_DSM_UNICAST_ADDR_RECORD == id.record);
+
+    if (bitfield_get(m_addr_unicast_allocated, 0))
     {
-        const flash_group_t * p_group = &m_flash_groups[type];
-        if (!bitfield_is_all_clear(p_group->p_needs_flashing_bitfield, p_group->entry_count))
+        return NRF_SUCCESS;
+    }
+
+    dsm_entry_addr_unicast_t * p_src = (dsm_entry_addr_unicast_t *)p_entry;
+    memcpy(&m_local_unicast_addr, &p_src->addr, sizeof(m_local_unicast_addr));
+    bitfield_set(m_addr_unicast_allocated, 0);
+
+    return NRF_SUCCESS;
+}
+
+static void dsm_unicast_addr_getter(mesh_config_entry_id_t id, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(MESH_OPT_DSM_UNICAST_ADDR_RECORD == id.record);
+    NRF_MESH_ASSERT(bitfield_get(m_addr_unicast_allocated, 0));
+
+    dsm_entry_addr_unicast_t * p_dst = (dsm_entry_addr_unicast_t *)p_entry;
+    memcpy(&p_dst->addr, &m_local_unicast_addr, sizeof(dsm_local_unicast_address_t));
+}
+
+static uint32_t dsm_nonvirtual_addr_setter(mesh_config_entry_id_t id, const void * p_entry)
+{
+    if (!IS_IN_RANGE(id.record, MESH_OPT_DSM_NONVIRTUAL_ADDR_RECORD,
+                     MESH_OPT_DSM_NONVIRTUAL_ADDR_RECORD + DSM_NONVIRTUAL_ADDR_MAX - 1))
+    {
+        return NRF_ERROR_NOT_FOUND;
+    }
+
+    uint16_t idx = id.record - MESH_OPT_DSM_NONVIRTUAL_ADDR_RECORD;
+
+    if (bitfield_get(m_addr_nonvirtual_allocated, idx))
+    {
+        return NRF_SUCCESS;
+    }
+
+    dsm_entry_addr_nonvirtual_t * p_src = (dsm_entry_addr_nonvirtual_t *)p_entry;
+    nonvirtual_address_set(p_src->addr, idx);
+
+    return NRF_SUCCESS;
+}
+
+static void dsm_nonvirtual_addr_getter(mesh_config_entry_id_t id, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(IS_IN_RANGE(id.record, MESH_OPT_DSM_NONVIRTUAL_ADDR_RECORD,
+                                      MESH_OPT_DSM_NONVIRTUAL_ADDR_RECORD + DSM_NONVIRTUAL_ADDR_MAX - 1));
+
+    uint16_t idx = id.record - MESH_OPT_DSM_NONVIRTUAL_ADDR_RECORD;
+
+    NRF_MESH_ASSERT(bitfield_get(m_addr_nonvirtual_allocated, idx));
+    dsm_entry_addr_nonvirtual_t * p_dst = (dsm_entry_addr_nonvirtual_t *)p_entry;
+    p_dst->addr = m_addresses[idx].address;
+}
+
+static uint32_t dsm_virtual_addr_setter(mesh_config_entry_id_t id, const void * p_entry)
+{
+    if (!IS_IN_RANGE(id.record, MESH_OPT_DSM_VIRTUAL_ADDR_RECORD,
+                     MESH_OPT_DSM_VIRTUAL_ADDR_RECORD + DSM_VIRTUAL_ADDR_MAX - 1))
+    {
+        return NRF_ERROR_NOT_FOUND;
+    }
+
+    uint16_t idx = id.record - MESH_OPT_DSM_VIRTUAL_ADDR_RECORD;
+
+    if (bitfield_get(m_addr_virtual_allocated, idx))
+    {
+        return NRF_SUCCESS;
+    }
+
+    dsm_entry_addr_virtual_t * p_src = (dsm_entry_addr_virtual_t *)p_entry;
+    virtual_address_set(p_src->uuid, DSM_VIRTUAL_HANDLE_START + idx);
+
+    return NRF_SUCCESS;
+}
+
+static void dsm_virtual_addr_getter(mesh_config_entry_id_t id, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(IS_IN_RANGE(id.record, MESH_OPT_DSM_VIRTUAL_ADDR_RECORD,
+                         MESH_OPT_DSM_VIRTUAL_ADDR_RECORD + DSM_VIRTUAL_ADDR_MAX - 1));
+
+    uint16_t idx = id.record - MESH_OPT_DSM_VIRTUAL_ADDR_RECORD;
+
+    NRF_MESH_ASSERT(bitfield_get(m_addr_virtual_allocated, idx));
+    dsm_entry_addr_virtual_t * p_dst = (dsm_entry_addr_virtual_t *)p_entry;
+    memcpy(p_dst->uuid, m_virtual_addresses[idx].uuid, NRF_MESH_UUID_SIZE);
+}
+
+static uint32_t dsm_subnet_setter(mesh_config_entry_id_t id, const void * p_entry)
+{
+    if (!IS_IN_RANGE(id.record, MESH_OPT_DSM_SUBNETS_RECORD,
+                     MESH_OPT_DSM_SUBNETS_RECORD + DSM_SUBNET_MAX - 1))
+    {
+        return NRF_ERROR_NOT_FOUND;
+    }
+
+    dsm_entry_subnet_t * p_src = (dsm_entry_subnet_t *)p_entry;
+    uint16_t idx = id.record - MESH_OPT_DSM_SUBNETS_RECORD;
+
+    if (bitfield_get(m_subnet_allocated, idx))
+    {
+        return NRF_SUCCESS;
+    }
+
+    subnet_set(p_src->key_index, p_src->key, idx);
+    m_subnets[idx].key_refresh_phase = p_src->key_refresh_phase;
+    if (m_subnets[idx].key_refresh_phase != NRF_MESH_KEY_REFRESH_PHASE_0)
+    {
+        memcpy(m_subnets[idx].root_key_updated, p_src->key_updated, NRF_MESH_KEY_SIZE);
+        NRF_MESH_ASSERT(nrf_mesh_keygen_network_secmat(p_src->key_updated, &m_subnets[idx].secmat_updated) == NRF_SUCCESS);
+    }
+
+    return NRF_SUCCESS;
+}
+
+static void dsm_subnet_getter(mesh_config_entry_id_t id, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(IS_IN_RANGE(id.record, MESH_OPT_DSM_SUBNETS_RECORD,
+                         MESH_OPT_DSM_SUBNETS_RECORD + DSM_SUBNET_MAX - 1));
+
+    dsm_entry_subnet_t * p_dst = (dsm_entry_subnet_t *)p_entry;
+    uint16_t idx = id.record - MESH_OPT_DSM_SUBNETS_RECORD;
+    memset(p_entry, 0, sizeof(dsm_entry_subnet_t));
+
+    NRF_MESH_ASSERT(bitfield_get(m_subnet_allocated, idx));
+    p_dst->key_index = m_subnets[idx].net_key_index;
+    p_dst->key_refresh_phase = m_subnets[idx].key_refresh_phase;
+    memcpy(p_dst->key, m_subnets[idx].root_key, NRF_MESH_KEY_SIZE);
+
+    if (m_subnets[idx].key_refresh_phase != NRF_MESH_KEY_REFRESH_PHASE_0)
+    {
+        memcpy(p_dst->key_updated, m_subnets[idx].root_key_updated, NRF_MESH_KEY_SIZE);
+    }
+}
+
+static uint32_t dsm_appkey_setter(mesh_config_entry_id_t id, const void * p_entry)
+{
+    if (!IS_IN_RANGE(id.record, MESH_OPT_DSM_APPKEYS_RECORD,
+                     MESH_OPT_DSM_APPKEYS_RECORD + DSM_APP_MAX - 1))
+    {
+        return NRF_ERROR_NOT_FOUND;
+    }
+
+    dsm_entry_appkey_t * p_src = (dsm_entry_appkey_t *)p_entry;
+    uint16_t idx = id.record - MESH_OPT_DSM_APPKEYS_RECORD;
+
+    if (bitfield_get(m_appkey_allocated, idx))
+    {
+        return NRF_SUCCESS;
+    }
+
+    appkey_set(p_src->key_index, p_src->subnet_handle, p_src->key, idx);
+    m_appkeys[idx].key_updated = p_src->is_key_updated;
+
+    if (p_src->is_key_updated)
+    {
+        memcpy(m_appkeys[idx].secmat_updated.key, p_src->key_updated, NRF_MESH_KEY_SIZE);
+        NRF_MESH_ASSERT(nrf_mesh_keygen_aid(p_src->key_updated, &m_appkeys[idx].secmat_updated.aid) == NRF_SUCCESS);
+        m_appkeys[idx].secmat_updated.is_device_key = m_appkeys[idx].secmat.is_device_key;
+    }
+
+    return NRF_SUCCESS;
+}
+
+static void dsm_appkey_getter(mesh_config_entry_id_t id, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(IS_IN_RANGE(id.record, MESH_OPT_DSM_APPKEYS_RECORD,
+                         MESH_OPT_DSM_APPKEYS_RECORD + DSM_APP_MAX - 1));
+
+    dsm_entry_appkey_t * p_dst = (dsm_entry_appkey_t *)p_entry;
+    uint16_t idx = id.record - MESH_OPT_DSM_APPKEYS_RECORD;
+    memset(p_entry, 0, sizeof(dsm_entry_appkey_t));
+
+    NRF_MESH_ASSERT(bitfield_get(m_appkey_allocated, idx));
+    memcpy(p_dst->key, m_appkeys[idx].secmat.key, NRF_MESH_KEY_SIZE);
+    p_dst->key_index = m_appkeys[idx].app_key_index;
+    p_dst->subnet_handle = m_appkeys[idx].subnet_handle;
+    p_dst->is_key_updated = m_appkeys[idx].key_updated;
+
+    if (p_dst->is_key_updated)
+    {
+        memcpy(p_dst->key_updated, m_appkeys[idx].secmat_updated.key, NRF_MESH_KEY_SIZE);
+    }
+}
+
+static uint32_t dsm_devkey_setter(mesh_config_entry_id_t id, const void * p_entry)
+{
+    if (!IS_IN_RANGE(id.record, MESH_OPT_DSM_DEVKEYS_RECORD,
+                     MESH_OPT_DSM_DEVKEYS_RECORD + DSM_DEVICE_MAX - 1))
+    {
+        return NRF_ERROR_NOT_FOUND;
+    }
+
+    dsm_entry_devkey_t * p_dst = (dsm_entry_devkey_t *)p_entry;
+    uint16_t idx = id.record - MESH_OPT_DSM_DEVKEYS_RECORD;
+
+    if (bitfield_get(m_devkey_allocated, idx))
+    {
+        return NRF_SUCCESS;
+    }
+
+    devkey_set(p_dst->key_owner, p_dst->subnet_handle, p_dst->key, DSM_DEVKEY_HANDLE_START + idx);
+
+    return NRF_SUCCESS;
+}
+
+static void dsm_devkey_getter(mesh_config_entry_id_t id, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(IS_IN_RANGE(id.record, MESH_OPT_DSM_DEVKEYS_RECORD,
+                         MESH_OPT_DSM_DEVKEYS_RECORD + DSM_DEVICE_MAX - 1));
+
+    dsm_entry_devkey_t * p_dst = (dsm_entry_devkey_t *)p_entry;
+    uint16_t idx = id.record - MESH_OPT_DSM_DEVKEYS_RECORD;
+    NRF_MESH_ASSERT(bitfield_get(m_devkey_allocated, idx));
+    memcpy(p_dst->key, m_devkeys[idx].secmat.key, NRF_MESH_KEY_SIZE);
+    p_dst->key_owner = m_devkeys[idx].key_owner;
+    p_dst->subnet_handle = m_devkeys[idx].subnet_handle;
+}
+
+static uint32_t dsm_legacy_subnet_setter(mesh_config_entry_id_t id, const void * p_entry)
+{
+    dsm_entry_subnet_t * p_src = (dsm_entry_subnet_t *)p_entry;
+    uint16_t idx = id.record - MESH_OPT_DSM_LEGACY_SUBNETS_RECORD;
+    subnet_set(p_src->key_index, p_src->key, idx);
+    m_subnets[idx].key_refresh_phase = p_src->key_refresh_phase;
+    m_status.is_legacy_found = 1;
+
+    return NRF_SUCCESS;
+}
+
+static uint32_t dsm_legacy_appkey_setter(mesh_config_entry_id_t id, const void * p_entry)
+{
+    uint16_t idx;
+    bool is_key_updated;
+
+    if (IS_IN_RANGE(id.record, MESH_OPT_DSM_REDUCED_LEGACY_APPKEYS_RECORD,
+                    MESH_OPT_DSM_REDUCED_LEGACY_APPKEYS_RECORD + DSM_APP_MAX - 1))
+    {
+        idx = id.record - MESH_OPT_DSM_REDUCED_LEGACY_APPKEYS_RECORD;
+        is_key_updated = false;
+    }
+    else if (IS_IN_RANGE(id.record, MESH_OPT_DSM_FULL_LEGACY_APPKEYS_RECORD,
+                         MESH_OPT_DSM_FULL_LEGACY_APPKEYS_RECORD + DSM_APP_MAX - 1))
+    {
+        idx = id.record - MESH_OPT_DSM_FULL_LEGACY_APPKEYS_RECORD;
+        is_key_updated = true;
+    }
+    else
+    {
+        return NRF_ERROR_NOT_FOUND;
+    }
+
+    m_status.is_legacy_found = 1;
+    dsm_legacy_entry_appkey_t * p_src = (dsm_legacy_entry_appkey_t *)p_entry;
+    appkey_set(p_src->key_index, p_src->subnet_handle, p_src->key, idx);
+    m_appkeys[idx].key_updated = is_key_updated;
+
+    if (is_key_updated)
+    {
+        memcpy(m_appkeys[idx].secmat_updated.key, p_src->key_updated, NRF_MESH_KEY_SIZE);
+        NRF_MESH_ASSERT(nrf_mesh_keygen_aid(p_src->key_updated, &m_appkeys[idx].secmat_updated.aid) == NRF_SUCCESS);
+        m_appkeys[idx].secmat_updated.is_device_key = m_appkeys[idx].secmat.is_device_key;
+    }
+
+    return NRF_SUCCESS;
+}
+
+MESH_CONFIG_ENTRY(dsm_metadata,
+                  MESH_OPT_DSM_METADATA_EID,
+                  1,
+                  sizeof(dsm_entry_metainfo_t),
+                  dsm_metadata_setter,
+                  dsm_metadata_getter,
+                  NULL,
+                  NULL);
+
+MESH_CONFIG_ENTRY(dsm_unicast_addr,
+                  MESH_OPT_DSM_UNICAST_ADDR_EID,
+                  1,
+                  sizeof(dsm_entry_addr_unicast_t),
+                  dsm_unicast_addr_setter,
+                  dsm_unicast_addr_getter,
+                  NULL,
+                  NULL);
+
+MESH_CONFIG_ENTRY(dsm_nonvirtual_addr,
+                  MESH_OPT_DSM_NONVIRTUAL_ADDR_RECORD_EID,
+                  DSM_NONVIRTUAL_ADDR_MAX,
+                  sizeof(dsm_entry_addr_nonvirtual_t),
+                  dsm_nonvirtual_addr_setter,
+                  dsm_nonvirtual_addr_getter,
+                  NULL,
+                  NULL);
+
+MESH_CONFIG_ENTRY(dsm_virtual_addr,
+                  MESH_OPT_DSM_VIRTUAL_ADDR_RECORD_EID,
+                  DSM_VIRTUAL_ADDR_MAX,
+                  sizeof(dsm_entry_addr_virtual_t),
+                  dsm_virtual_addr_setter,
+                  dsm_virtual_addr_getter,
+                  NULL,
+                  NULL);
+
+MESH_CONFIG_ENTRY(dsm_subnet,
+                  MESH_OPT_DSM_SUBNETS_RECORD_EID,
+                  DSM_SUBNET_MAX,
+                  sizeof(dsm_entry_subnet_t),
+                  dsm_subnet_setter,
+                  dsm_subnet_getter,
+                  NULL,
+                  NULL);
+
+MESH_CONFIG_ENTRY(dsm_appkey,
+                  MESH_OPT_DSM_APPKEYS_RECORD_EID,
+                  DSM_APP_MAX,
+                  sizeof(dsm_entry_appkey_t),
+                  dsm_appkey_setter,
+                  dsm_appkey_getter,
+                  NULL,
+                  NULL);
+
+MESH_CONFIG_ENTRY(dsm_devkey,
+                  MESH_OPT_DSM_DEVKEYS_RECORD_EID,
+                  DSM_DEVICE_MAX,
+                  sizeof(dsm_entry_devkey_t),
+                  dsm_devkey_setter,
+                  dsm_devkey_getter,
+                  NULL,
+                  NULL);
+
+MESH_CONFIG_ENTRY(dsm_legacy_subnet,
+                  MESH_OPT_DSM_LEGACY_SUBNETS_RECORD_EID,
+                  DSM_SUBNET_MAX,
+                  ALIGN_VAL(sizeof(dsm_entry_subnet_t) - NRF_MESH_KEY_SIZE, WORD_SIZE),
+                  dsm_legacy_subnet_setter,
+                  NULL,
+                  NULL,
+                  NULL);
+
+MESH_CONFIG_ENTRY(dsm_reduced_legacy_appkey,
+                  MESH_OPT_DSM_REDUCED_LEGACY_APPKEYS_RECORD_EID,
+                  DSM_APP_MAX,
+                  ALIGN_VAL(sizeof(dsm_legacy_entry_appkey_t) - NRF_MESH_KEY_SIZE, WORD_SIZE),
+                  dsm_legacy_appkey_setter,
+                  NULL,
+                  NULL,
+                  NULL);
+
+MESH_CONFIG_ENTRY(dsm_full_legacy_appkey,
+                  MESH_OPT_DSM_FULL_LEGACY_APPKEYS_RECORD_EID,
+                  DSM_APP_MAX,
+                  ALIGN_VAL(sizeof(dsm_legacy_entry_appkey_t), WORD_SIZE),
+                  dsm_legacy_appkey_setter,
+                  NULL,
+                  NULL,
+                  NULL);
+
+MESH_CONFIG_FILE(m_dsm_file, MESH_OPT_DSM_FILE_ID, MESH_CONFIG_STRATEGY_CONTINUOUS);
+
+static void dsm_entry_store(uint16_t record_id, dsm_handle_t handle, uint32_t * p_property)
+{
+    mesh_config_entry_id_t id;
+    /* Type of entry does not matter because real copying happens in API functions.
+     * Setters will avoid one more extra copying and ignore dummy parameter. */
+    dsm_entry_addr_nonvirtual_t dummy = {0};
+
+    NRF_MESH_ASSERT(bitfield_get(p_property, handle));
+
+    id.file = MESH_OPT_DSM_FILE_ID;
+    id.record = record_id + handle;
+    NRF_MESH_ERROR_CHECK(mesh_config_entry_set(id, &dummy));
+}
+
+static void dsm_entry_invalidate(uint16_t record_id, dsm_handle_t handle, uint32_t * p_property)
+{
+    mesh_config_entry_id_t id;
+
+    NRF_MESH_ASSERT(bitfield_get(p_property, handle));
+
+    id.file = MESH_OPT_DSM_FILE_ID;
+    id.record = record_id + handle;
+    NRF_MESH_ERROR_CHECK(mesh_config_entry_delete(id));
+    bitfield_clear(p_property, handle);
+}
+
+static void metadata_store(void)
+{
+    mesh_config_entry_id_t entry_id = MESH_OPT_DSM_METADATA_EID;
+    dsm_entry_metainfo_t metadata =
+    {
+        .max_addrs_nonvirtual = DSM_NONVIRTUAL_ADDR_MAX,
+        .max_addrs_virtual = DSM_VIRTUAL_ADDR_MAX,
+        .max_subnets = DSM_SUBNET_MAX,
+        .max_appkeys = DSM_APP_MAX,
+        .max_devkeys = DSM_DEVICE_MAX
+    };
+
+    NRF_MESH_ERROR_CHECK(mesh_config_entry_set(entry_id, &metadata));
+}
+
+static void dsm_mesh_config_clear(void)
+{
+    m_status.is_metadata_stored = 0;
+    m_status.is_load_failed = 0;
+
+    (void)mesh_config_entry_delete(MESH_OPT_DSM_METADATA_EID);
+    (void)mesh_config_entry_delete(MESH_OPT_DSM_UNICAST_ADDR_EID);
+
+    mesh_config_entry_id_t id = MESH_OPT_DSM_NONVIRTUAL_ADDR_RECORD_EID;
+
+    for (uint16_t i = 0; i < DSM_NONVIRTUAL_ADDR_MAX; i++)
+    {
+        id.record = MESH_OPT_DSM_NONVIRTUAL_ADDR_RECORD + i;
+        (void)mesh_config_entry_delete(id);
+    }
+
+    id = MESH_OPT_DSM_VIRTUAL_ADDR_RECORD_EID;
+
+    for (uint16_t i = 0; i < DSM_VIRTUAL_ADDR_MAX; i++)
+    {
+        id.record = MESH_OPT_DSM_VIRTUAL_ADDR_RECORD + i;
+        (void)mesh_config_entry_delete(id);
+    }
+
+    id = MESH_OPT_DSM_SUBNETS_RECORD_EID;
+
+    for (uint16_t i = 0; i < DSM_SUBNET_MAX; i++)
+    {
+        id.record = MESH_OPT_DSM_SUBNETS_RECORD + i;
+        (void)mesh_config_entry_delete(id);
+    }
+
+    id = MESH_OPT_DSM_APPKEYS_RECORD_EID;
+
+    for (uint16_t i = 0; i < DSM_APP_MAX; i++)
+    {
+        id.record = MESH_OPT_DSM_APPKEYS_RECORD + i;
+        (void)mesh_config_entry_delete(id);
+    }
+
+    id = MESH_OPT_DSM_DEVKEYS_RECORD_EID;
+
+    for (uint16_t i = 0; i < DSM_DEVICE_MAX; i++)
+    {
+        id.record = MESH_OPT_DSM_DEVKEYS_RECORD + i;
+        (void)mesh_config_entry_delete(id);
+    }
+}
+
+static void legacy_remove(void)
+{
+    if (!!m_status.is_legacy_found)
+    {
+        m_status.is_legacy_found = 0;
+        mesh_config_entry_id_t id = MESH_OPT_DSM_SUBNETS_RECORD_EID;
+
+        for (uint32_t i = 0; i < DSM_SUBNET_MAX; i++)
         {
-            for (uint32_t index = 0; index < p_group->entry_count; index++)
+            if (!bitfield_get(m_subnet_allocated, i))
             {
-                if (bitfield_get(p_group->p_needs_flashing_bitfield, index))
-                {
-                    bool success;
-                    if (bitfield_get(p_group->p_allocated_bitfield, index))
-                    {
-                        success = flash_save(type, index);
-                    }
-                    else
-                    {
-                        success = flash_invalidate(type, index);
-                    }
-
-                    if (success)
-                    {
-                        bitfield_clear(p_group->p_needs_flashing_bitfield, index);
-                    }
-                    else
-                    {
-                        flash_is_available = false;
-                        break;
-                    }
-                }
+                continue;
             }
+
+            id.record = MESH_OPT_DSM_SUBNETS_RECORD + i;
+            (void)mesh_config_entry_delete(id);
+            dsm_entry_store(MESH_OPT_DSM_SUBNETS_RECORD, i, m_subnet_allocated);
+        }
+
+        id = MESH_OPT_DSM_APPKEYS_RECORD_EID;
+
+        for (uint32_t i = 0; i < DSM_APP_MAX; i++)
+        {
+            if (!bitfield_get(m_appkey_allocated, i))
+            {
+                continue;
+            }
+
+            id.record = MESH_OPT_DSM_APPKEYS_RECORD + i;
+            (void)mesh_config_entry_delete(id);
+            dsm_entry_store(MESH_OPT_DSM_APPKEYS_RECORD, i, m_appkey_allocated);
         }
     }
 }
 
-static fm_iterate_action_t flash_read_callback(const fm_entry_t * p_entry, void * p_args)
+uint32_t dsm_load_config_apply(void)
 {
-    if (p_entry->header.handle != DSM_FLASH_HANDLE_METAINFO)
+    if (!!m_status.is_load_failed)
     {
-        dsm_entry_type_t type = flash_handle_to_entry_type(p_entry->header.handle);
-        flash_load(type,
-                    p_entry->header.handle - m_flash_groups[type].flash_start_handle,
-                    (const dsm_flash_entry_t *) p_entry->data,
-                    (p_entry->header.len_words - FLASH_MANAGER_ENTRY_LEN_OVERHEAD) * WORD_SIZE);
-    }
-    return FM_ITERATE_ACTION_CONTINUE;
-}
-
-/**
- * Erase all entries, and re-add up to date metainfo once removal is complete.
- */
-static void reset_flash_area(void)
-{
-    m_flash_is_available = false;
-    if (flash_manager_remove(&m_flash_manager) != NRF_SUCCESS)
-    {
-        /* Register the listener and wait for some memory to be freed up before we retry. */
-        static fm_mem_listener_t mem_listener = {.callback = flash_mem_listener_callback,
-                                                 .p_args = reset_flash_area};
-        flash_manager_mem_listener_register(&mem_listener);
-    }
-}
-
-static void flash_operation_complete(const fm_entry_t * p_entry, fm_result_t result)
-{
-    /* If we get an AREA_FULL then our calculations for flash space required are buggy. */
-    NRF_MESH_ASSERT(result != FM_RESULT_ERROR_AREA_FULL);
-    /* We do not invalidate in this module, so a NOT_FOUND should not be received. */
-    NRF_MESH_ASSERT(result != FM_RESULT_ERROR_NOT_FOUND);
-    if (result == FM_RESULT_ERROR_FLASH_MALFUNCTION)
-    {
-        /* Let the user know that the flash is dying. */
-        nrf_mesh_evt_t evt =
-        {
-            .type = NRF_MESH_EVT_FLASH_FAILED,
-            .params.flash_failed.user = NRF_MESH_FLASH_USER_ACCESS,
-            .params.flash_failed.p_flash_entry = p_entry,
-            .params.flash_failed.p_flash_page = NULL,
-            .params.flash_failed.p_area = m_flash_manager.config.p_area,
-            .params.flash_failed.page_count = m_flash_manager.config.page_count,
-        };
-        event_handle(&evt);
-    }
-}
-
-static void flash_write_complete(const flash_manager_t * p_manager, const fm_entry_t * p_entry, fm_result_t result)
-{
-    flash_operation_complete(p_entry, result);
-}
-
-static void flash_invalidate_complete(const flash_manager_t * p_manager, fm_handle_t handle, fm_result_t result)
-{
-    flash_operation_complete(NULL, result);
-}
-
-static void flash_remove_complete(const flash_manager_t * p_manager)
-{
-    build_flash_area();
-}
-
-static void build_flash_area(void)
-{
-    bool success = false;
-    flash_manager_config_t manager_config;
-    manager_config.write_complete_cb      = flash_write_complete;
-    manager_config.invalidate_complete_cb = flash_invalidate_complete;
-    manager_config.remove_complete_cb     = flash_remove_complete;
-    manager_config.min_available_space    = 0;
-    manager_config.p_area = dsm_flash_area_get();
-    manager_config.page_count = DSM_FLASH_PAGE_COUNT;
-
-    if (m_flash_is_available)
-    {
-        return;
+        return NRF_ERROR_INVALID_DATA;
     }
 
-    /* Lock the bearer event handler to ensure that we don't enter and leave the BUILDING state
-     * between adding and checking. */
-    bearer_event_critical_section_begin();
-    if (flash_manager_add(&m_flash_manager, &manager_config) == NRF_SUCCESS)
+    if (!m_status.is_metadata_stored)
     {
-        /* If we have to build the flash manager, it means that it's new, and there's no metainfo. */
-        if (m_flash_manager.internal.state == FM_STATE_BUILDING)
-        {
-            success = flash_store_metainfo();
-        }
-        else
-        {
-            success = true;
-        }
-    }
-    bearer_event_critical_section_end();
-
-    if (success)
-    {
-        m_flash_is_available = true;
-    }
-    else
-    {
-        /* Register the listener and wait for some memory to be freed up before we retry. */
-        static fm_mem_listener_t mem_listener = {.callback = flash_mem_listener_callback,
-                                                 .p_args = build_flash_area};
-        flash_manager_mem_listener_register(&mem_listener);
-    }
-}
-
-bool dsm_flash_config_load(void)
-{
-    if (!m_flash_is_available)
-    {
-        return false;
-    }
-    dsm_flash_entry_metainfo_t metainfo;
-    uint32_t metainfo_size = sizeof(metainfo);
-    if (flash_manager_entry_read(&m_flash_manager,
-                                 DSM_FLASH_HANDLE_METAINFO,
-                                 &metainfo,
-                                 &metainfo_size) != NRF_SUCCESS)
-    {
-        return false;
-    }
-
-    if (metainfo.max_addrs_nonvirtual != DSM_NONVIRTUAL_ADDR_MAX ||
-        metainfo.max_addrs_virtual != DSM_VIRTUAL_ADDR_MAX ||
-        metainfo.max_appkeys != DSM_APP_MAX ||
-        metainfo.max_devkeys != DSM_DEVICE_MAX ||
-        metainfo.max_subnets != DSM_SUBNET_MAX)
-    {
-        /* The area is built with different metadata, reset it */
-        reset_flash_area();
-        return false;
-    }
-    /* Run through the rest of the entries and load them based on type */
-    (void) flash_manager_entries_read(&m_flash_manager, NULL, flash_read_callback, NULL);
-    /* The storage was valid if there was a local unicast address present */
-    return bitfield_get(m_addr_unicast_allocated, 0);
-}
-
-bool dsm_has_unflashed_data(void)
-{
-    for (uint32_t i = 0; i < DSM_ENTRY_TYPES; i++)
-    {
-        if (!bitfield_is_all_clear(m_flash_groups[i].p_needs_flashing_bitfield, m_flash_groups[i].entry_count))
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-const void * dsm_flash_area_get(void)
-{
-#ifdef DSM_FLASH_AREA_LOCATION
-    return (const void *) DSM_FLASH_AREA_LOCATION;
+        metadata_store();
+#if PERSISTENT_STORAGE
+        return NRF_ERROR_NOT_FOUND;
 #else
-    /* Default to putting the area directly before the network flash area */
-    return (((const uint8_t *) net_state_flash_area_get()) - (DSM_FLASH_PAGE_COUNT * PAGE_SIZE));
+        return NRF_SUCCESS;
 #endif
-}
+    }
 
-#else
-static bool flash_save(dsm_entry_type_t type, uint32_t index)
-{
-    return true;
-}
+    legacy_remove();
 
-static bool flash_invalidate(dsm_entry_type_t type, uint32_t index)
-{
-    return true;
+    return NRF_SUCCESS;
 }
-
-bool dsm_flash_config_load(void)
-{
-    return false;
-}
-bool dsm_has_unflashed_data(void)
-{
-    return false;
-}
-
-const void * dsm_flash_area_get(void)
-{
-    return NULL;
-}
-#endif /* PERSISTENT_STORAGE*/
-
 
 void dsm_clear(void)
 {
-#if PERSISTENT_STORAGE
-    for (uint32_t i = 0; i < DSM_ENTRY_TYPES; ++i)
-    {
-        bitfield_clear_all(m_flash_groups[i].p_allocated_bitfield, m_flash_groups[i].entry_count);
-        bitfield_clear_all(m_flash_groups[i].p_needs_flashing_bitfield, m_flash_groups[i].entry_count);
-    }
-#endif
-
     /* Clear the nonvirtual address storage references */
     for (uint32_t i = 0; i < DSM_NONVIRTUAL_ADDR_MAX; ++i)
     {
@@ -1894,9 +1840,7 @@ void dsm_clear(void)
     m_local_unicast_addr.count = 0;
     m_has_primary_subnet = false;
 
-#if PERSISTENT_STORAGE
-    reset_flash_area();
-#endif
+    dsm_mesh_config_clear();
 }
 
 
@@ -1909,13 +1853,8 @@ void dsm_init(void)
     m_mesh_evt_handler.evt_cb = mesh_evt_handler;
     nrf_mesh_evt_handler_add(&m_mesh_evt_handler);
 
-#if PERSISTENT_STORAGE
-    m_flash_mem_listener_update_all.callback = flash_mem_listener_callback;
-    m_flash_mem_listener_update_all.p_args = flash_update_all;
-
-    m_flash_is_available = false;
-    build_flash_area();
-#endif
+    m_status.is_load_failed = 0;
+    m_status.is_metadata_stored = 0;
 
 #if (MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_FRIEND_ENABLED)
     for (uint32_t i = 0; i < ARRAY_SIZE(m_friendships); i++)
@@ -1940,10 +1879,9 @@ uint32_t dsm_local_unicast_addresses_set(const dsm_local_unicast_address_t * p_a
     }
     else
     {
-        memcpy(&m_local_unicast_addr, p_address, sizeof(dsm_local_unicast_address_t));
         bitfield_set(m_addr_unicast_allocated, 0);
-        (void) flash_save(DSM_ENTRY_TYPE_LOCAL_UNICAST, 0);
-        bitfield_set(m_addr_unicast_needs_flashing, 0);
+        memcpy(&m_local_unicast_addr, p_address, sizeof(dsm_local_unicast_address_t));
+        dsm_entry_store(MESH_OPT_DSM_UNICAST_ADDR_RECORD, 0, m_addr_unicast_allocated);
     }
 
     return NRF_SUCCESS;
@@ -2408,7 +2346,7 @@ uint32_t dsm_subnet_add(mesh_key_index_t net_key_index, const uint8_t * p_key, d
     else
     {
         subnet_set(net_key_index, p_key, *p_subnet_handle);
-        (void) flash_save(DSM_ENTRY_TYPE_SUBNET, *p_subnet_handle);
+        dsm_entry_store(MESH_OPT_DSM_SUBNETS_RECORD, *p_subnet_handle, m_subnet_allocated);
         nrf_mesh_subnet_added(net_key_index, m_subnets[*p_subnet_handle].beacon.info.secmat.net_id);
 
         __LOG_XB(LOG_SRC_DSM, LOG_LEVEL_DBG3, "Netkey added", p_key, NRF_MESH_KEY_SIZE);
@@ -2478,9 +2416,7 @@ uint32_t dsm_subnet_update(dsm_handle_t subnet_handle, const uint8_t * p_key)
         net_state_key_refresh_phase_changed(m_subnets[subnet_handle].net_key_index,
                                             m_subnets[subnet_handle].beacon.info.secmat_updated.net_id,
                                             NRF_MESH_KEY_REFRESH_PHASE_1);
-
-        bitfield_set(m_subnet_needs_flashing, subnet_handle);
-        (void) flash_save(DSM_ENTRY_TYPE_SUBNET, subnet_handle);
+        dsm_entry_store(MESH_OPT_DSM_SUBNETS_RECORD, subnet_handle, m_subnet_allocated);
     }
     return NRF_SUCCESS;
 }
@@ -2503,9 +2439,7 @@ uint32_t dsm_subnet_update_swap_keys(dsm_handle_t subnet_handle)
         net_state_key_refresh_phase_changed(m_subnets[subnet_handle].net_key_index,
                                             m_subnets[subnet_handle].beacon.info.secmat_updated.net_id,
                                             NRF_MESH_KEY_REFRESH_PHASE_2);
-
-        bitfield_set(m_subnet_needs_flashing, subnet_handle);
-        (void) flash_save(DSM_ENTRY_TYPE_SUBNET, subnet_handle);
+        dsm_entry_store(MESH_OPT_DSM_SUBNETS_RECORD, subnet_handle, m_subnet_allocated);
     }
 
     return NRF_SUCCESS;
@@ -2549,13 +2483,11 @@ uint32_t dsm_subnet_update_commit(dsm_handle_t subnet_handle)
                 memcpy(&m_appkeys[i].secmat, &m_appkeys[i].secmat_updated, sizeof(nrf_mesh_application_secmat_t));
                 m_appkeys[i].key_updated = false;
 
-                bitfield_set(m_appkey_needs_flashing, i);
-                (void) flash_save(DSM_ENTRY_TYPE_APPKEY, i);
+                dsm_entry_store(MESH_OPT_DSM_APPKEYS_RECORD, i, m_appkey_allocated);
             }
         }
 
-        bitfield_set(m_subnet_needs_flashing, subnet_handle);
-        (void) flash_save(DSM_ENTRY_TYPE_SUBNET, subnet_handle);
+        dsm_entry_store(MESH_OPT_DSM_SUBNETS_RECORD, subnet_handle, m_subnet_allocated);
         return NRF_SUCCESS;
     }
 
@@ -2599,8 +2531,7 @@ uint32_t dsm_subnet_delete(dsm_handle_t subnet_handle)
         m_has_primary_subnet = false;
     }
 
-    bitfield_clear(m_subnet_allocated, subnet_handle);
-    (void) flash_invalidate(DSM_ENTRY_TYPE_SUBNET, subnet_handle);
+    dsm_entry_invalidate(MESH_OPT_DSM_SUBNETS_RECORD, subnet_handle, m_subnet_allocated);
     return NRF_SUCCESS;
 }
 
@@ -2670,7 +2601,7 @@ uint32_t dsm_devkey_add(uint16_t raw_unicast_addr, dsm_handle_t subnet_handle, c
     else
     {
         devkey_set(raw_unicast_addr, subnet_handle, p_key, handle);
-        (void) flash_save(DSM_ENTRY_TYPE_DEVKEY, handle - DSM_DEVKEY_HANDLE_START);
+        dsm_entry_store(MESH_OPT_DSM_DEVKEYS_RECORD, handle - DSM_DEVKEY_HANDLE_START, m_devkey_allocated);
         *p_devkey_handle = handle;
     }
 
@@ -2690,8 +2621,7 @@ uint32_t dsm_devkey_delete(dsm_handle_t devkey_handle)
     else
     {
         m_devkeys[devkey_index].key_owner = NRF_MESH_ADDR_UNASSIGNED;
-        bitfield_clear(m_devkey_allocated, devkey_index);
-        (void) flash_invalidate(DSM_ENTRY_TYPE_DEVKEY, devkey_index);
+        dsm_entry_invalidate(MESH_OPT_DSM_DEVKEYS_RECORD, devkey_index, m_devkey_allocated);
         return NRF_SUCCESS;
     }
 }
@@ -2751,7 +2681,7 @@ uint32_t dsm_appkey_add(mesh_key_index_t app_key_index, dsm_handle_t subnet_hand
     else
     {
         appkey_set(app_key_index, subnet_handle, p_key, *p_app_handle);
-        (void) flash_save(DSM_ENTRY_TYPE_APPKEY, *p_app_handle);
+        dsm_entry_store(MESH_OPT_DSM_APPKEYS_RECORD, *p_app_handle, m_appkey_allocated);
     }
 
     __LOG_XB(LOG_SRC_DSM, LOG_LEVEL_DBG3, "Appkey added", p_key, NRF_MESH_KEY_SIZE);
@@ -2785,8 +2715,7 @@ uint32_t dsm_appkey_update(dsm_handle_t app_handle, const uint8_t * p_key)
         NRF_MESH_ASSERT(nrf_mesh_keygen_aid(p_key, &m_appkeys[app_handle].secmat_updated.aid) == NRF_SUCCESS);
         m_appkeys[app_handle].secmat_updated.is_device_key = m_appkeys[app_handle].secmat.is_device_key;
 
-        bitfield_set(m_appkey_needs_flashing, app_handle);
-        (void) flash_save(DSM_ENTRY_TYPE_APPKEY, app_handle);
+        dsm_entry_store(MESH_OPT_DSM_APPKEYS_RECORD, app_handle, m_appkey_allocated);
     }
     return NRF_SUCCESS;
 }
@@ -2799,8 +2728,7 @@ uint32_t dsm_appkey_delete(dsm_handle_t app_handle)
     }
     else
     {
-        bitfield_clear(m_appkey_allocated, app_handle);
-        (void) flash_invalidate(DSM_ENTRY_TYPE_APPKEY, app_handle);
+        dsm_entry_invalidate(MESH_OPT_DSM_APPKEYS_RECORD, app_handle, m_appkey_allocated);
         return NRF_SUCCESS;
     }
 }
@@ -3269,4 +3197,11 @@ bool nrf_mesh_is_address_rx(const nrf_mesh_address_t * p_addr)
         default:
             return false;
     }
+}
+
+bool nrf_mesh_is_device_provisioned(void)
+{
+    dsm_local_unicast_address_t addr;
+    dsm_local_unicast_addresses_get(&addr);
+    return (addr.address_start != NRF_MESH_ADDR_UNASSIGNED);
 }

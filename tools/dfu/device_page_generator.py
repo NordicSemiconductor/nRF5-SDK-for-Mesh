@@ -198,8 +198,8 @@ def write_all(platforms, softdevices, args):
 
 
 def main():
-    softdevices = load_softdevies("../configuration/softdevices.json")
-    platforms = load_platforms("../configuration/platforms.json")
+    softdevices = load_softdevies(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../configuration/softdevices.json"))
+    platforms = load_platforms(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../configuration/platforms.json"))
     sd_str = ''
     for sd in softdevices:
         sd_str += ''.join(sd["name"]) + "\n"
@@ -207,7 +207,7 @@ def main():
     for plt in platforms:
         plt_str += ''.join(plt["name"]) + '\n'
 
-    SOFTDEVICE = "s132_6.1.1"
+    SOFTDEVICE = "s132_7.0.1"
     DEVICE = "nrf52832_xxAA"
     parser = argparse.ArgumentParser(description="Device Page Generator")
     parser.add_argument("-d", "--device", help="Select device: " + ''.join(plt_str),
@@ -215,7 +215,7 @@ def main():
     parser.add_argument("-sd", "--softdevice", help="Select SoftDevice: "  + ''.join(sd_str),
                         default=SOFTDEVICE)
     parser.add_argument("-c", "--bootloader-config",
-                        default="bootloader_config_default.json",
+                        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "bootloader_config_default.json"),
                         help="Bootloader configuration file")
     parser.add_argument("-o", "--output-file",
                         help="Output hex file (default: bin/device_page_%s_%s.hex)." % ("<DEVICE>", "<SOFTDEVICE>"),

@@ -3,10 +3,13 @@
 This page contains all the notes for the major and minor production releases of the nRF5 SDK for Mesh.
 
 **Table of contents**
+- [BLE Mesh v4.0.0](@ref release_notes_400)
+    - [New features and highlights](@ref release_notes_400_highlights)
+	- [Changes](@ref release_notes_400_changes)
+	- [Bugfixes](@ref release_notes_400_bugfixes)
+    - [Limitations](@ref release_notes_400_limitations)
+    - [Known issues](@ref release_notes_400_known_issues)
 - [BLE Mesh v3.2.0](@ref release_notes_320)
-    - [New features and highlights](@ref release_notes_320_highlights)
-	- [Changes](@ref release_notes_320_changes)
-	- [Bugfixes](@ref release_notes_320_bugfixes)
 - [BLE Mesh v3.1.0](@ref release_notes_310)
 - [BLE Mesh v3.0.0](@ref release_notes_300)
 - [BLE Mesh v2.2.0](@ref release_notes_220)
@@ -26,6 +29,101 @@ This page contains all the notes for the major and minor production releases of 
 Check [Migration guide](@ref md_MIGRATION_GUIDE) for mandatory changes to your projects caused by
 the release of new features and updates.
 
+
+---
+
+## BLE Mesh v4.0.0 @anchor release_notes_400
+
+@par Release Date: Week 48, 2019
+
+This is a major release that introduces support for Nordic Semiconductor's nRF52833 device
+and adds support for the nRF5 SDK v16.0.0 and the new SoftDevice versions. It includes
+the Friendship feature in production-ready state, introduces major changes to the persistent storage
+and addresses a number of bugs.
+
+### New features and highlights @anchor release_notes_400_highlights
+- Added support for nRF52833.
+- Added support for the nRF5 SDK v16.0.0, which introduces the new SoftDevice v7.0.1
+and the official support for the SoftDevice S113 v7.0.1.
+
+### Changes @anchor release_notes_400_changes
+- Support for the Friendship feature is now production-ready.
+
+#### Persistent storage
+- Migrated Access, DSM, and Net State modules, and EnOcean and Light Switch Provisioner examples to use the Mesh configuration module.
+Each of these components has a separate file, and the files are handled within the Mesh configuration module.
+See [Migration guide](@ref mesh_config_for_dsm_and_access) for details about changes required in your application.
+    - The following APIs have been removed as part of this change:
+        - `bool access_flash_config_load(void)`
+        - `void access_flash_config_store(void)`
+        - `const void * access_flash_area_get(void)`
+        - `bool dsm_flash_config_load(void)`
+        - `const void * dsm_flash_area_get(void)`
+- Added the Registered Fault state of the Health Model to the persistent storage.
+
+#### Documentation
+- Updated the section about provisioning. It is now called @ref md_doc_getting_started_provisioning_main and includes new information about the provisioning process and APIs.
+- Added a new page about @ref md_doc_getting_started_examples_adding.
+- Added [the list of provisioning bearers in the nRF5 SDK for Mesh examples](@ref example_provisioning_bearers).
+- Reworked the sections about [Evaluating examples using the nRF Mesh mobile application](@ref nrf-mesh-mobile-app).
+- Introduced several minor documentation improvements.
+
+#### Other changes
+- Added independent, dynamically registered AD listeners for Beacons, Mesh core, Provisioning, and DFU.
+- Removed the experimental support for the SoftDevice S113 v7.0.0.
+- Changed the behavior of how network cache entries are managed. Now, if relaying of a packet fails, the packet is no longer cached by the network layer.
+- Increased the default value for @ref MESH_FRIEND_QUEUE_SIZE from 16 to 35.
+This allows the Friend node to receive at least one full segmented message meant for the Low Power node.
+- Changed the location of the @ref BEARER_EVENT_USE_SWI0 option. See [Migration guide](@ref BEARER_EVENT_USE_SWI0_location) for details about changes required in your application.
+- Added heartbeat event handling to the serial interface.
+
+### Bugfixes @anchor release_notes_400_bugfixes
+- Fixed an issue where the Mesh configuration finds corrupted persistent parameters from Access or DSM files during initialization, which causes the persistent areas to be cleaned and the device start as unprovisioned.
+- Fixed an issue where resetting a node might cause the node to wait for IV Update timeout again. Now the time to the next IV Update is stored in the flash each 30 minutes.
+- Fixed an issue where it was not possible to set the authentication size to 0x00 for the static OOB method.
+- Fixed an issue with the action type of the Input and Output requests in @ref NRF_MESH_PROV_EVT_INPUT_REQUEST and @ref NRF_MESH_PROV_EVT_OUTPUT_REQUEST provisioning events.
+    - When the device is now acting as a provisionee, the action field of @ref nrf_mesh_prov_evt_input_request_t contains value from @ref nrf_mesh_prov_input_action_t and the action field of @ref nrf_mesh_prov_evt_output_request_t contains value from @ref nrf_mesh_prov_output_action_t.
+    - When the device is now acting as a provisioner, the action field of @ref nrf_mesh_prov_evt_input_request_t contains value from @ref nrf_mesh_prov_output_action_t and the action field of @ref nrf_mesh_prov_evt_output_request_t contains value from @ref nrf_mesh_prov_input_action_t.
+- Fixed a log message issue in the access layer when a message was about to be sent. Now the correct buffer will be printed.
+- Fixed a bug where the Friend node would establish a friendship with the Low Power node, but would not send the @ref NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED event. Now the Friend node will send the @ref NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED event when establishing a friendship.
+- Fixed an issue with an unnecessary parameter check in @ref mesh_friend_friendships_get() that would cause this function to always return `NRF_ERROR_NULL`. The parameter check is now removed.
+- Fixed a bug where the Friend node would send the @ref NRF_MESH_EVT_FRIENDSHIP_TERMINATED event, but would not fill the role field. Now the Friend node will initialize the role field in the @ref nrf_mesh_evt_friendship_terminated_t structure when sending the @ref NRF_MESH_EVT_FRIENDSHIP_TERMINATED event.
+- Fixed a bug where the Friend node was not able to send self-generated messages to the Low Power node.
+- Fixed a receive delay timeout calculation issue for the Low Power Node which caused the Low Power node to start the Receive Window ~1.9 ms earlier. Now the Low Power node starts the Receive Window at the proper time.
+- Fixed a bug where the Friend node might start receiving segmented messages even if they would not fit into the Friend Queue. Now the Friend node will reject segmented messages that cannot be stored in the Friend Queue due to the limit of the queue size.
+- Fixed a bug where the Friend node was not able to decode the Receive Window Factor and RSSI Factor correctly, which would cause the Friend node to schedule the Friend Offer earlier. Now the Friend node will correctly decode the factors and schedule the Friend Offer at the right time.
+- Fixed several documentation bugs, including broken links in @ref md_doc_libraries_dfu_dfu_quick_start.
+- Fixed documentation of the @ref access_model_reliable_publish() function. The user must retain the data provided in @ref access_message_tx_t::p_buffer until the acknowledged transfer has ended (see @ref access_reliable_t::status_cb) or the message is cancelled by @ref access_model_reliable_cancel.
+- Fixed a bug where the OOB field in PB-GATT advertisements had the wrong endianness.
+- Fixed an issue where @ref pb_remote_server_disable() was always returning `NRF_ERROR_INVALID_STATE`. Now @ref pb_remote_server_disable() performs checks correctly and it is possible to disable the PB remote server.
+- Fixed an issue where `BOOTLOADERADDR()` would check `UICR->NRFFW[0]`, which is no longer used in the BLE bootloader, and which would make the `flash_anager_defrag_init()` assert when using BLE bootloader. Now `BOOTLOADERADDR()` does not perform this check.
+- Fixed an issue where the internal state of stored entries could brake if an entry was deleted or when it was changed but not stored yet.
+- Fixed an issue where the PR remote client or server might lose a message, which might cause the remote provisioning to fail. Now the PB remote models are tolerant to the packets loss between the PB remote client and the PB remote server.
+- Fixed an issue where the number of elements reported by the composition data would not match the amount reported in the provisioning capabilities message, leading to a mismatch in the number of elements.
+
+### Limitations @anchor release_notes_400_limitations
+
+- The replay protection list is not stored in flash. (MBTLE-1975)
+- When using the GNU ARM Embedded Toolchain `8-2018-q4-major` release, building with CMake on Windows is not working correctly because of a bug in this release. (MBTLE-3105)
+- If a poll is planned during the delay of another poll, the attempt counter is reset to the default value. (MBTLE-3175)
+- It is not possible to use SAR for both request and response by using loopback. Use separate elements for such client-server models instantiated on the same device. (MBTLE-3439)
+- When the provisioning is started by the mesh stack provisioner, the Link Open message will be sent for a maximum of 6 times with an interval of about 60 ms (instead of resending it continuously for up to 60 seconds). If a link could not be established within this time, the application should start the procedure again. (MBTLE-3547)
+- The PA/LNA module is supported on nRF52840 and nRF52833, but only verified on nRF52832. (MBTLE-3576)
+
+### Known issues @anchor release_notes_400_known_issues
+- The `flash_manager` API might write to `p_manager->internal.state` without considering the existing state. (MBTLE-1972)
+- If the mesh stack is configured with the IRQ priority @ref NRF_MESH_IRQ_PRIORITY_THREAD and runs in the main loop with app_scheduler, there might be delays of ~15 ms. (MBTLE-2624)
+- During the provisioning of a device, the Device Name is changed to the default `nRF5x` after completion of the PB-GATT connection. The name is later changed back to the correct name when the initial configuration of the device is complete. (MBTLE-3151)
+- Calling access_clear() when a reliable transfer is ongoing will result in an assert. (MBTLE-3181)
+- The Mesh bootloader does not turn off UART before switching to the application. (MBTLE-3215)
+- The PA/LNA module in the BLE SoftDevice stack is not switched on after the mesh provisioning process. (MBTLE-3279)
+- The app_timer library fails to trigger the timer correctly if no active timer is present for the RTC_MAX/2 value. (MBTLE-3347)
+- The DFU example will back out of a DFU target state to service a relay request. (MBTLE-3376)
+- The DFU segment recovery may get deadlocked. (MBTLE-3423)
+- The Mesh Configuration Power Down files require significant time for storing if defragmentation is in progress. (MBTLE-3467)
+- Friendship and LPN poll timeouts greater than 2147 seconds are not supported. (MBTLE-3563)
+
+
 ---
 
 ## BLE Mesh v3.2.0 @anchor release_notes_320
@@ -43,7 +141,7 @@ and fixes to several bugs.
     - For the list of the most relevant changes introduced with this feature, see
     [Changes > Friendship feature](@ref release_notes_320_changes).
 - Added the vendor-specific [RSSI monitoring model](@ref md_models_vendor_rssi_monitor_README).
-- Added [experimental support for the S113 SoftDevice](@ref compatibility_s113).
+- Added experimental support for the S113 SoftDevice.
 - Added support for the nRF5 SDK v15.3.0 and the GNU ARM Embedded Toolchain v7.3.1.
 
 ### Changes @anchor release_notes_320_changes
@@ -186,7 +284,7 @@ As part of this release, several files have been modified. See
     - All pages now follow the same layout, which makes them more readable. This new structure is
       similar to the nRF5 SDK examples.
     - Contents of the pages have been reviewed and updated.
-    - Remote provisioning client and server examples are now described on one page:
+    - PB remote client and server examples are now described on one page:
       @ref md_examples_pb_remote_README.
 - Edited the @ref md_doc_introduction_mesh_compatibility page structure for clarity.
 - Expanded information about [interacting with examples using SEGGER RTT Viewer](@ref segger-rtt).
@@ -325,7 +423,7 @@ As part of this release, several files have been added and removed. See
   		- Updated @ref md_doc_getting_started_getting_started section. It now includes instructional
           documentation.
 		- Grouped experimental examples in the @ref md_examples_experimental_examples subsection.
-		- Grouped provisioning-related pages in the @ref md_doc_getting_started_enabling_provisioning
+		- Grouped provisioning-related pages in the @ref md_doc_getting_started_provisioning_main
           subsection.
  	- Created new pages by splitting content on already existing pages (for example,
       @ref md_doc_introduction_mesh_compatibility or @ref md_doc_introduction_mesh_repository_structure).
@@ -384,7 +482,7 @@ As part of this release, several files have been added and removed. See
 ### Known issues and limitations @anchor release_notes_300_known_issues
 - If the mesh stack is configured with IRQ priority @ref NRF_MESH_IRQ_PRIORITY_THREAD and run in the
   main loop with app_scheduler, there might be delays of ~15 ms.
-- Publish re-transmission settings are not supported
+- Publish re-transmission settings are not supported.
 
 ---
 

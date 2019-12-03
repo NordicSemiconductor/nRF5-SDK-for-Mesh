@@ -25,7 +25,7 @@ msc {
     Client -> Server [label="Scan report status: accepted"];
     Server rbox Server [label="SCANNING"];
 
-    a => Client [label="pb_remote_client_remote_provision()"];
+    a => Client [label="nrf_mesh_prov_provision()"];
     a << Client [label="NRF_SUCCESS"];
 
     Client -> Server [label="Link open: SlotID"];

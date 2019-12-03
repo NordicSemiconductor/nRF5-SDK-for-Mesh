@@ -62,9 +62,16 @@
 #include "toolchain.h"
 #include "event.h"
 #include "bearer_event.h"
-#if PERSISTENT_STORAGE
-#include "flash_manager.h"
-#endif
+#include "mesh_opt_access.h"
+#include "nrf_mesh_config_app.h"
+#include "mesh_config_entry.h"
+
+typedef struct
+{
+    uint8_t is_metadata_stored : 1;
+    uint8_t is_load_failed : 1;
+    uint8_t is_restoring_ended : 1;
+} local_access_status_t;
 
 /*lint -e415 -e416 Lint fails to understand the boundary checking used for handles in this module (MBTLE-1831). */
 
@@ -83,8 +90,8 @@ static nrf_mesh_evt_handler_t m_evt_handler;
 /** Default TTL value for the node. */
 static uint8_t m_default_ttl = ACCESS_DEFAULT_TTL;
 
-/** Flag indicating that the device composition is frozen. */
-static bool m_access_model_config_frozen;
+/** Set of the global flags to keep track of the access layer changes.*/
+static local_access_status_t m_status;
 
 /* ********** Static asserts ********** */
 
@@ -278,6 +285,12 @@ static void mesh_evt_cb(const nrf_mesh_evt_t * p_evt)
         case NRF_MESH_EVT_MESSAGE_RECEIVED:
             mesh_msg_handle(&p_evt->params.message);
             break;
+        case NRF_MESH_EVT_CONFIG_LOAD_FAILURE:
+            if (p_evt->params.config_load_failure.id.file == MESH_OPT_ACCESS_FILE_ID)
+            {
+                m_status.is_load_failed = 1;
+            }
+            break;
         default:
             /* Ignore */
             break;
@@ -410,7 +423,7 @@ static uint32_t packet_tx(access_model_handle_t handle,
     if (status == NRF_SUCCESS)
     {
         __LOG(LOG_SRC_ACCESS, LOG_LEVEL_DBG1, "TX: [aop: 0x%04x] \n", p_tx_message->opcode.opcode);
-        __LOG_XB(LOG_SRC_ACCESS, LOG_LEVEL_DBG1, "TX: Msg", p_tx_message->p_buffer, p_tx_message->length);
+        __LOG_XB(LOG_SRC_ACCESS, LOG_LEVEL_DBG1, "TX: Msg", p_access_payload, access_payload_len);
     }
 
     return status;
@@ -595,225 +608,264 @@ static void access_publish_timing_update(access_model_handle_t handle)
     access_publish_period_set(&m_model_pool[handle].publication_state, fast_res, fast_steps);
 }
 
-#if PERSISTENT_STORAGE
-/** Global flag to keep track of if the flash metadata is up to date.*/
-static bool m_metadata_stored;
-
-/** Global flag to keep track of if the flash_manager is not ready for use (being erased or not added) .*/
-static bool m_flash_not_ready;
-
-/* The flash manager instance used by this module. */
-static flash_manager_t m_flash_manager;
-
-NRF_MESH_STATIC_ASSERT(ACCESS_MODEL_COUNT < FLASH_HANDLE_TO_ACCESS_HANDLE_MASK);
-NRF_MESH_STATIC_ASSERT(ACCESS_ELEMENT_COUNT < FLASH_HANDLE_TO_ACCESS_HANDLE_MASK);
-NRF_MESH_STATIC_ASSERT(ACCESS_SUBSCRIPTION_LIST_COUNT < FLASH_HANDLE_TO_ACCESS_HANDLE_MASK);
-/* We have used ACCESS_MODEL_STATE_FLASH_SIZE as the LARGEST_ENTRY_SIZE in the FLASH_MANAGER_PAGE_COUNT_MINIMUM macro below so verify: */
-NRF_MESH_STATIC_ASSERT(ACCESS_SUBS_LIST_FLASH_SIZE < ACCESS_MODEL_STATE_FLASH_SIZE && ACCESS_MODEL_STATE_FLASH_SIZE > ACCESS_ELEMENTS_FLASH_SIZE);
-/* Verify that the ACCESS_FLASH_PAGE_COUNT is of sufficient size. */
-NRF_MESH_STATIC_ASSERT(FLASH_MANAGER_PAGE_COUNT_MINIMUM(ACCESS_FLASH_ENTRY_SIZE, ACCESS_MODEL_STATE_FLASH_SIZE) <= ACCESS_FLASH_PAGE_COUNT);
-
-static inline void mark_all_as_outdated()
+static uint32_t access_metadata_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
-    /* Mark all allocated subscription lists as outdated. */
-    for (uint16_t i = 0; i < ACCESS_SUBSCRIPTION_LIST_COUNT; ++i)
+    NRF_MESH_ASSERT_DEBUG(MESH_OPT_ACCESS_METADATA_RECORD == id.record);
+
+    access_flash_metadata_t * p_metadata = (access_flash_metadata_t *)p_entry;
+
+    if (p_metadata->element_count == ACCESS_ELEMENT_COUNT &&
+        p_metadata->model_count == ACCESS_MODEL_COUNT &&
+        p_metadata->subscription_list_count == ACCESS_SUBSCRIPTION_LIST_COUNT)
     {
-        if (ACCESS_INTERNAL_STATE_IS_ALLOCATED(m_subscription_list_pool[i].internal_state))
-        {
-            ACCESS_INTERNAL_STATE_OUTDATED_SET(m_subscription_list_pool[i].internal_state);
-        }
-    }
-    /* Mark all elements as outdated. */
-    for (uint16_t i = 0; i < ACCESS_ELEMENT_COUNT; ++i)
-    {
-        if (m_element_pool[i].location != 0)
-        {
-            ACCESS_INTERNAL_STATE_OUTDATED_SET(m_element_pool[i].internal_state);
-        }
-    }
-    /* Mark all allocated models as outdated. */
-    for (access_model_handle_t i = 0; i < ACCESS_MODEL_COUNT; ++i)
-    {
-        if (ACCESS_INTERNAL_STATE_IS_ALLOCATED(m_model_pool[i].internal_state))
-        {
-            ACCESS_INTERNAL_STATE_OUTDATED_SET(m_model_pool[i].internal_state);
-        }
-    }
-}
-
-static void flash_write_complete(const flash_manager_t * p_manager, const fm_entry_t * p_entry, fm_result_t result)
-{
-    /* If we get an AREA_FULL then our calculations for flash space required are buggy. */
-    NRF_MESH_ASSERT(result != FM_RESULT_ERROR_AREA_FULL);
-    /* We do not invalidate in this module, so a NOT_FOUND should not be received. */
-    NRF_MESH_ASSERT(result != FM_RESULT_ERROR_NOT_FOUND);
-    if (result == FM_RESULT_ERROR_FLASH_MALFUNCTION)
-    {
-        /* Let the user know that the flash is dying. */
-        nrf_mesh_evt_t evt = {
-            .type = NRF_MESH_EVT_FLASH_FAILED,
-            .params.flash_failed.user = NRF_MESH_FLASH_USER_ACCESS,
-            .params.flash_failed.p_flash_entry = p_entry,
-            .params.flash_failed.p_flash_page = NULL,
-            .params.flash_failed.p_area = p_manager->config.p_area,
-            .params.flash_failed.page_count = p_manager->config.page_count
-        };
-        event_handle(&evt);
-    }
-}
-
-static void flash_invalidate_complete(const flash_manager_t * p_manager, fm_handle_t handle, fm_result_t result)
-{
-    /* Expect no invalidate complete calls. */
-    NRF_MESH_ASSERT(false);
-}
-
-typedef void (*flash_op_func_t) (void);
-static void flash_manager_mem_available(void * p_args)
-{
-    ((flash_op_func_t) p_args)(); /*lint !e611 Suspicious cast */
-}
-
-static void add_flash_manager(void);
-static void flash_remove_complete(const flash_manager_t * p_manager)
-{
-    mark_all_as_outdated();
-    add_flash_manager();
-}
-
-static void add_flash_manager(void)
-{
-
-    static fm_mem_listener_t flash_add_mem_available_struct = {
-        .callback = flash_manager_mem_available,
-        .p_args = add_flash_manager
-    };
-    flash_manager_config_t manager_config;
-    manager_config.write_complete_cb = flash_write_complete;
-    manager_config.invalidate_complete_cb = flash_invalidate_complete;
-    manager_config.remove_complete_cb = flash_remove_complete;
-    manager_config.min_available_space = WORD_SIZE;
-    manager_config.p_area = access_flash_area_get();
-    manager_config.page_count = ACCESS_FLASH_PAGE_COUNT;
-    m_flash_not_ready = true;
-    uint32_t status = flash_manager_add(&m_flash_manager, &manager_config);
-    if (NRF_SUCCESS != status)
-    {
-        flash_manager_mem_listener_register(&flash_add_mem_available_struct);
+        m_status.is_metadata_stored = 1;
     }
     else
     {
-        m_flash_not_ready = false;
+        return NRF_ERROR_INVALID_DATA;
     }
-}
-/**
- * Restore flash data with the given filter match.
- *
- * Calls the restore callback for every matching entry. The @p p_args argument in the restore
- * callback points to a @c fail boolean which the restore callback can use to indicate invalid entries.
- *
- * @param[in] filter_match Filter to match entries on, only the bits in @ref FLASH_HANDLE_FILTER_MASK are considered.
- * @param[in] restore_callback Callback to call on every matching entry.
- * @param[out] p_success Will be set @c true if the entries were successfully restored, and @c false
- * if one the entries couldn't be restored.
- *
- * @returns The number of restored entries.
- */
-static uint32_t restore_flash_data(fm_handle_t filter_match, flash_manager_read_cb_t restore_callback, bool * p_success)
-{
-    fm_handle_filter_t filter = {.mask = FLASH_HANDLE_FILTER_MASK, .match = filter_match};
-    *p_success = true;
-    return flash_manager_entries_read(&m_flash_manager, &filter, restore_callback, p_success);
+
+    return NRF_SUCCESS;
 }
 
-static fm_iterate_action_t restore_acquired_subscription(const fm_entry_t * p_entry, void * p_success)
+static void access_metadata_getter(mesh_config_entry_id_t id, void * p_entry)
 {
-    access_flash_subscription_list_t * p_subs_list_entry = (access_flash_subscription_list_t *) p_entry->data;
-    uint16_t index = p_entry->header.handle & FLASH_HANDLE_TO_ACCESS_HANDLE_MASK;
-    if (index >= ACCESS_SUBSCRIPTION_LIST_COUNT)
+    NRF_MESH_ASSERT_DEBUG(MESH_OPT_ACCESS_METADATA_RECORD == id.record);
+
+    access_flash_metadata_t * p_metadata = (access_flash_metadata_t *)p_entry;
+    p_metadata->element_count = ACCESS_ELEMENT_COUNT;
+    p_metadata->model_count = ACCESS_MODEL_COUNT;
+    p_metadata->subscription_list_count = ACCESS_SUBSCRIPTION_LIST_COUNT;
+}
+
+static uint32_t subscriptions_setter(mesh_config_entry_id_t id, const void * p_entry)
+{
+    if (!IS_IN_RANGE(id.record, MESH_OPT_ACCESS_SUBSCRIPTIONS_RECORD,
+                                      MESH_OPT_ACCESS_SUBSCRIPTIONS_RECORD + ACCESS_SUBSCRIPTION_LIST_COUNT - 1))
     {
-        *((bool *) p_success) = false;
-        return FM_ITERATE_ACTION_STOP;
+        return NRF_ERROR_NOT_FOUND;
     }
-    ACCESS_INTERNAL_STATE_ALLOCATED_SET(m_subscription_list_pool[index].internal_state);
-    for (uint32_t i = 0; i < ARRAY_SIZE(p_subs_list_entry->inverted_bitfield); ++i)
+
+    uint16_t idx = id.record - MESH_OPT_ACCESS_SUBSCRIPTIONS_RECORD;
+
+    if (!m_status.is_restoring_ended)
     {
-        m_subscription_list_pool[index].bitfield[i] = ~p_subs_list_entry->inverted_bitfield[i];
+        access_flash_subscription_list_t * p_data = (access_flash_subscription_list_t *)p_entry;
+
+        for (uint32_t i = 0; i < ARRAY_SIZE(p_data->inverted_bitfield); ++i)
+        {
+            m_subscription_list_pool[idx].bitfield[i] = ~p_data->inverted_bitfield[i];
+        }
+
+        ACCESS_INTERNAL_STATE_INVALIDATED_CLR(m_subscription_list_pool[idx].internal_state);
+        ACCESS_INTERNAL_STATE_REFRESHED_CLR(m_subscription_list_pool[idx].internal_state);
     }
-    return FM_ITERATE_ACTION_CONTINUE;
+
+    return NRF_SUCCESS;
 }
 
-static inline bool restore_subscription_lists(void)
+static void subscriptions_getter(mesh_config_entry_id_t id, void * p_entry)
 {
-    bool success;
-    (void) restore_flash_data(FLASH_GROUP_SUBS_LIST, restore_acquired_subscription, &success);
-    return success;
+    NRF_MESH_ASSERT_DEBUG(IS_IN_RANGE(id.record, MESH_OPT_ACCESS_SUBSCRIPTIONS_RECORD,
+                                      MESH_OPT_ACCESS_SUBSCRIPTIONS_RECORD + ACCESS_SUBSCRIPTION_LIST_COUNT - 1));
+
+    uint16_t idx = id.record - MESH_OPT_ACCESS_SUBSCRIPTIONS_RECORD;
+    access_flash_subscription_list_t * p_data = (access_flash_subscription_list_t *)p_entry;
+
+    for (uint32_t i = 0; i < ARRAY_SIZE(p_data->inverted_bitfield); ++i)
+    {
+        p_data->inverted_bitfield[i] = ~m_subscription_list_pool[idx].bitfield[i];
+    }
 }
 
-static fm_iterate_action_t restore_acquired_element(const fm_entry_t * p_entry, void * p_success)
+static uint32_t elements_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
-    uint16_t index = p_entry->header.handle & FLASH_HANDLE_TO_ACCESS_HANDLE_MASK;
-    uint16_t * p_element_location = (uint16_t *) p_entry->data;
-    if (index >= ACCESS_ELEMENT_COUNT)
+    if (!IS_IN_RANGE(id.record, MESH_OPT_ACCESS_ELEMENTS_RECORD,
+                                      MESH_OPT_ACCESS_ELEMENTS_RECORD + ACCESS_ELEMENT_COUNT - 1))
     {
-        *((bool *) p_success) = false;
-        return FM_ITERATE_ACTION_STOP;
+        return NRF_ERROR_NOT_FOUND;
     }
-    m_element_pool[index].location = *p_element_location;
-    return FM_ITERATE_ACTION_CONTINUE;
+
+    uint16_t idx = id.record - MESH_OPT_ACCESS_ELEMENTS_RECORD;
+
+    if (!m_status.is_restoring_ended)
+    {
+        uint16_t * p_data = (uint16_t *)p_entry;
+        memcpy(&m_element_pool[idx].location, p_data, sizeof(uint16_t));
+
+        ACCESS_INTERNAL_STATE_INVALIDATED_CLR(m_element_pool[idx].internal_state);
+        ACCESS_INTERNAL_STATE_REFRESHED_CLR(m_element_pool[idx].internal_state);
+    }
+
+    return NRF_SUCCESS;
 }
 
-static inline bool restore_elements(void)
+static void elements_getter(mesh_config_entry_id_t id, void * p_entry)
 {
-    for (int i = 0; i < ACCESS_ELEMENT_COUNT; ++i)
-    {
-        m_element_pool[i].sig_model_count = 0;
-        m_element_pool[i].vendor_model_count = 0;
-        m_element_pool[i].location = 0;
-        ACCESS_INTERNAL_STATE_OUTDATED_CLR(m_element_pool[i].internal_state);
-    }
-    bool success;
-    (void) restore_flash_data(FLASH_GROUP_ELEMENT, restore_acquired_element, &success);
-    return success;
+    NRF_MESH_ASSERT_DEBUG(IS_IN_RANGE(id.record, MESH_OPT_ACCESS_ELEMENTS_RECORD,
+                                      MESH_OPT_ACCESS_ELEMENTS_RECORD + ACCESS_ELEMENT_COUNT - 1));
+
+    uint16_t idx = id.record - MESH_OPT_ACCESS_ELEMENTS_RECORD;
+    uint16_t * p_data = (uint16_t *)p_entry;
+    memcpy(p_data, &m_element_pool[idx].location, sizeof(uint16_t));
 }
 
-static fm_iterate_action_t restore_acquired_model(const fm_entry_t * p_entry, void * p_success)
+static uint32_t models_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
-    access_model_state_data_t * p_model_data_entry = (access_model_state_data_t *) p_entry->data;
-    uint16_t index = p_entry->header.handle & FLASH_HANDLE_TO_ACCESS_HANDLE_MASK;
-    if (index >= ACCESS_MODEL_COUNT ||
-        p_model_data_entry->element_index >= ACCESS_ELEMENT_COUNT ||
-        (m_model_pool[index].model_info.subscription_pool_index < ACCESS_SUBSCRIPTION_LIST_COUNT &&
-         (m_model_pool[index].model_info.subscription_pool_index != p_model_data_entry->subscription_pool_index ||
-          !ACCESS_INTERNAL_STATE_IS_ALLOCATED(m_subscription_list_pool[p_model_data_entry->subscription_pool_index].internal_state))))
+    if (!IS_IN_RANGE(id.record, MESH_OPT_ACCESS_MODELS_RECORD,
+                                      MESH_OPT_ACCESS_MODELS_RECORD + ACCESS_MODEL_COUNT - 1))
     {
-        /* Fail if:
-         * - The model handle index is invalid
-         * - The element index pointed to is invalid
-         * - The model has an allocated subscription list, but the index doesn't match the one in
-         *   flash or isn't allocated in the subscription list pool
-         *
-         * All of these conditions are signs that the user access init code has changed (order of
-         * allocation etc.)
-         */
-        *((bool *) p_success) = false;
-        return FM_ITERATE_ACTION_STOP;
+        return NRF_ERROR_NOT_FOUND;
     }
 
-    if (p_model_data_entry->subscription_pool_index < ACCESS_SUBSCRIPTION_LIST_COUNT)
+    uint16_t idx = id.record - MESH_OPT_ACCESS_MODELS_RECORD;
+
+    if (!m_status.is_restoring_ended)
     {
-        ACCESS_INTERNAL_STATE_RESTORED_SET(m_subscription_list_pool[p_model_data_entry->subscription_pool_index].internal_state);
+        access_model_state_data_t * p_data = (access_model_state_data_t *)p_entry;
+        memcpy(&m_model_pool[idx].model_info, p_data, sizeof(access_model_state_data_t));
+
+        ACCESS_INTERNAL_STATE_INVALIDATED_CLR(m_model_pool[idx].internal_state);
+        ACCESS_INTERNAL_STATE_REFRESHED_CLR(m_model_pool[idx].internal_state);
     }
-    memcpy(&m_model_pool[index].model_info, p_model_data_entry, sizeof(access_model_state_data_t));
-    increment_model_count(p_model_data_entry->element_index, p_model_data_entry->model_id.company_id);
-    return FM_ITERATE_ACTION_CONTINUE;
+
+    return NRF_SUCCESS;
 }
 
-static inline void restore_addresses_for_model(const access_common_t * p_model)
+static void models_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    NRF_MESH_ASSERT_DEBUG(IS_IN_RANGE(id.record, MESH_OPT_ACCESS_MODELS_RECORD,
+                                      MESH_OPT_ACCESS_MODELS_RECORD + ACCESS_MODEL_COUNT - 1));
+
+    uint16_t idx = id.record - MESH_OPT_ACCESS_MODELS_RECORD;
+    access_model_state_data_t * p_data = (access_model_state_data_t *)p_entry;
+    memcpy(p_data, &m_model_pool[idx].model_info, sizeof(access_model_state_data_t));
+}
+
+MESH_CONFIG_ENTRY(access_metadata,
+                  MESH_OPT_ACCESS_METADATA_EID,
+                  1,
+                  sizeof(access_flash_metadata_t),
+                  access_metadata_setter,
+                  access_metadata_getter,
+                  NULL,
+                  NULL);
+
+MESH_CONFIG_ENTRY(subscriptions,
+                  MESH_OPT_ACCESS_SUBSCRIPTIONS_EID,
+                  ACCESS_SUBSCRIPTION_LIST_COUNT,
+                  sizeof(access_flash_subscription_list_t),
+                  subscriptions_setter,
+                  subscriptions_getter,
+                  NULL,
+                  NULL);
+
+MESH_CONFIG_ENTRY(elements,
+                  MESH_OPT_ACCESS_ELEMENTS_EID,
+                  ACCESS_ELEMENT_COUNT,
+                  sizeof(uint16_t),
+                  elements_setter,
+                  elements_getter,
+                  NULL,
+                  NULL);
+
+MESH_CONFIG_ENTRY(models,
+                  MESH_OPT_ACCESS_MODELS_EID,
+                  ACCESS_MODEL_COUNT,
+                  sizeof(access_model_state_data_t),
+                  models_setter,
+                  models_getter,
+                  NULL,
+                  NULL);
+
+MESH_CONFIG_FILE(m_access_file, MESH_OPT_ACCESS_FILE_ID, MESH_CONFIG_STRATEGY_CONTINUOUS);
+
+static void model_store(access_model_handle_t handle)
+{
+    if (!m_status.is_restoring_ended)
+    {
+        ACCESS_INTERNAL_STATE_REFRESHED_SET(m_model_pool[handle].internal_state);
+        return;
+    }
+
+    mesh_config_entry_id_t entry_id = MESH_OPT_ACCESS_MODELS_EID;
+
+    entry_id.record += handle;
+    NRF_MESH_ERROR_CHECK(mesh_config_entry_set(entry_id, &m_model_pool[handle].model_info));
+}
+
+static void element_store(uint16_t index)
+{
+    if (!m_status.is_restoring_ended)
+    {
+        ACCESS_INTERNAL_STATE_REFRESHED_SET(m_element_pool[index].internal_state);
+        return;
+    }
+
+    mesh_config_entry_id_t entry_id = MESH_OPT_ACCESS_ELEMENTS_EID;
+
+    entry_id.record += index;
+    NRF_MESH_ERROR_CHECK(mesh_config_entry_set(entry_id, &m_element_pool[index].location));
+}
+
+static void sublist_store(uint16_t index)
+{
+    if (!m_status.is_restoring_ended)
+    {
+        ACCESS_INTERNAL_STATE_REFRESHED_SET(m_subscription_list_pool[index].internal_state);
+        return;
+    }
+
+    access_flash_subscription_list_t subs_list;
+    mesh_config_entry_id_t entry_id = MESH_OPT_ACCESS_SUBSCRIPTIONS_EID;
+
+    entry_id.record += index;
+
+    for (uint32_t i = 0; i < ARRAY_SIZE(subs_list.inverted_bitfield); ++i)
+    {
+        subs_list.inverted_bitfield[i] = ~m_subscription_list_pool[index].bitfield[i];
+    }
+
+    NRF_MESH_ERROR_CHECK(mesh_config_entry_set(entry_id, &subs_list));
+}
+
+static void sublist_invalidate(uint16_t index)
+{
+    if (!m_status.is_restoring_ended)
+    {
+        ACCESS_INTERNAL_STATE_INVALIDATED_SET(m_subscription_list_pool[index].internal_state);
+        return;
+    }
+
+    mesh_config_entry_id_t entry_id = MESH_OPT_ACCESS_SUBSCRIPTIONS_EID;
+    entry_id.record += index;
+    NRF_MESH_ERROR_CHECK(mesh_config_entry_delete(entry_id));
+}
+
+static void metadata_store(void)
+{
+    mesh_config_entry_id_t entry_id = MESH_OPT_ACCESS_METADATA_EID;
+    access_flash_metadata_t metadata =
+    {
+        .element_count = ACCESS_ELEMENT_COUNT,
+        .model_count = ACCESS_MODEL_COUNT,
+        .subscription_list_count = ACCESS_SUBSCRIPTION_LIST_COUNT
+    };
+
+    NRF_MESH_ERROR_CHECK(mesh_config_entry_set(entry_id, &metadata));
+}
+
+static uint32_t restore_addresses_for_model(const access_common_t * p_model)
+{
+    uint32_t status;
+
     if (p_model->model_info.publish_address_handle != DSM_HANDLE_INVALID)
     {
-        NRF_MESH_ERROR_CHECK(dsm_address_publish_add_handle(p_model->model_info.publish_address_handle));
+        status = dsm_address_publish_add_handle(p_model->model_info.publish_address_handle);
+        if (status != NRF_SUCCESS)
+        {
+            return status;
+        }
     }
 
     if (p_model->model_info.subscription_pool_index != ACCESS_SUBSCRIPTION_LIST_COUNT)
@@ -823,13 +875,19 @@ static inline void restore_addresses_for_model(const access_common_t * p_model)
              i != DSM_ADDR_MAX;
              i = bitfield_next_get(p_sub->bitfield, DSM_ADDR_MAX, i+1))
         {
-            NRF_MESH_ERROR_CHECK(dsm_address_subscription_add_handle(i));
+            status = dsm_address_subscription_add_handle(i);
+            if (status != NRF_SUCCESS)
+            {
+                return status;
+            }
         }
     }
+
+    return NRF_SUCCESS;
 }
 
 #if ACCESS_MODEL_PUBLISH_PERIOD_RESTORE
-static inline void restore_publication_period(access_common_t * p_model)
+static void restore_publication_period(access_common_t * p_model)
 {
     if (p_model->model_info.publication_period.step_num != 0)
     {
@@ -840,243 +898,124 @@ static inline void restore_publication_period(access_common_t * p_model)
 }
 #endif
 
-static inline bool restore_models(void)
+static void initialization_data_store(void)
 {
-    bool success;
-    uint32_t restore_count = restore_flash_data(FLASH_GROUP_MODEL, restore_acquired_model, &success);
-    if (success && restore_count > 0)
+    for (uint16_t i = 0; i < ACCESS_SUBSCRIPTION_LIST_COUNT; i++)
+    {
+        if (ACCESS_INTERNAL_STATE_IS_INVALIDATED(m_subscription_list_pool[i].internal_state))
+        {
+            sublist_invalidate(i);
+        }
+        else if (ACCESS_INTERNAL_STATE_IS_REFRESHED(m_subscription_list_pool[i].internal_state))
+        {
+            sublist_store(i);
+        }
+
+        ACCESS_INTERNAL_STATE_INVALIDATED_CLR(m_subscription_list_pool[i].internal_state);
+        ACCESS_INTERNAL_STATE_REFRESHED_CLR(m_subscription_list_pool[i].internal_state);
+    }
+
+    for (uint16_t i = 0; i < ACCESS_ELEMENT_COUNT; i++)
+    {
+        if (ACCESS_INTERNAL_STATE_IS_REFRESHED(m_element_pool[i].internal_state))
+        {
+            element_store(i);
+        }
+
+        ACCESS_INTERNAL_STATE_REFRESHED_CLR(m_element_pool[i].internal_state);
+    }
+
+    for (uint16_t i = 0; i < ACCESS_MODEL_COUNT; i++)
+    {
+        if (ACCESS_INTERNAL_STATE_IS_REFRESHED(m_model_pool[i].internal_state))
+        {
+            model_store(i);
+        }
+
+        ACCESS_INTERNAL_STATE_REFRESHED_CLR(m_model_pool[i].internal_state);
+    }
+}
+
+/* ********** Public API ********** */
+
+static void access_mesh_config_clear(void)
+{
+    m_status.is_metadata_stored = 0;
+    m_status.is_load_failed = 0;
+    m_status.is_restoring_ended = 0;
+
+    (void)mesh_config_entry_delete(MESH_OPT_ACCESS_METADATA_EID);
+
+    mesh_config_entry_id_t id = MESH_OPT_ACCESS_SUBSCRIPTIONS_EID;
+
+    for (uint16_t i = 0; i < ACCESS_SUBSCRIPTION_LIST_COUNT; i++)
+    {
+        id.record = MESH_OPT_ACCESS_SUBSCRIPTIONS_RECORD + i;
+        (void)mesh_config_entry_delete(id);
+    }
+
+    id = MESH_OPT_ACCESS_ELEMENTS_EID;
+
+    for (uint16_t i = 0; i < ACCESS_ELEMENT_COUNT; i++)
+    {
+        id.record = MESH_OPT_ACCESS_ELEMENTS_RECORD + i;
+        (void)mesh_config_entry_delete(id);
+    }
+
+    id = MESH_OPT_ACCESS_MODELS_EID;
+
+    for (uint16_t i = 0; i < ACCESS_MODEL_COUNT; i++)
+    {
+        id.record = MESH_OPT_ACCESS_MODELS_RECORD + i;
+        (void)mesh_config_entry_delete(id);
+    }
+}
+
+/* If the persistent feature is switched off then metadata is never restored.
+ * Branch for model restoring will be bypassed. */
+uint32_t access_load_config_apply(void)
+{
+    if (!!m_status.is_load_failed)
+    {
+        return NRF_ERROR_INVALID_DATA;
+    }
+
+    if (!!m_status.is_metadata_stored)
     {
         for (access_model_handle_t i = 0; i < ACCESS_MODEL_COUNT; ++i)
         {
             if (m_model_pool[i].model_info.element_index != ACCESS_ELEMENT_INDEX_INVALID)
             {
-                    restore_addresses_for_model(&m_model_pool[i]);
+                if (restore_addresses_for_model(&m_model_pool[i]) != NRF_SUCCESS)
+                {
+                    return NRF_ERROR_INVALID_DATA;
+                }
 
     #if ACCESS_MODEL_PUBLISH_PERIOD_RESTORE
-                    restore_publication_period(&m_model_pool[i]);
+                restore_publication_period(&m_model_pool[i]);
     #else
-                    m_model_pool[i].model_info.publication_period.step_res = 0;
-                    m_model_pool[i].model_info.publication_period.step_num = 0;
+                m_model_pool[i].model_info.publication_period.step_res = 0;
+                m_model_pool[i].model_info.publication_period.step_num = 0;
     #endif
             }
         }
     }
-    return success;
-}
 
-static inline uint32_t metadata_store(void)
-{
-    fm_entry_t * p_entry = flash_manager_entry_alloc(&m_flash_manager, FLASH_HANDLE_METADATA, sizeof(access_flash_metadata_t));
+    m_status.is_restoring_ended = 1;
+    initialization_data_store();
 
-    if (p_entry == NULL)
+    if (!m_status.is_metadata_stored)
     {
-        return NRF_ERROR_BUSY;
-    }
-    else
-    {
-        access_flash_metadata_t * p_metadata = (access_flash_metadata_t *) p_entry->data;
-        p_metadata->element_count = ACCESS_ELEMENT_COUNT;
-        p_metadata->model_count = ACCESS_MODEL_COUNT;
-        p_metadata->subscription_list_count = ACCESS_SUBSCRIPTION_LIST_COUNT;
-        flash_manager_entry_commit(p_entry);
-        m_metadata_stored = true;
-        return NRF_SUCCESS;
-    }
-}
-
-static inline uint32_t subscription_list_store(uint16_t index)
-{
-    fm_entry_t * p_entry = flash_manager_entry_alloc(&m_flash_manager, FLASH_GROUP_SUBS_LIST | index, sizeof(access_flash_subscription_list_t));
-
-    if (p_entry == NULL)
-    {
-        return NRF_ERROR_BUSY;
-    }
-    else
-    {
-        access_flash_subscription_list_t * p_subs_list = (access_flash_subscription_list_t *) p_entry->data;
-        for (uint32_t i = 0; i < ARRAY_SIZE(p_subs_list->inverted_bitfield); ++i)
-        {
-            p_subs_list->inverted_bitfield[i] = ~m_subscription_list_pool[index].bitfield[i];
-        }
-        flash_manager_entry_commit(p_entry);
-        ACCESS_INTERNAL_STATE_OUTDATED_CLR(m_subscription_list_pool[index].internal_state);
-        return NRF_SUCCESS;
-    }
-}
-
-static inline uint32_t model_store(access_model_handle_t handle)
-{
-    fm_entry_t * p_entry = flash_manager_entry_alloc(&m_flash_manager, FLASH_GROUP_MODEL | handle, sizeof(access_model_state_data_t));
-
-    if (p_entry == NULL)
-    {
-        return NRF_ERROR_BUSY;
-    }
-    else
-    {
-        access_model_state_data_t * p_model_data_entry = (access_model_state_data_t *) p_entry->data;
-        memcpy(p_model_data_entry, &m_model_pool[handle].model_info, sizeof(access_model_state_data_t));
-        flash_manager_entry_commit(p_entry);
-        ACCESS_INTERNAL_STATE_OUTDATED_CLR(m_model_pool[handle].internal_state);
-        return NRF_SUCCESS;
-    }
-}
-
-static inline uint32_t element_store(uint16_t element_index)
-{
-    fm_entry_t * p_entry = flash_manager_entry_alloc(&m_flash_manager, FLASH_GROUP_ELEMENT | element_index, sizeof(uint16_t));
-
-    if (p_entry == NULL)
-    {
-        return NRF_ERROR_BUSY;
-    }
-    else
-    {
-        uint16_t * p_element_location = (uint16_t *) p_entry->data;
-        *p_element_location = m_element_pool[element_index].location;
-        flash_manager_entry_commit(p_entry);
-        ACCESS_INTERNAL_STATE_OUTDATED_CLR(m_element_pool[element_index].internal_state);
-        return NRF_SUCCESS;
-    }
-}
-
-
-/* ********** Public API ********** */
-
-static void access_flash_config_clear(void)
-{
-    static fm_mem_listener_t flash_clear_mem_available_struct =
-        {
-            .callback = flash_manager_mem_available,
-            .p_args = access_flash_config_clear
-        };
-    m_metadata_stored = false;
-    m_flash_not_ready = true;
-    uint32_t status = flash_manager_remove(&m_flash_manager);
-    if (NRF_SUCCESS != status)
-    {
-        flash_manager_mem_listener_register(&flash_clear_mem_available_struct);
-    }
-    else
-    {
-        m_access_model_config_frozen = false;
-    }
-}
-
-bool access_flash_config_load(void)
-{
-    access_flash_metadata_t metadata;
-    uint32_t metadata_size = sizeof(metadata);
-
-    if (flash_manager_entry_read(&m_flash_manager, FLASH_HANDLE_METADATA, &metadata, &metadata_size) != NRF_SUCCESS)
-    {
-        /* Entry could not be read, means the application is trying to load access data for the
-         * very first time when none exist, consider this as success and freeze further changes to
-         * access model configuration.
-         */
-        m_access_model_config_frozen = true;
-        return true;
-    }
-
-    bool config_restored = false;
-    /* make sure that the stored flash data isn't too big for this firmware: */
-    if (metadata.element_count == ACCESS_ELEMENT_COUNT &&
-        metadata.model_count == ACCESS_MODEL_COUNT &&
-        metadata.subscription_list_count == ACCESS_SUBSCRIPTION_LIST_COUNT)
-    {
-        m_metadata_stored = true;
-        config_restored = restore_subscription_lists() && restore_elements() && restore_models();
-    }
-
-    if (!config_restored)
-    {
-        __LOG(LOG_SRC_ACCESS, LOG_LEVEL_ERROR, "Failed to restore configuration.\n");
-
-        /* One invalid entry invalidates everything stored, wipe flash. */
-        dsm_clear();
-        access_flash_config_clear();
-    }
-
-    /* Freeze composition data. */
-    m_access_model_config_frozen = true;
-
-    return config_restored;
-}
-
-void access_flash_config_store(void)
-{
-    if (!m_access_model_config_frozen)
-    {
-        return;
-    }
-
-    uint32_t status = NRF_SUCCESS;
-    /* Lock this call since it can be called by flash manager in bearer_event context in the listener callback.*/
-    bearer_event_critical_section_begin();
-    /* If flash is being erased, no need to store anything now. */
-    if (m_flash_not_ready)
-    {
-        /* Setting status to something other than NRF_SUCCESS will end up calling flash_manager_mem_listener_register at the end of this function */
-        status = NRF_ERROR_INVALID_STATE;
-    }
-    else if (!m_metadata_stored)
-    {
-        status = metadata_store();
-
-    }
-    /* Store all allocated subscription lists. */
-    for (uint16_t i = 0; i < ACCESS_SUBSCRIPTION_LIST_COUNT && status == NRF_SUCCESS; ++i)
-    {
-        if (ACCESS_INTERNAL_STATE_IS_ALLOCATED(m_subscription_list_pool[i].internal_state) &&
-            ACCESS_INTERNAL_STATE_IS_OUTDATED(m_subscription_list_pool[i].internal_state))
-        {
-            status = subscription_list_store(i);
-        }
-    }
-    /* Store all elements. */
-    for (uint16_t i = 0; i < ACCESS_ELEMENT_COUNT && status == NRF_SUCCESS; ++i)
-    {
-        if (ACCESS_INTERNAL_STATE_IS_OUTDATED(m_element_pool[i].internal_state))
-        {
-            status = element_store(i);
-        }
-    }
-    /* Store all allocated models. */
-    for (access_model_handle_t i = 0; i < ACCESS_MODEL_COUNT && status == NRF_SUCCESS; ++i)
-    {
-        if (ACCESS_INTERNAL_STATE_IS_ALLOCATED(m_model_pool[i].internal_state) &&
-            ACCESS_INTERNAL_STATE_IS_OUTDATED(m_model_pool[i].internal_state))
-        {
-            status = model_store(i);
-        }
-    }
-
-    if (NRF_SUCCESS != status)
-    {
-        static fm_mem_listener_t flash_store_mem_available_struct = {
-            .callback = flash_manager_mem_available,
-            .p_args = access_flash_config_store
-        };
-        flash_manager_mem_listener_register(&flash_store_mem_available_struct);
-    }
-
-    bearer_event_critical_section_end();
-}
+        metadata_store();
+#if PERSISTENT_STORAGE
+        return NRF_ERROR_NOT_FOUND;
 #else
-static void access_flash_config_clear(void)
-{
-    m_access_model_config_frozen = false;
-}
-bool access_flash_config_load(void)
-{
-    return false;
-}
-void access_flash_config_store(void)
-{
-}
+        return NRF_SUCCESS;
+#endif
+    }
 
-#endif /* PERSISTENT_STORAGE */
+    return NRF_SUCCESS;
+}
 
 /* ********** Private API ********** */
 void access_incoming_handle(const access_message_rx_t * p_message)
@@ -1148,7 +1087,7 @@ void access_clear(void)
 {
     access_state_clear();
     access_reliable_cancel_all();
-    access_flash_config_clear();
+    access_mesh_config_clear();
 }
 
 void access_init(void)
@@ -1161,17 +1100,9 @@ void access_init(void)
     access_publish_init();
     access_publish_retransmission_init();
 
-    /* Initialize the flash manager */
-    /* Assuming that we only need to play nice to DSM: */
-    /* TODO: Move this into flash manager and check for proper overlaping flash regions. */
-#if PERSISTENT_STORAGE
-#ifdef ACCESS_FLASH_AREA_LOCATION
-    NRF_MESH_ASSERT(ACCESS_FLASH_AREA_LOCATION + PAGE_SIZE * ACCESS_FLASH_PAGE_COUNT <= (uint32_t)dsm_flash_area_get());
-#endif /* ACCESS_FLASH_AREA_LOCATION */
-    add_flash_manager();
-#endif /* PERSISTENT_STORAGE */
-
-    m_access_model_config_frozen = false;
+    m_status.is_metadata_stored = 0;
+    m_status.is_load_failed = 0;
+    m_status.is_restoring_ended = 0;
 }
 
 uint32_t access_model_add(const access_model_add_params_t * p_model_params,
@@ -1193,10 +1124,9 @@ uint32_t access_model_add(const access_model_add_params_t * p_model_params,
     {
         return NRF_ERROR_NOT_FOUND;
     }
-    else if (m_access_model_config_frozen ||
+    else if (nrf_mesh_is_device_provisioned() ||
              (element_has_model_id(p_model_params->element_index, p_model_params->model_id, p_model_handle) &&
-             ACCESS_INTERNAL_STATE_IS_ALLOCATED(m_model_pool[*p_model_handle].internal_state))
-            )
+             ACCESS_INTERNAL_STATE_IS_ALLOCATED(m_model_pool[*p_model_handle].internal_state)))
     {
         return NRF_ERROR_FORBIDDEN;
     }
@@ -1219,7 +1149,8 @@ uint32_t access_model_add(const access_model_add_params_t * p_model_params,
         m_model_pool[*p_model_handle].model_info.model_id.company_id = p_model_params->model_id.company_id;
         m_model_pool[*p_model_handle].model_info.publish_ttl = ACCESS_TTL_USE_DEFAULT;
         increment_model_count(p_model_params->element_index, p_model_params->model_id.company_id);
-        ACCESS_INTERNAL_STATE_OUTDATED_SET(m_model_pool[*p_model_handle].internal_state);
+        ACCESS_INTERNAL_STATE_ALLOCATED_SET(m_model_pool[*p_model_handle].internal_state);
+        model_store(*p_model_handle);
     }
 
     m_model_pool[*p_model_handle].p_args = p_model_params->p_args;
@@ -1228,7 +1159,6 @@ uint32_t access_model_add(const access_model_add_params_t * p_model_params,
 
     m_model_pool[*p_model_handle].publication_state.publish_timeout_cb = p_model_params->publish_timeout_cb;
     m_model_pool[*p_model_handle].publication_state.model_handle = *p_model_handle;
-    ACCESS_INTERNAL_STATE_ALLOCATED_SET(m_model_pool[*p_model_handle].internal_state);
 
     return NRF_SUCCESS;
 }
@@ -1313,7 +1243,7 @@ uint32_t access_model_publish_address_set(access_model_handle_t handle, dsm_hand
     else
     {
         m_model_pool[handle].model_info.publish_address_handle = address_handle;
-        ACCESS_INTERNAL_STATE_OUTDATED_SET(m_model_pool[handle].internal_state);
+        model_store(handle);
         return NRF_SUCCESS;
     }
 }
@@ -1351,7 +1281,7 @@ uint32_t access_model_publish_retransmit_set(access_model_handle_t handle,
     else
     {
         m_model_pool[handle].model_info.publication_retransmit = retransmit_params;
-        ACCESS_INTERNAL_STATE_OUTDATED_SET(m_model_pool[handle].internal_state);
+        model_store(handle);
         return NRF_SUCCESS;
     }
 }
@@ -1426,7 +1356,7 @@ uint32_t access_model_publish_period_set(access_model_handle_t handle,
         m_model_pool[handle].model_info.publication_period.step_num = step_number;
         m_model_pool[handle].model_info.publication_period.step_res = resolution;
         access_publish_timing_update(handle);
-        ACCESS_INTERNAL_STATE_OUTDATED_SET(m_model_pool[handle].internal_state);
+        model_store(handle);
         return NRF_SUCCESS;
     }
 }
@@ -1457,7 +1387,7 @@ uint32_t access_model_publish_period_get(access_model_handle_t handle,
 
 uint32_t access_model_subscription_list_alloc(access_model_handle_t handle)
 {
-    if (m_access_model_config_frozen)
+    if (nrf_mesh_is_device_provisioned())
     {
         return NRF_ERROR_FORBIDDEN;
     }
@@ -1476,8 +1406,9 @@ uint32_t access_model_subscription_list_alloc(access_model_handle_t handle)
             if (!ACCESS_INTERNAL_STATE_IS_ALLOCATED(m_subscription_list_pool[i].internal_state))
             {
                 ACCESS_INTERNAL_STATE_ALLOCATED_SET(m_subscription_list_pool[i].internal_state);
-                ACCESS_INTERNAL_STATE_OUTDATED_SET(m_subscription_list_pool[i].internal_state);
                 m_model_pool[handle].model_info.subscription_pool_index = i;
+                sublist_store(i);
+                model_store(handle);
                 return NRF_SUCCESS;
             }
         }
@@ -1499,7 +1430,7 @@ uint32_t access_model_subscription_list_dealloc(access_model_handle_t handle)
     {
         return NRF_SUCCESS;
     }
-    else if (m_access_model_config_frozen)
+    else if (nrf_mesh_is_device_provisioned())
     {
         return NRF_ERROR_FORBIDDEN;
     }
@@ -1508,13 +1439,12 @@ uint32_t access_model_subscription_list_dealloc(access_model_handle_t handle)
     {
         if (!model_subscription_list_is_shared(handle))
         {
-            /* This also has an effect of clearing `OUTDATED` flag */
             memset(&m_subscription_list_pool[sub_pool_index], 0, sizeof(m_subscription_list_pool[0]));
-            /* @todo: subscription list de-allocation will change once mesh_config is integrated with access */
+            sublist_invalidate(sub_pool_index);
         }
 
         m_model_pool[handle].model_info.subscription_pool_index = ACCESS_SUBSCRIPTION_LIST_COUNT;
-        ACCESS_INTERNAL_STATE_OUTDATED_SET(m_model_pool[handle].internal_state);
+        model_store(handle);
 
         return NRF_SUCCESS;
     }
@@ -1524,7 +1454,7 @@ uint32_t access_model_subscription_list_dealloc(access_model_handle_t handle)
 
 uint32_t access_model_subscription_lists_share(access_model_handle_t owner, access_model_handle_t other)
 {
-    if (m_access_model_config_frozen)
+    if (nrf_mesh_is_device_provisioned())
     {
         return NRF_ERROR_FORBIDDEN;
     }
@@ -1550,6 +1480,7 @@ uint32_t access_model_subscription_lists_share(access_model_handle_t owner, acce
             }
 
             m_model_pool[other].model_info.subscription_pool_index = m_model_pool[owner].model_info.subscription_pool_index;
+            model_store(other);
             return NRF_SUCCESS;
         }
     }
@@ -1563,7 +1494,7 @@ uint32_t access_model_subscription_add(access_model_handle_t handle, dsm_handle_
     {
         return NRF_ERROR_NOT_FOUND;
     }
-    else if (ACCESS_SUBSCRIPTION_LIST_COUNT  == m_model_pool[handle].model_info.subscription_pool_index)
+    else if (ACCESS_SUBSCRIPTION_LIST_COUNT == m_model_pool[handle].model_info.subscription_pool_index)
     {
         return NRF_ERROR_NOT_SUPPORTED;
     }
@@ -1578,7 +1509,7 @@ uint32_t access_model_subscription_add(access_model_handle_t handle, dsm_handle_
     else
     {
         bitfield_set(m_subscription_list_pool[m_model_pool[handle].model_info.subscription_pool_index].bitfield, address_handle);
-        ACCESS_INTERNAL_STATE_OUTDATED_SET(m_subscription_list_pool[m_model_pool[handle].model_info.subscription_pool_index].internal_state);
+        sublist_store(m_model_pool[handle].model_info.subscription_pool_index);
         return NRF_SUCCESS;
     }
 }
@@ -1604,7 +1535,7 @@ uint32_t access_model_subscription_remove(access_model_handle_t handle, dsm_hand
     else
     {
         bitfield_clear(m_subscription_list_pool[m_model_pool[handle].model_info.subscription_pool_index].bitfield, address_handle);
-        ACCESS_INTERNAL_STATE_OUTDATED_SET(m_subscription_list_pool[m_model_pool[handle].model_info.subscription_pool_index].internal_state);
+        sublist_store(m_model_pool[handle].model_info.subscription_pool_index);
         return NRF_SUCCESS;
     }
 }
@@ -1662,7 +1593,7 @@ uint32_t access_model_application_bind(access_model_handle_t handle, dsm_handle_
     else
     {
         bitfield_set(m_model_pool[handle].model_info.application_keys_bitfield, appkey_handle);
-        ACCESS_INTERNAL_STATE_OUTDATED_SET(m_model_pool[handle].internal_state);
+        model_store(handle);
         return NRF_SUCCESS;
     }
 }
@@ -1684,7 +1615,7 @@ uint32_t access_model_application_unbind(access_model_handle_t handle, dsm_handl
     else
     {
         bitfield_clear(m_model_pool[handle].model_info.application_keys_bitfield, appkey_handle);
-        ACCESS_INTERNAL_STATE_OUTDATED_SET(m_model_pool[handle].internal_state);
+        model_store(handle);
         return NRF_SUCCESS;
     }
 }
@@ -1738,7 +1669,7 @@ uint32_t access_model_publish_application_set(access_model_handle_t handle, dsm_
     else
     {
         m_model_pool[handle].model_info.publish_appkey_handle = appkey_handle;
-        ACCESS_INTERNAL_STATE_OUTDATED_SET(m_model_pool[handle].internal_state);
+        model_store(handle);
         return NRF_SUCCESS;
     }
 }
@@ -1785,12 +1716,16 @@ uint32_t access_model_publish_friendship_credential_flag_set(access_model_handle
     {
         return NRF_ERROR_NOT_FOUND;
     }
-    else if (m_model_pool[handle].model_info.friendship_credential_flag != flag)
+    else if (m_model_pool[handle].model_info.friendship_credential_flag == flag)
     {
-        ACCESS_INTERNAL_STATE_OUTDATED_SET(m_model_pool[handle].internal_state);
+        return NRF_SUCCESS;
+    }
+    else
+    {
+        m_model_pool[handle].model_info.friendship_credential_flag = flag;
+        model_store(handle);
     }
 
-    m_model_pool[handle].model_info.friendship_credential_flag = flag;
     return NRF_SUCCESS;
 }
 
@@ -1828,7 +1763,7 @@ uint32_t access_model_publish_ttl_set(access_model_handle_t handle, uint8_t ttl)
     else
     {
         m_model_pool[handle].model_info.publish_ttl = ttl;
-        ACCESS_INTERNAL_STATE_OUTDATED_SET(m_model_pool[handle].internal_state);
+        model_store(handle);
         return NRF_SUCCESS;
     }
 }
@@ -1863,7 +1798,8 @@ uint32_t access_element_location_set(uint16_t element_index, uint16_t location)
     else
     {
         m_element_pool[element_index].location = location;
-        ACCESS_INTERNAL_STATE_OUTDATED_SET(m_element_pool[element_index].internal_state);
+        ACCESS_INTERNAL_STATE_ALLOCATED_SET(m_element_pool[element_index].internal_state);
+        element_store(element_index);
         return NRF_SUCCESS;
     }
 }
@@ -2034,7 +1970,7 @@ uint32_t access_model_publication_stop(access_model_handle_t handle)
     m_model_pool[handle].model_info.publication_period.step_res = 0;
     m_model_pool[handle].publication_state.period.step_num = 0;
     m_model_pool[handle].publication_state.period.step_res = 0;
-    ACCESS_INTERNAL_STATE_OUTDATED_SET(m_model_pool[handle].internal_state);
+    model_store(handle);
 
     return NRF_SUCCESS;
 }
@@ -2060,13 +1996,4 @@ uint32_t access_model_publication_by_appkey_stop(dsm_handle_t appkey_handle)
     }
 
     return NRF_SUCCESS;
-}
-
-const void * access_flash_area_get(void)
-{
-#ifdef ACCESS_FLASH_AREA_LOCATION
-    return (const flash_manager_page_t *) ACCESS_FLASH_AREA_LOCATION;
-#else
-    return (const flash_manager_page_t *) (((const uint8_t *) dsm_flash_area_get()) - (ACCESS_FLASH_PAGE_COUNT * PAGE_SIZE));
-#endif
 }

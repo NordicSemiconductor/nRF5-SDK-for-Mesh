@@ -52,6 +52,7 @@
 
 #include "timer_mock.h"
 #include "timer_scheduler_mock.h"
+#include "bearer_event_mock.h"
 #include "utils.h"
 
 /*******************************************************************************
@@ -88,6 +89,11 @@ static bool m_connected_evt_expect;
 static bool m_disconnected_evt_expect;
 static bool m_tx_ready_evt_expect;
 static uint32_t m_hvx_return;
+
+static bool m_flag_added;
+static bearer_event_flag_t m_flag;
+static bearer_event_flag_callback_t mp_flag_callback;
+static uint8_t m_flag_set_counter;
 /*******************************************************************************
  * Helper functions / macros
  ******************************************************************************/
@@ -286,6 +292,33 @@ static void m_gatt_evt_handler(const mesh_gatt_evt_t * p_evt, void * p_context)
     }
 }
 
+static bearer_event_flag_t bearer_event_flag_add_mock(bearer_event_flag_callback_t callback, int n)
+{
+    TEST_ASSERT_FALSE(m_flag_added);
+
+    if (!m_flag_added)
+    {
+        mp_flag_callback = callback;
+        m_flag_added = true;
+    }
+
+    return m_flag;
+}
+
+static void helper_bearer_event_trigger(void)
+{
+    TEST_ASSERT_TRUE(m_flag_set_counter > 0);
+    TEST_ASSERT_NOT_NULL(mp_flag_callback);
+    TEST_ASSERT_TRUE(mp_flag_callback());
+    m_flag_set_counter--;
+}
+
+static void helper_bearer_event_flag_set_expect(bearer_event_flag_t flag)
+{
+    bearer_event_flag_set_Expect(flag);
+    TEST_ASSERT_EQUAL(m_flag, flag);
+    m_flag_set_counter++;
+}
 /*******************************************************************************
  * Test setup/teardown
  ******************************************************************************/
@@ -297,6 +330,7 @@ void setUp(void)
     timer_scheduler_mock_Init();
     ble_gatts_mock_Init();
     ble_gap_mock_Init();
+    bearer_event_mock_Init();
     m_hvx_return = NRF_SUCCESS;
 }
 
@@ -319,6 +353,8 @@ void tearDown(void)
     ble_gatts_mock_Destroy();
     ble_gap_mock_Verify();
     ble_gap_mock_Destroy();
+    bearer_event_mock_Verify();
+    bearer_event_mock_Destroy();
 }
 
 /*******************************************************************************
@@ -350,6 +386,8 @@ void test_gatt_init(void)
     sd_ble_gatts_characteristic_add_IgnoreArg_p_attr_char_value();
     sd_ble_gatts_characteristic_add_IgnoreArg_p_char_md();
     sd_ble_gatts_characteristic_add_IgnoreArg_p_handles();
+
+    bearer_event_flag_add_StubWithCallback(bearer_event_flag_add_mock);
 
     mesh_gatt_init(&uuids, m_gatt_evt_handler, &m_gatt);
 }
@@ -428,22 +466,35 @@ void test_send_segmented_sample_data(void)
     EXPECT_PDU({0x83, SAMPLE_DATA_SEGMENT_3});
     EXPECT_PDU({0xc3, SAMPLE_DATA_SEGMENT_4});
 
+    /* Send segment 1 */
     memcpy(p_packet, PROXY_PDU, sizeof(PROXY_PDU));
     sd_ble_gatts_hvx_StubWithCallback(sd_ble_gatts_hvx_cb);
+    helper_bearer_event_flag_set_expect(m_flag);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_gatt_packet_send(0, p_packet));
-
     TEST_ASSERT_TRUE(mesh_gatt_packet_is_pending(0));
 
-    tx_complete_evt_send();
-    tx_complete_evt_send();
-    tx_complete_evt_send();
-
+    /* Send segment 2 */
+    helper_bearer_event_flag_set_expect(m_flag);
+    helper_bearer_event_trigger();
     TEST_ASSERT_TRUE(mesh_gatt_packet_is_pending(0));
 
+    /* Send segment 3 */
+    helper_bearer_event_flag_set_expect(m_flag);
+    helper_bearer_event_trigger();
+    TEST_ASSERT_TRUE(mesh_gatt_packet_is_pending(0));
+
+    /* Send segment 4 */
+    helper_bearer_event_flag_set_expect(m_flag);
+    helper_bearer_event_trigger();
+    TEST_ASSERT_TRUE(mesh_gatt_packet_is_pending(0));
+
+    /* Expect TX complete to be raised*/
     tx_complete_evt_expect();
-    tx_complete_evt_send();
-
+    helper_bearer_event_trigger();
     TEST_ASSERT_FALSE(mesh_gatt_packet_is_pending(0));
+
+    /* Trigger TX Complete from softdevice, no new TX complete should be raised to the application. */
+    tx_complete_evt_send();
 }
 
 void test_send_single_segment(void)
@@ -458,6 +509,7 @@ void test_send_single_segment(void)
     memcpy(p_packet, PDU, sizeof(PDU));
 
     sd_ble_gatts_hvx_StubWithCallback(sd_ble_gatts_hvx_cb);
+    helper_bearer_event_flag_set_expect(m_flag);
 
     EXPECT_PDU({MESH_GATT_PDU_TYPE_PROV_PDU, 0xca, 0xfe, 0xba, 0xbe});
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_gatt_packet_send(0, p_packet));
@@ -465,6 +517,7 @@ void test_send_single_segment(void)
     TEST_ASSERT_TRUE(mesh_gatt_packet_is_pending(0));
 
     tx_complete_evt_expect();
+    helper_bearer_event_trigger();
     tx_complete_evt_send();
 
     TEST_ASSERT_FALSE(mesh_gatt_packet_is_pending(0));
@@ -484,12 +537,14 @@ void test_hvx_sys_attr_missing(void)
     m_hvx_return = BLE_ERROR_GATTS_SYS_ATTR_MISSING;
     sd_ble_gatts_hvx_StubWithCallback(sd_ble_gatts_hvx_cb);
     sd_ble_gatts_sys_attr_set_ExpectAndReturn(0, NULL, 0, 0, NRF_SUCCESS);
+    helper_bearer_event_flag_set_expect(m_flag);
 
     EXPECT_PDU({MESH_GATT_PDU_TYPE_PROV_PDU, 0xca, 0xfe, 0xba, 0xbe}); // one for the error
     EXPECT_PDU({MESH_GATT_PDU_TYPE_PROV_PDU, 0xca, 0xfe, 0xba, 0xbe}); // one for the successful retry
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_gatt_packet_send(0, p_packet));
 
     tx_complete_evt_expect();
+    helper_bearer_event_trigger();
     tx_complete_evt_send();
 }
 
@@ -607,10 +662,12 @@ void test_send_big_packet(void)
 
     memcpy(p_packet, PROXY_PDU, sizeof(PROXY_PDU));
     sd_ble_gatts_hvx_StubWithCallback(sd_ble_gatts_hvx_cb);
+    helper_bearer_event_flag_set_expect(m_flag);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_gatt_packet_send(0, p_packet));
 
     tx_complete_evt_expect();
+    helper_bearer_event_trigger();
     tx_complete_evt_send();
 
 

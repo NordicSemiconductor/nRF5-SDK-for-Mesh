@@ -66,6 +66,11 @@ NRF_MESH_SECTION_DEF_FLASH(mesh_config_entry_listeners, const mesh_config_listen
  * Configuration cleaning */
 static bool m_emergency_action;
 
+/* This is architectural hook because dsm entries with the same id can have differed size.
+ * Otherwise, these entries will be interpreted as invalid length entries.
+ * We have to have this hook to be backward compatible with stack version 3.2.0 and lower. */
+extern void dsm_legacy_pretreatment_do(mesh_config_entry_id_t * p_id, uint32_t entry_len);
+
 #if PERSISTENT_STORAGE
 static const mesh_config_entry_params_t * entry_params_get(uint32_t i)
 {
@@ -162,15 +167,19 @@ static void dirty_entries_process(void)
                         status = mesh_config_backend_erase(id);
                     }
 
-                    if (status == NRF_SUCCESS)
+                    switch (status)
                     {
-                        p_params->p_state[j] &= (mesh_config_entry_flags_t)~MESH_CONFIG_ENTRY_FLAG_DIRTY;
-                        p_params->p_state[j] |= MESH_CONFIG_ENTRY_FLAG_BUSY;
-                    }
-                    else
-                    {
-                        /* Back off if the backend call fails, to allow it to free up some resources */
-                        return;
+                        case NRF_SUCCESS:
+                            p_params->p_state[j] &= (mesh_config_entry_flags_t)~MESH_CONFIG_ENTRY_FLAG_DIRTY;
+                            p_params->p_state[j] |= MESH_CONFIG_ENTRY_FLAG_BUSY;
+                            break;
+                        case NRF_ERROR_NOT_FOUND:
+                            /* This can only happen with mesh_config_backend_erase() on not written yet entry. */
+                            p_params->p_state[j] &= (mesh_config_entry_flags_t)~MESH_CONFIG_ENTRY_FLAG_DIRTY;
+                            break;
+                        default:
+                            /* Back off if the backend call fails, to allow it to free up some resources */
+                            return;
                     }
                 }
             }
@@ -197,6 +206,8 @@ static uint32_t entry_store(const mesh_config_entry_params_t * p_params, mesh_co
 
 static mesh_config_backend_iterate_action_t restore_callback(mesh_config_entry_id_t id, const uint8_t * p_entry, uint32_t entry_len)
 {
+    dsm_legacy_pretreatment_do(&id, entry_len);
+
     const mesh_config_entry_params_t * p_params = entry_params_find(id);
     mesh_config_load_failure_t load_failure;
 

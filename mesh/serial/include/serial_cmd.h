@@ -152,7 +152,7 @@
 #define SERIAL_OPCODE_CMD_MESH_ADDR_VIRTUAL_COUNT_MAX_GET     (0xAA) /**< Params: None. */
 #define SERIAL_OPCODE_CMD_MESH_PACKET_SEND                    (0xAB) /**< Params: @ref serial_cmd_mesh_packet_send_t */
 #define SERIAL_OPCODE_CMD_MESH_STATE_CLEAR                    (0xAC) /**< Params: None. */
-
+#define SERIAL_OPCODE_CMD_MESH_CONFIG_SERVER_BIND             (0xAD) /**< Params: @ref serial_cmd_mesh_config_server_devkey_bind_t */
 #define SERIAL_OPCODE_CMD_RANGE_MESH_END                      (0xAF) /**< MESH range end. */
 
 #define SERIAL_OPCODE_CMD_RANGE_DFU_START                     (0xD0) /**< DFU range start. */
@@ -187,8 +187,7 @@
 #define SERIAL_OPCODE_CMD_ACCESS_MODEL_ID_GET                 (0xF2) /**< Params: @ref serial_cmd_access_model_handle_t */
 #define SERIAL_OPCODE_CMD_ACCESS_HANDLE_GET                   (0xF3) /**< Params: @ref serial_cmd_access_handle_get_t */
 #define SERIAL_OPCODE_CMD_ACCESS_ELEM_MODELS_GET              (0xF4) /**< Params: @ref serial_cmd_access_element_index_t */
-#define SERIAL_OPCODE_CMD_ACCESS_ACCESS_FLASH_STORE           (0xF5) /**< Params: None. */
-#define SERIAL_OPCODE_CMD_RANGE_ACCESS_END                    (0xF5) /**< End of ACCESS command range. */
+#define SERIAL_OPCODE_CMD_RANGE_ACCESS_END                    (0xF4) /**< End of ACCESS command range. */
 
 #define SERIAL_OPCODE_CMD_RANGE_MODEL_SPECIFIC_START          (0xFC) /**< Start of MODEL specific command range. */
 #define SERIAL_OPCODE_CMD_MODEL_SPECIFIC_MODELS_GET           (0xFC) /**< Params: None. */
@@ -502,6 +501,11 @@ typedef struct __attribute((packed))
 
 NRF_MESH_STATIC_ASSERT(sizeof(serial_cmd_mesh_packet_send_t) == NRF_MESH_SERIAL_PAYLOAD_MAXLEN);
 
+/** Configuration Server: device key bind command parameters. */
+typedef struct __attribute((packed))
+{
+    uint16_t address_handle; /**< Handle of the address to get the raw representation of. */
+} serial_cmd_mesh_config_server_devkey_bind_t;
 
 /** Mesh command parameters. */
 typedef union __attribute((packed))
@@ -532,6 +536,7 @@ typedef union __attribute((packed))
     serial_cmd_mesh_addr_publication_remove_t       addr_publication_remove;       /**< Publication address remove parameters. */
 
     serial_cmd_mesh_packet_send_t                   packet_send;                   /**< Packet send parameters. */
+    serial_cmd_mesh_config_server_devkey_bind_t     config_server_devkey_bind;     /**< Configuration Server: device key bind parameters. */
 } serial_cmd_mesh_t;
 
 /* **** PB-MESH Client **** */

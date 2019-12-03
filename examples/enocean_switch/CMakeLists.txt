@@ -3,7 +3,6 @@ set(target "enocean_switch_${PLATFORM}_${SOFTDEVICE}")
 add_executable(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/enocean.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/flash_helper.c"
     "${CMAKE_SOURCE_DIR}/mesh/stack/src/mesh_stack.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_provisionee.c"
     "${MBTLE_SOURCE_DIR}/examples/common/src/rtt_input.c"
@@ -64,7 +63,7 @@ add_flash_target(${target})
 
 get_property(target_include_dirs TARGET ${target} PROPERTY INCLUDE_DIRECTORIES)
 add_pc_lint(${target}
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c;${CMAKE_CURRENT_SOURCE_DIR}/src/enocean.c;${CMAKE_CURRENT_SOURCE_DIR}/src/flash_helper.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c;${CMAKE_CURRENT_SOURCE_DIR}/src/enocean.c"
     "${target_include_dirs}"
     "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES}")
 add_ses_project(${target})

@@ -65,6 +65,7 @@ def read_device_page(device):
     device_to_address = {
         "nrf51422_xxAC": "0x3f000",
         "nrf52832_xxAA": "0x7f000",
+        "nrf52833_xxAA": "0xff000",
         "nrf52840_xxAA": "0xff000"
     }
     family = "-f " + device[:len("nrf52")].upper()
@@ -100,7 +101,7 @@ def read_device_page(device):
 
 
 if __name__ == "__main__":
-    devices = ["nrf51422_xxAC", "nrf52832_xxAA", "nrf52840_xxAA"]
+    devices = ["nrf51422_xxAC", "nrf52832_xxAA", "nrf52833_xxAA", "nrf52840_xxAA"]
     p = argparse.ArgumentParser("Device Page Reader")
     p.add_argument("-d", "--device", default=devices[1], action="store", choices=devices, help="Select device")
     args = p.parse_args()

@@ -1,9 +1,9 @@
 /*********************************************************************
-*               SEGGER MICROCONTROLLER GmbH & Co. KG                 *
-*       Solutions for real time microcontroller applications         *
+*                    SEGGER Microcontroller GmbH                     *
+*                        The Embedded Experts                        *
 **********************************************************************
 *                                                                    *
-*       (c) 2014 - 2016  SEGGER Microcontroller GmbH & Co. KG        *
+*            (c) 1995 - 2018 SEGGER Microcontroller GmbH             *
 *                                                                    *
 *       www.segger.com     Support: support@segger.com               *
 *                                                                    *
@@ -15,15 +15,26 @@
 *                                                                    *
 * All rights reserved.                                               *
 *                                                                    *
-* * This software may in its unmodified form be freely redistributed *
-*   in source form.                                                  *
-* * The source code may be modified, provided the source code        *
-*   retains the above copyright notice, this list of conditions and  *
-*   the following disclaimer.                                        *
-* * Modified versions of this software in source or linkable form    *
-*   may not be distributed without prior consent of SEGGER.          *
-* * This software may only be used for communication with SEGGER     *
-*   J-Link debug probes.                                             *
+* SEGGER strongly recommends to not make any changes                 *
+* to or modify the source code of this software in order to stay     *
+* compatible with the RTT protocol and J-Link.                       *
+*                                                                    *
+* Redistribution and use in source and binary forms, with or         *
+* without modification, are permitted provided that the following    *
+* conditions are met:                                                *
+*                                                                    *
+* o Redistributions of source code must retain the above copyright   *
+*   notice, this list of conditions and the following disclaimer.    *
+*                                                                    *
+* o Redistributions in binary form must reproduce the above          *
+*   copyright notice, this list of conditions and the following      *
+*   disclaimer in the documentation and/or other materials provided  *
+*   with the distribution.                                           *
+*                                                                    *
+* o Neither the name of SEGGER Microcontroller GmbH         *
+*   nor the names of its contributors may be used to endorse or      *
+*   promote products derived from this software without specific     *
+*   prior written permission.                                        *
 *                                                                    *
 * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND             *
 * CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,        *
@@ -41,12 +52,13 @@
 *                                                                    *
 **********************************************************************
 *                                                                    *
-*       RTT version: 5.10m                                           *
+*       RTT version: 6.32h                                           *
 *                                                                    *
 **********************************************************************
 ---------------------------END-OF-HEADER------------------------------
 File    : SEGGER_RTT_printf.c
 Purpose : Replacement for printf to write formatted data via RTT
+Revision: $Rev: 9599 $
 ----------------------------------------------------------------------
 */
 #include "SEGGER_RTT.h"
@@ -389,8 +401,8 @@ int SEGGER_RTT_vprintf(unsigned BufferIndex, const char * sFormat, va_list * pPa
       c = *sFormat;
       do {
         if ((c == 'l') || (c == 'h')) {
-          c = *sFormat;
           sFormat++;
+          c = *sFormat;
         } else {
           break;
         }
@@ -492,9 +504,12 @@ int SEGGER_RTT_vprintf(unsigned BufferIndex, const char * sFormat, va_list * pPa
 *          p: Print the argument as an 8-digit hexadecimal integer. (Argument shall be a pointer to void.)
 */
 int SEGGER_RTT_printf(unsigned BufferIndex, const char * sFormat, ...) {
+  int r;
   va_list ParamList;
 
   va_start(ParamList, sFormat);
-  return SEGGER_RTT_vprintf(BufferIndex, sFormat, &ParamList);
+  r = SEGGER_RTT_vprintf(BufferIndex, sFormat, &ParamList);
+  va_end(ParamList);
+  return r;
 }
 /*************************** End of file ****************************/

@@ -132,10 +132,10 @@ static uint32_t allocate_packet(network_tx_packet_buffer_t * p_buffer)
  * @param[in] p_rx_metadata RX metadata tied to the packet
  */
 #if MESH_FEATURE_RELAY_ENABLED
-static void packet_relay(network_packet_metadata_t * p_net_metadata,
-                         const uint8_t * p_net_payload,
-                         uint8_t payload_len,
-                         const nrf_mesh_rx_metadata_t * p_rx_metadata)
+static uint32_t packet_relay(network_packet_metadata_t *    p_net_metadata,
+                             const uint8_t *                p_net_payload,
+                             uint8_t                        payload_len,
+                             const nrf_mesh_rx_metadata_t * p_rx_metadata)
 {
     p_net_metadata->ttl--; /* Subtract this hop */
 
@@ -156,7 +156,9 @@ static void packet_relay(network_packet_metadata_t * p_net_metadata,
     UNUSED_PARAMETER(p_rx_metadata);
 #endif
 
-    if (allocate_packet(&buffer) == NRF_SUCCESS)
+    uint32_t status = allocate_packet(&buffer);
+
+    if (status == NRF_SUCCESS)
     {
         memcpy(buffer.p_payload, p_net_payload, payload_len);
         network_packet_send(&buffer);
@@ -168,6 +170,7 @@ static void packet_relay(network_packet_metadata_t * p_net_metadata,
     }
 
     p_net_metadata->ttl++; /* Revert the change (cannot affect the allocated packet) */
+    return status;
 }
 #endif /* MESH_FEATURE_RELAY_ENABLED */
 
@@ -263,7 +266,6 @@ void network_init(const nrf_mesh_init_params_t * p_init_params)
     }
 
     net_state_init();
-    net_state_recover_from_flash();
     net_beacon_init();
 }
 
@@ -357,9 +359,6 @@ uint32_t network_packet_in(const uint8_t * p_packet, uint32_t net_packet_len, co
                                      &net_metadata,
                                      p_rx_metadata);
 
-        /* Add to cache irrespective of whether we relay the PDU or not */
-        msg_cache_entry_add(net_metadata.src, net_metadata.internal.sequence_number);
-
 #if MESH_FEATURE_RELAY_ENABLED
 #if MESH_FEATURE_FRIEND_ENABLED
         /* Perform security material translation irrespective whether the received packet was on the
@@ -377,9 +376,16 @@ uint32_t network_packet_in(const uint8_t * p_packet, uint32_t net_packet_len, co
 #endif
         if (should_relay(&net_metadata, p_rx_metadata))
         {
-            packet_relay(&net_metadata, p_net_payload, payload_len, p_rx_metadata);
+            if (packet_relay(&net_metadata, p_net_payload, payload_len, p_rx_metadata) == NRF_SUCCESS)
+            {
+                msg_cache_entry_add(net_metadata.src, net_metadata.internal.sequence_number);
+            }
         }
+        else
 #endif
+        {
+            msg_cache_entry_add(net_metadata.src, net_metadata.internal.sequence_number);
+        }
 
     }
     return status;

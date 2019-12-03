@@ -55,6 +55,7 @@
 #include "packet_buffer.h"
 #include "timer_scheduler.h"
 #include "timer.h"
+#include "bearer_event.h"
 
 #define PROXY_SAR_TYPE_COMPLETE      (0)
 #define PROXY_SAR_TYPE_FIRST_SEGMENT (1)
@@ -79,6 +80,11 @@ typedef struct __attribute((packed))
     uint8_t length;             /**< Length of the PDU. */
     uint8_t pdu[];
 } mesh_gatt_proxy_buffer_t;
+
+static bearer_event_flag_t m_flag = BEARER_EVENT_FLAG_INVALID;
+
+static void tx_complete_handle(uint16_t conn_handle);
+static uint16_t conn_handle_to_index(uint16_t conn_handle);
 
 /*******************************************************************************
  * Internal static functions
@@ -118,9 +124,8 @@ static uint8_t sar_type_get(uint8_t pdu_length, uint8_t offset, uint16_t mtu)
     }
 }
 
-static void mesh_gatt_pdu_send(uint16_t conn_index)
+static void mesh_gatt_pdu_send(mesh_gatt_connection_t * p_conn)
 {
-    mesh_gatt_connection_t * p_conn = &m_gatt.connections[conn_index];
     packet_buffer_packet_t * p_packet = p_conn->tx.transaction.p_curr_packet;
     NRF_MESH_ASSERT(p_packet != NULL);
 
@@ -160,6 +165,7 @@ static void mesh_gatt_pdu_send(uint16_t conn_index)
     hvx_params.p_len  = &hvx_length;
     hvx_params.type   = BLE_GATT_HVX_NOTIFICATION;
 
+    __LOG_XB(LOG_SRC_BEARER, LOG_LEVEL_DBG3, "HVN data", hvx_params.p_data, hvx_length);
     uint32_t err_code = sd_ble_gatts_hvx(p_conn->conn_handle, &hvx_params);
 
     /* There might be a system attributes missing event pending. Set it and try again. */
@@ -172,7 +178,11 @@ static void mesh_gatt_pdu_send(uint16_t conn_index)
     if (err_code == NRF_ERROR_INVALID_STATE)
     {
         /* If we're not able to transmit. The client might have disabled notifications. */
-        (void) mesh_gatt_disconnect(conn_index);
+        uint16_t conn_index = conn_handle_to_index(p_conn->conn_handle);
+        if (conn_index != MESH_GATT_CONN_INDEX_INVALID)
+        {
+            (void) mesh_gatt_disconnect(conn_handle_to_index(p_conn->conn_handle));
+        }
     }
     else if (err_code == NRF_ERROR_RESOURCES)
     {
@@ -200,6 +210,13 @@ static void mesh_gatt_pdu_send(uint16_t conn_index)
         p_conn->tx.transaction.offset = next_offset;
     }
 
+    if (err_code == NRF_SUCCESS)
+    {
+        p_conn->tx.tx_complete_process = true;
+        bearer_event_flag_set(m_flag);
+    }
+
+    __LOG(LOG_SRC_BEARER, LOG_LEVEL_DBG3, "status: %d len: %d usable-mtu:%d sar_type: %d \n", err_code, hvx_length, p_conn->effective_mtu, sar_type);
 }
 
 static void tx_state_clear(mesh_gatt_connection_t * p_conn)
@@ -370,6 +387,50 @@ static void timeout_cb(timestamp_t time_now, void * p_context)
                     err_code == NRF_ERROR_INVALID_STATE);
 }
 
+static void pdu_send_if_available(mesh_gatt_connection_t * p_conn)
+{
+    if (packet_buffer_can_pop(&p_conn->tx.packet_buffer))
+    {
+        /* Start transmitting new pdu */
+        NRF_MESH_ERROR_CHECK(packet_buffer_pop(&p_conn->tx.packet_buffer,
+                                               &p_conn->tx.transaction.p_curr_packet));
+        NRF_MESH_ASSERT(p_conn->tx.transaction.p_curr_packet != NULL);
+
+        mesh_gatt_pdu_send(p_conn);
+    }
+}
+
+static void tx_complete_send_and_enqueue(mesh_gatt_connection_t * p_conn)
+{
+    mesh_gatt_proxy_buffer_t * p_proxy_buffer = (mesh_gatt_proxy_buffer_t *) p_conn->tx.transaction.p_curr_packet->packet;
+
+    if (tx_transaction_is_complete(p_conn, p_proxy_buffer))
+    {
+        tx_complete_handle(p_conn->conn_handle);
+
+        pdu_send_if_available(p_conn);
+    }
+    else
+    {
+        mesh_gatt_pdu_send(p_conn);
+    }
+}
+
+static bool trigger_tx_complete(void)
+{
+    /* Find out which connection triggered the event and process it. */
+    for (uint32_t i = 0; i < MESH_GATT_CONNECTION_COUNT_MAX; i++)
+    {
+        if (m_gatt.connections[i].tx.tx_complete_process)
+        {
+            m_gatt.connections[i].tx.tx_complete_process = false;
+            tx_complete_send_and_enqueue(&m_gatt.connections[i]);
+        }
+    }
+
+    return true;
+}
+
 /*******************************************************************************
  * Event handlers
  ******************************************************************************/
@@ -455,32 +516,15 @@ static void tx_complete_handle(uint16_t conn_handle)
 
     mesh_gatt_proxy_buffer_t * p_proxy_buffer = (mesh_gatt_proxy_buffer_t *) p_packet->packet;
 
-    if (tx_transaction_is_complete(p_conn, p_proxy_buffer))
-    {
-        tx_state_clear(p_conn);
+    tx_state_clear(p_conn);
 
-        mesh_gatt_evt_t evt;
-        evt.type = MESH_GATT_EVT_TYPE_TX_COMPLETE;
-        evt.conn_index = conn_index;
-        evt.params.tx_complete.pdu_type = (mesh_gatt_pdu_type_t) ((mesh_gatt_proxy_pdu_t *) p_proxy_buffer->pdu)->pdu_type;
-        evt.params.tx_complete.token = p_proxy_buffer->token;
+    mesh_gatt_evt_t evt;
+    evt.type = MESH_GATT_EVT_TYPE_TX_COMPLETE;
+    evt.conn_index = conn_index;
+    evt.params.tx_complete.pdu_type = (mesh_gatt_pdu_type_t) ((mesh_gatt_proxy_pdu_t *) p_proxy_buffer->pdu)->pdu_type;
+    evt.params.tx_complete.token = p_proxy_buffer->token;
 
-        m_gatt.evt_handler(&evt, m_gatt.p_context);
-
-        if (packet_buffer_can_pop(&p_conn->tx.packet_buffer))
-        {
-            /* Start transmitting new pdu */
-            NRF_MESH_ERROR_CHECK(packet_buffer_pop(&p_conn->tx.packet_buffer,
-                                                   &p_conn->tx.transaction.p_curr_packet));
-            NRF_MESH_ASSERT(p_conn->tx.transaction.p_curr_packet != NULL);
-
-            mesh_gatt_pdu_send(conn_index);
-        }
-    }
-    else
-    {
-        mesh_gatt_pdu_send(conn_index);
-    }
+    m_gatt.evt_handler(&evt, m_gatt.p_context);
 }
 
 static void disconnect_evt_handle(const ble_evt_t * p_ble_evt)
@@ -506,6 +550,7 @@ static void connect_evt_handle(const ble_evt_t * p_ble_evt)
         packet_buffer_init(&m_gatt.connections[conn_index].tx.packet_buffer,
                            m_gatt.connections[conn_index].tx.packet_buffer_data,
                            sizeof(m_gatt.connections[conn_index].tx.packet_buffer_data));
+        m_gatt.connections[conn_index].tx.tx_complete_process = false;
         mesh_gatt_evt_t evt;
         evt.type = MESH_GATT_EVT_TYPE_CONNECTED;
         evt.conn_index = conn_index;
@@ -528,6 +573,7 @@ static void exchange_mtu_req_handle(const ble_evt_t * p_ble_evt)
         if (status == NRF_SUCCESS)
         {
             m_gatt.connections[conn_index].effective_mtu = server_rx_mtu - MESH_GATT_WRITE_OVERHEAD;
+            __LOG(LOG_SRC_BEARER, LOG_LEVEL_INFO, "New MTU: %d\n", m_gatt.connections[conn_index].effective_mtu);
         }
         else
         {
@@ -614,6 +660,12 @@ void mesh_gatt_init(const mesh_gatt_uuids_t * p_uuids,
     NRF_MESH_ERROR_CHECK(sd_ble_gatts_characteristic_add(m_gatt.handles.service, &char_md, &attr_char_value, &m_gatt.handles.tx));
 
     m_gatt.p_context = p_context;
+
+    /* Ensure that bearer event flag gets added only once. */
+    if (m_flag == BEARER_EVENT_FLAG_INVALID)
+    {
+        m_flag = bearer_event_flag_add(trigger_tx_complete);
+    }
 }
 
 uint8_t * mesh_gatt_packet_alloc(uint16_t conn_index,
@@ -669,15 +721,8 @@ uint32_t mesh_gatt_packet_send(uint16_t conn_index, const uint8_t * p_packet)
     packet_buffer_commit(&m_gatt.connections[conn_index].tx.packet_buffer, p_buf_packet, p_buf_packet->size);
 
     /* If there is an ongoing transaction, the packet buffer shouldn't allow us to pop the next packet. */
-    if (packet_buffer_can_pop(&p_conn->tx.packet_buffer))
-    {
-        /* Start transmitting new pdu */
-        NRF_MESH_ERROR_CHECK(packet_buffer_pop(&p_conn->tx.packet_buffer,
-                                               &p_conn->tx.transaction.p_curr_packet));
-        NRF_MESH_ASSERT(p_conn->tx.transaction.p_curr_packet != NULL);
+    pdu_send_if_available(p_conn);
 
-        mesh_gatt_pdu_send(conn_index);
-    }
     return NRF_SUCCESS;
 }
 
@@ -748,7 +793,23 @@ void mesh_gatt_on_ble_evt(const ble_evt_t * p_ble_evt, void * p_context)
             break;
 
         case BLE_GATTS_EVT_HVN_TX_COMPLETE:
-            tx_complete_handle(p_ble_evt->evt.gatts_evt.conn_handle);
+            {
+                uint16_t conn_index = conn_handle_to_index(p_ble_evt->evt.gatts_evt.conn_handle);
+                if (conn_index != MESH_GATT_CONN_INDEX_INVALID)
+                {
+                    /* TX complete is already sent if current packet is NULL, and no fresh PDU was
+                       available. */
+                    if (m_gatt.connections[conn_index].tx.transaction.p_curr_packet == NULL)
+                    {
+                        pdu_send_if_available(&m_gatt.connections[conn_index]);
+                    }
+                    else
+                    {
+                        m_gatt.connections[conn_index].tx.tx_complete_process = true;
+                        bearer_event_flag_set(m_flag);
+                    }
+                }
+            }
             break;
 
 

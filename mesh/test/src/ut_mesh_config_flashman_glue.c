@@ -44,7 +44,6 @@
 #include "mesh_config_backend_file.h"
 #include "event_mock.h"
 #include "flash_manager_mock.h"
-#include "access_config_mock.h"
 #include "utils.h"
 
 #define FILE_ID    0
@@ -61,7 +60,7 @@ typedef enum
 } event_stage_t;
 
 static flash_manager_queue_empty_cb_t m_flash_stable_cb;
-static uint32_t m_access_flash_area;
+static uint32_t m_flash_recovery_area;
 static flash_manager_write_complete_cb_t m_write_complete_cb;
 static flash_manager_invalidate_complete_cb_t m_invalidate_complete_cb;
 static flash_manager_remove_complete_cb_t m_remove_complete_cb;
@@ -127,7 +126,7 @@ static uint32_t flash_manager_add_cb(flash_manager_t * p_manager, const flash_ma
     TEST_ASSERT_NOT_NULL(p_config->invalidate_complete_cb);
     TEST_ASSERT_NOT_NULL(p_config->remove_complete_cb);
     TEST_ASSERT_TRUE(p_config->min_available_space == m_file.size);
-    TEST_ASSERT_TRUE((uint8_t *)(p_config->p_area) == (uint8_t *)&m_access_flash_area - p_config->page_count * PAGE_SIZE);
+    TEST_ASSERT_TRUE((uint8_t *)(p_config->p_area) == (uint8_t *)&m_flash_recovery_area - p_config->page_count * PAGE_SIZE);
     TEST_ASSERT_TRUE(p_config->page_count == (uint32_t)CEIL_DIV(m_file.size, FLASH_MANAGER_DATA_PER_PAGE));
 
     m_write_complete_cb = p_config->write_complete_cb;
@@ -173,7 +172,6 @@ void setUp(void)
 {
     flash_manager_mock_Init();
     event_mock_Init();
-    access_config_mock_Init();
     m_records_read_cb_count = 0;
 
     for (uint8_t itr = 0; itr < sizeof(m_entry); itr++)
@@ -188,8 +186,6 @@ void tearDown(void)
     flash_manager_mock_Destroy();
     event_mock_Verify();
     event_mock_Destroy();
-    access_config_mock_Verify();
-    access_config_mock_Destroy();
 }
 
 void test_flashman_glue_init(void)
@@ -204,7 +200,7 @@ void test_flashman_glue_init(void)
 
 void test_file_create(void)
 {
-    access_flash_area_get_ExpectAndReturn(&m_access_flash_area);
+    flash_manager_recovery_page_get_ExpectAndReturn(&m_flash_recovery_area);
     flash_manager_add_StubWithCallback(flash_manager_add_cb);
     mesh_config_backend_file_create(&m_file);
 }

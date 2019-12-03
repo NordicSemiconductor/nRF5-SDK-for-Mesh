@@ -48,6 +48,8 @@
  * @ingroup  PB_REMOTE
  * This module implements the remote provisioning server (PB-remote server) model.
  *
+ * For conceptual information, see @ref md_doc_getting_started_provisioning_pb-remote.
+ *
  * @mscfile pb_remote_server_init.msc Initializing the Remote Provisioning Server
  * @dotfile pb_remote_server.dot Remote Provisioning Server state diagram
  *
@@ -103,8 +105,8 @@ typedef struct
     access_reliable_t reliable;
     /** If set true, the server automatically returns to scanning mode after provisioning. */
     bool return_to_scan_enabled;
-    /** Current transaction ID. */
-    uint8_t ctid;
+    /** Current Provisioning PDU Type. */
+    uint8_t current_prov_pdu_type;
 } pb_remote_server_t;
 
 /**

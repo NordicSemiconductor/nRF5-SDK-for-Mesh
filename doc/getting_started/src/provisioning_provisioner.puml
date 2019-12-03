@@ -1,0 +1,15 @@
+@startuml
+
+(*) -->[Initialize provisioning context] "nrf_mesh_prov_init()"
+-->[Wait for unprovisioned beacons] "Wait for events"
+-->[UNPROVISIONED_RECEIVED\nStart provisioning] "nrf_mesh_prov_provision()"
+-->[Wait for provisioning events] "Wait for mesh events"
+-->[LINK_ESTABLISHED] "Wait for mesh events"
+-->[PROV_CAPS_RECEIVED] "Choose OOB method:\nnrf_mesh_prov_oob_use()"
+--> "Wait for mesh events"
+-->[STATIC_REQUEST] "Provide OOB authentication data:\nnrf_mesh_prov_auth_provide()"
+--> "Wait for mesh events"
+"Wait for mesh events" -->[COMPLETE] "Configure device\nusing the configuration model"
+--> "Provisioning complete"
+
+@enduml

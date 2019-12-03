@@ -179,7 +179,7 @@ static void packet_alloc_Expect(network_packet_metadata_t * p_metadata,
 
 static void relay_Expect(network_packet_metadata_t * p_metadata, uint32_t packet_len,
                          packet_mesh_net_packet_t ** pp_relay_packet,
-                         core_tx_bearer_selector_t bearer_bitmap)
+                         core_tx_bearer_selector_t bearer_bitmap, bool alloc_fail)
 {
     m_relay_callback_expect.calls  = 1;
     m_relay_callback_expect.dst    = p_metadata->dst.value;
@@ -193,11 +193,14 @@ static void relay_Expect(network_packet_metadata_t * p_metadata, uint32_t packet
     relay_meta.ttl--;
 
     packet_alloc_Expect(&relay_meta, packet_len, (uint8_t *) *pp_relay_packet,
-                        CORE_TX_ROLE_RELAY, true, bearer_bitmap);
-    net_packet_from_payload_ExpectAndReturn(&(*pp_relay_packet)->pdu[9], *pp_relay_packet);
-    net_packet_header_set_Expect(*pp_relay_packet, &relay_meta);
-    net_packet_encrypt_Expect(&relay_meta, packet_len - 9 - mic_size, *pp_relay_packet, NET_PACKET_KIND_TRANSPORT);
-    core_tx_packet_send_Expect();
+                        CORE_TX_ROLE_RELAY, !alloc_fail, bearer_bitmap);
+    if (!alloc_fail)
+    {
+        net_packet_from_payload_ExpectAndReturn(&(*pp_relay_packet)->pdu[9], *pp_relay_packet);
+        net_packet_header_set_Expect(*pp_relay_packet, &relay_meta);
+        net_packet_encrypt_Expect(&relay_meta, packet_len - 9 - mic_size, *pp_relay_packet, NET_PACKET_KIND_TRANSPORT);
+        core_tx_packet_send_Expect();
+    }
 }
 
 struct
@@ -260,13 +263,11 @@ nrf_mesh_address_type_t nrf_mesh_address_type_get(uint16_t address)
 void test_init(void)
 {
     net_beacon_init_Expect();
-    net_state_recover_from_flash_Expect();
     net_state_init_Expect();
     nrf_mesh_init_params_t init_params = {{0}};
     network_init(&init_params);
 
     net_beacon_init_Expect();
-    net_state_recover_from_flash_Expect();
     net_state_init_Expect();
     init_params.relay_cb = relay_callback;
     network_init(&init_params);
@@ -452,6 +453,7 @@ void test_packet_in(void)
         STEP_DECRYPTION,
         STEP_SELF_SENDING,
         STEP_DO_RELAY,
+        STEP_PACKET_ALLOC,
         STEP_SUCCESS,
     } step_t;
     struct
@@ -472,6 +474,7 @@ void test_packet_in(void)
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_SUCCESS},
         {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_SELF_SENDING}, /* It is own src address. Stop handling to prevent relay loops */
         {{{NRF_MESH_ADDRESS_TYPE_VIRTUAL, 0x8000}, 0x0001, 5, true, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_DECRYPTION}, /* Virual address used in control packet */
+        {{{NRF_MESH_ADDRESS_TYPE_UNICAST, 0x0002}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18, STEP_PACKET_ALLOC}, /* Allocating packet fails, should not add to cache */
     };
     nrf_mesh_rx_metadata_t rx_meta;
 
@@ -517,13 +520,10 @@ void test_packet_in(void)
             m_transport_packet_in_expect.p_rx_metadata  = &rx_meta;
             m_transport_packet_in_expect.calls          = 1;
 
-            /* 3: Add to message cache */
-            msg_cache_entry_add_Expect(vector[i].meta.src, vector[i].meta.internal.sequence_number);
-
-            /* 4: Check friendship secmat translation. */
+            /* 3: Check friendship secmat translation. */
             friend_friendship_established_ExpectAnyArgsAndReturn(false);
 
-            /* 5: Relay if needed: */
+            /* 4: Relay if needed: */
             nrf_mesh_rx_address_get_ExpectAndReturn(vector[i].meta.src, NULL, (vector[i].fail_step == STEP_SELF_SENDING));
             nrf_mesh_rx_address_get_IgnoreArg_p_address();
 
@@ -546,10 +546,15 @@ void test_packet_in(void)
                 if (vector[i].fail_step > STEP_DO_RELAY)
                 {
                     relay_Expect(&vector[i].meta, vector[i].length, &p_relay_packet,
-                                 bearer_selector);
+                                 bearer_selector, vector[i].fail_step == STEP_PACKET_ALLOC);
                 }
             }
 
+            /* 5: Add to message cache */
+            if (vector[i].fail_step != STEP_PACKET_ALLOC)
+            {
+                msg_cache_entry_add_Expect(vector[i].meta.src, vector[i].meta.internal.sequence_number);
+            }
         }
 
         network_packet_in(net_packet.pdu, vector[i].length, &rx_meta);
@@ -679,7 +684,7 @@ void test_packet_in_friendship_secmat_translation(void)
         }
 
         TEST_ASSERT_TRUE(vector[i].fail_step > STEP_DO_RELAY);
-        relay_Expect(&relay_expect_meta, vector[i].length, &p_relay_packet, CORE_TX_BEARER_TYPE_ALLOW_ALL & ~CORE_TX_BEARER_TYPE_LOCAL);
+        relay_Expect(&relay_expect_meta, vector[i].length, &p_relay_packet, CORE_TX_BEARER_TYPE_ALLOW_ALL & ~CORE_TX_BEARER_TYPE_LOCAL, false);
 
         network_packet_in(net_packet.pdu, vector[i].length, &rx_meta);
 

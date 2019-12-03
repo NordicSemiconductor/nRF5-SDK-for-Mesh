@@ -6,7 +6,7 @@ msc {
     a note c [label=" UUID present in Server's SlotID "];
     |||;
 
-    a => Client [label="pb_remote_client_remote_provision()"];
+    a => Client [label="nrf_mesh_prov_provision()"];
     a << Client [label="NRF_SUCCESS"];
 
     Client -> Server [label="Link open: SlotID"];
@@ -26,7 +26,7 @@ msc {
     |||;
     a box c [label="Link open times out"];
     |||;
-    a => Client [label="pb_remote_client_remote_provision()"];
+    a => Client [label="nrf_mesh_prov_provision()"];
     a << Client [label="NRF_SUCCESS"];
 
     Client -> Server [label="Link open: SlotID"];

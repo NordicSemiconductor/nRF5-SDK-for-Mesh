@@ -291,7 +291,7 @@ static uint32_t request_authentication(nrf_mesh_prov_ctx_t * p_ctx)
             event.type = NRF_MESH_PROV_EVT_INPUT_REQUEST;
             event.params.input_request.p_context =  p_ctx;
             event.params.input_request.size = p_ctx->oob_size;
-            event.params.input_request.action = (nrf_mesh_prov_input_action_t) p_ctx->oob_action;
+            event.params.input_request.action = p_ctx->oob_action;
             p_ctx->state = NRF_MESH_PROV_STATE_WAIT_OOB_INPUT;
             p_ctx->event_handler(&event);
 
@@ -309,7 +309,7 @@ static uint32_t request_authentication(nrf_mesh_prov_ctx_t * p_ctx)
             event.type = NRF_MESH_PROV_EVT_OUTPUT_REQUEST;
             event.params.output_request.p_context =  p_ctx;
             event.params.output_request.size = p_ctx->oob_size;
-            event.params.output_request.action = (nrf_mesh_prov_output_action_t) p_ctx->oob_action;
+            event.params.output_request.action = p_ctx->oob_action;
             event.params.output_request.p_data = p_ctx->auth_value;
             p_ctx->state = NRF_MESH_PROV_STATE_WAIT_CONFIRMATION;
             p_ctx->event_handler(&event);

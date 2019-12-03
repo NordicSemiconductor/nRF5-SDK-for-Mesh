@@ -49,6 +49,7 @@ Event                                                                    | Opcod
 [Mesh TX Complete](#mesh-tx-complete)                                    | 0xd2
 [Mesh IV Update Notification](#mesh-iv-update-notification)              | 0xd3
 [Mesh Key Refresh Notification](#mesh-key-refresh-notification)          | 0xd4
+[Mesh Heartbeat Received](#mesh-heartbeat-received)                      | 0xd8
 [Mesh SAR Failed](#mesh-sar-failed)                                      | 0xd7
 [Model Specific](#model-specific)                                        | 0xf0
 
@@ -618,6 +619,24 @@ Type              | Name                                    | Size  | Offset | D
 ------------------|-----------------------------------------|-------|--------|------------
 `uint16_t`        | Netkey Index                            | 2     | 0      | Network key index of the network key being updated.
 `uint8_t`         | Phase                                   | 1     | 2      | Current key refresh phase for the network key being updated.
+
+---
+### Mesh Heartbeat Received          {#mesh-heartbeat-received}
+
+_Opcode:_ `0xd8`
+
+_Total length:_ 7 bytes
+
+A heartbeat message has been received. To control the heartbeat subscriptions of the device through the local Configuration Client, add any mesh device key through _Device Key_ and bind the provided handle to the device Configuration Server through _Config Server Bind_. Use the provided device key handle to configure the device.
+
+_Mesh Heartbeat Received Parameters:_
+
+Type              | Name                                    | Size  | Offset | Description
+------------------|-----------------------------------------|-------|--------|------------
+`uint8_t`         | Init TTL                                | 1     | 0      | Initial TTL value used for sending this heartbeat message.
+`uint8_t`         | Hops                                    | 1     | 1      | Number of hops equals: (Initial TTL - Received message TTL + 1).
+`uint16_t`        | Features                                | 2     | 2      | State bitmap of the feature. See @ref MESH_DEFINES_HEARTBEAT to interpret bit fields.
+`uint16_t`        | SRC                                     | 2     | 4      | Source address for the received heartbeat message.
 
 ---
 ### Mesh SAR Failed          {#mesh-sar-failed}

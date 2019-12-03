@@ -438,7 +438,7 @@ class SerialHeaderParser(object):
                 raise Exception('Found undetected struct ' + statement + 'in struct ' + struct_name + '\n' + string)
             elif '}' in statement:
                 raise Exception('Found undetected closing brace ' + statement + 'in struct ' + struct_name + '\n' + string)
-            elif ':' in statement:
+            elif ':' in statement and not statement.startswith('/**'):
                 raise Exception('Bitwidth specifiers are not supported.')
 
             if statement.startswith('/**'):

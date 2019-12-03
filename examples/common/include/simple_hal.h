@@ -62,7 +62,7 @@
 
 
 /** Boards with user buttons */
-#define BUTTON_BOARD (defined(BOARD_PCA10040) || defined(BOARD_PCA10028) || defined(BOARD_PCA10056)) //lint -e491 // Suppress "non-standard use of 'defined' preprocessor operator"
+#define BUTTON_BOARD (defined(BOARD_PCA10040) || defined(BOARD_PCA10028) || defined(BOARD_PCA10056) || defined(BOARD_PCA10100)) //lint -e491 // Suppress "non-standard use of 'defined' preprocessor operator"
 
 /**
  * Button event handler callback type.

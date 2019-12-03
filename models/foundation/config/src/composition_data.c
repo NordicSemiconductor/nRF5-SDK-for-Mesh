@@ -114,24 +114,21 @@ void config_composition_data_get(uint8_t * p_data, uint16_t * p_size)
         config_composition_element_header_t element;
         NRF_MESH_ERROR_CHECK(access_element_sig_model_count_get(i, &element.sig_model_count));
         NRF_MESH_ERROR_CHECK(access_element_vendor_model_count_get(i, &element.vendor_model_count));
-        if ((element.sig_model_count + element.vendor_model_count) > 0)
+        NRF_MESH_ASSERT(access_element_location_get(i, (uint16_t*) &element.location) == NRF_SUCCESS);
+
+        element_models_count = ACCESS_MODEL_COUNT;
+        NRF_MESH_ASSERT(access_element_models_get(i, &model_handles[0], &element_models_count) == NRF_SUCCESS);
+
+        memcpy(&p_data[*p_size], &element, sizeof(element));
+        *p_size += sizeof(element);
+
+        if (element.sig_model_count > 0)
         {
-            NRF_MESH_ASSERT(access_element_location_get(i, (uint16_t*) &element.location) == NRF_SUCCESS);
-
-            element_models_count = ACCESS_MODEL_COUNT;
-            NRF_MESH_ASSERT(access_element_models_get(i, &model_handles[0], &element_models_count) == NRF_SUCCESS);
-
-            memcpy(&p_data[*p_size], &element, sizeof(element));
-            *p_size += sizeof(element);
-
-            if (element.sig_model_count > 0)
-            {
-                *p_size += composition_data_sig_models_write(i, model_handles, element_models_count, &p_data[*p_size]);
-            }
-            if (element.vendor_model_count > 0)
-            {
-                *p_size += composition_data_vendor_models_write(i, model_handles, element_models_count, &p_data[*p_size]);
-            }
+            *p_size += composition_data_sig_models_write(i, model_handles, element_models_count, &p_data[*p_size]);
+        }
+        if (element.vendor_model_count > 0)
+        {
+            *p_size += composition_data_vendor_models_write(i, model_handles, element_models_count, &p_data[*p_size]);
         }
     }
 }

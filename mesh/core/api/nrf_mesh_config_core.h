@@ -289,13 +289,6 @@
 #define NETWORK_SEQNUM_FLASH_BLOCK_THRESHOLD 64
 #endif
 
-/**
- * Number of flash pages reserved for the network flash area.
- */
-#ifndef NET_FLASH_PAGE_COUNT
-#define NET_FLASH_PAGE_COUNT 1
-#endif
-
 /** @} end of MESH_CONFIG_NETWORK */
 
 /**
@@ -311,9 +304,9 @@
 #define TRANSPORT_SAR_SESSIONS_MAX (4)
 #endif
 
-/** Number of elements in the SAR RX cache, storing the last RX sessions. Must be power of two. */
-#ifndef TRANSPORT_SAR_RX_CACHE_LEN
-#define TRANSPORT_SAR_RX_CACHE_LEN (8)
+/* Number of canceled SAR RX sessions to be cached. Must be power of two. */
+#ifndef TRANSPORT_CANCELED_SAR_RX_SESSIONS_CACHE_LEN
+#define TRANSPORT_CANCELED_SAR_RX_SESSIONS_CACHE_LEN (8)
 #endif
 
 /** Default TTL value for SAR segmentation acknowledgments */
@@ -558,9 +551,12 @@
 #define MESH_FRIEND_SUBLIST_SIZE 16
 #endif
 
-/** Size of the Friend Queue (per friendship). */
+/** Size of the Friend Queue (per friendship).
+ *
+ * @note Set the queue size to a value higher than 32 to be able to receive at least one
+ * of the longest segmented messages and one or more of the unsegmented messages. */
 #ifndef MESH_FRIEND_QUEUE_SIZE
-#define MESH_FRIEND_QUEUE_SIZE 16
+#define MESH_FRIEND_QUEUE_SIZE 35
 #endif
 
 /** @} end of MESH_CONFIG_FRIENDSHIP */

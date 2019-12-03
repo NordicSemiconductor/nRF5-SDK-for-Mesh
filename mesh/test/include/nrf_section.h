@@ -46,7 +46,9 @@
  * @{
  */
 
-#define NRF_SECTION_ENTRIES          5
+#ifndef NRF_SECTION_ENTRIES
+#define NRF_SECTION_ENTRIES 1
+#endif
 
 #define NRF_SECTION_DEF(section_name, data_type)  extern data_type section_name[NRF_SECTION_ENTRIES]
 

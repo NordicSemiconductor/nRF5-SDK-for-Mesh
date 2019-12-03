@@ -128,6 +128,12 @@ API) and the runtime state. The mesh reserves the following file IDs:
 | `0x0003`           | `mesh_opt`  | Mesh runtime options.
 | `0x0004`- `0x000F` | -           | Reserved for future use.
 
+This usage can be compatible with the stack persistence used in nRF5 SDK for Mesh v3.2.0 (or an earlier
+version). If `ACCESS_FLASH_PAGE_COUNT` and `DSM_FLASH_PAGE_COUNT` are defined, the flash manager backend will
+be built in a backward compatible mode, with the stack files located where they would be located using the older
+version. This mode also takes into account `NET_FLASH_PAGE_COUNT`, as
+well as `ACCESS_FLASH_AREA_LOCATION`, `DSM_FLASH_AREA_LOCATION`, and `NET_FLASH_AREA_LOCATION`, for locating
+the pages in flash.
 
 ---
 

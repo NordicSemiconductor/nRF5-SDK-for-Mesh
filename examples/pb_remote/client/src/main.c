@@ -347,7 +347,18 @@ static void mesh_init(void)
         .core.lfclksrc         = DEV_BOARD_LF_CLK_CFG,
         .models.models_init_cb = models_init_cb
     };
-    ERROR_CHECK(mesh_stack_init(&init_params, &device_provisioned));
+
+    uint32_t status = mesh_stack_init(&init_params, &device_provisioned);
+    switch (status)
+    {
+        case NRF_ERROR_INVALID_DATA:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
+            break;
+        case NRF_SUCCESS:
+            break;
+        default:
+            ERROR_CHECK(status);
+    }
 
     if (!device_provisioned)
     {

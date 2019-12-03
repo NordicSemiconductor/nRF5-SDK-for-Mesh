@@ -345,7 +345,6 @@ void test_server_set(void)
     access_model_publish_address_get_ReturnThruPtr_p_address_handle(&address);
     access_model_publish_address_set_ExpectAndReturn(m_handle, 42, NRF_SUCCESS);
     access_model_publish_application_set_ExpectAndReturn(m_handle, 52, NRF_SUCCESS);
-    access_flash_config_store_Expect();
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_server_set(52, 42));
 
 }
@@ -354,7 +353,6 @@ void test_server_bind(void)
 {
     __setup();
     access_model_application_bind_ExpectAndReturn(m_handle, 3, NRF_SUCCESS);
-    access_flash_config_store_Expect();
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_server_bind(3));
 }
 

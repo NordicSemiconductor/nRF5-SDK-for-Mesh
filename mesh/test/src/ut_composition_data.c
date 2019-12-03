@@ -70,7 +70,10 @@ const uint8_t composition_data[] = {0x0C, 0x00, /* CID (Company identifier) */
                                     0x01, 0x00, /* SIG model 0x0001 */
                                     0x00, 0x10, /* SIG model 0x1000 */
                                     0x03, 0x10, /* SIG model 0x1003 */
-                                    0x3F, 0x00, 0x2A, 0x00  /* Vendor model 0x002a */
+                                    0x3F, 0x00, 0x2A, 0x00  /* Vendor model 0x002a */,
+                                    0x00, 0x00, /* Location: unknown */
+                                    0x00,       /* SIG models count: 0 */
+                                    0x00        /* Vendor models count: 0 */
 };
 
 static uint32_t model_id_get_cb(access_model_handle_t handle,
@@ -87,16 +90,25 @@ static uint32_t element_models_get_cb(uint16_t element_index,
                                       uint16_t * p_size,
                                       int num_calls)
 {
-    TEST_ASSERT_EQUAL(0, element_index);
-    TEST_ASSERT_EQUAL(0, num_calls);
-    TEST_ASSERT(p_size != NULL);
     TEST_ASSERT(SIG_MODELS_COUNT + VENDOR_MODELS_COUNT <= *p_size);
     *p_size = 0;
-    for (uint32_t i = 0; i < SIG_MODELS_COUNT+VENDOR_MODELS_COUNT; ++i)
+    if (num_calls == 0)
     {
-        (*p_size)++;
-        p_handles[i] = i;
+        TEST_ASSERT_EQUAL(0, element_index);
+        TEST_ASSERT_EQUAL(0, num_calls);
+        for (uint32_t i = 0; i < SIG_MODELS_COUNT+VENDOR_MODELS_COUNT; ++i)
+        {
+            (*p_size)++;
+            p_handles[i] = i;
+        }
     }
+    else
+    {
+        TEST_ASSERT_EQUAL(1, element_index);
+        TEST_ASSERT_EQUAL(1, num_calls);
+    }
+
+    TEST_ASSERT(p_size != NULL);
     return NRF_SUCCESS;
 }
 
@@ -112,28 +124,49 @@ void tearDown(void)
 void test_composition_data(void)
 {
     uint8_t data[CONFIG_COMPOSITION_DATA_SIZE + 3];
-    uint8_t sig_models_count = SIG_MODELS_COUNT;
-    uint8_t vendor_models_count = VENDOR_MODELS_COUNT;
-    uint16_t location = ELEMENT_LOCATION;
+    uint8_t sig_models_count0 = SIG_MODELS_COUNT;
+    uint8_t vendor_models_count0 = VENDOR_MODELS_COUNT;
+    uint16_t location0 = ELEMENT_LOCATION;
     uint16_t size = 0;
+
+    printf("ACCESS_ELEMENT_COUNT: %d\n", ACCESS_ELEMENT_COUNT);
 
     /* Test with an invalid size: */
     TEST_NRF_MESH_ASSERT_EXPECT(config_composition_data_get(data, &size));
     TEST_NRF_MESH_ASSERT_EXPECT(config_composition_data_get(NULL, NULL));
 
+    /* Element 0 */
     access_element_sig_model_count_get_ExpectAndReturn(0, NULL, ACCESS_STATUS_SUCCESS);
     access_element_sig_model_count_get_IgnoreArg_p_sig_model_count();
-    access_element_sig_model_count_get_ReturnThruPtr_p_sig_model_count(&sig_models_count);
+    access_element_sig_model_count_get_ReturnThruPtr_p_sig_model_count(&sig_models_count0);
 
     access_element_vendor_model_count_get_ExpectAndReturn(0, NULL, ACCESS_STATUS_SUCCESS);
     access_element_vendor_model_count_get_IgnoreArg_p_vendor_model_count();
-    access_element_vendor_model_count_get_ReturnThruPtr_p_vendor_model_count(&vendor_models_count);
+    access_element_vendor_model_count_get_ReturnThruPtr_p_vendor_model_count(&vendor_models_count0);
 
     access_element_location_get_ExpectAndReturn(0, NULL, ACCESS_STATUS_SUCCESS);
     access_element_location_get_IgnoreArg_p_location();
-    access_element_location_get_ReturnThruPtr_p_location(&location);
+    access_element_location_get_ReturnThruPtr_p_location(&location0);
 
     access_model_id_get_StubWithCallback(model_id_get_cb);
+    access_element_models_get_StubWithCallback(element_models_get_cb);
+
+    /* Element 1: no models */
+    uint8_t sig_models_count1 = 0;
+    access_element_sig_model_count_get_ExpectAndReturn(1, NULL, ACCESS_STATUS_SUCCESS);
+    access_element_sig_model_count_get_IgnoreArg_p_sig_model_count();
+    access_element_sig_model_count_get_ReturnThruPtr_p_sig_model_count(&sig_models_count1);
+
+    uint8_t vendor_models_count1 = 0;
+    access_element_vendor_model_count_get_ExpectAndReturn(1, NULL, ACCESS_STATUS_SUCCESS);
+    access_element_vendor_model_count_get_IgnoreArg_p_vendor_model_count();
+    access_element_vendor_model_count_get_ReturnThruPtr_p_vendor_model_count(&vendor_models_count1);
+
+    uint16_t location1 = 0x0000;  /* Default uninitialized value */
+    access_element_location_get_ExpectAndReturn(1, NULL, ACCESS_STATUS_SUCCESS);
+    access_element_location_get_IgnoreArg_p_location();
+    access_element_location_get_ReturnThruPtr_p_location(&location1);
+
     access_element_models_get_StubWithCallback(element_models_get_cb);
 
     /* Get the composition data: */
