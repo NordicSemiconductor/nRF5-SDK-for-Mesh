@@ -4,8 +4,8 @@
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
-# 1. Redistributions of source code must retain the above copyright notice, this
-#    list of conditions and the following disclaimer.
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
 #
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
@@ -27,7 +27,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import sys
+from sys import argv, exit
 import subprocess
 import multiprocessing
 
@@ -37,7 +37,8 @@ To quit, enter 'q': """
 
 
 def list_devices():
-    return [int(d) for d in subprocess.check_output(['nrfjprog', '-i']).splitlines()]
+    return [int(d)
+            for d in subprocess.check_output(['nrfjprog', '-i']).splitlines()]
 
 
 def select_devices(devices):
@@ -81,19 +82,20 @@ def main():
         print("".join(["%d: %s\n" % (i, devices[i]) for i in device_range]))
     else:
         print("No devices connected")
-        sys.exit(0)
+        exit(0)
 
     devices = select_devices(devices)
 
     if len(devices) == 0:
         print("No device(s) selected")
-        sys.exit(0)
+        exit(0)
 
-    hexfile = sys.argv[1]
+    hexfile = argv[1]
+
     with multiprocessing.Pool(len(devices)) as p:
         p.map(flash, [(d, hexfile) for d in devices])
 
-    sys.exit(0)
+    exit(0)
 
 
 if __name__ == "__main__":
