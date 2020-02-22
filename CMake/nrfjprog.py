@@ -63,14 +63,12 @@ def select_devices(devices):
 
 
 def flash(args):
-    device, hexfile = args
+    device, hexfile, mode = args
     device = str(device)
-    prefix = "# %s: " % (device)
-    print(prefix + "Erasing device...")
-    subprocess.check_output(["nrfjprog", "-s", device, "--eraseall"])
-    print(prefix + "Programming " + hexfile)
-    subprocess.check_output(["nrfjprog", "-s", device, "--program", hexfile])
-    print(prefix + "Resetting...")
+    print("# %s: Programming '--%s': %s" % (device, mode, hexfile))
+    subprocess.check_output(["nrfjprog", "-s", device,
+                             "--program", hexfile, "--%s" % mode])
+    print("# %s: Resetting..." % device)
     subprocess.check_output(["nrfjprog",  "-s", device, "--reset"])
 
 
@@ -92,8 +90,12 @@ def main():
 
     hexfile = argv[1]
 
+    # NOTE: this format is so that interface can later expand
+    # to take other flags (or flags to be passed to nrfjprog)
+    mode = "sectorerase" if '--sectorerase' in argv else "chiperase"
+
     with multiprocessing.Pool(len(devices)) as p:
-        p.map(flash, [(d, hexfile) for d in devices])
+        p.map(flash, [(d, hexfile, mode) for d in devices])
 
     exit(0)
 

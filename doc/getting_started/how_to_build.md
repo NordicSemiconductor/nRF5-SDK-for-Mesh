@@ -106,6 +106,14 @@ This requires the nRFx Command Line tools and Python 3 to be installed (see @ref
 
             build $ ninja flash_light_switch_server_nrf52832_xxAA_s132_7.0.1
 
+There is also a `sector_<target>`, which runs the interactive programming tool
+in `--sectorerase` mode.
+    - Flashes device with `<target>.hex`, not `<target>_merged.hex`
+    - Does not touch UICR, SoftDevice, or flash pages
+    - Useful for pushing fixes without losing device provisioning
+    - Example use:
+
+            build $ ninja sector_light_switch_server_nrf52832_xxAA_s132_7.0.1
 
 The following three steps are mandatory when building with CMake:
 - [Step 1: Generating build files](@ref how_to_build_cmake_generating)
