@@ -46,10 +46,10 @@ def select_devices(devices):
     number = None
     while number is None:
         try:
-            number = input(USAGE_STRING)
+            number = str(input(USAGE_STRING))
             if number.lower() == "q":
                 return []
-            elif number.lower() == 'a':
+            elif number.lower() == "a":
                 return devices
             else:
                 ids = set([int(n) for n in number.split(",")])
