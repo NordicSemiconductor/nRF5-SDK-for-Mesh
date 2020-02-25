@@ -89,13 +89,12 @@ def main():
         exit(0)
 
     hexfile = argv[1]
-
     # NOTE: this format is so that interface can later expand
     # to take other flags (or flags to be passed to nrfjprog)
     mode = "sectorerase" if '--sectorerase' in argv else "chiperase"
 
-    with multiprocessing.Pool(len(devices)) as p:
-        p.map(flash, [(d, hexfile, mode) for d in devices])
+    p = multiprocessing.Pool(len(devices))  # 'with' statement breaks python2
+    p.map(flash, [(d, hexfile, mode) for d in devices])
 
     exit(0)
 
