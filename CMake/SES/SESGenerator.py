@@ -99,7 +99,7 @@ GROUP_TEMPLATES = [
     Group(name="Health Model", files=[], match_string="models/foundation/health"),
     Group(name="Generic OnOff Model", files=[], match_string="models/model_spec/generic_onoff"),
     Group(name="Simple OnOff Model", files=[], match_string="models/vendor/simple_on_off"),
-    Group(name="Remote provisioning Model", files=[], match_string="models/experimental/pb_remote")]
+    Group(name="Remote provisioning Model", files=[], match_string="models/proprietary/pb_remote")]
 
 def unix_relative_path_get(path1, path2):
     if not path1.startswith('$('):

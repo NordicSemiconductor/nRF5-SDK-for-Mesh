@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -71,6 +71,11 @@ typedef struct __access_model_publication_state_t
  * Initializes the access layer publication module.
  */
 void access_publish_init(void);
+
+/**
+ * Stops and clears the access layer publication module.
+ */
+void access_publish_clear(void);
 
 /**
  * Sets the publishing period for a model.

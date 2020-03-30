@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -829,7 +829,7 @@ void test_friend_needs_packet(void)
     friendship_Establish();
     TEST_ASSERT_TRUE(friend_needs_packet(&trs_metadata));
 
-    /* No relaying for TTL < 2 (Mesh profile v1.0,  sec. 3.5.5). */
+    /* No relaying for TTL < 2 (@tagMeshSp section 3.5.5). */
     trs_metadata.net.ttl = 1;
     TEST_ASSERT_FALSE(friend_needs_packet(&trs_metadata));
     trs_metadata.net.ttl = 3;

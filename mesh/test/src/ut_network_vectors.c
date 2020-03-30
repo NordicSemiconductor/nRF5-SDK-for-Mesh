@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -97,7 +97,7 @@
             }
 /*
  * Macro for specifying the unencrypted header data. This is a concatenation of the fields "IVI NID", "CTL TTL",
- * SEQ, SRC and DST in the Mesh Profile Specification v1.0 sample data.
+ * SEQ, SRC and DST in @tagMeshSp sample data.
  */
 #define TEST_PACKET_HEADER(p_vector, ...) \
             { \
@@ -144,7 +144,7 @@ typedef struct
 #define NETWORK_PKT_RELAY_TEST_VECTORS     TEST_VECTORS_ALL
 
 /*
- * Retrieves a test vector. These are indexed by the number used in the Mesh Profile Specification v1.0. Some test vectors are skipped,
+ * Retrieves a test vector. These are indexed by the number used in @tagMeshSp. Some test vectors are skipped,
  * as they use friendship credentials or other unsupported features.
  */
 static void get_test_vector(unsigned int vector, test_vector_t * p_vector)

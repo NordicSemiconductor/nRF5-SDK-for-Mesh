@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -49,6 +49,19 @@
 #include "example_common.h"
 #include "nrf_mesh_configure.h"
 
+/*****************************************************************************
+ * Definitions
+ *****************************************************************************/
+
+
+/*****************************************************************************
+ * Forward declaration of static functions
+ *****************************************************************************/
+
+
+/*****************************************************************************
+ * Static variables
+ *****************************************************************************/
 static bool m_device_provisioned;
 
 static void mesh_init(void)
@@ -64,6 +77,7 @@ static void mesh_init(void)
     {
         case NRF_ERROR_INVALID_DATA:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
+			__LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before start provisioning.\n");
             break;
         case NRF_SUCCESS:
             break;

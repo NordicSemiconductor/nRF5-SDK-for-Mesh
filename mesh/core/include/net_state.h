@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -58,8 +58,8 @@
  */
 typedef enum
 {
-	NET_STATE_TO_IV_UPDATE_IN_PROGRESS_SIGNAL,
-	NET_STATE_TO_NORMAL_SIGNAL,
+    NET_STATE_TO_IV_UPDATE_IN_PROGRESS_SIGNAL,
+    NET_STATE_TO_NORMAL_SIGNAL,
 } net_state_iv_update_signals_t;
 
 /**
@@ -99,12 +99,22 @@ void net_state_reset(void);
  *                             been updated. It would be a security issue to re-use old sequence
  *                             numbers without increasing the IV index, so a new sequence number
  *                             could not be allocated.
+ *                             Attempt to allocate the sequence number before it has been restored
+ *                             from persistent memory.
  */
 uint32_t net_state_seqnum_alloc(uint32_t * p_seqnum);
 
 /**
+ * Checks whether the next sequence number block allocated and stored to the flash or not.
+ *
+ * @retval true  Sequence number block was allocated.
+ * @retval false Allocation and flash writing is in progress
+ */
+bool net_state_is_seqnum_block_ready(void);
+
+/**
  * Sets the IV Update test mode.
- * @note Mesh Profile Specification v1.0, section 3.10.5.1 details how IV Update Test Mode works.
+ * @note @tagMeshSp section 3.10.5.1 details how IV Update Test Mode works.
  *
  * @param[in] test_mode_on Turns on the test mode (true/false).
  */
@@ -112,7 +122,7 @@ void net_state_iv_update_test_mode_set(bool test_mode_on);
 
 /**
  * Runs transition of the IV Update procedure states for the IV Update test mode.
- * @note Mesh Profile Specification v1.0, section 3.10.5.1 details how IV Update Test Mode works.
+ * @note @tagMeshSp section 3.10.5.1 details how IV Update Test Mode works.
  *
  * @param[in] signal Activates IV Update transition.
  *

@@ -1,4 +1,4 @@
-# Remote provisioning example (experimental)
+# Remote provisioning example
 
 This example demonstrates the PB remote models, which allows you to provision devices
 that are outside of the provisioner's radio range. Normally, you have to be within radio range
@@ -9,8 +9,7 @@ in the network after all of them have been installed, for example in an ecosyste
 controller and a large set of preinstalled light fixtures spread on a considerable area.
 
 @note
-- This example is experimental, meaning it is ready for use, but not qualified.
-- It also uses its own [static OOB value](@ref provisioning_provisionee_initialization).
+This example uses its own [static OOB value](@ref provisioning_provisionee_initialization).
 For this reason, this example cannot be used with other examples.
 For more information, see the [Examples main page](@ref example_provisioning_bearers).
 
@@ -33,14 +32,14 @@ For more information about remote provisioning API, see the [PB-remote API refer
 
 ## Hardware requirements @anchor pb-remote_example_requirements_hw
 
-You need at least three supported boards for this example:
-- One development board for the client.
-- Two or more development boards for the server.
+You need at least three supported development kits for this example:
+- One development kit for the client.
+- Two or more development kits for the server.
 
 The servers act as provisionees until they are included in the network, after which they will be able
 to act as servers to help provision new devices.
 
-See @ref md_doc_introduction_mesh_compatibility for the supported boards.
+See @ref md_doc_user_guide_mesh_compatibility for the supported development kits.
 
 ---
 

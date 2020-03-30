@@ -1,5 +1,4 @@
-
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -211,7 +210,12 @@ static void handle_set(access_model_handle_t model_handle, const access_message_
     if (p_rx_msg->length == sizeof(generic_ponoff_set_msg_pkt_t))
     {
         generic_ponoff_set_msg_pkt_t * p_msg_params_packed = (generic_ponoff_set_msg_pkt_t *) p_rx_msg->p_data;
-        //TODO: Validate value
+
+        if (p_msg_params_packed->on_powerup > GENERIC_ON_POWERUP_MAX)
+        {
+            return;
+        }
+
         in_param.on_powerup = p_msg_params_packed->on_powerup;
         p_server->settings.p_callbacks->ponoff_cbs.set_cb(p_server, &p_rx_msg->meta_data, &in_param,
                                    (p_rx_msg->opcode.opcode == GENERIC_PONOFF_OPCODE_SET) ? &out_param : NULL);

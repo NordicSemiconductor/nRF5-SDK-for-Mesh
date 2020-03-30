@@ -7,6 +7,7 @@ add_executable(${target}
     "${MBTLE_SOURCE_DIR}/examples/common/src/rtt_input.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/simple_hal.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_app_utils.c"
+    "${CMAKE_SOURCE_DIR}/examples/common/src/app_transition.c"
     ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${WEAK_SOURCE_FILES}
     ${MESH_CORE_SOURCE_FILES}

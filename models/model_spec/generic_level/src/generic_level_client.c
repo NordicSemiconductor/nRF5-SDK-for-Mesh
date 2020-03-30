@@ -1,5 +1,4 @@
-
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -251,20 +250,18 @@ uint32_t generic_level_client_set_unack(generic_level_client_t * p_client, const
         return NRF_ERROR_INVALID_PARAM;
     }
 
-    uint8_t server_msg_length = message_set_packet_create(&p_client->msg_pkt.set, p_params, p_transition);
+    generic_level_set_msg_pkt_t msg;
+    uint8_t server_msg_length = message_set_packet_create(&msg, p_params, p_transition);
 
     message_create(p_client, GENERIC_LEVEL_OPCODE_SET_UNACKNOWLEDGED,
-                   (const uint8_t *) &p_client->msg_pkt.set, server_msg_length,
+                   (const uint8_t *) &msg, server_msg_length,
                    &p_client->access_message.message);
 
-    uint32_t status = NRF_ERROR_INVALID_PARAM;
-    for (uint32_t i = 0; i <= repeats; ++i)
+    uint32_t status = NRF_SUCCESS;
+    repeats++;
+    while (repeats-- > 0 && status == NRF_SUCCESS)
     {
         status = access_model_publish(p_client->model_handle, &p_client->access_message.message);
-        if (status != NRF_SUCCESS)
-        {
-            break;
-        }
     }
     return status;
 }
@@ -311,20 +308,18 @@ uint32_t generic_level_client_delta_set_unack(generic_level_client_t * p_client,
         return NRF_ERROR_INVALID_PARAM;
     }
 
-    uint8_t server_msg_length = message_delta_set_packet_create(&p_client->msg_pkt.delta_set, p_params, p_transition);
+    generic_level_delta_set_msg_pkt_t msg;
+    uint8_t server_msg_length = message_delta_set_packet_create(&msg, p_params, p_transition);
 
     message_create(p_client, GENERIC_LEVEL_OPCODE_DELTA_SET_UNACKNOWLEDGED,
-                   (const uint8_t *) &p_client->msg_pkt.delta_set, server_msg_length,
+                   (const uint8_t *) &msg, server_msg_length,
                    &p_client->access_message.message);
 
-    uint32_t status = NRF_ERROR_INVALID_PARAM;
-    for (uint32_t i = 0; i <= repeats; ++i)
+    uint32_t status = NRF_SUCCESS;
+    repeats++;
+    while (repeats-- > 0 && status == NRF_SUCCESS)
     {
         status = access_model_publish(p_client->model_handle, &p_client->access_message.message);
-        if (status != NRF_SUCCESS)
-        {
-            break;
-        }
     }
     return status;
 }
@@ -371,20 +366,18 @@ uint32_t generic_level_client_move_set_unack(generic_level_client_t * p_client, 
         return NRF_ERROR_INVALID_PARAM;
     }
 
-    uint8_t server_msg_length = message_move_set_packet_create(&p_client->msg_pkt.move_set, p_params, p_transition);
+    generic_level_move_set_msg_pkt_t msg;
+    uint8_t server_msg_length = message_move_set_packet_create(&msg, p_params, p_transition);
 
     message_create(p_client, GENERIC_LEVEL_OPCODE_MOVE_SET_UNACKNOWLEDGED,
-                   (const uint8_t *) &p_client->msg_pkt.move_set, server_msg_length,
+                   (const uint8_t *) &msg, server_msg_length,
                    &p_client->access_message.message);
 
-    uint32_t status = NRF_ERROR_INVALID_PARAM;
-    for (uint32_t i = 0; i <= repeats; ++i)
+    uint32_t status = NRF_SUCCESS;
+    repeats++;
+    while (repeats-- > 0 && status == NRF_SUCCESS)
     {
         status = access_model_publish(p_client->model_handle, &p_client->access_message.message);
-        if (status != NRF_SUCCESS)
-        {
-            break;
-        }
     }
     return status;
 }

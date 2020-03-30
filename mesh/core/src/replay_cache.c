@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -104,7 +104,7 @@ static void on_iv_update(void)
     {
         uint32_t iv_index = iv_index_get(&m_replay_cache[i]);
 
-        /* According to the Mesh Profile Specification v1.0 Section 3.10.5, we can only receive
+        /* According to @tagMeshSp section 3.10.5, we can only receive
          * on the current IV index and current IV index - 1. If an entry is older than this,
          * there's no point in keeping it, as we'll never receive a packet that doesn't qualify. */
         if (iv_index != new_iv_index && iv_index != (new_iv_index - 1))
@@ -135,7 +135,7 @@ static inline bool packet_is_new(const replay_cache_entry_t * p_entry, uint32_t 
 {
     uint32_t entry_iv_index = iv_index_get(p_entry);
 
-    /* According to Mesh Profile Specification v1.0 Section 3.8.8, we should discard packets
+    /* According to @tagMeshSp section 3.8.8, we should discard packets
      * coming from IV indexes lower than a previous packet from the same source, as well as
      * packets on the same IV index with lower sequence numbers. */
     return ((new_iv_index == entry_iv_index && new_seqnum > p_entry->seqnum) ||

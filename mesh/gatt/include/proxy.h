@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -43,7 +43,7 @@
 #include "nrf_mesh_config_core.h"
 
 /**
- * @defgroup PROXY GATT Proxy server (experimental)
+ * @defgroup PROXY GATT Proxy server
  * Implements the GATT Proxy role.
  *
  * @{

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -44,11 +44,11 @@
 #include "sdk_config.h"
 
 /**
- * @defgroup MESH_GATT Generic GATT interface for Mesh (experimental)
+ * @defgroup MESH_GATT Generic GATT interface for Mesh
  * @{
  */
 
-/** Timeout for an incoming SAR transfer as defined in the Mesh Profile specification v1.0, sec. 6.6. */
+/** Timeout for an incoming SAR transfer as defined in @tagMeshSp section 6.6. */
 #define MESH_GATT_RX_SAR_TIMEOUT_US 20000000
 
 /** The maximum number of concurrent GATT connections supported. */

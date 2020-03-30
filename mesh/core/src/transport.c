@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -192,7 +192,7 @@ typedef struct
                 bool seqzero_is_set;            /**< Flag indicating whether the seqzero has been set. */
                 nrf_mesh_tx_token_t token;      /**< TX Token set by the user. */
                 /** Source address of the device that acked the packet. Must be the same for every
-                 * ack, according to Mesh Profile Specification v1.0 section 3.5.3.3. */
+                 * ack, according to @tagMeshSp section 3.5.3.3. */
                 uint16_t ack_src;
             } tx;
             /** Fields that are only valid for RX-sessions */
@@ -506,6 +506,7 @@ static void sar_ctx_tx_complete(trs_sar_ctx_t * p_sar_ctx)
     nrf_mesh_evt_t evt;
     evt.type = NRF_MESH_EVT_TX_COMPLETE;
     evt.params.tx_complete.token = p_sar_ctx->session.params.tx.token;
+    evt.params.tx_complete.timestamp = timer_now();
     event_handle(&evt);
     sar_ctx_free(p_sar_ctx);
     __INTERNAL_EVENT_PUSH(INTERNAL_EVENT_SAR_SUCCESS, 0, 0, NULL);
@@ -593,7 +594,7 @@ static uint32_t upper_trs_packet_alloc(transport_packet_metadata_t * p_metadata,
  * Ack the SAR session.
  *
  * @note Enforces specification rule saying only to ack if the destination address is a unicast
- * address (Mesh Profile Specification v1.0, section 3.5.3.4).
+ * address (@tagMeshSp section 3.5.3.4).
  *
  * @param[in] p_metadata Metadata of the SAR session to ack.
  * @param[in] block_ack Ack bitfield value.
@@ -607,7 +608,7 @@ static uint32_t sar_ack_send(const transport_packet_metadata_t * p_metadata, uin
     uint32_t status = NRF_SUCCESS;
     if (p_metadata->net.dst.type == NRF_MESH_ADDRESS_TYPE_UNICAST)
     {
-        __LOG(LOG_SRC_TEST, LOG_LEVEL_INFO, "Sending ACK...\n");
+        __LOG(LOG_SRC_TRANSPORT, LOG_LEVEL_INFO, "Sending ACK...\n");
 
         packet_mesh_trs_control_packet_t packet_buffer;
         memset(&packet_buffer, 0, sizeof(packet_buffer));
@@ -624,11 +625,25 @@ static uint32_t sar_ack_send(const transport_packet_metadata_t * p_metadata, uin
         control_packet.p_data             = &packet_buffer;
         control_packet.p_net_secmat       = p_metadata->net.p_security_material;
         control_packet.reliable           = false;
-        control_packet.src                = p_metadata->net.dst.value;
         control_packet.bearer_selector    = p_metadata->tx_bearer_selector;
+
+        if (p_metadata->receivers == TRANSPORT_PACKET_RECEIVER_FRIEND)
+        {
+            uint16_t local_address;
+            uint16_t local_address_count;
+
+            nrf_mesh_unicast_address_get(&local_address, &local_address_count);
+
+            control_packet.src = local_address;
+        }
+        else
+        {
+            control_packet.src = p_metadata->net.dst.value;
+        }
+
         if (p_metadata->net.ttl == 0)
         {
-            /* Respond with TTL=0 to TTL=0 messages. (Mesh Profile Specification v1.0, section 3.5.2.3) */
+            /* Respond with TTL=0 to TTL=0 messages. (@tagMeshSp section 3.5.2.3) */
             control_packet.ttl = 0;
         }
         else
@@ -798,7 +813,7 @@ static trs_sar_ctx_t * sar_rx_ctx_get(const transport_packet_metadata_t * p_meta
         }
         else if (new_sar_seqauth < current_sar_seqauth)
         {
-            /* From Mesh Profile Specification v1.0, Section 3.5.3.4: Segments with a lower SeqAuth
+            /* From @tagMeshSp section 3.5.3.4: Segments with a lower SeqAuth
              * value than the most recent SeqAuth should be ignored. Note that this rule takes precendence
              * over all the others - we should never act on old messages. */
             if (is_in_lpn_role())
@@ -834,7 +849,7 @@ static trs_sar_ctx_t * sar_rx_ctx_get(const transport_packet_metadata_t * p_meta
         {
             /* This is a segment of the successfully received segmented message.
              * The sender likely missed our ack, send ack again.
-             * (according to the Mesh Profile Specification v1.0 section 3.5.3.4). */
+             * (according to @tagMeshSp section 3.5.3.4). */
             (void) sar_ack_send(p_metadata, block_ack_full(p_metadata));
 
             /* No need to worry about the receiver, because this might happen only
@@ -858,7 +873,7 @@ static trs_sar_ctx_t * sar_rx_ctx_get(const transport_packet_metadata_t * p_meta
     {
         /* This is a segment of the successfully received segmented message.
          * The sender likely missed our ack, send ack again.
-         * (according to the Mesh Profile Specification v1.0 section 3.5.3.4). */
+         * (according to @tagMeshSp section 3.5.3.4). */
         (void) sar_ack_send(p_metadata, block_ack_full(p_metadata));
         return NULL;
     }
@@ -916,7 +931,7 @@ static void trs_seg_packet_in(const packet_mesh_trs_packet_t * p_packet,
     __LOG(LOG_SRC_TRANSPORT, LOG_LEVEL_INFO, "Got segment %u\n", p_metadata->segmentation.segment_offset);
 
     /* In a friendship, the Friend shall put segments in its Friend Queue when the message has been
-     * fully received/assembled (ref. Mesh Profile v1.0, sec. 3.5.5). If we still have an active RX
+     * fully received/assembled (ref. @tagMeshSp section 3.5.5). If we still have an active RX
      * context on NRF_MESH_EVT_LPN_FRIEND_POLL_COMPLETE, we regard the session as failed. Thus no
      * need to start the incomplete timer. */
     if (!is_in_lpn_role())
@@ -1325,7 +1340,7 @@ static uint32_t segmented_packet_tx(const transport_packet_metadata_t * p_metada
         return NRF_ERROR_INVALID_LENGTH;
     }
 
-    /* According to the Mesh Profile Specification v1.0 Section 3.6.4.1, we should only ever send one
+    /* According to @tagMeshSp section 3.6.4.1, we should only ever send one
      * transport SAR packet at the same time between a given source and destination. Return FORBIDDEN if
      * there's a SAR session in progress with the same parameters. */
     for (uint32_t i = 0; i < TRANSPORT_SAR_SESSIONS_MAX; ++i)
@@ -1523,7 +1538,7 @@ static uint32_t transport_metadata_validate(const transport_packet_metadata_t * 
 
     if (p_trs_metadata->net.control_packet)
     {
-        /* Mesh Profile Specification v1.0.1 Section 3.4.3: Only unicast and group destination addresses are valid for control packets */
+        /* @tagMeshSp section 3.4.3: Only unicast and group destination addresses are valid for control packets */
         if (p_trs_metadata->net.dst.type == NRF_MESH_ADDRESS_TYPE_VIRTUAL)
         {
             return NRF_ERROR_INVALID_ADDR;
@@ -1537,7 +1552,7 @@ static uint32_t transport_metadata_validate(const transport_packet_metadata_t * 
     }
     else
     {
-        /* Mesh Profile Specification v1.0.1 Section 3.4.3: Only unicast destination addresses are valid with device keys */
+        /* @tagMeshSp section 3.4.3: Only unicast destination addresses are valid with device keys */
         if (!p_trs_metadata->type.access.using_app_key && p_trs_metadata->net.dst.type != NRF_MESH_ADDRESS_TYPE_UNICAST)
         {
             return NRF_ERROR_INVALID_PARAM;
@@ -1653,7 +1668,7 @@ static void segack_packet_in(const packet_mesh_trs_control_packet_t * p_trs_cont
 
         if (obo)
         {
-            /* Mesh Profile Specification v1.0, section 3.5.3.3 the source address of the first ack
+            /* @tagMeshSp section 3.5.3.3 the source address of the first ack
              * must be the source address of all the acks if the obo flag is set. */
             p_sar_ctx->session.params.tx.ack_src = p_metadata->net.src;
         }
@@ -1671,7 +1686,7 @@ static void segack_packet_in(const packet_mesh_trs_control_packet_t * p_trs_cont
         }
         else
         {
-            /* Mesh Profile Specification v1.0, section 3.5.3.3: "If a Segment Acknowledgment message is received that
+            /* @tagMeshSp section 3.5.3.3: "If a Segment Acknowledgment message is received that
              * is a valid acknowledgment for the segmented message, then the lower transport layer
              * shall reset the segment transmission timer and retransmit all unacknowledged Lower
              * Transport PDUs." */

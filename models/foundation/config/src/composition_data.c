@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -106,15 +106,25 @@ void config_composition_data_get(uint8_t * p_data, uint16_t * p_size)
     device.features |= CONFIG_FEATURE_RELAY_BIT;
 #endif
 
+#if MESH_FEATURE_FRIEND_ENABLED
+    device.features |= CONFIG_FEATURE_FRIEND_BIT;
+#endif
+
     memcpy(&p_data[0], &device, sizeof(device));
     *p_size = sizeof(device);
 
     for (int i = 0; i < ACCESS_ELEMENT_COUNT; ++i)
     {
         config_composition_element_header_t element;
+
         NRF_MESH_ERROR_CHECK(access_element_sig_model_count_get(i, &element.sig_model_count));
         NRF_MESH_ERROR_CHECK(access_element_vendor_model_count_get(i, &element.vendor_model_count));
-        NRF_MESH_ASSERT(access_element_location_get(i, (uint16_t*) &element.location) == NRF_SUCCESS);
+        /* Can not use element directly because taking address of packed member of 'struct
+           <anonymous>' may result in an unaligned pointer value. Compiler warning with GNU Tools
+           ARM Embedded 9-2019-q4-major. */
+        uint16_t location;
+        NRF_MESH_ASSERT(access_element_location_get(i, &location) == NRF_SUCCESS);
+        element.location = location;
 
         element_models_count = ACCESS_MODEL_COUNT;
         NRF_MESH_ASSERT(access_element_models_get(i, &model_handles[0], &element_models_count) == NRF_SUCCESS);

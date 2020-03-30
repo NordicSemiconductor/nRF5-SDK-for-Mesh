@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -49,7 +49,7 @@
  * @{
  */
 
-/** Mesh Profile Specification v1.0, section 5.4.4: "The provisioning protocol shall have a minimum
+/** @tagMeshSp section 5.4.4: "The provisioning protocol shall have a minimum
  * timeout of 60 seconds that is reset each time a provisioning protocol PDU is sent or received."
  */
 #ifndef NRF_MESH_PROV_LINK_TIMEOUT_MIN_US
@@ -57,7 +57,7 @@
 #endif
 
 #if NRF_MESH_PROV_LINK_TIMEOUT_MIN_US < 60000000
-#warning Provisioning link timeout shall have a minimum timeout of 60 seconds according to the Mesh Profile Specification.
+#warning Provisioning link timeout shall have a minimum timeout of 60 seconds according to the @tagMeshSp.
 #endif
 
 /**

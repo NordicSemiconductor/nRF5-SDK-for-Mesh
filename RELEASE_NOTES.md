@@ -3,12 +3,13 @@
 This page contains all the notes for the major and minor production releases of the nRF5 SDK for Mesh.
 
 **Table of contents**
+- [BLE Mesh v4.1.0](@ref release_notes_410)
+    - [New features and highlights](@ref release_notes_410_highlights)
+    - [Changes](@ref release_notes_410_changes)
+    - [Bugfixes](@ref release_notes_410_bugfixes)
+    - [Limitations](@ref release_notes_410_limitations)
+    - [Known issues](@ref release_notes_410_known_issues)
 - [BLE Mesh v4.0.0](@ref release_notes_400)
-    - [New features and highlights](@ref release_notes_400_highlights)
-	- [Changes](@ref release_notes_400_changes)
-	- [Bugfixes](@ref release_notes_400_bugfixes)
-    - [Limitations](@ref release_notes_400_limitations)
-    - [Known issues](@ref release_notes_400_known_issues)
 - [BLE Mesh v3.2.0](@ref release_notes_320)
 - [BLE Mesh v3.1.0](@ref release_notes_310)
 - [BLE Mesh v3.0.0](@ref release_notes_300)
@@ -31,6 +32,103 @@ the release of new features and updates.
 
 
 ---
+
+
+## BLE Mesh v4.1.0 @anchor release_notes_410
+
+@par Release Date: Week 14, 2020
+
+This is a minor release that introduces support for new models from the Mesh Model specification
+and adds the related examples. It also includes changes to the documentation structure
+and fixes several bugs.
+
+### New features and highlights @anchor release_notes_410_highlights
+- Added support for new models:
+    - Light Lightness server and client models.
+    - Light CTL server and client models.
+    - Light LC server and client models.
+- Added new examples:
+    - Light Lightness server and client examples.
+    - Light CTL server and client examples.
+    - Light CTL LC server example.
+    - Light LC server example.
+
+### Changes @anchor release_notes_410_changes
+- Updated GNU ARM Embedded Toolchain required minimum version to 9-2019-q4-major.
+
+#### Updated Provisioner
+- Added improvements to the static provisioner to include lighting and sensor scenarios.
+    - The static provisioner example has been updated to support new examples: Light lightness, Light CTL and Light LC server.
+- Additionally, provisioner was moved out of the light switch example dependencies and got separate configuration files.
+    - The node configuration module was made flexible to support complex configuration scenarios like the combination of CTL and LC servers.  
+    Servers from the supported examples now publish statuses on group addresses instead of unicast clients' addresses.
+    This allows to combine clients from one example and servers from another example if they support the client-server part of the same model. 
+        - For example, you can combine the EnOcean switch translator (Generic OnOff client) with the light lightness server (Generic OnOff server), and so on.
+
+#### Documentation
+- Changed the structure of the conceptual documentation pages to make it similar to the nRF5 SDK documentation structure.
+    - The Getting Started section now includes only the pages that are related to starting the work with the nRF5 SDK for Mesh, including the Migration Guide.
+    - The new User Guide section now includes pages about Mesh concepts and architecture, libraries, and other pages that are more advanced than the Getting Started pages.
+- Added basic information about Mesh packet data flow to the Bluetooth Mesh stack architecture page.
+- Updated the Supported features section on the main overview page and removed the experimental label from some of the pages.
+
+### Bugfixes @anchor release_notes_410_bugfixes
+- Fixed an issue where the internal state of the bootloader would not reset after DFU completes. (MBTLE-3223)
+- Fixed an issue where PyACI would attempt to print byte arrays as ASCII strings. They are now printed as hexadecimal strings. (MBTLE-3577)
+- Fixed an issue where the Generic Power OnOff Server would incorrectly respond to messages containing prohibited values. (MBTLE-3608)
+- Fixed an issue related to the config_server event callback not being extended for missing events. (MBTLE-3639)
+- Fixed an issue when provisionee would send a wrong reason in the Provisioning Failed command when receiving unexpected values from the provisioner. (MBTLE-3712)
+- Fixed an issue where invalid DSM metadata would not be deleted from flash. (MBTLE-3714)
+- Fixed an issue where LPN Poll Timeout Get would not get handled by config server if the friendship feature was disabled. (MBTLE-3720)
+- Fixed an issue where MESH_CONFIG_STRATEGY_ON_POWER_DOWN would prevent NRF_MESH_EVT_CONFIG_STABLE from being emitted. (MBTLE-3723)
+- Fixed an issue where the Access layer data in flash would not be validated. (MBTLE-3739)
+- Fixed an issue where setting the publish period to certain values would cause a loss of resolution. (MBTLE-3742)
+- Fixed the generated raw UUID to match the UUID version 4 format and updated @ref mesh_app_uuid_print() to
+  print the formatted UUID in order to directly match the raw UUID bytes. (MBTLE-3743)
+- Fixed an issue where sar_ctx_tx_complete() would not assign a timestamp value. (MBTLE-3774)
+- Fixed an issue where the Friend feature support was not set in the composition data. (MBTLE-3820)
+- Fixed an issue where the SRC field for the Segmented Acknowledgment message would not be set to the Friend's address when acknowledging a segmented message on behalf of LPN. (MBTLE-3831)
+- Fixed outdated links in the SES.md file. (MBTLE-3843)
+- Fixed an issue where accessing periodic publication timer would not be stopped after the access layer states are cleared. (MBTLE-3844)
+- Fixed an issue where the PB Remote client example would assert in case of incorrect user input. (MBTLE-3848)
+
+#### Known issue fixes
+- Fixed a previously known issue where the `flash_manager` API might write to `p_manager->internal.state` without considering the existing state. (MBTLE-1972)
+- Fixed a previously known issue where calling @ref access_clear() when a reliable transfer was ongoing would result in an assert. (MBTLE-3181)
+- Fixed a previously known issue where the Mesh bootloader would not turn off UART before switching to the application. (MBTLE-3215)
+- Fixed a previously known issue where the PA/LNA module in the BLE SoftDevice stack would not be switched on after the mesh provisioning process. (MBTLE-3279)
+- Fixed a previously known issue where the DFU example would back out of a DFU target state to service a relay request. (MBTLE-3376)
+- Fixed a previously known issue with the Link Open behavior of the mesh stack provisioner. This was fixed by aligning with the specification v1.0.1. (MBTLE-3547)
+
+### Limitations @anchor release_notes_410_limitations
+- The replay protection list is not stored in flash. (MBTLE-1975)
+- If a poll is planned during the delay of another poll, the attempt counter is reset to the default
+  value. (MBTLE-3175)
+- It is not possible to use SAR for both request and response by using loopback. Use separate
+  elements for such client-server models instantiated on the same device. (MBTLE-3439)
+- The PA/LNA module is supported on nRF52840 and nRF52833, but only verified on nRF52832.
+  (MBTLE-3576)
+
+### Known issues @anchor release_notes_410_known_issues
+- If the mesh stack is configured with the IRQ priority @ref NRF_MESH_IRQ_PRIORITY_THREAD and runs
+  in the main loop with app_scheduler, there might be delays of ~15 ms. (MBTLE-2624)
+- During the provisioning of a device, the Device Name is changed to the default `nRF5x` after
+  completion of the PB-GATT connection. The name is later changed back to the correct name when the
+  initial configuration of the device is complete. (MBTLE-3151)
+- The app_timer library fails to trigger the timer correctly if no active timer is present
+  for the RTC_MAX/2 value. (A workaround has been implemented for this issue in `app_timer_workaround.c`.) (MBTLE-3347)
+- The DFU segment recovery may get deadlocked. (MBTLE-3423)
+- The Mesh Configuration Power Down files require significant time for storing if defragmentation is
+  in progress. (MBTLE-3467)
+- Friendship and LPN poll timeouts greater than 2147 seconds are not supported. (MBTLE-3563)
+- After the firmware upgrade, if the composition data has been changed
+  or corrupted persistent data has been found (or both), the device will boot up as unprovisioned device.
+  If the device is provisioned at that point without resetting, it asserts.
+  As a workaround, reset the device once more before the start of provisioning. (MBTLE-3840)
+
+
+---
+
 
 ## BLE Mesh v4.0.0 @anchor release_notes_400
 
@@ -62,8 +160,8 @@ See [Migration guide](@ref mesh_config_for_dsm_and_access) for details about cha
 - Added the Registered Fault state of the Health Model to the persistent storage.
 
 #### Documentation
-- Updated the section about provisioning. It is now called @ref md_doc_getting_started_provisioning_main and includes new information about the provisioning process and APIs.
-- Added a new page about @ref md_doc_getting_started_examples_adding.
+- Updated the section about provisioning. It is now called @ref md_doc_user_guide_modules_provisioning_main and includes new information about the provisioning process and APIs.
+- Added a new page about @ref md_doc_user_guide_examples_adding.
 - Added [the list of provisioning bearers in the nRF5 SDK for Mesh examples](@ref example_provisioning_bearers).
 - Reworked the sections about [Evaluating examples using the nRF Mesh mobile application](@ref nrf-mesh-mobile-app).
 - Introduced several minor documentation improvements.
@@ -92,7 +190,7 @@ This allows the Friend node to receive at least one full segmented message meant
 - Fixed a receive delay timeout calculation issue for the Low Power Node which caused the Low Power node to start the Receive Window ~1.9 ms earlier. Now the Low Power node starts the Receive Window at the proper time.
 - Fixed a bug where the Friend node might start receiving segmented messages even if they would not fit into the Friend Queue. Now the Friend node will reject segmented messages that cannot be stored in the Friend Queue due to the limit of the queue size.
 - Fixed a bug where the Friend node was not able to decode the Receive Window Factor and RSSI Factor correctly, which would cause the Friend node to schedule the Friend Offer earlier. Now the Friend node will correctly decode the factors and schedule the Friend Offer at the right time.
-- Fixed several documentation bugs, including broken links in @ref md_doc_libraries_dfu_dfu_quick_start.
+- Fixed several documentation bugs, including broken links in @ref md_doc_user_guide_modules_dfu_configuring_performing.
 - Fixed documentation of the @ref access_model_reliable_publish() function. The user must retain the data provided in @ref access_message_tx_t::p_buffer until the acknowledged transfer has ended (see @ref access_reliable_t::status_cb) or the message is cancelled by @ref access_model_reliable_cancel.
 - Fixed a bug where the OOB field in PB-GATT advertisements had the wrong endianness.
 - Fixed an issue where @ref pb_remote_server_disable() was always returning `NRF_ERROR_INVALID_STATE`. Now @ref pb_remote_server_disable() performs checks correctly and it is possible to disable the PB remote server.
@@ -128,7 +226,7 @@ This allows the Friend node to receive at least one full segmented message meant
 
 ## BLE Mesh v3.2.0 @anchor release_notes_320
 
-@par Release Date: Week 30, 2019 
+@par Release Date: Week 30, 2019
 
 This is a minor feature release. It adds Friend feature support, the RSSI monitoring model,
 support for nRF5 SDK v15.3.0, significant changes to the DFU documentation,
@@ -147,17 +245,17 @@ and fixes to several bugs.
 ### Changes @anchor release_notes_320_changes
 
 #### Documentation
-- Added a new @ref md_doc_libraries_dfu_dfu_protocol subsection in the @ref md_doc_libraries_libraries section.
+- Added a new @ref md_doc_user_guide_modules_dfu_protocol subsection in the @ref md_doc_user_guide_modules_modules_main section.
     - Moved the page about configuring DFU over mesh from Getting started to the new section.
-    It is now called @ref md_doc_libraries_dfu_dfu_quick_start and has received several updates.
-    - Added new pages about the DFU protocol, @ref md_tools_dfu_README, @ref md_doc_libraries_dfu_integrating_dfu,
-    and @ref md_doc_libraries_dfu_packet_format.
+    It is now called @ref md_doc_user_guide_modules_dfu_configuring_performing and has received several updates.
+    - Added new pages about the DFU protocol, @ref md_tools_dfu_README, @ref md_doc_user_guide_modules_dfu_integrating_into_app,
+    and @ref md_doc_user_guide_modules_dfu_packet_format.
     - Rearranged the existing information about DFU due to the addition of new pages.
     - Reviewed and updated the existing DFU documentation.
-- Updated the documentation for @ref md_doc_introduction_mesh_interrupt_priorities.
+- Updated the documentation for @ref md_doc_user_guide_mesh_interrupt_priorities.
   It now mentions how to use the `app_scheduler` module from the nRF5 SDK.
 - Reviewed SES.md file that is visible only in SEGGER Embedded Studio.
-- Fixed a bug on @ref md_doc_libraries_how_to_models, where `send_reply()` was mentioned twice
+- Fixed a bug on @ref md_doc_user_guide_modules_models_creating, where `send_reply()` was mentioned twice
   instead of `reply_status()`.
 - Removed information about timeslot and flashing limitations after introducing high priority
   timeslots. This affects, for example, @ref NRF_MESH_PROV_BEARER_GATT_UNPROV_BEACON_INTERVAL_MS.
@@ -210,13 +308,13 @@ fails to initialize the Buttonless DFU Service due to the missing bootloader.
   [Migration guide](@ref health_server_subscription) for details.
 - Fixed wrong opcodes used in the Generic Power OnOff model.
 - Fixed a bug that would cause level behavior module to not accept all transition time values
-  provided by the level server model for the move speed calculation, and fixed some behavioral
+  provided by the Level Server model for the move speed calculation, and fixed some behavioral
   corner cases.
 - Fixed a bug that would cause the access layer to use a non-zero TTL value when replying to a
   message received with the TTL set to zero.
 - Fixed an issue that would cause the provisioning process to take around 10 seconds more than in
   the nRF5 SDK for Mesh v2.2.0.
-- Implemented a fix that makes the generic default transition time server model validate set message
+- Implemented a fix that makes the Generic Default Transition Time Server model validate set message
   parameters.
 - Fixed a bug that would cause the @ref nrf_mesh_disable() function to take several seconds to disable
   the mesh.
@@ -254,8 +352,8 @@ As part of this release, several files have been modified. See
 
 ### New features and highlights @anchor release_notes_310_highlights
 - Added Device Firmware Upgrade (DFU) support for the LPN example. You can now upgrade the LPN device firmware using the solution from nRF5 SDK.
-    - For more information, see @ref md_examples_experimental_lpn_README and a new standalone page:
-      @ref md_examples_experimental_lpn_dfu_ble.
+    - For more information, see @ref md_examples_lpn_README and a new standalone page:
+      @ref md_examples_lpn_dfu_ble.
 - Implemented publish re-transmission support in the access layer. You can now re-transmit published
   messages according to the Publish Retransmit Count and the Publish Retransmit Interval Steps states.
 
@@ -286,7 +384,7 @@ As part of this release, several files have been modified. See
     - Contents of the pages have been reviewed and updated.
     - PB remote client and server examples are now described on one page:
       @ref md_examples_pb_remote_README.
-- Edited the @ref md_doc_introduction_mesh_compatibility page structure for clarity.
+- Edited the @ref md_doc_user_guide_mesh_compatibility page structure for clarity.
 - Expanded information about [interacting with examples using SEGGER RTT Viewer](@ref segger-rtt).
 
 #### Other changes
@@ -338,7 +436,7 @@ As part of this release, several files have been modified. See
 
 ## BLE Mesh v3.0.0 @anchor release_notes_300
 
-@par Release Date: Week 48, 2018 
+@par Release Date: Week 48, 2018
 
 This is a major release that brings integration with the latest version of the nRF5 SDK and
 experimental support for the Low Power feature and GenericOnOff models. It also introduces changes
@@ -352,10 +450,10 @@ As part of this release, several files have been added and removed. See
 - Added integration with the nRF5 SDK v15.2. The nRF5 SDK for Mesh is now incompatible with all
   older releases of the nRF5 SDK. See the [Migration guide](@ref migration_300_irq_priority) page
   for required changes.
-- Added experimental support for Low Power node feature. See @ref md_doc_introduction_lpn_concept
-  and @ref md_doc_getting_started_lpn_integration for documentation.
+- Added experimental support for Low Power node feature. See @ref md_doc_user_guide_modules_lpn_concept
+  and @ref md_doc_user_guide_modules_lpn_integrating for documentation.
 	- Due to this change, the high frequency crystal is stopped when the mesh is inactive.
-	- Implemented Low Power node example. See @ref md_examples_experimental_lpn_README for documentation.
+	- Implemented Low Power node example. See @ref md_examples_lpn_README for documentation.
 - Implemented experimental support for Generic PowerOnOff models.
 
 ### Changes @anchor release_notes_300_changes
@@ -411,22 +509,21 @@ As part of this release, several files have been added and removed. See
   quality of the documentation.
  	- Modified the structure of documentation on the @link_mesh_doclib and in the @link_meshsdk_github, including:
   		- Moved several pages between sections. For example,
-          @ref md_doc_introduction_mesh_interrupt_priorities is now featured in the Overview section.
+          @ref md_doc_user_guide_mesh_interrupt_priorities is now featured in the Overview section.
 		- Removed Scripts section on the @link_mesh_doclib that contained a duplicated page about
           Interactive PyACI. This page is now available at
           [Libraries > Serial interface](@ref md_scripts_README).
   		- Removed the standalone deprecated list page. Deprecated functions are still marked as
           `_DEPRECATED` in the code.
   		- Removed the standalone Simple OnOff model page. Its contents are now integrated in the
-          model's header file and the [Configuring new models](@ref md_doc_libraries_how_to_models) page.
+          model's header file and the [Creating new models](@ref md_doc_user_guide_modules_models_creating) page.
   		- Renamed Introduction to Overview. This section now includes conceptual, descriptive documentation.
   		- Updated @ref md_doc_getting_started_getting_started section. It now includes instructional
           documentation.
-		- Grouped experimental examples in the @ref md_examples_experimental_examples subsection.
-		- Grouped provisioning-related pages in the @ref md_doc_getting_started_provisioning_main
+		- Grouped experimental examples in the Experimental examples subsection.
+		- Grouped provisioning-related pages in the @ref md_doc_user_guide_modules_provisioning_main
           subsection.
- 	- Created new pages by splitting content on already existing pages (for example,
-      @ref md_doc_introduction_mesh_compatibility or @ref md_doc_introduction_mesh_repository_structure).
+ 	- Created new pages by splitting content on already existing pages.
       These new pages will be expanded in the future.
 	- Edited @ref md_doc_getting_started_how_to_toolchain page for clarity. It now better lists
       required tools for each operating system.
@@ -581,7 +678,7 @@ As part of this release, several files have been added and removed. See
 ### Known issues and limitations
 
 - Publish re-transmission settings are not supported
-- Some Config server and Health server model states are not persistent
+- Some Config server and Health Server model states are not persistent
 - Setting device in attention state during provisioning is not supported
 - Light switch provisioner example:
   During the configuration of a node, the static provisioner example may sometimes consider a status
@@ -648,13 +745,13 @@ As part of this release, several files have been added and removed. See
 - Device key is bound to only one network key (primary)
 - Access layer does not allow user to stop periodic publication by setting Unassigned (0x0000)
   publish address (or any other event which disabled model publication)
-- Vendor Model IDs reversed according to the Mesh Profile specification v1.0
+- Vendor Model IDs reversed according to the @tagMeshSp
 - Redundant advertiser in beacon module
 - Wrong IRQ level used for button GPIO and UART
 
 ### Known issues and limitations
 - Publish re-transmission settings are not supported
-- Some Config server and Health server model states are not persistent
+- Some Config server and Health Server model states are not persistent
 - Setting device in attention state during provisioning is not supported
 - Light switch provisioner example:
   During the configuration of a node, the static provisioner example may sometimes consider a status
@@ -705,7 +802,7 @@ This is a hotfix release with documentation/bug fixes.
 ## BLE Mesh v1.0.0 @anchor release_notes_100
 
 This is the first production release of Nordic's nRF5 SDK for Mesh. This release implements mandatory
-features for the Mesh Profile 1.0 specification and also some proprietary features
+features for the @tagMeshSp and also some proprietary features
 (PB-remote and Nordic Advertiser Extensions) in experimental state.
 
 ### New features
@@ -735,7 +832,7 @@ features for the Mesh Profile 1.0 specification and also some proprietary featur
 - Provisioning API changed slightly to de-couple the upper and lower layers more cleanly
 
 ### Known limitations
-- Optional features of the Mesh Profile 1.0 Specification are not part of this release.
+- Optional features of the @tagMeshSp are not part of this release.
 
 ### Test Errata
 - DFU : replacing Softdevice live while running app is not tested.

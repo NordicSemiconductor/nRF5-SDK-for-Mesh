@@ -2,7 +2,7 @@
 @anchor light_switch_demo_client
 
 The light switch client implements a Generic OnOff client. Together with [light switch server](@ref md_examples_light_switch_server_README)
-and [mesh provisioner](@ref md_examples_light_switch_provisioner_README), it is part of the [light switch example](@ref md_examples_light_switch_README)
+and [mesh provisioner](@ref md_examples_provisioner_README), it is part of the [light switch example](@ref md_examples_light_switch_README)
 network demonstration, in which it has a provisionee role.
 
 The light switch client has four buttons to control the state of LED 1 on servers. It instantiates two instances of Generic OnOff Client model.
@@ -38,4 +38,4 @@ mesh messages to the desired nodes or a group of nodes.
 
 The following figure shows the calling sequence of key mesh stack APIs used by the light switch client.
 
-![Light switch client setup](img/light_switch_client_interface.svg "Light switch client setup")
+![Light switch client setup](images/light_switch_client_interface.svg "Light switch client setup")

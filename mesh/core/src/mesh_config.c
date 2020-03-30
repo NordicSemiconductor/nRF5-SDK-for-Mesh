@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -214,14 +214,21 @@ static mesh_config_backend_iterate_action_t restore_callback(mesh_config_entry_i
     if (p_params == NULL)
     {
         load_failure = MESH_CONFIG_LOAD_FAILURE_INVALID_ID;
+        const mesh_config_file_params_t * p_file = file_params_find(id.file);
+        if (p_file != NULL)
+        {
+            (void)mesh_config_backend_erase(id);
+        }
     }
     else if (entry_len < p_params->entry_size)
     {
         load_failure = MESH_CONFIG_LOAD_FAILURE_INVALID_LENGTH;
+        *entry_flags_get(p_params, id) = MESH_CONFIG_ENTRY_FLAG_DIRTY;
     }
     else if (p_params->callbacks.setter(id, p_entry) != NRF_SUCCESS)
     {
         load_failure = MESH_CONFIG_LOAD_FAILURE_INVALID_DATA;
+        *entry_flags_get(p_params, id) = MESH_CONFIG_ENTRY_FLAG_DIRTY;
     }
     else
     {
@@ -249,6 +256,14 @@ static mesh_config_backend_iterate_action_t restore_callback(mesh_config_entry_i
 static void backend_evt_handler(const mesh_config_backend_evt_t * p_evt)
 {
     const mesh_config_entry_params_t * p_params = entry_params_find(p_evt->id);
+
+    if (p_params == NULL && MESH_CONFIG_BACKEND_EVT_TYPE_ERASE_COMPLETE == p_evt->type)
+    { /* Check whether entry with known file id was deleted. */
+        const mesh_config_file_params_t * p_file = file_params_find(p_evt->id.file);
+        NRF_MESH_ASSERT(p_file);
+        return;
+    }
+
     NRF_MESH_ASSERT(p_params);
 
     mesh_config_entry_flags_t * p_flags = entry_flags_get(p_params, p_evt->id);
@@ -310,6 +325,8 @@ void mesh_config_init(void)
     entry_validation();
 #if PERSISTENT_STORAGE
     mesh_config_backend_init(entry_params_get(0), CONFIG_ENTRY_COUNT, file_params_get(0), CONFIG_FILE_COUNT, backend_evt_handler);
+#else
+    (void)m_emergency_action;
 #endif
 }
 
@@ -323,7 +340,7 @@ void mesh_config_power_down(void)
     m_emergency_action = true;
     dirty_entries_process();
 
-    if (!mesh_config_is_busy() && m_emergency_action)
+    if (!mesh_config_is_busy())
     { // there was no data for emergency storage
         m_emergency_action = false;
         nrf_mesh_evt_t evt = {.type = NRF_MESH_EVT_CONFIG_STABLE};
@@ -341,7 +358,13 @@ bool mesh_config_is_busy(void)
             if (p_params->p_state[j] &
                (mesh_config_entry_flags_t)(MESH_CONFIG_ENTRY_FLAG_DIRTY | MESH_CONFIG_ENTRY_FLAG_BUSY))
             {
-                return true;
+                const mesh_config_file_params_t * p_file = file_params_find(p_params->p_id->file);
+                NRF_MESH_ASSERT(p_file);
+                if (p_file->strategy == MESH_CONFIG_STRATEGY_CONTINUOUS ||
+                   (p_file->strategy == MESH_CONFIG_STRATEGY_ON_POWER_DOWN && m_emergency_action))
+                {
+                    return true;
+                }
             }
         }
     }

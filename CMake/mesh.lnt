@@ -33,6 +33,7 @@
 -d__current_pc()=0x12345678  // Macro for returning the current PC
 -d__MODULE__=__FILE__        // ARMCC-specific define, supposed to provide __FILE__ without the pathname
 -d__CC_ARM                   // We use armcc, so let lint pretend to be armcc as well
+-d__ARMCC_VERSION=400677     // The arm libraries require armcc >= V4.0.677
 -d__LINT__                   // Definition to let people know that PC-Lint is coming to town
 
 // Enable support for variable-length arrays:
@@ -98,6 +99,10 @@
 -esym(10,__pure,_ARMABI_PURE,uuid_packed_t)
 -esym(36,__sdiv32by16,__udiv32by16,__sdiv64by32)
 -elib(10, 19)                                            // Ignore some syntax errors from library headers
+
+// some defs to suppress lint errors on ARM specific compiler extensions for math.h
+-d__pure
+-d__softfp
 
 // Ignore return values from standard functions:
 -esym(534, memcpy, memmove, memset, signal, fflush)

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -112,12 +112,12 @@
 #define SCANNER_BUFFER_SIZE 512
 #endif
 
-/** Buffer size for the experimental Instaburst RX module. */
+/** Buffer size for the Instaburst RX module. */
 #ifndef INSTABURST_RX_BUFFER_SIZE
 #define INSTABURST_RX_BUFFER_SIZE   (1024)
 #endif
 
-/** Experimental instaburst feature flag. Normally enabled through CMake option. */
+/** Instaburst feature flag. Normally enabled through CMake option. */
 #ifndef EXPERIMENTAL_INSTABURST_ENABLED
 #define EXPERIMENTAL_INSTABURST_ENABLED 0
 #endif
@@ -136,14 +136,14 @@
 
 /** Number of flags available for allocation. */
 #ifndef BEARER_EVENT_FLAG_COUNT
-#define BEARER_EVENT_FLAG_COUNT     11
+#define BEARER_EVENT_FLAG_COUNT     14
 #endif
 
 /**
  * Configure the bearer event module to use the SWI0 IRQ handler for processing the events.
  *
  * By default, the bearer event module uses the QDEC IRQ handler.
- * See @ref md_doc_introduction_mesh_hw_resources for details.
+ * See @ref md_doc_user_guide_mesh_hw_resources for details.
  */
 #ifndef BEARER_EVENT_USE_SWI0
 #define BEARER_EVENT_USE_SWI0 0

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -76,6 +76,9 @@
 #include "ble_softdevice_support.h"
 #include "ad_type_filter.h"
 
+/*****************************************************************************
+ * Definitions
+ *****************************************************************************/
 /* Configure switch debounce timeout for EnOcean switch here */
 #define SWITCH_DEBOUNCE_INTERVAL_US (MS_TO_US(500))
 /* Two EnOcean switches can be used in parallel */
@@ -88,33 +91,28 @@
 
 #define LIGHT_SWITCH_CLIENTS          (PTM215B_NUMBER_OF_SWITCHES/2)
 
-/** File IDs for the enocean example that store its parameters in the persistence memory.
- * The IDs must be unique. */
-#define ENOCEAN_SWITCH_FILE_ID (0x0011)
-/** Range for the enocean record entry IDs */
+/* Range for the enocean record entry IDs */
 #define ENOCEAN_SWITCH_RECORD_START (0x0001)
 #define ENOCEAN_SWITCH_RECORD_END (ENOCEAN_SWITCH_RECORD_START + MAX_ENOCEAN_DEVICES_SUPPORTED - 1)
-/** Enocean switch mesh config data entry. */
-#define ENOCEAN_SWITCH_ENTRY_ID MESH_CONFIG_ENTRY_ID(ENOCEAN_SWITCH_FILE_ID, ENOCEAN_SWITCH_RECORD_START)
+/* File IDs for the enocean example that store its parameters in the persistence memory.
+ * The IDs must be unique. */
+#define MESH_APP_FILE_ID (0x0011)
+/* Enocean switch mesh config data entry. */
+#define ENOCEAN_SWITCH_ENTRY_ID MESH_CONFIG_ENTRY_ID(MESH_APP_FILE_ID, ENOCEAN_SWITCH_RECORD_START)
 
-typedef struct
-{
-    uint32_t a0_ts;
-    uint32_t a1_ts;
-    uint32_t b0_ts;
-    uint32_t b1_ts;
-} app_switch_debounce_state_t;
+/* Controls if the model instance should force all mesh messages to be segmented messages. */
+#define APP_FORCE_SEGMENTATION       (false)
+/* Controls the MIC size used by the model instance for sending the mesh messages. */
+#define APP_MIC_SIZE                 (NRF_MESH_TRANSMIC_SIZE_SMALL)
+/* Delay value used by the OnOff client for sending OnOff Set messages. */
+#define APP_ONOFF_DELAY_MS           (50)
+/* Transition time value used by the OnOff client for sending OnOff Set messages. */
+#define APP_ONOFF_TRANSITION_TIME_MS (100)
 
-/** Single advertiser instance. May periodically transmit one packet at a time. */
-static generic_onoff_client_t m_clients[LIGHT_SWITCH_CLIENTS];
-static bool m_device_provisioned;
 
-static app_secmat_flash_t m_app_secmat_flash[MAX_ENOCEAN_DEVICES_SUPPORTED];
-static enocean_commissioning_secmat_t m_app_secmat[MAX_ENOCEAN_DEVICES_SUPPORTED];
-static uint8_t  m_enocean_dev_cnt;
-static app_switch_debounce_state_t m_switch_state[MAX_ENOCEAN_DEVICES_SUPPORTED];
-
-/* Forward declaration */
+/*****************************************************************************
+ * Forward declaration of static functions
+ *****************************************************************************/
 static uint32_t enocean_switch_setter(mesh_config_entry_id_t id, const void * p_entry);
 static void enocean_switch_getter(mesh_config_entry_id_t id, void * p_entry);
 static void enocean_switch_deleter(mesh_config_entry_id_t id);
@@ -128,6 +126,27 @@ static void app_gen_onoff_client_transaction_status_cb(access_model_handle_t mod
 static void app_mesh_core_event_cb (const nrf_mesh_evt_t * p_evt);
 static void app_start(void);
 
+
+/*****************************************************************************
+ * Static variables
+ *****************************************************************************/
+typedef struct
+{
+    uint32_t a0_ts;
+    uint32_t a1_ts;
+    uint32_t b0_ts;
+    uint32_t b1_ts;
+} app_switch_debounce_state_t;
+
+/* Single advertiser instance. May periodically transmit one packet at a time. */
+static generic_onoff_client_t m_clients[LIGHT_SWITCH_CLIENTS];
+static bool m_device_provisioned;
+
+static app_secmat_flash_t m_app_secmat_flash[MAX_ENOCEAN_DEVICES_SUPPORTED];
+static enocean_commissioning_secmat_t m_app_secmat[MAX_ENOCEAN_DEVICES_SUPPORTED];
+static uint8_t  m_enocean_dev_cnt;
+static app_switch_debounce_state_t m_switch_state[MAX_ENOCEAN_DEVICES_SUPPORTED];
+
 static nrf_mesh_evt_handler_t m_mesh_core_event_handler = { .evt_cb = app_mesh_core_event_cb };
 
 const generic_onoff_client_callbacks_t client_cbs =
@@ -138,7 +157,7 @@ const generic_onoff_client_callbacks_t client_cbs =
 };
 
 /* Declare a mesh config file with a unique file ID */
-MESH_CONFIG_FILE(m_enocean_switch_file, ENOCEAN_SWITCH_FILE_ID, MESH_CONFIG_STRATEGY_CONTINUOUS);
+MESH_CONFIG_FILE(m_enocean_switch_file, MESH_APP_FILE_ID, MESH_CONFIG_STRATEGY_CONTINUOUS);
 
 MESH_CONFIG_ENTRY(light_switch_provisioner,
                   ENOCEAN_SWITCH_ENTRY_ID,
@@ -240,8 +259,8 @@ static void app_switch_debounce(enocean_switch_status_t * p_status, uint8_t inde
     static uint8_t tid = 0;
 
     set_params.tid = tid++;
-    transition_params.delay_ms = APP_CONFIG_ONOFF_DELAY_MS;
-    transition_params.transition_time_ms = APP_CONFIG_ONOFF_TRANSITION_TIME_MS;
+    transition_params.delay_ms = APP_ONOFF_DELAY_MS;
+    transition_params.transition_time_ms = APP_ONOFF_TRANSITION_TIME_MS;
 
     if (p_status->action == PRESS_ACTION)
     {
@@ -413,15 +432,31 @@ static void config_server_evt_cb(const config_server_evt_t * p_evt)
     }
 }
 
+#if NRF_MESH_LOG_ENABLE
+static const char m_usage_string[] =
+    "\n"
+    "\t\t------------------------------------------------------\n"
+    "\t\t Button/RTT 4) Clear all the states to reset the node.\n"
+    "\t\t------------------------------------------------------\n";
+#endif
+
 static void button_event_handler(uint32_t button_number)
 {
+    /* Increase button number because the buttons on the board is marked with 1 to 4 */
+    button_number++;
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Button %u pressed\n", button_number);
 
     switch (button_number)
     {
         /* Initiate node reset */
-        case 3:
+        case 4:
         {
+            if (!mesh_stack_is_device_provisioned())
+            {
+                __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "The device is unprovisioned. Resetting has no effect.\n");
+                return;
+            }
+
             /* Clear all the states to reset the node. */
 #if MESH_FEATURE_GATT_PROXY_ENABLED
             (void) proxy_stop();
@@ -433,18 +468,19 @@ static void button_event_handler(uint32_t button_number)
         }
 
         default:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
             break;
     }
 }
 
 static void app_mesh_core_event_cb(const nrf_mesh_evt_t * p_evt)
 {
-    /* USER_NOTE: User can insert mesh core event proceesing here */
+    /* USER_NOTE: User can insert mesh core event processing here */
     switch (p_evt->type)
     {
-        /* Start user application specific functions only when flash is stable */
-        case NRF_MESH_EVT_FLASH_STABLE:
-            __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Mesh evt: FLASH_STABLE \n");
+        /* Start user application specific functions only when stack is enabled */
+        case NRF_MESH_EVT_ENABLED:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Mesh evt: NRF_MESH_EVT_ENABLED \n");
             {
                 static bool s_app_started;
                 if (!s_app_started)
@@ -470,8 +506,8 @@ static void models_init_cb(void)
     {
         m_clients[i].settings.p_callbacks = &client_cbs;
         m_clients[i].settings.timeout = 0;
-        m_clients[i].settings.force_segmented = APP_CONFIG_FORCE_SEGMENTATION;
-        m_clients[i].settings.transmic_size = APP_CONFIG_MIC_SIZE;
+        m_clients[i].settings.force_segmented = APP_FORCE_SEGMENTATION;
+        m_clients[i].settings.transmic_size = APP_MIC_SIZE;
 
         ERROR_CHECK(generic_onoff_client_init(&m_clients[i], i + 1));
     }
@@ -490,6 +526,13 @@ static void provisioning_aborted_cb(void)
     hal_led_blink_stop();
 }
 
+static void unicast_address_print(void)
+{
+    dsm_local_unicast_address_t node_address;
+    dsm_local_unicast_addresses_get(&node_address);
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
+}
+
 static void provisioning_complete_cb(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
@@ -501,10 +544,7 @@ static void provisioning_complete_cb(void)
     conn_params_init();
 #endif
 
-    dsm_local_unicast_address_t node_address;
-    dsm_local_unicast_addresses_get(&node_address);
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
-
+    unicast_address_print();
     hal_led_blink_stop();
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
@@ -512,10 +552,14 @@ static void provisioning_complete_cb(void)
 
 static void app_rtt_input_handler(int key)
 {
-    if (key >= '0' && key <= '3')
+    if (key >= '1' && key <= '4')
     {
-        uint32_t button_number = key - '0';
+        uint32_t button_number = key - '1';
         button_event_handler(button_number);
+    }
+    else
+    {
+        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
     }
 }
 
@@ -535,6 +579,7 @@ static void mesh_init(void)
     {
         case NRF_ERROR_INVALID_DATA:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
+			__LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before start provisioning.\n");
             break;
         case NRF_SUCCESS:
             break;
@@ -616,6 +661,7 @@ static void start(void)
         mesh_provisionee_start_params_t prov_start_params =
         {
             .p_static_data    = static_auth_data,
+            .prov_sd_ble_opt_set_cb = NULL,
             .prov_complete_cb = provisioning_complete_cb,
             .prov_device_identification_start_cb = device_identification_start_cb,
             .prov_device_identification_stop_cb = NULL,
@@ -623,6 +669,10 @@ static void start(void)
             .p_device_uri = EX_URI_ENOCEAN
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
+    }
+    else
+    {
+        unicast_address_print();
     }
 
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
@@ -635,6 +685,8 @@ static void start(void)
     mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());
 
     ERROR_CHECK(mesh_stack_start());
+
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
 }
 
 int main(void)

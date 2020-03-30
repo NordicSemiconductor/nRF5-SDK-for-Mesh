@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -81,18 +81,29 @@
  * @note Replace the example URI strings with the desired URIs for the end products. The URI strings
  * should be coded as specified in the Bluetooth Core Specification Supplement v6, section 1.18.
  */
-#define EX_URI_BEACON       URI_SCHEME_EXAMPLE "URI for Beacon example"
-#define EX_URI_DFU          URI_SCHEME_EXAMPLE "URI for DFU example"
-#define EX_URI_ENOCEAN      URI_SCHEME_EXAMPLE "URI for Enocean example"
-#define EX_URI_DM_CLIENT    URI_SCHEME_EXAMPLE "URI for Dimming Client example"
-#define EX_URI_DM_SERVER    URI_SCHEME_EXAMPLE "URI for Dimming Server example"
-#define EX_URI_LPN          URI_SCHEME_EXAMPLE "URI for LPN example"
-#define EX_URI_LS_CLIENT    URI_SCHEME_EXAMPLE "URI for LS Client example"
-#define EX_URI_LS_SERVER    URI_SCHEME_EXAMPLE "URI for LS Server example"
-#define EX_URI_PBR_CLIENT   URI_SCHEME_EXAMPLE "URI for PB Remote Client example"
-#define EX_URI_PBR_SERVER   URI_SCHEME_EXAMPLE "URI for PB Remote Server example"
-#define EX_URI_SERIAL       URI_SCHEME_EXAMPLE "URI for Serial example"
+#define EX_URI_BEACON        URI_SCHEME_EXAMPLE "URI for Beacon example"
+#define EX_URI_DFU           URI_SCHEME_EXAMPLE "URI for DFU example"
+#define EX_URI_ENOCEAN       URI_SCHEME_EXAMPLE "URI for Enocean example"
+#define EX_URI_DM_CLIENT     URI_SCHEME_EXAMPLE "URI for Dimming Client example"
+#define EX_URI_DM_SERVER     URI_SCHEME_EXAMPLE "URI for Dimming Server example"
+#define EX_URI_LPN           URI_SCHEME_EXAMPLE "URI for LPN example"
+#define EX_URI_LS_CLIENT     URI_SCHEME_EXAMPLE "URI for LS Client example"
+#define EX_URI_LS_SERVER     URI_SCHEME_EXAMPLE "URI for LS Server example"
+#define EX_URI_LL_CLIENT     URI_SCHEME_EXAMPLE "URI for Light Lightness Client example"
+#define EX_URI_LL_SERVER     URI_SCHEME_EXAMPLE "URI for Light Lightness Setup Server example"
+#define EX_URI_LC_SERVER     URI_SCHEME_EXAMPLE "URI for Light LC Setup Server example"
+#define EX_URI_CTL_CLIENT    URI_SCHEME_EXAMPLE "URI for Light CTL Client example"
+#define EX_URI_CTL_SERVER    URI_SCHEME_EXAMPLE "URI for Light CTL Setup Server example"
+#define EX_URI_CTL_LC_SERVER URI_SCHEME_EXAMPLE "URI for Light CTL+LC Setup Servers example"
+#define EX_URI_PBR_CLIENT    URI_SCHEME_EXAMPLE "URI for PB Remote Client example"
+#define EX_URI_PBR_SERVER    URI_SCHEME_EXAMPLE "URI for PB Remote Server example"
+#define EX_URI_SERIAL        URI_SCHEME_EXAMPLE "URI for Serial example"
+#define EX_URI_SENSOR_SERVER URI_SCHEME_EXAMPLE "URI for Sensor Server example"
 
+/** Static authentication data. */
+#define STATIC_AUTH_DATA {0x6E, 0x6F, 0x72, 0x64, 0x69, 0x63, 0x5F, 0x65, 0x78, 0x61, 0x6D, 0x70, 0x6C, 0x65, 0x5F, 0x31}
 
+/** Static authentication data for remote provisioning example. */
+#define STATIC_AUTH_DATA_PB_REMOTE {0xc7, 0xf7, 0x9b, 0xec, 0x9c, 0xf9, 0x74, 0xdd, 0xb9, 0x62, 0xbd, 0x9f, 0xd1, 0x72, 0xdd, 0x73}
 
 #endif /* EXAMPLE_COMMON_H__ */

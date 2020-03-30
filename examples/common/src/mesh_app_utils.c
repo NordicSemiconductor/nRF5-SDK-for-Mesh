@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -40,6 +40,7 @@
 #include "nrf.h"
 #include "nrf_error.h"
 #include "log.h"
+#include "utils.h"
 
 /** Structure for pasring UUID */
 typedef struct __attribute((packed))
@@ -64,7 +65,7 @@ void mesh_app_uuid_print(const uint8_t * p_uuid)
     UNUSED_VARIABLE(p_format);
     __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "Device UUID (raw)", p_uuid, NRF_MESH_UUID_SIZE);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Device UUID : %08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X\n",
-          p_format->time_low, p_format->time_mid, p_format->time_hi_version,
+          LE2BE32(p_format->time_low), LE2BE16(p_format->time_mid), LE2BE16(p_format->time_hi_version),
           p_format->clock_seq_hi_reserved, p_format->clock_seq_low,
           p_format->node[0], p_format->node[1], p_format->node[2], p_format->node[3],
           p_format->node[4], p_format->node[5]);

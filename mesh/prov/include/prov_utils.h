@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -166,7 +166,7 @@ bool prov_utils_confirmation_check(const nrf_mesh_prov_ctx_t * p_ctx);
 /**
  * Checks whether the given data is alphanumeric.
  *
- * @note Valid ASCII characters are '0'-'9' (codes 0x30-0x39) and 'A'-'Z' (codes 0x41-0x5A). See Mesh Profile Specification v1.0, section 5.4.2.2.
+ * @note Valid ASCII characters are '0'-'9' (codes 0x30-0x39) and 'A'-'Z' (codes 0x41-0x5A). See @tagMeshSp section 5.4.2.2.
  *
  * @retval true     The input data is alphanumeric.
  * @retval false    The input is not alphanumeric.

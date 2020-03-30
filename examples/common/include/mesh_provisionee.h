@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -50,6 +50,14 @@
  */
 
 /**
+ * Set BLE stack option callback type.
+ *
+ * This callback is called to indicate that BLE stack was restarted and any
+ * BLE option can be set at this point through @link_sd_ble_opt_set function.
+ */
+typedef void (*mesh_provisionee_prov_sd_ble_opt_set_cb_t)(void);
+
+/**
  * Provisioning complete callback type.
  *
  * This callback is called to indicate that the device has been successfully provisioned.
@@ -98,6 +106,14 @@ typedef void (*mesh_provisionee_prov_abort)(void);
  */
 typedef struct
 {
+    /**
+     * Pointer to a function used to provide ability to set any BLE option
+     * after the BLE stack was restarted during the provisioning. Use it if you need
+     * to set any BLE option through @link_sd_ble_opt_set function.
+     * Can be set to @c NULL if not used.
+     */
+    mesh_provisionee_prov_sd_ble_opt_set_cb_t prov_sd_ble_opt_set_cb;
+
     /**
      * Pointer to a function used to signal the completion of the device provisioning
      * procedure. Can be set to @c NULL if not used.

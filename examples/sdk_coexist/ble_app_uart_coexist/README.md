@@ -12,14 +12,22 @@ except for the following changes:
     - The advertising interval is increased to allow more time for the mesh stack.
     - The light switch servers can be controlled over BLE UART by sending
     the light switch client button number to be simulated.
+    - The example is not configured to enter the system-off mode, like in its nRF5 SDK version.
 
 As the result of running this example, you'll be able to use the mesh network in which this example
-can replace the light switch client example. 
+can replace the light switch client example.
 
 Before you start testing this coexistence example, see the following pages:
-- @ref md_doc_getting_started_how_to_nordicSDK
+- @ref md_doc_user_guide_integrating_mesh_nrf5_sdk
 - @ref md_examples_light_switch_README and @ref md_examples_light_switch_client_README
 
+
+---
+
+## Software requirements @anchor coexistence_uart_example_sw_reqs
+
+This example does not support PB-GATT for provisioning.
+For this purpose, use the [static provisioner example](@ref md_examples_provisioner_README).
 
 ---
 
@@ -48,7 +56,7 @@ with the following exception:
     - Replace the light switch client with `examples/ble_peripheral/ble_app_uart_coexist/pca10040/s132/ses/Output/Release/Exe/ble_app_uart_pca10040_s132.hex`.
 
 You can now run the two coexisting examples in parallel or in sequence:
-    - Run the light switch example as described in @ref md_examples_light_switch_README.
+    - Run the light switch client example as described in @ref md_examples_light_switch_README.
     - Run the @link_ble_app_uart_example example as described in the nRF5 SDK documentation.
         - Write the hexadecimal ASCII codes equivalent to one of the digits (1, 2, 3, or 4)
         in the UART RX characteristic to simulate a button press.

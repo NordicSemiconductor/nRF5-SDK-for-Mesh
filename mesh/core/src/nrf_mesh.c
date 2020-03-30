@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -54,6 +54,7 @@
 #include "fifo.h"
 #include "msg_cache.h"
 #include "network.h"
+#include "net_state.h"
 #include "packet.h"
 #include "nrf_mesh_dfu.h"
 #include "dfu_types_internal.h"
@@ -85,15 +86,23 @@
 #include "proxy.h"
 #endif  /* MESH_FEATURE_GATT_PROXY_ENABLED */
 
+static void config_stable_catch(const nrf_mesh_evt_t * p_evt);
+
 static enum
 {
     MESH_STATE_UNINITIALIZED, /**< Uninitialized state. */
     MESH_STATE_INITIALIZED,   /**< Initialized, but never enabled. */
+    MESH_STATE_ENABLING,      /**< Enabling in progress. */
     MESH_STATE_ENABLED,       /**< Enabled state. */
     MESH_STATE_DISABLING,     /**< Disabling in progress. */
     MESH_STATE_DISABLED,      /**< Disabled by user. */
 } m_mesh_state;
 static nrf_mesh_rx_cb_t m_rx_cb;
+static bearer_event_flag_t m_mesh_be_flag;
+static nrf_mesh_evt_handler_t m_config_stable_waiter =
+{
+    .evt_cb = config_stable_catch
+};
 
 /** Unique Tx token. */
 static nrf_mesh_tx_token_t m_tx_token = NRF_MESH_INITIAL_TOKEN;
@@ -220,6 +229,42 @@ static void bearer_stopped_cb(void)
     }
 }
 
+static void config_stable_catch(const nrf_mesh_evt_t * p_evt)
+{
+    if (NRF_MESH_EVT_CONFIG_STABLE == p_evt->type)
+    {
+        event_handler_remove(&m_config_stable_waiter);
+        bearer_event_flag_set(m_mesh_be_flag);
+    }
+}
+
+static bool nrf_mesh_enabled_be_cb(void)
+{
+    if (m_mesh_state != MESH_STATE_ENABLING)
+    {
+        NRF_MESH_ASSERT_DEBUG(false);
+    }
+    else if (!net_state_is_seqnum_block_ready())
+    {
+        event_handler_add(&m_config_stable_waiter);
+    }
+    else
+    {
+#if !MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_LPN_ACT_AS_REGULAR_NODE_OUT_OF_FRIENDSHIP
+        scanner_enable();
+#endif
+
+        m_mesh_state = MESH_STATE_ENABLED;
+        const nrf_mesh_evt_t enabled =
+        {
+            .type = NRF_MESH_EVT_ENABLED,
+        };
+        event_handle(&enabled);
+    }
+
+    return true;
+}
+
 uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
 {
     if (m_mesh_state != MESH_STATE_UNINITIALIZED)
@@ -321,6 +366,7 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
     }
 #endif
 
+    m_mesh_be_flag = bearer_event_flag_add(nrf_mesh_enabled_be_cb);
     m_rx_cb = NULL;
     m_mesh_state = MESH_STATE_INITIALIZED;
 
@@ -333,9 +379,6 @@ uint32_t nrf_mesh_enable(void)
     switch (m_mesh_state)
     {
         case MESH_STATE_INITIALIZED:
-#if !MESH_FEATURE_LPN_ENABLED || MESH_FEATURE_LPN_ACT_AS_REGULAR_NODE_OUT_OF_FRIENDSHIP
-            scanner_enable();
-#endif
             network_enable();
             transport_enable();
 
@@ -363,7 +406,8 @@ uint32_t nrf_mesh_enable(void)
 
     if (status == NRF_SUCCESS)
     {
-        m_mesh_state = MESH_STATE_ENABLED;
+        m_mesh_state = MESH_STATE_ENABLING;
+        bearer_event_flag_set(m_mesh_be_flag);
     }
     return status;
 }

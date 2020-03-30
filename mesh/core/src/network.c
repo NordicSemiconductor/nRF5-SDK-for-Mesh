@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -185,7 +185,7 @@ static bool metadata_is_valid(const network_packet_metadata_t * p_net_metadata)
 }
 
 /**
- * Decide whether to relay based on rules in Mesh Profile Specification v1.0, section 3.4.6.3.
+ * Decide whether to relay based on rules in @tagMeshSp section 3.4.6.3.
  *
  * @note Assumes that the message has been accepted for transport processing.
  *

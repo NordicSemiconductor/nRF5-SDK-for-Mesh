@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -582,7 +582,7 @@ static void rx_handle(proxy_connection_t * p_connection,
             config_packet_in(p_connection, p_data, length);
             break;
         default:
-            /* Ignore unknown PDU type, according to Mesh Profile Specification v1.0, section 6.6 */
+            /* Ignore unknown PDU type, according to @tagMeshSp section 6.6 */
             break;
     }
 }
@@ -686,7 +686,7 @@ static void gatt_evt_handler(const mesh_gatt_evt_t * p_evt, void * p_context)
 
 static void mesh_evt_handle(const nrf_mesh_evt_t * p_evt)
 {
-    /* According to Section 6.6 in the Mesh Profile Specification v1.0, we should forward all
+    /* According to @tagMeshSp section 6.6, we should forward all
      * beacons with new values for IV index or flags. We'll maintain a small cache of previous beacons
      * to enforce this by best effort.
      */

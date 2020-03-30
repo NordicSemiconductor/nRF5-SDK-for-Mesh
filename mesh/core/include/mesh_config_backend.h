@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -109,50 +109,56 @@ void mesh_config_backend_init(const mesh_config_entry_params_t * p_entries,
 /**
  * Stores a single entry.
  *
- * The backend passes a @ref MESH_CONFIG_BACKEND_EVT_TYPE_STORE_COMPLETE event to the event handler once the entry is stored.
+ * The backend passes a @ref MESH_CONFIG_BACKEND_EVT_TYPE_STORE_COMPLETE event to the event handler
+ * once the entry is stored.
  *
  * @note The matching event may come before the function returns.
- * @note Data pointed by the p_entry is not required to be preserved. Backend makes the copy of this data if required.
+ * @note Data pointed by the p_entry is not required to be preserved. Backend makes the copy of this
+ * data if required.
  *
- * @param[in] id        ID of the entry to store.
- * @param[in] p_entry   Entry data.
- * @param[in] entry_len Entry data length in bytes.
+ * @param[in] id                ID of the entry to store.
+ * @param[in] p_entry           Entry data.
+ * @param[in] entry_len         Entry data length in bytes.
  *
- * @retval NRF_SUCCESS The backend successfully scheduled the entry to be written.
- * @returns Other return values returned by the lower layer APIs.
+ * @retval NRF_SUCCESS          The backend successfully scheduled the entry to be written.
+ * @retval NRF_ERROR_NO_MEM     There's not enough space available in the process queue.
  */
 uint32_t mesh_config_backend_store(mesh_config_entry_id_t id, const uint8_t * p_entry, uint32_t entry_len);
 
 /**
  * Erases a single entry.
  *
- * The backend passes a @ref MESH_CONFIG_BACKEND_EVT_TYPE_ERASE_COMPLETE event to the event handler once the entry is erased.
+ * The backend passes a @ref MESH_CONFIG_BACKEND_EVT_TYPE_ERASE_COMPLETE event to the event handler
+ * once the entry is erased.
  *
  * @note The matching event may come before the function returns.
  *
- * @param[in] id ID of the entry to erase.
+ * @param[in] id                ID of the entry to erase.
  *
- * @retval NRF_SUCCESS The backend successfully scheduled the entry to be erased.
- * @retval NRF_ERROR_NOT_FOUND No such entry.
- * @returns Other return values returned by the lower layer APIs.
+ * @retval NRF_SUCCESS          The backend successfully scheduled the entry to be erased.
+ * @retval NRF_ERROR_NOT_FOUND  No such entry.
+ * @retval NRF_ERROR_NO_MEM     There's not enough space available in the process queue.
  */
 uint32_t mesh_config_backend_erase(mesh_config_entry_id_t id);
 
 /**
  * Reads a single entry synchronously.
  *
- * The entry will be read into the buffer with the maximal length of @p p_entry_len. If the read entry is longer than the given
- * buffer, the function will return @ref NRF_ERROR_INVALID_LENGTH and set @p p_entry_len to the required length.
+ * The entry will be read into the buffer with the maximal length of @p p_entry_len. If the read
+ * entry is longer than the given buffer, the function will return @ref NRF_ERROR_INVALID_LENGTH and
+ * set @p p_entry_len to the required length.
  *
- * @param[in] id              ID of the entry to read.
- * @param[in,out] p_entry     Pointer to an entry buffer to set the value of.
- * @param[in,out] p_entry_len Pointer to a variable containing the initial length of the @p p_entry buffer in bytes. Will be set
- * to match the actual length of the entry.
+ * @param[in] id                    ID of the entry to read.
+ * @param[in,out] p_entry           Pointer to an entry buffer to set the value of.
+ * @param[in,out] p_entry_len       Pointer to a variable containing the initial length of the @p
+ *                                  p_entry buffer in bytes. Will be set to match the actual length
+ *                                  of the entry.
  *
- * @retval NRF_SUCCESS The backed successfully read out the value of the entry into the p_entry parameter.
- * @retval NRF_ERROR_INVALID_LENGTH The given @p_entry_len was too short, and no data has been written. @p p_entry_len has been
- * set to the required length.
- * @retval NRF_ERROR_NOT_FOUND No such entry.
+ * @retval NRF_SUCCESS              The backed successfully read out the value of the entry into the
+ *                                  p_entry parameter.
+ * @retval NRF_ERROR_INVALID_LENGTH The given @p_entry_len was too short, and no data has been
+ *                                  written. @p p_entry_len has been set to the required length.
+ * @retval NRF_ERROR_NOT_FOUND      No such entry.
  */
 uint32_t mesh_config_backend_read(mesh_config_entry_id_t id, uint8_t * p_entry, uint32_t * p_entry_len);
 

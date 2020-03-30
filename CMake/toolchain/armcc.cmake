@@ -33,6 +33,8 @@ set(CMAKE_EXE_LINKER_FLAGS
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --diag_suppress 6304,6330" CACHE STRING "")
 set(CMAKE_ASM_FLAGS "--cpreproc --apcs=interwork  --predefine \"__HEAP_SIZE SETA 1024\"")
 
+set(MATH_LIB)
+
 set(cortex-m0_DEFINES
     --cpu=Cortex-M0)
 

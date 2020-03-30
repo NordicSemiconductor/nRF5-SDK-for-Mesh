@@ -1,25 +1,31 @@
-# Loopback
+# Sending Echo packets to check communication
 
-This tutorial demonstrates simple loopback communication.
+This tutorial demonstrates how to use PyACI and send a simple Echo command to the connected device.
+The response of the Echo command will contain the same data as the data that was sent
+when issuing the command. You can use this command every time you connect to the target board
+with PyACI to verify that the serial transport layer is working as intended.
 
 **Table of contents**
 - [Requirements](@ref pyaci_demo_loopback_requirements)
-- [Configuration and testing](@ref pyaci_demo_loopback_configuration_testing)
-- [Troubleshooting](@ref pyaci_demo_loopback_configuration_troubleshooting)
+- [Configuring and testing connection](@ref pyaci_demo_loopback_configuration_testing)
 
 
 ---
 
 ## Requirements @anchor pyaci_demo_loopback_requirements
 
-- One board running @ref md_examples_serial_README
+You need at least one supported board for this demonstration,
+[flashed](@ref examples_how_to_run_examples) with the following example:
+- @ref md_examples_serial_README
+
+See @ref md_doc_user_guide_mesh_compatibility for the supported boards.
 
 
 ---
 
-## Configuration and testing @anchor pyaci_demo_loopback_configuration_testing
+## Configuring and testing connection @anchor pyaci_demo_loopback_configuration_testing
 
-After building and programming the serial example:
+After building and programming the serial example, complete the following steps:
 1. Connect to the device with the interactive console:
 ```
     $ python interactive_pyaci.py -d /dev/ttyACM0 --no-logfile
@@ -51,7 +57,7 @@ After building and programming the serial example:
     -# Test the command:
 ```
     In [2]: send(cmd.Echo("hello world"))
-    2017-08-02 10:06:29,338 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': bytearray(b'hello world')}}
+    2020-03-24 12:45:18,063 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': 'hello world'}}
 ```
     The `send` function is a helper function for sending commands to the first connected device. It accepts a
     `CommandPacket` object as a parameter. All of these are imported from `aci/aci_cmd.py` by the
@@ -60,22 +66,19 @@ After building and programming the serial example:
 in this case `d[0]`:
 ```
     In [3]: d[0].send(cmd.Echo("hello world"))
-    2017-08-02 10:10:29,338 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': bytearray(b'hello world')}}
+    2020-03-24 12:46:36,147 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': 'hello world'}}
 ```
 
 
----
-
-## Troubleshooting @anchor pyaci_demo_loopback_configuration_troubleshooting
-
-You might experience the following error:
+@note
+You might experience the following timeout error:
 ```
     2017-08-02 10:13:45,427 - INFO - ttyACM0: cmd Echo, timeout waiting for event
 ```
-In that case, you should ensure that you're connected to the correct board and verify that the example is
+In this case, use one of the following options:
+- Ensure that you are connected to the correct board and verify that the example is
 running. You can also try resetting or reconnecting the board, or both.
-
-Using a serial terminal emulator, you can try to send an Echo command raw:
+- Using a serial terminal emulator, try to send an Echo command raw:
 ```
     06 02 48 65 6c 6c 6f
 ```

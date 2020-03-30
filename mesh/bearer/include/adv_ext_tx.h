@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -39,9 +39,12 @@
 
 /**
  * @internal
- * @defgroup ADV_EXT_TX Experimental Advertising Extensions TX implementation
+ * @defgroup ADV_EXT_TX Advertising Extensions TX implementation
  * @ingroup INSTABURST_TX
  * The radio handler module for the Advertising Extensions part of @ref INSTABURST_TX.
+ *
+ * @note The implementation of this moduel does not conform with the ADV Extensions
+ * as described in the Bluetooth specifications.
  * @{
  */
 

@@ -25,6 +25,6 @@ be found.
 
 For more information, see the following pages:
 - Segger Embedded Studio macros: https://studio.segger.com/ide_project_macros.htm
-- Building examples with SES: https://www.nordicsemi.com/en/DocLib/Content/SDK_Doc/Mesh_SDK/v3-0-0/md_doc_getting_started_how_to_build#how_to_build_segger_compiling_building
-- Running examples with SES: https://www.nordicsemi.com/en/DocLib/Content/SDK_Doc/Mesh_SDK/v3-0-0/md_doc_getting_started_how_to_run_examples#how_to_run_examples_ses
-- nRF5 SDK for Mesh examples: https://www.nordicsemi.com/DocLib/Content/SDK_Doc/Mesh_SDK/v3-0-0/md_examples_README
+- Building examples with SES: https://infocenter.nordicsemi.com/topic/com.nordic.infocenter.meshsdk.v4.1.0/md_doc_getting_started_how_to_build.html#how_to_build_segger
+- Running examples with SES: https://infocenter.nordicsemi.com/topic/com.nordic.infocenter.meshsdk.v4.1.0/md_doc_getting_started_how_to_run_examples.html#how_to_run_examples_ses
+- nRF5 SDK for Mesh examples: https://infocenter.nordicsemi.com/topic/com.nordic.infocenter.meshsdk.v4.1.0/md_examples_README.html

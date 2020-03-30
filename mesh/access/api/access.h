@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -48,7 +48,7 @@
  * The access layer API is the main API for Mesh Models.
  *
  * The access layer API provides a way for models to register into the device database,
- * and send and receive messages on the mesh. See @ref md_doc_libraries_how_to_models for a
+ * and send and receive messages on the mesh. See @ref md_doc_user_guide_modules_models_creating for a
  * walkthrough of the usage of the access layer API.
  *
  * @{
@@ -173,7 +173,7 @@ typedef void (*access_publish_timeout_cb_t)(access_model_handle_t handle, void *
  * Access layer opcode type.
  *
  * The format of the opcodes is given in the table below:
- * Table 3.43 in the Mesh Profile Specification (v1.0)
+ * @tagMeshSp table 3.43
  *
  * | Byte 0     | Byte 1     | Byte 2     | Description                                                                                   |
  * | ---------- | ---------- | ---------- | --------------------------------------------------------------------------------------------- |
@@ -355,9 +355,9 @@ void access_clear(void);
  * @retval     NRF_SUCCESS               Successfully added model to the given element.
  * @retval     NRF_ERROR_NO_MEM          @ref ACCESS_MODEL_COUNT number of models already allocated.
  * @retval     NRF_ERROR_NULL            One or more of the function parameters was NULL.
- * @retval     NRF_ERROR_FORBIDDEN       Either multiple model instances per element is not allowed
+ * @retval     NRF_ERROR_FORBIDDEN       Multiple model instances per element are not allowed
  *                                       or changes to device composition are not allowed.
- *                                       Adding a new model after device provisioned is not allowed either.
+ *                                       Adding a new model after device is provisioned is not allowed.
  * @retval     NRF_ERROR_NOT_FOUND       Invalid access element index.
  * @retval     NRF_ERROR_INVALID_LENGTH  Number of opcodes was zero and pointer to the list of
  *                                       opcode handler callbacks is not NULL.
@@ -399,9 +399,10 @@ uint32_t access_model_add(const access_model_add_params_t * p_model_params,
  *                                  opcode format.
  * @retval NRF_ERROR_INVALID_LENGTH Attempted to send message larger than @ref ACCESS_MESSAGE_LENGTH_MAX.
  * @retval NRF_ERROR_FORBIDDEN      Failed to allocate a sequence number from network.
- * @retval NRF_ERROR_INVALID_STATE  There's already a segmented packet to this destination in
- *                                  progress. Wait for it to finish before sending new segmented
- *                                  packets.
+ * @retval NRF_ERROR_INVALID_STATE  There's already a segmented packet that is
+ *                                  being to sent to this destination. Wait for
+ *                                  the transmission to finish before sending
+ *                                  new segmented packets.
  */
 uint32_t access_model_publish(access_model_handle_t handle, const access_message_tx_t * p_message);
 

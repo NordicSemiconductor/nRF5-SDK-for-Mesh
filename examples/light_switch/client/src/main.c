@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -70,15 +70,27 @@
 #include "example_common.h"
 #include "ble_softdevice_support.h"
 
+/*****************************************************************************
+ * Definitions
+ *****************************************************************************/
 #define APP_STATE_OFF                (0)
 #define APP_STATE_ON                 (1)
 
 #define APP_UNACK_MSG_REPEAT_COUNT   (2)
 
-static generic_onoff_client_t m_clients[CLIENT_MODEL_INSTANCE_COUNT];
-static bool                   m_device_provisioned;
+/* Controls if the model instance should force all mesh messages to be segmented messages. */
+#define APP_FORCE_SEGMENTATION       (false)
+/* Controls the MIC size used by the model instance for sending the mesh messages. */
+#define APP_MIC_SIZE                 (NRF_MESH_TRANSMIC_SIZE_SMALL)
+/* Delay value used by the OnOff client for sending OnOff Set messages. */
+#define APP_ONOFF_DELAY_MS           (50)
+/* Transition time value used by the OnOff client for sending OnOff Set messages. */
+#define APP_ONOFF_TRANSITION_TIME_MS (100)
 
-/* Forward declaration */
+
+/*****************************************************************************
+ * Forward declaration of static functions
+ *****************************************************************************/
 static void app_gen_onoff_client_publish_interval_cb(access_model_handle_t handle, void * p_self);
 static void app_generic_onoff_client_status_cb(const generic_onoff_client_t * p_self,
                                                const access_message_rx_meta_t * p_meta,
@@ -86,6 +98,13 @@ static void app_generic_onoff_client_status_cb(const generic_onoff_client_t * p_
 static void app_gen_onoff_client_transaction_status_cb(access_model_handle_t model_handle,
                                                        void * p_args,
                                                        access_reliable_status_t status);
+
+
+/*****************************************************************************
+ * Static variables
+ *****************************************************************************/
+static generic_onoff_client_t m_clients[CLIENT_MODEL_INSTANCE_COUNT];
+static bool                   m_device_provisioned;
 
 const generic_onoff_client_callbacks_t client_cbs =
 {
@@ -107,6 +126,13 @@ static void provisioning_aborted_cb(void)
     hal_led_blink_stop();
 }
 
+static void unicast_address_print(void)
+{
+    dsm_local_unicast_address_t node_address;
+    dsm_local_unicast_addresses_get(&node_address);
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
+}
+
 static void provisioning_complete_cb(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
@@ -118,10 +144,7 @@ static void provisioning_complete_cb(void)
     conn_params_init();
 #endif
 
-    dsm_local_unicast_address_t node_address;
-    dsm_local_unicast_addresses_get(&node_address);
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
-
+    unicast_address_print();
     hal_led_blink_stop();
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
@@ -195,8 +218,21 @@ static void config_server_evt_cb(const config_server_evt_t * p_evt)
     }
 }
 
+#if NRF_MESH_LOG_ENABLE
+static const char m_usage_string[] =
+    "\n"
+    "\t\t------------------------------------------------------------------------------------\n"
+    "\t\t Button/RTT 1) Send a message to the odd group (address: 0xC003) to turn on LED 1.\n"
+    "\t\t Button/RTT 2) Send a message to the odd group (address: 0xC003) to turn off LED 1.\n"
+    "\t\t Button/RTT 3) Send a message to the even group (address: 0xC002) to turn on LED 1.\n"
+    "\t\t Button/RTT 4) Send a message to the even group (address: 0xC002) to turn off LED 1.\n"
+    "\t\t------------------------------------------------------------------------------------\n";
+#endif
+
 static void button_event_handler(uint32_t button_number)
 {
+    /* Increase button number because the buttons on the board is marked with 1 to 4 */
+    button_number++;
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Button %u pressed\n", button_number);
 
     uint32_t status = NRF_SUCCESS;
@@ -204,32 +240,28 @@ static void button_event_handler(uint32_t button_number)
     model_transition_t transition_params;
     static uint8_t tid = 0;
 
-    /* Button 1: On, Button 2: Off, Client[0]
-     * Button 2: On, Button 3: Off, Client[1]
-     */
-
     switch(button_number)
     {
-        case 0:
-        case 2:
+        case 1:
+        case 3:
             set_params.on_off = APP_STATE_ON;
             break;
 
-        case 1:
-        case 3:
+        case 2:
+        case 4:
             set_params.on_off = APP_STATE_OFF;
             break;
     }
 
     set_params.tid = tid++;
-    transition_params.delay_ms = APP_CONFIG_ONOFF_DELAY_MS;
-    transition_params.transition_time_ms = APP_CONFIG_ONOFF_TRANSITION_TIME_MS;
+    transition_params.delay_ms = APP_ONOFF_DELAY_MS;
+    transition_params.transition_time_ms = APP_ONOFF_TRANSITION_TIME_MS;
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Sending msg: ONOFF SET %d\n", set_params.on_off);
 
     switch (button_number)
     {
-        case 0:
         case 1:
+        case 2:
             /* Demonstrate acknowledged transaction, using 1st client model instance */
             /* In this examples, users will not be blocked if the model is busy */
             (void)access_model_reliable_cancel(m_clients[0].model_handle);
@@ -237,12 +269,15 @@ static void button_event_handler(uint32_t button_number)
             hal_led_pin_set(BSP_LED_0, set_params.on_off);
             break;
 
-        case 2:
         case 3:
+        case 4:
             /* Demonstrate un-acknowledged transaction, using 2nd client model instance */
             status = generic_onoff_client_set_unack(&m_clients[1], &set_params,
                                                     &transition_params, APP_UNACK_MSG_REPEAT_COUNT);
             hal_led_pin_set(BSP_LED_1, set_params.on_off);
+            break;
+        default:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
             break;
     }
 
@@ -277,10 +312,14 @@ static void button_event_handler(uint32_t button_number)
 
 static void rtt_input_handler(int key)
 {
-    if (key >= '0' && key <= '3')
+    if (key >= '1' && key <= '4')
     {
-        uint32_t button_number = key - '0';
+        uint32_t button_number = key - '1';
         button_event_handler(button_number);
+    }
+    else
+    {
+        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
     }
 }
 
@@ -292,8 +331,8 @@ static void models_init_cb(void)
     {
         m_clients[i].settings.p_callbacks = &client_cbs;
         m_clients[i].settings.timeout = 0;
-        m_clients[i].settings.force_segmented = APP_CONFIG_FORCE_SEGMENTATION;
-        m_clients[i].settings.transmic_size = APP_CONFIG_MIC_SIZE;
+        m_clients[i].settings.force_segmented = APP_FORCE_SEGMENTATION;
+        m_clients[i].settings.transmic_size = APP_MIC_SIZE;
 
         ERROR_CHECK(generic_onoff_client_init(&m_clients[i], i + 1));
     }
@@ -315,6 +354,7 @@ static void mesh_init(void)
     {
         case NRF_ERROR_INVALID_DATA:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
+			__LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before start provisioning.\n");
             break;
         case NRF_SUCCESS:
             break;
@@ -355,6 +395,7 @@ static void start(void)
         mesh_provisionee_start_params_t prov_start_params =
         {
             .p_static_data    = static_auth_data,
+            .prov_sd_ble_opt_set_cb = NULL,
             .prov_complete_cb = provisioning_complete_cb,
             .prov_device_identification_start_cb = device_identification_start_cb,
             .prov_device_identification_stop_cb = NULL,
@@ -363,10 +404,16 @@ static void start(void)
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }
+    else
+    {
+        unicast_address_print();
+    }
 
     mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());
 
     ERROR_CHECK(mesh_stack_start());
+
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
 
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);

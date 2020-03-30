@@ -1,0 +1,440 @@
+# Light CTL example
+
+@tag52810nosupport
+
+This example demonstrates how you can use mesh messages and events
+from the [Light CTL models](@ref LIGHT_CTL_MODELS) API to implement a tunable white light.
+
+The example is composed of three minor examples that use the Light CTL client and server models:
+- Light CTL Client
+- Light CTL Server
+- Light CTL Server with Light LC Server
+
+For more information about the Light CTL Client/Server models, see the @link_ModelOverview from Bluetooth SIG.
+
+For provisioning purposes, the example requires either [the provisioner example](@ref md_examples_provisioner_README)
+or the @link_nrf_mesh_app.
+
+All the minor examples have the provisionee role in the network.
+They support provisioning over Advertising bearer (PB-ADV) and GATT bearer (PB-GATT)
+and also support Mesh Proxy Service (Server).
+Read more about the Proxy feature in @ref md_doc_user_guide_modules_provisioning_gatt_proxy.
+
+**Table of contents**
+- [Light CTL Client example](@ref light_ctl_example_light_ctl_client)
+- [Light CTL Server example](@ref light_ctl_example_light_ctl_server)
+- [Light CTL Server and Light LC Server example](@ref light_ctl_example_light_ctl_lc_server)
+- [Light CTL models](@ref light_ctl_example_light_ctl_model)
+- [Hardware requirements](@ref light_ctl_example_hw_requirements)
+- [Software requirements](@ref light_ctl_example_sw_requirements)
+- [Setup](@ref light_ctl_example_setup)
+    - [LED and button assignments](@ref light_ctl_example_setup_leds_buttons)
+- [Testing the example](@ref light_ctl_example_testing)
+    - [Evaluating using the static provisioner](@ref light_ctl_example_testing_dk)
+    - [Evaluating using the nRF Mesh mobile app](@ref light_ctl_example_testing_app)
+    - [Interacting with the boards](@ref light_ctl_example_testing_interacting)
+        - [Controlling CTL lightness, CTL temperature, and CTL delta UV values](@ref light_ctl_example_controlling_lightness_value)
+        - [Changing behavior on power-up](@ref light_ctl_example_changing_behavior_on_powerup)
+        - [Restricting the range of the CTL temperature value](@ref light_ctl_example_changing_temperature_range)
+        - [Restricting the range of the CTL lightness value](@ref light_ctl_example_changing_lightness_range)
+        - [Other factory default configuration](@ref light_ctl_example_other_factory_default_configuration)
+
+
+### Light CTL Client example @anchor light_ctl_example_light_ctl_client
+
+The Light CTL Client example has a provisionee role in the network.
+It implements two instances of the [Light CTL Client model](@ref LIGHT_CTL_CLIENT).
+These instances are used to control the brightness of the LEDs on the servers,
+the range of supported CTL temperature levels, and the CTL lightness, temperature, and delta UV
+values after the servers' boot-up.
+
+### Light CTL Server example @anchor light_ctl_example_light_ctl_server
+
+The Light CTL Server example has a provisionee role in the network.
+It implements one instance of the [Light CTL Setup Server model](@ref LIGHT_CTL_SETUP_SERVER),
+and [Light Lightness Setup Server model] (@ref LIGHT_LIGHTNESS_SETUP_SERVER). These instances
+in-turn initialize other necessary models.
+
+The Light Lightness Server model is used by Light CTL Server to control the lightness value.
+The Light CTL Server model is used to receive the lightness, temperature and delta UV values.
+The received values are used to demonstrate a tunable white light by means of the
+two LEDs on the DK board. The LED 1 represents a warm light, while LED 2
+represents a cool white light. These two LEDs are controlled with different PWM duty cycles
+corresponding to the given color temperature. Also, the overall light output is
+scaled by the given lightness level to achieve dimming. The photometrically accurate
+implementation of the tunable white light is out of scope of this example.
+
+The model instance uses the @link_APP_PWM library from the nRF5 SDK to control
+the brightness of the LEDs. To demonstrate a tunable white light, the lightness and
+the temperature values are converted to appropriate brightness level for each LED. These
+are then converted to the generic level values to map them to the PWM tick values for each LED.
+
+![Light CTL example structure](ctl_example_structure.svg)
+
+
+### Light CTL Server and Light LC Server example @anchor light_ctl_example_light_ctl_lc_server
+
+The Light CTL Server and Light LC Server example has a provisionee role in the network.
+It implements one instance of the [Light CTL Setup Server model](@ref LIGHT_CTL_SETUP_SERVER),
+a [Light LC Setup Server model](@ref LIGHT_LC_SETUP_SERVER), and other necessary models in such
+a way that Light LC server is able to control the lightness output. This shows how a tunable white
+light can be implemented to have a feature of automated lighting control.
+
+The Light CTL Server model instance is used to receive the CTL lightness, temperature, and
+delta UV values and change the brightness and color temperature of the lights. The LC model
+adds the capability for automated lightness control handled by the LC FSM and
+PI regulator, based on predefined settings and sensor inputs. Refer to
+[Light LC server example](@ref light_lc_server_example_testing_interacting) for information about
+how a Light LC server works.
+
+The hardware interface of this example is similar to the Light CTL Server example.
+
+### Light CTL models @anchor light_ctl_example_light_ctl_model
+
+The Light CTL Client model is used for manipulating the following states
+associated with the peer Light CTL Server, Light CTL Setup Server, and Light CTL Temperature
+Server models:
+- Light CTL Lightness
+- Light CTL Temperature
+- Light CTL Delta UV
+- Light CTL Lightness, Temperature, and Delta UV Default
+- Light CTL Temperature Range
+
+@note The Light CTL Lightness is bound with Light Lightness Actual state. The received Light
+Lightness state value is represented in the form of Light CTL Lightness value as a result of
+this binding.
+
+More information about the Light CTL models can be found in the
+[Light CTL models documentation](@ref LIGHT_CTL_MODELS).
+
+
+---
+
+
+## Hardware requirements @anchor light_ctl_example_hw_requirements
+
+You need at least two supported development kits for this example:
+
+- One nRF52 development kit for the client.
+- One or more nRF52 development kits for the servers.
+
+  On the server boards, you can either run the Light CTL Server example or
+  the Light CTL Server with Light LC Server example, or both of them.
+
+  If you choose the Light CTL Server with Light LC Server example, you also need at least one of the
+  following:
+  - One nRF52 development kit for emulating the occupancy sensor.
+  - One nRF52 development kit for the [Light switch client](@ref light_switch_demo_client).
+
+  See [Light LC Server example testing](@ref light_lc_server_example_testing) section
+  for more information about how the Light switch client and sensor example is used for testing
+  the Light LC Server model.
+
+Additionally, you need one development kit for the provisioner
+if you decide to use the [static provisioner example](@ref md_examples_provisioner_README).
+For details, see [software requirements](@ref light_lightness_example_sw_requirements).
+
+See @ref md_doc_user_guide_mesh_compatibility for the supported kits.
+
+@note This example uses the PWM peripheral to control the brightness of the LEDs.
+For this reason, it cannot be run on nRF51 devices.
+
+
+---
+
+## Software requirements @anchor light_ctl_example_sw_requirements
+
+Depending on your choice of the provisioning method:
+- If you decide to use the static provisioner example, you need the provisioner example:
+`<InstallFolder>/examples/provisioner`
+    - See the [Provisioner example](@ref md_examples_provisioner_README) page for more information
+    about the provisioner example.
+- If you decide to provision using the mobile application, you need to download and install
+@link_nrf_mesh_app (available for @link_nrf_mesh_app_ios and @link_nrf_mesh_app_android).
+
+
+---
+
+## Setup @anchor light_ctl_example_setup
+
+You can find the source code of this example in the following folder:
+`<InstallFolder>/examples/light_ctl`
+
+If you decide to use the static provisioner example, you need
+the provisioner example: `<InstallFolder>/examples/provisioner`
+
+See the [Provisioner example](@ref md_examples_provisioner_README) page for more information
+about the provisioner example.
+
+If you decide to provision using the mobile application, you need to download and install
+@link_nrf_mesh_app (available for @link_nrf_mesh_app_ios and @link_nrf_mesh_app_android).
+
+
+### LED and button assignments @anchor light_ctl_example_setup_leds_buttons
+
+- Light CTL Server example:
+    - LED 1: Represents a warm white LED and reflects the effective lightness and color temperature.
+    - LED 2: Represents a cool white LED and reflects the effective lightness and color temperature.
+    When interacting with the boards, you cannot use the buttons on the server boards, because the Light Lightness Setup Server
+    does not use the `simple_hal` module. Instead of the buttons on the server boards, use the following RTT input:
+      | RTT input     | DK Button     |   Effect                                                             |
+      |---------------|---------------|----------------------------------------------------------------------|
+      | `1`           | -             | The brightness of the LEDs is decreased in a large step.             |
+      | `2`           | -             | The brightness of the LEDs is increased in a large step.             |
+      | `3`           | -             | The delta UV value is increased in large steps. The value wraps around when maximum value is reached. |
+      | `4`           | -             | All mesh data is erased and the device is reset.                     |
+- Light CTL and Light LC Server example:
+    - LED 1: Represents a warm white LED and reflects the effective lightness and color temperature.
+    - LED 2: Represents a cool white LED and reflects the effective lightness and color temperature.
+    When interacting with the boards, you cannot use buttons on the server boards, because the Light CTL and Light LC server example
+    does not use the `simple_hal` module. Instead of the buttons on the server boards, use the following RTT input:
+      | RTT input     | DK Button     |   Effect                                                                 |
+      |---------------|---------------|--------------------------------------------------------------------------|
+      | `1`           | -             | Toggles the values of the properties between 0 and the default values.   |
+	  | `2`           | -             | The color temperature of the LEDs is increased in large steps. The value wraps around when maximum value is reached. |
+      | `4`           | -             | All mesh data is erased and the device is reset.                         |
+
+        - When sending the `1` RTT command, the following properties are toggled between 0 and the default values:
+          - Light Control Time Fade
+          - Light Control Time Fade On
+          - Light Control Time Fade Standby Auto
+          - Light Control Time Fade Standby Manual
+          - Light Control Time Run On
+
+          See Section 4.1.3 of the Mesh Device Properties v1.1, @link_MeshProperties, and
+          @link_MeshCharacteristics for more information about the properties.
+    @note As Light LC Server is used for automated control of the lightness, buttons to change
+    the LED brightness manually (that is, by changing the lightness) are not provided.
+    Chaning the brightness manually will switch off the Light LC Server
+    (by setting Light LC Mode state to `0`) as soon as the Light
+    Lightness Status message is published on account of the local state change.
+- Light CTL Client example:
+  - When interacting with the boards, you can use one of the following options:
+      - RTT input (recommended): Due to a limited number of buttons on the DK board,
+      use the following RTT input when testing this example:
+        | RTT input     | DK Button     |   Effect                                                                                                    |
+        |---------------|---------------|-------------------------------------------------------------------------------------------------------------|
+        | `1`           | Button 1      | The CTL lightness value is increased in large steps and the Light CTL Set Unacknowledged message is sent. |
+        | `2`           | Button 2      | The CTL lightness value is decreased in large steps and the Light CTL Set Unacknowledged message is sent. |
+        | `3`           | Button 3      | The CTL temperature value is increased_ in large steps and Light CTL Temperature Set Unacknowledged message is sent. |
+        | `4`           | Button 4      | The CTL temperature value is decreased in large steps and Light CTL Temperature Set Unacknowledged message is sent. |
+        | `5`           | -             | The CTL delta UV value is increased in large steps and Light CTL Temperature Set Unacknowledged message is sent.    |
+        | `6`           | -             | The CTL delta UV value is decreased in large steps and Light CTL Temperature Set Unacknowledged message is sent.    |
+        | `7`           | -             | The Light CTL Get message is sent to request the Light CTL state value.                                                    |
+        | `8`           | -             | The Light CTL Temperature Get message is sent to request the Light CTL temperature value.                                  |
+        | `9`           | -             | The Light CTL Temperature Range Get message is sent to request the Light CTL temperature range value.                      |
+        | `a`           | -             | The Light Lightness Default Get message is sent to request the Light CTL default values.                                   |
+        | `b`           | -             | The CTL lightness value is increased in large steps and the Light Lightness Default Set message is sent.   |
+        | `c`           | -             | The CTL lightness value is decreased in large steps and the Light Lightness Default Set message is sent.   |
+        | `d`           | -             | The CTL temperature value is increased in large steps and the Light Lightness Default Set message is sent. |
+        | `e`           | -             | The CTL temperature value is decreased in large steps and the Light Lightness Default Set message is sent. |
+        | `f`           | -             | The CTL delta UV value is increased in large steps and the Light Lightness Default Set message is sent.    |
+        | `g`           | -             | The CTL delta UV value is decreased in large steps and the Light Lightness Default Set message is sent.    |
+        | `h`           | -             | The internal minimum value of light CTL temperature range is increased and the Light CTL Temperature Range Set Unacknowledged message is sent. |
+        | `i`           | -             | The internal minimum value of light CTL temperature range is decreased and the Light CTL Temperature Range Set Unacknowledged message is sent. |
+        | `j`           | -             | The internal maximum value of light CTL temperature range is increased and the Light CTL Temperature Range Set Unacknowledged message is sent. |
+        | `k`           | -             | The internal maximum value of light CTL temperature range is decreased and the Light CTL Temperature Range Set Unacknowledged message is sent. |
+        | `l`           | -             | Switches the client instance to be used for sending messages.                                                              |
+      - Buttons: If you decide to use the buttons on the DK instead of the RTT input, you can only
+      change the Light CTL Lightness and Light CTL Temperature states.
+
+
+---
+
+## Testing the example @anchor light_ctl_example_testing
+
+To test the light CTL example, build the examples by following the instructions in
+[Building the mesh stack](@ref md_doc_getting_started_how_to_build).
+
+@par Using 40+ servers with static provisioner
+If you have more than 40 boards for the servers and decided to use the static provisioner example:
+1. Set `MAX_PROVISIONEE_NUMBER` (in `example_network_config.h`) to the number of boards available.
+2. Rebuild the provisioner example.
+3. Set `MAX_AVAILABLE_SERVER_NODE_NUMBER` in `nrf_mesh_config_app.h`
+of the client example to the value set for `MAX_PROVISIONEE_NUMBER`.
+
+@note
+The @link_ModelSpec mentions that the default value of the mode of the light controller should be set
+to `(0x0)`. This means that the light controller is turned off by default.
+To enable the light controller, the Light LC Client model is used.
+However, this SDK does not provide the Light LC Client example.
+For this reason, in this example the light controller is switched on by default.
+This has been done by changing the default value of the @ref LIGHT_LC_DEFAULT_MODE in
+`nrf_mesh_config_app.h` to `(0x1)`.
+
+After building is complete, use one of the following methods, depending on the preferred
+provisioning approach:
+- [Evaluating using the static provisioner](@ref light_ctl_example_testing_dk)
+- [Evaluating using the nRF Mesh mobile app](@ref light_ctl_example_testing_app)
+
+### Evaluating using the static provisioner @anchor light_ctl_example_testing_dk
+
+Complete the following steps:
+1. Flash the examples by following the instructions in @ref md_doc_getting_started_how_to_run_examples,
+including:
+    -# Erase the flash of your development boards and program the SoftDevice.
+    -# Flash the provisioner and the client firmware on individual boards and the server firmware on other boards.
+2. After the reset at the end of the flashing process, press Button 1 on the provisioner board
+to start the provisioning process:
+    -# The provisioner provisions and configures the client and assigns the address 0x100 to the client node.
+    -# The two instances of the Light Lightnes client models are instantiated on separate secondary elements.
+    For this reason, they get consecutive addresses starting with 0x101.
+    -# The provisioner also provisions and configures the servers at random. It assigns them consecutive
+    addresses starting with 0x601 for Light CTL servers and with 0x701 for Light CTL Server
+    with Light LC servers, and adds them to odd and even groups.
+@note - The sequence of provisioned devices depends on the sequence of received unprovisioned beacons.
+@note - You can use [RTT viewer](@ref segger-rtt) to view the RTT output generated by the provisioner.
+The provisioner prints details about the provisioning and the configuration process in the RTT log.
+3. Observe that the LED 1 on the provisioner board is turned on when provisioner is scanning and provisioning a device.
+4. Observe that the LED 2 on the provisioner board is turned on when configuration procedure is in progress.
+5. Wait until LED 1 on the provisioner board remains lit steadily for a few seconds, which indicates that
+all available boards have been provisioned and configured.
+
+If the provisioner encounters an error during the provisioning or configuration process for a certain node,
+you can reset the provisioner to restart this process for that node.
+
+### Evaluating using the nRF Mesh mobile app @anchor light_ctl_example_testing_app
+
+See @ref nrf-mesh-mobile-app "Evaluating examples using the nRF Mesh mobile application" for detailed steps required
+to provision and configure the boards using the nRF Mesh mobile app.
+
+The following naming convention is used in the app:
+- Each server board is either `nRF5x Mesh Light CTL Setup Server` or `nRF5x Mesh Light CTL+LC Setup Server`.
+- The client board is `nRF5x Mesh Light CTL Client`.
+
+The following model instances must be configured in the app for evaluating this example:
+- For the `nRF5x Mesh CTL Client` boards: Light CTL Client.
+- For the `nRF5x Mesh Light CTL Setup Server` boards: Light CTL Setup Server, Light CTL Server.
+- For the `nRF5x Mesh Light CTL+LC Setup Server` boards: Light CTL Setup Server,
+  Light CTL Server, Light LC Server.
+  Refer to [Light LC example configuration using nRF Mesh mobile app section]
+  (@ref light_lc_server_example_testing_app) for configuring `nRF5x Mesh Switch` and
+  `nRF Mesh Sensor Server` boards to work with Light LC server instantiated on this example.
+
+
+@note The Light CTL Client example allows to control the Light CTL states.
+For this purpose, it is enough to configure only the Light CTL Setup Server and Light CTL Server model
+instances. If you want to see how the binding works between the Light CTL Lightness states and
+the Generic states, configure the Generic models instantiated in the server examples
+and use the appropriate clients to control the generic states.
+
+Once the provisioning is complete, you can start [interacting with the boards]
+(@ref light_ctl_example_testing_interacting).
+
+@note
+You can also configure the publish address of the second Light CTL client model instance.
+To do this, repeat [step 3 from binding nodes](@ref nrf-mesh-mobile-app-binding) and
+[all steps from setting publication](@ref nrf-mesh-mobile-app-publication).
+
+
+### Interacting with the boards @anchor light_ctl_example_testing_interacting
+
+Once the provisioning and the configuration of the client node and of at least one of
+the server nodes are complete, you can press buttons on the client or send command
+numbers using the RTT Viewer to observe the changes in the brightness and emulated color
+temperature of the LEDs on the corresponding server boards.
+
+There is a set of message types available for this demonstration:
+- Light CTL Set Unacknowledged
+- Light CTL Get
+- Light CTL Temperature Set Unacknowledged
+- Light CTL Temperature Get
+- Light CTL Delta UV Set Unacknowledged
+- Light CTL Delta UV Get
+- Light CTL Default Set Unacknowledged
+- Light CTL Default Get
+- Light CTL Temperature Range Set Unacknowledged
+- Light CTL Temperature Range Get
+
+See [LED and button assignments](@ref light_ctl_example_setup_leds_buttons)
+section for the full list of available commands.
+
+If any of the devices is powered off and then back on, it will remember its flash configuration
+and rejoin the network. It will also restore values of the Light CTL states.
+For more information about the flash manager, see @ref md_doc_user_guide_modules_flash_manager.
+
+#### Controlling CTL lightness, CTL temperature, and CTL delta UV values @anchor light_ctl_example_controlling_lightness_value
+
+You can control the Lightness and the Color Temperature states on the server
+using the RTT commands `1` - `4` or the buttons 1 - 4 on the client board.
+Use the RTT commands `7`,`8`,`9`, and `a` on the client board to retrieve the current
+CTL state values from the servers.
+
+@note If you are using the Light CTL server with LC server example, the light controller
+is switched off automatically by the Light LC Server as soon any mesh message to change
+the lightness value is received (for example, the Light CTL Set (that can change
+the lightness) or any other message that can change the bound lightness state value).
+Use a Light LC Client model to turn the light controller on again.
+
+#### Changing behavior on power-up @anchor light_ctl_example_changing_behavior_on_powerup
+
+You can change how the light CTL lightness value and the light CTL temperature value are restored
+during a power-up sequence.
+
+The Light CTL Lightness state is bound to Light Lightness Actual state to reflect each other's values
+when these states are changed (see section 6.1.3.6.1 of @link_ModelSpec). Therefore, the power-up
+behavior of the light CTL lightness, temperature, and delta UV values can be changed by controlling
+the Generic OnPowerUp state instantiated by the Light Lightness Setup Server model.
+
+See [Changing behavior on power-up] (@ref light_lightness_example_changing_behavior_on_powerup)
+section in the light lightness example documentation to check how light CTL lightness value is
+restored upon a power-up.
+
+The following table demonstrates how the light CTL temperature and delta UV values are restored:
+| Value (power-up) | Temperature value                                                 | Delta UV value |
+|------------------|-------------------------------------------------------------------|----------------|
+| 0 or 1           | The value of the Light CTL Temperature Default state is used.     | The value of the Light CTL Delta UV Default state is used.     |
+| 2                | Last known value for the light CTL temperature before power-down. | Last known value for the light CTL delta UV before power-down. |
+
+Use the Light CTL Client model board to change the Light CTL Temperature Default and the Light CTL
+Delta UV Default state:
+- Use the RTT commands `b` and `c` to change the Light Lightness Default state.
+- Use the RTT commands `d` and `e` to change the Light CTL Temperature Default state.
+- Use the RTT commands `f` and `g` to change the Light CTL Delta UV Default state.
+- Use the RTT command `a` to retrieve the current default values of the servers that you use.
+
+See [LED and button assignments](@ref light_ctl_example_setup_leds_buttons) for additional commands.
+
+The factory default values for these states are controlled through the following defines:
+- @ref LIGHT_LIGHTNESS_DEFAULT_ON_POWERUP
+- @ref LIGHT_LIGHTNESS_DEFAULT_LIGHTNESS_DEFAULT
+- @ref LIGHT_CTL_DEFAULT_TEMPERATURE
+- @ref LIGHT_CTL_DEFAULT_DELTA_UV_DEFAULT
+
+If you want to edit the factory default values, do this in `nrf_mesh_config_app.h` of the
+server example you are using.
+Follow the instructions in [Testing the example](@ref light_ctl_example_testing)
+to rebuild and reprovision the example.
+
+#### Restricting the range of the CTL temperature value @anchor light_ctl_example_changing_temperature_range
+
+You can restrict the range of the CTL temperature value by changing the Light CTL Temperature Range
+state. The new value of the Light CTL Range state will be reflected in the Light CTL Lightness
+state at the next lightness value change.
+
+Use RTT commands `h`, `i`, `j`, and `k` on the client board to change the Light CTL Temperature
+Range state, and the RTT command `6` to retrieve the current range.
+See [LED and button assignments](@ref light_ctl_example_setup_leds_buttons) for additional commands.
+
+The factory default values for the minimum and maximum possible range values are controlled through
+@ref LIGHT_CTL_DEFAULT_ALLOWED_TEMPERATURE_MIN and @ref LIGHT_CTL_DEFAULT_ALLOWED_TEMPERATURE_MAX
+values in the `nrf_mesh_config_app.h` file of the server examples.
+
+#### Restricting the range of the CTL lightness value @anchor light_ctl_example_changing_lightness_range
+
+As the Light CTL Lightness state is bound with the Light Lightness Actual state, you can restrict
+the range of the light CTL lightness values by changing the Light Lightness Range state using
+the Light Lightness Client. See [Restricting the range of the lightness value]
+(@ref light_lightness_example_changing_lightness_range) section in light lightness example
+documentation.
+
+#### Other factory default configuration @anchor light_ctl_example_other_factory_default_configuration
+
+In addition to the parameters described in the previous sections, you can also set the factory default
+transition time in milliseconds when changing the lightness levels.
+
+The transition time used by the Light CTL Server model uses the Default Transition Time state
+instance that belongs to the the Light Lightness Server model.
+For this reason, to change the factory default transition time
+for the server example, redefine the @ref LIGHT_LIGHTNESS_DEFAULT_DTT value of the
+Generic Default Transition Time state in the `nrf_mesh_config_app.h` file of the server examples.

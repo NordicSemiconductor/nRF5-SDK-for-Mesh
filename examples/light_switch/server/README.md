@@ -4,7 +4,7 @@
 The light switch server is a Generic OnOff server that has a provisionee role in
 the [light switch example](@ref md_examples_light_switch_README) network demonstration, which is also composed of
 [light switch client](@ref md_examples_light_switch_client_README)
-and [mesh provisioner](@ref md_examples_light_switch_provisioner_README). There can be one or more servers in this network,
+and [mesh provisioner](@ref md_examples_provisioner_README). There can be one or more servers in this network,
 for example light bulbs.
 
 The light switch server instantiates one instance of the Generic OnOff server model to control the state of LED 1.
@@ -19,7 +19,7 @@ The server can either be provisioned and configured:
 
 The provisioner configures this server model instance to communicate with the client model.
 
-![State diagram for the Light switch server](img/light_switch_server_state_diagram.svg)
+![State diagram for the Light switch server](images/light_switch_server_state_diagram.svg)
 
 After provisioning, the proxy server application starts sending out connectable advertisements
 with Mesh Proxy Service present, which a Proxy Client can connect to in order to interact with the mesh.
@@ -62,4 +62,4 @@ configured by the provisioner.
 
 The following figure shows the calling sequence of key mesh stack APIs used by this example.
 
-![Light switch server setup](img/light_switch_server_interface.svg "Light switch server setup")
+![Light switch server setup](images/light_switch_server_interface.svg "Light switch server setup")

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -81,7 +81,7 @@ uint32_t mesh_friend_init(void);
  * Enables the Friend feature.
  *
  * @note After the Friend feature has been enabled, the Friend is required to respond to any Friend
- * Request from a Low Power node (see Mesh Profile specification, section 3.6.6.3.1).
+ * Request from a Low Power node (see the @tagMeshSp, section 3.6.6.3.1).
  *
  * The application can receive any of the following events after this API has been called:
  * - @ref NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED

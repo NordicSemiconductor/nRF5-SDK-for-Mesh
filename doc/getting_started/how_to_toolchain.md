@@ -46,7 +46,7 @@ Moreover, you must install the following tools.
  |------------------------------|-------------------------------|--------------------------------------------------|
  | @link_segger_jlink           | 6.16a                         |                                                  |
  | @link_python27_download      | 2.7                           | Required for DFU.                                |
- | @link_python35_download      | 3.5.1                         | Must be 32-bit for `nrfjprog` DLL to work. Ensure that `pip` is installed and that Python 3 is added to `PATH`.      |
+ | @link_python35_download      | 3.5.1                         | Must be 32-bit for `nrfjprog` DLL to work. Ensure that `pip` is installed and that Python 3 is added to `PATH`.<br>Also required for @ref md_scripts_interactive_pyaci_README.     |
  | @link_nrf5SDK_download       | 16.0.0                        | Required for [building with SEGGER Embedded Studio](@ref how_to_build_segger). See [Downloading nRF5 SDK](@ref how_to_build_nrf_sdk).	|
  
 
@@ -80,7 +80,7 @@ The following tools are required if you want to work with the nRF5 SDK for Mesh 
  | @link_python35_download      | 3.5.1                         | Must be 32-bit for `nrfjprog` DLL to work. Ensure that `pip` is installed and that Python 3 is added to `PATH`.      |
  | @link_cmake_download         | 3.9.0                         | Download the latest installer and follow the installation instructions. |
  | @link_ninja_download         | 1.7.2                         | Preferred build system on Windows. Download the binary and place it in a suitable folder. |
- | @link_armnone_extended       | 7-2018-q2-update (7.3.1)      | One of two alternative build systems available on Windows. Download the @link_armnone installer and follow the installation instructions.<br><br>@warning Do not use the `8-2018-q4-major` version released on December 20, 2018, as it contains @link_armnone_q4major_bug.  |
+ | @link_armnone_extended       | 9-2019-q4-major (9.2.1)       | One of two alternative build systems available on Windows. Download the @link_armnone installer and follow the installation instructions.  |
  | @link_keil_extended          | 5                             | The other alternative build system available on Windows. Follow the instructions provided for @link_armcc. The armcc v5 toolchain is also provided by @link_keil and comes bundled with the @link_keiluvision.   |
  | @link_nrf5SDK_download       | 16.0.0                        | Required for [building with CMake](@ref how_to_build_cmake). See [Downloading nRF5 SDK with CMake](@ref how_to_build_nrf_sdk).	|
  
@@ -103,7 +103,7 @@ The following tools are required if you want to work with the nRF5 SDK for Mesh 
  | @link_python27_download      | 2.7                           | Required for DFU. See the [Installing Python on Debian/Ubuntu](@ref toolchain_cmake_debian_python) section below.                                |
  | @link_python35_download      | 3.5.1                         | Ensure that `pip` is installed and that Python 3 is added to `PATH`. See the [Installing Python on Debian/Ubuntu](@ref toolchain_cmake_debian_python) section below.     |
  | @link_cmake_download         | 3.9.0                         | For Ubuntu versions older than `zesty`, a manual installation of CMake is required as the version available in the package manager is older than 3.6. Visit @link_cmake to download the latest release and follow the installation instructions.<br>- Install CMake with the following command: `sudo apt-get install cmake cmake-curses-gui`<br>- Ensure that your CMake version is at least 3.6 with the following command: `cmake --version` |
- | @link_armnone_extended       | 7-2018-q2-update (7.3.1)      | As the version usually found in the Debian package manager is quite old (4.9.3), install the toolchain in the following way (alongside GDB, the GNU Debugger for ARM):<br><br>`sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa`<br>`sudo apt-get update`<br>`sudo apt-get install gcc-arm-embedded`  |
+ | @link_armnone_extended       | 9-2019-q4-major (9.2.1)       | As the version usually found in the Debian package manager is quite old (4.9.3), install the toolchain in the following way (alongside GDB, the GNU Debugger for ARM):<br><br>`sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa`<br>`sudo apt-get update`<br>`sudo apt-get install gcc-arm-embedded`  |
  | @link_make                   | -                             | Default build system on Debian/Ubuntu. Usually comes with the distribution. As an alternative, you can use Ninja.
  | @link_ninja_download         | 1.7.2                         | Alternative build system on Debian/Ubuntu. You can install it with the following command: `sudo apt-get install ninja-build`  |
  | @link_nrf5SDK_download       | 16.0.0                        | Required for [building with CMake](@ref how_to_build_cmake). See [Downloading nRF5 SDK with CMake](@ref how_to_build_nrf_sdk).	|

@@ -16,7 +16,12 @@ if (PC_LINT_EXECUTABLE)
 
         string(REPLACE "-D" "-d" defines "${defines}")
         foreach (define IN LISTS defines)
-            set(__filedata "${__filedata}\n${define}")
+            string(FIND "${define}" "-d" def_pos)
+            if(def_pos GREATER_EQUAL 0)
+                set(__filedata "${__filedata}\n${define}")
+            else(def_pos GREATER_EQUAL 0)
+                set(__filedata "${__filedata}\n-d${define}")
+            endif(def_pos GREATER_EQUAL 0)
         endforeach ()
 
         foreach (source IN LISTS sources)

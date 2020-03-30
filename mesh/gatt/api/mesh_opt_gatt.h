@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -38,7 +38,7 @@
 #define MESH_OPT_GATT_H__
 
 /**
- * @defgroup MESH_OPT_GATT GATT runtime configuration options (experimental)
+ * @defgroup MESH_OPT_GATT GATT runtime configuration options
  * @ingroup MESH_OPT
  * Runtime configuration for Mesh GATT functionality
  *

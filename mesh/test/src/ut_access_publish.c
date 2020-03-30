@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -541,3 +541,18 @@ void test_publish_period_get(void)
     TEST_ASSERT_EQUAL(42, step_number);
 }
 
+void test_access_publish_clear(void)
+{
+    access_model_publication_state_t test_state;
+    test_state.period.step_res = ACCESS_PUBLISH_RESOLUTION_10MIN;
+    test_state.period.step_num = 42;
+    test_state.publish_timeout_cb = publish_timeout_cb;
+
+    bearer_event_critical_section_begin_Expect();
+    bearer_event_critical_section_end_Expect();
+    timer_sch_schedule_StubWithCallback(timer_sch_schedule_mock);
+    access_publish_period_set(&test_state, ACCESS_PUBLISH_RESOLUTION_1S, 5);
+
+    timer_sch_abort_Expect(mp_scheduled_event);
+    access_publish_clear();
+}

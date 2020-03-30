@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -22,7 +22,7 @@
  *
  * 5. Any software provided in binary form under this license must not be reverse
  *    engineered, decompiled, modified and/or disassembled.
-*
+ *
  * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -72,21 +72,39 @@
 #include "app_onoff.h"
 #include "ble_softdevice_support.h"
 
+/*****************************************************************************
+ * Definitions
+ *****************************************************************************/
 #define ONOFF_SERVER_0_LED          (BSP_LED_0)
 #define APP_ONOFF_ELEMENT_INDEX     (0)
 
-static bool m_device_provisioned;
+/* Controls if the model instance should force all mesh messages to be segmented messages. */
+#define APP_FORCE_SEGMENTATION      (false)
+/* Controls the MIC size used by the model instance for sending the mesh messages. */
+#define APP_MIC_SIZE                (NRF_MESH_TRANSMIC_SIZE_SMALL)
 
-/*************************************************************************************************/
+
+/*****************************************************************************
+ * Forward declaration of static functions
+ *****************************************************************************/
 static void app_onoff_server_set_cb(const app_onoff_server_t * p_server, bool onoff);
 static void app_onoff_server_get_cb(const app_onoff_server_t * p_server, bool * p_present_onoff);
+static void app_onoff_server_transition_cb(const app_onoff_server_t * p_server,
+                                                uint32_t transition_time_ms, bool target_onoff);
+
+
+/*****************************************************************************
+ * Static variables
+ *****************************************************************************/
+static bool m_device_provisioned;
 
 /* Generic OnOff server structure definition and initialization */
 APP_ONOFF_SERVER_DEF(m_onoff_server_0,
-                     APP_CONFIG_FORCE_SEGMENTATION,
-                     APP_CONFIG_MIC_SIZE,
+                     APP_FORCE_SEGMENTATION,
+                     APP_MIC_SIZE,
                      app_onoff_server_set_cb,
-                     app_onoff_server_get_cb)
+                     app_onoff_server_get_cb,
+                     app_onoff_server_transition_cb)
 
 /* Callback for updating the hardware state */
 static void app_onoff_server_set_cb(const app_onoff_server_t * p_server, bool onoff)
@@ -104,6 +122,14 @@ static void app_onoff_server_get_cb(const app_onoff_server_t * p_server, bool * 
     /* Resolve the server instance here if required, this example uses only 1 instance. */
 
     *p_present_onoff = hal_led_pin_get(ONOFF_SERVER_0_LED);
+}
+
+/* Callback for updating the hardware state */
+static void app_onoff_server_transition_cb(const app_onoff_server_t * p_server,
+                                                uint32_t transition_time_ms, bool target_onoff)
+{
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Transition time: %d, Target OnOff: %d\n",
+                                       transition_time_ms, target_onoff);
 }
 
 static void app_model_init(void)
@@ -131,15 +157,26 @@ static void config_server_evt_cb(const config_server_evt_t * p_evt)
     }
 }
 
+#if NRF_MESH_LOG_ENABLE
+static const char m_usage_string[] =
+    "\n"
+    "\t\t-------------------------------------------------------------------------------\n"
+    "\t\t Button/RTT 1) LED state will toggle and inform clients about the state change.\n"
+    "\t\t Button/RTT 4) Clear all the states to reset the node.\n"
+    "\t\t-------------------------------------------------------------------------------\n";
+#endif
+
 static void button_event_handler(uint32_t button_number)
 {
+    /* Increase button number because the buttons on the board is marked with 1 to 4 */
+    button_number++;
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Button %u pressed\n", button_number);
     switch (button_number)
     {
         /* Pressing SW1 on the Development Kit will result in LED state to toggle and trigger
         the STATUS message to inform client about the state change. This is a demonstration of
         state change publication due to local event. */
-        case 0:
+        case 1:
         {
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "User action \n");
             hal_led_pin_set(ONOFF_SERVER_0_LED, !hal_led_pin_get(ONOFF_SERVER_0_LED));
@@ -148,7 +185,7 @@ static void button_event_handler(uint32_t button_number)
         }
 
         /* Initiate node reset */
-        case 3:
+        case 4:
         {
             /* Clear all the states to reset the node. */
             if (mesh_stack_is_device_provisioned())
@@ -167,16 +204,21 @@ static void button_event_handler(uint32_t button_number)
         }
 
         default:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
             break;
     }
 }
 
 static void app_rtt_input_handler(int key)
 {
-    if (key >= '0' && key <= '4')
+    if (key >= '1' && key <= '4')
     {
-        uint32_t button_number = key - '0';
+        uint32_t button_number = key - '1';
         button_event_handler(button_number);
+    }
+    else
+    {
+        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
     }
 }
 
@@ -193,6 +235,13 @@ static void provisioning_aborted_cb(void)
     hal_led_blink_stop();
 }
 
+static void unicast_address_print(void)
+{
+    dsm_local_unicast_address_t node_address;
+    dsm_local_unicast_addresses_get(&node_address);
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
+}
+
 static void provisioning_complete_cb(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
@@ -204,10 +253,7 @@ static void provisioning_complete_cb(void)
     conn_params_init();
 #endif
 
-    dsm_local_unicast_address_t node_address;
-    dsm_local_unicast_addresses_get(&node_address);
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
-
+    unicast_address_print();
     hal_led_blink_stop();
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
@@ -235,6 +281,7 @@ static void mesh_init(void)
     {
         case NRF_ERROR_INVALID_DATA:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
+			__LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before start provisioning.\n");
             break;
         case NRF_SUCCESS:
             break;
@@ -275,6 +322,7 @@ static void start(void)
         mesh_provisionee_start_params_t prov_start_params =
         {
             .p_static_data    = static_auth_data,
+            .prov_sd_ble_opt_set_cb = NULL,
             .prov_complete_cb = provisioning_complete_cb,
             .prov_device_identification_start_cb = device_identification_start_cb,
             .prov_device_identification_stop_cb = NULL,
@@ -283,10 +331,16 @@ static void start(void)
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
     }
+    else
+    {
+        unicast_address_print();
+    }
 
     mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());
 
     ERROR_CHECK(mesh_stack_start());
+
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
 
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);

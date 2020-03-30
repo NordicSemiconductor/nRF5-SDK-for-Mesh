@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -61,24 +61,24 @@
 #include <stdint.h>
 #include <string.h>
 
-/* Transaction start values for each role (from Mesh Profile Specification v1.0, section 5.2.1) */
+/* Transaction start values for each role (from @tagMeshSp section 5.2.1) */
 #define PROVISIONER_TRANSACTION_START_VALUE 0
 #define PROVISIONEE_TRANSACTION_START_VALUE 0x80
 
 #define BLE_ADV_OVERHEAD (BLE_GAP_ADDR_LEN + sizeof(ble_ad_data_t) /* length field and AD Type*/)
 #define PROV_ADV_OVERHEAD (sizeof(ble_ad_data_t) + 4 /*link ID*/ + 1 /* transaction no*/)
-/** The largest provisioning PDU length (copied from Mesh Profile Specification v1.0, table 5.3: 64 byte payload + 1 for pdu type). */
+/** The largest provisioning PDU length (copied from @tagMeshSp table 5.3: 64 byte payload + 1 for pdu type). */
 #define PROV_PAYLOAD_MAX_LENGTH  65
 #define PROV_LINK_OPEN_DATA_SIZE 17
 #define PROV_LINK_ACK_DATA_SIZE 1
 #define PROV_LINK_CLOSE_DATA_SIZE 2
 #define PROV_TRANS_ACK_DATA_SIZE 1
-/** The largest payload length in a single provisioning data packet see Table 5.2 in Mesh Profile Specification v1.0 */
+/** The largest payload length in a single provisioning data packet, see @tagMeshSp table 5.2 */
 #define GENERIC_PROV_PDU_MAX_LEN 24
-/** Max see Figure 5.3 in Mesh Profile Specification v1.0 */
+/** Max, see @tagMeshSp figure 5.3 */
 #define PROV_START_PDU_HEADER_SIZE (1 /*SegN | GPCF */ + 2 /*Total length */ + 1 /* FCS */)
 #define PROV_START_PDU_PAYLOAD_MAX_LEN (GENERIC_PROV_PDU_MAX_LEN - PROV_START_PDU_HEADER_SIZE)
-/** Max see Figure 5.5 in Mesh Profile Specification v1.0 */
+/** Max, see @tagMeshSp figure 5.5 */
 #define PROV_CONTINUE_PDU_HEADER_SIZE (1 /*SegN | GPCF */)
 #define PROV_CONTINUE_PDU_PAYLOAD_MAX_LEN (GENERIC_PROV_PDU_MAX_LEN - PROV_CONTINUE_PDU_HEADER_SIZE)
 
@@ -91,8 +91,7 @@
 
 #define PROV_BEARER_ADV_UNACKED_REPEAT_COUNT    (6)
 #define PROV_BEARER_ADV_LINK_OPEN_ADVERTISER_INTERVAL_MS  (3 * BEARER_ADV_INT_DEFAULT_MS)
-#define PROV_BEARER_ADV_LINK_ESTABLISHMENT_LENGTH_US      ((MS_TO_US(PROV_BEARER_ADV_LINK_OPEN_ADVERTISER_INTERVAL_MS) + ADVERTISER_INTERVAL_RANDOMIZATION_US) * \
-                                                           (PROV_BEARER_ADV_UNACKED_REPEAT_COUNT + 1))
+#define PROV_BEARER_ADV_LINK_ESTABLISHMENT_LENGTH_US      SEC_TO_US(60)
 
 /** Flag the module should use to trigger async callback. */
 #define ASYNC_FLAG  0xF1A6F1A6
@@ -488,13 +487,19 @@ static void tx_link_open(prov_bearer_t * p_bearer, uint8_t * p_uuid, uint32_t li
     advertiser_interval_set_Expect(&p_bearer_adv->advertiser, PROV_BEARER_ADV_LINK_OPEN_ADVERTISER_INTERVAL_MS);
     advertiser_enable_Expect(&p_bearer_adv->advertiser);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, prov_bearer_adv_link_open(p_bearer, p_uuid, NRF_MESH_PROV_LINK_TIMEOUT_MIN_US));
-    TEST_ASSERT_EQUAL(PROV_BEARER_ADV_UNACKED_REPEAT_COUNT, m_packet.config.repeats);
+    TEST_ASSERT_EQUAL(ADVERTISER_REPEAT_INFINITE, m_packet.config.repeats);
 }
 
 static void tx_link_close(prov_bearer_t * p_bearer, nrf_mesh_prov_link_close_reason_t close_reason)
 {
     nrf_mesh_prov_bearer_adv_t * p_bearer_adv = PARENT_BY_FIELD_GET(nrf_mesh_prov_bearer_adv_t, prov_bearer, p_bearer);
     ALLOC_AND_TX(&p_bearer_adv->advertiser, PROV_ADV_OVERHEAD + PROV_LINK_CLOSE_DATA_SIZE, true);
+
+    if (PROV_BEARER_ADV_STATE_LINK_OPENING == p_bearer_adv->state)
+    { // Stop ongoing Link Opening process
+        advertiser_flush_Expect(&p_bearer_adv->advertiser);
+    }
+
     prov_bearer_adv_link_close(p_bearer, close_reason);
     TEST_ASSERT_EQUAL(PROV_BEARER_ADV_UNACKED_REPEAT_COUNT, m_packet.config.repeats);
 
@@ -672,6 +677,7 @@ void test_link_establish_active(void)
     rx_link_close(&bearer_adv.prov_bearer, NRF_MESH_PROV_LINK_CLOSE_REASON_TIMEOUT, link_id, true);
     /* Open link. */
     tx_link_open(&bearer_adv.prov_bearer, uuid1, link_id);
+    rx_link_ack(&bearer_adv.prov_bearer, link_id, true);
     /* A call to the prov_bearer_adv_link_close shall not fail, so if one of the external modules lets us down
        we close without sending and immediately do a callback to the module above.
        *** Technically, this is illegal behaviour, perhaps we need a timer to retry closing? ***/
@@ -841,7 +847,7 @@ void test_packet_send(void)
 
     /* Send 1 byte long data */
     uint8_t no_segments = send_data_packet(&bearer_adv.prov_bearer, data, 1);
-    /* transcation no starts with 0 when in provisioner role (section 5.2.1 in Mesh Profile Specification v1.0) */
+    /* transcation no starts with 0 when in provisioner role (@tagMeshSp section 5.2.1) */
     TEST_ASSERT_EQUAL(curr_transcation, bearer_adv.transaction_out);
     TEST_ASSERT_EQUAL(1, no_segments);
     /* Can't send data without receiving an ack or timeout for the previous one*/

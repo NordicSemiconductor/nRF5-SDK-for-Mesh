@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -61,6 +61,7 @@
 #include "net_state_mock.h"
 
 
+#define LOCAL_ADDR      0x0200
 #define UNICAST_ADDR    0x0100
 #define GROUP_ADDR      0xFFF0
 #define VIRTUAL_ADDR    0x8880

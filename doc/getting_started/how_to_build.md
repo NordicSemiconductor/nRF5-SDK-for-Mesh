@@ -2,9 +2,11 @@
 
 The mesh library and example applications can be built with either SEGGER Embedded Studio or CMake.
 
-Before you start building, remember to set up the mesh development environment first. See @ref md_doc_getting_started_how_to_toolchain for details.
+Before you start building, remember to set up the mesh development environment first.
+See @ref md_doc_getting_started_how_to_toolchain for details.
 
-@note The building process changes slightly if you are [adding custom examples](@ref examples_adding_building).
+@note The building process changes slightly
+if you are [adding custom examples](@ref examples_adding_building).
 
 **Table of contents**
 - [Building with SEGGER Embedded Studio](@ref how_to_build_segger)
@@ -26,16 +28,18 @@ Before you start building, remember to set up the mesh development environment f
 
 ## Building with SEGGER Embedded Studio @anchor how_to_build_segger
 
-@link_seggerstudio (SES) provides a way of quickly getting the example code up and running with full debug capability.
+@link_seggerstudio (SES) provides a way of quickly getting the example code up and running
+with full debug capability.
 
 ### First time setup @anchor how_to_build_segger_setup
 
-Before building the mesh examples with SEGGER Embedded Studio for the first time, you must complete a one-time setup of the `SDK_ROOT` macro
-in SEGGER Embedded Studio. This macro is used to find the nRF5 SDK files.
+Before building the mesh examples with SEGGER Embedded Studio for the first time, you must complete
+a one-time setup of the `SDK_ROOT` macro in SEGGER Embedded Studio.
+This macro is used to find the nRF5 SDK files.
 
 You can either:
-- Use the default settings of the `SDK_ROOT` macro. It defaults to an nRF5 SDK instance unzipped right next to the mesh
-folder.
+- Use the default settings of the `SDK_ROOT` macro. It defaults to an nRF5 SDK instance unzipped
+right next to the mesh folder.
 - Set the `SDK_ROOT` macro to a custom nRF5 SDK instance.
 
 To set the `SDK_ROOT` macro manually in SEGGER Embedded Studio:
@@ -63,8 +67,9 @@ you must [generate the SES project files again using CMake](@ref how_to_build_cm
 
 To build an example with SEGGER Embedded Studio:
 1. Open the desired project file located in the `examples/` folder,
-for instance `examples/light_switch/client/light_switch_client_nrf52832_xxAA_s132_6_1_1.emProject`.
-2. Go to **Build -> Build < name of the emProject file>**, for instance **Build light_switch_client_nrf52832_xxAA_s132_7.0.1**.
+for instance `examples/light_switch/client/light_switch_client_nrf52832_xxAA_s132_7_0_1.emProject`.
+2. Go to **Build -> Build < name of the emProject file>**,
+for instance **Build light_switch_client_nrf52832_xxAA_s132_7.0.1**.
 3. Wait for the compilation to finish.
 
 You can now [run the example using SEGGER Embedded Studio](@ref how_to_run_examples_ses).
@@ -77,23 +82,25 @@ You can now [run the example using SEGGER Embedded Studio](@ref how_to_run_examp
 
 @link_cmake provides the possibility to build both for host (unit tests) and target.
 
-CMake is "an extensible, open-source system that manages the build process in an operating system and
-in a compiler-independent manner" (as stated on the @link_cmake website).
+CMake is "an extensible, open-source system that manages the build process in an operating system
+and in a compiler-independent manner" (as stated on the @link_cmake website).
 
 In other words, CMake does not build from the source directly, but generates the native build tool
-files (for example, a set of Makefiles or a `build.ninja` configuration). The choice of which build tool is to be targeted is
-controlled with the `-G` argument, for example: `-G Ninja`, `-G "Unix Makefiles"` and many more. CMake can
-generate IDE project files for IDEs such as Eclipse as well. However, this guide only targets Ninja and GNU Make.
+files (for example, a set of Makefiles or a `build.ninja` configuration). The choice of which build
+tool is to be targeted is controlled with the `-G` argument, for example: `-G Ninja`,
+`-G "Unix Makefiles"` and many more. CMake can generate IDE project files for IDEs such as Eclipse
+as well. However, this guide only targets Ninja and GNU Make.
 
 @par SoftDevice requirement
 All examples built by the CMake-generated build system do not include the SoftDevice
-as part of the generated HEX files. Therefore, the SoftDevice must already be present on the device before
-flashing the HEX file for the example mesh application.
+as part of the generated HEX files. Therefore, the SoftDevice must already be present on the device
+before flashing the HEX file for the example mesh application.
 
 @par mergehex exception
-There is a `merge_<target>` for each of the example targets that uses `mergehex` to generate a hexfile with the application and SoftDevice merged.
+There is a `merge_<target>` for each of the example targets that uses `mergehex` to generate
+a hexfile with the application and SoftDevice merged.
 Take special care with the order of programming when the application has bootloader support.
-Follow the procedure in @ref md_doc_libraries_dfu_dfu_quick_start in these cases.
+Follow the procedure in @ref md_doc_user_guide_modules_dfu_configuring_performing in these cases.
     - Example use:
 
             build $ ninja merge_light_switch_server_nrf52832_xxAA_s132_7.0.1
@@ -131,7 +138,8 @@ artifacts generated by the Ninja build system are stored:
 
 Before you can build with Ninja, you must generate the correct build files with CMake.
 
-Calling `cmake -G Ninja` with no parameters will default to the `nrf52832_xxAA` platform with the `s132_7.0.1` SoftDevice and `gccarmemb` toolchain:
+Calling `cmake -G Ninja` with no parameters will default to the `nrf52832_xxAA` platform
+with the `s132_7.0.1` SoftDevice and `gccarmemb` toolchain:
 
     build$ cmake -G Ninja ..
 
@@ -182,7 +190,8 @@ To see a list of available build targets, run the following command:
 
     build $ ninja help
 
-**Example:** To build a specific target from this list with the current platform `nrf52832_xxAA` and the `s132_7.0.1` SoftDevice, run:
+**Example:** To build a specific target from this list with the current platform `nrf52832_xxAA`
+and the `s132_7.0.1` SoftDevice, run:
 
 	ninja light_switch_server_nrf52832_xxAA_s132_7.0.1
 
@@ -201,7 +210,8 @@ It is possible to generate SEGGER Embedded Studio project files using the CMake 
 With the option `GENERATE_SES_PROJECTS` enabled, CMake will generate a SES project
 based on the current settings.
 
-**Example:** To generate a project for `nrf52832_xxAA` using the S132 v7.0.1 SoftDevice, run CMake in your build directory:
+**Example:** To generate a project for `nrf52832_xxAA` using the S132 v7.0.1 SoftDevice,
+run CMake in your build directory:
 
     cmake -G Ninja -DGENERATE_SES_PROJECTS=ON -DPLATFORM=nrf52832_xxAA -DSOFTDEVICE=s132_7.0.1 ..
 
@@ -231,7 +241,8 @@ Otherwise, it is set to `RelWithDebInfo`.
 Building documentation requires additional command line tools.
 See [the list on Installing the toolchain page](@ref toolchain_cmake_docs).
 
-To build all documentation (API documentation and internal documentation), call the build system with the target `doc`.
+To build all documentation (API documentation and internal documentation), call the build system
+with the target `doc`.
 
     build $ ninja doc
 
@@ -255,8 +266,10 @@ To build units tests:
 		build_host $ cmake -G Ninja -DBUILD_HOST=ON -DCMAKE_BUILD_TYPE=Debug ..
 
 	@note
-	- CMake is set up to look for CMock in the directory above the `nrf5_sdk_for_mesh` folder. If it is _not_ located next to the mesh folder, you can specify its path by passing `-DCMOCK_ROOT=<dir/cmock>`.
-	- If a different version of Unity is used than the one included as a submodule in CMock, you can specify its path by passing `-DUNITY_ROOT=<dir/unity>`.
+	- CMake is set up to look for CMock in the directory above the `nrf5_sdk_for_mesh` folder.
+    If it is _not_ located next to the mesh folder, you can specify its path by passing `-DCMOCK_ROOT=<dir/cmock>`.
+	- If a different version of Unity is used than the one included as a submodule in CMock,
+    you can specify its path by passing `-DUNITY_ROOT=<dir/unity>`.
 	- All paths given to CMake must use forward slashes ('/') as directory separators.
 
 3. Build all the unit tests with ninja:

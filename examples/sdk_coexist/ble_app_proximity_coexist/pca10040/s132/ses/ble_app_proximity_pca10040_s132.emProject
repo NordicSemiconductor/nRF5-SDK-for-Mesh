@@ -189,6 +189,7 @@
       <file file_name="$(MESH_ROOT)/models/model_spec/generic_onoff/src/generic_onoff_client.c" />
       <file file_name="$(MESH_ROOT)/external/micro-ecc/uECC.c" />
       <file file_name="$(MESH_ROOT)/external/app_timer/app_timer_mesh.c" />
+      <file file_name="$(MESH_ROOT)/external/app_timer/app_timer_workaround.c" />
       <file file_name="$(MESH_ROOT)/examples/common/src/assertion_handler_weak.c" />
       <file file_name="$(MESH_ROOT)/examples/common/src/mesh_provisionee.c" />
       <file file_name="$(MESH_ROOT)/examples/common/src/mesh_app_utils.c" />

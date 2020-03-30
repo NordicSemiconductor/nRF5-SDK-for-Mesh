@@ -1420,7 +1420,7 @@ int SEGGER_RTT_ConfigUpBuffer(unsigned BufferIndex, const char* sName, void* pBu
   int r;
 
   INIT();
-  if (BufferIndex < (unsigned)_SEGGER_RTT.MaxNumUpBuffers) {
+  if (BufferIndex < (sizeof(_SEGGER_RTT.aUp)/sizeof(_SEGGER_RTT.aUp[0]))) {
     SEGGER_RTT_LOCK();
     if (BufferIndex > 0u) {
       _SEGGER_RTT.aUp[BufferIndex].sName        = sName;
@@ -1467,7 +1467,7 @@ int SEGGER_RTT_ConfigDownBuffer(unsigned BufferIndex, const char* sName, void* p
   int r;
 
   INIT();
-  if (BufferIndex < (unsigned)_SEGGER_RTT.MaxNumDownBuffers) {
+  if (BufferIndex < (sizeof(_SEGGER_RTT.aDown)/sizeof(_SEGGER_RTT.aDown[0]))) {
     SEGGER_RTT_LOCK();
     if (BufferIndex > 0u) {
       _SEGGER_RTT.aDown[BufferIndex].sName        = sName;

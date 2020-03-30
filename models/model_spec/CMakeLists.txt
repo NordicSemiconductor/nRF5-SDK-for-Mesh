@@ -1,4 +1,8 @@
+add_subdirectory("common")
 add_subdirectory("generic_dtt")
 add_subdirectory("generic_onoff")
 add_subdirectory("generic_level")
 add_subdirectory("generic_ponoff")
+add_subdirectory("light_lightness")
+add_subdirectory("light_lc")
+add_subdirectory("light_ctl")

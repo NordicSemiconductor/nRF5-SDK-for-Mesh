@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -52,7 +52,17 @@
 
 /** Time to wait for a response to a DFU request before giving up. */
 #ifndef NRF_MESH_DFU_REQ_TIMEOUT_US
-#define NRF_MESH_DFU_REQ_TIMEOUT_US (600000000UL)
+#define NRF_MESH_DFU_REQ_TIMEOUT_US                     (600000000UL)
+#endif
+
+/** Time to wait for a response to a DFU relay request before giving up. */
+#ifndef NRF_MESH_DFU_RELAY_TIMEOUT_US
+#define NRF_MESH_DFU_RELAY_TIMEOUT_US                   (600000000UL)
+#endif
+
+/** Time to wait for data during a transfer. */
+#ifndef NRF_MESH_DFU_DATA_TRANSFER_TIMEOUT_US
+#define NRF_MESH_DFU_DATA_TRANSFER_TIMEOUT_US           (600000000UL)
 #endif
 
 /** @} end of NRF_MESH_CONFIG_DFU */

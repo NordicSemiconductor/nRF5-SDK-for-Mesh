@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -206,9 +206,10 @@ uint32_t transport_addr_to_short(nrf_mesh_address_t * p_addr, uint16_t * p_short
  * @retval NRF_ERROR_INVALID_PARAM  One or more of the given parameters are out of bounds.
  * @retval NRF_ERROR_NO_MEM         Insufficient amount of available memory.
  * @retval NRF_ERROR_FORBIDDEN      Failed to allocate a sequence number from network.
- * @retval NRF_ERROR_INVALID_STATE  There's already a segmented packet to this destination in
- *                                  progress. Wait for it to finish before sending new segmented
- *                                  packets.
+ * @retval NRF_ERROR_INVALID_STATE  There's already a segmented packet that is
+ *                                  being to sent to this destination. Wait for
+ *                                  the transmission to finish before sending
+ *                                  new segmented packets.
  */
 uint32_t transport_tx(const nrf_mesh_tx_params_t * p_params, uint32_t * const p_packet_reference);
 
@@ -231,9 +232,10 @@ uint32_t transport_tx(const nrf_mesh_tx_params_t * p_params, uint32_t * const p_
  * @retval NRF_ERROR_INVALID_PARAM  One or more of the given parameters are out of bounds.
  * @retval NRF_ERROR_NO_MEM         Insufficient amount of available memory.
  * @retval NRF_ERROR_FORBIDDEN      Failed to allocate a sequence number from network.
- * @retval NRF_ERROR_INVALID_STATE  There's already a segmented packet to this destination in
- *                                  progress. Wait for it to finish before sending new segmented
- *                                  packets.
+ * @retval NRF_ERROR_INVALID_STATE  There's already a segmented packet that is
+ *                                  being to sent to this destination. Wait for
+ *                                  the transmission to finish before sending
+ *                                  new segmented packets.
  */
 uint32_t transport_control_tx(const transport_control_packet_t * p_params,
                               nrf_mesh_tx_token_t tx_token);

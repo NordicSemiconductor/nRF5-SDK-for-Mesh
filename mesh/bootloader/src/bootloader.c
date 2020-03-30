@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -199,6 +199,9 @@ void FLASH_HANDLER_IRQHandler(void)
     if (fifo_is_empty(&m_flash_fifo) && m_go_to_app)
     {
         bl_info_entry_t* p_segment_entry = bootloader_info_entry_get(BL_INFO_TYPE_SEGMENT_APP);
+#ifdef RBC_MESH_SERIAL
+        serial_handler_uart_disable();
+#endif
         bootloader_util_app_start(p_segment_entry->segment.start);
     }
 }
@@ -580,6 +583,9 @@ void bootloader_abort(dfu_end_t end_reason)
                     APP_ERROR_CHECK(err_code);
 #ifdef DEBUG_LEDS
                     NRF_GPIO->OUTSET = LEDS_MASK;
+#endif
+#ifdef RBC_MESH_SERIAL
+                    serial_handler_uart_disable();
 #endif
                     bootloader_util_app_start(p_segment_entry->segment.start);
                 }

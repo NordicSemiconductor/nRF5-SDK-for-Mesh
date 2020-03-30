@@ -4,7 +4,14 @@ This migration guide is complementary to the @ref md_RELEASE_NOTES.
 It describes practical actions you must take to update your code to a newer
 version of the nRF5 SDK for Mesh.
 
+@note
+Always refer to the migration guide from the latest documentation release on the @link_mesh_doclib,
+regardless of the versions you are migrating to and from.
+
 **Table of contents**
+- [Migration from v4.0.0 to v4.1.0](@ref md_doc_migration_4_0_0_to_4_1_0)
+    - [Updated GNU ARM Embedded Toolchain required minimum version to 9-2019-q4-major](@ref arm_embedded_version_update)
+    - [UUID generation updated](@ref migration_400_uuid_update)
 - [Migration from v3.2.0 to v4.0.0](@ref md_doc_migration_3_2_0_to_4_0_0)
     - [Added Mesh configuration for DSM, net state and access layer](@ref mesh_config_for_dsm_and_access)
     - [BEARER_EVENT_USE_SWI0 changed location](@ref BEARER_EVENT_USE_SWI0_location)
@@ -26,31 +33,64 @@ version of the nRF5 SDK for Mesh.
 
 ---
 
+## Migration from v4.0.0 to v4.1.0 @anchor md_doc_migration_4_0_0_to_4_1_0
+
+Read this migration guide together with the [nRF5 SDK for Mesh v4.1.0 release notes](@ref release_notes_410).
+
+### Updated GNU ARM Embedded Toolchain required minimum version to 9-2019-q4-major @anchor arm_embedded_version_update
+- The minimum required version of this toolchain for building the nRF5 SDK for Mesh v4.1.0 and the examples included has
+been updated to 9-2019-q4-major.
+
+#### Required actions
+
+- Ensure that the version of the GNU ARM Embedded Toolchain installed is at least 9-2019-q4-major.
+The installer can be downloaded from the @link_armnone page.
+
+### UUID generation updated @anchor migration_400_uuid_update
+
+- Updated the `nrf_mesh_configure_device_uuid_reset()` API, so that the raw output is aligned
+with the format from the UUID version 4. This update changes the auto-generated UUID value for the device.
+
+#### Required actions
+- If your systems rely on the old UUIDs, specify the old UUID in the @ref mesh_stack_init_params_t
+structure during the stack initialization before updating the firmware of the devices.
+
+
+---
+
 ## Migration from v3.2.0 to v4.0.0 @anchor md_doc_migration_3_2_0_to_4_0_0
 
 Read this migration guide together with the [nRF5 SDK for Mesh v4.0.0 release notes](@ref release_notes_400).
 
 ### Added Mesh configuration for DSM, net state and access layer @anchor mesh_config_for_dsm_and_access
-- The DSM and the access layer now use the Mesh configuration module for persistent storage. 
-Moreover, the IV index and sequence number in the network state are now also stored using the module. 
+- The DSM and the access layer now use the Mesh configuration module for persistent storage.
+Moreover, the IV index and sequence number in the network state are now also stored using the module.
 - Implemented backward compatibility for components that have been migrated onto the Mesh configuration module.
-It is still possible to provide the exact number of flash pages allocated for persistent parameters. 
-This allows keeping persistent parameters in the same area as it was in the previous version, for DFU necessities. 
+It is still possible to provide the exact number of flash pages allocated for persistent parameters.
+This allows keeping persistent parameters in the same area as it was in the previous version, for DFU necessities.
 Otherwise, the Mesh configuration will calculate and allocate the persistent memory automatically.
-- This means that your applications should no longer invoke any special API to store or restore parameters. 
-The parameters will be stored or restored when they are changed via the appropriate API, for example @ref mesh_opt_core_tx_power_set() or mesh_opt_core_tx_power_get().
+- This means that your applications should no longer invoke any special API to store or restore parameters.
+The parameters will be stored or restored when they are changed via the appropriate API, for example
+@ref mesh_opt_core_tx_power_set() or mesh_opt_core_tx_power_get().
+- After triggering the node reset, the Mesh stack will erase only the stack-related data stored in
+a flash. It will no longer erase all the data managed by the Mesh configuration module.
+Now, it is a responsibility of the application to erase application specific data.
 
 #### Required actions
 
 - New projects:
     - Do not define `ACCESS_FLASH_PAGE_COUNT`, `DSM_FLASH_PAGE_COUNT` or `NET_FLASH_PAGE_COUNT`
     in new projects, as Mesh configuration now takes care of computing the required page counts.
+    - Monitor `CONFIG_SERVER_EVT_NODE_RESET` event in the user application and erase the desired
+    application specific data before calling `node_reset()` API.
 - Existing projects to be updated by DFU:
     - Keep any definitions of `ACCESS_FLASH_PAGE_COUNT`, `DSM_FLASH_PAGE_COUNT` and
     `NET_FLASH_PAGE_COUNT`, as well as definitions of `ACCESS_FLASH_AREA_LOCATION`,
     `DSM_FLASH_AREA_LOCATION` and `NET_FLASH_AREA_LOCATION`. This will cause the Mesh
     configuration backend to locate the pages according to the flash layout of the old persistence
     system.
+    - Monitor `CONFIG_SERVER_EVT_NODE_RESET` event in the user application and erase the data
+    specific to the application before calling `mesh_stack_device_reset()` API.
 
 
 ### BEARER_EVENT_USE_SWI0 changed location @anchor BEARER_EVENT_USE_SWI0_location
@@ -274,11 +314,11 @@ and to register the Mesh handler for SoC events.
 Make sure the function @ref mesh_stack_start() is called at the end of the start phase
 (see `start()` function in the Light Switch Server code as an example). After calling @ref mesh_stack_start(), all mesh API interaction
 must happen at the IRQ priority level specified in the call to @ref mesh_stack_init(). Calling mesh functions at wrong IRQ priority levels
-after enabling the stack can cause unpredictable behavior (see @ref md_doc_introduction_mesh_interrupt_priorities for details).
+after enabling the stack can cause unpredictable behavior (see @ref md_doc_user_guide_mesh_interrupt_priorities for details).
 
 ### Only one segmented message from an element to a destination address at a time @anchor migration_300_segmented_messages
 
-The nRF Mesh SDK is now enforcing the Mesh Profile Specification v1.0 rule that disallows multiple
+The nRF Mesh SDK is now enforcing the @tagMeshSp rule that disallows multiple
 simulatneous segmented messages from a source address to the same destination.
 
 This change means that models must wait until their previous segmented message is finished sending

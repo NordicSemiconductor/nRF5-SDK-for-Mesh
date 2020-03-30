@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -166,7 +166,7 @@ static void heartbeat_opcode_handle(const transport_control_packet_t * p_control
 
     if (m_heartbeat_subscription.period > 0)
     {
-        // Mesh Profile Specification v1.0, section 3.6.7.3:
+        // @tagMeshSp section 3.6.7.3:
         // "The counter does not wrap. It stops counting at 0xFFFF."
         if (m_heartbeat_subscription.count < HEARTBEAT_MAX_COUNT)
         {
@@ -251,7 +251,7 @@ static void heartbeat_publish(void)
 
 /**
  * Callback for the subscription timer. this callback triggers every second. As per
- * Mesh Profile Specification v1.0, section 4.2.18.4, node shall report the remaining time.
+ * @tagMeshSp section 4.2.18.4, node shall report the remaining time.
  */
 static void heartbeat_subscription_timer_cb(timestamp_t timestamp, void * p_context)
 {
@@ -418,7 +418,7 @@ static uint32_t hb_pub_setter(mesh_config_entry_id_t entry_id, const void * p_en
 
     if (p_publication->dst == NRF_MESH_ADDR_UNASSIGNED)
     {
-        // publish is disabled, wipe values according to Mesh Profile Specification v1.0 Section 4.4.1.2.15
+        // publish is disabled, wipe values according to @tagMeshSp section 4.4.1.2.15
         m_heartbeat_publication.count = 0;
         m_heartbeat_publication.period = 0;
         m_heartbeat_publication.ttl = 0;

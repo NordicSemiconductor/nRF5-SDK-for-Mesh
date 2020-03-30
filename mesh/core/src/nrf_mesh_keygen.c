@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -43,7 +43,7 @@
 #include <string.h>
 #include "utils.h"
 
-/* See Section 3.8.6.3.1 in Mesh Profile Specification v1.0 */
+/* See @tagMeshSp section 3.8.6.3.1 */
 typedef struct __attribute((packed))
 {
     uint8_t p0;
@@ -59,7 +59,7 @@ uint32_t nrf_mesh_keygen_aid(const uint8_t * p_appkey, uint8_t * p_aid)
     {
         return NRF_ERROR_NULL;
     }
-    /* See Section 3.8.5.2 in Mesh Profile Specification v1.0 */
+    /* See @tagMeshSp section 3.8.5.2 */
     enc_k4(p_appkey, p_aid);
     return NRF_SUCCESS;
 }
@@ -70,7 +70,7 @@ uint32_t nrf_mesh_keygen_network_secmat(const uint8_t * p_netkey, nrf_mesh_netwo
     {
         return NRF_ERROR_NULL;
     }
-    /* See Section 3.8.5.3.1 in Mesh Profile Specification v1.0 */
+    /* See @tagMeshSp section 3.8.5.3.1 */
     const uint8_t p = 0;
     enc_k2(p_netkey, &p, sizeof(p), p_secmat);
     return NRF_SUCCESS;
@@ -99,10 +99,10 @@ uint32_t nrf_mesh_keygen_beacon_secmat(const uint8_t * p_netkey, nrf_mesh_beacon
     {
         return NRF_ERROR_NULL;
     }
-    /* See Section 3.8.5.3.2 in Mesh Profile Specification v1.0 */
+    /* See @tagMeshSp section 3.8.5.3.2 */
     enc_k3(p_netkey, p_secmat->net_id);
 
-    /* See Section 3.8.5.3.4 in Mesh Profile Specification v1.0 */
+    /* See @tagMeshSp section 3.8.5.3.4 */
     const uint8_t salt_input[4] =  "nkbk";
     const uint8_t key_info[6] = "id128\x01";
     uint8_t salt[NRF_MESH_KEY_SIZE]; /**< Beacon salt used for all beacon key derivations. */
@@ -118,7 +118,7 @@ uint32_t nrf_mesh_keygen_identitykey(const uint8_t * p_netkey, uint8_t * p_key)
     {
         return NRF_ERROR_NULL;
     }
-    /* See Section 3.8.5.3.3 in Mesh Profile Specification v1.0 */
+    /* See @tagMeshSp section 3.8.5.3.3 */
     const uint8_t salt_input[4] =  "nkik";
     const uint8_t key_info[6] = "id128\x01";
     uint8_t salt[NRF_MESH_KEY_SIZE]; /**< Beacon salt used for all beacon key derivations. */
@@ -140,7 +140,7 @@ uint32_t nrf_mesh_keygen_virtual_address(const uint8_t * p_virtual_uuid, uint16_
     enc_aes_cmac(&tmp[0], p_virtual_uuid, NRF_MESH_KEY_SIZE, &tmp[0]);
 
     /* Concatenate the upper two bytes to get the 16 bit address and force the two upper bits
-     * to '0b10XXXXXX'. See Mesh Profile Specification v1.0, section 3.4.2.3 Virtual Address*/
+     * to '0b10XXXXXX'. See @tagMeshSp section 3.4.2.3 Virtual Address*/
     *p_address = ((((tmp[NRF_MESH_KEY_SIZE - 2] & 0x3F) | 0x80) << 8) | tmp[NRF_MESH_KEY_SIZE - 1]);
     return NRF_SUCCESS;
 }

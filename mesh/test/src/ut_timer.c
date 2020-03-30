@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -167,10 +167,12 @@ void test_timer_start(void)
     memset(NRF_RTC1, 0, sizeof(NRF_RTC_Type));
     timer_now_smart_mock(32);
 
-    timer_start(100, timer_normal_cb);
+    // RTC margin for timer_start is 3 which is equal to 92 us.
+    // Set something bigger than 32 us + 92 us.
+    timer_start(130, timer_normal_cb);
     TEST_ASSERT_EQUAL(RTC_EVTEN_COMPARE1_Msk, NRF_RTC1->EVTENSET);
     TEST_ASSERT_EQUAL(RTC_EVTEN_COMPARE1_Msk, NRF_RTC1->INTENSET);
-    TEST_ASSERT_EQUAL(TIMER_US_TO_TICKS(100 - 32) + NRF_RTC1->COUNTER, NRF_RTC1->CC[1]);
+    TEST_ASSERT_EQUAL(TIMER_US_TO_TICKS(130 - 32) + NRF_RTC1->COUNTER, NRF_RTC1->CC[1]);
 
     timer_now_smart_mock(TIMER_FIRED_TIMESTAMP);
 
@@ -192,12 +194,12 @@ void test_timer_start(void)
     m_is_timer_fired = false;
     timer_stop();
     memset(NRF_RTC1, 0, sizeof(NRF_RTC_Type));
-    timer_now_smart_mock(100);
+    timer_now_smart_mock(130);
 
     timer_start(32, timer_normal_cb);
     TEST_ASSERT_EQUAL(RTC_EVTEN_COMPARE1_Msk, NRF_RTC1->EVTENSET);
     TEST_ASSERT_EQUAL(RTC_EVTEN_COMPARE1_Msk, NRF_RTC1->INTENSET);
-    TEST_ASSERT_EQUAL(NRF_RTC1->COUNTER + 2, NRF_RTC1->CC[1]);
+    TEST_ASSERT_EQUAL(NRF_RTC1->COUNTER + 3, NRF_RTC1->CC[1]);
 
     timer_now_smart_mock(TIMER_FIRED_TIMESTAMP);
 
@@ -255,7 +257,7 @@ void test_timer_start(void)
     TEST_ASSERT_FALSE(m_is_timer_fired);
     TEST_ASSERT_EQUAL(RTC_EVTEN_COMPARE1_Msk, NRF_RTC1->EVTENSET);
     TEST_ASSERT_EQUAL(RTC_EVTEN_COMPARE1_Msk, NRF_RTC1->INTENSET);
-    TEST_ASSERT_EQUAL(2ul, NRF_RTC1->CC[1]);
+    TEST_ASSERT_EQUAL(3ul, NRF_RTC1->CC[1]);
 
     nrf_mesh_timer_tail_handle();
 

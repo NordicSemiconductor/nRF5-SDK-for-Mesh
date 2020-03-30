@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -48,17 +48,18 @@
 /** Variant - reserved bits  */
 #define UUID_VERSION4_VARIANT_BITS (0x02)
 
-typedef struct __attribute((packed))
-{
-    uint64_t uuid_00_59 : 60;
-    uint64_t version : 4;
+#define UUID_TIME_HI_VERSION_MSB_OFFSET     (6)
+#define UUID_FIELD_VERSION_MASK             (0xF0)
+#define UUID_FILED_VERSION_OFFSET           (4)
+#define UUID_CLOCK_SEQ_HI_VARIANT_OFFSET    (8)
+#define UUID_FIELD_VARIANT_MASK             (0xC0)
+#define UUID_FIELD_VARIANT_OFFSET           (6)
 
-    uint64_t uuid_64_67 : 4;
-    uint64_t uuid_68_69 : 2;
-    uint64_t variant : 2;
+#define VARIANT_SET(_p_uuid, _variant)  _p_uuid[UUID_CLOCK_SEQ_HI_VARIANT_OFFSET] = \
+            (_p_uuid[UUID_CLOCK_SEQ_HI_VARIANT_OFFSET] & ~UUID_FIELD_VARIANT_MASK) | (_variant<<UUID_FIELD_VARIANT_OFFSET)
 
-    uint64_t uuid_72_127 : 56;
-} uuid4_t;
+#define VERSION_SET(_p_uuid, _version)  _p_uuid[UUID_TIME_HI_VERSION_MSB_OFFSET] = \
+            (_p_uuid[UUID_TIME_HI_VERSION_MSB_OFFSET] & ~UUID_FIELD_VERSION_MASK) | (_version<<UUID_FILED_VERSION_OFFSET)
 
 /*****************************************************************************
 * Static locals
@@ -83,9 +84,8 @@ void nrf_mesh_configure_device_uuid_reset(void)
     memcpy(&m_uuid[8], (void*) &NRF_FICR->DEVICEADDR[0], 8);
 
     /* Overwrite the version and variant bits */
-    uuid4_t * p_uuid4 = (uuid4_t *) &m_uuid[0];
-    p_uuid4->version = UUID_VERSION4;
-    p_uuid4->variant = UUID_VERSION4_VARIANT_BITS;
+    VERSION_SET(m_uuid, UUID_VERSION4);
+    VARIANT_SET(m_uuid, UUID_VERSION4_VARIANT_BITS);
 
 #if defined NRF_MESH_TEST_SHIM
     nrf_mesh_test_shim(EDIT_DEVICE_UUID, m_uuid);

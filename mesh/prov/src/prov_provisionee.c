@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -384,7 +384,7 @@ static void prov_provisionee_pkt_in(prov_bearer_t * p_bearer, const uint8_t * p_
 
     if (!prov_packet_length_valid(p_buffer, length) || pdu_type >= PROV_PDU_TYPE_INVALID)
     {
-        send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_INVALID_PDU);
+        send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT);
         return;
     }
     else if (!prov_utils_is_valid_pdu(p_ctx->role, p_ctx->state, pdu_type))

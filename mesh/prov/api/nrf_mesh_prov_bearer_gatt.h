@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -45,7 +45,7 @@
 #include "bearer_event.h"
 
 /**
- * @defgroup NRF_MESH_PROV_BEARER_GATT Provisioning over GATT Bearer (PB-GATT) (experimental)
+ * @defgroup NRF_MESH_PROV_BEARER_GATT Provisioning over GATT Bearer (PB-GATT)
  * @ingroup NRF_MESH_PROV_BEARER
  * @{
  *
@@ -58,7 +58,7 @@
  * SoftDevice after the provisioning has successfully completed.
  *
  * @note The GATT connection should support an MTU of 69 bytes or more when PB-GATT is used, ref.
- * Mesh Profile specification, section 7.1.2.2.2.
+ * @tagMeshSp section 7.1.2.2.2.
  */
 
 /**

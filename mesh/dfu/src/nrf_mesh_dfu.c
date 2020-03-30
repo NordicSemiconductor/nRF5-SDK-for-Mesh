@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -71,9 +71,6 @@ NRF_MESH_STATIC_ASSERT(NRF_MESH_DFU_ROLE__LAST      <= UINT8_MAX);
 #define DFU_TX_INTERVAL_REGULAR_SLOW_US     (10000000)  /**< Time between transmits for slow regular transmits. */
 #define DFU_TX_DELAY_RANDOMIZATION_MASK_US  (0xFFFF)    /**< Maximum variation in TX time offsets. */
 #define DFU_TX_TIMER_MARGIN_US              (1000)      /**< Time margin for a timeout to be considered instant. */
-
-#define TIMER_START_TIMEOUT_US              (600000000)  /**< Time to wait for first data during a transfer. */
-#define TIMER_DATA_TIMEOUT_US               (600000000)  /**< Time to wait for next data during a transfer. */
 /*****************************************************************************
 * Local typedefs
 *****************************************************************************/
@@ -149,6 +146,7 @@ static void reset_transfer_state(void)
 
 static void end_transfer(nrf_mesh_dfu_end_t end_reason)
 {
+    nrf_mesh_dfu_state_t old_state = m_transfer_state.state;
     nrf_mesh_evt_t evt;
     evt.type = NRF_MESH_EVT_DFU_END;
     evt.params.dfu.end.transfer.dfu_type = m_transfer_state.type;
@@ -157,6 +155,18 @@ static void end_transfer(nrf_mesh_dfu_end_t end_reason)
     evt.params.dfu.end.end_reason = end_reason;
     reset_transfer_state();
     event_handle(&evt);
+
+    if (old_state == NRF_MESH_DFU_STATE_RELAY ||
+        old_state == NRF_MESH_DFU_STATE_RELAY_CANDIDATE ||
+        end_reason != NRF_MESH_DFU_END_SUCCESS)
+    {
+        /**
+         * After relaying the firmware is finished or the DFU process is failed,
+         * the DFU module needs to be restarted so that it has the same state
+         * as the application-side DFU module.
+         */
+        NRF_MESH_ERROR_CHECK(nrf_mesh_dfu_enable());
+    }
 }
 
 static inline bool tx_slot_in_use(dfu_tx_t* p_tx)
@@ -461,15 +471,18 @@ static uint32_t dfu_evt_handler(const bl_evt_t* p_evt)
                 evt.params.dfu.start.role = p_evt->params.dfu.start.role;
                 event_handle(&evt);
                 m_timer_evt.cb = abort_timeout;
-                timer_sch_reschedule(&m_timer_evt, timer_now() + TIMER_START_TIMEOUT_US);
+                timer_sch_reschedule(&m_timer_evt, timer_now() + NRF_MESH_DFU_DATA_TRANSFER_TIMEOUT_US);
             }
             break;
 
         case BL_EVT_TYPE_DFU_DATA_SEGMENT_RX:
+            __LOG(LOG_SRC_DFU, LOG_LEVEL_INFO, "\tDFU segment rx: %d/%d\n",
+                  p_evt->params.dfu.data_segment.received_segment,
+                  p_evt->params.dfu.data_segment.total_segments);
             m_transfer_state.segment_count++;
             m_transfer_state.total_segments = p_evt->params.dfu.data_segment.total_segments;
             m_timer_evt.cb = abort_timeout;
-            timer_sch_reschedule(&m_timer_evt, timer_now() + TIMER_DATA_TIMEOUT_US);
+            timer_sch_reschedule(&m_timer_evt, timer_now() + NRF_MESH_DFU_DATA_TRANSFER_TIMEOUT_US);
             break;
 
         case BL_EVT_TYPE_DFU_END:
@@ -813,7 +826,7 @@ uint32_t nrf_mesh_dfu_request(nrf_mesh_dfu_type_t type,
         m_transfer_state.segment_count = 0;
         m_transfer_state.total_segments = 0;
         m_timer_evt.cb = abort_timeout;
-        timer_sch_reschedule(&m_tx_timer_evt, timer_now() + NRF_MESH_DFU_REQ_TIMEOUT_US);
+        timer_sch_reschedule(&m_timer_evt, timer_now() + NRF_MESH_DFU_REQ_TIMEOUT_US);
     }
     return error_code;
 }
@@ -843,6 +856,8 @@ uint32_t nrf_mesh_dfu_relay(nrf_mesh_dfu_type_t type,
         m_transfer_state.state = NRF_MESH_DFU_STATE_RELAY_CANDIDATE;
         m_transfer_state.segment_count = 0;
         m_transfer_state.total_segments = 0;
+        m_timer_evt.cb = abort_timeout;
+        timer_sch_reschedule(&m_timer_evt, timer_now() + NRF_MESH_DFU_RELAY_TIMEOUT_US);
     }
     return error_code;
 }

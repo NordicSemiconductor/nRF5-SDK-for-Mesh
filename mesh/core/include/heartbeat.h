@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -53,8 +53,7 @@
  *
  * The Heartbeat module provides functionality for sending and receiving heartbeat messages.
  * Configuration of this module is controlled by two states: the Heartbeat
- * Publication state and the Heartbeat Subscription state, defined in the Mesh Profile
- * Specification v1.0.
+ * Publication state and the Heartbeat Subscription state, defined in the @tagMeshSp.
  *
  * The Heartbeat Publication state is contained within the Config Server module, and Heartbeat Subscription state
  * is part of the Heartbeat module.

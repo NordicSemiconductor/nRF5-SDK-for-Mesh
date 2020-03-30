@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -52,11 +52,21 @@
 #include "app_util.h"
 #include "nrf_mesh_serial.h"
 
+/*****************************************************************************
+ * Definitions
+ *****************************************************************************/
 #define LEDS_MASK_DFU_RUNNING   (BSP_LED_0_MASK | BSP_LED_2_MASK)
 #define LEDS_MASK_DFU_ENDED     (BSP_LED_0_MASK | BSP_LED_1_MASK)
 
-#define STATIC_AUTH_DATA {0x6E, 0x6F, 0x72, 0x64, 0x69, 0x63, 0x5F, 0x65, 0x78, 0x61, 0x6D, 0x70, 0x6C, 0x65, 0x5F, 0x31}
 
+/*****************************************************************************
+ * Forward declaration of static functions
+ *****************************************************************************/
+
+
+/*****************************************************************************
+ * Static variables
+ *****************************************************************************/
 static nrf_mesh_evt_handler_t m_evt_handler;
 static bool m_device_provisioned;
 
@@ -115,8 +125,25 @@ static void mesh_evt_handler(const nrf_mesh_evt_t* p_evt)
             }
             else
             {
-                ERROR_CHECK(nrf_mesh_dfu_relay(p_evt->params.dfu.fw_outdated.transfer.dfu_type,
-                                               &p_evt->params.dfu.fw_outdated.transfer.id));
+                /**
+                 * While preparing for the start of the DFU process, the DFU module
+                 * will notify about any other ongoing DFU transfers by sending
+                 * @ref NRF_MESH_EVT_DFU_FIRMWARE_OUTDATED_NO_AUTH or
+                 * @ref NRF_MESH_EVT_DFU_FIRMWARE_OUTDATED.
+                 *
+                 * Check the current DFU state to avoid reverting the target state
+                 * to the relay state.
+                 */
+                nrf_mesh_dfu_transfer_state_t state;
+                uint32_t error_code = nrf_mesh_dfu_state_get(&state);
+                if (error_code == NRF_SUCCESS && (state.state == NRF_MESH_DFU_STATE_INITIALIZED ||
+                                                  state.state == NRF_MESH_DFU_STATE_FIND_FWID ||
+                                                  state.state == NRF_MESH_DFU_STATE_RELAY_CANDIDATE ||
+                                                  state.state == NRF_MESH_DFU_STATE_RELAY))
+                {
+                    ERROR_CHECK(nrf_mesh_dfu_relay(p_evt->params.dfu.fw_outdated.transfer.dfu_type,
+                                                    &p_evt->params.dfu.fw_outdated.transfer.id));
+                }
             }
             break;
 
@@ -170,6 +197,7 @@ static void mesh_init(void)
     {
         case NRF_ERROR_INVALID_DATA:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
+			__LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before start provisioning.\n");
             break;
         case NRF_SUCCESS:
             break;

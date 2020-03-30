@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -91,7 +91,7 @@
 /** Maximum TTL value. */
 #define NRF_MESH_TTL_MAX ((1 << NRF_MESH_TTL_BIT_COUNT) - 1)
 
-/** Maximum global key index allowed, according to Mesh Profile Specification v1.0 section 3.8.6.4. */
+/** Maximum global key index allowed, according to @tagMeshSp section 3.8.6.4. */
 #define NRF_MESH_GLOBAL_KEY_INDEX_MAX  (0xFFF)
 
 /** Interval for secure network broadcast beacons, in seconds. */
@@ -215,13 +215,13 @@
 /** TX timeout upper limit. */
 #define TRANSPORT_SAR_TX_TIMEOUT_MAX                            MS_TO_US(60000)
 
-/** TX retries lower limit (Mesh Profile Specification v1.0, section 3.5.3.3) */
+/** TX retries lower limit (@tagMeshSp section 3.5.3.3) */
 #define TRANSPORT_SAR_TX_RETRIES_MIN                            (2)
 /** TX retries upper limit (UINT8_MAX). */
 #define TRANSPORT_SAR_TX_RETRIES_MAX                            (255)
 
-/** Maximum difference in sequence numbers between two SAR segments of the same session (Mesh
- * specification v1.0 section 3.5.3.1) */
+/** Maximum difference in sequence numbers between two SAR segments of the same session
+ * (@tagMeshSp section 3.5.3.1) */
 #define TRANSPORT_SAR_SEQNUM_DIFF_MAX                           (8191)
 
 /** @} end of MESH_DEFINES_TRANSPORT */

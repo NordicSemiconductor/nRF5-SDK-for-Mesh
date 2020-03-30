@@ -235,10 +235,15 @@ TAB_SIZE               = 4
 ALIASES               = \
 link_BluetoothSIG="<a href=\"http://www.bluetooth.org/\" target=\"_blank\">Bluetooth SIG</a>" \
 link_companyID="<a href=\"https://www.bluetooth.com/specifications/assigned-numbers/company-identifiers\" target=\"_blank\">Company ID assigned by Bluetooth SIG</a>" \
+link_btsig_glossary="Check the <a href=\"https://www.bluetooth.com/bluetooth-technology/topology-options/le-mesh/mesh-glossary\" target=\"_blank\">official Bluetooth Mesh glossary</a> for definitions of the most important Mesh-related terms used in this documentation" \
 link_btsig_intro="<a href=\"https://blog.bluetooth.com/introducing-bluetooth-mesh-networking\" target=\"_blank\">Bluetooth SIG's introduction to Bluetooth Mesh</a>" \
 link_btsig_spec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications?_ga=2.18257471.723078495.1501226603-93769939.1480503530\" target=\"_blank\">Bluetooth Mesh Networking Specifications</a>" \
 link_MeshSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\" target=\"_blank\">Mesh Profile Specification</a>" \
 link_ModelSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\" target=\"_blank\">Mesh Model Specification</a>" \
+link_MeshDeviceProperties="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\" target=\"_blank\">Mesh Device Properties</a>" \
+link_ModelOverview="<a href=\"https://www.bluetooth.com/wp-content/uploads/2019/04/1903_Mesh-Models-Overview_FINAL.pdf\" target=\"_blank\">Mesh Model Overview</a>" \
+link_MeshProperties="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications/mesh-properties\" target=\"_blank\">Mesh Device Properties XML</a>" \
+link_MeshCharacteristics="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications/mesh-characteristics\" target=\"_blank\">Mesh Characteristics XML</a>" \
 
 # Nordic (non-Mesh)
 ALIASES               += \
@@ -264,7 +269,6 @@ link_seggerstudio="<a href=\"https://www.segger.com/products/development-tools/e
 link_seggerstudio_macros="<a href=\"https://studio.segger.com/ide_project_macros.htm \" target=\"_blank\">SES Project macros</a>" \
 link_armnone="<a href=\"https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads\" target=\"_blank\">arm-none-eabi-gcc</a>" \
 link_armnone_extended="<a href="https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads\" target="_blank">GNU ARM Embedded Toolchain</a>" \
-link_armnone_q4major_bug="<a href="https://bugs.launchpad.net/gcc-arm-embedded/+bug/1810274\" target="_blank">a bug that breaks the CMake building process on Windows</a>" \
 link_armcc="<a href=\"https://developer.arm.com/products/software-development-tools/compilers/arm-compiler/downloads/version-5\" target=\"_blank\">armcc v5</a>" \
 link_keil="<a href=\"http://www2.keil.com/mdk5/compiler/5/\" target=\"_blank\">Keil</a>" \
 link_keil_extended="<a href="http://www2.keil.com/mdk5/compiler/5/\" target="_blank">ARM Compiler Version 5</a>" \
@@ -311,29 +315,23 @@ link_zephyr_apache_license="<a href="https://github.com/zephyrproject-rtos/zephy
 link_zephyr_licensing="<a href="https://docs.zephyrproject.org/latest/LICENSING.html" target="_blank">Licensing of Zephyr Project components</a>" \
 
 ## Internal documentation links (within Infocenter)
-# Links to the documentation library must omit the "https://infocenter.nordicsemi.com" part and replace it with "..".
+# Links to the documentation library must omit the "https://infocenter.nordicsemi.com/topic" part and replace it with "..". The only exception are PDFs (see below).
 ALIASES               += \
-link_nrf5xclt_download="<a href="../ug_nrf5x_cltools/UG/cltools/nrf5x_installation.html" target="_blank">nRF5x Command Line Tools</a>" \
-link_ic_SDtimeslotAPI="[SoftDevice Timeslot API](../sds_s132/SDS/s1xx/concurrent_multiprotocol_tsl_api/concurrent_multiprotocol_tsl_api.html)" \
 link_ic_nRF51PS="<a href="https://infocenter.nordicsemi.com/pdf/nRF51822_PS_v3.3.pdf" target="_blank">nRF51</a>" \
 link_ic_nRF52832PS="<a href="https://infocenter.nordicsemi.com/pdf/nRF52832_PS_v1.4.pdf" target="_blank">nRF52832</a>" \
 link_52832_PPI="<a href="https://infocenter.nordicsemi.com/pdf/nRF52832_PS_v1.4.pdf" target="_blank">nRF52832 PPI</a>" \
 link_52832_GPIOTE="<a href="https://infocenter.nordicsemi.com/pdf/nRF52832_PS_v1.4.pdf" target="_blank">nRF52832 GPIOTE</a>" \
+
+# Infocenter: nRF5 SDK
+ALIASES               += \
 link_app_timer="[App timer](../sdk_nrf5_v16.0.0/lib_timer.html)" \
 link_app_timer_group="[App timer](../sdk_nrf5_v16.0.0/group__app__timer.html)" \
 link_app_irq_priority_lowest="[APP_IRQ_PRIORITY_LOWEST](../sdk_nrf5_v16.0.0/group__app__util__platform.html)" \
 link_app_irq_priority_low="[APP_IRQ_PRIORITY_LOW](../sdk_nrf5_v16.0.0/group__app__util__platform.html)" \
 link_section_vars="[Section variables](../sdk_nrf5_v16.0.0/lib_section_vars.html)" \
-link_SoftDevice_NVIC="[SoftDevice NVIC APIs](../com.nordic.infocenter.s132.api.v7.0.1/group__nrf__nvic__api.html)" \
-link_softdevice_id="[SoftDevice identifier](../sds_s132/SDS/s1xx/sd_info_structure/sd_info_structure.html)" \
-link_sd_nvic_criticial_region_enter="[sd_nvic_critical_region_enter()](../com.nordic.infocenter.s132.api.v7.0.1/group___n_r_f___n_v_i_c___f_u_n_c_t_i_o_n_s.html#gac3d990530890d81f388de7d507e170b8)" \
-link_sd_nvic_criticial_region_exit="[sd_nvic_critical_region_exit()](../com.nordic.infocenter.s132.api.v7.0.1/group___n_r_f___n_v_i_c___f_u_n_c_t_i_o_n_s.html#ga7bcafdd2cd546560174d688fdbeda7dd)" \
-link_SD_Handler="[SoftDevice Handler](../sdk_nrf5_v16.0.0/group__nrf__sdh.html)" \
-link_BLE_stack="[BLE stack](../sdk_nrf5_v16.0.0/group__nrf__sdh__ble.html)" \
-link_GAP="[Generic Access Profile (GAP)](../com.nordic.infocenter.s132.api.v7.0.1/group___b_l_e___g_a_p.html)" \
 link_BLE_CPN="[Connection Parameters Negotiation](../sdk_nrf5_v16.0.0/group__ble__conn__params.html)" \
-link_ble_app_proximity_example="[ble_app_proximity](../sdk_nrf5_v16.0.0/ble_sdk_app_proximity.html)" \
-link_ble_app_uart_example="[ble_app_uart](../sdk_nrf5_v16.0.0/ble_sdk_app_nus_eval.html)" \
+link_ble_app_proximity_example="[Proximity Application](../sdk_nrf5_v16.0.0/ble_sdk_app_proximity.html)" \
+link_ble_app_uart_example="[UART/Serial Port Emulation over BLE](../sdk_nrf5_v16.0.0/ble_sdk_app_nus_eval.html)" \
 link_buttonless_secure_dfu_service="[Buttonless Secure DFU Service](../sdk_nrf5_v16.0.0/service_dfu.html)" \
 link_bootloader_and_dfu_modules="[nRF5 SDK Bootloader and DFU modules](../sdk_nrf5_v16.0.0/lib_bootloader_modules.html)" \
 link_working_with_keys="[Working with keys](../sdk_nrf5_v16.0.0/lib_bootloader_dfu_keys.html)" \
@@ -341,14 +339,35 @@ link_bootloader_signature_verification="[Signature Verification](../sdk_nrf5_v16
 link_secure_bootloader="[Secure Bootloader example](../sdk_nrf5_v16.0.0/ble_sdk_app_dfu_bootloader.html)" \
 link_bootloader_settings_page="[Bootloader Settings page](../sdk_nrf5_v16.0.0/lib_bootloader.html#lib_bootloader_settings_page)" \
 link_programming_bootloader="[Programming the bootloader](../sdk_nrf5_v16.0.0/lib_bootloader.html#lib_bootloader_programming)" \
-link_micro_ecc="[micro-ecc](../sdk_nrf5_v16.0.0/lib_crypto_backend_micro_ecc.html#lib_crypto_backend_micro_ecc_install)" \
+link_micro_ecc="[micro-ecc](../sdk_nrf5_v16.0.0/lib_crypto_backend_micro_ecc.html)" \
+link_micro_ecc_install="[Installing micro-ecc](../sdk_nrf5_v16.0.0/lib_crypto_backend_micro_ecc.html#lib_crypto_backend_micro_ecc_install)" \
+link_SD_Handler="[SoftDevice Handler](../sdk_nrf5_v16.0.0/group__nrf__sdh.html)" \
+link_BLE_stack="[BLE stack](../sdk_nrf5_v16.0.0/group__nrf__sdh__ble.html)" \
+link_app_data_area_size="[NRF_DFU_APP_DATA_AREA_SIZE](../sdk_nrf5_v16.0.0/group__nrf__dfu__config.html#gafeca0997c1671ecd32a25d6c17b16af3)" \
+link_SDK_configuration_header_file="[SDK configuration header file](../sdk_nrf5_v16.0.0/sdk_config.html)" \
+link_APP_PWM="[APP_PWM](../sdk_nrf5_v16.0.0/group__app__pwm.html)" \
+link_APP_PWM_INSTANCE="[APP_PWM_INSTANCE](../sdk_nrf5_v16.0.0/group__app__pwm.html#gaf01d3e06e17705a7453d91c70d40098f)" \
+link_app_pwm_config_t="[app_pwm_config_t](../sdk_nrf5_v16.0.0/structapp__pwm__config__t.html)" \
+
+# Infocenter: SoftDevices
+ALIASES               += \
+link_ic_SDtimeslotAPI="[SoftDevice Timeslot API](../sds_s132/SDS/s1xx/concurrent_multiprotocol_tsl_api/concurrent_multiprotocol_tsl_api.html)" \
+link_softdevice_id="[SoftDevice identifier](../sds_s132/SDS/s1xx/sd_info_structure/sd_info_structure.html)" \
+link_sd_nvic_criticial_region_enter="[sd_nvic_critical_region_enter()](../com.nordic.infocenter.s132.api.v7.0.1/group___n_r_f___n_v_i_c___f_u_n_c_t_i_o_n_s.html#gac3d990530890d81f388de7d507e170b8)" \
+link_sd_nvic_criticial_region_exit="[sd_nvic_critical_region_exit()](../com.nordic.infocenter.s132.api.v7.0.1/group___n_r_f___n_v_i_c___f_u_n_c_t_i_o_n_s.html#ga7bcafdd2cd546560174d688fdbeda7dd)" \
+link_SoftDevice_NVIC="[SoftDevice NVIC APIs](../com.nordic.infocenter.s132.api.v7.0.1/group__nrf__nvic__api.html)" \
+link_GAP="[Generic Access Profile (GAP)](../com.nordic.infocenter.s132.api.v7.0.1/group___b_l_e___g_a_p.html)" \
+link_ble_opt_t="[ble_opt_t](../com.nordic.infocenter.s132.api.v7.0.1/unionble__opt__t.html)" \
+link_sd_ble_opt_set="[sd_ble_opt_set](../com.nordic.infocenter.s132.api.v7.0.1/group___b_l_e___c_o_m_m_o_n___f_u_n_c_t_i_o_n_s.html#ga511d431bc3d9ccf9bef09ad20cbf855a)" \
+
+# Infocenter: Tools
+ALIASES               += \
 link_ic_nrfutil="[nrfutil](../ug_nrfutil/UG/nrfutil/nrfutil_intro.html)" \
 link_nrfutil_installing="[Installing nrfutil](../ug_nrfutil/UG/nrfutil/nrfutil_installing.html)" \
 link_nrfutil_bootloader_settings="[Generating and displaying bootloader settings](../ug_nrfutil/UG/nrfutil/nrfutil_settings_generate_display.html)" \
 link_nrfutil_generating_dfu_packages="[Generating DFU packages with nrfutil](../ug_nrfutil/UG/nrfutil/nrfutil_pkg.html)" \
 link_nrf_command_line_tools="[nRF5x Command Line Tools](../ug_nrf5x_cltools/UG/cltools/nrf5x_command_line_tools_lpage.html)" \
-link_app_data_area_size="[NRF_DFU_APP_DATA_AREA_SIZE](../sdk_nrf5_v16.0.0/group__nrf__dfu__config.html#gafeca0997c1671ecd32a25d6c17b16af3)" \
-link_SDK_configuration_header_file="[SDK configuration header file](../sdk_nrf5_v16.0.0/sdk_config.html)" \
+link_nrf5xclt_download="<a href="../ug_nrf5x_cltools/UG/cltools/nrf5x_installation.html" target="_blank">nRF5x Command Line Tools</a>" \
 
 ## Other aliases
 # This section contains aliases that are not links to external or Nordic web pages.
@@ -356,6 +375,8 @@ ALIASES               += \
 tagGreenTick="@htmlonly<CENTER><font color=\"green\">✔</font></CENTER>@endhtmlonly" \
 tagRedCross="@htmlonly<CENTER><font color=\"red\">✖</font></CENTER>@endhtmlonly" \
 tag52810nosupport="<div class=\"whichnRF nRF52\"><span>This example is <b>not</b> supported by the <b>nRF52810</b> SoC.</span></div>" \
+tagMeshSp="Mesh Profile Specification (MshPRFv1.0.1)" \
+tagMeshMdlSp="Mesh Model Specification (MshMDLv1.0.1)" \
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"
@@ -910,7 +931,7 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/mesh/dfu/api" \
 "@PROJECT_SOURCE_DIR@/mesh/stack/api" \
 "@PROJECT_SOURCE_DIR@/mesh/friend/api" \
-"@PROJECT_SOURCE_DIR@/models/experimental/pb_remote/include" \
+"@PROJECT_SOURCE_DIR@/models/proprietary/pb_remote/include" \
 "@PROJECT_SOURCE_DIR@/models/foundation/config/include" \
 "@PROJECT_SOURCE_DIR@/models/foundation/health/include" \
 "@PROJECT_SOURCE_DIR@/models/vendor/simple_on_off/include" \
@@ -919,6 +940,9 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/models/model_spec/generic_onoff/include" \
 "@PROJECT_SOURCE_DIR@/models/model_spec/generic_level/include" \
 "@PROJECT_SOURCE_DIR@/models/model_spec/generic_ponoff/include" \
+"@PROJECT_SOURCE_DIR@/models/model_spec/light_lightness/include" \
+"@PROJECT_SOURCE_DIR@/models/model_spec/light_lc/include" \
+"@PROJECT_SOURCE_DIR@/models/model_spec/light_ctl/include" \
 "@PROJECT_SOURCE_DIR@/models/vendor/rssi_monitor/include" \
 "@PROJECT_SOURCE_DIR@/models/vendor/rssi_monitor/README.md" \
 "@PROJECT_SOURCE_DIR@/models/vendor/rssi_monitor/doc" \
@@ -930,10 +954,9 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/mesh/doc" \
 "@PROJECT_SOURCE_DIR@/doc" \
 "@PROJECT_SOURCE_DIR@/doc/doxygen" \
-"@PROJECT_SOURCE_DIR@/doc/introduction" \
 "@PROJECT_SOURCE_DIR@/doc/getting_started" \
-"@PROJECT_SOURCE_DIR@/doc/libraries" \
-"@PROJECT_SOURCE_DIR@/doc/libraries/dfu" \
+"@PROJECT_SOURCE_DIR@/doc/user_guide" \
+"@PROJECT_SOURCE_DIR@/doc/user_guide/modules" \
 "@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/README.md" \
 "@PROJECT_SOURCE_DIR@/scripts/README.md" \
 "@PROJECT_SOURCE_DIR@/scripts/interactive_pyaci/doc/demo_loopback.md" \
@@ -944,10 +967,10 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/examples/light_switch/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/light_switch/client/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/light_switch/server/README.md" \
-"@PROJECT_SOURCE_DIR@/examples/light_switch/provisioner/README.md" \
-"@PROJECT_SOURCE_DIR@/examples/experimental_dimming/README.md" \
-"@PROJECT_SOURCE_DIR@/examples/experimental_lpn/README.md" \
-"@PROJECT_SOURCE_DIR@/examples/experimental_lpn/dfu_ble.md" \
+"@PROJECT_SOURCE_DIR@/examples/provisioner/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/dimming/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/lpn/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/lpn/dfu_ble.md" \
 "@PROJECT_SOURCE_DIR@/examples/enocean_switch/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/dfu/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/serial/README.md" \
@@ -956,7 +979,9 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/examples/sdk_coexist/ble_app_proximity_coexist/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/sdk_coexist/ble_app_uart_coexist/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/README.md" \
-"@PROJECT_SOURCE_DIR@/examples/experimental_examples.md" \
+"@PROJECT_SOURCE_DIR@/examples/light_lightness/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/light_lc/server/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/light_ctl/README.md" \
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -1045,17 +1070,9 @@ EXAMPLE_RECURSIVE      = NO
 # \image command).
 
 IMAGE_PATH             = "@PROJECT_SOURCE_DIR@/mesh/doc" \
-                         "@PROJECT_SOURCE_DIR@/models/experimental/pb_remote/doc" \
+                         "@PROJECT_SOURCE_DIR@/models/proprietary/pb_remote/doc" \
                          "@PROJECT_SOURCE_DIR@/models/vendor/rssi_monitor/doc/img" \
-                         "@PROJECT_SOURCE_DIR@/examples/light_switch/img" \
-                         "@PROJECT_SOURCE_DIR@/examples/light_switch/client/img" \
-                         "@PROJECT_SOURCE_DIR@/examples/light_switch/server/img" \
-                         "@PROJECT_SOURCE_DIR@/examples/light_switch/provisioner/img" \
-                         "@PROJECT_SOURCE_DIR@/examples/enocean_switch/img" \
-                         "@PROJECT_SOURCE_DIR@/doc/getting_started/img" \
-                         "@PROJECT_SOURCE_DIR@/doc/introduction/img" \
-                         "@PROJECT_SOURCE_DIR@/doc/libraries/img" \
-                         "@PROJECT_SOURCE_DIR@/doc/libraries/dfu/img"
+                         "@PROJECT_SOURCE_DIR@/doc/images" \
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
@@ -2487,7 +2504,7 @@ DOT_PATH               =
 
 DOTFILE_DIRS           = "@PROJECT_SOURCE_DIR@/mesh/doc" \
                          "@PROJECT_SOURCE_DIR@/mesh/doc/access" \
-                         "@PROJECT_SOURCE_DIR@/models/experimental/pb_remote/doc"
+                         "@PROJECT_SOURCE_DIR@/models/proprietary/pb_remote/doc"
 
 # The MSCFILE_DIRS tag can be used to specify one or more directories that
 # contain msc files that are included in the documentation (see the \mscfile
@@ -2495,7 +2512,7 @@ DOTFILE_DIRS           = "@PROJECT_SOURCE_DIR@/mesh/doc" \
 
 MSCFILE_DIRS           = "@PROJECT_SOURCE_DIR@/mesh/doc" \
                          "@PROJECT_SOURCE_DIR@/mesh/doc/access" \
-                         "@PROJECT_SOURCE_DIR@/models/experimental/pb_remote/doc"
+                         "@PROJECT_SOURCE_DIR@/models/proprietary/pb_remote/doc"
 
 # The DIAFILE_DIRS tag can be used to specify one or more directories that
 # contain dia files that are included in the documentation (see the \diafile

@@ -1,5 +1,4 @@
-/**
- * Copyright (c) 2014 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2014 - 2020, Nordic Semiconductor ASA
  *
  * All rights reserved.
  *
@@ -66,9 +65,11 @@
 /* Example specific includes */
 #include "app_config.h"
 #include "nrf_mesh_config_examples.h"
-#include "light_switch_example_common.h"
 #include "example_common.h"
 
+/*****************************************************************************
+ * Definitions
+ *****************************************************************************/
 #define APP_STATE_OFF                (0)
 #define APP_STATE_ON                 (1)
 
@@ -76,10 +77,19 @@
 
 #define MESH_SOC_OBSERVER_PRIO  0
 
-static generic_onoff_client_t m_clients[CLIENT_MODEL_INSTANCE_COUNT];
-static bool                   m_device_provisioned;
+/* Controls if the model instance should force all mesh messages to be segmented messages. */
+#define APP_FORCE_SEGMENTATION          (false)
+/* Controls the MIC size used by the model instance for sending the mesh messages. */
+#define APP_MIC_SIZE                    (NRF_MESH_TRANSMIC_SIZE_SMALL)
+/* Delay value used by the OnOff client for sending OnOff Set messages. */
+#define APP_ONOFF_DELAY_MS              (50)
+/* Transition time value used by the OnOff client for sending OnOff Set messages. */
+#define APP_ONOFF_TRANSITION_TIME_MS    (100)
 
-/* Forward declaration */
+
+/*****************************************************************************
+ * Forward declaration of static functions
+ *****************************************************************************/
 static void app_gen_onoff_client_publish_interval_cb(access_model_handle_t handle, void * p_self);
 static void app_generic_onoff_client_status_cb(const generic_onoff_client_t * p_self,
                                                const access_message_rx_meta_t * p_meta,
@@ -87,6 +97,13 @@ static void app_generic_onoff_client_status_cb(const generic_onoff_client_t * p_
 static void app_gen_onoff_client_transaction_status_cb(access_model_handle_t model_handle,
                                                        void * p_args,
                                                        access_reliable_status_t status);
+
+
+/*****************************************************************************
+ * Static variables
+ *****************************************************************************/
+static generic_onoff_client_t m_clients[CLIENT_MODEL_INSTANCE_COUNT];
+static bool                   m_device_provisioned;
 
 const generic_onoff_client_callbacks_t client_cbs =
 {
@@ -102,13 +119,18 @@ static void mesh_soc_evt_handler(uint32_t evt_id, void * p_context)
 
 NRF_SDH_SOC_OBSERVER(m_mesh_soc_observer, MESH_SOC_OBSERVER_PRIO, mesh_soc_evt_handler, NULL);
 
+static void unicast_address_print(void)
+{
+    dsm_local_unicast_address_t node_address;
+    dsm_local_unicast_addresses_get(&node_address);
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
+}
+
 static void provisioning_complete_cb(void)
 {
     NRF_LOG_INFO("Successfully provisioned\n");
 
-    dsm_local_unicast_address_t node_address;
-    dsm_local_unicast_addresses_get(&node_address);
-    NRF_LOG_INFO("Node Address: 0x%04x \n", node_address.address_start);
+    unicast_address_print();
 }
 
 /* This callback is called periodically if model is configured for periodic publishing */
@@ -179,6 +201,8 @@ static void config_server_evt_cb(const config_server_evt_t * p_evt)
 
 void mesh_main_button_event_handler(uint32_t button_number)
 {
+    /* Increase button number because the buttons on the board is marked with 1 to 4 */
+    button_number++;
     NRF_LOG_INFO("Button %u pressed\n", button_number);
 
     uint32_t status = NRF_SUCCESS;
@@ -187,39 +211,39 @@ void mesh_main_button_event_handler(uint32_t button_number)
     static uint8_t tid = 0;
 
     /* Button 1: On, Button 2: Off, Client[0]
-     * Button 2: On, Button 3: Off, Client[1]
+     * Button 3: On, Button 4: Off, Client[1]
      */
 
     switch(button_number)
     {
-        case 0:
-        case 2:
+        case 1:
+        case 3:
             set_params.on_off = APP_STATE_ON;
             break;
 
-        case 1:
-        case 3:
+        case 2:
+        case 4:
             set_params.on_off = APP_STATE_OFF;
             break;
     }
 
     set_params.tid = tid++;
-    transition_params.delay_ms = APP_CONFIG_ONOFF_DELAY_MS;
-    transition_params.transition_time_ms = APP_CONFIG_ONOFF_TRANSITION_TIME_MS;
+    transition_params.delay_ms = APP_ONOFF_DELAY_MS;
+    transition_params.transition_time_ms = APP_ONOFF_TRANSITION_TIME_MS;
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Sending msg: ONOFF SET %d\n", set_params.on_off);
 
     switch (button_number)
     {
-        case 0:
         case 1:
+        case 2:
             /* Demonstrate acknowledged transaction, using 1st client model instance */
             /* In this examples, users will not be blocked if the model is busy */
             (void)access_model_reliable_cancel(m_clients[0].model_handle);
             status = generic_onoff_client_set(&m_clients[0], &set_params, &transition_params);
             break;
 
-        case 2:
         case 3:
+        case 4:
             /* Demonstrate un-acknowledged transaction, using 2nd client model instance */
             status = generic_onoff_client_set_unack(&m_clients[1], &set_params,
                                                     &transition_params, APP_UNACK_MSG_REPEAT_COUNT);
@@ -262,8 +286,8 @@ static void models_init_cb(void)
     {
         m_clients[i].settings.p_callbacks = &client_cbs;
         m_clients[i].settings.timeout = 0;
-        m_clients[i].settings.force_segmented = APP_CONFIG_FORCE_SEGMENTATION;
-        m_clients[i].settings.transmic_size = APP_CONFIG_MIC_SIZE;
+        m_clients[i].settings.force_segmented = APP_FORCE_SEGMENTATION;
+        m_clients[i].settings.transmic_size = APP_MIC_SIZE;
 
         ERROR_CHECK(generic_onoff_client_init(&m_clients[i], i + 1));
     }
@@ -285,6 +309,7 @@ void mesh_init(void)
     {
         case NRF_ERROR_INVALID_DATA:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
+			__LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before start provisioning.\n");
             break;
         case NRF_SUCCESS:
             break;
@@ -315,6 +340,10 @@ void mesh_main_start(void)
             .p_device_uri = EX_URI_LS_CLIENT
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
+    }
+    else
+    {
+        unicast_address_print();
     }
 
     const uint8_t *p_uuid = nrf_mesh_configure_device_uuid_get();

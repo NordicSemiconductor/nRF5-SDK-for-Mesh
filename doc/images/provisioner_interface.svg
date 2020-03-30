@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="1394px" preserveAspectRatio="none" style="width:1017px;height:1394px;" version="1.1" viewBox="0 0 1017 1394" width="1017px" zoomAndPan="magnify">
+    <defs>
+        <filter height="300%" id="f4p9lz9q0vhwn" width="300%" x="-1" y="-1">
+            <feGaussianBlur result="blurOut" stdDeviation="2.0"/>
+            <feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/>
+            <feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/>
+            <feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/>
+        </filter>
+    </defs>
+    <g>
+        <rect fill="#FFFFFF" height="1379.4531" style="stroke: #A80036; stroke-width: 1.0;" width="376" x="130" y="4"/>
+        <text fill="#000000" font-family="Arial" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="83" x="276.5" y="16.0669">Application</text>
+        <rect fill="#DDDDDD" height="1379.4531" style="stroke: #A80036; stroke-width: 1.0;" width="150" x="856" y="4"/>
+        <text fill="#000000" font-family="Arial" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="144" x="859" y="16.0669">Mesh core modules</text>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="22" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="725.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="725.5313" y2="747.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="725.5313" y2="747.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="725.5313" y2="725.5313"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="35.1328" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="775.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="775.5313" y2="810.6641"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="775.5313" y2="810.6641"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="810.6641" y2="810.6641"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="22" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="839.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="839.7969" y2="861.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="839.7969" y2="861.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="839.7969" y2="839.7969"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="35.1328" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="889.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="889.7969" y2="924.9297"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="889.7969" y2="924.9297"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="924.9297" y2="924.9297"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="22" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="954.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="954.0625" y2="976.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="954.0625" y2="976.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="954.0625" y2="954.0625"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="35.1328" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="1004.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="1004.0625" y2="1039.1953"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="1004.0625" y2="1039.1953"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="1039.1953" y2="1039.1953"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="22" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="1068.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="1068.3281" y2="1090.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="1068.3281" y2="1090.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="1068.3281" y2="1068.3281"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="35.1328" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="1118.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="1118.3281" y2="1153.4609"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="1118.3281" y2="1153.4609"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="1153.4609" y2="1153.4609"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="22" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="1182.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="1182.5938" y2="1204.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="1182.5938" y2="1204.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="1182.5938" y2="1182.5938"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="35.1328" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="1232.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="1232.5938" y2="1267.7266"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="1232.5938" y2="1267.7266"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="1267.7266" y2="1267.7266"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="1181" style="stroke: #000000; stroke-width: 2.0;" width="854" x="114" y="130.8594"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="489.1406" style="stroke: #000000; stroke-width: 2.0;" width="834" x="124" y="154.9922"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="646.7266" style="stroke: #000000; stroke-width: 2.0;" width="834" x="124" y="658.1328"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="165" x2="165" y1="74.7266" y2="259.5234"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="165" x2="165" y1="259.5234" y2="300.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="165" x2="165" y1="300.3281" y2="329.4609"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="165" x2="165" y1="329.4609" y2="370.2656"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="165" x2="165" y1="370.2656" y2="399.3984"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="165" x2="165" y1="399.3984" y2="440.2031"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="165" x2="165" y1="440.2031" y2="747.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="165" x2="165" y1="747.5313" y2="775.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="165" x2="165" y1="775.5313" y2="861.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="165" x2="165" y1="861.7969" y2="889.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="165" x2="165" y1="889.7969" y2="976.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="165" x2="165" y1="976.0625" y2="1004.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="165" x2="165" y1="1004.0625" y2="1090.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="165" x2="165" y1="1090.3281" y2="1118.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="165" x2="165" y1="1118.3281" y2="1204.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="165" x2="165" y1="1204.5938" y2="1232.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="165" x2="165" y1="1232.5938" y2="1328.8594"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421" x2="421" y1="74.7266" y2="259.5234"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="421" x2="421" y1="259.5234" y2="300.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421" x2="421" y1="300.3281" y2="329.4609"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="421" x2="421" y1="329.4609" y2="370.2656"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421" x2="421" y1="370.2656" y2="399.3984"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="421" x2="421" y1="399.3984" y2="440.2031"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421" x2="421" y1="440.2031" y2="747.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="421" x2="421" y1="747.5313" y2="775.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421" x2="421" y1="775.5313" y2="861.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="421" x2="421" y1="861.7969" y2="889.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421" x2="421" y1="889.7969" y2="976.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="421" x2="421" y1="976.0625" y2="1004.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421" x2="421" y1="1004.0625" y2="1090.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="421" x2="421" y1="1090.3281" y2="1118.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421" x2="421" y1="1118.3281" y2="1204.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="421" x2="421" y1="1204.5938" y2="1232.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421" x2="421" y1="1232.5938" y2="1328.8594"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="774" x2="774" y1="74.7266" y2="259.5234"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="774" x2="774" y1="259.5234" y2="300.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="774" x2="774" y1="300.3281" y2="329.4609"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="774" x2="774" y1="329.4609" y2="370.2656"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="774" x2="774" y1="370.2656" y2="399.3984"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="774" x2="774" y1="399.3984" y2="440.2031"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="774" x2="774" y1="440.2031" y2="747.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="774" x2="774" y1="747.5313" y2="775.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="774" x2="774" y1="775.5313" y2="861.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="774" x2="774" y1="861.7969" y2="889.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="774" x2="774" y1="889.7969" y2="976.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="774" x2="774" y1="976.0625" y2="1004.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="774" x2="774" y1="1004.0625" y2="1090.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="774" x2="774" y1="1090.3281" y2="1118.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="774" x2="774" y1="1118.3281" y2="1204.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="774" x2="774" y1="1204.5938" y2="1232.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="774" x2="774" y1="1232.5938" y2="1328.8594"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="931" x2="931" y1="74.7266" y2="259.5234"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="931" x2="931" y1="259.5234" y2="300.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="931" x2="931" y1="300.3281" y2="329.4609"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="931" x2="931" y1="329.4609" y2="370.2656"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="931" x2="931" y1="370.2656" y2="399.3984"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="931" x2="931" y1="399.3984" y2="440.2031"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="931" x2="931" y1="440.2031" y2="747.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="931" x2="931" y1="747.5313" y2="775.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="931" x2="931" y1="775.5313" y2="861.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="931" x2="931" y1="861.7969" y2="889.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="931" x2="931" y1="889.7969" y2="976.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="931" x2="931" y1="976.0625" y2="1004.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="931" x2="931" y1="1004.0625" y2="1090.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="931" x2="931" y1="1090.3281" y2="1118.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="931" x2="931" y1="1118.3281" y2="1204.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 1.0,4.0;" x1="931" x2="931" y1="1204.5938" y2="1232.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="931" x2="931" y1="1232.5938" y2="1328.8594"/>
+        <rect fill="#FEFECE" filter="url(#f4p9lz9q0vhwn)" height="30.2969" style="stroke: #A80036; stroke-width: 1.5;" width="59" x="134" y="39.4297"/>
+        <text fill="#000000" font-family="Arial" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="45" x="141" y="59.4248">main.c</text>
+        <rect fill="#FEFECE" filter="url(#f4p9lz9q0vhwn)" height="30.2969" style="stroke: #A80036; stroke-width: 1.5;" width="59" x="134" y="1327.8594"/>
+        <text fill="#000000" font-family="Arial" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="45" x="141" y="1347.8545">main.c</text>
+        <rect fill="#FEFECE" filter="url(#f4p9lz9q0vhwn)" height="46.5938" style="stroke: #A80036; stroke-width: 1.5;" width="157" x="341" y="23.1328"/>
+        <text fill="#000000" font-family="Arial" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="139" x="348" y="43.1279">provisioner_helper.c</text>
+        <text fill="#000000" font-family="Arial" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="95" x="372" y="59.4248">node_setup.c</text>
+        <rect fill="#FEFECE" filter="url(#f4p9lz9q0vhwn)" height="46.5938" style="stroke: #A80036; stroke-width: 1.5;" width="157" x="341" y="1327.8594"/>
+        <text fill="#000000" font-family="Arial" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="139" x="348" y="1347.8545">provisioner_helper.c</text>
+        <text fill="#000000" font-family="Arial" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="95" x="372" y="1364.1514">node_setup.c</text>
+        <rect fill="#FEFECE" filter="url(#f4p9lz9q0vhwn)" height="30.2969" style="stroke: #A80036; stroke-width: 1.5;" width="147" x="699" y="39.4297"/>
+        <text fill="#000000" font-family="Arial" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="133" x="706" y="59.4248">Configuration client</text>
+        <rect fill="#FEFECE" filter="url(#f4p9lz9q0vhwn)" height="30.2969" style="stroke: #A80036; stroke-width: 1.5;" width="147" x="699" y="1327.8594"/>
+        <text fill="#000000" font-family="Arial" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="133" x="706" y="1347.8545">Configuration client</text>
+        <rect fill="#FEFECE" filter="url(#f4p9lz9q0vhwn)" height="30.2969" style="stroke: #A80036; stroke-width: 1.5;" width="30" x="914" y="39.4297"/>
+        <text fill="#000000" font-family="Arial" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="0" x="937" y="59.4248"/>
+        <rect fill="#FEFECE" filter="url(#f4p9lz9q0vhwn)" height="30.2969" style="stroke: #A80036; stroke-width: 1.5;" width="30" x="914" y="1327.8594"/>
+        <text fill="#000000" font-family="Arial" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="0" x="937" y="1347.8545"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="22" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="725.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="725.5313" y2="747.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="725.5313" y2="747.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="725.5313" y2="725.5313"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="35.1328" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="775.5313"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="775.5313" y2="810.6641"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="775.5313" y2="810.6641"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="810.6641" y2="810.6641"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="22" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="839.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="839.7969" y2="861.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="839.7969" y2="861.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="839.7969" y2="839.7969"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="35.1328" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="889.7969"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="889.7969" y2="924.9297"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="889.7969" y2="924.9297"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="924.9297" y2="924.9297"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="22" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="954.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="954.0625" y2="976.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="954.0625" y2="976.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="954.0625" y2="954.0625"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="35.1328" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="1004.0625"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="1004.0625" y2="1039.1953"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="1004.0625" y2="1039.1953"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="1039.1953" y2="1039.1953"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="22" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="1068.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="1068.3281" y2="1090.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="1068.3281" y2="1090.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="1068.3281" y2="1068.3281"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="35.1328" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="1118.3281"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="1118.3281" y2="1153.4609"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="1118.3281" y2="1153.4609"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="1153.4609" y2="1153.4609"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="22" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="1182.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="1182.5938" y2="1204.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="1182.5938" y2="1204.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="1182.5938" y2="1182.5938"/>
+        <rect fill="#FFFFFF" filter="url(#f4p9lz9q0vhwn)" height="35.1328" style="stroke: #FFFFFF; stroke-width: 1.0;" width="10" x="769.5" y="1232.5938"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="769.5" y1="1232.5938" y2="1267.7266"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="779.5" y1="1232.5938" y2="1267.7266"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="769.5" x2="779.5" y1="1267.7266" y2="1267.7266"/>
+        <path d="M8,89.7266 L8,114.7266 L320,114.7266 L320,99.7266 L310,89.7266 L8,89.7266 " fill="#FBFB77" filter="url(#f4p9lz9q0vhwn)" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <path d="M310,89.7266 L310,99.7266 L320,99.7266 L310,89.7266 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="291" x="14" y="106.7935">SoftDevice and core mesh modules initialized</text>
+        <path d="M114,130.8594 L191,130.8594 L191,137.8594 L181,147.8594 L114,147.8594 L114,130.8594 " fill="#EEEEEE" style="stroke: #000000; stroke-width: 1.0;"/>
+        <rect fill="none" height="1181" style="stroke: #000000; stroke-width: 2.0;" width="854" x="114" y="130.8594"/>
+        <text fill="#000000" font-family="Arial" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="32" x="129" y="143.9263">loop</text>
+        <text fill="#000000" font-family="Arial" font-size="11" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="374" x="206" y="143.0698">[While provisioned devices &lt; MAX_PROVISIONEE_NUMBER]</text>
+        <path d="M124,154.9922 L259,154.9922 L259,161.9922 L249,171.9922 L124,171.9922 L124,154.9922 " fill="#EEEEEE" style="stroke: #000000; stroke-width: 1.0;"/>
+        <rect fill="none" height="489.1406" style="stroke: #000000; stroke-width: 2.0;" width="834" x="124" y="154.9922"/>
+        <text fill="#000000" font-family="Arial" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="90" x="139" y="168.0591">Provisioning</text>
+        <polygon fill="#A80036" points="409.5,189.2578,419.5,193.2578,409.5,197.2578,413.5,193.2578" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="165.5" x2="415.5" y1="193.2578" y2="193.2578"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="232" x="172.5" y="188.1919">prov_helper_provision_next_device()</text>
+        <polygon fill="#A80036" points="432.5,218.3906,422.5,222.3906,432.5,226.3906,428.5,222.3906" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="426.5" x2="930" y1="222.3906" y2="222.3906"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="225" x="438.5" y="217.3247">NRF_MESH_EVT_UNPROV_BEACON</text>
+        <polygon fill="#A80036" points="919,247.5234,929,251.5234,919,255.5234,923,251.5234" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421.5" x2="925" y1="251.5234" y2="251.5234"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="143" x="428.5" y="246.4575">nrf_mesh_prov_init(...)</text>
+        <text fill="#000000" font-family="Arial" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="0" x="550.25" y="283.7339"/>
+        <polygon fill="#A80036" points="409.5,317.4609,419.5,321.4609,409.5,325.4609,413.5,321.4609" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="165.5" x2="415.5" y1="321.4609" y2="321.4609"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="159" x="172.5" y="316.395">prov_helper_scan_start()</text>
+        <text fill="#000000" font-family="Arial" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="0" x="550.25" y="353.6714"/>
+        <polygon fill="#A80036" points="919,387.3984,929,391.3984,919,395.3984,923,391.3984" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421.5" x2="925" y1="391.3984" y2="391.3984"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="222" x="428.5" y="386.3325">nrf_mesh_prov_provision(UUID, ...)</text>
+        <text fill="#000000" font-family="Arial" font-size="11" lengthAdjust="spacingAndGlyphs" textLength="121" x="487.75" y="423.6089">Device is provisioned</text>
+        <polygon fill="#A80036" points="432.5,457.3359,422.5,461.3359,432.5,465.3359,428.5,461.3359" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="426.5" x2="930" y1="461.3359" y2="461.3359"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="218" x="438.5" y="456.27">NRF_MESH_EVT_PROV_COMPLETE</text>
+        <polygon fill="#A80036" points="919,486.4688,929,490.4688,919,494.4688,923,490.4688" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421.5" x2="925" y1="490.4688" y2="490.4688"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="191" x="428.5" y="485.4028">dsm_address_publish_add(...)</text>
+        <polygon fill="#A80036" points="919,515.6016,929,519.6016,919,523.6016,923,519.6016" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421.5" x2="925" y1="519.6016" y2="519.6016"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="133" x="428.5" y="514.5356">dsm_devkey_add(...)</text>
+        <polygon fill="#A80036" points="762.5,544.7344,772.5,548.7344,762.5,552.7344,766.5,548.7344" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421.5" x2="768.5" y1="548.7344" y2="548.7344"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="182" x="428.5" y="543.6685">config_client_server_bind(...)</text>
+        <polygon fill="#A80036" points="762.5,573.8672,772.5,577.8672,762.5,581.8672,766.5,577.8672" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421.5" x2="768.5" y1="577.8672" y2="577.8672"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="175" x="428.5" y="572.8013">config_client_server_set(...)</text>
+        <polygon fill="#A80036" points="176.5,603,166.5,607,176.5,611,172.5,607" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="170.5" x2="420.5" y1="607" y2="607"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="149" x="182.5" y="601.9341">app_prov_success_cb()</text>
+        <polygon fill="#A80036" points="409.5,632.1328,419.5,636.1328,409.5,640.1328,413.5,636.1328" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="165.5" x2="415.5" y1="636.1328" y2="636.1328"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="157" x="172.5" y="631.0669">prov_helper_scan_stop()</text>
+        <path d="M124,658.1328 L269,658.1328 L269,665.1328 L259,675.1328 L124,675.1328 L124,658.1328 " fill="#EEEEEE" style="stroke: #000000; stroke-width: 1.0;"/>
+        <rect fill="none" height="646.7266" style="stroke: #000000; stroke-width: 2.0;" width="834" x="124" y="658.1328"/>
+        <text fill="#000000" font-family="Arial" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="100" x="139" y="671.1997">Configuration</text>
+        <polygon fill="#A80036" points="409.5,692.3984,419.5,696.3984,409.5,700.3984,413.5,696.3984" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="165.5" x2="415.5" y1="696.3984" y2="696.3984"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="122" x="172.5" y="691.3325">node_setup_start()</text>
+        <polygon fill="#A80036" points="757.5,721.5313,767.5,725.5313,757.5,729.5313,761.5,725.5313" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421.5" x2="763.5" y1="725.5313" y2="725.5313"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="238" x="428.5" y="720.4653">config_client_composition_data_get()</text>
+        <polygon fill="#A80036" points="919,735.5313,929,739.5313,919,743.5313,923,739.5313" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="925" y1="739.5313" y2="739.5313"/>
+        <polygon fill="#A80036" points="790.5,777.5313,780.5,781.5313,790.5,785.5313,786.5,781.5313" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="784.5" x2="930" y1="781.5313" y2="781.5313"/>
+        <polygon fill="#A80036" points="432.5,806.6641,422.5,810.6641,432.5,814.6641,428.5,810.6641" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="426.5" x2="773.5" y1="810.6641" y2="810.6641"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="250" x="438.5" y="805.5981">CONFIG_OPCODE_COMPOSITION_DATA</text>
+        <polygon fill="#A80036" points="757.5,835.7969,767.5,839.7969,757.5,843.7969,761.5,839.7969" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421.5" x2="763.5" y1="839.7969" y2="839.7969"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="173" x="428.5" y="834.731">config_client_appkey_add()</text>
+        <polygon fill="#A80036" points="919,849.7969,929,853.7969,919,857.7969,923,853.7969" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="925" y1="853.7969" y2="853.7969"/>
+        <polygon fill="#A80036" points="790.5,891.7969,780.5,895.7969,790.5,899.7969,786.5,895.7969" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="784.5" x2="930" y1="895.7969" y2="895.7969"/>
+        <polygon fill="#A80036" points="432.5,920.9297,422.5,924.9297,432.5,928.9297,428.5,924.9297" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="426.5" x2="773.5" y1="924.9297" y2="924.9297"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="224" x="438.5" y="919.8638">CONFIG_OPCODE_APPKEY_STATUS</text>
+        <polygon fill="#A80036" points="757.5,950.0625,767.5,954.0625,757.5,958.0625,761.5,954.0625" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421.5" x2="763.5" y1="954.0625" y2="954.0625"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="201" x="428.5" y="948.9966">config_client_model_app_bind()</text>
+        <polygon fill="#A80036" points="919,964.0625,929,968.0625,919,972.0625,923,968.0625" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="925" y1="968.0625" y2="968.0625"/>
+        <polygon fill="#A80036" points="790.5,1006.0625,780.5,1010.0625,790.5,1014.0625,786.5,1010.0625" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="784.5" x2="930" y1="1010.0625" y2="1010.0625"/>
+        <polygon fill="#A80036" points="432.5,1035.1953,422.5,1039.1953,432.5,1043.1953,428.5,1039.1953" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="426.5" x2="773.5" y1="1039.1953" y2="1039.1953"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="254" x="438.5" y="1034.1294">CONFIG_OPCODE_MODEL_APP_STATUS</text>
+        <polygon fill="#A80036" points="757.5,1064.3281,767.5,1068.3281,757.5,1072.3281,761.5,1068.3281" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421.5" x2="763.5" y1="1068.3281" y2="1068.3281"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="239" x="428.5" y="1063.2622">config_client_model_publication_set()</text>
+        <polygon fill="#A80036" points="919,1078.3281,929,1082.3281,919,1086.3281,923,1082.3281" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="925" y1="1082.3281" y2="1082.3281"/>
+        <polygon fill="#A80036" points="790.5,1120.3281,780.5,1124.3281,790.5,1128.3281,786.5,1124.3281" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="784.5" x2="930" y1="1124.3281" y2="1124.3281"/>
+        <polygon fill="#A80036" points="432.5,1149.4609,422.5,1153.4609,432.5,1157.4609,428.5,1153.4609" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="426.5" x2="773.5" y1="1153.4609" y2="1153.4609"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="314" x="438.5" y="1148.395">CONFIG_OPCODE_MODEL_PUBLICATION_STATUS</text>
+        <polygon fill="#A80036" points="757.5,1178.5938,767.5,1182.5938,757.5,1186.5938,761.5,1182.5938" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="421.5" x2="763.5" y1="1182.5938" y2="1182.5938"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="251" x="428.5" y="1177.5278">config_client_model_subscription_add()</text>
+        <polygon fill="#A80036" points="919,1192.5938,929,1196.5938,919,1200.5938,923,1196.5938" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="779.5" x2="925" y1="1196.5938" y2="1196.5938"/>
+        <polygon fill="#A80036" points="790.5,1234.5938,780.5,1238.5938,790.5,1242.5938,786.5,1238.5938" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="784.5" x2="930" y1="1238.5938" y2="1238.5938"/>
+        <polygon fill="#A80036" points="432.5,1263.7266,422.5,1267.7266,432.5,1271.7266,428.5,1267.7266" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="426.5" x2="773.5" y1="1267.7266" y2="1267.7266"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="324" x="438.5" y="1262.6606">CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS</text>
+        <polygon fill="#A80036" points="176.5,1292.8594,166.5,1296.8594,176.5,1300.8594,172.5,1296.8594" style="stroke: #A80036; stroke-width: 1.0;"/>
+        <line style="stroke: #A80036; stroke-width: 1.0;" x1="170.5" x2="420.5" y1="1296.8594" y2="1296.8594"/>
+        <text fill="#000000" font-family="Arial" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="174" x="182.5" y="1291.7935">app_config_successful_cb()</text>
+        <!--MD5=[8a310479f4b75ffea6ce9d05dbf6175f]
+@startuml
+skinparam defaultFontName Arial
+box "Application" #FFFFFF
+participant a as "main.c"
+participant p as "provisioner_helper.c \nnode_setup.c"
+end box
+
+participant c as "Configuration client"
+
+box "Mesh core modules"
+participant core as "    "
+end box
+
+note over a: SoftDevice and core mesh modules initialized
+loop While provisioned devices < MAX_PROVISIONEE_NUMBER
+group Provisioning
+      a -> p: prov_helper_provision_next_device()
+      core -> p: NRF_MESH_EVT_UNPROV_BEACON
+      p -> core: nrf_mesh_prov_init(...)
+      ... ...
+      a -> p: prov_helper_scan_start()
+      ... ...
+      p -> core: nrf_mesh_prov_provision(UUID, ...)
+
+      ... Device is provisioned ...
+
+      core -> p: NRF_MESH_EVT_PROV_COMPLETE
+      p -> core: dsm_address_publish_add(...)
+      p -> core: dsm_devkey_add(...)
+      p -> c: config_client_server_bind(...)
+      p -> c: config_client_server_set(...)
+      p -> a: app_prov_success_cb()
+      a -> p: prov_helper_scan_stop()
+end
+group Configuration
+      a -> p: node_setup_start()
+      p -> c: config_client_composition_data_get()
+      activate c
+      c -> core
+      ...
+      core -> c
+      c -> p: CONFIG_OPCODE_COMPOSITION_DATA
+      deactivate c
+
+      p -> c: config_client_appkey_add()
+      activate c
+      c -> core
+      ...
+      core -> c
+      c -> p: CONFIG_OPCODE_APPKEY_STATUS
+      deactivate c
+
+      p -> c: config_client_model_app_bind()
+      activate c
+      c -> core
+      ...
+      core -> c
+      c -> p: CONFIG_OPCODE_MODEL_APP_STATUS
+      deactivate c
+
+      p -> c: config_client_model_publication_set()
+      activate c
+      c -> core
+      ...
+      core -> c
+      c -> p: CONFIG_OPCODE_MODEL_PUBLICATION_STATUS
+      deactivate c
+
+      p -> c: config_client_model_subscription_add()
+      activate c
+      c -> core
+      ...
+      core -> c
+      c -> p: CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS
+      deactivate c
+      p -> a: app_config_successful_cb()
+end
+end
+@enduml
+
+PlantUML version 1.2020.01beta15(Unknown compile time)
+(GPL source distribution)
+Java Runtime: Java(TM) SE Runtime Environment
+JVM: Java HotSpot(TM) 64-Bit Server VM
+Java Version: 1.7.0_25-b15
+Operating System: Linux
+Default Encoding: UTF-8
+Language: en
+Country: US
+-->
+    </g>
+</svg>

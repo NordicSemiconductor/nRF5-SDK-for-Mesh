@@ -36,7 +36,7 @@ transport in addition to toolchain and optimization settings.
 ## Compatibility @anchor bootloader_compatibility
 
 The Mesh Bootloader is compatible with the same mesh stack configurations as the nRF5 SDK for Mesh.
-For details, see the [Compatibility](@ref md_doc_introduction_mesh_compatibility) page.
+For details, see the [Compatibility](@ref md_doc_user_guide_mesh_compatibility) page.
 
 
 ---
@@ -56,7 +56,7 @@ with `CMAKE_BUILD_TYPE` equal to `MinSizeRel` for it to fit within its flash siz
 ## Usage @anchor bootloader_usage
 
 To get started with the Mesh-DFU, see the
-[Mesh DFU Quick start guide](@ref md_doc_libraries_dfu_dfu_quick_start). It is recommended that all
+[Mesh DFU Quick start guide](@ref md_doc_user_guide_modules_dfu_configuring_performing). It is recommended that all
 new users go through this guide, and use the steps as a basis for their DFU procedure.
 
 The bootloader supports both serial and over the air transfers. The intended

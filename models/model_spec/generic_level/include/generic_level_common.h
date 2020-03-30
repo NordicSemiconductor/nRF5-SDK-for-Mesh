@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -52,6 +52,11 @@
 /** Model Company ID */
 #define GENERIC_LEVEL_COMPANY_ID 0xFFFF
 
+/** Generic Level state minimum value. */
+#define GENERIC_LEVEL_MIN (INT16_MIN)
+
+/** Generic Level state maximum value. */
+#define GENERIC_LEVEL_MAX (INT16_MAX)
 
 /**
  * Unpacked message structure typedefs are used for API interfaces and for implementing model code. This helps to minimize code

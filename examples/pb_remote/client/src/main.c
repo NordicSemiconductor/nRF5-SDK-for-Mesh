@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -66,11 +66,9 @@
 #include "example_common.h"
 #include "nrf_mesh_configure.h"
 
-/**
- * Static authentication data. This data must match the data provided to the provisioner node.
- */
-#define STATIC_AUTH_DATA { 0xc7, 0xf7, 0x9b, 0xec, 0x9c, 0xf9, 0x74, 0xdd, 0xb9, 0x62, 0xbd, 0x9f, 0xd1, 0x72, 0xdd, 0x73 }
-
+/*****************************************************************************
+ * Definitions
+ *****************************************************************************/
 #define NET_KEY                  {0x50, 0x42, 0x5f, 0x52, 0x45, 0x4d, 0x4f, 0x54, 0x45, 0x5f, 0x4e, 0x45, 0x54, 0x4b, 0x45, 0x59}
 #define IV_INDEX                 (0)
 #define UNPROV_START_ADDRESS     (0x1337)
@@ -78,22 +76,46 @@
 #define RTT_INPUT_POLL_PERIOD_MS (100)
 #define ATTENTION_DURATION_S     (5)
 
-typedef enum
-{
-    DEVICE_STATE_NONE,
-    DEVICE_STATE_PB_ADV_MODE,
-    DEVICE_STATE_PB_REMOTE_MODE
-} device_state_t;
 
-const char USAGE_STRING[] =
-    "\n--------------------------------\n"
-    "1) Provision first available device with PB-ADV\n"
-    "2) Set current client publish handle (corresponding to a known server)\n"
-    "\t 2.1) <address handle>\n"
-    "3) Start remote scanning\n"
-    "4) Cancel the remote scanning\n"
-    "5) Start remote provisioning\n"
-    "\t 5.1) Device number\n";
+/*****************************************************************************
+ * Forward declaration of static functions
+ *****************************************************************************/
+
+static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt);
+static void remote_client_event_cb(const pb_remote_event_t * p_evt);
+
+/*****************************************************************************
+ * Static variables
+ *****************************************************************************/
+typedef struct
+{
+    uint8_t uuid[NRF_MESH_UUID_SIZE];
+    bool valid;
+} remote_uuid_t;
+
+typedef enum {
+    CLIENT_STATE_IDLE,
+    CLIENT_STATE_PB_ADV_SCANNING,
+    CLIENT_STATE_PB_ADV_PROV,
+    CLIENT_STATE_PUBLISH_HANDLE,
+    CLIENT_STATE_REMOTE_SCANNING,
+    CLIENT_STATE_DEVICE_NUMBER,
+    CLIENT_STATE_REMOTE_PROV,
+} client_state_t;
+
+#if NRF_MESH_LOG_ENABLE
+static const char m_usage_string[] =
+    "\n"
+    "\t\t----------------------------------------------------------------------------\n"
+    "\t\t RTT 1) Provision first available device with PB-ADV.\n"
+    "\t\t RTT 2) Set current client publish handle (corresponding to a known server).\n"
+    "\t\t\t RTT 2.1) <address handle>.\n"
+    "\t\t RTT 3) Start remote scanning.\n"
+    "\t\t RTT 4) Cancel the remote scanning.\n"
+    "\t\t RTT 5) Start remote provisioning.\n"
+    "\t\t\t RTT 5.1) Device number.\n"
+    "----------------------------------------------------------------------------\n";
+#endif
 
 /* Provisioning encryption key storage (this is not how you should store your keys). */
 static const uint8_t              m_netkey[NRF_MESH_KEY_SIZE] = NET_KEY;
@@ -104,17 +126,13 @@ static nrf_mesh_prov_bearer_adv_t m_prov_bearer_adv;
 static uint16_t                   m_next_unprov_address = UNPROV_START_ADDRESS;
 static uint16_t                   m_num_elements_of_last_guy = 0;
 static pb_remote_client_t         m_remote_client;
-static device_state_t             m_device_state;
-static uint8_t                    m_uuid_list[PB_REMOTE_SERVER_UUID_LIST_SIZE][NRF_MESH_UUID_SIZE];
+static remote_uuid_t              m_remote_uuid_list[PB_REMOTE_SERVER_UUID_LIST_SIZE];
 static dsm_handle_t               m_devkey_handles[DSM_DEVICE_MAX];
 static dsm_handle_t               m_netkey_handles[DSM_SUBNET_MAX];
 static dsm_handle_t               m_appkey_handles[DSM_APP_MAX];
 static dsm_handle_t               m_device_address_handles[DSM_NONVIRTUAL_ADDR_MAX];
 static uint32_t                   m_next_unprov_index = 0;
-
-static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt);
-static void remote_client_event_cb(const pb_remote_event_t * p_evt);
-
+static client_state_t             m_state = CLIENT_STATE_IDLE;
 
 static void provisioner_start(void)
 {
@@ -146,10 +164,10 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
     switch (p_evt->type)
     {
         case NRF_MESH_PROV_EVT_UNPROVISIONED_RECEIVED:
-            if (m_device_state == DEVICE_STATE_PB_ADV_MODE)
+            if (m_state == CLIENT_STATE_PB_ADV_SCANNING)
             {
                 start_provisioning(p_evt->params.unprov.device_uuid, NRF_MESH_PROV_BEARER_ADV);
-                m_device_state = DEVICE_STATE_NONE;
+                m_state = CLIENT_STATE_PB_ADV_PROV;
             }
             break;
 
@@ -159,6 +177,7 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
 
         case NRF_MESH_PROV_EVT_LINK_CLOSED:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Local provisioning link closed\n");
+            m_state = CLIENT_STATE_IDLE;
             break;
 
         case NRF_MESH_PROV_EVT_COMPLETE:
@@ -205,11 +224,16 @@ static void prov_evt_handler(const nrf_mesh_prov_evt_t * p_evt)
         case NRF_MESH_PROV_EVT_STATIC_REQUEST:
         {
             /* Request for static authentication data. This data is used to authenticate the two nodes. */
-            uint8_t static_data[16] = STATIC_AUTH_DATA;
+            uint8_t static_data[16] = STATIC_AUTH_DATA_PB_REMOTE;
             ERROR_CHECK(nrf_mesh_prov_auth_data_provide(p_evt->params.static_request.p_context, static_data, 16));
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Static authentication data provided\n");
             break;
         }
+
+        case NRF_MESH_PROV_EVT_FAILED:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Local provisioning failed\n");
+            m_state = CLIENT_STATE_IDLE;
+            break;
 
         default:
             break;
@@ -226,12 +250,14 @@ static void remote_client_event_cb(const pb_remote_event_t * p_evt)
 
         case PB_REMOTE_EVENT_LINK_CLOSED:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "The remote link has closed\n");
+            m_state = CLIENT_STATE_IDLE;
             break;
 
         case PB_REMOTE_EVENT_REMOTE_UUID:
             __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "Got remote uuid", p_evt->remote_uuid.p_uuid, NRF_MESH_UUID_SIZE);
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Device ID: %u\n", p_evt->remote_uuid.device_id);
-            memcpy(&m_uuid_list[p_evt->remote_uuid.device_id][0], p_evt->remote_uuid.p_uuid, NRF_MESH_UUID_SIZE);
+            memcpy(&m_remote_uuid_list[p_evt->remote_uuid.device_id].uuid[0], p_evt->remote_uuid.p_uuid, NRF_MESH_UUID_SIZE);
+            m_remote_uuid_list[p_evt->remote_uuid.device_id].valid = true;
             break;
 
         default:
@@ -240,53 +266,107 @@ static void remote_client_event_cb(const pb_remote_event_t * p_evt)
     }
 }
 
+static void publish_handles_print(void)
+{
+    for (uint32_t i = 0; i < m_next_unprov_index; i++)
+    {
+        nrf_mesh_address_t addr;
+        ERROR_CHECK(dsm_address_get(m_device_address_handles[i], &addr));
+        NRF_MESH_ASSERT(addr.type == NRF_MESH_ADDRESS_TYPE_UNICAST);
+
+        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Addr: 0x%04X  handle: %d\n",
+              addr.value, m_device_address_handles[i]);
+    }
+}
+
 static void user_input_handler(int key)
 {
-    static enum { UIS_IDLE, UIS_PUBLISH_HANDLE, UIS_DEVICE_NUMBER } s_state = UIS_IDLE;
+    static bool s_handle_set = false;
     uint32_t status;
 
-    switch (s_state)
+    switch (m_state)
     {
-        case UIS_IDLE:
+        case CLIENT_STATE_IDLE:
+        case CLIENT_STATE_PB_ADV_SCANNING:
             switch (key)
             {
                 case '1':
-                    m_device_state = DEVICE_STATE_PB_ADV_MODE;
+                    if (m_next_unprov_index >= MAX_PROVISIONEE_NUMBER)
+                    {
+                        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
+                              "Reached the limit of available resources. Cannot provision more devices.\n");
+                    }
+                    else
+                    {
+                        m_state = CLIENT_STATE_PB_ADV_SCANNING;
+                    }
                     break;
 
                 case '2':
-                    for (uint32_t i = 0; i < m_next_unprov_index; i++)
+                    if (m_next_unprov_index > 0)
                     {
-                        nrf_mesh_address_t addr;
-                        ERROR_CHECK(dsm_address_get(m_device_address_handles[i], &addr));
-                        NRF_MESH_ASSERT(addr.type == NRF_MESH_ADDRESS_TYPE_UNICAST);
-
-                        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Addr: 0x%04X  handle: %d\n",
-                              addr.value, m_device_address_handles[i]);
+                        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Please enter a valid publish handle: \n");
+                        publish_handles_print();
+                        m_state = CLIENT_STATE_PUBLISH_HANDLE;
                     }
-                    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Please enter a valid publish handle: \n");
-                    s_state = UIS_PUBLISH_HANDLE;
+                    else
+                    {
+                        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "No device was provisioned. Press RTT 1 to provision any device with PB-ADV.\n");
+                    }
                     break;
 
                 case '3':
-                    status = pb_remote_client_remote_scan_start(&m_remote_client);
-                    if (status != NRF_SUCCESS)
+                    if (s_handle_set)
                     {
-                        __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Error %u: Could not start remote scanning\n", status);
+                        memset(&m_remote_uuid_list[0], 0, ARRAY_SIZE(m_remote_uuid_list));
+
+                        status = pb_remote_client_remote_scan_start(&m_remote_client);
+                        if (status != NRF_SUCCESS)
+                        {
+                            __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Error %u: Could not start remote scanning.\n", status);
+                        }
+                        else
+                        {
+                            m_state = CLIENT_STATE_REMOTE_SCANNING;
+                        }
+                    }
+                    else
+                    {
+                        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Publish handle not set. Press RTT 2 to set publish handle.\n");
                     }
                     break;
 
                 case '4':
-                    status = pb_remote_client_remote_scan_cancel(&m_remote_client);
-                    if (status != NRF_SUCCESS)
-                    {
-                        __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Error %u: Could not cancel remote scanning\n", status);
-                    }
+                    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Remote scanning not started. Press RTT 3 to start remote scanning.\n");
                     break;
 
                 case '5':
-                    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Please enter a valid Device ID: \n");
-                    s_state = UIS_DEVICE_NUMBER;
+                    if (m_next_unprov_index >= MAX_PROVISIONEE_NUMBER)
+                    {
+                        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
+                              "Reached the limit of available resources. Cannot provision more devices.\n");
+                    }
+                    else
+                    {
+                        for (uint32_t i = 0; i < ARRAY_SIZE(m_remote_uuid_list); i++)
+                        {
+                            if (m_remote_uuid_list[i].valid)
+                            {
+                                if (m_state != CLIENT_STATE_DEVICE_NUMBER)
+                                {
+                                    m_state = CLIENT_STATE_DEVICE_NUMBER;
+                                    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Please enter a valid Device ID: \n");
+                                }
+
+                                __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Device ID: %d\n", i);
+                            }
+                        }
+
+                        if (m_state != CLIENT_STATE_DEVICE_NUMBER)
+                        {
+                            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "No remote devices found. Press RTT 3 to start remote scanning.\n");
+                        }
+                    }
                     break;
 
                 case '\n':
@@ -295,34 +375,77 @@ static void user_input_handler(int key)
                     break;
 
                 default:
-                    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, USAGE_STRING);
+                    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
                     break;
             }
             break;
 
-        case UIS_PUBLISH_HANDLE:
-            if ((key >= '0') && (key <= '9'))
+        case CLIENT_STATE_PB_ADV_PROV:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Wait for the PB-ADV to finish provisioning.\n");
+            break;
+
+        case CLIENT_STATE_PUBLISH_HANDLE:
+            if ((key >= '0') && (key <= '9') &&
+                (key - '0' < (int)m_next_unprov_index))
             {
                 dsm_handle_t handle = (dsm_handle_t) key - '0';
                 status = access_model_publish_address_set(m_remote_client.model_handle, handle);
                 if (status != NRF_SUCCESS)
                 {
-                    __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Error %u: Could not set publish address\n", status);
+                    __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Error %u: Could not set publish address.\n", status);
                 }
                 else
                 {
-                    __LOG(LOG_SRC_APP,LOG_LEVEL_INFO, "Handle set \n");
+                    s_handle_set = true;
+                    __LOG(LOG_SRC_APP,LOG_LEVEL_INFO, "Handle set.\n");
                 }
-                s_state = UIS_IDLE;
+                m_state = CLIENT_STATE_IDLE;
+            }
+            else
+            {
+                __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Incorrect publish handle. Please enter a valid publish handle: \n");
+                publish_handles_print();
             }
             break;
 
-        case UIS_DEVICE_NUMBER:
-            if ((key >= '0') && (key < ('0' + PB_REMOTE_SERVER_UUID_LIST_SIZE)))
+        case CLIENT_STATE_REMOTE_SCANNING:
+            if (key == '4')
             {
-                start_provisioning(m_uuid_list[((uint8_t) key - '0')], NRF_MESH_PROV_BEARER_MESH);
-                s_state = UIS_IDLE;
+                status = pb_remote_client_remote_scan_cancel(&m_remote_client);
+                if (status != NRF_SUCCESS)
+                {
+                    __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Error %u: Could not cancel remote scanning.\n", status);
+                }
+                m_state = CLIENT_STATE_IDLE;
             }
+            else
+            {
+                __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Remote scanning is in progress. Press RTT 4 to stop remote scanning.\n");
+            }
+            break;
+
+        case CLIENT_STATE_DEVICE_NUMBER:
+            if ((key >= '0') && (key < ('0' + PB_REMOTE_SERVER_UUID_LIST_SIZE)) &&
+                (m_remote_uuid_list[((uint8_t) key - '0')].valid))
+            {
+                start_provisioning(m_remote_uuid_list[((uint8_t) key - '0')].uuid, NRF_MESH_PROV_BEARER_MESH);
+                m_state = CLIENT_STATE_REMOTE_PROV;
+            }
+            else
+            {
+                __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Incorrect Device ID. Please enter a valid Device ID: \n");
+                for (uint32_t i = 0; i < ARRAY_SIZE(m_remote_uuid_list); i++)
+                {
+                    if (m_remote_uuid_list[i].valid)
+                    {
+                        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Device ID: %d\n", i);
+                    }
+                }
+            }
+            break;
+
+        case CLIENT_STATE_REMOTE_PROV:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Wait for the remote provisioning to be finished.\n");
             break;
 
         default:
@@ -353,6 +476,7 @@ static void mesh_init(void)
     {
         case NRF_ERROR_INVALID_DATA:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
+			__LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before start provisioning.\n");
             break;
         case NRF_SUCCESS:
             break;
@@ -409,7 +533,7 @@ static void start(void)
 
     ERROR_CHECK(mesh_stack_start());
 
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, USAGE_STRING);
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
 
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -22,7 +22,7 @@
  *
  * 5. Any software provided in binary form under this license must not be reverse
  *    engineered, decompiled, modified and/or disassembled.
-*
+ *
  * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -45,13 +45,7 @@
 #include "generic_level_server.h"
 
 #include "log.h"
-#include "app_timer.h"
-#include "fsm.h"
-#include "fsm_assistant.h"
 #include "nrf_mesh_assert.h"
-
-#define ELAPSED_TIME(pserver)               (MODEL_TIMER_PERIOD_MS_GET(model_timer_elapsed_ticks_get(&(pserver)->timer)))
-#define TRANSITION_TIME_COMPLETE(pserver)   (MODEL_TIMER_PERIOD_MS_GET(model_timer_elapsed_ticks_get(&(pserver)->timer)) >= (pserver)->state.transition_time_ms)
 
 /* Forward declaration */
 static void generic_level_state_get_cb(const generic_level_server_t * p_self,
@@ -83,310 +77,117 @@ static const generic_level_server_callbacks_t m_level_srv_cbs =
     .level_cbs.move_set_cb = generic_level_state_move_set_cb
 };
 
-/**************************************************************************************************/
-/* Behavioral state machine */
-/* Various states of level server behavioral module*/
-
-/*lint -e123 Lint fails to understand particular use of the all fsm macros and throws the warning:
-> Macro '_DECLARE_ENUM' defined with arguments at line 185 this is just a warning  --
-> The name of a macro defined with arguments was subsequently used without a following '('.
-> This is legal but may be an oversight.
-In this case it is intentional.*/
-
-#define EVENT_LIST E_SET,                       \
-                   E_DELTA_SET,                 \
-                   E_MOVE_SET,                  \
-                   E_TIMEOUT
-
-#define STATE_LIST  S_IDLE,                     \
-                    S_IN_DELAY,                 \
-                    S_IN_TRANSITION
-
-#define ACTION_LIST A_DELAY_START,          a_delay_start,         \
-                    A_TRANSITION_START,     a_transition_start,    \
-                    A_TRANSITION_COMPLETE,  a_transition_complete, \
-                    A_TRANSITION_TICK,      a_transition_tick
-
-#define GUARD_LIST  G_SET_DELAY,            g_set_delay,           \
-                    G_SET_TRANSITION,       g_set_transition,      \
-                    G_TRANSITION_COMPLETE,  g_transition_complete
-
-typedef enum
+static void transition_params_set(app_level_server_t * p_app, const model_transition_t * p_in_transition)
 {
-    DECLARE_ENUM(EVENT_LIST)
-} app_level_event_ids_t;
+    app_transition_params_t * p_params = app_transition_requested_get(&p_app->state.transition);
 
-typedef enum
-{
-    DECLARE_ENUM(STATE_LIST)
-} app_level_state_ids_t;
-
-typedef enum
-{
-    DECLARE_ENUM_PAIR(ACTION_LIST)
-} app_level_action_ids_t;
-
-typedef enum
-{
-    DECLARE_ENUM_PAIR(GUARD_LIST)
-} app_level_guard_ids_t;
-
-typedef void (* app_level_fsm_action_t)(void *);
-typedef bool (* app_level_fsm_guard_t)(void *);
-
-/* Not having a semi-colon is intentional. */
-DECLARE_ACTION_PROTOTYPE(ACTION_LIST)
-DECLARE_GUARD_PROTOTYPE(GUARD_LIST)
-
-static void app_level_fsm_action(fsm_action_id_t action_id, void * p_data);
-static bool app_level_fsm_guard(fsm_action_id_t action_id, void * p_data);
-
-static const fsm_transition_t m_app_level_fsm_transition_table[] =
-{
-    FSM_STATE(S_IDLE),
-
-    FSM_STATE(S_IN_DELAY),
-    FSM_TRANSITION(E_TIMEOUT,        G_SET_TRANSITION,       A_TRANSITION_START,    S_IN_TRANSITION),
-    FSM_TRANSITION(E_TIMEOUT,        FSM_OTHERWISE,          A_TRANSITION_COMPLETE, S_IDLE),
-
-    FSM_STATE(S_IN_TRANSITION),
-    FSM_TRANSITION(E_TIMEOUT,        G_TRANSITION_COMPLETE,  A_TRANSITION_COMPLETE, S_IDLE),
-    FSM_TRANSITION(E_TIMEOUT,        FSM_ALWAYS,             A_TRANSITION_TICK,     S_IN_TRANSITION),
-
-    FSM_STATE(FSM_ANY_STATE),
-    FSM_TRANSITION(E_SET,             G_SET_DELAY,        A_DELAY_START,        S_IN_DELAY),
-    FSM_TRANSITION(E_SET,             G_SET_TRANSITION,   A_TRANSITION_START,   S_IN_TRANSITION),
-    FSM_TRANSITION(E_SET,             FSM_OTHERWISE,      A_TRANSITION_COMPLETE,S_IDLE),
-    FSM_TRANSITION(E_DELTA_SET,       G_SET_DELAY,        A_DELAY_START,        S_IN_DELAY),
-    FSM_TRANSITION(E_DELTA_SET,       G_SET_TRANSITION,   A_TRANSITION_START,   S_IN_TRANSITION),
-    FSM_TRANSITION(E_DELTA_SET,       FSM_OTHERWISE,      A_TRANSITION_COMPLETE,S_IDLE),
-    FSM_TRANSITION(E_MOVE_SET,        G_SET_DELAY,        A_DELAY_START,        S_IN_DELAY),
-    FSM_TRANSITION(E_MOVE_SET,        G_SET_TRANSITION,   A_TRANSITION_START,   S_IN_TRANSITION),
-    FSM_TRANSITION(E_MOVE_SET,        FSM_OTHERWISE,      A_TRANSITION_COMPLETE,S_IDLE)
-};
-
-#if FSM_DEBUG
-static const char * m_action_lookup_table[] =
-{
-    DECLARE_STRING_PAIR(ACTION_LIST)
-};
-
-static const char * m_guard_lookup_table[] =
-{
-    DECLARE_STRING_PAIR(GUARD_LIST)
-};
-
-static const char * m_event_lookup_table[] =
-{
-    DECLARE_STRING(EVENT_LIST)
-};
-
-static const char * m_state_lookup_table[] =
-{
-    DECLARE_STRING(STATE_LIST)
-};
-#endif  /* FSM_DEBUG */
-
-static const fsm_const_descriptor_t m_level_behaviour_descriptor =
-{
-    .transition_table = m_app_level_fsm_transition_table,
-    .transitions_count = ARRAY_SIZE(m_app_level_fsm_transition_table),
-    .initial_state = S_IDLE,
-    .guard = app_level_fsm_guard,
-    .action = app_level_fsm_action,
-#if FSM_DEBUG
-    .fsm_name = "LVL-fsm",
-    .action_lookup = m_action_lookup_table,
-    .event_lookup = m_event_lookup_table,
-    .guard_lookup = m_guard_lookup_table,
-    .state_lookup = m_state_lookup_table
-#endif  /* FSM_DEBUG */
-};
-
-static const app_level_fsm_action_t app_level_fsm_actions[] =
-{
-    DECLARE_HANDLER(ACTION_LIST)
-};
-
-static void app_level_fsm_action(fsm_action_id_t action_id, void * p_data)
-{
-    app_level_fsm_actions[action_id](p_data);
-}
-
-static const app_level_fsm_guard_t app_level_fsm_guards[] =
-{
-    DECLARE_HANDLER(GUARD_LIST)
-};
-
-static bool app_level_fsm_guard(fsm_guard_id_t guard_id, void * p_data)
-{
-    return app_level_fsm_guards[guard_id](p_data);
-}
-/*lint +e123 */
-/**************************************************************************************************/
-/***** State machine functions *****/
-/* Note: The task of this state machine is to implement gradual changes of `present_level` value
- * for all possible time intervals and step size combinations allowed by the level model */
-
-static inline bool fsm_in_delay_check(fsm_t * p_fsm)
-{
-    return (p_fsm->current_state == S_IN_DELAY);
-}
-
-static inline bool fsm_in_idle_check(fsm_t * p_fsm)
-{
-    return (p_fsm->current_state == S_IDLE);
-}
-
-static void a_delay_start(void * p_data)
-{
-    app_level_server_t * p_server = (app_level_server_t *) p_data;
-
-    p_server->timer.mode = MODEL_TIMER_MODE_SINGLE_SHOT;
-    p_server->timer.timeout_rtc_ticks = MODEL_TIMER_TICKS_GET_MS(p_server->state.delay_ms);
-
-    uint32_t status = model_timer_schedule(&p_server->timer);
-    if (status != NRF_SUCCESS)
+    /* Requirement: If transition time parameters are unavailable and default transition time state
+    is not available, transition shall be instantaneous. */
+    if (p_in_transition == NULL)
     {
-        __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Failed to start delay timer.\n");
-    }
-}
-
-static void a_transition_start(void * p_data)
-{
-    app_level_server_t * p_server = (app_level_server_t *) p_data;
-
-    /* Calculate required delta factors required for level change. */
-    uint32_t abs_delta;
-    uint64_t transition_time_us;
-    uint64_t transition_step_us;
-
-    if (p_server->state.transition_type == TRANSITION_MOVE_SET)
-    {
-        abs_delta = abs(p_server->state.params.move.required_move);
+        p_app->state.transition.delay_ms = 0;
+        if (p_app->p_dtt_ms == NULL)
+        {
+            p_params->transition_time_ms = 0;
+        }
+        else
+        {
+            p_params->transition_time_ms = *p_app->p_dtt_ms;
+        }
     }
     else
     {
-        abs_delta = abs(p_server->state.params.set.required_delta);
-    }
-
-    NRF_MESH_ASSERT_DEBUG(abs_delta > 0);
-
-    transition_time_us = MS_TO_US((uint64_t) p_server->state.transition_time_ms);
-    transition_step_us = transition_time_us/abs_delta;
-
-    if (transition_step_us < MS_TO_US(MODEL_TIMER_PERIOD_MS_GET(MODEL_TIMER_TIMEOUT_MIN_TICKS)))
-    {
-        /* We cannot fire timer more frequently than MODEL_TIMER_TIMEOUT_MIN_TICKS, thus
-        increment present level in suitable steps. */
-        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Selecting minimum tick interval\n");
-              p_server->timer.timeout_rtc_ticks = MODEL_TIMER_TIMEOUT_MIN_TICKS;
-    }
-    else
-    {
-        /* Perform level transition using time steps corresponding to one step change. */
-        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Selecting interval for one step change\n");
-              p_server->timer.timeout_rtc_ticks = MODEL_TIMER_TICKS_GET_US(transition_step_us);
-    }
-
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "timeout_rtc_ticks: %d ticks\n", (uint32_t) p_server->timer.timeout_rtc_ticks);
-
-    p_server->timer.mode = MODEL_TIMER_MODE_REPEATED;
-    uint32_t status = model_timer_schedule(&p_server->timer);
-
-    if (status != NRF_SUCCESS)
-    {
-        __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Failed to start transition timer\n");
+        p_app->state.transition.delay_ms = p_in_transition->delay_ms;
+        p_params->transition_time_ms = p_in_transition->transition_time_ms;
     }
 }
 
-static void a_transition_tick(void * p_data)
-{
-    app_level_server_t * p_server = (app_level_server_t *) p_data;
+/**************************************************************************************************/
+/***** Transition module callback function implementation *****/
+/* Note: The task of the transition module is to implement gradual changes of `present_level` value
+ * for all possible time intervals and step size combinations allowed by the level model, and the
+ * callbacks from this module are used to implement actual level value changes.
+ *
+ * If you need to implement transitions using external hardware or other mechanisms you can use
+ * individual callbacks to initiate specific actions on external hardware.
+ */
 
-    if (p_server->state.transition_type != TRANSITION_MOVE_SET)
+static void app_level_delay_start_cb(const app_transition_t * p_transition)
+{
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Starting delay\n");
+}
+
+static void app_level_transition_start_cb(const app_transition_t * p_transition)
+{
+    app_level_server_t * p_app = (app_level_server_t *) p_transition->p_context;
+    app_transition_params_t * p_params = app_transition_ongoing_get(&p_app->state.transition);
+
+    if (p_app->level_transition_cb != NULL)
+    {
+        p_app->level_transition_cb(p_app, p_params->transition_time_ms,
+                                          p_app->state.target_level,
+                                          p_params->transition_type);
+    }
+
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Starting transition\n");
+}
+
+static void app_level_transition_tick_cb(const app_transition_t * p_transition)
+{
+    app_level_server_t * p_app = (app_level_server_t *) p_transition->p_context;
+    app_transition_params_t * p_params = app_transition_ongoing_get(&p_app->state.transition);
+
+    if (p_params->transition_type != APP_TRANSITION_TYPE_MOVE_SET)
     {
         /* Calculate new value using linear interpolation and provide to the application. */
-        int32_t delta = (p_server->state.target_level - p_server->state.params.set.initial_present_level);
-        p_server->state.present_level = p_server->state.params.set.initial_present_level +
-                                        (delta * (int64_t)ELAPSED_TIME(p_server) / (int64_t)p_server->state.transition_time_ms);
+        int32_t delta = (p_app->state.target_level - p_app->state.params.set.initial_present_level);
+        p_app->state.present_level = p_app->state.params.set.initial_present_level +
+                                        (delta * (int64_t)app_transition_elapsed_time_get(&p_app->state.transition) /
+                                          (int64_t)p_params->transition_time_ms);
     }
     else
     {
-        p_server->state.present_level = p_server->state.params.move.initial_present_level +
-                                        (((int64_t)ELAPSED_TIME(p_server) * (int64_t)p_server->state.params.move.required_move) /
-                                          (int64_t)p_server->state.transition_time_ms);
+        p_app->state.present_level = p_app->state.params.move.initial_present_level +
+                                        (((int64_t)app_transition_elapsed_time_get(&p_app->state.transition) * (int64_t)p_app->state.params.move.required_move) /
+                                          (int64_t)p_params->transition_time_ms);
     }
 
-    p_server->level_set_cb(p_server, p_server->state.present_level);
-    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Elapsed time: %d\n", (uint32_t) ELAPSED_TIME(p_server));
+    if (p_app->level_set_cb != NULL)
+    {
+        p_app->level_set_cb(p_app, p_app->state.present_level);
+    }
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG3, "Elapsed time: %d\n", (uint32_t) app_transition_elapsed_time_get(&p_app->state.transition));
 }
 
-static void a_transition_complete(void * p_data)
+static void app_level_transition_complete_cb(const app_transition_t * p_transition)
 {
-    app_level_server_t * p_server = (app_level_server_t *) p_data;
+    app_level_server_t * p_app = (app_level_server_t *) p_transition->p_context;
+    app_transition_params_t * p_params = app_transition_ongoing_get(&p_app->state.transition);
 
-    model_timer_abort(&p_server->timer);
-    p_server->state.transition_time_ms = 0;
-
-    if (p_server->state.transition_type != TRANSITION_MOVE_SET)
+    if (p_params->transition_type != APP_TRANSITION_TYPE_MOVE_SET)
     {
-        p_server->state.present_level = p_server->state.target_level;
+        p_app->state.present_level = p_app->state.target_level;
     }
 
     generic_level_status_params_t status_params;
-    status_params.present_level = p_server->state.present_level;
-    status_params.target_level = p_server->state.target_level;
+    status_params.present_level = p_app->state.present_level;
+    status_params.target_level = p_app->state.target_level;
     status_params.remaining_time_ms = 0;
-    (void) generic_level_server_status_publish(&p_server->server, &status_params);
+    (void) generic_level_server_status_publish(&p_app->server, &status_params);
 
-    p_server->level_set_cb(p_server, p_server->state.present_level);
-}
-
-static bool g_set_delay(void * p_data)
-{
-    app_level_server_t * p_server = (app_level_server_t *) p_data;
-
-    return (p_server->state.delay_ms > 0);
-}
-
-static bool g_set_transition(void * p_data)
-{
-    app_level_server_t * p_server = (app_level_server_t *) p_data;
-
-    switch (p_server->state.transition_type)
+    if (p_app->level_set_cb != NULL)
     {
-        /* Requirement: If transition time is not within valid range, do not start the transition. */
-        case TRANSITION_SET:
-        case TRANSITION_DELTA_SET:
-            return (p_server->state.transition_time_ms > 0 &&
-                    p_server->state.transition_time_ms != MODEL_TRANSITION_TIME_UNKNOWN &&
-                    p_server->state.params.set.required_delta != 0);
-
-        /* Requirement: If transition time is not within valid range, or given move level (delta level)
-        is zero, do not start the transition. */
-        case TRANSITION_MOVE_SET:
-            return (p_server->state.transition_time_ms > 0 &&
-                    p_server->state.transition_time_ms != MODEL_TRANSITION_TIME_UNKNOWN &&
-                    p_server->state.params.move.required_move != 0);
-        default:
-            return false;
+        p_app->level_set_cb(p_app, p_app->state.present_level);
     }
-}
 
-static bool g_transition_complete(void * p_data)
-{
-    app_level_server_t * p_server = (app_level_server_t *) p_data;
+    if (p_app->level_transition_cb != NULL)
+    {
+        p_app->level_transition_cb(p_app, p_params->transition_time_ms,
+                                          p_app->state.target_level,
+                                          p_params->transition_type);
+    }
 
-    return (p_server->state.transition_type != TRANSITION_MOVE_SET && TRANSITION_TIME_COMPLETE(p_server));
-}
-
-/* Model timer callback. This is used for delay and step-wise transition implementation */
-static void level_state_timer_cb(void * p_context)
-{
-    app_level_server_t * p_server = (app_level_server_t *) p_context;
-
-    fsm_event_post(&p_server->fsm, E_TIMEOUT, p_server);
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "Transition completed\n");
 }
 
 /**************************************************************************************************/
@@ -398,31 +199,24 @@ static void generic_level_state_get_cb(const generic_level_server_t * p_self,
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "msg: GET \n");
 
-    app_level_server_t   * p_server = PARENT_BY_FIELD_GET(app_level_server_t, server, p_self);
+    app_level_server_t   * p_app = PARENT_BY_FIELD_GET(app_level_server_t, server, p_self);
+    app_transition_params_t * p_params = app_transition_ongoing_get(&p_app->state.transition);
 
     /* Requirement: Provide the current value of the Level state */
-    p_server->level_get_cb(p_server, &p_server->state.present_level);
-    p_out->present_level = p_server->state.present_level;
-    p_out->target_level = p_server->state.target_level;
+    p_app->level_get_cb(p_app, &p_app->state.present_level);
+    p_out->present_level = p_app->state.present_level;
+    p_out->target_level = p_app->state.target_level;
 
     /* Requirement: Report remaining time during processing of SET or DELTA SET,
      *              Report zero/unknown transition time during processing of MOVE. */
-    if (p_server->state.transition_type == TRANSITION_MOVE_SET)
+    if (p_params->transition_type == APP_TRANSITION_TYPE_MOVE_SET)
     {
-        p_out->remaining_time_ms = (p_server->state.transition_time_ms == 0) ?
+        p_out->remaining_time_ms = (p_params->transition_time_ms == 0) ?
                                     0 : MODEL_TRANSITION_TIME_UNKNOWN;
-    }
-    else if (fsm_in_idle_check(&p_server->fsm))
-    {
-        p_out->remaining_time_ms = 0;
-    }
-    else if (fsm_in_delay_check(&p_server->fsm))
-    {
-        p_out->remaining_time_ms = p_server->state.transition_time_ms;
     }
     else
     {
-        p_out->remaining_time_ms = p_server->state.transition_time_ms - ELAPSED_TIME(p_server);
+        p_out->remaining_time_ms = app_transition_remaining_time_get(&p_app->state.transition);
     }
 }
 
@@ -432,46 +226,29 @@ static void generic_level_state_set_cb(const generic_level_server_t * p_self,
                                        const model_transition_t * p_in_transition,
                                        generic_level_status_params_t * p_out)
 {
-    app_level_server_t   * p_server = PARENT_BY_FIELD_GET(app_level_server_t, server, p_self);
-
-    /* Requirement: If transition time parameters are unavailable and default transition time state
-    is not available, transition shall be instantaneous. */
-    if (p_in_transition == NULL)
-    {
-        p_server->state.delay_ms = 0;
-        if (p_server->p_dtt_ms == NULL)
-        {
-            p_server->state.transition_time_ms = 0;
-        }
-        else
-        {
-            p_server->state.transition_time_ms = *p_server->p_dtt_ms;
-        }
-    }
-    else
-    {
-        p_server->state.delay_ms = p_in_transition->delay_ms;
-        p_server->state.transition_time_ms = p_in_transition->transition_time_ms;
-    }
+    app_level_server_t * p_app = PARENT_BY_FIELD_GET(app_level_server_t, server, p_self);
+    app_transition_params_t * p_params = app_transition_requested_get(&p_app->state.transition);
+    transition_params_set(p_app, p_in_transition);
 
     /* Update internal representation of Level value, process timing. */
-    p_server->state.target_level = p_in->level;
-    p_server->state.transition_type = TRANSITION_SET;
-    p_server->state.params.set.initial_present_level = p_server->state.present_level;
-    p_server->state.params.set.required_delta = p_server->state.target_level - p_server->state.present_level;
+    p_app->state.target_level = p_in->level;
+    p_params->transition_type = APP_TRANSITION_TYPE_SET;
+    p_app->state.params.set.initial_present_level = p_app->state.present_level;
+    p_app->state.params.set.required_delta = p_app->state.target_level - p_app->state.present_level;
+    p_params->required_delta = p_app->state.target_level - p_app->state.present_level;
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "SET: Level: %d  delay: %d  tt: %d  req-delta: %d \n",
-          p_server->state.target_level,  p_server->state.delay_ms, p_server->state.transition_time_ms,
-          p_server->state.params.set.required_delta);
+          p_app->state.target_level,  p_app->state.transition.delay_ms, p_params->transition_time_ms,
+          p_params->required_delta);
 
-    fsm_event_post(&p_server->fsm, E_SET, p_server);
+    app_transition_trigger(&p_app->state.transition);
 
     /* Prepare response */
     if (p_out != NULL)
     {
-        p_out->present_level = p_server->state.present_level;
-        p_out->target_level = p_server->state.target_level;
-        p_out->remaining_time_ms = p_server->state.transition_time_ms;
+        p_out->present_level = p_app->state.present_level;
+        p_out->target_level = p_app->state.target_level;
+        p_out->remaining_time_ms = p_params->transition_time_ms;
     }
 }
 
@@ -481,59 +258,42 @@ static void generic_level_state_delta_set_cb(const generic_level_server_t * p_se
                                              const model_transition_t * p_in_transition,
                                              generic_level_status_params_t * p_out)
 {
-    app_level_server_t   * p_server = PARENT_BY_FIELD_GET(app_level_server_t, server, p_self);
+    app_level_server_t * p_app = PARENT_BY_FIELD_GET(app_level_server_t, server, p_self);
+    app_transition_params_t * p_params = app_transition_requested_get(&p_app->state.transition);
+    transition_params_set(p_app, p_in_transition);
 
-    /* Requirement: If transition time parameters are unavailable and default transition time state
-    is not available, transition shall be instantaneous. */
-    if (p_in_transition == NULL)
-    {
-        p_server->state.delay_ms = 0;
-        if (p_server->p_dtt_ms == NULL)
-        {
-            p_server->state.transition_time_ms = 0;
-        }
-        else
-        {
-            p_server->state.transition_time_ms = *p_server->p_dtt_ms;
-        }
-    }
-    else
-    {
-        p_server->state.delay_ms = p_in_transition->delay_ms;
-        p_server->state.transition_time_ms = p_in_transition->transition_time_ms;
-    }
-
-    p_server->state.transition_type = TRANSITION_DELTA_SET;
+    p_params->transition_type = APP_TRANSITION_TYPE_DELTA_SET;
 
     /* Update internal representation of Level value, process timing. */
     /* Requirement: If TID is same as previous TID for the same message, delta value is cumulative. */
     int32_t delta = p_in->delta_level % ((int32_t)UINT16_MAX + 1);
-    if (!model_transaction_is_new(&p_server->server.tid_tracker))
+    if (!model_transaction_is_new(&p_app->server.tid_tracker))
     {
         __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "tid: %d Same TID, assuming cumulative delta set.\n", p_in->tid);
     }
     else
     {
-        p_server->state.params.set.initial_present_level = p_server->state.present_level;
+        p_app->state.params.set.initial_present_level = p_app->state.present_level;
     }
 
-    p_server->state.target_level = p_server->state.params.set.initial_present_level + delta;
-    p_server->state.params.set.required_delta = delta;
+    p_app->state.target_level = p_app->state.params.set.initial_present_level + delta;
+    p_app->state.params.set.required_delta = delta;
+    p_params->required_delta = delta;
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Delta SET: delta: %d  delay: %d  tt: %d\n",
-          p_in->delta_level, p_server->state.delay_ms, p_server->state.transition_time_ms);
+          p_in->delta_level, p_app->state.transition.delay_ms, p_params->transition_time_ms);
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Delta SET: initial-level: %d  present-level: %d  target-level: %d\n",
-          p_server->state.params.set.initial_present_level, p_server->state.present_level, p_server->state.target_level);
+          p_app->state.params.set.initial_present_level, p_app->state.present_level, p_app->state.target_level);
 
-    fsm_event_post(&p_server->fsm, E_DELTA_SET, p_server);
+    app_transition_trigger(&p_app->state.transition);
 
     /* Prepare response */
     if (p_out != NULL)
     {
-        p_out->present_level = p_server->state.present_level;
-        p_out->target_level = p_server->state.target_level;
-        p_out->remaining_time_ms = p_server->state.transition_time_ms;
+        p_out->present_level = p_app->state.present_level;
+        p_out->target_level = p_app->state.target_level;
+        p_out->remaining_time_ms = p_params->transition_time_ms;
     }
 
 }
@@ -544,56 +304,40 @@ static void generic_level_state_move_set_cb(const generic_level_server_t * p_sel
                                             const model_transition_t * p_in_transition,
                                             generic_level_status_params_t * p_out)
 {
-    app_level_server_t   * p_server = PARENT_BY_FIELD_GET(app_level_server_t, server, p_self);
-
-    /* Update internal representation of Level value, process timing. */
-    if (p_in_transition == NULL)
-    {
-        p_server->state.delay_ms = 0;
-        if (p_server->p_dtt_ms == NULL)
-        {
-            p_server->state.transition_time_ms = 0;
-        }
-        else
-        {
-            p_server->state.transition_time_ms = *p_server->p_dtt_ms;
-        }
-    }
-    else
-    {
-        p_server->state.delay_ms = p_in_transition->delay_ms;
-        p_server->state.transition_time_ms = p_in_transition->transition_time_ms;
-    }
+    app_level_server_t * p_app = PARENT_BY_FIELD_GET(app_level_server_t, server, p_self);
+    app_transition_params_t * p_params = app_transition_requested_get(&p_app->state.transition);
+    transition_params_set(p_app, p_in_transition);
 
     /* Requirement: For the status message: The target Generic Level state is the upper limit of
        the Generic Level state when the transition speed is positive, or the lower limit of the
        Generic Level state when the transition speed is negative. */
     if (p_in->move_level > 0)
     {
-        p_server->state.target_level = INT16_MAX;
+        p_app->state.target_level = INT16_MAX;
     }
     else
     {
-        p_server->state.target_level = INT16_MIN;
+        p_app->state.target_level = INT16_MIN;
     }
 
-    p_server->state.params.move.required_move = p_in->move_level;
-    p_server->state.params.move.initial_present_level = p_server->state.present_level;
-    p_server->state.transition_type = TRANSITION_MOVE_SET;
+    p_app->state.params.move.required_move = (int32_t) p_in->move_level;
+    p_app->state.params.move.initial_present_level = p_app->state.present_level;
+    p_params->required_delta = (int32_t) p_in->move_level;
+    p_params->transition_type = APP_TRANSITION_TYPE_MOVE_SET;
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "MOVE SET: move-level: %d  delay: %d  tt: %d \n",
-          p_in->move_level, p_server->state.delay_ms, p_server->state.transition_time_ms);
+          p_in->move_level, p_app->state.transition.delay_ms, p_params->transition_time_ms);
 
-    fsm_event_post(&p_server->fsm, E_MOVE_SET, p_server);
+    app_transition_trigger(&p_app->state.transition);
 
     /* Prepare response */
     if (p_out != NULL)
     {
-        p_out->present_level = p_server->state.present_level;
-        p_out->target_level = p_server->state.target_level;
-        /* Reponse to Move Set message is sent with unknown transition time value, if
+        p_out->present_level = p_app->state.present_level;
+        p_out->target_level = p_app->state.target_level;
+        /* Response to Move Set message is sent with unknown transition time value, if
         given transition time is non-zero. */
-        p_out->remaining_time_ms = (p_server->state.transition_time_ms == 0) ?
+        p_out->remaining_time_ms = (p_params->transition_time_ms == 0) ?
                                     0 : MODEL_TRANSITION_TIME_UNKNOWN;
     }
 }
@@ -601,48 +345,52 @@ static void generic_level_state_move_set_cb(const generic_level_server_t * p_sel
 
 /***** Interface functions *****/
 
-uint32_t app_level_current_value_publish(app_level_server_t * p_server)
+uint32_t app_level_current_value_publish(app_level_server_t * p_app)
 {
-    p_server->level_get_cb(p_server, &p_server->state.present_level);
-    model_timer_abort(&p_server->timer);
+    p_app->level_get_cb(p_app, &p_app->state.present_level);
+    app_transition_abort(&p_app->state.transition);
 
-    p_server->state.target_level = p_server->state.present_level;
-    p_server->state.delay_ms = 0;
-    p_server->state.transition_time_ms = 0;
+    p_app->state.target_level = p_app->state.present_level;
+    p_app->state.transition.delay_ms = 0;
+    memset(app_transition_ongoing_get(&p_app->state.transition), 0, sizeof(app_transition_params_t));
+    memset(app_transition_requested_get(&p_app->state.transition), 0, sizeof(app_transition_params_t));
 
     generic_level_status_params_t status = {
-                .present_level = p_server->state.present_level,
-                .target_level = p_server->state.target_level,
-                .remaining_time_ms = p_server->state.transition_time_ms
+                .present_level = p_app->state.present_level,
+                .target_level = p_app->state.target_level,
+                .remaining_time_ms = 0
             };
-    return generic_level_server_status_publish(&p_server->server, &status);
+    return generic_level_server_status_publish(&p_app->server, &status);
 }
 
 
-uint32_t app_level_init(app_level_server_t * p_server, uint8_t element_index)
+uint32_t app_level_init(app_level_server_t * p_app, uint8_t element_index)
 {
     uint32_t status = NRF_ERROR_INTERNAL;
 
-    if (p_server == NULL)
+    if (p_app == NULL)
     {
         return NRF_ERROR_NULL;
     }
 
-    if (p_server->level_set_cb == NULL || p_server->level_get_cb == NULL)
+    if ( (p_app->level_get_cb == NULL) ||
+         ( (p_app->level_set_cb == NULL) &&
+           (p_app->level_transition_cb == NULL) ) )
     {
         return NRF_ERROR_NULL;
     }
 
-    p_server->server.settings.p_callbacks = &m_level_srv_cbs;
-    status = generic_level_server_init(&p_server->server, element_index);
+    p_app->server.settings.p_callbacks = &m_level_srv_cbs;
+    status = generic_level_server_init(&p_app->server, element_index);
 
     if (status == NRF_SUCCESS)
     {
-        p_server->timer.p_context = p_server;
-        p_server->timer.cb = level_state_timer_cb;
-
-        fsm_init(&p_server->fsm, &m_level_behaviour_descriptor);
-        status = model_timer_create(&p_server->timer);
+        p_app->state.transition.delay_start_cb = app_level_delay_start_cb;
+        p_app->state.transition.transition_start_cb = app_level_transition_start_cb;
+        p_app->state.transition.transition_tick_cb = app_level_transition_tick_cb;
+        p_app->state.transition.transition_complete_cb = app_level_transition_complete_cb;
+        p_app->state.transition.p_context = p_app;
+        status = app_transition_init(&p_app->state.transition);
     }
 
     return status;

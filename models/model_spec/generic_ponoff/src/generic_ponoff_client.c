@@ -1,5 +1,4 @@
-
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -172,19 +171,17 @@ uint32_t generic_ponoff_client_set_unack(generic_ponoff_client_t * p_client, con
         return NRF_ERROR_INVALID_PARAM;
     }
 
-    p_client->msg_pkt.set.on_powerup = p_params->on_powerup;
+    generic_ponoff_set_msg_pkt_t msg;
+    msg.on_powerup = p_params->on_powerup;
 
-    message_create(p_client, GENERIC_PONOFF_OPCODE_SET_UNACKNOWLEDGED, (const uint8_t *) &p_client->msg_pkt.set,
-                   sizeof(p_client->msg_pkt.set), &p_client->access_message.message);
+    message_create(p_client, GENERIC_PONOFF_OPCODE_SET_UNACKNOWLEDGED, (const uint8_t *) &msg,
+                   sizeof(generic_ponoff_set_msg_pkt_t), &p_client->access_message.message);
 
-    uint32_t status = NRF_ERROR_INVALID_PARAM;
-    for (uint32_t i = 0; i <= repeats; ++i)
+    uint32_t status = NRF_SUCCESS;
+    repeats++;
+    while (repeats-- > 0 && status == NRF_SUCCESS)
     {
         status = access_model_publish(p_client->model_handle, &p_client->access_message.message);
-        if (status != NRF_SUCCESS)
-        {
-            break;
-        }
     }
     return status;
 }

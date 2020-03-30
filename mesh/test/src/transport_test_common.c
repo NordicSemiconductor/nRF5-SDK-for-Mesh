@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -108,9 +108,33 @@ static void enc_aes_ccm_decrypt_stub(ccm_soft_data_t * const p_ccm_data, bool * 
     *p_mic_passed = m_decrypt_ok;
 }
 
+static uint32_t network_packet_alloc_stub(network_tx_packet_buffer_t * p_buffer, int calls)
+{
+    static packet_mesh_trs_packet_t buffer;
+    p_buffer->p_payload = (uint8_t *) &buffer;
+    return NRF_SUCCESS;
+}
+
 static void network_packet_send_stub(const network_tx_packet_buffer_t * p_buffer, int calls)
 {
     TEST_ASSERT_EQUAL_HEX8_ARRAY(&m_packet_send_packet_expect, p_buffer->p_payload, p_buffer->user_data.payload_len);
+
+    if (p_buffer->user_data.p_metadata->control_packet &&
+        TRANSPORT_CONTROL_OPCODE_SEGACK == packet_mesh_trs_control_opcode_get((const packet_mesh_trs_packet_t *) p_buffer->p_payload))
+    {
+        TEST_ASSERT_EQUAL_UINT32(PACKET_MESH_TRS_UNSEG_PDU_OFFSET + PACKET_MESH_TRS_CONTROL_SEGACK_SIZE, p_buffer->user_data.payload_len);
+    }
+
+    if (p_buffer->user_data.p_metadata->control_packet &&
+        TRANSPORT_CONTROL_OPCODE_SEGACK == packet_mesh_trs_control_opcode_get((const packet_mesh_trs_packet_t *) p_buffer->p_payload) &&
+        packet_mesh_trs_control_segack_obo_get((const packet_mesh_trs_control_packet_t *) &p_buffer->p_payload[PACKET_MESH_TRS_UNSEG_PDU_OFFSET]))
+    {
+        TEST_ASSERT_EQUAL_UINT16(LOCAL_ADDR, p_buffer->user_data.p_metadata->src);
+    }
+    else
+    {
+        TEST_ASSERT_EQUAL_UINT16(UNICAST_ADDR, p_buffer->user_data.p_metadata->src);
+    }
 }
 
 /*****************************************************************************
@@ -158,6 +182,14 @@ bool nrf_mesh_rx_address_get(uint16_t short_value, nrf_mesh_address_t * p_addr)
         default:
             return false;
     }
+}
+
+void nrf_mesh_unicast_address_get(uint16_t * p_addr_start, uint16_t * p_addr_count)
+{
+    TEST_ASSERT_NOT_NULL(p_addr_start);
+    TEST_ASSERT_NOT_NULL(p_addr_count);
+    *p_addr_start = LOCAL_ADDR;
+    *p_addr_count = 1;
 }
 
 bearer_event_flag_t bearer_event_flag_add(bearer_event_flag_callback_t callback)
@@ -286,13 +318,7 @@ void expect_sar_ack(const sar_session_t * p_session, uint32_t block_ack_value)
         packet_mesh_trs_control_segack_seqzero_set(p_control_packet, p_session->seqzero);
         packet_mesh_trs_control_segack_block_ack_set(p_control_packet, block_ack_value);
 
-        static network_tx_packet_buffer_t net_buffer;
-        static packet_mesh_trs_packet_t buffer;
-        net_buffer.user_data.payload_len = PACKET_MESH_TRS_UNSEG_PDU_OFFSET + PACKET_MESH_TRS_CONTROL_SEGACK_SIZE;
-        net_buffer.p_payload = (uint8_t *) &buffer;
-
-        network_packet_alloc_ExpectAnyArgsAndReturn(NRF_SUCCESS);
-        network_packet_alloc_ReturnMemThruPtr_p_buffer(&net_buffer, sizeof(net_buffer));
+        network_packet_alloc_StubWithCallback(network_packet_alloc_stub);
         network_packet_send_StubWithCallback(network_packet_send_stub);
     }
     else

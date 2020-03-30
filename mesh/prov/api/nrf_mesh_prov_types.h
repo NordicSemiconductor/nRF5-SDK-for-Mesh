@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -59,7 +59,7 @@
 /** Size of the elliptic curve secret key. */
 #define NRF_MESH_PROV_DATANONCE_SIZE   13
 
-/** Max OOB size permitted by the Mesh Profile Specification v1.0 table 5.21 and 5.23. */
+/** Max OOB size permitted by @tagMeshSp table 5.21 and 5.23. */
 #define NRF_MESH_PROV_OOB_SIZE_MAX      8
 
 /** Length of Random value. */
@@ -81,7 +81,7 @@
  * @ingroup NRF_MESH_PROV_DEFINES
  *
  * Bitfield definitions for the provisioning capabilities fields.
- * See Section 5.4.1.2 Provisioning Capabilities in the Mesh Profile Specification v1.0.
+ * See @tagMeshSp section 5.4.1.2 Provisioning Capabilities.
  * @{
  */
 

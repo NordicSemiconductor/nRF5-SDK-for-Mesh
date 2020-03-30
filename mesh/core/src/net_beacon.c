@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -181,7 +181,7 @@ static inline void make_network_beacon_packet(const nrf_mesh_beacon_secmat_t * p
 static void update_beacon_interval(const nrf_mesh_beacon_tx_info_t * p_tx_info)
 {
 #ifndef NET_BEACON_LOCK_INTERVAL
-    /* According to Mesh Profile Specification v1.0 section 3.9.3.1:
+    /* According to @tagMeshSp section 3.9.3.1:
      *
      * Beacon interval = Observation period * (Observed beacons + 1) / Expected number of beacons
      * Observation is started since the start of the beacon logic. Interval is recalculated every broadcast interval.

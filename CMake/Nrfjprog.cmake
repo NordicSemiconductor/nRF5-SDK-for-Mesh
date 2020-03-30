@@ -26,7 +26,7 @@ if (NRFJPROG AND MERGEHEX AND PYTHON_EXECUTABLE)
     endfunction(add_flash_target)
 else ()
     message(STATUS "Could not find nRFx command line tools (`nrfjprog` and `mergehex`).
-   See http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.tools/dita/tools/nrf5x_command_line_tools/nrf5x_installation.html?cp=5_1_1.
+   See https://infocenter.nordicsemi.com/topic/ug_nrf5x_cltools/UG/cltools/nrf5x_installation.html.
    Flash target will not be supported.")
     function(add_flash_target target)
         # Not supported

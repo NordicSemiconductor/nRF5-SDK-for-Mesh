@@ -1,0 +1,79 @@
+@startuml
+skinparam defaultFontName Arial
+box "Application" #FFFFFF
+participant a as "main.c"
+participant p as "provisioner_helper.c \nnode_setup.c"
+end box
+
+participant c as "Configuration client"
+
+box "Mesh core modules"
+participant core as "    "
+end box
+
+note over a: SoftDevice and core mesh modules initialized
+loop While provisioned devices < MAX_PROVISIONEE_NUMBER
+group Provisioning
+      a -> p: prov_helper_provision_next_device()
+      core -> p: NRF_MESH_EVT_UNPROV_BEACON
+      p -> core: nrf_mesh_prov_init(...)
+      ... ...
+      a -> p: prov_helper_scan_start()
+      ... ...
+      p -> core: nrf_mesh_prov_provision(UUID, ...)
+
+      ... Device is provisioned ...
+
+      core -> p: NRF_MESH_EVT_PROV_COMPLETE
+      p -> core: dsm_address_publish_add(...)
+      p -> core: dsm_devkey_add(...)
+      p -> c: config_client_server_bind(...)
+      p -> c: config_client_server_set(...)
+      p -> a: app_prov_success_cb()
+      a -> p: prov_helper_scan_stop()
+end
+group Configuration
+      a -> p: node_setup_start()
+      p -> c: config_client_composition_data_get()
+      activate c
+      c -> core
+      ...
+      core -> c
+      c -> p: CONFIG_OPCODE_COMPOSITION_DATA
+      deactivate c
+
+      p -> c: config_client_appkey_add()
+      activate c
+      c -> core
+      ...
+      core -> c
+      c -> p: CONFIG_OPCODE_APPKEY_STATUS
+      deactivate c
+
+      p -> c: config_client_model_app_bind()
+      activate c
+      c -> core
+      ...
+      core -> c
+      c -> p: CONFIG_OPCODE_MODEL_APP_STATUS
+      deactivate c
+
+      p -> c: config_client_model_publication_set()
+      activate c
+      c -> core
+      ...
+      core -> c
+      c -> p: CONFIG_OPCODE_MODEL_PUBLICATION_STATUS
+      deactivate c
+
+      p -> c: config_client_model_subscription_add()
+      activate c
+      c -> core
+      ...
+      core -> c
+      c -> p: CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS
+      deactivate c
+      p -> a: app_config_successful_cb()
+end
+end
+@enduml

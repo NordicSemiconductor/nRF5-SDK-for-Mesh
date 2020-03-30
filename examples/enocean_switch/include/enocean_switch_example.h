@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -45,17 +45,6 @@
  * @defgroup ENOCEAN_SWITCH_EAMPLE_H Enocean switch example header
  * @{
  */
-
-/**
- * @defgroup ENOCEAN_SWITCH_EXAMPLE_DEFS Example specific defines
- * @{
- */
-
-/** Static authentication data */
-#define STATIC_AUTH_DATA {0x6E, 0x6F, 0x72, 0x64, 0x69, 0x63, 0x5F, 0x65, 0x78, 0x61, 0x6D, 0x70, 0x6C, 0x65, 0x5F, 0x31}
-
-/** @} end of ENOCEAN_SWITCH_EXAMPLE_DEFS */
-
 
 /**
  * @defgroup ENOCEAN_SWITCH_EXAMPLE_TYPE_DEFS Example specific structures

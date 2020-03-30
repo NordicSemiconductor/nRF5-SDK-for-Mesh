@@ -10,6 +10,8 @@ set(CMAKE_C_FLAGS_MINSIZEREL     "-Os -g "  CACHE STRING "")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O3 -g "  CACHE STRING "")
 set(CMAKE_C_FLAGS_RELEASE        "-O3 -DNDEBUG" CACHE STRING "")
 
+set(MATH_LIB m)
+
 set(cortex-m0_DEFINES
     -mcpu=cortex-m0
     -mthumb

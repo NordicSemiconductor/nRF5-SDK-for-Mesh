@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -49,7 +49,7 @@
 
 /**
  * Evaluates retransmission interval according to the following formula
- * (Section 4.2.2.7 of the Mesh Profile Specification v1.0):
+ * (@tagMeshSp section 4.2.2.7):
  *
  * retransmission interval [ms] = (Publish Retransmit Interval Steps + 1) * 50ms
  */

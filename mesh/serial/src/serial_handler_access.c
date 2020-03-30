@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -70,8 +70,12 @@ static void model_pub_addr_set(const serial_packet_t * p_cmd)
 static void model_pub_addr_get(const serial_packet_t * p_cmd)
 {
     serial_evt_cmd_rsp_data_model_pub_addr_get_t response;
-    /* May safely cast away the packed attribute, as the response is word-aligned on stack */
-    uint32_t status = access_model_publish_address_get(p_cmd->payload.cmd.access.model_handle.handle, (dsm_handle_t *) &response.addr_handle);
+    dsm_handle_t dsm_handle;
+    /* Can not use response directly because taking address of packed member of 'struct <anonymous>'
+       may result in an unaligned pointer value. Compiler warning with GNU Tools ARM Embedded
+       9-2019-q4-major. */
+    uint32_t status = access_model_publish_address_get(p_cmd->payload.cmd.access.model_handle.handle, (dsm_handle_t *) &dsm_handle);
+    response.addr_handle = dsm_handle;
     serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, (uint8_t *) &response, sizeof(response));
 }
 
@@ -105,11 +109,16 @@ static void model_subs_remove(const serial_packet_t * p_cmd)
 static void model_subs_get(const serial_packet_t * p_cmd)
 {
     serial_evt_cmd_rsp_data_model_subs_get_t response;
-    response.count = sizeof(response.address_handles);
-    /* May safely cast away the packed attribute, as the response is word-aligned on stack, hence the address_handles array is 16-bit aligned. */
-    uint32_t status = access_model_subscriptions_get(p_cmd->payload.cmd.access.model_handle.handle, (dsm_handle_t *) response.address_handles, (uint16_t *) &response.count);
+    dsm_handle_t address_handles[sizeof(response.address_handles)];
+    uint16_t count = ARRAY_SIZE(response.address_handles);
+    /* Can not use response directly because taking address of packed member of 'struct <anonymous>'
+       may result in an unaligned pointer value. Compiler warning with GNU Tools ARM Embedded
+       9-2019-q4-major. */
+    uint32_t status = access_model_subscriptions_get(p_cmd->payload.cmd.access.model_handle.handle, address_handles, &count);
     if (NRF_SUCCESS == status || status == NRF_ERROR_INVALID_LENGTH)
     {
+        response.count = count;
+        memcpy((dsm_handle_t *)response.address_handles, (dsm_handle_t *)address_handles, sizeof(dsm_handle_t) * count);
         (void) serial_cmd_rsp_send(p_cmd->opcode, serial_translate_error(status), (uint8_t *) &response, sizeof(response));
     }
     else
@@ -135,11 +144,16 @@ static void model_app_unbind(const serial_packet_t * p_cmd)
 static void model_app_get(const serial_packet_t * p_cmd)
 {
     serial_evt_cmd_rsp_data_model_apps_get_t response;
-    response.count = sizeof(response.appkey_handles)/sizeof(dsm_handle_t);
-    /* May safely cast away the packed attribute, as the response is word-aligned on stack, hence the appkey_handles array is 16-bit aligned. */
-    uint32_t status = access_model_applications_get(p_cmd->payload.cmd.access.model_handle.handle, (dsm_handle_t *) response.appkey_handles, (uint16_t *) &response.count);
+    dsm_handle_t appkey_handles[sizeof(response.appkey_handles)];
+    uint16_t count = ARRAY_SIZE(response.appkey_handles);
+    /* Can not use response directly because taking address of packed member of 'struct <anonymous>'
+       may result in an unaligned pointer value. Compiler warning with GNU Tools ARM Embedded
+       9-2019-q4-major. */
+    uint32_t status = access_model_applications_get(p_cmd->payload.cmd.access.model_handle.handle, appkey_handles, &count);
     if (NRF_SUCCESS == status || status == NRF_ERROR_INVALID_LENGTH)
     {
+        response.count = count;
+        memcpy((dsm_handle_t *)response.appkey_handles, (dsm_handle_t *) appkey_handles, sizeof(dsm_handle_t) * count);
         (void) serial_cmd_rsp_send(p_cmd->opcode, serial_translate_error(status), (uint8_t *) &response, sizeof(response));
     }
     else
@@ -158,8 +172,12 @@ static void model_pub_app_set(const serial_packet_t * p_cmd)
 static void model_pub_app_get(const serial_packet_t * p_cmd)
 {
     serial_evt_cmd_rsp_data_model_pub_app_get_t response;
-    /* May safely cast away the packed attribute, as the response is word-aligned on stack. */
-    uint32_t status = access_model_publish_application_get(p_cmd->payload.cmd.access.model_handle.handle, (dsm_handle_t *) &response.appkey_handle);
+    dsm_handle_t appkey_handle;
+    /* Can not use response directly because taking address of packed member of 'struct <anonymous>'
+       may result in an unaligned pointer value. Compiler warning with GNU Tools ARM Embedded
+       9-2019-q4-major. */
+    uint32_t status = access_model_publish_application_get(p_cmd->payload.cmd.access.model_handle.handle, &appkey_handle);
+    response.appkey_handle = appkey_handle;
     serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, (uint8_t *) &response, sizeof(response));
 }
 
@@ -187,8 +205,12 @@ static void elem_loc_set(const serial_packet_t * p_cmd)
 static void elem_loc_get(const serial_packet_t * p_cmd)
 {
     serial_evt_cmd_rsp_data_elem_loc_get_t response;
-    /* May safely cast away the packed attribute, as the response is word-aligned on stack. */
-    uint32_t status = access_element_location_get(p_cmd->payload.cmd.access.index.element_index, (uint16_t *) &response.location);
+    uint16_t location; 
+    /* Can not use response directly because taking address of packed member of 'struct <anonymous>'
+       may result in an unaligned pointer value. Compiler warning with GNU Tools ARM Embedded
+       9-2019-q4-major. */
+    uint32_t status = access_element_location_get(p_cmd->payload.cmd.access.index.element_index, &location);
+    response.location = location;
     serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, (uint8_t *) &response, sizeof(response));
 }
 
@@ -209,8 +231,12 @@ static void elem_vendor_model_cnt_get(const serial_packet_t * p_cmd)
 static void model_id_get(const serial_packet_t * p_cmd)
 {
     serial_evt_cmd_rsp_data_model_id_get_t response;
-    /* May safely cast away the packed attribute, as the response is word-aligned on stack. */
-    uint32_t status = access_model_id_get(p_cmd->payload.cmd.access.model_handle.handle,(access_model_id_t *) &response.model_id);
+    access_model_id_t model_id;
+    /* Can not use response directly because taking address of packed member of 'struct <anonymous>'
+       may result in an unaligned pointer value. Compiler warning with GNU Tools ARM Embedded
+       9-2019-q4-major. */
+    uint32_t status = access_model_id_get(p_cmd->payload.cmd.access.model_handle.handle, &model_id);
+    response.model_id = model_id;
     serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, (uint8_t *) &response, sizeof(response));
 }
 
@@ -218,19 +244,28 @@ static void handle_get(const serial_packet_t * p_cmd)
 {
     const serial_cmd_access_t * p_access_msg = &p_cmd->payload.cmd.access;
     serial_evt_cmd_rsp_data_model_handle_get_t response;
-    /* May safely cast away the packed attribute, as the response is word-aligned on stack. */
-    uint32_t status = access_handle_get(p_access_msg->handle_get.element_index, p_access_msg->handle_get.model_id, (access_model_handle_t *) &response.model_handle);
+    access_model_handle_t model_handle;
+    /* Can not use response directly because taking address of packed member of 'struct <anonymous>'
+       may result in an unaligned pointer value. Compiler warning with GNU Tools ARM Embedded
+       9-2019-q4-major. */
+    uint32_t status = access_handle_get(p_access_msg->handle_get.element_index, p_access_msg->handle_get.model_id, &model_handle);
+    response.model_handle = model_handle;
     serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, (uint8_t *) &response, sizeof(response));
 }
 
 static void elem_models_get(const serial_packet_t * p_cmd)
 {
     serial_evt_cmd_rsp_data_elem_models_get_t response;
-    response.count = sizeof(response.model_handles);
-    /* May safely cast away the packed attribute, as the response is word-aligned on stack, hence the appkey_handles array is 16-bit aligned. */
-    uint32_t status = access_element_models_get(p_cmd->payload.cmd.access.index.element_index, (access_model_handle_t *) response.model_handles, (uint16_t *) &response.count);
+    access_model_handle_t model_handles[sizeof(response.model_handles)];
+    uint16_t count = ARRAY_SIZE(response.model_handles);
+    /* Can not use response directly because taking address of packed member of 'struct <anonymous>'
+       may result in an unaligned pointer value. Compiler warning with GNU Tools ARM Embedded
+       9-2019-q4-major. */
+    uint32_t status = access_element_models_get(p_cmd->payload.cmd.access.index.element_index, model_handles, &count);
     if (NRF_SUCCESS == status || status == NRF_ERROR_INVALID_LENGTH)
     {
+        response.count = count;
+        memcpy((access_model_handle_t *)response.model_handles, (access_model_handle_t *)model_handles, sizeof(access_model_handle_t) * count);
         (void) serial_cmd_rsp_send(p_cmd->opcode, serial_translate_error(status), (uint8_t *) &response, sizeof(response));
     }
     else

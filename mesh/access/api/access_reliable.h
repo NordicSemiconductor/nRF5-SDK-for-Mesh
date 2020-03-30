@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -65,7 +65,7 @@
 
 /**
  * Minimum timeout for an acknowledged message in microseconds.
- * @note Mesh Profile Specification v1.0 recommends this to be minimum 60s.
+ * @note @tagMeshSp recommends this to be minimum 60s.
  */
 #define ACCESS_RELIABLE_TIMEOUT_MIN  (SEC_TO_US(2))
 

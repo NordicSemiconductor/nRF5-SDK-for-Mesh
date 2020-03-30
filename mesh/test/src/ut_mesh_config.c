@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -187,6 +187,21 @@ void tearDown(void)
     listener_Destroy();
 }
 
+static void entry_param_check(mesh_config_entry_id_t id, mesh_config_entry_flags_t flag)
+{
+    for (uint32_t i = 0; i < sizeof(mesh_config_entries); i++)
+    {
+        if (mesh_config_entries[i].p_id->file == id.file)
+        {
+            uint32_t index = id.record - mesh_config_entries[i].p_id->record;
+            TEST_ASSERT_TRUE(index < mesh_config_entries[i].max_count);
+            TEST_ASSERT_TRUE(mesh_config_entries[i].p_state[index] == flag);
+            return;
+        }
+    }
+    TEST_FAIL_MESSAGE("Entry wasn't found. Test is broken.");
+}
+
 static uint32_t entry_set(mesh_config_entry_id_t id, const void * p_entry)
 {
     const entry_t * p_value = p_entry;
@@ -247,6 +262,10 @@ static void event_handler(const nrf_mesh_evt_t * p_evt, int calls)
             }
             TEST_ASSERT_EQUAL(expect.params.config_load_failure.reason,
                               p_evt->params.config_load_failure.reason);
+            if (p_evt->params.config_load_failure.reason != MESH_CONFIG_LOAD_FAILURE_INVALID_ID)
+            {
+                entry_param_check(p_evt->params.config_load_failure.id, MESH_CONFIG_ENTRY_FLAG_DIRTY);
+            }
             break;
         case NRF_MESH_EVT_CONFIG_STABLE:
             break;
@@ -374,6 +393,7 @@ void test_custom_load(void)
                 .data_len = vector_broken[i].load.length
             }
         };
+
         if (vector_broken[i].failure == MESH_CONFIG_LOAD_FAILURE_INVALID_DATA)
         {
             entry_set_params_t entry_set = {
@@ -383,6 +403,14 @@ void test_custom_load(void)
             };
             entry_set_Expect(&entry_set);
         }
+        else if (vector_broken[i].failure == MESH_CONFIG_LOAD_FAILURE_INVALID_ID)
+        {
+            if (vector_broken[i].load.id.file == FILE_ID_0 || vector_broken[i].load.id.file == FILE_ID_1)
+            {
+                mesh_config_backend_erase_ExpectAndReturn(vector_broken[i].load.id, NRF_SUCCESS);
+            }
+        }
+
         config_evt_Expect(&load_fail_evt);
         custom_load_Expect(&vector_broken[i].load);
     }
@@ -873,7 +901,10 @@ void test_power_down(void)
                                                        sizeof(entry_t),
                                                        sizeof(entry_t),
                                                        NRF_SUCCESS);
+    TEST_ASSERT_FALSE(mesh_config_is_busy());
     mesh_config_power_down();
+    TEST_ASSERT_TRUE(mesh_config_is_busy());
+
     mesh_config_entries[0].p_state[0] &= ~MESH_CONFIG_ENTRY_FLAG_BUSY;
     mesh_config_entries[3].p_state[0] &= ~MESH_CONFIG_ENTRY_FLAG_DIRTY;
 

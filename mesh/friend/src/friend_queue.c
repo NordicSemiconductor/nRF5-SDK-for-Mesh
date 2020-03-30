@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -115,7 +115,7 @@ static friend_packet_t * packet_alloc(friend_queue_t * p_queue, const transport_
     // There are no free packets left, so we need to start discarding:
     QUEUE_FOREACH(&p_queue->committed_packets, it)
     {
-        /* According to the Mesh Profile Specification v1.0 section 3.5.5, we should discard the
+        /* According to @tagMeshSp section 3.5.5, we should discard the
          * oldest packet that isn't an update packet. To avoid leaving partial SAR packets in the
          * queue, we'll remove consecutive packets with the same set_id. */
         friend_packet_t * p_committed_packet = packet_from_queue_elem(*it.pp_elem);

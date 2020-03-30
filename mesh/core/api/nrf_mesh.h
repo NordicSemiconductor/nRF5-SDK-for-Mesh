@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -184,7 +184,7 @@ typedef struct
  * With the default behavior, the mesh will only relay new packets with a TTL larger than 1.
  * This behavior is always applied in addition to the callback function.
  *
- * @warning Devices claiming to be compliant with the Mesh Profile Specification v1.0 should
+ * @warning Devices claiming to be compliant with @tagMeshSp should
  *          not override the default relaying behavior.
  *
  * @see nrf_mesh_init()
@@ -411,7 +411,7 @@ typedef struct
     uint16_t src;
     /** Time to live value for the packet, this is a 7 bit value. */
     uint8_t ttl;
-    /** See Section 3.7.5.2 in the Mesh Profile Specification v1.0. */
+    /** See @tagMeshSp section 3.7.5.2 */
     bool force_segmented;
     /** Transport MIC Size selection */
     nrf_mesh_transmic_size_t transmic_size;
@@ -529,9 +529,10 @@ uint32_t nrf_mesh_disable(void);
  * @retval NRF_ERROR_NULL          @c p_params is a @c NULL pointer or a required field of the struct
  *                                 (other than @c p_data) is @c NULL.
  * @retval NRF_ERROR_FORBIDDEN     Failed to allocate a sequence number from network.
- * @retval NRF_ERROR_INVALID_STATE There's already a segmented packet to this destination in
- *                                 progress. Wait for it to finish before sending new segmented
- *                                 packets.
+ * @retval NRF_ERROR_INVALID_STATE  There's already a segmented packet that is
+ *                                  being to sent to this destination. Wait for
+ *                                  the transmission to finish before sending
+ *                                  new segmented packets.
  */
 uint32_t nrf_mesh_packet_send(const nrf_mesh_tx_params_t * p_params,
                               uint32_t * const p_packet_reference);

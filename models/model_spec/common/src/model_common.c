@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -40,10 +40,26 @@
 #include <stdint.h>
 
 #include "app_timer.h"
+#include "app_error.h"
 #include "nrf_mesh_assert.h"
 #include "nrf_mesh_config_core.h"
+#include "nrf_mesh_events.h"
 #include "utils.h"
-#include "log.h"
+#include "mesh_opt.h"
+#include "mesh_config_entry.h"
+
+typedef struct
+{
+    uint16_t    light_lightness_instance_count;
+    uint16_t    light_lc_instance_count;
+    uint16_t    light_ctl_instance_count;
+} model_common_metadata_t;
+
+typedef struct
+{
+    uint8_t is_metadata_stored : 1;
+    uint8_t is_load_failed : 1;
+} model_common_status_t;
 
 #define TRANSITION_TIME_STEP_RESOLUTION_100MS   (0x00)
 #define TRANSITION_TIME_STEP_RESOLUTION_1S      (0x40)
@@ -56,14 +72,47 @@
 #define TRANSITION_TIME_STEP_10S_FACTOR         (10*1000)
 #define TRANSITION_TIME_STEP_10M_FACTOR         (10*60*1000)
 
-/* As defined in Mesh Model Specification v1.0 */
+/* As defined in @tagMeshMdlSp */
 #define TID_VALIDATION_INTERVAL_US              (SEC_TO_US(6))
 
 /* This macro ensures that the remaining timeout is always greater than APP_TIMER_MIN_TIMEOUT_TICKS.*/
 #define APP_TIMER_MAX_TIMEOUT                   (MODEL_TIMER_MAX_TIMEOUT_TICKS - (APP_TIMER_MIN_TIMEOUT_TICKS * 2))
 
+#define MODEL_COMMON_METADATA_EID   MESH_CONFIG_ENTRY_ID(MESH_OPT_MODEL_FILE_ID, MESH_APP_MODEL_COMMON_ID)
+
 NRF_MESH_STATIC_ASSERT(MODEL_TIMER_MAX_TIMEOUT_TICKS > APP_TIMER_MAX_TIMEOUT);
 NRF_MESH_STATIC_ASSERT(MODEL_TIMER_PERIOD_MS_GET(MODEL_TIMER_TIMEOUT_MIN_TICKS) > 0);
+
+MESH_CONFIG_FILE(m_model_storage, MESH_OPT_MODEL_FILE_ID, MESH_CONFIG_STRATEGY_CONTINUOUS);
+
+static uint32_t model_common_metadata_setter(mesh_config_entry_id_t id, const void * p_entry);
+static void     model_common_metadata_getter(mesh_config_entry_id_t id, void * p_entry);
+
+MESH_CONFIG_ENTRY(m_model_common_metadata_entry,
+                  MODEL_COMMON_METADATA_EID,
+                  1,
+                  sizeof(model_common_metadata_t),
+                  model_common_metadata_setter,
+                  model_common_metadata_getter,
+                  NULL,
+                  true);
+
+static model_common_status_t m_status;
+/** Mesh event handler */
+static nrf_mesh_evt_handler_t m_mesh_evt_handler;
+
+static void metadata_store(void)
+{
+    mesh_config_entry_id_t entry_id = MODEL_COMMON_METADATA_EID;
+    model_common_metadata_t metadata =
+    {
+        .light_lightness_instance_count = LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX,
+        .light_lc_instance_count = LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+        .light_ctl_instance_count = LIGHT_CTL_SETUP_SERVER_INSTANCES_MAX,
+    };
+
+    NRF_MESH_ERROR_CHECK(mesh_config_entry_set(entry_id, &metadata));
+}
 
 static uint32_t timeout_update_and_schedule(model_timer_t * p_timer)
 {
@@ -119,6 +168,74 @@ static void model_tid_timer_cb(timestamp_t timestamp, void * p_context)
     tid_tracker_t * p_item = (tid_tracker_t *) p_context;
     p_item->tid_expiry_timer.cb = NULL;
 }
+
+static void mesh_evt_handler(const nrf_mesh_evt_t * p_evt)
+{
+    switch (p_evt->type)
+    {
+        case NRF_MESH_EVT_CONFIG_LOAD_FAILURE:
+            if (p_evt->params.config_load_failure.id.file == MESH_OPT_MODEL_FILE_ID)
+            {
+                m_status.is_load_failed = 1;
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
+/* Setter and getter definitions.
+ */
+static uint32_t model_common_metadata_setter(mesh_config_entry_id_t id, const void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(MESH_APP_MODEL_COMMON_ID == id.record);
+
+    const model_common_metadata_t * p_metadata = (const model_common_metadata_t *) p_entry;
+
+    if ((p_metadata->light_lightness_instance_count == LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX) &&
+        (p_metadata->light_lc_instance_count == LIGHT_LC_SETUP_SERVER_INSTANCES_MAX) &&
+        (p_metadata->light_ctl_instance_count == LIGHT_CTL_SETUP_SERVER_INSTANCES_MAX))
+    {
+        m_status.is_metadata_stored = 1;
+    }
+    else
+    {
+        return NRF_ERROR_INVALID_DATA;
+    }
+
+    return NRF_SUCCESS;
+}
+
+static void model_common_metadata_getter(mesh_config_entry_id_t id, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(MESH_APP_MODEL_COMMON_ID == id.record);
+
+    model_common_metadata_t * p_metadata = (model_common_metadata_t *) p_entry;
+    p_metadata->light_lightness_instance_count = LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX;
+    p_metadata->light_lc_instance_count = LIGHT_LC_SETUP_SERVER_INSTANCES_MAX;
+    p_metadata->light_ctl_instance_count = LIGHT_CTL_SETUP_SERVER_INSTANCES_MAX;
+}
+
+
+/* Weak functions declearation */
+__WEAK void light_lightness_mc_init(void)
+{}
+
+__WEAK void light_lc_mc_init(void)
+{}
+
+__WEAK void light_ctl_mc_init(void)
+{}
+
+__WEAK void light_lightness_mc_clear(void)
+{}
+
+__WEAK void light_lc_mc_clear(void)
+{}
+
+__WEAK void light_ctl_mc_clear(void)
+{}
 
 /* Public APIs for models */
 bool model_tid_validate(tid_tracker_t * p_tid_tracker, const access_message_rx_meta_t * p_meta,
@@ -272,9 +389,10 @@ void model_timer_abort(model_timer_t * p_timer)
 {
     NRF_MESH_ASSERT(p_timer != NULL);
 
+    (void) app_timer_stop(*p_timer->p_timer_id);
     p_timer->remaining_ticks = 0;
     p_timer->timeout_rtc_ticks = 0;
-    (void) app_timer_stop(*p_timer->p_timer_id);
+    p_timer->total_rtc_ticks = 0;
 }
 
 uint32_t model_timer_create(model_timer_t * p_timer)
@@ -288,4 +406,40 @@ uint32_t model_timer_create(model_timer_t * p_timer)
 
     /* For simplicity, always operate app_timer in single shot mode */
     return (app_timer_create(p_timer->p_timer_id, APP_TIMER_MODE_SINGLE_SHOT, model_timer_cb));
+}
+
+void model_common_init(void)
+{
+    m_mesh_evt_handler.evt_cb = mesh_evt_handler;
+    nrf_mesh_evt_handler_add(&m_mesh_evt_handler);
+
+    m_status.is_load_failed = 0;
+
+    light_lightness_mc_init();
+    light_lc_mc_init();
+    light_ctl_mc_init();
+}
+
+uint32_t model_common_config_apply(void)
+{
+    if (m_status.is_load_failed)
+    {
+        light_lightness_mc_clear();
+        light_lc_mc_clear();
+        light_ctl_mc_clear();
+
+        m_status.is_metadata_stored = 0;
+        (void) mesh_config_entry_delete(MODEL_COMMON_METADATA_EID);
+
+        metadata_store();
+        return NRF_ERROR_INVALID_DATA;
+    }
+
+    if (!m_status.is_metadata_stored)
+    {
+        metadata_store();
+        return NRF_ERROR_NOT_FOUND;
+    }
+
+    return NRF_SUCCESS;
 }

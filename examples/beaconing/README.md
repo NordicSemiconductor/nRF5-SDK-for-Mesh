@@ -59,7 +59,7 @@ Bluetooth Low Energy advertisement packet format.
 
 You need one supported development kit board for this beaconing example.
 
-See @ref md_doc_introduction_mesh_compatibility for information about
+See @ref md_doc_user_guide_mesh_compatibility for information about
 the supported boards.
 
 ---

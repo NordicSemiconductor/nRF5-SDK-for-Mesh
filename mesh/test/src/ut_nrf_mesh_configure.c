@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -50,8 +50,9 @@
 
 typedef struct __attribute((packed))
 {
-    uint64_t uuid_00_59 : 60;
+    uint64_t uuid_00_51 : 52;
     uint64_t version : 4;
+    uint64_t uuid_56_63: 8;
 
     uint64_t uuid_64_67 : 4;
     uint64_t uuid_68_69 : 2;
@@ -99,6 +100,14 @@ void test_uuid(void)
 
     p_uuid = nrf_mesh_configure_device_uuid_get();
     p_uuid4 = (const uuid4_t *) p_uuid;
+    TEST_ASSERT_EQUAL(p_uuid4->version, UUID_VERSION4);
+    TEST_ASSERT_EQUAL(p_uuid4->variant, UUID_VERSION4_VARIANT_BITS);
+
+    /* See @tagMeshSp section 8.4.1 */
+    const uint8_t sample_uuid[16] = {0x70, 0xcf, 0x7c, 0x97, 0x32, 0xa3, 0x45, 0xb6, 0x91, 0x49, 0x48, 0x10, 0xd2, 0xe9, 0xcb, 0xf4};
+    nrf_mesh_configure_device_uuid_set(sample_uuid);
+    p_uuid4 = (const uuid4_t *)nrf_mesh_configure_device_uuid_get();
+
     TEST_ASSERT_EQUAL(p_uuid4->version, UUID_VERSION4);
     TEST_ASSERT_EQUAL(p_uuid4->variant, UUID_VERSION4_VARIANT_BITS);
 }

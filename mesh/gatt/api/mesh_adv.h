@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -50,7 +50,7 @@
  *
  * The implementation of the interface is left to the *user* in order to give the application as much
  * flexibility as possible. The mesh stack handles starting and stopping of the advertisements and
- * the required UUIDs and service data as defined by the Mesh Profile specification v1.0.
+ * the required UUIDs and service data as defined by @tagMeshSp.
  *
  * @note A sample implementation of this interface can be found in `examples/common/src/mesh_adv.c`.
  * No changes are needed unless additional UUIDs or service data is desired.

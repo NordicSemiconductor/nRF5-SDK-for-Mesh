@@ -1,0 +1,45 @@
+# MSC for handling DFU process
+
+msc {
+    hscale="1.8";
+
+    a [label="Application"], b[label="Mesh Stack"], c[label="Mesh DFU"];
+
+    ---  [label="Receiving packets"];
+    b=>c [label="nrf_mesh_dfu_rx()"];
+    c note c [label="\nThe Mesh DFU module receives the Firmware ID packet.\n"];
+    c->a [label="NRF_MESH_EVT_DFU_FIRMWARE_OUTDATED(_NO_AUTH)"];
+    
+    --- [label="Requesting new firmware"];
+    a note a [label="The application selects a bank address."];
+    a=>c [label="nrf_mesh_dfu_request()"];
+    c note c [label="\nRole = NRF_MESH_DFU_ROLE_TARGET.\nState = NRF_MESH_DFU_STATE_DFU_REQ.\n"];
+    c=>c [label="Start the DFU request timer."];
+    
+    c rbox c [label="Ready to receive new firmware."];
+    
+    --- [label="Receiving new firmware"];
+    b=>c [label="nrf_mesh_dfu_rx()"];
+    c note c [label="\nThe Mesh DFU module receives State packet.\nState = NRF_MESH_DFU_STATE_READY.\n"];
+    b=>c [label="nrf_mesh_dfu_rx()"];
+    c note c [label="\nThe device receives DFU data packet.\nState = NRF_MESH_DFU_STATE_TARGET.\n"];
+    c->a [label="NRF_MESH_EVT_DFU_START"];
+    c=>c [label="Start the data transfer timer."];
+    ...;
+    c rbox c [label="Receiving DFU data packets."];
+    ...;
+    b=>c [label="nrf_mesh_dfu_rx()"];
+    c note c [label="\nThe Mesh DFU module receives the last firmware segment.\nState = NRF_MESH_DFU_STATE_VALIDATE.\n"];
+    
+    --- [label="Verifying new firmware"];
+    c note c [label="\nThe Mesh DFU module verifies signature.\nState = NRF_MESH_DFU_STATE_STABILIZE.\n"];
+    c->a [label="NRF_MESH_EVT_DFU_END (reason = NRF_MESH_DFU_END_SUCCESS)"];
+    
+    --- [label="Flashing new firmware"];
+    c->a [label="NRF_MESH_EVT_DFU_BANK_AVAILABLE"];
+    a=>c [label="nrf_mesh_dfu_bank_flash()"];
+    c note c [label="\nThe Mesh DFU module reboots the device and starts the firmware update.\n"];
+    
+    a rbox c [label="DFU process is finished."];
+}
+

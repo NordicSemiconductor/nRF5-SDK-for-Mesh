@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -113,9 +113,23 @@ static void sd_state_evt_handler(nrf_sdh_state_evt_t state, void * p_context)
             uint32_t err_code = nrf_sdh_ble_default_cfg_set(MESH_SOFTDEVICE_CONN_CFG_TAG, &ram_start);
             APP_ERROR_CHECK(err_code);
 
+            /* Update GAP device name length. */
+            ble_cfg_t cfg;
+            memset(&cfg, 0, sizeof(cfg));
+            BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cfg.gap_cfg.device_name_cfg.write_perm);
+            cfg.gap_cfg.device_name_cfg.vloc        = BLE_GATTS_VLOC_STACK;
+            cfg.gap_cfg.device_name_cfg.p_value     = NULL;
+            cfg.gap_cfg.device_name_cfg.current_len = 0;
+            cfg.gap_cfg.device_name_cfg.max_len     = strlen(GAP_DEVICE_NAME);
+            APP_ERROR_CHECK(sd_ble_cfg_set(BLE_GAP_CFG_DEVICE_NAME, &cfg, ram_start));
+
             err_code = nrf_sdh_ble_enable(&ram_start);
             APP_ERROR_CHECK(err_code);
 
+            if (m_params.prov_sd_ble_opt_set_cb != NULL)
+            {
+                m_params.prov_sd_ble_opt_set_cb();
+            }
 
 #if MESH_FEATURE_GATT_PROXY_ENABLED
             mesh_key_index_t key_index;

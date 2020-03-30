@@ -15,14 +15,14 @@ of the Bluetooth Mesh Network, a translator client, and servers. All servers hav
 the relay functionality enabled, which allows the EnOcean switch to control the state
 of any of the servers in the network.
 
-![Integrating EnOcean switches in the Mesh Network](img/example_nw_config.png "Integrating EnOcean switches in the Mesh Network")
+![Integrating EnOcean switches in the Mesh Network](images/example_nw_config.png "Integrating EnOcean switches in the Mesh Network")
 
 The translator client linked with the EnOcean switch has a provisionee role in the network.
 The client receives messages from the PTM215B switch and converts them to
 equivalent on/off client messages to control the state of LED 1 on servers.
 The client instantiates two instances of the Generic OnOff Client model (A and B, each
-with two buttons) and can either be provisioned and configured by the static provisioner
-(provisioner example that is part of the [light switch example](@ref md_examples_light_switch_README))
+with two buttons) and can either be provisioned and configured by 
+the [provisioner example](@ref md_examples_provisioner_README)
 or by a GATT-based provisioner (@link_nrf_mesh_app).
 
 
@@ -44,15 +44,15 @@ or by a GATT-based provisioner (@link_nrf_mesh_app).
 ## Hardware requirements @anchor enocean_example_requirements_hw
 
 You need at least two supported boards for this example:
-- One development board for the EnOcean switch.
-- One or more development boards for the servers.
+- One nRF52 development kit for the EnOcean switch.
+- One or more nRF52 development kits for the servers.
 
 Additionally, you need one of the following:
-- one development board for the provisioner if you decide to use the static provisioner example.
+- one development board for the provisioner if you decide to use the [static provisioner example](@ref md_examples_provisioner_README).
 - @link_nrf_mesh_app (@link_nrf_mesh_app_ios or @link_nrf_mesh_app_android) if you decide to provision
 using the application.
 
-See @ref md_doc_introduction_mesh_compatibility for information about the supported boards.
+See @ref md_doc_user_guide_mesh_compatibility for information about the supported boards.
 
 
 ---
@@ -68,11 +68,11 @@ If you want this example to support more than two EnOcean switches in parallel, 
 of `MAX_ENOCEAN_DEVICES_SUPPORTED` to the desired number of switches.
 
 Additionally, if you decide to use the static provisioner example, you also need 
-the light switch provisioner example firmware: `<InstallFolder>/examples/light_switch/provisioner`
+the provisioner example firmware: `<InstallFolder>/examples/provisioner`
 
 See the [Light switch example](@ref md_examples_light_switch_README) page for more information
 about the provisioner and the server examples. For details about the API usage of these two examples,
-check the [provisioner details](@ref md_examples_light_switch_provisioner_README)
+check the [provisioner details](@ref md_examples_provisioner_README)
 and [server details](@ref md_examples_light_switch_client_README) pages.
 
 ---
@@ -120,8 +120,8 @@ To test the EnOcean switch example, build the examples by following the instruct
 [Building the mesh stack](@ref md_doc_getting_started_how_to_build).
 
 @note
-If you have more than 30 boards for the server and decided to use the static provisioner example,
-set `SERVER_NODE_COUNT` (in `light_switch_example_common.h`) to the number of boards available
+If you have more than 40 boards for the server and decided to use the static provisioner example,
+set `MAX_PROVISIONEE_NUMBER` (in `example_network_config.h`) to the number of boards available
 and rebuild the provisioner example.
 
 After building is complete, use one of the following methods, depending on the preferred
@@ -135,7 +135,7 @@ Once the provisioning is complete, you can start [interacting with the boards](@
 
 1. Flash the examples by following the instructions in @ref md_doc_getting_started_how_to_run_examples, including:
     1. Erase the flash of your development boards and program the SoftDevice on each board.
-    2. Flash the light switch provisioner firmware on one board, this example on another board,
+    2. Flash the provisioner firmware on one board, this example on another board,
     and the light switch server firmware on other board or boards.
 2. Decide whether to start [capturing the commissioning data](@ref enocean_example_testing_capturing)
 at this point. You can also do this after the translator client provisioning.
@@ -208,7 +208,7 @@ rocker switches on the EnOcean switch to control various servers.
 See [LED and button assignments](@ref enocean_example_setup_assignments) section.
 
 If any of the devices is powered off and back on, it will remember its flash configuration
-and rejoin the network. For more information about the flash manager, see @ref md_doc_libraries_flash_manager.
+and rejoin the network. For more information about the flash manager, see @ref md_doc_user_guide_modules_flash_manager.
 
 If you want to reset the application data without re-flashing the firmware, press Button 4.
 LED 1 will blink twice to indicate that application specific data and mesh related data has been erased.

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -96,7 +96,7 @@ static local_access_status_t m_status;
 /* ********** Static asserts ********** */
 
 NRF_MESH_STATIC_ASSERT(ACCESS_MODEL_COUNT > 0);
-NRF_MESH_STATIC_ASSERT(ACCESS_ELEMENT_COUNT > 0);
+NRF_MESH_STATIC_ASSERT((ACCESS_ELEMENT_COUNT > 0) && (ACCESS_ELEMENT_COUNT <= 0xff));
 NRF_MESH_STATIC_ASSERT(ACCESS_PUBLISH_RESOLUTION_MAX <=
                        ((1 << ACCESS_PUBLISH_STEP_RES_BITS) - 1));
 NRF_MESH_STATIC_ASSERT(ACCESS_PUBLISH_PERIOD_STEP_MAX <=
@@ -395,7 +395,7 @@ static uint32_t packet_tx(access_model_handle_t handle,
         status = dsm_tx_friendship_secmat_get(subnet_handle, appkey_handle, &tx_params.security_material);
     }
 
-    /* The Mesh Profile Specification v1.0, Section 4.2.2.4:
+    /* @tagMeshSp section 4.2.2.4:
      *
      * When Publish Friendship Credential Flag is set to 1 and the friendship security material is
      * not available, the master security material shall be used. */
@@ -514,7 +514,7 @@ static bool is_element_rx_address(const nrf_mesh_address_t * p_dst, uint16_t * p
              p_dst->value == NRF_MESH_ALL_RELAYS_ADDR ||
              p_dst->value == NRF_MESH_ALL_NODES_ADDR)
     {
-        /* According to the Mesh Profile Specification v1.0 section 3.4.2, only models on the
+        /* According to @tagMeshSp section 3.4.2, only models on the
          * primary element of the node shall process the fixed group addresses. */
         *p_index = 0;
         return true;
@@ -567,7 +567,7 @@ static void divide_publish_interval(access_publish_resolution_t input_resolution
     ms100_value /= divisor;
 
     /* Get the divisor corresponding to the new number of 100 ms steps: */
-    if (ms100_value < 10)
+    if (ms100_value <= ACCESS_PUBLISH_PERIOD_STEP_MAX)
     {
         *p_output_resolution = ACCESS_PUBLISH_RESOLUTION_100MS;
         if (input_steps == 0)
@@ -580,20 +580,20 @@ static void divide_publish_interval(access_publish_resolution_t input_resolution
             *p_output_steps = MAX(1, ms100_value);
         }
     }
-    else if (ms100_value < 100)
+    else if (ms100_value <= (ACCESS_PUBLISH_PERIOD_STEP_MAX * 10))
     {
         *p_output_resolution = ACCESS_PUBLISH_RESOLUTION_1S;
         *p_output_steps = ms100_value / 10;
     }
-    else if (ms100_value < 6000)
+    else if (ms100_value <= (ACCESS_PUBLISH_PERIOD_STEP_MAX * (10*10)))
     {
         *p_output_resolution = ACCESS_PUBLISH_RESOLUTION_10S;
-        *p_output_steps = ms100_value / 100;
+        *p_output_steps = ms100_value / (10*10);
     }
     else
     {
         *p_output_resolution = ACCESS_PUBLISH_RESOLUTION_10MIN;
-        *p_output_steps = ms100_value / 6000;
+        *p_output_steps = ms100_value / (10*60*10);
     }
 
 }
@@ -646,11 +646,10 @@ static uint32_t subscriptions_setter(mesh_config_entry_id_t id, const void * p_e
         return NRF_ERROR_NOT_FOUND;
     }
 
-    uint16_t idx = id.record - MESH_OPT_ACCESS_SUBSCRIPTIONS_RECORD;
-
     if (!m_status.is_restoring_ended)
     {
         access_flash_subscription_list_t * p_data = (access_flash_subscription_list_t *)p_entry;
+        uint16_t idx = id.record - MESH_OPT_ACCESS_SUBSCRIPTIONS_RECORD;
 
         for (uint32_t i = 0; i < ARRAY_SIZE(p_data->inverted_bitfield); ++i)
         {
@@ -686,12 +685,15 @@ static uint32_t elements_setter(mesh_config_entry_id_t id, const void * p_entry)
         return NRF_ERROR_NOT_FOUND;
     }
 
-    uint16_t idx = id.record - MESH_OPT_ACCESS_ELEMENTS_RECORD;
-
     if (!m_status.is_restoring_ended)
     {
         uint16_t * p_data = (uint16_t *)p_entry;
-        memcpy(&m_element_pool[idx].location, p_data, sizeof(uint16_t));
+        uint16_t idx = id.record - MESH_OPT_ACCESS_ELEMENTS_RECORD;
+
+        if (*p_data != m_element_pool[idx].location)
+        {
+            return NRF_ERROR_INVALID_DATA;
+        }
 
         ACCESS_INTERNAL_STATE_INVALIDATED_CLR(m_element_pool[idx].internal_state);
         ACCESS_INTERNAL_STATE_REFRESHED_CLR(m_element_pool[idx].internal_state);
@@ -718,11 +720,19 @@ static uint32_t models_setter(mesh_config_entry_id_t id, const void * p_entry)
         return NRF_ERROR_NOT_FOUND;
     }
 
-    uint16_t idx = id.record - MESH_OPT_ACCESS_MODELS_RECORD;
-
     if (!m_status.is_restoring_ended)
     {
         access_model_state_data_t * p_data = (access_model_state_data_t *)p_entry;
+        uint16_t idx = id.record - MESH_OPT_ACCESS_MODELS_RECORD;
+
+        if (p_data->element_index != m_model_pool[idx].model_info.element_index ||
+            p_data->model_id.company_id != m_model_pool[idx].model_info.model_id.company_id ||
+            p_data->model_id.model_id != m_model_pool[idx].model_info.model_id.model_id ||
+            p_data->subscription_pool_index != m_model_pool[idx].model_info.subscription_pool_index)
+        {
+            return NRF_ERROR_INVALID_DATA;
+        }
+
         memcpy(&m_model_pool[idx].model_info, p_data, sizeof(access_model_state_data_t));
 
         ACCESS_INTERNAL_STATE_INVALIDATED_CLR(m_model_pool[idx].internal_state);
@@ -1085,8 +1095,9 @@ uint32_t access_packet_tx(access_model_handle_t handle,
 /* ********** Public API ********** */
 void access_clear(void)
 {
-    access_state_clear();
     access_reliable_cancel_all();
+    access_publish_clear();
+    access_state_clear();
     access_mesh_config_clear();
 }
 
@@ -1405,6 +1416,7 @@ uint32_t access_model_subscription_list_alloc(access_model_handle_t handle)
         {
             if (!ACCESS_INTERNAL_STATE_IS_ALLOCATED(m_subscription_list_pool[i].internal_state))
             {
+                ACCESS_INTERNAL_STATE_INVALIDATED_CLR(m_subscription_list_pool[i].internal_state);
                 ACCESS_INTERNAL_STATE_ALLOCATED_SET(m_subscription_list_pool[i].internal_state);
                 m_model_pool[handle].model_info.subscription_pool_index = i;
                 sublist_store(i);

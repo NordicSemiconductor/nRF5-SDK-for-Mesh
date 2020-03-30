@@ -9,14 +9,22 @@ the nRF5 SDK for Mesh.
 except for the following changes:
     - The BSP events `SLEEP` and `DISCONNECT` are ignored.
     - The advertising interval is increased to allow more time for the mesh stack.
+    - The example is not configured to enter the system-off mode, like in its nRF5 SDK version.
 
 As the result of running this example, you'll be able to use a mesh network
-in which this example can replace the light switch client example. 
-    
+in which this example can replace the light switch client example.
+
 Before you start testing this coexistence example, see the following pages:
-- @ref md_doc_getting_started_how_to_nordicSDK
+- @ref md_doc_user_guide_integrating_mesh_nrf5_sdk
 - @ref md_examples_light_switch_README and @ref md_examples_light_switch_client_README
 
+
+---
+
+## Software requirements @anchor coexistence_proximity_example_sw_reqs
+
+This example does not support PB-GATT for provisioning.
+For this purpose, use the [static provisioner example](@ref md_examples_provisioner_README).
 
 ---
 
@@ -48,5 +56,5 @@ with the following exception:
 
 
 You can now run the two coexisting examples in parallel or in sequence:
-    - Run the light switch example as described in @ref md_examples_light_switch_README.
-    - Run the @link_ble_app_proximity_example as described in the nRF5 SDK documentation.
+    - Run the light switch client example as described in @ref md_examples_light_switch_README.
+    - Run the @link_ble_app_proximity_example example as described in the nRF5 SDK documentation.

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -313,6 +313,15 @@ void access_publish_init(void)
     m_publish_timer_counter = 0;
     mp_publication_list = NULL;
     m_publish_timer_running = false;
+}
+
+void access_publish_clear(void)
+{
+    if (m_publish_timer_running)
+    {
+        timer_sch_abort(&m_publish_timer);
+    }
+    access_publish_init();
 }
 
 void access_publish_period_set(access_model_publication_state_t * p_pubstate, access_publish_resolution_t resolution, uint8_t step_number)

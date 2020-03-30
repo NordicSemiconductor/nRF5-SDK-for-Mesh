@@ -1,4 +1,4 @@
-# Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+# Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,22 @@ def barray_pop(barray, size=4):
     return value
 
 
+def prettify_data(data):
+    def format_function(v):
+        def prettifyBytearray(v):
+            try:
+                return v.decode()
+            except:
+                return v.hex()
+
+        if isinstance(v, bytearray):
+            return "'{}'".format(prettifyBytearray(v))
+        else:
+            return v
+
+    return "{" + "".join("'{}': {}, ".format(k, format_function(v)) for k, v in data.items())[:-2] + "}"
+
+
 class CommandPacket(object):
     def __init__(self, opcode, data):
         if not isinstance(data, bytearray):
@@ -96,7 +112,7 @@ class EventPacket(object):
             self._data = data
 
     def __str__(self):
-        return "{{event: {}, data: {}}}".format(self._event_name, self._data)
+        return "{{event: {}, data: {}}}".format(self._event_name, prettify_data(self._data))
 
     def __repr__(self):
         return str(self)
@@ -117,7 +133,7 @@ class ResponsePacket(object):
             self._data = data
 
     def __str__(self):
-        return "{}: {}".format(self._command_name, self._data)
+        return "{}: {}".format(self._command_name, prettify_data(self._data))
 
 
     def __repr__(self):

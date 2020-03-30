@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -22,7 +22,7 @@
  *
  * 5. Any software provided in binary form under this license must not be reverse
  *    engineered, decompiled, modified and/or disassembled.
-*
+ *
  * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -121,6 +121,16 @@ void ble_stack_init(void)
     uint32_t ram_start = 0;
     err_code = nrf_sdh_ble_default_cfg_set(MESH_SOFTDEVICE_CONN_CFG_TAG, &ram_start);
     APP_ERROR_CHECK(err_code);
+
+    /* Update GAP device name length. */
+    ble_cfg_t cfg;
+    memset(&cfg, 0, sizeof(cfg));
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cfg.gap_cfg.device_name_cfg.write_perm);
+    cfg.gap_cfg.device_name_cfg.vloc        = BLE_GATTS_VLOC_STACK;
+    cfg.gap_cfg.device_name_cfg.p_value     = NULL;
+    cfg.gap_cfg.device_name_cfg.current_len = 0;
+    cfg.gap_cfg.device_name_cfg.max_len     = strlen(GAP_DEVICE_NAME);
+    APP_ERROR_CHECK(sd_ble_cfg_set(BLE_GAP_CFG_DEVICE_NAME, &cfg, ram_start));
 
     /* Enable BLE stack. */
     err_code = nrf_sdh_ble_enable(&ram_start);

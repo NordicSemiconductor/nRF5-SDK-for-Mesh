@@ -1,16 +1,16 @@
 set(GENERIC_ONOFF_CLIENT_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/generic_onoff_client.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../common/src/model_common.c" CACHE INTERNAL "")
+    "${MODEL_COMMON_SOURCE_FILES}" CACHE INTERNAL "")
 set(GENERIC_ONOFF_CLIENT_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../common/include" CACHE INTERNAL "")
+    "${MODEL_COMMON_INCLUDE_DIRS}" CACHE INTERNAL "")
 
 set(GENERIC_ONOFF_SERVER_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/generic_onoff_server.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../common/src/model_common.c" CACHE INTERNAL "")
+    "${MODEL_COMMON_SOURCE_FILES}" CACHE INTERNAL "")
 set(GENERIC_ONOFF_SERVER_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../common/include" CACHE INTERNAL "")
+    "${MODEL_COMMON_INCLUDE_DIRS}" CACHE INTERNAL "")
 
 set(target_include_dirs
     ${GENERIC_ONOFF_CLIENT_INCLUDE_DIRS}
@@ -23,6 +23,6 @@ set(target_include_dirs
     ${CMAKE_SOURCE_DIR}/examples/templates)
 
 add_pc_lint(generic_onoff_${PLATFORM}
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/generic_onoff_client.c;${CMAKE_CURRENT_SOURCE_DIR}/src/generic_onoff_server.c;${CMAKE_CURRENT_SOURCE_DIR}/../common/src/model_common.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/generic_onoff_client.c;${CMAKE_CURRENT_SOURCE_DIR}/src/generic_onoff_server.c"
     "${target_include_dirs};${CMAKE_SOURCE_DIR}/mesh/test/include"
     "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES}")

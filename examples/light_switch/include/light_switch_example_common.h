@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -43,31 +43,11 @@
  * @{
  */
 
-/** Number of active servers.
- * Note: If the value of SERVER_NODE_COUNT is increased, you may need to scale up the the replay
- * protection list size (@ref REPLAY_CACHE_ENTRIES), by the appropriate amount, for the provisioner and
- * client examples. For the provisioner example to work as expected, its replay protection list size should
- * be greater than or equal to the total number of nodes it is going to configure after provisioning them.
- * The replay protection list size of the client example should be greater than or equal to the total
- * number of unicast addresses in the network that it can receive a message from.
- */
-#define SERVER_NODE_COUNT (30)
-#if SERVER_NODE_COUNT > 30
-#error Maximum 30 servers currently supported by client example.
-#endif
-
-/** Number of active clients nodes. */
-#define CLIENT_NODE_COUNT            (1)
+/** Maximum available number of servers to choose correct TTL for the network. */
+#define MAX_AVAILABLE_SERVER_NODE_NUMBER  (40)
 
 /** Number of On-Off client models on the Switch Node */
 #define CLIENT_MODEL_INSTANCE_COUNT  (2)
-
-/** Number of group address being used in this example */
-#define GROUP_ADDR_COUNT             (2)
-
-/** Static authentication data */
-#define STATIC_AUTH_DATA {0x6E, 0x6F, 0x72, 0x64, 0x69, 0x63, 0x5F, 0x65, 0x78, 0x61, 0x6D, 0x70, 0x6C, 0x65, 0x5F, 0x31}
-
 
 /** @} end of Common definitions for the Light switch example */
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -22,7 +22,7 @@
  *
  * 5. Any software provided in binary form under this license must not be reverse
  *    engineered, decompiled, modified and/or disassembled.
-*
+ *
  * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -41,6 +41,7 @@
 #include <stdint.h>
 
 #include "generic_onoff_server.h"
+#include "app_transition.h"
 #include "app_timer.h"
 
 
@@ -51,22 +52,28 @@
  *
  * This module implements the behavioral requirements of the Generic OnOff server model.
  *
- * The application should use the set callback provided by this module to set the hardware state.
- * The hardware state could be changed by reflecting the value provided by the set callback on the GPIO
- * or by sending this value to the connected lighting peripheral using some other interface (e.g.
- * serial interface). Similarly, the application should use the get callback provided by this
- * module to read the hardware state.
+ * The application should use the set/transition callback provided by this module to set the
+ * hardware state. The hardware state could be changed by reflecting the value provided by the
+ * set/transiton_time callback on the GPIO or by sending this value to the connected lighting
+ * peripheral using some other interface (e.g. serial interface). Similarly, the application should
+ * use the get callback provided by this module to read the hardware state.
  *
- * This module triggers the set callback only when it determins that it is time to inform the user
- * application. It is possible that the client can send multiple overlapping set commands.
- * In such case any transition in progress will be abandoned and fresh transition will be started if
- * required.
+ * This module triggers the set/transition callback only when it determins that it is time to
+ * inform the user application. It is possible that the client can send multiple overlapping
+ * set/transition commands. In such case any transition in progress will be abandoned and fresh
+ * transition will be started if required.
+ *
+ * Using transition_cb:
+ * If the underlaying hardware does not support setting of the instantaneous value provided via
+ * `set_cb`, the `transition_cb` can be used to implement the transition effect according to
+ * provided transition parameters. This callback will be called when transition start with the
+ * required transition time and target value. When the transition is complete this callback will be
+ * called again with transition time set to 0 and the desired target value.
  * <br>
- * @warning To comply with the Mesh Model Specification test cases, the application must adhere to the
- * requirements defined in the following sections:
- * - Section 3.1.1 (Generic OnOff) and Section 3.3.1.2 (Generic OnOff state behaviour) of Mesh
- * Model Specification v1.0.
- * - Section 3.7.6.1 (Publish) of Mesh Profile Specification v1.0.
+ * @warning To comply with the @tagMeshMdlSp test cases, the application must adhere to
+ * the requirements defined in the following sections:
+ * - @tagMeshMdlSp section 3.1.1 (Generic OnOff) and section 3.3.1.2 (Generic OnOff state behaviour).
+ * - @tagMeshSp section 3.7.6.1 (Publish).
  *
  * These requirements are documented at appropriate places in the module source code.
  *
@@ -83,17 +90,18 @@
  * @param[in] _mic_size             MIC size to be used by Generic OnOff server
  * @param[in] _set_cb               Callback for setting the application state to given value.
  * @param[in] _get_cb               Callback for reading the state from the application.
+ * @param[in] _transition_cb        Callback for setting the application transition time and state value to given values.
 */
-
-#define APP_ONOFF_SERVER_DEF(_name, _force_segmented, _mic_size, _set_cb, _get_cb)  \
+#define APP_ONOFF_SERVER_DEF(_name, _force_segmented, _mic_size, _set_cb, _get_cb, _transition_cb)  \
     APP_TIMER_DEF(_name ## _timer); \
     static app_onoff_server_t _name =  \
     {  \
         .server.settings.force_segmented = _force_segmented,  \
         .server.settings.transmic_size = _mic_size,  \
-        .p_timer_id = &_name ## _timer,  \
+        .state.transition.timer.p_timer_id = &_name ## _timer,  \
         .onoff_set_cb = _set_cb,  \
-        .onoff_get_cb = _get_cb  \
+        .onoff_get_cb = _get_cb,  \
+        .onoff_transition_cb = _transition_cb  \
     };
 
 
@@ -102,12 +110,12 @@ typedef struct
 {
     /** Present value of the OnOff state */
     bool present_onoff;
+    /** Initial value for transition */
+    bool initial_present_onoff;
     /** Target value of the OnOff state, as received from the model interface. */
     bool target_onoff;
-    /** Remaining time to reach `target_onoff`. */
-    uint32_t remaining_time_ms;
-    /** Time to delay the processing of received SET message. */
-    uint32_t delay_ms;
+    /** Structure for using transition module functionality */
+    app_transition_t transition;
 } app_onoff_state_t;
 
 /* Forward declaration */
@@ -119,26 +127,41 @@ typedef struct __app_onoff_server_t app_onoff_server_t;
  * be informed to reflect the desired OnOff value, as a result of the received SET message. Depending
  * on the received Target OnOff value and timing parameters, this callback may be triggered after the
  * delay+transition time is over or instantly after the delay if the Target OnOff value is `1`, as
- * required by the Mesh Model Specification v1.0.
+ * required by @tagMeshMdlSp.
  *
  * Note: Since the behavioral module encapsulates functionality required for the compliance with timing
  * behaviour, it is not possible to infer number of Generic OnOff Set messages received by the
  * node by counting the number of times this callback is triggered.
  *
- * @param[in]   p_server        Pointer to @ref __app_onoff_server_t [app_onoff_server_t] context
+ * @param[in]   p_app           Pointer to [app_onoff_server_t](@ref __app_onoff_server_t) context.
  * @param[in]   onoff           New onoff value to be used by the application
  */
-typedef void (*app_onoff_set_cb_t)(const app_onoff_server_t * p_server, bool onoff);
+typedef void (*app_onoff_set_cb_t)(const app_onoff_server_t * p_app, bool onoff);
 
 /** Application state read callback prototype.
  * This callback is called by the app_model_behaviour.c whenever application onoff state is required
  * to be read.
  *
- * @param[in]  p_server          Pointer to @ref __app_onoff_server_t [app_onoff_server_t] context
+ * @param[in]  p_app             Pointer to [app_onoff_server_t](@ref __app_onoff_server_t) context.
  * @param[out] p_present_onoff   User application fills this value with the value retrived from
- *                               the hardware interface.
+ *                               the hardware interface. See @ref model_callback_pointer_note.
  */
-typedef void (*app_onoff_get_cb_t)(const app_onoff_server_t * p_server, bool * p_present_onoff);
+typedef void (*app_onoff_get_cb_t)(const app_onoff_server_t * p_app, bool * p_present_onoff);
+
+/** Application transition time callback prototype.
+ *
+ * This callback is called by the this module whenever application is required to be informed to
+ * reflect the desired transition time, depending on the received target onoff value and timing
+ * parameters.
+ *
+ * @param[in] p_app              Pointer to [app_onoff_server_t](@ref __app_onoff_server_t) context.
+ * @param[in] transition_time_ms Transition time (in milliseconds) to be used by the application.
+ * @param[in] target_onoff       Target onoff value to be used by the application.
+ *
+ */
+typedef void (*app_onoff_transition_cb_t)(const app_onoff_server_t * p_app,
+                                               uint32_t transition_time_ms,
+                                               bool target_onoff);
 
 /** Application level structure holding the OnOff server model context and OnOff state representation */
 struct __app_onoff_server_t
@@ -151,6 +174,8 @@ struct __app_onoff_server_t
     app_onoff_set_cb_t  onoff_set_cb;
     /** Callback to be called for requesting current value from the user application */
     app_onoff_get_cb_t onoff_get_cb;
+    /** Callaback to be called for informing the user application to update the value*/
+    app_onoff_transition_cb_t onoff_transition_cb;
 
     /** Internal variable. Representation of the OnOff state related data and transition parameters
      *  required for behavioral implementation, and for communicating with the application */
@@ -162,31 +187,40 @@ struct __app_onoff_server_t
     bool value_updated;
 };
 
-/** Initiates value fetch from the user application by calling a get callback, updates internal state,
- * and publishes the Generic OnOff Status message.
+/** Initiates value fetch from the user application by calling a get callback, updates internal
+ * state, and publishes the Generic OnOff Status message.
  *
- * This API must always be called by an application when user initiated action (e.g. button press) results
- * in the local OnOff state change. Mesh Profile Specification v1.0 mandates that, every local state
- * change must be published if model publication state is configured. If model publication is not
- * configured this API call will not generate any error condition.
+ * This API must always be called by an application when user initiated action (e.g. button press)
+ * results in the local OnOff state change. This API should never be called from transition
+ * callback. @tagMeshSp mandates that, every local state change must be
+ * published if model publication state is configured. If model publication is not configured this
+ * API call will not generate any error condition.
  *
- * @param[in] p_server              Pointer to @ref __app_onoff_server_t [app_onoff_server_t] context
+ * @param[in] p_app             Pointer to [app_onoff_server_t](@ref __app_onoff_server_t) context.
  */
-void app_onoff_status_publish(app_onoff_server_t * p_server);
+void app_onoff_status_publish(app_onoff_server_t * p_app);
 
 /** Initializes the behavioral module for the generic OnOff model
  *
- * @param[in] p_server               Pointer to the application OnOff server struture array.
- * @param[in] element_index          Element index on which this server will be instantiated.
+ * @param[in] p_app                 Pointer to [app_onoff_server_t](@ref __app_onoff_server_t)
+ *                                  context.
+ * @param[in] element_index         Element index on which this server will be instantiated.
  *
- * @retval  NRF_ERROR_NULL           NULL pointer is supplied to the function or to the required
- *                                   member variable pointers.
- * @retval  NRF_ERROR_INVALID_PARAM  If value of the `server_count` is zero, or other parameters
- *                                   required by lower level APIs are not correct.
- * @returns Other return values returned by the lower layer APIs.
- *
+ * @retval NRF_SUCCESS              If initialization is successful.
+ * @retval NRF_ERROR_NO_MEM         @ref ACCESS_MODEL_COUNT number of models already allocated, or
+ *                                  no more subscription lists available in memory pool.
+ * @retval NRF_ERROR_NULL           NULL pointer is supplied to the function or to the required
+ *                                  member variable pointers.
+ * @retval NRF_ERROR_NOT_FOUND      Invalid access element index, or access handle invalid.
+ * @retval NRF_ERROR_FORBIDDEN      Multiple model instances per element are not allowed or changes
+ *                                  to device composition are not allowed. Adding a new model after
+ *                                  device is provisioned is not allowed.
+ * @retval  NRF_ERROR_INVALID_PARAM Model not bound to appkey, publish address not set or wrong
+ *                                  opcode format. The application timer module has not been
+ *                                  initialized or timeout handler is not provided.
+ * @retval NRF_ERROR_INVALID_STATE  If the application timer is running.
 */
-uint32_t app_onoff_init(app_onoff_server_t * p_server, uint8_t element_index);
+uint32_t app_onoff_init(app_onoff_server_t * p_app, uint8_t element_index);
 
 /** @} end of APP_ONOFF */
 #endif /* APP_ONOFF_H__ */

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -103,7 +103,7 @@
 #define PROV_BEARER_ADV_PACKET_CONTINUATION_PAYLOAD_MAXLEN      (BLE_ADV_PACKET_PAYLOAD_MAX_LENGTH - \
         (sizeof(ble_ad_data_t) + PB_ADV_PACKET_OVERHEAD + PROV_BEARER_PACKET_TRANSACTION_CONTINUATION_OVERHEAD))
 
-/* Assert payload sizes against Bluetooth Mesh Profile Specification v1.0, tables 5.2, 5.4, 5.5, and 5.7 */
+/* Assert payload sizes against @tagMeshSp tables 5.2, 5.4, 5.5, and 5.7 */
 NRF_MESH_STATIC_ASSERT(PROV_BEARER_ADV_PACKET_START_PAYLOAD_MAXLEN == 20);
 NRF_MESH_STATIC_ASSERT(PROV_BEARER_ADV_PACKET_CONTINUATION_PAYLOAD_MAXLEN == 23);
 
@@ -115,15 +115,14 @@ NRF_MESH_STATIC_ASSERT(PROV_BEARER_ADV_PACKET_CONTINUATION_PAYLOAD_MAXLEN == 23)
 #define PROV_BEARER_ADV_TRANSACTION_TIMEOUT_US                  (30000000)
 /** Transaction TX retry interval. */
 #define PROV_BEARER_ADV_TRANSACTION_BASE_RETRY_INTERVAL_US      ( 2000000)
-/** Number of repeats when sending a packet for unacked messages, such as LINK_CLOSE. */
+/** Number of repeats when sending a packet for unacked LINK_CLOSE. */
 #define PROV_BEARER_ADV_UNACKED_REPEAT_COUNT                    (6)
 /** Advertiser interval for link open sending.
  *  Interval is stretched to avoid collision between the next link open and ack on the previous one. */
 #define PROV_BEARER_ADV_LINK_OPEN_ADVERTISER_INTERVAL_MS        (3 * BEARER_ADV_INT_DEFAULT_MS)
-/** Length of the link establishment procedure.
- *  It includes time of the link open attempts + time for the last acknowledgment (including randomization time). */
-#define PROV_BEARER_ADV_LINK_ESTABLISHMENT_LENGTH_US            ((MS_TO_US(PROV_BEARER_ADV_LINK_OPEN_ADVERTISER_INTERVAL_MS) + ADVERTISER_INTERVAL_RANDOMIZATION_US) * \
-                                                                 (PROV_BEARER_ADV_UNACKED_REPEAT_COUNT + 1))
+/** Length of the link establishment procedure. @tagMeshSp section 5.3.2.
+ *  To open a link, the Provisioner shall start the link establishment timer, set to 60 seconds. */
+#define PROV_BEARER_ADV_LINK_ESTABLISHMENT_LENGTH_US            SEC_TO_US(60)
 
 /**
  * @defgroup PB_ADV_PACKET_CONTROL_FIELD_VALUES
@@ -196,7 +195,7 @@ typedef union __attribute((packed))
     } continuation;
 } prov_generic_transaction_t;
 
-/** Generic provisioning PDU, as defined in the Mesh Profile Specification v1.0. */
+/** Generic provisioning PDU, as defined in @tagMeshSp. */
 typedef struct __attribute((packed))
 {
     uint8_t control : 2; /**< Control field for packet type, see @ref PB_ADV_PACKET_CONTROL_FIELD_VALUES for recognized values. */
@@ -233,8 +232,7 @@ static void tx_complete_cb(advertiser_t * p_adv, nrf_mesh_tx_token_t token, time
 static void prov_bearer_adv_link_close(prov_bearer_t * p_bearer, nrf_mesh_prov_link_close_reason_t close_reason);
 
 /**
- * Calculates the FCS CRC based on 3GPP TS 27.010, as required by Mesh Profile Specification v1.0,
- * section 5.3.1.1.
+ * Calculates the FCS CRC based on 3GPP TS 27.010, as required by @tagMeshSp section 5.3.1.1.
  *
  * @note The function is not static but it's not public either, it should only be
  *       accessed by the unit test.
@@ -337,7 +335,7 @@ static inline uint8_t transaction_total_segment_count_get(uint32_t total_length)
 }
 
 /**
- * According to The Mesh Profile Specification v1.0, Section 5.2.1, transaction numbers are
+ * According to @tagMeshSp section 5.2.1, transaction numbers are
  * split into two domains at 0x80, and transaction numbers that are 0x7f should roll over to
  * 0, while transaction numbers that are at 0xff should roll over to 0x80.
  */
@@ -508,7 +506,7 @@ static uint32_t send_link_open(nrf_mesh_prov_bearer_adv_t * p_pb_adv, const uint
     return send_packet(p_pb_adv,
             &pb_adv_pdu,
             PB_ADV_PACKET_OVERHEAD + PROV_BEARER_PACKET_LINK_OPEN_LEN,
-            PROV_BEARER_ADV_UNACKED_REPEAT_COUNT);
+            ADVERTISER_REPEAT_INFINITE);
 }
 
 static uint32_t send_link_ack(nrf_mesh_prov_bearer_adv_t * p_pb_adv)
@@ -1188,6 +1186,11 @@ static void prov_bearer_adv_link_close(prov_bearer_t * p_bearer, nrf_mesh_prov_l
     /* Ensure the correct state: */
     NRF_MESH_ASSERT(p_pb_adv->state == PROV_BEARER_ADV_STATE_LINK_OPEN ||
                     p_pb_adv->state == PROV_BEARER_ADV_STATE_LINK_OPENING);
+
+    if (p_pb_adv->state == PROV_BEARER_ADV_STATE_LINK_OPENING)
+    { /* Provisioner still sends Link Open message (60 seconds have not been expired yet). Stop it. */
+        advertiser_flush(&p_pb_adv->advertiser);
+    }
 
     if (send_link_close(p_pb_adv, close_reason) == NRF_SUCCESS)
     {

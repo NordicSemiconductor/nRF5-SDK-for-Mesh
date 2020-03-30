@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -50,6 +50,7 @@
 #include "nrf_mesh_externs.h"
 #include "config_server.h"
 #include "hal.h"
+#include "mesh_stack.h"
 
 /* Ensure that we're mapping the size of the serial parameter to the
  * dsm_handle_t. If this triggers, someone changed the size of the
@@ -119,15 +120,19 @@ static void handle_cmd_subnet_delete(const serial_packet_t * p_cmd)
 static void handle_cmd_subnet_get_all(const serial_packet_t * p_cmd)
 {
     serial_evt_cmd_rsp_data_subnet_list_t rsp;
-    uint32_t count = sizeof(rsp.subnet_key_index) / sizeof(rsp.subnet_key_index[0]);
-    /* May safely cast away the packed attribute, as the rsp is word-aligned on stack: */
-    uint32_t status = dsm_subnet_get_all((uint16_t *) rsp.subnet_key_index, &count);
+    uint16_t subnet_key_index[sizeof(rsp.subnet_key_index)];
+    uint32_t count = ARRAY_SIZE(rsp.subnet_key_index);
+    /* Can not use response directly because taking address of packed member of 'struct <anonymous>'
+       may result in an unaligned pointer value. Compiler warning with GNU Tools ARM Embedded
+       9-2019-q4-major. */
+    uint32_t status = dsm_subnet_get_all(subnet_key_index, &count);
     if (count == 0)
     {
         serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, NULL, 0);
     }
     else
     {
+        memcpy((uint16_t *) rsp.subnet_key_index, (uint16_t *) subnet_key_index, sizeof(uint16_t) * count);
         serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, (uint8_t *) &rsp, sizeof(uint16_t) * count);
     }
 }
@@ -171,18 +176,20 @@ static void handle_cmd_appkey_delete(const serial_packet_t * p_cmd)
 static void handle_cmd_appkey_get_all(const serial_packet_t * p_cmd)
 {
     serial_evt_cmd_rsp_data_appkey_list_t rsp;
-    uint32_t count = sizeof(rsp.appkey_key_index) / sizeof(rsp.appkey_key_index[0]);
-    rsp.subnet_handle = p_cmd->payload.cmd.mesh.appkey_get_all.subnet_handle;
-    /* May safely cast away the packed attribute, as the rsp is word-aligned on stack, hence the appkey_key_index array is 16-bit aligned. */
-    uint32_t status = dsm_appkey_get_all(p_cmd->payload.cmd.mesh.appkey_get_all.subnet_handle,
-            (uint16_t *) rsp.appkey_key_index,
-            &count);
+    uint16_t appkey_key_index[sizeof(rsp.appkey_key_index)];
+    uint32_t count = ARRAY_SIZE(rsp.appkey_key_index);
+    /* Can not use response directly because taking address of packed member of 'struct <anonymous>'
+       may result in an unaligned pointer value. Compiler warning with GNU Tools ARM Embedded
+       9-2019-q4-major. */
+    uint32_t status = dsm_appkey_get_all(p_cmd->payload.cmd.mesh.appkey_get_all.subnet_handle, appkey_key_index, &count);
     if (count == 0)
     {
         serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, NULL, 0);
     }
     else
     {
+        rsp.subnet_handle = p_cmd->payload.cmd.mesh.appkey_get_all.subnet_handle;
+        memcpy((uint16_t *) rsp.appkey_key_index, (uint16_t *) appkey_key_index, sizeof(uint16_t) * count);
         serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode,
                 status,
                 (uint8_t *) &rsp,
@@ -200,11 +207,15 @@ static void handle_cmd_appkey_count_max_get(const serial_packet_t * p_cmd)
 static void handle_cmd_devkey_add(const serial_packet_t * p_cmd)
 {
     serial_evt_cmd_rsp_data_devkey_t rsp;
-    /* May safely cast away the packed attribute, as the rsp is word-aligned on stack: */
+    uint16_t devkey_handle;
+    /* Can not use response directly because taking address of packed member of 'struct <anonymous>'
+       may result in an unaligned pointer value. Compiler warning with GNU Tools ARM Embedded
+       9-2019-q4-major. */
     uint32_t status = dsm_devkey_add(p_cmd->payload.cmd.mesh.devkey_add.owner_addr,
             p_cmd->payload.cmd.mesh.devkey_add.subnet_handle,
             p_cmd->payload.cmd.mesh.devkey_add.key,
-            (dsm_handle_t *) &rsp.devkey_handle);
+            &devkey_handle);
+    rsp.devkey_handle = devkey_handle;
     serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, (uint8_t *) &rsp, sizeof(rsp));
 }
 
@@ -276,14 +287,17 @@ static void handle_cmd_addr_get(const serial_packet_t * p_cmd)
 static void handle_cmd_addr_get_all(const serial_packet_t * p_cmd)
 {
     serial_evt_cmd_rsp_data_addr_list_t rsp;
-
-    uint32_t count = sizeof(rsp.address_handles) / sizeof(rsp.address_handles[0]);
-    /* May safely cast away the packed attribute, as the rsp is word-aligned on stack: */
-    uint32_t status = dsm_address_get_all((dsm_handle_t *) rsp.address_handles, &count);
+    uint16_t address_handles[sizeof(rsp.address_handles)];
+    uint32_t count = ARRAY_SIZE(rsp.address_handles);
+    /* Can not use response directly because taking address of packed member of 'struct <anonymous>'
+       may result in an unaligned pointer value. Compiler warning with GNU Tools ARM Embedded
+       9-2019-q4-major. */
+    uint32_t status = dsm_address_get_all(address_handles, &count);
     if (count > 0)
     {
+        memcpy((uint16_t *) rsp.address_handles, (uint16_t *) address_handles, sizeof(uint16_t) * count);
         serial_handler_common_cmd_rsp_nodata_on_error(
-            p_cmd->opcode, status, (uint8_t *) rsp.address_handles, sizeof(rsp.address_handles[0]) * count);
+            p_cmd->opcode, status, (uint8_t *) rsp.address_handles, sizeof(uint16_t) * count);
     }
     else
     {
@@ -387,7 +401,7 @@ static void handle_cmd_packet_send(const serial_packet_t * p_cmd)
                                                       &tx_params.security_material);
             }
 
-            /* The Mesh Profile Specification v1.0, Section 4.2.2.4:
+            /* @tagMeshSp section 4.2.2.4:
              *
              * When Publish Friendship Credential Flag is set to 1 and the friendship security material is
              * not available, the master security material shall be used. */
@@ -425,9 +439,7 @@ static void handle_cmd_packet_send(const serial_packet_t * p_cmd)
 
 static void handle_cmd_clear(const serial_packet_t * p_cmd)
 {
-    access_clear();
-    dsm_clear();
-    net_state_reset();
+    mesh_stack_config_clear();
     serial_cmd_rsp_send(p_cmd->opcode, SERIAL_STATUS_SUCCESS, NULL, 0);
 }
 
@@ -508,8 +520,12 @@ static void serial_handler_mesh_evt_handle(const nrf_mesh_evt_t* p_evt)
             else
             {
                 p_serial_evt->opcode = SERIAL_OPCODE_EVT_MESH_MESSAGE_RECEIVED_SUBSCRIPTION;
-                /* May safely cast away the packed attribute, as the rsp is word-aligned on stack: */
-                NRF_MESH_ASSERT(NRF_SUCCESS == dsm_address_handle_get(&p_evt->params.message.dst, (dsm_handle_t *) &p_msg_rcvd->dst));
+                dsm_handle_t dst;
+                /* Can not use response directly because taking address of packed member of 'struct <anonymous>'
+                   may result in an unaligned pointer value. Compiler warning with GNU Tools ARM Embedded
+                   9-2019-q4-major. */
+                NRF_MESH_ASSERT(NRF_SUCCESS == dsm_address_handle_get(&p_evt->params.message.dst, &dst));
+                p_msg_rcvd->dst = (uint16_t) dst;
             }
             p_msg_rcvd->src = p_evt->params.message.src.value;
             p_msg_rcvd->appkey_handle = dsm_appkey_handle_get(p_evt->params.message.secmat.p_app);

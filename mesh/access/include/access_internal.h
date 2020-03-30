@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -117,7 +117,7 @@ typedef struct
     uint32_t application_keys_bitfield[BITFIELD_BLOCK_COUNT(DSM_APP_MAX + DSM_DEVICE_MAX)];
     /** Element that owns this model. */
     uint16_t element_index;
-    /** Subscription list for a model.*/
+    /** Array element index from subscription pool where a subscription list for a model is located.*/
     uint16_t subscription_pool_index;
     /** Friendship credentials flag. */
     bool friendship_credential_flag;

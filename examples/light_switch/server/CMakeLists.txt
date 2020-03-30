@@ -8,6 +8,7 @@ add_executable(${target}
     "${MBTLE_SOURCE_DIR}/examples/common/src/rtt_input.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/simple_hal.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_app_utils.c"
+    "${CMAKE_SOURCE_DIR}/examples/common/src/app_transition.c"
     ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${WEAK_SOURCE_FILES}
     ${MESH_CORE_SOURCE_FILES}
@@ -65,7 +66,7 @@ add_flash_target(${target})
 
 get_property(target_include_dirs TARGET ${target} PROPERTY INCLUDE_DIRECTORIES)
 add_pc_lint(${target}
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c;${CMAKE_SOURCE_DIR}/examples/common/src/app_onoff.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c;"
     "${target_include_dirs}"
     "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES}")
 add_ses_project(${target})

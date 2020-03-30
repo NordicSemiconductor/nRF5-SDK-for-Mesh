@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -52,7 +52,7 @@
  * The Flash Manager provides an entry-based persistent storage interface that works with the mesh.
  * The Flash Manager is used to store mesh data, but can also be used by the application.
  *
- * For more information about the Flash Manager, see the @ref md_doc_libraries_flash_manager library document.
+ * For more information about the Flash Manager, see the @ref md_doc_user_guide_modules_flash_manager library document.
  * @{
  */
 
@@ -296,8 +296,10 @@ uint32_t flash_manager_add(flash_manager_t * p_manager,
  *
  * @param[in,out] p_manager         Flash manager to remove.
  *
- * @retval        NRF_SUCCESS       The given manager has successfully been scheduled for wiping.
- * @retval        NRF_ERROR_NO_MEM  Not enough memory to schedule the action.
+ * @retval        NRF_SUCCESS             The given manager has successfully been scheduled for wiping.
+ * @retval        NRF_ERROR_NO_MEM        Not enough memory to schedule the action.
+ * @retval        NRF_ERROR_INVALID_STATE The flash manager was not in the ready or uninitialized state,
+ * and cannot be removed.
  */
 uint32_t flash_manager_remove(flash_manager_t * p_manager);
 
@@ -407,7 +409,7 @@ uint32_t flash_manager_entry_count_get(const flash_manager_t * p_manager, const 
  *
  * @param[in] p_manager Flash manager to operate on.
  * @param[in] handle Entry handle.
- * @param[in] data_length Wanted length of the entry in bytes, including the header. Cannot be
+ * @param[in] data_length Wanted length of the entry in bytes, excluding the header. Cannot be
  * longer than @ref FLASH_MANAGER_ENTRY_MAX_SIZE.
  *
  * @returns A pointer to a reserved entry in the manager's write queue, that may be committed once

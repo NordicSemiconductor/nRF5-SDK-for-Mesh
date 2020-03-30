@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -138,7 +138,7 @@ static void oob_gen_count(uint8_t * p_auth_value, uint8_t oob_size)
 {
     uint8_t count;
     rand_hw_rng_get(&count, 1);
-    /* Mesh Profile Specification v1.0, section 5.4.2.2: random integer number between 1
+    /* @tagMeshSp section 5.4.2.2: random integer number between 1
      * and the [oob size] inclusive */
     count = (count % oob_size) + 1;
     p_auth_value[PROV_AUTH_LEN - 1] = count;
@@ -155,7 +155,7 @@ static void oob_gen_numeric(uint8_t * p_auth_value, uint8_t digits)
 
 static void oob_gen_alphanumeric(uint8_t * p_auth_value, uint8_t characters)
 {
-    /* Mesh Profile Specification v1.0, section 5.4.2.2: valid ASCII character codes are 0x30-0x39 and 0x41-0x5A */
+    /* @tagMeshSp section 5.4.2.2: valid ASCII character codes are 0x30-0x39 and 0x41-0x5A */
     static const char alphanumeric[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     uint8_t indexes[NRF_MESH_PROV_OOB_SIZE_MAX];

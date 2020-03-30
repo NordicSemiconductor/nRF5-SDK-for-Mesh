@@ -2,8 +2,8 @@
 
 The Mesh Model Specification specifies a Generic OnOff Model to be used in real applications
 with the mesh. This vendor-specific model is a simplified version of the Generic OnOff Model.
-It is an introductory example for @ref md_doc_libraries_how_to_models, but you can also use it
-in your applications.
+It is an introductory example for @ref md_doc_user_guide_modules_models_creating, but you can also
+use it in your applications.
 
 See the following sections for information about how to implement a vendor-specific
 Simple OnOff model that turns something On or Off, for example a light bulb, a heater,
@@ -172,7 +172,7 @@ static void handle_set_unreliable_cb(access_model_handle_t handle, const access_
 }
 ```
 -# Implement the `reply_status()` function.
-    - As defined in section 3.7.5.2 of the Mesh Profile Specification v1.0,
+    - As defined in section 3.7.5.2 of the @tagMeshSp,
     each receiving element acknowledges the received acknowledged message by responding to that message.
     The response is typically a status message.
     The status message usually contains the current value of the state set by the SET message.

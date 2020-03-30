@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -224,7 +224,7 @@ typedef enum
 } config_net_beacon_state_t;
 
 /** Message format for the Config Beacon Set message. */
-typedef struct
+typedef struct __attribute((packed))
 {
     uint8_t beacon_state;      /**< Beacon state. */
 } config_msg_net_beacon_set_t;

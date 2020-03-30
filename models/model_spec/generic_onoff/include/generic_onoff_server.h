@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -107,9 +107,11 @@ typedef struct
  */
 typedef struct
 {
-    /** If server should force outgoing messages as segmented messages. */
+    /** If server should force outgoing messages as segmented messages.
+     *  See @ref mesh_model_force_segmented. */
     bool force_segmented;
-    /** TransMIC size used by the outgoing server messages. See @ref nrf_mesh_transmic_size_t. */
+    /** TransMIC size used by the outgoing server messages.
+     * See @ref nrf_mesh_transmic_size_t and @ref mesh_model_large_mic. */
     nrf_mesh_transmic_size_t transmic_size;
 
     /** Callback list. */
@@ -136,8 +138,15 @@ struct __generic_onoff_server_t
  * @param[in]     p_server                 Generic OnOff server context pointer.
  * @param[in]     element_index            Element index to add the model to.
  *
- * @retval   NRF_SUCCESS    If the model is initialized successfully.
- * @returns  Other appropriate error codes on failure.
+ * @retval NRF_SUCCESS                  The model is initialized successfully.
+ * @retval NRF_ERROR_NULL               NULL pointer given to function.
+ * @retval NRF_ERROR_NO_MEM             @ref ACCESS_MODEL_COUNT number of models already allocated
+ *                                      or no more subscription lists available in memory pool
+ *                                      (see @ref ACCESS_SUBSCRIPTION_LIST_COUNT).
+ * @retval NRF_ERROR_FORBIDDEN          Multiple model instances per element are not allowed
+ *                                      or changes to device composition are not allowed.
+ *                                      Adding a new model after device is provisioned is not allowed.
+ * @retval NRF_ERROR_NOT_FOUND          Invalid access element index.
  */
 uint32_t generic_onoff_server_init(generic_onoff_server_t * p_server, uint8_t element_index);
 
@@ -149,8 +158,18 @@ uint32_t generic_onoff_server_init(generic_onoff_server_t * p_server, uint8_t el
  * @param[in]     p_server                 Status server context pointer.
  * @param[in]     p_params                 Message parameters.
  *
- * @retval   NRF_SUCCESS   If the message is published successfully.
- * @returns  Other appropriate error codes on failure.
+ * @retval NRF_SUCCESS              If the message is published successfully.
+ * @retval NRF_ERROR_NULL           NULL pointer given to function.
+ * @retval NRF_ERROR_NO_MEM         No memory available to send the message at this point.
+ * @retval NRF_ERROR_NOT_FOUND      The model is not initialized.
+ * @retval NRF_ERROR_INVALID_PARAM  Invalid message parameters,
+ *                                  the model not bound to application key,
+ *                                  or publish address not set.
+ * @retval NRF_ERROR_FORBIDDEN      Failed to allocate a sequence number from network.
+ * @retval NRF_ERROR_INVALID_STATE  There's already a segmented packet that is
+ *                                  being to sent to this destination. Wait for
+ *                                  the transmission to finish before sending
+ *                                  new segmented packets.
  */
 uint32_t generic_onoff_server_status_publish(generic_onoff_server_t * p_server, const generic_onoff_status_params_t * p_params);
 

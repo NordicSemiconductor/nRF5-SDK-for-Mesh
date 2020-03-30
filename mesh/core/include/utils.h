@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -363,6 +363,36 @@ static inline uint8_t log2_get(uint32_t value)
 
     return log_val;
 }
+
+/**
+ * Gets the integer square root of a natural number.
+ *
+ * @param[in] value Input value for the calculation.
+ *
+ * @returns Returns the square root of the input number.
+ */
+static inline uint16_t uint_sqrt(uint32_t value)
+{
+    uint16_t c = 0x8000;
+    uint16_t g = 0x8000;
+
+    for (;;)
+    {
+        if ((uint32_t)g * g > value)
+        {
+            g ^= c;
+        }
+
+        c >>= 1;
+
+        if (c == 0)
+        {
+            return g;
+        }
+        g |= c;
+    }
+}
+
 
 /**
  * @}

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -501,8 +501,8 @@ uint32_t dsm_subnet_key_get(dsm_handle_t subnet_handle, uint8_t * p_key);
 /**
  * Adds a device key.
  *
- * @note           "A device key is implicitly bound to all network keys." see Mesh Profile Bluetooth
- *                 Specification v1.0, section 3.8.6. An exception to this is the provisioner who stores all the device
+ * @note           "A device key is implicitly bound to all network keys." see @tagMeshSp,
+ *                 section 3.8.6. An exception to this is the provisioner who stores all the device
  *                 keys of the other nodes, see section 5.
  *
  * @param[in]      raw_unicast_addr          Unicast address associated with this device key.
@@ -603,8 +603,8 @@ uint32_t dsm_appkey_handle_to_subnet_handle(dsm_handle_t appkey_handle, dsm_hand
  * Adds an application key and its associated application key index to the device state storage.
  * The added application key will be bound with the given subnetwork.
  *
- * @note "An application key shall only be bound to a single network key." see Mesh Profile Bluetooth
- * Specification v1.0, section 3.8.6
+ * @note "An application key shall only be bound to a single network key." see @tagMeshSp,
+ * section 3.8.6
  *
  * @param[in] app_key_id The application key index of the application key being added.
  * @param[in] subnet_handle The handle of the subnetwork the application key belongs to.
@@ -726,8 +726,7 @@ uint32_t dsm_beacon_info_get(dsm_handle_t subnet_handle,
                              const nrf_mesh_beacon_info_t ** pp_beacon_info);
 
 /**
- * Retrieves the identity key for advertising with node identity, see section 7.2.2.2.3 in Bluetooth
- * Mesh Profile Specification v1.0.
+ * Retrieves the identity key for advertising with node identity, see @tagMeshSp section 7.2.2.2.3.
  *
  * @param[in] subnet_handle The handle of the subnetwork the node identity key belongs to.
  * @param[in, out] pp_identity Pointer to the identity key list pointer.

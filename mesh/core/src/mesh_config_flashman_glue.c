@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -174,7 +174,7 @@ static const void * legacy_dsm_location_get(void)
     return DSM_FLASH_AREA_LOCATION;
 #else
     const void * p_net_location = legacy_net_location_get();
-    return p_net_location != NULL ? p_net_location - (DSM_FLASH_PAGE_COUNT * PAGE_SIZE) : NULL;
+    return p_net_location != NULL ? ((const uint8_t *) p_net_location) - (DSM_FLASH_PAGE_COUNT * PAGE_SIZE) : NULL;
 #endif
 }
 
@@ -184,7 +184,7 @@ static const void * legacy_access_location_get(void)
     return ACCESS_FLASH_AREA_LOCATION;
 #else
     const void * p_dsm_location = legacy_dsm_location_get();
-    return p_dsm_location != NULL ? p_dsm_location - (ACCESS_FLASH_PAGE_COUNT * PAGE_SIZE) : NULL;
+    return p_dsm_location != NULL ? ((const uint8_t *) p_dsm_location) - (ACCESS_FLASH_PAGE_COUNT * PAGE_SIZE) : NULL;
 #endif
 }
 

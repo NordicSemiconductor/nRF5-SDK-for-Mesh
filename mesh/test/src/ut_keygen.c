@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -41,7 +41,7 @@
 #include "nrf_mesh_keygen.h"
 
 /*****************************************************************************
-* Test vectors (from the Sample data section in the Mesh Profile Specification v1.0)
+* Test vectors (from the Sample data section in @tagMeshSp)
 *****************************************************************************/
 
 #define APPLICATION_KEY    { 0x63, 0x96, 0x47, 0x71, 0x73, 0x4f, 0xbd, 0x76,\

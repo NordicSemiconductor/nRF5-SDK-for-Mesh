@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -46,7 +46,7 @@
  * @ingroup NRF_MESH
  * Common interface for operating on all mesh states.
  *
- * For more information about mesh config, see the @ref md_doc_libraries_mesh_config library document.
+ * For more information about mesh config, see the @ref md_doc_user_guide_modules_mesh_config library document.
  * @{
  */
 

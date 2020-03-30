@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -59,10 +59,20 @@
 #include "stack_depth.h"
 #endif
 
-
-#define STATIC_AUTH_DATA        {0x6E, 0x6F, 0x72, 0x64, 0x69, 0x63, 0x5F, 0x65, 0x78, 0x61, 0x6D, 0x70, 0x6C, 0x65, 0x5F, 0x31}
+/*****************************************************************************
+ * Definitions
+ *****************************************************************************/
 #define ADVERTISER_BUFFER_SIZE  (64)
 
+
+/*****************************************************************************
+ * Forward declaration of static functions
+ *****************************************************************************/
+
+
+/*****************************************************************************
+ * Static variables
+ *****************************************************************************/
 /** Single advertiser instance. May periodically transmit one packet at a time. */
 static advertiser_t m_advertiser;
 
@@ -164,14 +174,18 @@ static void provisioning_aborted_cb(void)
     hal_led_blink_stop();
 }
 
+static void unicast_address_print(void)
+{
+    dsm_local_unicast_address_t node_address;
+    dsm_local_unicast_addresses_get(&node_address);
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
+}
+
 static void provisioning_complete_cb(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Successfully provisioned\n");
 
-    dsm_local_unicast_address_t node_address;
-    dsm_local_unicast_addresses_get(&node_address);
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
-
+    unicast_address_print();
     hal_led_blink_stop();
     hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
     hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
@@ -191,6 +205,7 @@ static void mesh_init(void)
     {
         case NRF_ERROR_INVALID_DATA:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
+			__LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before start provisioning.\n");
             break;
         case NRF_SUCCESS:
             break;
@@ -239,6 +254,10 @@ static void start(void)
             .p_device_uri = EX_URI_BEACON
         };
         ERROR_CHECK(mesh_provisionee_prov_start(&prov_start_params));
+    }
+    else
+    {
+        unicast_address_print();
     }
 
     /* Start advertising own beacon */

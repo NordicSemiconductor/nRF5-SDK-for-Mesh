@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -62,7 +62,7 @@ bool serial_handler_event_send(serial_evt_t* evt);
 
 bool serial_handler_command_get(serial_cmd_t* evt);
 
-
+void serial_handler_uart_disable(void);
 
 
 #endif /* _SERIAL_HANDLER_H__ */

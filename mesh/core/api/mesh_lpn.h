@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -53,7 +53,7 @@
  *
  * @note The timeout starts counting from the time the Friend Request is sent. The device does not start
  * scanning until 100 milliseconds have passed from the Friend Request.
- * See Mesh Profile specification v1.0, section 3.6.6.4.1.
+ * See @tagMeshSp section 3.6.6.4.1.
  */
 #define MESH_LPN_FRIEND_REQUEST_TIMEOUT_MIN_MS 100
 /** Maximum Friend Request timeout (in milliseconds). */
@@ -62,10 +62,10 @@
 /** Minimum supported poll timeout (in milliseconds). */
 #define MESH_LPN_POLL_TIMEOUT_MIN_MS 1000
 /** Maximum supported poll timeout (in milliseconds). This translates to slightly less than
- * 96 hours (0x34BBFF * 100 ms). The valid range is defined in Table 3.26, section 3.6.5.3 of the Mesh Profile specification v1.0. */
+ * 96 hours (0x34BBFF * 100 ms). The valid range is defined in Table 3.26, @tagMeshSp section 3.6.5.3 */
 #define MESH_LPN_POLL_TIMEOUT_MAX_MS 345599900
 
-/* See Mesh Profile specification v1.0, section 3.6.5.3 Friend Request */
+/* See @tagMeshSp section 3.6.5.3 Friend Request */
 /** Minimum allowed Receive Delay (in milliseconds). */
 #define MESH_LPN_RECEIVE_DELAY_MIN_MS 10
 /** Maximum allowed Receive Delay (in milliseconds). */
@@ -140,6 +140,11 @@ void mesh_lpn_init(void);
  * Calling this API can generate the following events:
  * - @ref NRF_MESH_EVT_LPN_FRIEND_OFFER
  * - @ref NRF_MESH_EVT_LPN_FRIEND_REQUEST_TIMEOUT
+ *
+ * @note This API should not be called within the handler for the event
+ * @ref NRF_MESH_EVT_FRIENDSHIP_TERMINATED. Doing this will cause
+ * @c NRF_ERROR_INVALID_STATE to be returned, and the friendship establishment procedure
+ * will not be initiated.
  *
  * @param[in] friend_params      Friend request parameters. See @ref mesh_lpn_friend_request_t for
  *                               documentation of the individual parameters.

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -377,7 +377,7 @@ static timestamp_t friend_offer_delay_get(mesh_friendship_receive_window_factor_
     int delay = (int)(FACTOR_MULTIPLY(receive_window_factor, receive_window_ms) -
                       FACTOR_MULTIPLY(rssi_factor, rssi));
 
-    /* Mesh Profile v1.0, 3.6.6.3.1 p. 79: Local Delay shall have a lower bound
+    /* @tagMeshSp section 3.6.6.3.1 p. 79: Local Delay shall have a lower bound
      * of 100ms. */
     return (timestamp_t) (delay < 100) ? 100 : delay;
 }
@@ -385,7 +385,7 @@ static timestamp_t friend_offer_delay_get(mesh_friendship_receive_window_factor_
 static bool friend_clear_is_valid_lpn_counter(uint16_t friend_request_lpn_counter,
                                               uint16_t friend_clear_lpn_counter)
 {
-    /* Mesh Profile v1.0, sec. 3.6.4.6, p 71:
+    /* @tagMeshSp section 3.6.4.6, p 71:
      *
      * A Friend Clear message is considered valid if the result of the
      * subtraction of the value of the LPNCounter field of the Friend Request
@@ -499,7 +499,7 @@ static uint32_t friendship_alloc(friendship_t ** pp_friendship,
     if (*pp_friendship != NULL)
     {
         /* A new friend request from a known friend means we should consider the
-         * existing friendship lost (Mesh Profile 1.0, sec. 3.6.6.3.1,  p. 79).*/
+         * existing friendship lost (@tagMeshSp section 3.6.6.3.1,  p. 79).*/
         friendship_terminate(*pp_friendship,
                              NRF_MESH_EVT_FRIENDSHIP_TERMINATED_REASON_NEW_FRIEND_REQUEST);
     }
@@ -1491,7 +1491,7 @@ bool friend_needs_packet(const transport_packet_metadata_t * p_metadata)
         return false;
     }
 
-    /* No relaying for TTL < 2 (Mesh profile v1.0,  sec. 3.5.5). */
+    /* No relaying for TTL < 2 (@tagMeshSp section 3.5.5). */
     if (p_metadata->net.ttl < 2)
     {
         return false;

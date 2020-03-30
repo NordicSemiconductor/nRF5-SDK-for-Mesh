@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -38,19 +38,18 @@
 #define INSTABURST_H__
 
 /**
- * @defgroup INSTABURST Experimental Instaburst feature
- * @ingroup MESH_API_GROUP_EXPERIMENTAL
+ * @defgroup INSTABURST Instaburst feature
+ * @ingroup MESH_API_GROUP_NORDIC
  *
- * The experimental Instaburst feature implements a subset of the Bluetooth 5.0 feature "Advertising
- * extensions" to achieve increased throughput for Mesh traffic. Instaburst is a Nordic proprietary
- * feature, and the implementation does not aim to provide generic, spec-compliant Advertising
- * Extension functionality, but rather provide proprietary means to increase Mesh throughput between
- * Nordic devices.
+ * The Instaburst feature implements a subset of the Bluetooth 5.0 feature "Advertising
+ * extensions" to achieve increased throughput for Mesh traffic. Instaburst is a feature
+ * specific to Nordic's nRF5 SDK for Mesh, and the implementation does not aim to provide
+ * generic, spec-compliant Advertising Extension functionality, but rather provide means
+ * to increase Mesh throughput between Nordic devices.
  *
- * @warning Instaburst is a Nordic proprietary feature that does not adhere to the Bluetooth Mesh
- * specification. It is currently in an experimental stage, and does not have the same
- * requirements to test coverage, API stability or spec-compliance as the rest of the Nordic nRF5
- * SDK for Mesh.
+ * @warning Instaburst is a Nordic-specific feature that does not adhere to the Bluetooth Mesh
+ * specification. It does not have the same requirements for test coverage, API stability
+ * or specification compliance as the rest of Nordic's nRF5 SDK for Mesh.
  *
  * @{
  */

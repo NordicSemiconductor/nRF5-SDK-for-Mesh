@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -53,10 +53,11 @@
  * The IDs must be unique within stack. */
 enum
 {
-    MESH_OPT_NET_STATE_FILE_ID  = 0x0000,
-    MESH_OPT_DSM_FILE_ID        = 0x0001,
-    MESH_OPT_ACCESS_FILE_ID     = 0x0002,
-    MESH_OPT_CORE_FILE_ID       = 0x0003,
+    MESH_OPT_NET_STATE_FILE_ID       = 0x0000,
+    MESH_OPT_DSM_FILE_ID             = 0x0001,
+    MESH_OPT_ACCESS_FILE_ID          = 0x0002,
+    MESH_OPT_CORE_FILE_ID            = 0x0003,
+    MESH_OPT_MODEL_FILE_ID           = 0x0004,
     MESH_OPT_FIRST_FREE_ID
 };
 
@@ -75,7 +76,6 @@ enum
 #define MESH_OPT_HEALTH_ID_START (0x0230)
 #define MESH_OPT_HEALTH_ID_END   (0x024F)
 
-// todo move it in the health model public options API MBTLE-3458
 /** Health server entry IDs */
 #define MESH_OPT_HEALTH_PRIMARY_EID     MESH_OPT_CORE_ID(MESH_OPT_HEALTH_ID_START + 0)
 

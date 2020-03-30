@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -42,13 +42,13 @@
 #include "serial_status.h"
 
 #include "serial_mock.h"
-#include "net_state_mock.h"
 #include "access_mock.h"
 #include "device_state_manager_mock.h"
 #include "nrf_mesh_mock.h"
 #include "nrf_mesh_events_mock.h"
 #include "nrf_mesh_externs_mock.h"
 #include "config_server_mock.h"
+#include "mesh_stack_mock.h"
 
 #include "utils.h"
 #include "test_assert.h"
@@ -111,10 +111,10 @@ void setUp(void)
     serial_mock_Init();
     nrf_mesh_mock_Init();
     nrf_mesh_events_mock_Init();
-    net_state_mock_Init();
     access_mock_Init();
     nrf_mesh_externs_mock_Init();
     config_server_mock_Init();
+    mesh_stack_mock_Init();
     m_expected_packet_send = 0;
     m_packet_send_return = 0;
     memset(&m_expected_tx_params, 0, sizeof(m_expected_tx_params));
@@ -131,14 +131,14 @@ void tearDown(void)
     nrf_mesh_mock_Destroy();
     nrf_mesh_events_mock_Verify();
     nrf_mesh_events_mock_Destroy();
-    net_state_mock_Verify();
-    net_state_mock_Destroy();
     access_mock_Verify();
     access_mock_Destroy();
     nrf_mesh_externs_mock_Verify();
     nrf_mesh_externs_mock_Destroy();
     config_server_mock_Verify();
     config_server_mock_Destroy();
+    mesh_stack_mock_Verify();
+    mesh_stack_mock_Destroy();
 }
 
 /*****************************************************************************
@@ -177,9 +177,7 @@ void test_stateclear(void)
     serial_packet_t cmd;
     cmd.opcode = SERIAL_OPCODE_CMD_MESH_STATE_CLEAR;
     cmd.length = SERIAL_PACKET_LENGTH_OVERHEAD;
-    dsm_clear_Expect();
-    access_clear_Expect();
-    net_state_reset_Expect();
+    mesh_stack_config_clear_Expect();
     serial_cmd_rsp_send_Expect(SERIAL_OPCODE_CMD_MESH_STATE_CLEAR, SERIAL_STATUS_SUCCESS, NULL, 0);
     serial_handler_mesh_rx(&cmd);
 }

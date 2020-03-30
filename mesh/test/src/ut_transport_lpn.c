@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -747,6 +747,7 @@ void test_sar_always_room_for_an_rx_in_friendship(void)
         /* ACK segment -> successful TX. */
         event_handle_StubWithCallback(event_handle_stub);
         m_expected_evt.type = NRF_MESH_EVT_TX_COMPLETE;
+        timer_now_ExpectAndReturn(0);
         sar_tx_ctx_free_Expect();
         segack_receive(SEQZERO + 2*i, 0x03, OTHER_ADDRESS + i);
     }
@@ -842,6 +843,7 @@ void test_successful_tx_while_waiting_for_poll_complete(void)
     /* ACK second segment -> successful TX. */
     event_handle_StubWithCallback(event_handle_stub);
     m_expected_evt.type = NRF_MESH_EVT_TX_COMPLETE;
+    timer_now_ExpectAndReturn(0);
     sar_tx_ctx_free_Expect();
     segack_receive(SEQZERO, 0x03, OTHER_ADDRESS);
 }

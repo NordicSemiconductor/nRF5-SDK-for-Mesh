@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -44,7 +44,7 @@
 /**
  * This is a sample implementation of the `mesh_adv.h` interface.
  * You may change the implementation as long as the interface remains
- * the same. Note that requirements in the Mesh Profile v1.0 specification,
+ * the same. Note that requirements in @tagMeshSp
  * chapter 7, restricts available bytes in the advertisement data. However,
  * the scan response data is freely available.
  *

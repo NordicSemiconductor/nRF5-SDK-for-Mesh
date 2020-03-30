@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -474,7 +474,7 @@ void test_util_functions(void)
     network_packet_metadata_t net_meta;
     uint32_t length = 18;
 
-    /* Lengths according to the Mesh Profile Specification v1.0, section 3.4.4 */
+    /* Lengths according to @tagMeshSp section 3.4.4 */
 
     net_meta.control_packet = true;
     TEST_ASSERT_EQUAL(length - 9 - 8, net_packet_payload_len_get(&net_meta, length));

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -867,6 +867,10 @@ uint32_t flash_manager_add(flash_manager_t * p_manager,
 
 uint32_t flash_manager_remove(flash_manager_t * p_manager)
 {
+    if (!(p_manager->internal.state == FM_STATE_READY || p_manager->internal.state == FM_STATE_UNINITIALIZED))
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
     action_t * p_action = reserve_action_buffer(ACTION_BUFFER_SIZE_NO_PARAMS);
     if (p_action == NULL)
     {
@@ -1069,6 +1073,12 @@ fm_entry_t * flash_manager_entry_alloc(flash_manager_t * p_manager,
         /* length should be in padded words: */
         p_action->params.entry_data.entry.header.len_words = 1 + ALIGN_VAL(data_length, WORD_SIZE) / WORD_SIZE;
         p_action->p_manager = p_manager;
+
+        /* Write 1s to last word (if any) to avoid padding with random data if data_length is not already aligned */
+        if (p_action->params.entry_data.entry.header.len_words > 1)
+        {
+            p_action->params.entry_data.entry.data[p_action->params.entry_data.entry.header.len_words - 2] = UINT32_MAX;
+        }
 
         return &p_action->params.entry_data.entry;
     }

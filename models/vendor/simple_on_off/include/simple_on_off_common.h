@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -52,7 +52,7 @@
  * your own model.
  *
  * Do not confuse the simple OnOff model with the Generic OnOff Model specified
- * in the Mesh Model Specification v1.0. The Generic OnOff Model provides additional
+ * in @tagMeshMdlSp. The Generic OnOff Model provides additional
  * features such as control over when and for how long the transition between
  * the on/off state should be performed.
  *
@@ -60,7 +60,7 @@
  * the server will publish its state to its publish address every time its state changes.
  *
  * For more information about creating models, see
- * @ref md_doc_libraries_how_to_models.
+ * @ref md_doc_user_guide_modules_models_creating.
  *
  * Model Identification
  * @par

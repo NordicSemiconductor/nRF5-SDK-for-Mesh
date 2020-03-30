@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -59,7 +59,7 @@
 #define NETWORK_MAX_IV_UPDATE_INTERVAL_MINUTES  (144 * 60)
 /** The minimum time between IV Recovery, in minutes. */
 #define NETWORK_MIN_IV_RECOVERY_INTERVAL_MINUTES  (192 * 60)
-/** Margin to ensure we're inside of the Mesh Profile Specification v1.0 time limits */
+/** Margin to ensure we're inside of @tagMeshSp time limits */
 #define NETWORK_IV_UPDATE_TIME_MARGIN_MINUTES   (10)
 
 /** Maximum clock drift possible, according to Bluetooth Core Specification v4.0 (500ppm). */
@@ -116,6 +116,7 @@ typedef struct
     uint8_t is_test_mode : 1;
     uint8_t is_enabled : 1;
     uint8_t is_iv_state_set_externally : 1;
+    uint8_t is_synchronized : 1;
 } net_state_status_t;
 
 /*****************************************************************************
@@ -125,7 +126,7 @@ typedef struct
 static network_state_t m_net_state;
 /** IV update timer used to trigger IV update states. */
 static timer_event_t m_iv_update_timer;
-static net_state_status_t m_staus;
+static net_state_status_t m_status;
 
 static nrf_mesh_evt_handler_t m_mesh_evt_handler;
 /*****************************************************************************
@@ -137,7 +138,7 @@ static void iv_update_timeout_counter_store(void);
 
 static inline bool iv_timeout_limit_passed(uint32_t timeout)
 {
-    return (timeout >= IV_UPDATE_TIMEOUT_MINUTES || !!m_staus.is_test_mode);
+    return (timeout >= IV_UPDATE_TIMEOUT_MINUTES || !!m_status.is_test_mode);
 }
 
 /* Notify user of the new IV index. */
@@ -322,13 +323,13 @@ static uint32_t seqnum_block_legacy_setter(mesh_config_entry_id_t entry_id, cons
     mesh_opt_seqnum_persist_data_legacy_t * p_lgcy = (mesh_opt_seqnum_persist_data_legacy_t *)p_entry;
 
     m_pst_seqnum.next_block = p_lgcy->next_block;
-    m_staus.is_seqnum_restored = 1;
+    m_status.is_seqnum_restored = 1;
 
     /* In the legacy format, the IV index was always stored before the sequence number on IV update,
      * so if we find the legacy sequence number first, it means that we lost power before we had time
      * to flash the new, zeroed sequence number. This means that the loaded sequence number is invalid,
      * and should be ignored. */
-    m_pst_seqnum.synchro_index = !!m_staus.is_iv_index_restored ? 0 : 1;
+    m_pst_seqnum.synchro_index = !!m_status.is_iv_index_restored ? 0 : 1;
 
     return NRF_SUCCESS;
 }
@@ -343,7 +344,7 @@ static uint32_t iv_index_legacy_setter(mesh_config_entry_id_t entry_id, const vo
     m_pst_iv_index.iv_update_in_progress = (net_state_iv_update_t)p_lgcy->iv_update_in_progress;
     m_pst_iv_index.iv_update_timeout_counter = 0;
     m_pst_iv_index.synchro_index = 0;
-    m_staus.is_iv_index_restored = 1;
+    m_status.is_iv_index_restored = 1;
     return NRF_SUCCESS;
 }
 
@@ -352,7 +353,7 @@ static uint32_t seqnum_block_setter(mesh_config_entry_id_t entry_id, const void 
     NRF_MESH_ASSERT_DEBUG(MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_RECORD == entry_id.record);
 
     memcpy(&m_pst_seqnum, p_entry, sizeof(mesh_opt_seqnum_persist_data_t));
-    m_staus.is_seqnum_restored = 1;
+    m_status.is_seqnum_restored = 1;
     return NRF_SUCCESS;
 }
 
@@ -375,7 +376,7 @@ static uint32_t iv_index_setter(mesh_config_entry_id_t entry_id, const void * p_
     NRF_MESH_ASSERT_DEBUG(MESH_OPT_NET_STATE_IV_INDEX_RECORD == entry_id.record);
 
     memcpy(&m_pst_iv_index, p_entry, sizeof(mesh_opt_iv_index_persist_data_t));
-    m_staus.is_iv_index_restored = 1;
+    m_status.is_iv_index_restored = 1;
     return NRF_SUCCESS;
 }
 
@@ -433,7 +434,7 @@ MESH_CONFIG_FILE(m_net_state_file, MESH_OPT_NET_STATE_FILE_ID, MESH_CONFIG_STRAT
 
 static void persist_completed_notify(const nrf_mesh_evt_t * p_evt)
 {
-    if (!m_staus.is_seqnum_allocation_in_progress)
+    if (!m_status.is_seqnum_allocation_in_progress)
     {
         return;
     }
@@ -441,13 +442,15 @@ static void persist_completed_notify(const nrf_mesh_evt_t * p_evt)
     if (NRF_MESH_EVT_CONFIG_STABLE == p_evt->type)
     {
         m_net_state.seqnum_max_available = m_pst_seqnum.next_block;
-        m_staus.is_seqnum_allocation_in_progress = 0;
+        m_status.is_seqnum_allocation_in_progress = 0;
     }
 }
 
 static void seqnum_block_allocate(void)
 {
-    if (!!m_staus.is_seqnum_allocation_in_progress)
+    NRF_MESH_ASSERT(!!m_status.is_synchronized);
+
+    if (!!m_status.is_seqnum_allocation_in_progress)
     {
         return;
     }
@@ -460,7 +463,7 @@ static void seqnum_block_allocate(void)
     if (seqnum_data.next_block <= NETWORK_SEQNUM_MAX + 1)
     {
         seqnum_data.synchro_index = m_synchro_index;
-        m_staus.is_seqnum_allocation_in_progress = 1;
+        m_status.is_seqnum_allocation_in_progress = 1;
         NRF_MESH_ERROR_CHECK(mesh_config_entry_set(MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_EID, &seqnum_data));
     }
 }
@@ -496,12 +499,12 @@ static void restored_result_apply(void)
     m_persist_notifier.evt_cb = persist_completed_notify;
     nrf_mesh_evt_handler_add(&m_persist_notifier);
 
-    if (!!m_staus.is_iv_state_set_externally)
+    if (!!m_status.is_iv_state_set_externally)
     { // higher layer changed parameters before start
         return;
     }
 
-    if (!m_staus.is_iv_index_restored || !m_staus.is_seqnum_restored)
+    if (!m_status.is_iv_index_restored || !m_status.is_seqnum_restored)
     {
         /* Need both data types to consider the storage valid. Reset state and flash both. */
         m_net_state.seqnum = 0;
@@ -536,6 +539,7 @@ static void restored_result_apply(void)
      * start sending. We set the seqnum max to the seqnum, and trigger the allocation, so no
      * sequence numbers are spent before we get the allocation stored. */
     m_net_state.seqnum_max_available = m_net_state.seqnum;
+    m_status.is_synchronized = 1;
     seqnum_block_allocate();
 }
 
@@ -551,7 +555,8 @@ void net_state_reset(void)
     (void)mesh_config_entry_delete(MESH_OPT_NET_STATE_IV_INDEX_EID);
 
     memset(&m_net_state, 0, sizeof(m_net_state));
-    m_staus.is_iv_state_set_externally = 0;
+    m_status.is_iv_state_set_externally = 0;
+    m_status.is_synchronized = 1;
     seqnum_block_allocate();
 }
 
@@ -566,7 +571,9 @@ static void seqnum_block_allocate(void)
 {}
 
 void restored_result_apply(void)
-{}
+{
+    m_status.is_synchronized = 1;
+}
 
 static void legacy_remove(void)
 {}
@@ -574,7 +581,8 @@ static void legacy_remove(void)
 void net_state_reset(void)
 {
     memset(&m_net_state, 0, sizeof(m_net_state));
-    m_staus.is_iv_state_set_externally = 0;
+    m_status.is_iv_state_set_externally = 0;
+    m_status.is_synchronized = 1;
     RESET_SEQNUM_MAX();
 }
 #endif /* PERSISTENT_STORAGE*/
@@ -590,26 +598,32 @@ void net_state_init(void)
     m_iv_update_timer.interval = NETWORK_IV_UPDATE_TIMER_INTERVAL_US;
     m_iv_update_timer.p_context = 0;
     m_iv_update_timer.p_next = NULL;
-    m_staus.is_test_mode = 0;
+    m_status.is_test_mode = 0;
 
     RESET_SEQNUM_MAX();
 }
 
 void net_state_enable(void)
 {
-    if (!m_staus.is_enabled)
+    if (!m_status.is_enabled)
     {
         m_mesh_evt_handler.evt_cb = mesh_evt_handler;
         nrf_mesh_evt_handler_add(&m_mesh_evt_handler);
         restored_result_apply();
         legacy_remove();
         timer_sch_schedule(&m_iv_update_timer);
-        m_staus.is_enabled = 1;
+        m_status.is_enabled = 1;
     }
 }
 
 uint32_t net_state_seqnum_alloc(uint32_t * p_seqnum)
 {
+    // Attempt to allocate the sequence number before it is fully restored from persistent storage.
+    if (!m_status.is_synchronized)
+    {
+        return NRF_ERROR_FORBIDDEN;
+    }
+
     if (m_net_state.seqnum < m_net_state.seqnum_max_available)
     {
         /* Check if we've reached the seqnum threshold for a state transition. */
@@ -645,6 +659,11 @@ uint32_t net_state_seqnum_alloc(uint32_t * p_seqnum)
     }
 }
 
+bool net_state_is_seqnum_block_ready(void)
+{
+    return !m_status.is_seqnum_allocation_in_progress;
+}
+
 uint32_t net_state_iv_update_start(void)
 {
     uint32_t status;
@@ -670,7 +689,7 @@ uint32_t net_state_iv_update_start(void)
 
 void net_state_iv_update_test_mode_set(bool test_mode_on)
 {
-    m_staus.is_test_mode = test_mode_on ? 1 : 0;
+    m_status.is_test_mode = test_mode_on ? 1 : 0;
 }
 
 uint32_t net_state_test_mode_transition_run(net_state_iv_update_signals_t signal)
@@ -759,13 +778,13 @@ net_state_iv_update_t net_state_iv_update_get(void)
 
 uint32_t net_state_iv_index_set(uint32_t iv_index, bool iv_update)
 {
-    if (!!m_staus.is_iv_state_set_externally)
+    if (!!m_status.is_iv_state_set_externally)
     {
         return NRF_ERROR_INVALID_STATE;
     }
     else
     {
-        m_staus.is_iv_state_set_externally = 1;
+        m_status.is_iv_state_set_externally = 1;
         m_net_state.iv_index = iv_index;
         m_net_state.iv_update.state =
             iv_update ? NET_STATE_IV_UPDATE_IN_PROGRESS : NET_STATE_IV_UPDATE_NORMAL;
@@ -777,6 +796,7 @@ uint32_t net_state_iv_index_set(uint32_t iv_index, bool iv_update)
         /* Force reseting of sequence numbers upon IV index set */
         m_net_state.seqnum = 0;
         RESET_SEQNUM_MAX();
+        m_status.is_synchronized = 1;
         seqnum_block_allocate();
 
         return NRF_SUCCESS;
@@ -786,12 +806,13 @@ uint32_t net_state_iv_index_set(uint32_t iv_index, bool iv_update)
 #if defined UNIT_TEST
 void net_state_disable(void)
 {
-    m_staus.is_enabled = 0;
-    m_staus.is_iv_state_set_externally = 0;
+    m_status.is_enabled = 0;
+    m_status.is_iv_state_set_externally = 0;
+    m_status.is_synchronized = 0;
     m_synchro_index = 0;
     memset(&m_pst_iv_index, 0, sizeof(mesh_opt_iv_index_persist_data_t));
     memset(&m_pst_seqnum, 0, sizeof(mesh_opt_seqnum_persist_data_t));
-    memset(&m_staus, 0, sizeof(net_state_status_t));
+    memset(&m_status, 0, sizeof(net_state_status_t));
     memset(&m_persist_notifier, 0, sizeof(nrf_mesh_evt_handler_t));
 }
 #endif

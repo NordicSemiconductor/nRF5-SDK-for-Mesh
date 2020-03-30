@@ -1,5 +1,4 @@
-
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -170,18 +169,16 @@ uint32_t generic_dtt_client_set_unack(generic_dtt_client_t * p_client, const gen
         return NRF_ERROR_INVALID_PARAM;
     }
 
-    p_client->msg_pkt.set.transition_time = model_transition_time_encode(p_params->transition_time_ms);
-    message_create(p_client, GENERIC_DTT_OPCODE_SET_UNACKNOWLEDGED, (const uint8_t *) &p_client->msg_pkt.set,
-                   sizeof(p_client->msg_pkt.set), &p_client->access_message.message);
+    generic_dtt_set_msg_pkt_t msg;
+    msg.transition_time = model_transition_time_encode(p_params->transition_time_ms);
+    message_create(p_client, GENERIC_DTT_OPCODE_SET_UNACKNOWLEDGED, (const uint8_t *) &msg,
+                   sizeof(generic_dtt_set_msg_pkt_t), &p_client->access_message.message);
 
-    uint32_t status = NRF_ERROR_INVALID_PARAM;
-    for (uint32_t i = 0; i <= repeats; ++i)
+    uint32_t status = NRF_SUCCESS;
+    repeats++;
+    while (repeats-- > 0 && status == NRF_SUCCESS)
     {
         status = access_model_publish(p_client->model_handle, &p_client->access_message.message);
-        if (status != NRF_SUCCESS)
-        {
-            break;
-        }
     }
     return status;
 }

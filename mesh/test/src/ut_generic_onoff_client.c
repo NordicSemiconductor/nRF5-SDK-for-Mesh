@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -122,10 +122,7 @@ static uint32_t access_model_add_mock(const access_model_add_params_t * p_init_p
         TEST_ASSERT_FALSE(m_publish_expected); \
         m_publish_expected = true; \
         nrf_mesh_unique_token_get_ExpectAndReturn(TEST_ACCESS_TOKEN); \
-        for (uint8_t i = 0; i <= x_repeats; i++) \
-        { \
-            access_model_publish_StubWithCallback(access_model_publish_mock); \
-        } \
+        access_model_publish_StubWithCallback(access_model_publish_mock); \
         m_publish_repeats = x_repeats; \
         m_publish_expected_handle = x_handle; \
         m_publish_expected_opcode = x_opcode; \

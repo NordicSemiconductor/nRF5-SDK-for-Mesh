@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -38,10 +38,10 @@
 #define INSTABURST_TX_H__
 
 /**
- * @defgroup INSTABURST_TX Experimental Instaburst TX module
+ * @defgroup INSTABURST_TX Instaburst TX module
  * @ingroup INSTABURST
  *
- * The Instaburst TX module acts as an experimental replacement for the regular advertiser,
+ * The Instaburst TX module acts as a replacement for the regular advertiser,
  * providing higher throughput at the expense of breaking spec-compliance.
  *
  * The Instaburst TX module allocates user data in a generic buffer, then dynamically makes a
@@ -56,10 +56,9 @@
  * that as the Advertisement Data Identification. This way, a scanner may choose to ignore the
  * Auxiliary packet if it has seen its contents before.
  *
- * @warning Instaburst is a Nordic proprietary feature that does not adhere to the Bluetooth Mesh
- * specification. It is currently in an experimental stage, and does not have the same
- * requirements to test coverage, API stability or spec-compliance as the rest of the Nordic nRF5
- * SDK for Mesh.
+ * @warning Instaburst is a Nordic-specific feature that does not adhere to the Bluetooth Mesh
+ * specification. It does not have the same requirements for test coverage, API stability
+ * or specification compliance as the rest of Nordic's nRF5 SDK for Mesh.
  *
  * @{
  */

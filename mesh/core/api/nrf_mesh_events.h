@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -117,6 +117,9 @@ typedef enum
     NRF_MESH_EVT_PROXY_STOPPED,
     /** The mesh has been disabled. */
     NRF_MESH_EVT_DISABLED,
+    /** The mesh has been enabled. This event provides a suitable context and a starting point
+     * to begin calling the Mesh stack APIs after the stack is fully initialized. */
+    NRF_MESH_EVT_ENABLED,
     /** The node has received a Friend Request from an LPN. Unless the friendship is actively
      * terminated, the request is accepted automatically. */
     NRF_MESH_EVT_FRIEND_REQUEST,
@@ -186,8 +189,7 @@ typedef struct
 /**
  * Heartbeat received event structure.
  *
- * This event structure is formatted as recommended by the Mesh Profile Specification v1.0,
- * section 3.6.7.3.
+ * This event structure is formatted as recommended by @tagMeshSp section 3.6.7.3.
  */
 typedef struct
 {

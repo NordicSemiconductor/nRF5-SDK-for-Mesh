@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -47,7 +47,7 @@
 #include "event_mock.h"
 #include "enc_mock.h"
 
-/* Sample data from the Mesh Profile Specification v1.0, section 8.4.1 (unprovisioned device beacon without URI): */
+/* Sample data from @tagMeshSp section 8.4.1 (unprovisioned device beacon without URI): */
 #define UNPROV_SAMPLE_DATA_1                                                                                                                       \
 {                                                                                                                                                  \
     .uri = NULL,                                                                                                                                   \
@@ -60,7 +60,7 @@
     .beacon = {0x70, 0xcf, 0x7c, 0x97, 0x32, 0xa3, 0x45, 0xb6, 0x91, 0x49, 0x48, 0x10, 0xd2, 0xe9, 0xcb, 0xf4, 0xa0, 0x40} \
 }
 
-/* Sample data from the Mesh Profile Specification v1.0, section 8.4.2 (unprovisioned device beacon with URI): */
+/* Sample data from @tagMeshSp section 8.4.2 (unprovisioned device beacon with URI): */
 #define UNPROV_SAMPLE_DATA_2                                                                                                                       \
 {                                                                                                                                                  \
     .uri = (URI_SCHEME_HTTPS "//www.example.com/mesh/products/light-switch-v3"),                                                                   \

@@ -1,20 +1,18 @@
 set(GENERIC_PONOFF_CLIENT_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/generic_ponoff_client.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../common/src/model_common.c" CACHE INTERNAL "")
+    "${MODEL_COMMON_SOURCE_FILES}" CACHE INTERNAL "")
 set(GENERIC_PONOFF_CLIENT_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../common/include" CACHE INTERNAL "")
+    "${MODEL_COMMON_INCLUDE_DIRS}" CACHE INTERNAL "")
 
 set(GENERIC_PONOFF_SERVER_SOURCE_FILES
     ${GENERIC_DTT_SERVER_SOURCE_FILES}
     ${GENERIC_ONOFF_SERVER_SOURCE_FILES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/generic_ponoff_setup_server.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../common/src/model_common.c" CACHE INTERNAL "")
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/generic_ponoff_setup_server.c" CACHE INTERNAL "")
 set(GENERIC_PONOFF_SERVER_INCLUDE_DIRS
     ${GENERIC_DTT_SERVER_INCLUDE_DIRS}
     ${GENERIC_ONOFF_SERVER_INCLUDE_DIRS}
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../common/include" CACHE INTERNAL "")
+    "${CMAKE_CURRENT_SOURCE_DIR}/include" CACHE INTERNAL "")
 
 set(target_include_dirs
     ${GENERIC_PONOFF_CLIENT_INCLUDE_DIRS}
@@ -27,6 +25,6 @@ set(target_include_dirs
     ${CMAKE_SOURCE_DIR}/examples/templates)
 
 add_pc_lint(generic_ponoff_${PLATFORM}
-"${CMAKE_CURRENT_SOURCE_DIR}/src/generic_ponoff_client.c;${CMAKE_CURRENT_SOURCE_DIR}/src/generic_ponoff_setup_server.c;${CMAKE_CURRENT_SOURCE_DIR}/../common/src/model_common.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/generic_ponoff_client.c;${CMAKE_CURRENT_SOURCE_DIR}/src/generic_ponoff_setup_server.c"
     "${target_include_dirs};${CMAKE_SOURCE_DIR}/mesh/test/include"
     "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES}")

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -65,7 +65,7 @@
 #define ENC_TEST_K4_INPUT_DATA_2  { 0x63, 0x96, 0x47, 0x71, 0x73, 0x4f, 0xbd, 0x76, 0xe3, 0xb4, 0x05, 0x19, 0xd1, 0xd9, 0x4a, 0x48 }
 #define ENC_TEST_K4_RESULT_DATA_2 0x26
 
-/* Nonce test vectors constructed from the sample messages in the Mesh Profile Specification v1.0: */
+/* Nonce test vectors constructed from the sample messages in @tagMeshSp: */
 #define EXPECTED_ARRAY(...) { __VA_ARGS__ }
 #define EXPECTED_NET(...) EXPECTED_ARRAY(__VA_ARGS__)
 #define EXPECTED_APP(...) EXPECTED_ARRAY(__VA_ARGS__)

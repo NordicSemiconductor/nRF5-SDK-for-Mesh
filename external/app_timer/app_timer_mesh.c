@@ -157,6 +157,8 @@ static bool                          m_check_timeout;                           
 static uint8_t                       m_max_user_op_queue_utilization;           /**< Maximum observed timer user operations queue utilization. */
 #endif
 
+extern void app_timer_workaround_apply(void);
+
 /**@brief Function for initializing the RTC1 counter.
  *
  * @param[in] prescaler   Value of the RTC1 PRESCALER register. Set to 0 for no prescaling.
@@ -965,6 +967,12 @@ ret_code_t app_timer_init(void)
 
     rtc1_start();
     m_is_timer_init = true;
+
+    /*  When all the scheduled timers expire and no active timers are present for some time,
+     * `m_ticks_latest` value starts lagging behind the actual RTC1 count value.
+     *  To prevent it at least one timer should be permanently running.
+     *  See more details in NRFFOSDK-12902 and MBTLE-3347. */
+    app_timer_workaround_apply();
 
     return NRF_SUCCESS;
 }

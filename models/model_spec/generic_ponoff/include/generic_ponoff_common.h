@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -52,8 +52,20 @@
 /** Model Company ID */
 #define GENERIC_PONOFF_COMPANY_ID 0xFFFF
 
-/** Maximum value of the on_powerup state, as defined in the Mesh Model Specification v1.0 */
+/** Maximum value of the OnPowerUp state, as defined in @tagMeshMdlSp */
 #define GENERIC_ON_POWERUP_MAX    (0x02)
+
+/** Valid values of OnPowerUp state. */
+typedef enum
+{
+    /** After being powered up, the element is in an off state. */
+    GENERIC_ON_POWERUP_OFF = 0,
+    /** After being powered up, the element is in an On state and uses default state values. */
+    GENERIC_ON_POWERUP_DEFAULT,
+    /** If a transition was in progress when powered down, the element restores the target state
+     *  when powered up. Otherwise the element restores the state it was in when powered down. */
+    GENERIC_ON_POWERUP_RESTORE,
+} generic_on_powerup_values_t;
 
 /**
  * Unpacked message structure typedefs are used for API interfaces and for implementing model code. This helps to minimize code

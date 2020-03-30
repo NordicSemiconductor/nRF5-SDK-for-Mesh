@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -114,8 +114,8 @@ bool friend_friendship_established(uint16_t src);
  *
  * @retval PollTimeoutTime Value of the PollTimeout timer in 100 ms.
  * @retval 0               Address is either unknown or the PollTimeout has
- *                         expired for the given address (ref. Mesh Profile v1.0,
- *                         sec. 4.3.2.68). In practice, this means the same.
+ *                         expired for the given address (ref. @tagMeshSp
+ *                         section 4.3.2.68). In practice, this means the same.
  */
 uint32_t friend_remaining_poll_timeout_time_get(uint16_t src);
 

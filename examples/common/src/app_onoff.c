@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -22,7 +22,7 @@
  *
  * 5. Any software provided in binary form under this license must not be reverse
  *    engineered, decompiled, modified and/or disassembled.
-*
+ *
  * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -39,9 +39,11 @@
 
 #include <stdint.h>
 
+#include "utils.h"
 #include "sdk_config.h"
 #include "example_common.h"
 #include "generic_onoff_server.h"
+#include "app_transition.h"
 
 #include "log.h"
 #include "app_timer.h"
@@ -66,100 +68,33 @@ const generic_onoff_server_callbacks_t onoff_srv_cbs =
     .onoff_cbs.get_cb = generic_onoff_state_get_cb
 };
 
-static void onoff_state_process_timing(app_onoff_server_t * p_server)
+static void transition_parameters_set(app_onoff_server_t * p_app,
+                                      const model_transition_t * p_in_transition)
 {
-    uint32_t status = NRF_SUCCESS;
+    app_transition_params_t * p_params = app_transition_requested_get(&p_app->state.transition);
 
-    (void) app_timer_stop(*p_server->p_timer_id);
+    p_params->transition_type = APP_TRANSITION_TYPE_SET;
+    p_params->minimum_step_ms = TRANSITION_STEP_MIN_MS;
 
-    /* Process timing requirements */
-    if (p_server->state.delay_ms != 0)
+    if (p_in_transition == NULL)
     {
-        status = app_timer_start(*p_server->p_timer_id, APP_TIMER_TICKS(p_server->state.delay_ms), p_server);
+        p_app->state.transition.delay_ms = 0;
+        p_params->transition_time_ms = 0;
     }
-    else if (p_server->state.remaining_time_ms != 0)
+    else
     {
-        /* Note: We cannot use the full length of the app_timer, since RTC counter is 24 bit, and
-        application needs to report the remaining time whenever GET message is received in the
-        middle of the transition. Correctness of the reported value is limited to 100 ms at the
-        highest resolution as defined in section 3.1.3 of Mesh Model Specification v1.0 */
-        uint32_t app_timer_ticks = APP_TIMER_TICKS(p_server->state.remaining_time_ms);
-        if (app_timer_ticks > APP_TIMER_MAX_CNT_VAL)
-        {
-            status = app_timer_start(*p_server->p_timer_id, APP_TIMER_MAX_CNT_VAL, p_server);
-        }
-        else if (app_timer_ticks >= APP_TIMER_MIN_TIMEOUT_TICKS)
-        {
-            status = app_timer_start(*p_server->p_timer_id, APP_TIMER_TICKS(p_server->state.remaining_time_ms), p_server);
-        }
-        else
-        {
-            status = app_timer_start(*p_server->p_timer_id, APP_TIMER_MIN_TIMEOUT_TICKS, p_server);
-        }
-        p_server->last_rtc_counter = app_timer_cnt_get();
-    }
-
-    if (status != NRF_SUCCESS)
-    {
-        __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "State transition timer error\n");
+        p_app->state.transition.delay_ms = p_in_transition->delay_ms;
+        p_params->transition_time_ms = p_in_transition->transition_time_ms;
     }
 }
 
-static void onoff_state_value_update(app_onoff_server_t * p_server)
+static void onoff_current_value_update(app_onoff_server_t * p_app)
 {
-    /* Requirement: If delay and transition time is zero, current state changes to the target state. */
-    if ((p_server->state.delay_ms == 0 && p_server->state.remaining_time_ms == 0) ||
-    /* Requirement: If current state is 0 (checked earlier) and target state is 1, current state value changes
-     * to the target state value immediately after the delay.
-     */
-        (p_server->state.delay_ms == 0 && p_server->state.target_onoff == 1))
+    if (p_app->onoff_set_cb != NULL)
     {
-        p_server->state.present_onoff = p_server->state.target_onoff;
-
-        generic_onoff_status_params_t status_params;
-        status_params.present_on_off = p_server->state.present_onoff;
-        status_params.target_on_off = p_server->state.target_onoff;
-        status_params.remaining_time_ms = p_server->state.remaining_time_ms;
-        (void) generic_onoff_server_status_publish(&p_server->server, &status_params);
-
-        if (!p_server->value_updated)
-        {
-            p_server->onoff_set_cb(p_server, p_server->state.present_onoff);
-            p_server->value_updated = true;
-        }
+        p_app->onoff_set_cb(p_app, p_app->state.present_onoff);
     }
-
-    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "cur onoff: %d  target: %d  delay: %d ms  remaining time: %d ms\n",
-          p_server->state.present_onoff, p_server->state.target_onoff, p_server->state.delay_ms, p_server->state.remaining_time_ms);
 }
-
-static void onoff_state_timer_cb(void * p_context)
-{
-    app_onoff_server_t * p_server = (app_onoff_server_t *) p_context;
-
-    /* Requirement: Process timing. Process the delay first (Non-zero delay will delay the required
-     * state transition by the specified amount) and then the transition time.
-     */
-    if (p_server->state.delay_ms != 0)
-    {
-        p_server->state.delay_ms = 0;
-        onoff_state_value_update(p_server);
-    }
-    else if (p_server->state.remaining_time_ms != 0)
-    {
-        if (APP_TIMER_TICKS(p_server->state.remaining_time_ms) > APP_TIMER_MAX_CNT_VAL)
-        {
-            p_server->state.remaining_time_ms -= (APP_TIMER_MAX_CNT_VAL/APP_TIMER_CLOCK_FREQ);
-        }
-        else
-        {
-            p_server->state.remaining_time_ms = 0;
-            onoff_state_value_update(p_server);
-        }
-    }
-    onoff_state_process_timing(p_server);
-}
-
 
 /***** Generic OnOff model interface callbacks *****/
 
@@ -169,30 +104,15 @@ static void generic_onoff_state_get_cb(const generic_onoff_server_t * p_self,
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "msg: GET \n");
 
-    app_onoff_server_t   * p_server = PARENT_BY_FIELD_GET(app_onoff_server_t, server, p_self);
+    app_onoff_server_t   * p_app = PARENT_BY_FIELD_GET(app_onoff_server_t, server, p_self);
 
     /* Requirement: Provide the current value of the OnOff state */
-    p_server->onoff_get_cb(p_server, &p_server->state.present_onoff);
-    p_out->present_on_off = p_server->state.present_onoff;
-    p_out->target_on_off = p_server->state.target_onoff;
+    p_app->onoff_get_cb(p_app, &p_app->state.present_onoff);
+    p_out->present_on_off = p_app->state.present_onoff;
+    p_out->target_on_off = p_app->state.target_onoff;
 
     /* Requirement: Always report remaining time */
-    if (p_server->state.remaining_time_ms > 0 && p_server->state.delay_ms == 0)
-    {
-        uint32_t delta = (1000ul * app_timer_cnt_diff_compute(app_timer_cnt_get(), p_server->last_rtc_counter)) / APP_TIMER_CLOCK_FREQ;
-        if (p_server->state.remaining_time_ms >= delta && delta > 0)
-        {
-            p_out->remaining_time_ms = p_server->state.remaining_time_ms - delta;
-        }
-        else
-        {
-            p_out->remaining_time_ms = 0;
-        }
-    }
-    else
-    {
-        p_out->remaining_time_ms = p_server->state.remaining_time_ms;
-    }
+    p_out->remaining_time_ms = app_transition_remaining_time_get(&p_app->state.transition);
 }
 
 static void generic_onoff_state_set_cb(const generic_onoff_server_t * p_self,
@@ -203,75 +123,140 @@ static void generic_onoff_state_set_cb(const generic_onoff_server_t * p_self,
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "msg: SET: %d\n", p_in->on_off);
 
-    app_onoff_server_t   * p_server = PARENT_BY_FIELD_GET(app_onoff_server_t, server, p_self);
+    app_onoff_server_t   * p_app = PARENT_BY_FIELD_GET(app_onoff_server_t, server, p_self);
 
+    bool present_on_off;
+    p_app->onoff_get_cb(p_app, &present_on_off);
     /* Update internal representation of OnOff value, process timing */
-    p_server->value_updated = false;
-    p_server->state.target_onoff = p_in->on_off;
-    if (p_in_transition == NULL)
-    {
-        p_server->state.delay_ms = 0;
-        p_server->state.remaining_time_ms = 0;
-    }
-    else
-    {
-        p_server->state.delay_ms = p_in_transition->delay_ms;
-        p_server->state.remaining_time_ms = p_in_transition->transition_time_ms;
-    }
+    p_app->value_updated = false;
+    p_app->state.target_onoff = p_in->on_off;
 
-    onoff_state_value_update(p_server);
-    onoff_state_process_timing(p_server);
+    uint32_t transition_time_ms = 0;
+    if (present_on_off != p_in->on_off)
+    {
+        transition_parameters_set(p_app, p_in_transition);
+        transition_time_ms = app_transition_requested_get(&p_app->state.transition)->transition_time_ms;
+        app_transition_trigger(&p_app->state.transition);
+    }
 
     /* Prepare response */
     if (p_out != NULL)
     {
-        p_out->present_on_off = p_server->state.present_onoff;
-        p_out->target_on_off = p_server->state.target_onoff;
-        p_out->remaining_time_ms = p_server->state.remaining_time_ms;
+        p_out->present_on_off = p_app->state.present_onoff;
+        p_out->target_on_off = p_app->state.target_onoff;
+        p_out->remaining_time_ms = transition_time_ms;
+    }
+}
+
+static inline app_onoff_server_t * transition_to_app(const app_transition_t * p_transition)
+{
+    app_onoff_state_t * p_state = PARENT_BY_FIELD_GET(app_onoff_state_t,
+                                  transition,
+                                  p_transition);
+    return PARENT_BY_FIELD_GET(app_onoff_server_t,
+                               state,
+                               p_state);
+}
+
+static void transition_start_cb(const app_transition_t * p_transition)
+{
+    app_onoff_server_t * p_app = transition_to_app(p_transition);
+    app_transition_params_t * p_params = app_transition_ongoing_get(&p_app->state.transition);
+
+    if (p_app->state.initial_present_onoff == 0 && p_app->state.target_onoff == 1)
+    {
+        p_app->state.present_onoff = p_app->state.target_onoff;
+        onoff_current_value_update(p_app);
+        generic_onoff_status_params_t status =
+        {
+            .present_on_off = p_app->state.present_onoff,
+            .target_on_off = p_app->state.target_onoff,
+        };
+        status.remaining_time_ms = app_transition_ongoing_get(&p_app->state.transition)->transition_time_ms;
+        (void) generic_onoff_server_status_publish(&p_app->server, &status);
+    }
+
+    /* Inform the application that transition have started. */
+    if (p_app->onoff_transition_cb != NULL)
+    {
+        p_app->onoff_transition_cb(p_app, p_params->transition_time_ms, p_app->state.target_onoff);
+    }
+}
+
+static void transition_complete_cb(const app_transition_t * p_transition)
+{
+    app_onoff_server_t * p_app = transition_to_app(p_transition);
+    app_transition_params_t * p_params = app_transition_ongoing_get(&p_app->state.transition);
+
+    if (p_app->state.present_onoff != p_app->state.target_onoff)
+    {
+        p_app->state.present_onoff = p_app->state.target_onoff;
+
+        onoff_current_value_update(p_app);
+
+        generic_onoff_status_params_t status = {
+                    .present_on_off = p_app->state.present_onoff,
+                    .target_on_off = p_app->state.target_onoff,
+                    .remaining_time_ms = 0
+                };
+        (void) generic_onoff_server_status_publish(&p_app->server, &status);
+    }
+
+    /* Inform the application that the transition is complete */
+    if (p_app->onoff_transition_cb != NULL)
+    {
+        p_app->onoff_transition_cb(p_app, p_params->transition_time_ms, p_app->state.target_onoff);
     }
 }
 
 
 /***** Interface functions *****/
 
-void app_onoff_status_publish(app_onoff_server_t * p_server)
+void app_onoff_status_publish(app_onoff_server_t * p_app)
 {
-    p_server->onoff_get_cb(p_server, &p_server->state.present_onoff);
-
-    p_server->state.target_onoff = p_server->state.present_onoff;
-    p_server->state.delay_ms = 0;
-    p_server->state.remaining_time_ms = 0;
-    (void) app_timer_stop(*p_server->p_timer_id);
+    app_transition_abort(&p_app->state.transition);
+    p_app->onoff_get_cb(p_app, &p_app->state.present_onoff);
+    p_app->state.target_onoff = p_app->state.present_onoff;
 
     generic_onoff_status_params_t status = {
-                .present_on_off = p_server->state.present_onoff,
-                .target_on_off = p_server->state.target_onoff,
-                .remaining_time_ms = p_server->state.remaining_time_ms
+                .present_on_off = p_app->state.present_onoff,
+                .target_on_off = p_app->state.target_onoff,
+                .remaining_time_ms = 0
             };
-    (void) generic_onoff_server_status_publish(&p_server->server, &status);
+    (void) generic_onoff_server_status_publish(&p_app->server, &status);
 }
 
-uint32_t app_onoff_init(app_onoff_server_t * p_server, uint8_t element_index)
+uint32_t app_onoff_init(app_onoff_server_t * p_app, uint8_t element_index)
 {
     uint32_t status = NRF_ERROR_INTERNAL;
 
-    if (p_server == NULL)
+    if (p_app == NULL)
     {
         return NRF_ERROR_NULL;
     }
 
-    p_server->server.settings.p_callbacks = &onoff_srv_cbs;
-    if (p_server->onoff_set_cb == NULL || p_server->onoff_get_cb == NULL)
+    p_app->server.settings.p_callbacks = &onoff_srv_cbs;
+    if ( (p_app->onoff_get_cb == NULL) ||
+         ( (p_app->onoff_set_cb == NULL) &&
+           (p_app->onoff_transition_cb == NULL) ) )
     {
         return NRF_ERROR_NULL;
     }
 
-    status = generic_onoff_server_init(&p_server->server, element_index);
-    if (status == NRF_SUCCESS)
+    status = generic_onoff_server_init(&p_app->server, element_index);
+    if (status != NRF_SUCCESS)
     {
-        status = app_timer_create(p_server->p_timer_id, APP_TIMER_MODE_SINGLE_SHOT,
-                                  onoff_state_timer_cb);
+        return status;
     }
 
-    return status;
+    p_app->state.transition.delay_start_cb = NULL;
+    p_app->state.transition.transition_start_cb = transition_start_cb;
+    p_app->state.transition.transition_tick_cb = NULL;
+    p_app->state.transition.transition_complete_cb = transition_complete_cb;
+    p_app->state.transition.p_context = &p_app->state.transition;
+
+    /* For any onoff transitions, required_delta is always 1 */
+    app_transition_requested_get(&p_app->state.transition)->required_delta = 1;
+
+    return app_transition_init(&p_app->state.transition);
 }

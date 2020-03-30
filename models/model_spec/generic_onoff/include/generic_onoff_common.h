@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -55,7 +55,7 @@
 /** Model Company ID */
 #define GENERIC_ONOFF_COMPANY_ID 0xFFFF
 
-/** Maximum value of the onoff state, as defined in the Mesh Model Specification v1.0 */
+/** Maximum value of the onoff state, as defined in @tagMeshMdlSp */
 #define GENERIC_ONOFF_MAX        (0x01)
 
 /**

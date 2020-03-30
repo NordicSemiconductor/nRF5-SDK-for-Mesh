@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -321,3 +321,12 @@ bool serial_handler_command_get(serial_cmd_t* cmd)
     return true;
 }
 
+void serial_handler_uart_disable(void)
+{
+    /* Disable the IRQ and restore default values of serial registers. */
+    NVIC_DisableIRQ(UART0_IRQn);
+    NRF_UART0->INTENCLR = 0xFFFFFFFF;
+    NRF_UART0->TASKS_STOPRX = 1;
+    NRF_UART0->TASKS_STOPTX = 1;
+    NRF_UART0->ENABLE = 0x00000000;
+}

@@ -1,13 +1,32 @@
 set(COMMON_EXAMPLES_SOURCE_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_error_weak.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_onoff.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_light_lightness.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_light_lc.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_level.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_light_ctl.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_transition.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/assertion_handler_weak.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/ble_dfu_support.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/ble_softdevice_support.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_adv.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_app_utils.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_provisionee.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/pwm_utils.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rtt_input.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/simple_hal.c"
-    "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_adv.c"
-    "${CMAKE_SOURCE_DIR}/examples/common/src/ble_softdevice_support.c")
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/simple_hal.c")
 
 set(COMMON_EXAMPLES_INCLUDE_DIRS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include")
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${SDK_ROOT}/models/model_spec/common/include"
+    "${SDK_ROOT}/components/libraries/pwm"
+    "${SDK_ROOT}/modules/nrfx"
+    "${SDK_ROOT}/modules/nrfx/drivers/include"
+    "${SDK_ROOT}/modules/nrfx/drivers"
+    "${SDK_ROOT}/modules/nrfx/hal"
+    "${SDK_ROOT}/modules/nrfx/mdk"
+    "${SDK_ROOT}/integration/nrfx"
+    "${SDK_ROOT}/integration/nrfx/legacy")
 
 set(BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_adv.c"
@@ -72,6 +91,21 @@ set(BLE_DFU_SUPPORT_INCLUDE_FILES
     "${SDK_ROOT}/components/libraries/pwr_mgmt"
     "${SDK_ROOT}/components/libraries/svc"
     CACHE INTERNAL "")
+    
+set(PWM_UTILS_SOURCE_FILES
+    "${CMAKE_SOURCE_DIR}/examples/common/src/pwm_utils.c"
+    "${SDK_ROOT}/components/libraries/pwm/app_pwm.c"
+    "${SDK_ROOT}/modules/nrfx/drivers/src/nrfx_timer.c"
+    "${SDK_ROOT}/modules/nrfx/drivers/src/nrfx_ppi.c"
+    "${SDK_ROOT}/modules/nrfx/drivers/src/nrfx_gpiote.c"
+    "${SDK_ROOT}/integration/nrfx/legacy/nrf_drv_ppi.c"
+    CACHE INTERNAL "")
+    
+set(PWM_UTILS_INCLUDE_DIRS
+    "${SDK_ROOT}/modules/nrfx/drivers/include/"
+    "${SDK_ROOT}/integration/nrfx/legacy/"
+    "${SDK_ROOT}/components/libraries/pwm/"
+    CACHE INTERNAL "")
 
 set(lint_include_dirs
     ${COMMON_EXAMPLES_INCLUDE_DIRS}
@@ -91,17 +125,34 @@ set(lint_include_dirs
     ${CMAKE_SOURCE_DIR}/mesh/gatt/include
     ${CMAKE_SOURCE_DIR}/models/foundation/config/include
     ${CMAKE_SOURCE_DIR}/models/foundation/health/include
+    ${CMAKE_SOURCE_DIR}/models/model_spec/common/include
+    ${CMAKE_SOURCE_DIR}/models/model_spec/generic_dtt/include
+    ${CMAKE_SOURCE_DIR}/models/model_spec/generic_level/include
+    ${CMAKE_SOURCE_DIR}/models/model_spec/generic_onoff/include
+    ${CMAKE_SOURCE_DIR}/models/model_spec/generic_ponoff/include
+    ${CMAKE_SOURCE_DIR}/models/model_spec/light_lc/include
+    ${CMAKE_SOURCE_DIR}/models/model_spec/light_lightness/include
+    ${CMAKE_SOURCE_DIR}/models/model_spec/light_ctl/include
     ${CMAKE_SOURCE_DIR}/external/rtt/include
     ${CMAKE_SOURCE_DIR}/examples/templates
+    ${SDK_ROOT}/components/libraries/pwm/
     ${SDK_ROOT}/components/libraries/util
     ${SDK_ROOT}/components/drivers_nrf/delay
+    ${SDK_ROOT}/integration/nrfx/legacy
+    ${SDK_ROOT}/modules/nrfx/drivers/include
     ${CMAKE_SOURCE_DIR}/mesh/test/include # sdk_config.h
     ${${BOARD}_INCLUDE_DIRS}
     ${${SOFTDEVICE}_INCLUDE_DIRS}
     ${${PLATFORM}_INCLUDE_DIRS}
     ${${nRF5_SDK_VERSION}_INCLUDE_DIRS})
 
+set(additional_defines_for_lint
+    -DLIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX=1
+    -DLIGHT_LC_SETUP_SERVER_INSTANCES_MAX=1
+    -DLIGHT_LIGHTNESS_DEFAULT_RANGE_MAX=0xFFFE
+    -DLIGHT_CTL_SETUP_SERVER_INSTANCES_MAX=1)
+
 add_pc_lint(examples_common_${PLATFORM}
     "${COMMON_EXAMPLES_SOURCE_FILES}"
     "${lint_include_dirs}"
-    "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES};-D__WEAK=")
+    "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES};-D__WEAK=;${additional_defines_for_lint}")

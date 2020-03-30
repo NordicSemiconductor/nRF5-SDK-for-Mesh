@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -225,7 +225,7 @@ typedef struct
     uint32_t link_timeout_us;
 } fsm_evt_prov_link_t;
 
-/** Advertisement service data for the PB-GATT service (Mesh Profile specification v1.0, sec. 7.1.2.2.1). */
+/** Advertisement service data for the PB-GATT service (@tagMeshSp section 7.1.2.2.1). */
 typedef struct __attribute((packed))
 {
     uint8_t device_uuid[NRF_MESH_UUID_SIZE];

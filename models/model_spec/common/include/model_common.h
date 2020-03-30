@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -39,6 +39,8 @@
 #define MODEL_COMMON_H__
 
 #include <stdint.h>
+
+#include "nrf_mesh_config_core.h"
 #include "utils.h"
 #include "app_timer.h"
 #include "timer_scheduler.h"
@@ -51,6 +53,41 @@
  *
  * @{
  */
+/**
+ * The number of the Light Lightness Setup Server instances used by the application.
+ */
+#ifndef LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX
+#define LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX  (0)
+#endif
+
+/**
+ * The number of the Light LC Setup Server instances used by the application.
+ */
+#ifndef LIGHT_LC_SETUP_SERVER_INSTANCES_MAX
+#define LIGHT_LC_SETUP_SERVER_INSTANCES_MAX (0)
+#endif
+
+/**
+ * The number of the Light CTL Setup Server instances used by the application
+ */
+#ifndef LIGHT_CTL_SETUP_SERVER_INSTANCES_MAX
+#define LIGHT_CTL_SETUP_SERVER_INSTANCES_MAX (0)
+#endif
+
+/** Model common record entry ID */
+#define MESH_APP_MODEL_COMMON_ID                (0x0001)
+/** Start of Light Lightness Setup Server record entry IDs */
+#define MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_START (0x1000)
+/** End of Light Lightness Setup Server record entry IDs */
+#define MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_END   (0x10FF)
+/** Start of LC Setup Server record entry IDs */
+#define MESH_APP_MODEL_LIGHT_LC_SERVER_ID_START       (0x1100)
+/** End of Light LC Setup Server record entry IDs */
+#define MESH_APP_MODEL_LIGHT_LC_SERVER_ID_END         (0x12FF)
+/** Start of Light CTL Setup Server record entry IDs */
+#define MESH_APP_MODEL_LIGHT_CTL_SERVER_ID_START      (0x1300)
+/** End of Light CTL Setup Server record entry IDs */
+#define MESH_APP_MODEL_LIGHT_CTL_SERVER_ID_END        (0x13FF)
 
 /** Transition time value to indicate unknown transition time */
 #define MODEL_TRANSITION_TIME_UNKNOWN               (UINT32_MAX)
@@ -61,6 +98,10 @@
 #define MODEL_ACKNOWLEDGED_TRANSACTION_TIMEOUT      (SEC_TO_US(30))
 #endif
 
+/** Product-specific transition limitations to align transition data regarding product abilities. */
+#ifndef TRANSITION_STEP_MIN_MS
+#define TRANSITION_STEP_MIN_MS                  (45)
+#endif
 /** Maximum value of transition time (in ms) possible in steps of 100 ms */
 #define TRANSITION_TIME_STEP_100MS_MAX          (6200ul)
 /** Maximum value of transition time (in ms) possible in steps of 1 s */
@@ -149,7 +190,7 @@ typedef struct
     void * p_context;
     /** Timer callback. */
     model_timer_cb_t cb;
-    /** Total rtc ticks since begining of the timer */
+    /** Total rtc ticks since beginning of the timer */
     uint64_t total_rtc_ticks;
 
     /** APP timer instance pointer */
@@ -167,20 +208,20 @@ typedef struct
 /**
  * Gets the decoded value of the transition time in milliseconds.
  *
- * @param[in] enc_transition_time Encoded value of the transition time as specified in the Mesh
- *                                Model Specification.
+ * @param[in] enc_transition_time Encoded value of the transition time as specified in the
+ *            @tagMeshMdlSp.
  *
  * @returns Transition time in milliseconds.
  */
 uint32_t model_transition_time_decode(uint8_t enc_transition_time);
 
 /**
- * Gets the encoded value of the transition time as specified in the Mesh Model Specification.
+ * Gets the encoded value of the transition time as specified in the @tagMeshMdlSp
  * Note that the provided value will be rounded down to the nearest possible representation.
  *
  * @param[in] transition_time Transition time in milliseconds.
  *
- * @returns Encoded value of the transition time as specified in the Mesh Model Specification.
+ * @returns Encoded value of the transition time as specified in the @tagMeshMdlSp.
  */
 uint8_t model_transition_time_encode(uint32_t transition_time);
 
@@ -198,20 +239,19 @@ bool model_transition_time_is_valid(uint8_t enc_transition_time);
 /**
  * Gets the decoded value of the delay time in milliseconds
  *
- * @param[in] enc_delay Encoded value of the delay time as specified in the Mesh
-*                       Model Specification.
+ * @param[in] enc_delay Encoded value of the delay time as specified in the @tagMeshMdlSp.
  *
  * @returns delay time in milliseconds.
  */
 uint32_t model_delay_decode(uint8_t enc_delay);
 
 /**
- * Gets the encoded value of the delay time as specified in the Mesh Model Specification.
+ * Gets the encoded value of the delay time as specified in the @tagMeshMdlSp.
  * Note that the provided value will be rounded down to the nearest possible representation.
  *
  * @param[in] delay Delay time in milliseconds.
  *
- * @returns Encoded value of the delay time as specified in the Mesh Model Specification.
+ * @returns Encoded value of the delay time as specified in the @tagMeshMdlSp.
  */
 uint8_t model_delay_encode(uint32_t delay);
 
@@ -219,7 +259,7 @@ uint8_t model_delay_encode(uint32_t delay);
  *
  * The transaction is considered either new or same as previous in the context of
  * a given message ID, TID, access meta data (source address and destination
- * address) and timeout of 6 seconds as specified by the Mesh Model Specification 1.0. This API
+ * address) and timeout of 6 seconds as specified by @tagMeshMdlSp. This API
  * is used by the model interfaces to reject duplicate transactions.
  *
  * @note User application should use @ref model_transaction_is_new() API to check is the received
@@ -298,6 +338,27 @@ uint64_t model_timer_elapsed_ticks_get(model_timer_t * p_timer);
  *                                  the timer is running.
  */
 uint32_t model_timer_create(model_timer_t * p_timer);
+
+/**
+ * Initialize persistent memory of all models used.
+ *
+ * @note If models are not linked in the model will not be initialized and this function will call a
+ * a dummy funcion for those models.
+ */
+void model_common_init(void);
+
+/**
+ * Apply data loaded from the mesh configuration system into persistent memory structures.
+ *
+ * @note Actual metadata is restored automatically if it was not found or if read out data is not
+ * equal configuration parameters.
+ *
+ * @retval NRF_ERROR_NOT_FOUND    Persistent memory metadata was not found, stored default values.
+ * @retval NRF_ERROR_INVALID_DATA Data stored in the persistent memory was corrupted, old data was
+ *                                cleared and restored with default values.
+ * @retval NRF_SUCCESS            Presistent memory data applied successfully.
+ */
+uint32_t model_common_config_apply(void);
 
 /** @} end of MODEL_COMMON */
 

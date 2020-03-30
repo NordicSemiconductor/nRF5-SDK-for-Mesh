@@ -56,10 +56,10 @@
  *
  * @defgroup MESH_API_GROUP_SERIAL Serial
  * Serialization of the mesh API.
- * For a full reference of the available mesh serial commands and events, see the @ref md_doc_libraries_serial documentation.
+ * For a full reference of the available mesh serial commands and events, see the @ref md_doc_user_guide_modules_serial documentation.
  *
- * @defgroup MESH_API_GROUP_EXPERIMENTAL Experimental features
- * Experimental Mesh features.
+ * @defgroup MESH_API_GROUP_NORDIC Nordic-specific features
+ * Mesh features specific to Nordic Semiconductor's nRF5 SDK for Mesh.
  *
  *
  * @defgroup MESH_OPT Mesh options API
@@ -68,7 +68,7 @@
  * Options are stored persistently.
  *
  * @warning This API must be called in the same IRQ priority as the one used by the mesh stack
- * (see @ref md_doc_introduction_mesh_interrupt_priorities).
+ * (see @ref md_doc_user_guide_mesh_interrupt_priorities).
  *
  *
  *
@@ -103,13 +103,19 @@
  *
  *
  * @defgroup MESH_API_GROUP_GENERIC_MODELS Generic Models
- * Generic Models as defined in the Mesh Model Specification v1.0
+ * Generic Models as defined in the @tagMeshMdlSp
+ * @{
+ * @ingroup MESH_API_GROUP_MODELS
+ * @}
+ *
+ * @defgroup MESH_API_GROUP_LIGHT_MODELS Lighting Models
+ * Lighting Models as defined in the @tagMeshMdlSp
  * @{
  * @ingroup MESH_API_GROUP_MODELS
  * @}
  *
  * @defgroup MESH_API_GROUP_FOUNDATION_MODELS Foundation Models
- * Foundation Models as defined in the Mesh Profile Specification v1.0
+ * Foundation Models as defined in the @tagMeshSp
  * @{
  * @ingroup MESH_API_GROUP_MODELS
  * @}
@@ -120,8 +126,8 @@
  * @ingroup MESH_API_GROUP_MODELS
  * @}
  *
- * @defgroup MESH_API_GROUP_EXPERIMENTAL_MODELS Experimental Models
- * Experimental Models with proprietary implementations
+ * @defgroup MESH_API_GROUP_PROPRIETARY_MODELS Proprietary Models
+ * Models with proprietary implementations
  * @{
  * @ingroup MESH_API_GROUP_MODELS
  * @}

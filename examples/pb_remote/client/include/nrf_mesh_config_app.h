@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -51,9 +51,14 @@
  */
 
 /** Define for acknowledging message transaction timeout.
- * @note Mesh Profile Specification v1.0 recommends this to be minimum 60s.
+ * @note @tagMeshSp recommends this to be minimum 60s. However, using
+ * recommendation can result in client getting blocked for a significant amount of time (60s), if
+ * acknowledged transaction does not receive a response.
  */
 #define MODEL_ACKNOWLEDGED_TRANSACTION_TIMEOUT  (SEC_TO_US(10))
+
+/** Maximum number of devices to be provisioned. */
+#define MAX_PROVISIONEE_NUMBER  (5)
 
 /** @} end of MODEL_CONFIG */
 
@@ -143,11 +148,13 @@
 /** Maximum number of applications. */
 #define DSM_APP_MAX                                     (1)
 /** Maximum number of device keys. */
-#define DSM_DEVICE_MAX                                  (5)
+#define DSM_DEVICE_MAX                                  (1 + /* For self device */ \
+                                                         MAX_PROVISIONEE_NUMBER /* For each provisioned device */)
 /** Maximum number of virtual addresses. */
 #define DSM_VIRTUAL_ADDR_MAX                            (1)
 /** Maximum number of non-virtual addresses. One for the client itself and one for each of the potential provisionees. */
-#define DSM_NONVIRTUAL_ADDR_MAX                         (DSM_DEVICE_MAX-1)
+#define DSM_NONVIRTUAL_ADDR_MAX                         (1 + /* For self device */ \
+                                                         MAX_PROVISIONEE_NUMBER /* For each provisioned device */)
 /** @} end of DSM_CONFIG */
 
 

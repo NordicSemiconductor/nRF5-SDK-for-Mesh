@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -38,13 +38,12 @@
 #define INSTABURST_RX_H__
 
 /**
- * @defgroup INSTABURST_RX Experimental Instaburst RX module
+ * @defgroup INSTABURST_RX Instaburst RX module
  * @ingroup INSTABURST
  *
  * The Instaburst RX module implements a subset of the required scanner functionality for the
- * Bluetooth 5.0 feature "Advertising Extensions". It is an experimental feature, and only aims to
- * support messages coming from a Nordic Mesh device sending TX packets with the @ref INSTABURST_TX
- * implementation.
+ * Bluetooth 5.0 feature "Advertising Extensions". It only aims to support messages coming
+ * from a Nordic Mesh device sending TX packets with the @ref INSTABURST_TX implementation.
  *
  * The Instaburst RX module hooks into the scanner module through its inline callback functionality,
  * providing a sneak peak at incoming packets. If the module detects an Advertising Extension
@@ -54,10 +53,9 @@
  * the module will attempt to keep scheduling new RX events until it runs out of resources or
  * reaches the end of the packet chain.
  *
- * @warning Instaburst is a Nordic proprietary feature that does not adhere to the Bluetooth Mesh
- * specification. It is currently in an experimental stage, and does not have the same
- * requirements to test coverage, API stability or spec-compliance as the rest of the Nordic nRF5
- * SDK for Mesh.
+ * @warning Instaburst is a Nordic-specific feature that does not adhere to the Bluetooth Mesh
+ * specification. It does not have the same requirements for test coverage, API stability
+ * or specification compliance as the rest of Nordic's nRF5 SDK for Mesh.
  *
  * @{
  */

@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -117,10 +117,10 @@
     } while(0)
 
 /*******************************************************************************
- * Sample data from the Mesh Profile Specification v1.0
+ * Sample data from @tagMeshSp
  *******************************************************************************/
 
-/* Message #21 (the Mesh Profile Specification v1.0, page 309) */
+/* Message #21 (@tagMeshSp page 309) */
 #define MSG_21_VENDOR_MODEL_OPCODE      (0x15 | 0xC0)
 #define MSG_21_VENDOR_MODEL_COMPANY_ID  (0x000a)
 #define MSG_21_ACCESS_PARAMS_RAW        {0x48, 0x65, 0x6c, 0x6c, 0x6f}
@@ -222,9 +222,6 @@ static nrf_mesh_address_t m_addresses[DSM_ADDR_MAX];
 
 const uint32_t SUBSCRIPTION_ADDRESS_COUNT = DSM_ADDR_MAX - ACCESS_MODEL_COUNT - ACCESS_ELEMENT_COUNT;
 dsm_local_unicast_address_t local_addresses = {ELEMENT_ADDRESS_START, ACCESS_ELEMENT_COUNT};
-
-static uint32_t m_flash_manager_calls;
-static uint32_t m_listener_register_calls;
 
 static uint32_t m_dsm_tx_friendship_secmat_get_retval = NRF_SUCCESS;
 static uint16_t m_sub_list_dealloc_index;
@@ -336,6 +333,15 @@ static uint32_t entry_set_cb(mesh_config_entry_id_t id, const void* p_entry, int
 
     TEST_FAIL();
     return NRF_ERROR_INTERNAL;
+}
+
+static void access_reliable_cancel_all_cb(int num_calls)
+{
+    (void)num_calls;
+
+    void * p_args;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_p_args_get(0, &p_args));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_p_args_get(1, &p_args));
 }
 
 static void model_change_wrapper(access_model_handle_t handle, access_model_add_params_t * p_param)
@@ -1038,9 +1044,6 @@ void setUp(void)
     setup_addresses();
     fifo_init(&m_msg_fifo);
 
-    m_flash_manager_calls = 0;
-    m_listener_register_calls = 0;
-
     nrf_mesh_is_device_provisioned_IgnoreAndReturn(false);
     mesh_config_entry_set_StubWithCallback(entry_set_cb);
 
@@ -1260,7 +1263,7 @@ void test_rx_tx(void)
 
     /* Test reply with friendship secmat
      *
-     * The Mesh Profile Specification v1.0, Section 4.2.2.4:
+     * @tagMeshSp section 4.2.2.4:
      *
      * When Publish Friendship Credential Flag is set to 1 and the friendship security material is
      * not available, the master security material shall be used. */
@@ -1410,7 +1413,7 @@ static void publication_tests(publication_cb *p_pub_func, bool with_retransmissi
 
     /* Test with frienship secmat
      *
-     * The Mesh Profile Specification v1.0, Section 4.2.2.4:
+     * @tagMeshSp section 4.2.2.4:
      *
      * When Publish Friendship Credential Flag is set to 1 and the friendship security material is
      * not available, the master security material shall be used. */
@@ -1854,8 +1857,8 @@ void test_settergetter(void)
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish_address_get(0, &address_handle));
     TEST_ASSERT_EQUAL(2, address_handle);
 
-    resolution = (access_publish_resolution_t) 1;
-    step_number = 2;
+    resolution = ACCESS_PUBLISH_RESOLUTION_100MS;
+    step_number = 20;
     TEST_ASSERT_EQUAL(NRF_ERROR_NOT_SUPPORTED, access_model_publish_period_set(1, resolution, step_number));
     TEST_ASSERT_EQUAL(NRF_ERROR_NOT_SUPPORTED, access_model_publish_period_get(1, &resolution, &step_number));
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, access_model_publish_period_set(0, (access_publish_resolution_t) (ACCESS_PUBLISH_RESOLUTION_MAX + 1), step_number));
@@ -1991,7 +1994,7 @@ void test_config_load_reload(void)
     }
     access_model_id_t model_id1 = {0x1337, 0x15};
     access_model_id_t model_id2 = {0xC000, 0x0001};
-    access_publish_period_t pub_period1 = {1,5};
+    access_publish_period_t pub_period1 = {ACCESS_PUBLISH_RESOLUTION_100MS, 50};
     access_publish_period_t pub_period2 = {(1<<ACCESS_PUBLISH_STEP_RES_BITS) - 1, (1<<ACCESS_PUBLISH_STEP_NUM_BITS) - 1};
 
     /*lint -save -e651 -e64 Disregard warnings about confusing initializers and type mismatches caused by the macros. */
@@ -2103,6 +2106,7 @@ void test_config_load_reload(void)
     entry_id = MESH_OPT_ACCESS_METADATA_EID;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, m_access_metadata_params.callbacks.setter(entry_id, &metadata));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_add(&test_vector[0].add_params, &reinit_handle));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_subscription_list_alloc(reinit_handle));
     entry_id = MESH_OPT_ACCESS_MODELS_EID;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, m_models_params.callbacks.setter(entry_id, &m_expected_model_info[0].model_info));
     dsm_address_publish_add_handle_IgnoreAndReturn(NRF_ERROR_NOT_FOUND);
@@ -2114,6 +2118,7 @@ void test_config_load_reload(void)
     entry_id = MESH_OPT_ACCESS_METADATA_EID;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, m_access_metadata_params.callbacks.setter(entry_id, &metadata));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_add(&test_vector[0].add_params, &reinit_handle));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_subscription_list_alloc(reinit_handle));
     entry_id = MESH_OPT_ACCESS_MODELS_EID;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, m_models_params.callbacks.setter(entry_id, &m_expected_model_info[0].model_info));
     entry_id = MESH_OPT_ACCESS_SUBSCRIPTIONS_EID;
@@ -2128,6 +2133,14 @@ void test_config_load_reload(void)
     for (uint32_t i = 0; i < test_vector_size; ++i)
     {
         TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_add(&test_vector[i].add_params, &reinit_handle));
+        if (test_vector[i].subscription_list_share_index == UINT32_MAX)
+        {
+            TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_subscription_list_alloc(i));
+        }
+        else
+        {
+            TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_subscription_lists_share(i - 1, i));
+        }
         TEST_ASSERT_EQUAL(reinit_handle, i);
     }
 
@@ -2146,6 +2159,7 @@ void test_config_load_reload(void)
     }
 
     {
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, access_element_location_set(1, location_element2));
         entry_id = MESH_OPT_ACCESS_ELEMENTS_EID;
         entry_id.record += 1;
         TEST_ASSERT_EQUAL(NRF_SUCCESS, m_elements_params.callbacks.setter(entry_id, &m_expected_element_location[1].element_info));
@@ -2218,7 +2232,8 @@ void test_config_load_reload(void)
 
 
     /**************************************** access clear\persistent data erase *****************************************/
-    access_reliable_cancel_all_Expect();
+    access_reliable_cancel_all_StubWithCallback(access_reliable_cancel_all_cb);
+    access_publish_clear_Expect();
 
     entry_id = MESH_OPT_ACCESS_METADATA_EID;
 
@@ -2418,8 +2433,8 @@ void test_access_model_publish_period_divisor_set(void)
     access_publish_period_set_IgnoreArg_p_pubstate();
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish_period_divisor_set(handle0, 1));
 
-    resolution = ACCESS_PUBLISH_RESOLUTION_10S;
-    step_number = 6;
+    resolution = ACCESS_PUBLISH_RESOLUTION_1S;
+    step_number = 60;
 
     access_publish_period_set_Expect(NULL, resolution, step_number);
     access_publish_period_set_IgnoreArg_p_pubstate();

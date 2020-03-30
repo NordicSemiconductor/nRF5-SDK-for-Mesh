@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -141,7 +141,7 @@ static uint8_t m_flag_set_counter;
 
 static bool is_valid_pdu_type(uint8_t header)
 {
-    /* See Mesh Profile specification table 6.3, page 261. */
+    /* See @tagMeshSp table 6.3, page 261. */
     return (header & 0x3f) < 5;
 }
 
@@ -453,7 +453,7 @@ void test_send_segmented_sample_data(void)
     connected_evt_expect();
     connect(0);
 
-    /* Mesh Profile specification sec. 8.8, PB-GATT sample data. */
+    /* @tagMeshSp section 8.8, PB-GATT sample data. */
     const uint8_t PROXY_PDU[65] = {SAMPLE_DATA_SEGMENT_1,
                                    SAMPLE_DATA_SEGMENT_2,
                                    SAMPLE_DATA_SEGMENT_3,
@@ -645,7 +645,7 @@ void test_send_big_packet(void)
 
     change_effective_mtu(0, 66);
 
-    /* Mesh Profile specification sec. 8.8, PB-GATT sample data. */
+    /* @tagMeshSp section 8.8, PB-GATT sample data. */
     const uint8_t PROXY_PDU[65] = {SAMPLE_DATA_SEGMENT_1,
                                    SAMPLE_DATA_SEGMENT_2,
                                    SAMPLE_DATA_SEGMENT_3,

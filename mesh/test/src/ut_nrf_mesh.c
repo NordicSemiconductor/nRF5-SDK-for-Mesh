@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -72,6 +72,9 @@
 #include "mesh_opt_mock.h"
 #include "core_tx_local_mock.h"
 #include "ad_type_filter_mock.h"
+#include "net_state_mock.h"
+
+#define REGISTERED_BE_HANDLER   ((bearer_event_flag_t)0x2A)
 
 static uint32_t m_rx_cb_expect;
 static nrf_mesh_adv_packet_rx_data_t m_adv_packet_rx_data_expect;
@@ -81,6 +84,9 @@ static scanner_packet_t m_test_packet;
 static nrf_mesh_rx_metadata_t m_metadata;
 static uint8_t m_ad_buffer[32];
 static ble_ad_data_t * mp_ad_data = (ble_ad_data_t *)m_ad_buffer;
+static bearer_event_flag_callback_t m_nrf_mesh_enable_cb;
+static nrf_mesh_evt_handler_cb_t m_config_stable_cb;
+static bool m_enabled_event_fired;
 
 /*************** Static Helper Functions ***************/
 
@@ -108,6 +114,41 @@ static void scanner_init_callback(bearer_event_flag_callback_t packet_process_cb
     m_scanner_packet_process_cb = packet_process_cb;
 }
 
+bearer_event_flag_t bearer_event_flag_add_cb(bearer_event_flag_callback_t nrf_mesh_enable_cb, int num_calls)
+{
+    (void)num_calls;
+    TEST_ASSERT_NOT_NULL(nrf_mesh_enable_cb);
+
+    m_nrf_mesh_enable_cb = nrf_mesh_enable_cb;
+    return REGISTERED_BE_HANDLER;
+}
+
+void event_handle_cb(const nrf_mesh_evt_t* p_evt, int num_calls)
+{
+    (void)num_calls;
+    TEST_ASSERT_NOT_NULL(p_evt);
+    TEST_ASSERT_EQUAL(NRF_MESH_EVT_ENABLED, p_evt->type);
+    m_enabled_event_fired = true;
+}
+
+void event_handler_add_cb(nrf_mesh_evt_handler_t* p_handler_params, int num_calls)
+{
+    (void)num_calls;
+
+    TEST_ASSERT_NOT_NULL(p_handler_params);
+    TEST_ASSERT_NOT_NULL(p_handler_params->evt_cb);
+    m_config_stable_cb = p_handler_params->evt_cb;
+}
+
+void event_handler_remove_cb(nrf_mesh_evt_handler_t* p_handler_params, int num_calls)
+{
+    (void)num_calls;
+
+    TEST_ASSERT_NOT_NULL(p_handler_params);
+    TEST_ASSERT_NOT_NULL(p_handler_params->evt_cb);
+    m_config_stable_cb = NULL;
+}
+
 static void initialize_mesh(nrf_mesh_init_params_t * p_init_params)
 {
     m_scanner_init_callback_cnt = 0;
@@ -133,6 +174,7 @@ static void initialize_mesh(nrf_mesh_init_params_t * p_init_params)
     mesh_opt_init_Expect();
     core_tx_local_init_Expect();
     ad_listener_init_Expect();
+    bearer_event_flag_add_StubWithCallback(bearer_event_flag_add_cb);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_init(p_init_params));
 
@@ -189,6 +231,7 @@ void setUp(void)
     mesh_opt_mock_Init();
     core_tx_local_mock_Init();
     ad_type_filter_mock_Init();
+    net_state_mock_Init();
     __LOG_INIT((LOG_SRC_API | LOG_SRC_TEST), LOG_LEVEL_ERROR, LOG_CALLBACK_DEFAULT);
 
     /*
@@ -258,6 +301,8 @@ void tearDown(void)
     core_tx_local_mock_Destroy();
     ad_type_filter_mock_Verify();
     ad_type_filter_mock_Destroy();
+    net_state_mock_Verify();
+    net_state_mock_Destroy();
 }
 
 /*************** Test Cases ***************/
@@ -280,13 +325,17 @@ void test_init(void)
 void test_enable_disable(void)
 {
     bearer_handler_start_ExpectAndReturn(NRF_SUCCESS);
-    scanner_enable_Expect();
     network_enable_Expect();
     transport_enable_Expect();
     bearer_event_start_Expect();
+    bearer_event_flag_set_Expect(REGISTERED_BE_HANDLER);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_enable());
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, nrf_mesh_enable());
 
+    net_state_is_seqnum_block_ready_ExpectAndReturn(true);
+    scanner_enable_Expect();
+    event_handle_Ignore();
+    TEST_ASSERT_TRUE(m_nrf_mesh_enable_cb());
 
     bearer_handler_stop_ExpectAnyArgsAndReturn(NRF_SUCCESS);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_disable());
@@ -406,3 +455,30 @@ void test_evt_handler_remove(void)
     nrf_mesh_evt_handler_remove(&event_handler);
 }
 
+void test_evt_nrf_mesh_enabled(void)
+{
+    TEST_ASSERT_NOT_NULL(m_nrf_mesh_enable_cb);
+
+    bearer_handler_start_ExpectAndReturn(NRF_SUCCESS);
+    bearer_event_flag_set_Expect(REGISTERED_BE_HANDLER);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, nrf_mesh_enable());
+
+    net_state_is_seqnum_block_ready_ExpectAndReturn(false);
+    event_handler_add_StubWithCallback(event_handler_add_cb);
+    TEST_ASSERT_TRUE(m_nrf_mesh_enable_cb());
+    TEST_ASSERT_FALSE(m_enabled_event_fired);
+
+    TEST_ASSERT_NOT_NULL(m_config_stable_cb);
+    event_handler_remove_StubWithCallback(event_handler_remove_cb);
+    bearer_event_flag_set_Expect(REGISTERED_BE_HANDLER);
+    const nrf_mesh_evt_t evt =
+    {
+        .type = NRF_MESH_EVT_CONFIG_STABLE,
+    };
+    m_config_stable_cb(&evt);
+    net_state_is_seqnum_block_ready_ExpectAndReturn(true);
+    scanner_enable_Expect();
+    event_handle_StubWithCallback(event_handle_cb);
+    TEST_ASSERT_TRUE(m_nrf_mesh_enable_cb());
+    TEST_ASSERT_TRUE(m_enabled_event_fired);
+}

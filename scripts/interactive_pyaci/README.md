@@ -4,25 +4,26 @@ The Interactive Python Application Controller Interface (PyACI) (`interactive_py
 interactively control devices running the mesh stack and the serial interface. The script opens
 up one or more COM ports and enables the @link_python_interactive_command_line.
 
-Follow the instructions on this page to get your environment up and running.
-Afterwards, you can go through the provided examples and tutorials:
-- @subpage md_scripts_interactive_pyaci_doc_demo_loopback demonstrates simple
-loopback communication and is a good place to start to ensure everything is working right.
-- @subpage md_scripts_interactive_pyaci_doc_demo_sending_packets shows you how
-to make serial devices talk to each other over mesh.
-- @subpage md_scripts_interactive_pyaci_doc_demo_configuration
-demonstrates how to use the serial interface to provision and configure a mesh network.
-
 **Table of contents**
 - [Prerequisites](@ref serial_prerequisites)
-- [Using the interface](@ref serial_using_the_interface)
-    - [Windows](@ref serial_using_the_interface_win)
-    - [Ubuntu/Linux](@ref serial_using_the_interface_ubuntu)
-    - [Other options](@ref serial_using_the_interface_other)
+- [Installing the script](@ref serial_installing_script)
+- [Starting the interface](@ref serial_using_the_interface)
+    - [Windows COM port](@ref serial_using_the_interface_win)
+    - [Ubuntu/Linux COM port](@ref serial_using_the_interface_ubuntu)
+- [Available options](@ref serial_using_the_interface_options)
 - [Interface file structure](@ref serial_file_structure)
 - [Commands and events](@ref serial_about_interface_commands)
 - [Getting help](@ref serial_about_interface_help)
 - [Complex scripting](@ref serial_complex_scripting)
+
+Follow the instructions on this page to get your environment up and running.
+Afterwards, you can go through the provided examples and tutorials:
+- @subpage md_scripts_interactive_pyaci_doc_demo_loopback demonstrates simple
+loopback communication. You can use it to ensure everything is working right.
+- @subpage md_scripts_interactive_pyaci_doc_demo_sending_packets shows how
+to make serial devices talk to each other over mesh.
+- @subpage md_scripts_interactive_pyaci_doc_demo_configuration
+demonstrates how to use the serial interface to provision and configure a mesh network.
 
 
 ---
@@ -30,10 +31,15 @@ demonstrates how to use the serial interface to provision and configure a mesh n
 
 ## Prerequisites @anchor serial_prerequisites
 
-The interactive console is written for @link_python35_download.
+The interactive console is written for @link_python35_download,
+which is required for the [standard toolchain installation](@ref md_doc_getting_started_how_to_toolchain).
 
-To install the required packages, move to the `scripts/interactive_pyaci` directory
-and install the requirements using `pip`:
+---
+
+## Installing the script @anchor serial_installing_script
+
+To install packages required by the Interactive PyACI, go to the `scripts/interactive_pyaci` directory
+and run the installation using `pip`:
 
     nrf5_sdk_for_mesh$ cd scripts/interactive_pyaci
     interactive_pyaci$ pip install -r requirements.txt
@@ -42,24 +48,27 @@ and install the requirements using `pip`:
 ---
 
 
-## Using the interface @anchor serial_using_the_interface
+## Starting the interface @anchor serial_using_the_interface
 
 To start the serial interface, run the following command in the directory of the script:
 
     interactive_pyaci$ python interactive_pyaci.py -d <COM>
 
-In this command, `<COM>` is the COM port of the device you're connecting to. You may specify 
-multiple COM ports separated by a space. COM port names are *case sensitive*.
+In this command, `<COM>` is the COM port of the device you are connecting to.
+You may specify  multiple COM ports separated by a space. COM port names are *case sensitive*.
+
+The COM port variable is different depending on your operating system.
 
 ### Windows COM port @anchor serial_using_the_interface_win
 
-On Windows, the COM port is on the form `COM12`. To identify the correct COM port,
-open up the "Device Manager" (`Run -> devmgmt.msc`) and connect the device.
+On Windows, the COM port is labelled `COMnn`, where `nn` is the number of the port, for example `COM12`.
+
+To identify the correct COM port, open up the "Device Manager" (`Run -> devmgmt.msc`)
+and connect the device.
 Your device will appear under "Ports (COM & LPT)".
 
-
 ### Ubuntu/Linux COM port @anchor serial_using_the_interface_ubuntu
-On Ubuntu/Linux and similar systems, the COM port is usually on the form `/dev/tty*`, 
+On Ubuntu/Linux and similar systems, the COM port is usually labelled `/dev/tty*`, 
 for example `/dev/ttyACM0`.
 
 To identify the correct COM port, you can use `dmesg`.
@@ -67,7 +76,7 @@ Connect the device and run:
 
     $ dmesg | tail
 
-The output looks like this:
+The output has the following format:
 
     [46406.952479] usb 1-2: new high-speed USB device number 8 using ehci-pci
     [46407.258960] usb 1-2: New USB device found, idVendor=1366, idProduct=0105
@@ -77,7 +86,7 @@ The output looks like this:
     [46407.258969] usb 1-2: SerialNumber: 000682576262
     [46407.273985] cdc_acm 1-2:1.0: ttyACM1: USB ACM device
 
-As you can see from the output, the connected device `682576262` was assigned to `/dev/ttyACM1`.
+As you can see, the connected device `682576262` was assigned to `/dev/ttyACM1`.
 
 Alternatively, you could also use the following command:
 
@@ -85,9 +94,12 @@ Alternatively, you could also use the following command:
 
 @note This command requires 'sudo' when accessing /dev/tty* devices.
 
-### Other options @anchor serial_using_the_interface_other
 
-Call the script with the `-h` option to get information about other available options:
+---
+
+## Available options @anchor serial_using_the_interface_options
+
+Call the script with the `-h` option to get information about the available options:
 
     $ python interactive_pyaci.py -h
     usage: interactive_pyaci.py [-h] -d DEVICES [DEVICES ...] [-b BAUDRATE]
@@ -118,10 +130,10 @@ The interface consists of the following files:
 
     .
     ├── aci
-    │   ├── aci_cmd.py                    # Auto generated command class definitions (serialization).
+    │   ├── aci_cmd.py                    # Auto-generated command class definitions (serialization).
     │   ├── aci_config.py                 # Utility class for parsing firmware configuration file (`nrf_mesh_app_config.h`).
-    │   ├── aci_evt.py                    # Auto generated event class definitions (de-serialization).
-    │   ├── aci_uart.py                   # The UART serial driver.
+    │   ├── aci_evt.py                    # Auto-generated event class definitions (de-serialization).
+    │   ├── aci_uart.py                   # UART serial driver.
     │   └── aci_utils.py                  # Utility functions and class definitions.
     │
     ├── database
@@ -133,7 +145,7 @@ The interface consists of the following files:
     │   ├── demo_loopback.md
     │   └── demo_sending_packets.md
     │
-    ├── interactive_pyaci.py              # The interactive script itself.
+    ├── interactive_pyaci.py              # Interactive script itself.
     │
     ├── mesh                              # Mesh helper modules.
     │   ├── access.py                     # Stripped down access layer.
@@ -154,7 +166,7 @@ The interface consists of the following files:
 @note
 The `aci/aci_cmd.py` and `aci/aci_evt.py` files are auto-generated from the C header files of the serial
 interface with the `tools/serial_doc` scripts. To re-generate the files, build the `serial_pyaci` target
-(requires a CMake based setup).
+(requires a CMake-based setup).
 
 
 ---
@@ -172,21 +184,21 @@ available in the `evt` namespace, for example `evt.MeshMessageReceivedSubscripti
 
 As with the normal Python shell, you can do more complex scripting.
 
-For example, the following simple `for`-loop that sends 10 echo commands with one second delay.
+For example, the following simple `for`-loop that sends 10 echo commands with one second delay:
 
 
     In [1]: import time
     In [2]: for i in range(0, 10): send(cmd.Echo("Hello: " + str(i))); time.sleep(1)
-    2017-08-02 10:21:34,459 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': bytearray(b'Hello: 0')}}
-    2017-08-02 10:21:35,378 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': bytearray(b'Hello: 1')}}
-    2017-08-02 10:21:36,394 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': bytearray(b'Hello: 2')}}
-    2017-08-02 10:21:37,400 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': bytearray(b'Hello: 3')}}
-    2017-08-02 10:21:38,406 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': bytearray(b'Hello: 4')}}
-    2017-08-02 10:21:39,440 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': bytearray(b'Hello: 5')}}
-    2017-08-02 10:21:40,414 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': bytearray(b'Hello: 6')}}
-    2017-08-02 10:21:41,420 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': bytearray(b'Hello: 7')}}
-    2017-08-02 10:21:42,427 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': bytearray(b'Hello: 8')}}
-    2017-08-02 10:21:43,442 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': bytearray(b'Hello: 9')}}
+    2020-03-24 12:41:18,657 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': 'Hello: 0'}}
+    2020-03-24 12:41:19,658 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': 'Hello: 1'}}
+    2020-03-24 12:41:20,659 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': 'Hello: 2'}}
+    2020-03-24 12:41:21,663 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': 'Hello: 3'}}
+    2020-03-24 12:41:22,663 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': 'Hello: 4'}}
+    2020-03-24 12:41:23,667 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': 'Hello: 5'}}
+    2020-03-24 12:41:24,671 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': 'Hello: 6'}}
+    2020-03-24 12:41:25,676 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': 'Hello: 7'}}
+    2020-03-24 12:41:26,681 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': 'Hello: 8'}}
+    2020-03-24 12:41:27,684 - INFO - ttyACM0: {event: DeviceEchoRsp, data: {'data': 'Hello: 9'}}
 
 
 ---
@@ -222,5 +234,5 @@ The help prompt may be used for any python object or function.
 The console also provides autocompletion. For example, typing `cmd.BeaconParamsS` and pressing `<tab>`
 will complete the command packet object.
 
-For more details about the commands, see the [serial commands documentation](@ref md_doc_libraries_serial_cmd).
+For more details about the commands, see the [serial commands documentation](@ref md_doc_user_guide_modules_serial_cmd).
 

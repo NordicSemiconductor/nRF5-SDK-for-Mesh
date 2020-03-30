@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -308,12 +308,15 @@ static void start_from_scratch(void)
 
     mesh_config_entry_set_ExpectWithArrayAndReturn(MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_EID, &m_expected_seqnum_input, sizeof(m_expected_seqnum_input), NRF_SUCCESS);
 
+    TEST_ASSERT_TRUE(net_state_is_seqnum_block_ready());
     net_state_enable_trigger();
+    TEST_ASSERT_FALSE(net_state_is_seqnum_block_ready());
 
     m_seqnum_block_params.callbacks.setter(MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_EID, &m_expected_seqnum_input);
     m_iv_index_params.callbacks.setter(MESH_OPT_NET_STATE_IV_INDEX_EID, &m_expected_iv_idx_input);
 
     evt_notify(NRF_MESH_EVT_CONFIG_STABLE);
+    TEST_ASSERT_TRUE(net_state_is_seqnum_block_ready());
 }
 
 static void start_from_persist_state(uint32_t iv_index, uint32_t seqnum, net_state_iv_update_t iv_update_state, uint32_t iv_update_timeout_minutes)
@@ -332,11 +335,14 @@ static void start_from_persist_state(uint32_t iv_index, uint32_t seqnum, net_sta
     m_expected_seqnum_input.synchro_index = m_synchro_index_tst;
     mesh_config_entry_set_ExpectWithArrayAndReturn(MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_EID, &m_expected_seqnum_input, sizeof(m_expected_seqnum_input), NRF_SUCCESS);
 
+    TEST_ASSERT_TRUE(net_state_is_seqnum_block_ready());
     net_state_enable_trigger();
+    TEST_ASSERT_FALSE(net_state_is_seqnum_block_ready());
 
     m_seqnum_block_params.callbacks.setter(MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_EID, &m_expected_seqnum_input);
 
     evt_notify(NRF_MESH_EVT_CONFIG_STABLE);
+    TEST_ASSERT_TRUE(net_state_is_seqnum_block_ready());
 }
 
 static void net_state_module_reset(void)
@@ -1170,4 +1176,15 @@ void test_provisioning_iv_update_in_progress(void)
 
     /* This shall change IV Update state from Update in Progress to Normal Operation. */
     iv_update_state_normal_trigger(TEST_IV_INDEX);
+}
+
+void test_seqnum_protection(void)
+{
+    uint32_t seqnum;
+
+    TEST_ASSERT_EQUAL(NRF_ERROR_FORBIDDEN, net_state_seqnum_alloc(&seqnum));
+    /* Start from the scratch. */
+    start_from_scratch();
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(0, seqnum);
 }

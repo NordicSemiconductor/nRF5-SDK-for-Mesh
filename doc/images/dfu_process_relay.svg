@@ -1,0 +1,240 @@
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1"
+ width="1077px" height="531px"
+ viewBox="0 0 1077 531"
+ xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges"
+ stroke-width="1" text-rendering="geometricPrecision">
+<polygon fill="white" points="148,7 208,7 208,16 148,16"/>
+<text x="179" y="16" textLength="59" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+Application
+</text>
+<polygon fill="white" points="505,7 569,7 569,16 505,16"/>
+<text x="538" y="16" textLength="63" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+Mesh Stack
+</text>
+<polygon fill="white" points="867,7 925,7 925,16 867,16"/>
+<text x="897" y="16" textLength="57" font-family="Helvetica" font-size="12" fill="black" text-anchor="middle">
+
+Mesh DFU
+</text>
+<line x1="179" y1="22" x2="179" y2="39" stroke="black"/>
+<line x1="538" y1="22" x2="538" y2="39" stroke="black"/>
+<line x1="897" y1="22" x2="897" y2="39" stroke="black"/>
+<line x1="89" y1="27" x2="988" y2="27" stroke="black" stroke-dasharray="2,2"/>
+<polygon fill="white" points="488,23 587,23 587,32 488,32"/>
+<text x="489" y="32" textLength="97" font-family="Helvetica" font-size="12" fill="black">
+Receiving packets
+</text>
+<line x1="179" y1="39" x2="179" y2="67" stroke="black"/>
+<line x1="538" y1="39" x2="538" y2="67" stroke="black"/>
+<line x1="897" y1="39" x2="897" y2="67" stroke="black"/>
+<line x1="538" y1="50" x2="897" y2="50" stroke="black"/>
+<polygon fill="black" points="897,50 887,56 887,44"/>
+<polygon fill="white" points="667,40 767,40 767,49 667,49"/>
+<text x="668" y="49" textLength="98" font-family="Helvetica" font-size="12" fill="black">
+nrf_mesh_dfu_rx()
+</text>
+<line x1="179" y1="67" x2="179" y2="106" stroke="black"/>
+<line x1="538" y1="67" x2="538" y2="106" stroke="black"/>
+<line x1="897" y1="67" x2="897" y2="106" stroke="black"/>
+<polygon fill="white" points="726,67 1057,67 1057,100 726,100"/>
+<polygon fill="white" points="726,79 1069,79 1069,100 726,100"/>
+<polygon fill="white" points="1057,67 1069,79 1057,79"/>
+<line x1="726" y1="67" x2="1057" y2="67" stroke="black"/>
+<line x1="726" y1="100" x2="1069" y2="100" stroke="black"/>
+<line x1="726" y1="67" x2="726" y2="100" stroke="black"/>
+<line x1="1069" y1="79" x2="1069" y2="100" stroke="black"/>
+<line x1="1057" y1="67" x2="1069" y2="79" stroke="black"/>
+<line x1="1057" y1="67" x2="1057" y2="79" stroke="black"/>
+<line x1="1069" y1="79" x2="1057" y2="79" stroke="black"/>
+<polygon fill="white" points="895,68 897,68 897,77 895,77"/>
+<text x="896" y="77" textLength="0" font-family="Helvetica" font-size="12" fill="black">
+
+</text>
+<polygon fill="white" points="744,79 1049,79 1049,88 744,88"/>
+<text x="745" y="88" textLength="303" font-family="Helvetica" font-size="12" fill="black">
+The Mesh DFU module receives the Firmware ID packet.
+</text>
+<polygon fill="white" points="895,90 897,90 897,99 895,99"/>
+<text x="896" y="99" textLength="0" font-family="Helvetica" font-size="12" fill="black">
+
+</text>
+<line x1="179" y1="106" x2="179" y2="134" stroke="black"/>
+<line x1="538" y1="106" x2="538" y2="134" stroke="black"/>
+<line x1="897" y1="106" x2="897" y2="134" stroke="black"/>
+<line x1="897" y1="117" x2="179" y2="117" stroke="black"/>
+<line x1="179" y1="117" x2="189" y2="123" stroke="black"/>
+<polygon fill="white" points="364,107 710,107 710,116 364,116"/>
+<text x="365" y="116" textLength="344" font-family="Helvetica" font-size="12" fill="black">
+NRF_MESH_EVT_DFU_FIRMWARE_OUTDATED(_NO_AUTH)
+</text>
+<line x1="179" y1="134" x2="179" y2="151" stroke="black"/>
+<line x1="538" y1="134" x2="538" y2="151" stroke="black"/>
+<line x1="897" y1="134" x2="897" y2="151" stroke="black"/>
+<line x1="89" y1="139" x2="988" y2="139" stroke="black" stroke-dasharray="2,2"/>
+<polygon fill="white" points="488,135 586,135 586,144 488,144"/>
+<text x="489" y="144" textLength="96" font-family="Helvetica" font-size="12" fill="black">
+Relaying firmware
+</text>
+<line x1="179" y1="151" x2="179" y2="179" stroke="black"/>
+<line x1="538" y1="151" x2="538" y2="179" stroke="black"/>
+<line x1="897" y1="151" x2="897" y2="179" stroke="black"/>
+<line x1="179" y1="162" x2="897" y2="162" stroke="black"/>
+<polygon fill="black" points="897,162 887,168 887,156"/>
+<polygon fill="white" points="479,152 595,152 595,161 479,161"/>
+<text x="480" y="161" textLength="114" font-family="Helvetica" font-size="12" fill="black">
+nrf_mesh_dfu_relay()
+</text>
+<line x1="179" y1="179" x2="179" y2="229" stroke="black"/>
+<line x1="538" y1="179" x2="538" y2="229" stroke="black"/>
+<line x1="897" y1="179" x2="897" y2="229" stroke="black"/>
+<polygon fill="white" points="726,179 1057,179 1057,223 726,223"/>
+<polygon fill="white" points="726,191 1069,191 1069,223 726,223"/>
+<polygon fill="white" points="1057,179 1069,191 1057,191"/>
+<line x1="726" y1="179" x2="1057" y2="179" stroke="black"/>
+<line x1="726" y1="223" x2="1069" y2="223" stroke="black"/>
+<line x1="726" y1="179" x2="726" y2="223" stroke="black"/>
+<line x1="1069" y1="191" x2="1069" y2="223" stroke="black"/>
+<line x1="1057" y1="179" x2="1069" y2="191" stroke="black"/>
+<line x1="1057" y1="179" x2="1057" y2="191" stroke="black"/>
+<line x1="1069" y1="191" x2="1057" y2="191" stroke="black"/>
+<polygon fill="white" points="895,180 897,180 897,189 895,189"/>
+<text x="896" y="189" textLength="0" font-family="Helvetica" font-size="12" fill="black">
+
+</text>
+<polygon fill="white" points="783,191 1009,191 1009,200 783,200"/>
+<text x="784" y="200" textLength="224" font-family="Helvetica" font-size="12" fill="black">
+Role = NRF_MESH_DFU_ROLE_RELAY.
+</text>
+<polygon fill="white" points="740,202 1052,202 1052,211 740,211"/>
+<text x="741" y="211" textLength="310" font-family="Helvetica" font-size="12" fill="black">
+State = NRF_MESH_DFU_STATE_RELAY_CANDIDATE.
+</text>
+<polygon fill="white" points="895,213 897,213 897,222 895,222"/>
+<text x="896" y="222" textLength="0" font-family="Helvetica" font-size="12" fill="black">
+
+</text>
+<line x1="179" y1="229" x2="179" y2="257" stroke="black"/>
+<line x1="538" y1="229" x2="538" y2="257" stroke="black"/>
+<line x1="897" y1="229" x2="897" y2="257" stroke="black"/>
+<path d="M 897 234 A179,6 0 0,1 897,246" stroke="black" fill="none"/><polygon fill="black" points="897,246 907,252 907,240"/>
+<polygon fill="white" points="742,230 895,230 895,239 742,239"/>
+<text x="743" y="239" textLength="151" font-family="Helvetica" font-size="12" fill="black">
+Start the relay request timer.
+</text>
+<line x1="179" y1="257" x2="179" y2="274" stroke="black" stroke-dasharray="2,2"/>
+<line x1="538" y1="257" x2="538" y2="274" stroke="black" stroke-dasharray="2,2"/>
+<line x1="897" y1="257" x2="897" y2="274" stroke="black" stroke-dasharray="2,2"/>
+<line x1="179" y1="274" x2="179" y2="302" stroke="black"/>
+<line x1="538" y1="274" x2="538" y2="302" stroke="black"/>
+<line x1="897" y1="274" x2="897" y2="302" stroke="black"/>
+<line x1="538" y1="285" x2="897" y2="285" stroke="black"/>
+<polygon fill="black" points="897,285 887,291 887,279"/>
+<polygon fill="white" points="667,275 767,275 767,284 667,284"/>
+<text x="668" y="284" textLength="98" font-family="Helvetica" font-size="12" fill="black">
+nrf_mesh_dfu_rx()
+</text>
+<line x1="179" y1="302" x2="179" y2="352" stroke="black"/>
+<line x1="538" y1="302" x2="538" y2="352" stroke="black"/>
+<line x1="897" y1="302" x2="897" y2="352" stroke="black"/>
+<polygon fill="white" points="726,302 1057,302 1057,346 726,346"/>
+<polygon fill="white" points="726,314 1069,314 1069,346 726,346"/>
+<polygon fill="white" points="1057,302 1069,314 1057,314"/>
+<line x1="726" y1="302" x2="1057" y2="302" stroke="black"/>
+<line x1="726" y1="346" x2="1069" y2="346" stroke="black"/>
+<line x1="726" y1="302" x2="726" y2="346" stroke="black"/>
+<line x1="1069" y1="314" x2="1069" y2="346" stroke="black"/>
+<line x1="1057" y1="302" x2="1069" y2="314" stroke="black"/>
+<line x1="1057" y1="302" x2="1057" y2="314" stroke="black"/>
+<line x1="1069" y1="314" x2="1057" y2="314" stroke="black"/>
+<polygon fill="white" points="895,303 897,303 897,312 895,312"/>
+<text x="896" y="312" textLength="0" font-family="Helvetica" font-size="12" fill="black">
+
+</text>
+<polygon fill="white" points="784,314 1009,314 1009,323 784,323"/>
+<text x="785" y="323" textLength="223" font-family="Helvetica" font-size="12" fill="black">
+The device receives the DFU data packet.
+</text>
+<polygon fill="white" points="778,325 1014,325 1014,334 778,334"/>
+<text x="779" y="334" textLength="234" font-family="Helvetica" font-size="12" fill="black">
+State = NRF_MESH_DFU_STATE_RELAY.
+</text>
+<polygon fill="white" points="895,336 897,336 897,345 895,345"/>
+<text x="896" y="345" textLength="0" font-family="Helvetica" font-size="12" fill="black">
+
+</text>
+<line x1="179" y1="352" x2="179" y2="380" stroke="black"/>
+<line x1="538" y1="352" x2="538" y2="380" stroke="black"/>
+<line x1="897" y1="352" x2="897" y2="380" stroke="black"/>
+<line x1="897" y1="363" x2="179" y2="363" stroke="black"/>
+<line x1="179" y1="363" x2="189" y2="369" stroke="black"/>
+<polygon fill="white" points="450,353 625,353 625,362 450,362"/>
+<text x="451" y="362" textLength="173" font-family="Helvetica" font-size="12" fill="black">
+NRF_MESH_EVT_DFU_START
+</text>
+<line x1="179" y1="380" x2="179" y2="408" stroke="black"/>
+<line x1="538" y1="380" x2="538" y2="408" stroke="black"/>
+<line x1="897" y1="380" x2="897" y2="408" stroke="black"/>
+<path d="M 897 385 A179,6 0 0,1 897,397" stroke="black" fill="none"/><polygon fill="black" points="897,397 907,403 907,391"/>
+<polygon fill="white" points="744,381 895,381 895,390 744,390"/>
+<text x="745" y="390" textLength="149" font-family="Helvetica" font-size="12" fill="black">
+Start the data transfer timer.
+</text>
+<line x1="179" y1="408" x2="179" y2="436" stroke="black"/>
+<line x1="538" y1="408" x2="538" y2="436" stroke="black"/>
+<line x1="897" y1="408" x2="897" y2="436" stroke="black"/>
+<line x1="538" y1="419" x2="897" y2="419" stroke="black"/>
+<line x1="897" y1="419" x2="887" y2="425" stroke="black"/>
+<line x1="538" y1="419" x2="548" y2="425" stroke="black"/>
+<polygon fill="white" points="643,409 791,409 791,418 643,418"/>
+<text x="644" y="418" textLength="146" font-family="Helvetica" font-size="12" fill="black">
+Relaying DFU data packets
+</text>
+<line x1="179" y1="436" x2="179" y2="453" stroke="black" stroke-dasharray="2,2"/>
+<line x1="538" y1="436" x2="538" y2="453" stroke="black" stroke-dasharray="2,2"/>
+<line x1="897" y1="436" x2="897" y2="453" stroke="black" stroke-dasharray="2,2"/>
+<line x1="179" y1="453" x2="179" y2="503" stroke="black"/>
+<line x1="538" y1="453" x2="538" y2="503" stroke="black"/>
+<line x1="897" y1="453" x2="897" y2="503" stroke="black"/>
+<polygon fill="white" points="726,453 1057,453 1057,497 726,497"/>
+<polygon fill="white" points="726,465 1069,465 1069,497 726,497"/>
+<polygon fill="white" points="1057,453 1069,465 1057,465"/>
+<line x1="726" y1="453" x2="1057" y2="453" stroke="black"/>
+<line x1="726" y1="497" x2="1069" y2="497" stroke="black"/>
+<line x1="726" y1="453" x2="726" y2="497" stroke="black"/>
+<line x1="1069" y1="465" x2="1069" y2="497" stroke="black"/>
+<line x1="1057" y1="453" x2="1069" y2="465" stroke="black"/>
+<line x1="1057" y1="453" x2="1057" y2="465" stroke="black"/>
+<line x1="1069" y1="465" x2="1057" y2="465" stroke="black"/>
+<polygon fill="white" points="895,454 897,454 897,463 895,463"/>
+<text x="896" y="463" textLength="0" font-family="Helvetica" font-size="12" fill="black">
+
+</text>
+<polygon fill="white" points="738,465 1054,465 1054,474 738,474"/>
+<text x="739" y="474" textLength="314" font-family="Helvetica" font-size="12" fill="black">
+The Mesh DFU module didn't receive any DFU data packet
+</text>
+<polygon fill="white" points="817,476 976,476 976,485 817,485"/>
+<text x="818" y="485" textLength="157" font-family="Helvetica" font-size="12" fill="black">
+during the data transfer timer.
+</text>
+<polygon fill="white" points="895,487 897,487 897,496 895,496"/>
+<text x="896" y="496" textLength="0" font-family="Helvetica" font-size="12" fill="black">
+
+</text>
+<line x1="179" y1="503" x2="179" y2="531" stroke="black"/>
+<line x1="538" y1="503" x2="538" y2="531" stroke="black"/>
+<line x1="897" y1="503" x2="897" y2="531" stroke="black"/>
+<line x1="897" y1="514" x2="179" y2="514" stroke="black"/>
+<line x1="179" y1="514" x2="189" y2="520" stroke="black"/>
+<polygon fill="white" points="306,504 769,504 769,513 306,513"/>
+<text x="307" y="513" textLength="461" font-family="Helvetica" font-size="12" fill="black">
+NRF_MESH_EVT_DFU_END (reason = NRF_MESH_DFU_END_ERROR_TIMEOUT)
+</text>
+<line x1="179" y1="525" x2="179" y2="531" stroke="black"/>
+<line x1="538" y1="525" x2="538" y2="531" stroke="black"/>
+<line x1="897" y1="525" x2="897" y2="531" stroke="black"/>
+</svg>

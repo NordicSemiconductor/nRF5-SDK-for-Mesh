@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -53,7 +53,9 @@
  */
 
 /** Define for acknowledging message transaction timeout.
- * @note Mesh Profile Specification v1.0 recommends this to be minimum 60s.
+ * @note @tagMeshSp recommends this to be minimum 60s. However, using
+ * recommendation can result in client getting blocked for a significant amount of time (60s), if
+ * acknowledged transaction does not receive a response.
  */
 #define MODEL_ACKNOWLEDGED_TRANSACTION_TIMEOUT  (SEC_TO_US(10))
 
@@ -84,7 +86,8 @@
 /**
  * The default TTL value for the node.
  */
-#define ACCESS_DEFAULT_TTL (SERVER_NODE_COUNT > NRF_MESH_TTL_MAX ? NRF_MESH_TTL_MAX : SERVER_NODE_COUNT)
+#define ACCESS_DEFAULT_TTL (MAX_AVAILABLE_SERVER_NODE_NUMBER > NRF_MESH_TTL_MAX ? \
+        NRF_MESH_TTL_MAX : MAX_AVAILABLE_SERVER_NODE_NUMBER)
 
 /**
  * The number of models in the application.
@@ -94,8 +97,7 @@
  */
 #define ACCESS_MODEL_COUNT (1 + /* Configuration server */  \
                             1 + /* Health server */  \
-                            2 + /* Generic OnOff client (2 groups) */ \
-                            2   /* Generic OnOff client (2 unicast) */)
+                            2   /* Generic OnOff client (2 groups) */)
 
 /**
  * The number of elements in the application.

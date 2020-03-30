@@ -1,0 +1,27 @@
+# MSC for handling DFU process
+
+msc {
+    hscale="1.8";
+
+    a [label="Application"], b[label="Mesh Stack"], c[label="Mesh DFU"];
+
+    ---  [label="Receiving packets"];
+    b=>c [label="nrf_mesh_dfu_rx()"];
+    c note c [label="\nThe Mesh DFU module receives the Firmware ID packet.\n"];
+    c->a [label="NRF_MESH_EVT_DFU_FIRMWARE_OUTDATED(_NO_AUTH)"];
+    
+    --- [label="Relaying firmware"];
+    a=>c [label="nrf_mesh_dfu_relay()"];
+    c note c [label="\nRole = NRF_MESH_DFU_ROLE_RELAY.\nState = NRF_MESH_DFU_STATE_RELAY_CANDIDATE.\n"];
+    c=>c [label="Start the relay request timer."];
+    ...;
+    b=>c [label="nrf_mesh_dfu_rx()"];
+    c note c [label="\nThe device receives the DFU data packet.\nState = NRF_MESH_DFU_STATE_RELAY.\n"];
+    c->a [label="NRF_MESH_EVT_DFU_START"];
+    c=>c [label="Start the data transfer timer."];
+    b <-> c [label="Relaying DFU data packets"];
+    ...;
+    c note c [label="\nThe Mesh DFU module didn't receive any DFU data packet during the data transfer timer.\n"];
+    c->a [label="NRF_MESH_EVT_DFU_END (reason = NRF_MESH_DFU_END_ERROR_TIMEOUT)"];
+}
+

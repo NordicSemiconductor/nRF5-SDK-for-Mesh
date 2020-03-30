@@ -20,16 +20,20 @@ function (add_ses_project TARGET_NAME)
         get_property(target_defines TARGET ${TARGET_NAME} PROPERTY COMPILE_DEFINITIONS)
 
         foreach (lib IN ITEMS ${target_libs})
-            get_property(lib_sources TARGET ${lib} PROPERTY SOURCES)
-            get_property(lib_include_dirs TARGET ${lib} PROPERTY INCLUDE_DIRECTORIES)
-            set(target_sources ${target_sources} ${lib_sources})
-            set(target_include_dirs ${target_include_dirs} ${lib_include_dirs})
+            if (TARGET ${lib})
+                get_property(lib_sources TARGET ${lib} PROPERTY SOURCES)
+                get_property(lib_include_dirs TARGET ${lib} PROPERTY INCLUDE_DIRECTORIES)
+                set(target_sources ${target_sources} ${lib_sources})
+                set(target_include_dirs ${target_include_dirs} ${lib_include_dirs})
+            endif()
         endforeach ()
         # We'll remove the GCC one in python
         set(target_sources ${target_sources} ${${PLATFORM}_STARTUP_FILE})
         set(target_sources ${target_sources} ${SES_COMMON_STARTUP_FILE} "${CMAKE_CURRENT_SOURCE_DIR}/include/sdk_config.h")
         set(target_defines NO_VTOR_CONFIG ${target_defines})
 
+        # Remove duplicates such as model_common.c
+        list(REMOVE_DUPLICATES target_sources)
         list(REMOVE_DUPLICATES target_include_dirs)
 
         file(RELATIVE_PATH default_sdk_path ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_SOURCE_DIR}/../nRF5_SDK_16.0.0_98a08e2")

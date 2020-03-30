@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -52,7 +52,7 @@
 
 /**
  * @defgroup HEALTH_FAULT_IDS Fault IDs
- * Mesh Profile Specification v1.0 defined fault IDs that can be used by self-tests to indicate specific problems.
+ * @tagMeshSp defined fault IDs that can be used by self-tests to indicate specific problems.
  * @{
  */
 

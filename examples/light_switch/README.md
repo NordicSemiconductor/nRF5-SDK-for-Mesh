@@ -2,8 +2,9 @@
 
 @tag52810nosupport
 
-This example demonstrates the mesh ecosystem that contains devices acting in two roles: Provisioner role and Node role
-(also referred to as provisionee role). It also demonstrates how to use Mesh models by using the [Generic OnOff model](@ref GENERIC_ONOFF_MODEL)
+This example demonstrates the mesh ecosystem that contains devices acting in the Node role
+(also referred to as provisionee role).
+It also demonstrates how to use Mesh models by using the [Generic OnOff model](@ref GENERIC_ONOFF_MODEL)
 in an application.
 
 **Table of contents**
@@ -15,20 +16,22 @@ in an application.
     - [Evaluating using the nRF Mesh mobile app](@ref light_switch_example_testing_app)
     - [Interacting with the boards](@ref light_switch_example_testing_interacting)
 
-The example is composed of three minor examples:
+The example is composed of the following minor examples:
 - Light switch server: A minimalistic server that implements a
-[Generic OnOff server model](@ref GENERIC_ONOFF_MODEL), which is used to
+[Generic OnOff Server model](@ref GENERIC_ONOFF_MODEL), which is used to
 receive the state data and control the state of LED 1 on the board.
-- Light switch client: A minimalistic client that implements four instances of a
+- Light switch client: A minimalistic client that implements two instances of a
 [Generic OnOff client model](@ref GENERIC_ONOFF_MODEL).
 When a user presses any of the buttons, an OnOff Set message is sent out to the
 configured destination address.
-- Mesh Provisioner: A simple static provisioner implementation that sets up the demonstration network.
-This provisioner provisions all the nodes in one mesh network. Additionally, the provisioner also configures
-key bindings and publication and subscription settings of mesh model instances on these nodes
+
+You can use the [provisioner example](@ref md_examples_provisioner_README) to [evaluate the light switch example](@ref light_switch_example_testing_dk).
+The provisioner example provides a simple static provisioner implementation that sets up the demonstration network.
+The example provisions all the nodes in one mesh network. Additionally, it also configures
+key bindings and publication and subscription settings of the mesh model instances on these nodes
 to enable them to talk to each other.
 
-@note For provisioning purposes, you can either use the static provisioner example or use the @link_nrf_mesh_app.
+@note For provisioning purposes, you can also use the @link_nrf_mesh_app.
 
 The Generic OnOff Client/Server is used for manipulating the on/off state. Note that when the server has
 a publish address set (as in this example), the server will publish any operation of its state change to
@@ -39,17 +42,16 @@ For a more detailed overview of the example structure and an introduction to var
 see the following pages:
 - @subpage md_examples_light_switch_server_README
 - @subpage md_examples_light_switch_client_README
-- @subpage md_examples_light_switch_provisioner_README
 
 The following figure gives the overall view of the mesh network that will be set up
 by the static provisioner. Numbers in parentheses indicate the addresses that are assigned
 to these nodes by the provisioner.
 
-![Mesh network demonstration](img/mesh-nw-demo_r02.svg "Mesh network demonstration")
+![Mesh network demonstration](images/mesh-nw-demo_r02.svg "Mesh network demonstration")
 
 Both the light switch server and light switch client examples have provisionee role.
 They support provisioning over Advertising bearer (PB-ADV) and GATT bearer (PB-GATT) and also support
-Mesh Proxy Service (Server). Read more about the Proxy feature in @ref md_doc_getting_started_provisioning_gatt_proxy.
+Mesh Proxy Service (Server). Read more about the Proxy feature in @ref md_doc_user_guide_modules_provisioning_gatt_proxy.
 
 @note The *Proxy Client* role is **not** supported.
 
@@ -59,17 +61,17 @@ Mesh Proxy Service (Server). Read more about the Proxy feature in @ref md_doc_ge
 
 ## Hardware requirements @anchor light_switch_example_hw_requirements
 
-You need at least two supported boards for this example:
+You need at least two supported development kits for this example:
 
-- One nRF5 development board for the client.
-- One or more nRF5 development boards for the servers.
+- One nRF52 development kit for the client.
+- One or more nRF52 development kits for the servers.
 
 Additionally, you need one of the following:
-- One nRF5 development board for the provisioner if you decide to use the static provisioner example.
+- One nRF52 development kit for the provisioner if you decide to use the [static provisioner example](@ref md_examples_provisioner_README).
 - @link_nrf_mesh_app (@link_nrf_mesh_app_ios or @link_nrf_mesh_app_android) if you decide to provision
 using the application.
 
-See @ref md_doc_introduction_mesh_compatibility for the supported boards.
+See @ref md_doc_user_guide_mesh_compatibility for the supported development kits.
 
 
 ---
@@ -107,14 +109,8 @@ the status of actions as follows:
         - Button 4: Send a message to the even group (address: 0xC002) to turn off LED 1.
 
 - Provisioner:
-  - Button 1: Start provisioning.
-  - LED 1: Reflects the state of the provisioning.
-		- LED ON: Provisioning of the node is in progress.
-		- LED OFF: No ongoing provisioning process.
-  - LED 2: Reflects the state of the configuration.
-		- LED ON: Configuration of the node is in progress.
-		- LED OFF: No ongoing configuration process.
-
+  - See [provisioner example page](@ref provisioner_example_setup_leds_buttons) for the list
+  of LED and button assignments if you use the static provisioner.
 
 
 ---
@@ -126,8 +122,8 @@ To test the light switch example, build the examples by following the instructio
 [Building the mesh stack](@ref md_doc_getting_started_how_to_build).
 
 @note
-If you have more than 30 boards for the servers and decided to use the static provisioner example,
-set `SERVER_NODE_COUNT` in `light_switch_example_common.h` to the number of boards available
+If you have more than 40 boards for the server and decided to use the static provisioner example,
+set `MAX_PROVISIONEE_NUMBER` (in `example_network_config.h`) to the number of boards available
 and rebuild the provisioner example.
 
 After building is complete, use one of the following methods, depending on the preferred
@@ -139,18 +135,20 @@ Once the provisioning is complete, you can start [interacting with the boards](@
 
 ### Evaluating using the static provisioner @anchor light_switch_example_testing_dk
 
+Complete the following steps:
 1. Flash the examples by following the instructions in @ref md_doc_getting_started_how_to_run_examples,
 including:
     1. Erase the flash of your development boards and program the SoftDevice.
     2. Flash the provisioner and the client firmware on individual boards and the server firmware on other boards.
 2. After the reset at the end of the flashing process, press Button 1 on the provisioner board
 to start the provisioning process:
-    - The provisioner first provisions and configures the client and assigns the address 0x100 to the client
+    -# The provisioner provisions and configures the client and assigns the address 0x100 to the client
     node.
-    - The two instances of the OnOff client models are instantiated on separate secondary elements.
+    -# The two instances of the OnOff client models are instantiated on separate secondary elements.
     For this reason, they get consecutive addresses starting with 0x101.
-    - Finally, the provisioner picks up the available devices at random, assigns them consecutive addresses,
+    -# The provisioner also provisions and configures the servers at random. It assigns them consecutive addresses starting with 0x201,
     and adds them to odd and even groups.
+@note The sequence of provisioned devices depends on the sequence of received unprovisioned beacons.
 @note You can use [RTT viewer](@ref segger-rtt) to view the RTT output generated by the provisioner.
 The provisioner prints details about the provisioning and the configuration process in the RTT log.
 3. Observe that the LED 1 on the provisioner board is turned ON when provisioner is scanning and provisioning a device.
@@ -184,7 +182,7 @@ You can also configure the publish address of the second Generic On Off client m
 To do this, repeat [step 3 from binding nodes](@ref nrf-mesh-mobile-app-binding) and [all steps from setting publication](@ref nrf-mesh-mobile-app-publication).
 If you set the model instance's address to the Unicast Address of any server node, the client example will be configured as follows:
 - The Button 3 on the client board turns ON LED 1 on the corresponding server board.
-- The Button 4 on the client board turns OFF LED 1 on the corresponding server board.        
+- The Button 4 on the client board turns OFF LED 1 on the corresponding server board.
 
 
 ### Interacting with the boards @anchor light_switch_example_testing_interacting
@@ -194,11 +192,11 @@ you can press buttons on the client to see the LEDs getting toggled on the assoc
 See [LED and button assignments](@ref light_switch_example_setup_leds_buttons) section.
 
 If an RTT terminal is available and connected to the client, sending
-the ASCII numbers `0`--`3` will have the same effect as pressing the buttons.
+the ASCII numbers `1`--`4` will have the same effect as pressing the buttons.
 
 If you are using RTT log, you can also press Button 1 on the servers to locally toggle the state of their LED 1,
 and the status reflecting this state will be sent to the client board. You can see the status printed in
 the RTT log of the client board.
 
 If any of the devices is powered off and back on, it will remember its flash configuration
-and rejoin the network. For more information about the flash manager, see @ref md_doc_libraries_flash_manager.
+and rejoin the network. For more information about the flash manager, see @ref md_doc_user_guide_modules_flash_manager.

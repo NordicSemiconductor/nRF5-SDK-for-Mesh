@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -74,7 +74,6 @@ void setUp(void)
 {
     flash_manager_defrag_mock_Init();
     flash_manager_test_util_setup();
-
 }
 
 void tearDown(void)
@@ -528,8 +527,9 @@ void test_replace(void)
     gp_expected_entry = (const fm_entry_t *) &area[1].raw[area_offset + 8];
     flash_execute();
     FLASH_EXPECT(&area[0], 8, 0x03, 0x00, 0x00, 0x00);
-    FLASH_EXPECT(&area[1], area_offset, 0x03, 0x00, 0x34, 0x12, 0x67, 0x45, 0x23, 0x01, 0xef, 0xcd, 0xab, 0x89,
-            0xff, 0xff, 0xff, 0x7f);
+    FLASH_EXPECT(&area[1], area_offset, 0x03, 0x00, 0x34, 0x12, 0x67, 0x45, 0x23, 0x01, 0xef, 0xcd, 0xab, 0x89);
+    area_offset += 12;
+    FLASH_EXPECT(&area[1], area_offset, 0xff, 0xff, 0xff, 0x7f); /* seal */
 
 
     /* Invalid params */
@@ -546,11 +546,28 @@ void test_replace(void)
 
     /* corner cases */
     handle = 0x0010;
-    /* odd length, should pad */
+    /* odd length, should pad with 1s */
     p_entry = flash_manager_entry_alloc(&manager, handle, 9);
     TEST_ASSERT_NOT_NULL(p_entry);
     TEST_ASSERT_EQUAL(4, p_entry->header.len_words);
-    flash_manager_entry_release(p_entry);
+    TEST_ASSERT_EQUAL(0x0010, p_entry->header.handle);
+    uint8_t * data_bytes = (uint8_t *) p_entry->data;
+    /* Add only nine bytes to data before flashing, to ensure that
+    the last bytes of the last word are written as 1s by default */
+    for (uint8_t i = 0; i < 9; ++i)
+    {
+        data_bytes[i] = i+1;
+    }
+    flash_manager_entry_commit(p_entry);
+    gp_expected_entry = (const fm_entry_t *) &area[1].raw[area_offset + 8];
+    flash_execute();
+    FLASH_EXPECT(&area[1], area_offset, 0x04, 0x00, 0x10, 0x00,
+                0x01, 0x02, 0x03, 0x04,
+                0x05, 0x06, 0x07, 0x08,
+                0x09, 0xFF, 0xFF, 0xFF);
+    area_offset += 16;
+    FLASH_EXPECT(&area[1], area_offset, 0xff, 0xff, 0xff, 0x7f); /* seal */
+
     /* empty data */
     p_entry = flash_manager_entry_alloc(&manager, handle, 0);
     TEST_ASSERT_NOT_NULL(p_entry);
@@ -581,15 +598,15 @@ void test_replace(void)
     g_process_cb();
     flash_execute();
 
-    for (uint32_t i = 0; i < 4; i++)
+    for (uint32_t i = 0; i < 3; i++)
     {
         FLASH_EXPECT(&area[1], area_offset,
                 0x03, 0x00, 0x00, 0x00); /* invalid */
         area_offset += 12;
     }
-    FLASH_EXPECT(&area[1], area_offset,
-            0x03, 0x00, 0x34, 0x12, 0x67, 0x45, 0x23, 0x01, 0xef, 0xcd, 0xab, 0x89,
-            0xff, 0xff, 0xff, 0x7f);
+    FLASH_EXPECT(&area[1], area_offset, 0x03, 0x00, 0x34, 0x12, 0x67, 0x45, 0x23, 0x01, 0xef, 0xcd, 0xab, 0x89);
+    area_offset += 12;
+    FLASH_EXPECT(&area[1], area_offset, 0xff, 0xff, 0xff, 0x7f); /* seal */
 
     g_delayed_execution = false;
 
@@ -597,7 +614,7 @@ void test_replace(void)
     manager.config.write_complete_cb = write_complete_callback;
 
     /* Fill up the rest of the page */
-    while (area_offset < PAGE_SIZE - 32)
+    while (area_offset + 12 < PAGE_SIZE - 8)
     {
         g_flash_queue_slots = 0xFFFFFF;
         p_entry = flash_manager_entry_alloc(&manager, handle, 8);
@@ -607,35 +624,38 @@ void test_replace(void)
         p_entry->data[0] = 0x01234567;
         p_entry->data[1] = 0x89abcdef;
         flash_manager_entry_commit(p_entry);
-        gp_expected_entry = (const fm_entry_t *) &area[1].raw[area_offset + 20];
+        gp_expected_entry = (const fm_entry_t *) &area[1].raw[area_offset + 8];
         flash_execute();
-        FLASH_EXPECT(&area[1], area_offset,
-                0x03, 0x00, 0x00, 0x00); /* invalid */
+        FLASH_EXPECT(&area[1], area_offset - 12, 0x03, 0x00, 0x00, 0x00); /* previous is invalid */
+        FLASH_EXPECT(&area[1], area_offset, 0x03, 0x00, 0x34, 0x12, 0x67, 0x45, 0x23, 0x01, 0xef, 0xcd, 0xab, 0x89);
         area_offset += 12;
-        FLASH_EXPECT(&area[1], area_offset,
-                0x03, 0x00, 0x34, 0x12, 0x67, 0x45, 0x23, 0x01, 0xef, 0xcd, 0xab, 0x89,
-                0xff, 0xff, 0xff, 0x7f);
+        FLASH_EXPECT(&area[1], area_offset, 0xff, 0xff, 0xff, 0x7f); /* seal */
     }
 
     /* Put an entry that perfectly fills the rest of the page */
-    p_entry = flash_manager_entry_alloc(&manager, handle, 8);
+    uint32_t remaining = ((PAGE_SIZE - 8) - area_offset);
+    TEST_ASSERT_TRUE(IS_WORD_ALIGNED(remaining));
+    p_entry = flash_manager_entry_alloc(&manager, handle, remaining - 4);
     TEST_ASSERT_NOT_NULL(p_entry);
-    TEST_ASSERT_EQUAL(3, p_entry->header.len_words);
+    TEST_ASSERT_EQUAL(remaining / WORD_SIZE, p_entry->header.len_words);
     TEST_ASSERT_EQUAL(0x1234, p_entry->header.handle);
-    p_entry->data[0] = 0x01234567;
-    p_entry->data[1] = 0x89abcdef;
+    for (uint16_t i = 0; i < p_entry->header.len_words - 1; ++i)
+    {
+        p_entry->data[i] = 0x01234567;
+    }
     flash_manager_entry_commit(p_entry);
-    gp_expected_entry = (const fm_entry_t *) &area[1].raw[area_offset + 20];
+    gp_expected_entry = (const fm_entry_t *) &area[1].raw[area_offset + 8];
     flash_execute();
-    FLASH_EXPECT(&area[1], area_offset,
-            0x03, 0x00, 0x00, 0x00); /* invalid */
-    area_offset += 12;
-    FLASH_EXPECT(&area[1], area_offset,
-            0x03, 0x00, 0x34, 0x12, 0x67, 0x45, 0x23, 0x01, 0xef, 0xcd, 0xab, 0x89);
-    FLASH_EXPECT(&area[2], 0,
-            0xff, 0xff, 0xff, 0x7f);
-
+    FLASH_EXPECT(&area[1], area_offset - 12, 0x03, 0x00, 0x00, 0x00); /* previous is invalid */
+    FLASH_EXPECT(&area[1], area_offset, remaining/WORD_SIZE, 0x00, 0x34, 0x12);
+    for (uint16_t i = 1; i < p_entry->header.len_words; ++i)
+    {
+        area_offset += 4;
+        FLASH_EXPECT(&area[1], area_offset, 0x67, 0x45, 0x23, 0x01);
+    }
     area_offset = 0;
+    FLASH_EXPECT(&area[2], area_offset, 0xff, 0xff, 0xff, 0x7f); /* seal on next page */
+
     /* Fill up the rest of the page */
     while (area_offset < PAGE_SIZE - 20)
     {
@@ -649,10 +669,9 @@ void test_replace(void)
         flash_manager_entry_commit(p_entry);
         gp_expected_entry = (const fm_entry_t *) &area[2].raw[area_offset + 8];
         flash_execute();
-        FLASH_EXPECT(&area[2], area_offset,
-                0x03, 0x00, 0x34, 0x12, 0x67, 0x45, 0x23, 0x01, 0xef, 0xcd, 0xab, 0x89,
-                0xff, 0xff, 0xff, 0x7f);
+        FLASH_EXPECT(&area[2], area_offset, 0x03, 0x00, 0x34, 0x12, 0x67, 0x45, 0x23, 0x01, 0xef, 0xcd, 0xab, 0x89);
         area_offset += 12;
+        FLASH_EXPECT(&area[2], area_offset, 0xff, 0xff, 0xff, 0x7f); /* seal */
     }
 
     /* Add an entry that won't fit. This should trigger defrag, regardless of
@@ -1485,6 +1504,38 @@ void test_remove(void)
         TEST_ASSERT_EQUAL_HEX8(0xFF, area[1].raw[i]);
         TEST_ASSERT_EQUAL_HEX8(0xFF, area[2].raw[i]);
     }
+
+    /* Schedule add of area again */
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, flash_manager_add(&manager, &config));
+
+    /* Attempt removing while building */
+    g_expected_remove_complete = 0;
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, flash_manager_remove(&manager));
+    TEST_ASSERT_EQUAL(FM_STATE_BUILDING, manager.internal.state);
+
+    /* Finish adding */
+    flash_execute();
+    TEST_ASSERT_EQUAL(0, g_expected_remove_complete);
+    TEST_ASSERT_EQUAL(FM_STATE_READY, manager.internal.state);
+    for (uint32_t i = 0; i < 3; i++)
+    {
+        validate_metadata(&area[i].metadata, i, 3);
+    }
+
+    /* And remove it after adding is complete */
+    g_expected_remove_complete = 1;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, flash_manager_remove(&manager));
+    TEST_ASSERT_EQUAL(FM_STATE_REMOVING, manager.internal.state);
+    flash_execute();
+    TEST_ASSERT_EQUAL(0, g_expected_remove_complete);
+    TEST_ASSERT_EQUAL(FM_STATE_UNINITIALIZED, manager.internal.state);
+    for (uint32_t i = 0; i < PAGE_SIZE; ++i)
+    {
+        TEST_ASSERT_EQUAL_HEX8(0xFF, area[0].raw[i]);
+        TEST_ASSERT_EQUAL_HEX8(0xFF, area[1].raw[i]);
+        TEST_ASSERT_EQUAL_HEX8(0xFF, area[2].raw[i]);
+    }
+
 
     /* Add a new area in the same flash-region */
     config.page_count = 2;

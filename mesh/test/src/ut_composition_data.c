@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -57,11 +57,14 @@
 
 const access_model_id_t models[SIG_MODELS_COUNT + VENDOR_MODELS_COUNT] = {SIG_MODELS, VENDOR_MODELS};
 
+#define ENABLED_FEATURES ((MESH_FEATURE_GATT_PROXY_ENABLED << 1) | (MESH_FEATURE_LPN_ENABLED << 3) | \
+                          (MESH_FEATURE_RELAY_ENABLED << 0) | (MESH_FEATURE_FRIEND_ENABLED << 2))
+
 const uint8_t composition_data[] = {0x0C, 0x00, /* CID (Company identifier) */
                                     0x1A, 0x00, /* PID (Product identifier) */
                                     0x01, 0x00, /* VID (Product version identifier) */
                                     0x08, 0x00, /* CRPL (Minimum replay protection list entries) */
-                                    0x03, 0x00, /* Features (bitfield indicating device features) */
+                        ENABLED_FEATURES, 0x00, /* Features (bitfield indicating device features) */
                                     0x00, 0x01, /* Location */
                                     0x05,       /* SIG models count */
                                     0x01,       /* Vendor models count */

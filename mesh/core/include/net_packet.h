@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -175,7 +175,7 @@ uint8_t * net_packet_payload_get(const packet_mesh_net_packet_t * p_net_packet);
  */
 static inline uint32_t net_packet_mic_size_get(bool is_control_packet)
 {
-    /* According to Mesh Profile Specification v1.0, section 3.4.4.3, control messages have an 8 byte mic, access
+    /* According to @tagMeshSp section 3.4.4.3, control messages have an 8 byte mic, access
      * messages have a 4 byte mic. */
     return (is_control_packet ? 8 : 4);
 }

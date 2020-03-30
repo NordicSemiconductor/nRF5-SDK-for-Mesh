@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -621,6 +621,7 @@ static void handle_appkey_add(access_model_handle_t handle, const access_message
     uint32_t status;
     access_status_t status_code;
     config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
 
     dsm_handle_t network_handle = dsm_net_key_index_to_subnet_handle(netkey_index);
     evt.type = CONFIG_SERVER_EVT_APPKEY_ADD;
@@ -682,10 +683,10 @@ static void handle_appkey_update(access_model_handle_t handle, const access_mess
     config_msg_key_index_24_get(&key_indexes, &netkey_index, &appkey_index);
 
     access_status_t status_code = ACCESS_STATUS_SUCCESS;
-    config_server_evt_t evt =
-    {
-        .type = CONFIG_SERVER_EVT_APPKEY_UPDATE
-    };
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_APPKEY_UPDATE;
+
 
     dsm_handle_t network_handle = dsm_net_key_index_to_subnet_handle(netkey_index);
     if (DSM_HANDLE_INVALID == network_handle)
@@ -754,6 +755,7 @@ static void handle_appkey_delete(access_model_handle_t handle, const access_mess
     access_status_t status_code = ACCESS_STATUS_SUCCESS;
     uint16_t netkey_index, appkey_index;
     config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
     evt.type = CONFIG_SERVER_EVT_APPKEY_DELETE;
     config_msg_key_index_24_get(&key_indexes, &netkey_index, &appkey_index);
     evt.params.appkey_delete.appkey_handle = dsm_appkey_index_to_appkey_handle(appkey_index);
@@ -827,6 +829,13 @@ static void handle_appkey_get(access_model_handle_t handle, const access_message
             break;
     }
     send_reply(handle, p_message, CONFIG_OPCODE_APPKEY_LIST, packet_buffer, reply_length, nrf_mesh_unique_token_get());
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_APPKEY_GET;
+    evt.params.appkey_get.netkey_index = p_pdu->netkey_index;
+
+    app_evt_send(&evt);
 }
 
 static void handle_config_beacon_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -840,10 +849,11 @@ static void handle_config_beacon_set(access_model_handle_t handle, const access_
     if (p_pdu->beacon_state == CONFIG_NET_BEACON_STATE_ENABLED ||
         p_pdu->beacon_state == CONFIG_NET_BEACON_STATE_DISABLED)
     {
-        const config_server_evt_t evt = {
-            .type = CONFIG_SERVER_EVT_BEACON_SET,
-            .params.beacon_set.beacon_state = (p_pdu->beacon_state == CONFIG_NET_BEACON_STATE_ENABLED)
-        };
+        config_server_evt_t evt;
+        memset(&evt, 0, sizeof(config_server_evt_t));
+        evt.type = CONFIG_SERVER_EVT_BEACON_SET;
+        evt.params.beacon_set.beacon_state = (config_net_beacon_state_t)p_pdu->beacon_state;
+
         net_beacon_state_set(evt.params.beacon_set.beacon_state);
         send_net_beacon_state(handle, p_message);
         app_evt_send(&evt);
@@ -854,7 +864,12 @@ static void handle_config_beacon_get(access_model_handle_t handle, const access_
 {
     if (p_message->length == 0)
     {
+        config_server_evt_t evt;
+        memset(&evt, 0, sizeof(config_server_evt_t));
+        evt.type = CONFIG_SERVER_EVT_BEACON_GET;
+
         send_net_beacon_state(handle, p_message);
+        app_evt_send(&evt);
     }
 }
 
@@ -865,6 +880,12 @@ static void handle_composition_data_get(access_model_handle_t handle, const acce
         return;
     }
 
+    const config_msg_composition_data_get_t * p_pdu = (const config_msg_composition_data_get_t *) p_message->p_data;
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_COMPOSITION_DATA_GET;
+    evt.params.composition_data_get.page_number = p_pdu->page_number;
+
     uint8_t buffer[sizeof(config_msg_composition_data_status_t) + CONFIG_COMPOSITION_DATA_SIZE];
     config_msg_composition_data_status_t * p_response = (config_msg_composition_data_status_t *) buffer;
     p_response->page_number = 0;
@@ -873,6 +894,8 @@ static void handle_composition_data_get(access_model_handle_t handle, const acce
 
     send_reply(handle, p_message, CONFIG_OPCODE_COMPOSITION_DATA_STATUS, buffer,
                sizeof(config_msg_composition_data_status_t) + size, nrf_mesh_unique_token_get());
+
+    app_evt_send(&evt);
 }
 
 static void handle_config_default_ttl_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -883,6 +906,11 @@ static void handle_config_default_ttl_get(access_model_handle_t handle, const ac
     }
 
     uint8_t ttl = access_default_ttl_get();
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_DEFAULT_TTL_GET;
+    app_evt_send(&evt);
     send_reply(handle, p_message, CONFIG_OPCODE_DEFAULT_TTL_STATUS, (const uint8_t *) &ttl, sizeof(ttl), nrf_mesh_unique_token_get());
 }
 
@@ -898,8 +926,10 @@ static void handle_config_default_ttl_set(access_model_handle_t handle, const ac
     uint8_t ttl = p_pdu->ttl;
     if (access_default_ttl_set(ttl) == NRF_SUCCESS)
     {
-        const config_server_evt_t evt = {.type = CONFIG_SERVER_EVT_DEFAULT_TTL_SET,
-                                            .params.default_ttl_set.default_ttl = ttl};
+        config_server_evt_t evt;
+        memset(&evt, 0, sizeof(config_server_evt_t));
+        evt.type = CONFIG_SERVER_EVT_DEFAULT_TTL_SET;
+        evt.params.default_ttl_set.default_ttl = ttl;
         app_evt_send(&evt);
 
         send_reply(handle, p_message, CONFIG_OPCODE_DEFAULT_TTL_STATUS, (const uint8_t *) &ttl, sizeof(ttl), nrf_mesh_unique_token_get());
@@ -922,6 +952,11 @@ static void handle_config_friend_get(access_model_handle_t handle, const access_
 
     send_reply(handle, p_message, CONFIG_OPCODE_FRIEND_STATUS,
                (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_FRIEND_GET;
+    app_evt_send(&evt);
 }
 
 static void handle_config_friend_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -957,6 +992,12 @@ static void handle_config_friend_set(access_model_handle_t handle, const access_
 
     send_reply(handle, p_message, CONFIG_OPCODE_FRIEND_STATUS,
                (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_FRIEND_SET;
+    evt.params.friend_set.friend_state = (config_friend_state_t) status_message.friend_state;
+    app_evt_send(&evt);
 }
 
 static void handle_config_gatt_proxy_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -976,6 +1017,11 @@ static void handle_config_gatt_proxy_get(access_model_handle_t handle, const acc
 
     send_reply(handle, p_message, CONFIG_OPCODE_GATT_PROXY_STATUS,
                (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_GATT_PROXY_GET;
+    app_evt_send(&evt);
 }
 
 static void handle_config_gatt_proxy_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -1004,6 +1050,12 @@ static void handle_config_gatt_proxy_set(access_model_handle_t handle, const acc
 
     send_reply(handle, p_message, CONFIG_OPCODE_GATT_PROXY_STATUS,
                (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_GATT_PROXY_SET;
+    evt.params.proxy_set.proxy_state = (config_gatt_proxy_state_t)p_pdu->proxy_state;
+    app_evt_send(&evt);
 }
 
 static void handle_config_key_refresh_phase_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -1031,6 +1083,12 @@ static void handle_config_key_refresh_phase_get(access_model_handle_t handle, co
     }
     send_reply(handle, p_message, CONFIG_OPCODE_KEY_REFRESH_PHASE_STATUS,
                (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_KEY_REFRESH_PHASE_GET;
+    evt.params.key_refresh_phase_get.subnet_handle = subnet_handle;
+    app_evt_send(&evt);
 }
 
 static void handle_config_key_refresh_phase_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -1091,10 +1149,11 @@ static void handle_config_key_refresh_phase_set(access_model_handle_t handle, co
 
     if (status_message.status == ACCESS_STATUS_SUCCESS)
     {
-        const config_server_evt_t evt = {
-            .type = CONFIG_SERVER_EVT_KEY_REFRESH_PHASE_SET,
-            .params.key_refresh_phase_set.kr_phase = (nrf_mesh_key_refresh_phase_t) status_message.phase
-        };
+        config_server_evt_t evt;
+        memset(&evt, 0, sizeof(config_server_evt_t));
+        evt.type = CONFIG_SERVER_EVT_KEY_REFRESH_PHASE_SET;
+        evt.params.key_refresh_phase_set.kr_phase = (nrf_mesh_key_refresh_phase_t) status_message.phase;
+        evt.params.key_refresh_phase_set.subnet_handle = subnet_handle;
         app_evt_send(&evt);
     }
 }
@@ -1130,6 +1189,12 @@ static void handle_config_model_publication_get(access_model_handle_t handle, co
     else
     {
         send_publication_status(handle, p_message, p_pdu->element_address, model_handle);
+
+        config_server_evt_t evt;
+        memset(&evt, 0, sizeof(config_server_evt_t));
+        evt.type = CONFIG_SERVER_EVT_MODEL_PUBLICATION_GET;
+        evt.params.publication_get.model_handle = model_handle;
+        app_evt_send(&evt);
     }
 }
 
@@ -1338,9 +1403,12 @@ static void handle_config_model_publication_set(access_model_handle_t handle, co
 
     send_publication_status(handle, p_message, element_address, model_handle);
 
-    const config_server_evt_t evt = {.type = CONFIG_SERVER_EVT_MODEL_PUBLICATION_SET,
-                                     .params.model_publication_set.model_handle = model_handle};
-    app_evt_send(&evt);
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = (p_message->opcode.opcode == CONFIG_OPCODE_MODEL_PUBLICATION_SET) ? 
+                 CONFIG_SERVER_EVT_MODEL_PUBLICATION_SET : CONFIG_SERVER_EVT_MODEL_PUBLICATION_VIRTUAL_ADDRESS_SET;
+    evt.params.model_publication_set.model_handle = model_handle;
+    app_evt_send(&evt);  
 }
 
 static void handle_config_model_subscription_add(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -1422,11 +1490,11 @@ static void handle_config_model_subscription_add(access_model_handle_t handle, c
     {
         send_subscription_status(handle, p_message, p_pdu->element_address, p_pdu->address,
                 p_pdu->model_id, sig_model);
-        const config_server_evt_t evt = {
-            .type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_ADD,
-            .params.model_subscription_add.model_handle = model_handle,
-            .params.model_subscription_add.address_handle = subscription_address_handle
-        };
+        config_server_evt_t evt;
+        memset(&evt, 0, sizeof(config_server_evt_t));
+        evt.type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_ADD;
+        evt.params.model_subscription_add.model_handle = model_handle;
+        evt.params.model_subscription_add.address_handle = subscription_address_handle;
         app_evt_send(&evt);
     }
 }
@@ -1499,11 +1567,11 @@ static void handle_config_model_subscription_delete(access_model_handle_t handle
 
     send_subscription_status(handle, p_message, p_pdu->element_address, p_pdu->address,
             p_pdu->model_id, sig_model);
-    const config_server_evt_t evt = {
-        .type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_DELETE,
-        .params.model_subscription_delete.model_handle = model_handle,
-        .params.model_subscription_delete.address_handle = subscription_address_handle
-    };
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_DELETE;
+    evt.params.model_subscription_delete.model_handle = model_handle;
+    evt.params.model_subscription_delete.address_handle = subscription_address_handle;
     app_evt_send(&evt);
 }
 
@@ -1547,10 +1615,10 @@ static void handle_config_model_subscription_delete_all(access_model_handle_t ha
         send_subscription_status(handle, p_message, p_pdu->element_address, NRF_MESH_ADDR_UNASSIGNED,
                 p_pdu->model_id, sig_model);
 
-        const config_server_evt_t evt = {
-            .type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_DELETE_ALL,
-            .params.model_subscription_delete_all.model_handle = model_handle
-        };
+        config_server_evt_t evt;
+        memset(&evt, 0, sizeof(config_server_evt_t));
+        evt.type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_DELETE_ALL;
+        evt.params.model_subscription_delete_all.model_handle = model_handle;
         app_evt_send(&evt);
     }
 }
@@ -1642,11 +1710,11 @@ static void handle_config_model_subscription_overwrite(access_model_handle_t han
         send_subscription_status(handle, p_message, p_pdu->element_address, p_pdu->address,
                 p_pdu->model_id, sig_model);
 
-        const config_server_evt_t evt = {
-            .type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_OVERWRITE,
-            .params.model_subscription_overwrite.model_handle = model_handle,
-            .params.model_subscription_overwrite.address_handle = subscription_address_handle
-        };
+        config_server_evt_t evt;
+        memset(&evt, 0, sizeof(config_server_evt_t));
+        evt.type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_OVERWRITE;
+        evt.params.model_subscription_overwrite.model_handle = model_handle;
+        evt.params.model_subscription_overwrite.address_handle = subscription_address_handle;
         app_evt_send(&evt);
     }
 }
@@ -1721,11 +1789,11 @@ static void handle_config_model_subscription_virtual_address_add(access_model_ha
         send_subscription_status(handle, p_message, p_pdu->element_address,
                 target_address.value, p_pdu->model_id, sig_model);
 
-        const config_server_evt_t evt = {
-            .type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_ADD,
-            .params.model_subscription_add.model_handle = model_handle,
-            .params.model_subscription_add.address_handle = subscription_address_handle
-        };
+        config_server_evt_t evt;
+        memset(&evt, 0, sizeof(config_server_evt_t));
+        evt.type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_ADD;
+        evt.params.model_subscription_add.model_handle = model_handle;
+        evt.params.model_subscription_add.address_handle = subscription_address_handle;
         app_evt_send(&evt);
     }
 }
@@ -1790,11 +1858,11 @@ static void handle_config_model_subscription_virtual_address_delete(access_model
     send_subscription_status(handle, p_message, p_pdu->element_address, virtual_address.value,
             p_pdu->model_id, sig_model);
 
-    const config_server_evt_t evt = {
-        .type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_DELETE,
-        .params.model_subscription_delete.model_handle = model_handle,
-        .params.model_subscription_delete.address_handle = subscription_address_handle
-    };
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_DELETE;
+    evt.params.model_subscription_delete.model_handle = model_handle;
+    evt.params.model_subscription_delete.address_handle = subscription_address_handle;
     app_evt_send(&evt);
 }
 
@@ -1877,11 +1945,11 @@ static void handle_config_model_subscription_virtual_address_overwrite(access_mo
             send_subscription_status(handle, p_message, p_pdu->element_address,
                     target_address.value, p_pdu->model_id, sig_model);
 
-            const config_server_evt_t evt = {
-                .type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_OVERWRITE,
-                .params.model_subscription_overwrite.model_handle = model_handle,
-                .params.model_subscription_overwrite.address_handle = subscription_address_handle
-            };
+            config_server_evt_t evt;
+            memset(&evt, 0, sizeof(config_server_evt_t));
+            evt.type = CONFIG_SERVER_EVT_MODEL_SUBSCRIPTION_VIRTUAL_ADDRESS_OVERWRITE;
+            evt.params.model_subscription_overwrite.model_handle = model_handle;
+            evt.params.model_subscription_overwrite.address_handle = subscription_address_handle;
             app_evt_send(&evt);
         }
     }
@@ -1925,6 +1993,11 @@ static void handle_config_relay_get(access_model_handle_t handle, const access_m
     }
 
     send_relay_status(handle, p_message);
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_RELAY_GET;
+    app_evt_send(&evt);
 }
 
 static void handle_config_relay_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -1942,7 +2015,7 @@ static void handle_config_relay_set(access_model_handle_t handle, const access_m
     relay_state.enabled = (p_pdu->relay_state == CONFIG_RELAY_STATE_SUPPORTED_ENABLED);
 
     /**
-     * According to Mesh Profile spec v1.0, sec. : "The Relay Retransmit Count + 1 is the number of times that
+     * According to @tagMeshSp : "The Relay Retransmit Count + 1 is the number of times that
      * packet is transmitted for each packet that is relayed."
      */
     relay_state.tx_count = p_pdu->relay_retransmit_count + 1;
@@ -1966,30 +2039,28 @@ static void handle_config_relay_set(access_model_handle_t handle, const access_m
     send_relay_status(handle, p_message);
 
 #if MESH_FEATURE_RELAY_ENABLED
-    const config_server_evt_t evt = {
-        .type = CONFIG_SERVER_EVT_RELAY_SET,
-        .params.relay_set.enabled = (p_pdu->relay_state == CONFIG_RELAY_STATE_SUPPORTED_ENABLED),
-        .params.relay_set.retransmit_count = p_pdu->relay_retransmit_count,
-        .params.relay_set.interval_steps = p_pdu->relay_retransmit_interval_steps
-    };
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_RELAY_SET;
+    evt.params.relay_set.relay_state = (config_relay_state_t)p_pdu->relay_state;
+    evt.params.relay_set.retransmit_count = p_pdu->relay_retransmit_count;
+    evt.params.relay_set.interval_steps = p_pdu->relay_retransmit_interval_steps;
     app_evt_send(&evt);
 #endif /* MESH_FEATURE_RELAY_ENABLED */
 }
 
-
-static void send_network_transmit_status(access_model_handle_t handle, const access_message_rx_t * p_message)
+static config_msg_network_transmit_status_t net_transmit_status_get(void)
 {
-    config_msg_network_transmit_status_t status_message = { 0 };
+    config_msg_network_transmit_status_t net_status = { 0 };
 
     mesh_opt_core_adv_t net;
     NRF_MESH_ERROR_CHECK(mesh_opt_core_adv_get(CORE_TX_ROLE_ORIGINATOR,
                                                &net));
-    status_message.network_transmit_count = net.tx_count - 1;
-    status_message.network_transmit_interval_steps =
+    net_status.network_transmit_count = net.tx_count - 1;
+    net_status.network_transmit_interval_steps =
         CONFIG_RETRANSMIT_INTERVAL_MS_TO_STEP(net.tx_interval_ms) - 1;
 
-    send_reply(handle, p_message, CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS,
-               (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
+    return net_status;
 }
 
 static void handle_config_network_transmit_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -1999,7 +2070,14 @@ static void handle_config_network_transmit_get(access_model_handle_t handle, con
         return;
     }
 
-    send_network_transmit_status(handle, p_message);
+    config_msg_network_transmit_status_t status_message = net_transmit_status_get();
+    send_reply(handle, p_message, CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS,
+            (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_NETWORK_TRANSMIT_GET;
+    app_evt_send(&evt);
 }
 
 
@@ -2017,7 +2095,7 @@ static void handle_config_network_transmit_set(access_model_handle_t handle, con
     net.enabled = true;
 
     /**
-     * According to Mesh Profile spec v1.0, sec. 4.2.19: "The number of transmissions is the
+     * According to @tagMeshSp section 4.2.19: "The number of transmissions is the
      * Transmit Count + 1."
      */
     net.tx_count = p_pdu->network_transmit_count + 1;
@@ -2025,18 +2103,23 @@ static void handle_config_network_transmit_set(access_model_handle_t handle, con
                              CONFIG_RETRANSMIT_INTERVAL_STEP_TO_MS(p_pdu->network_transmit_interval_steps + 1));
     NRF_MESH_ERROR_CHECK(mesh_opt_core_adv_set(CORE_TX_ROLE_ORIGINATOR, &net));
 
-    send_network_transmit_status(handle, p_message);
-    const config_server_evt_t evt = {
-        .type = CONFIG_SERVER_EVT_NETWORK_TRANSMIT_SET,
-        .params.network_transmit_set.retransmit_count = p_pdu->network_transmit_count,
-        .params.network_transmit_set.interval_steps = p_pdu->network_transmit_interval_steps
-    };
+    config_msg_network_transmit_status_t status_message = net_transmit_status_get();
+    send_reply(handle, p_message, CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS,
+            (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
+
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_NETWORK_TRANSMIT_SET;
+    evt.params.network_transmit_set.retransmit_count = status_message.network_transmit_count;
+    evt.params.network_transmit_set.interval_steps = status_message.network_transmit_interval_steps;
     app_evt_send(&evt);
 }
 
 static void handle_config_sig_model_subscription_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
 {
     const config_msg_model_subscription_get_t * p_pdu = (const config_msg_model_subscription_get_t *) p_message->p_data;
+
     if (p_message->length != PACKET_LENGTH_WITH_ID(config_msg_model_subscription_get_t, true))
     {
         return;
@@ -2081,6 +2164,12 @@ static void handle_config_sig_model_subscription_get(access_model_handle_t handl
 
     send_reply(handle, p_message, CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_LIST, response_buffer,
             sizeof(config_msg_sig_model_subscription_list_t) + subscription_count * sizeof(uint16_t), nrf_mesh_unique_token_get());
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_SIG_MODEL_SUBSCRIPTION_GET;
+    evt.params.model_subscription_get.model_handle = model_handle;
+    app_evt_send(&evt);
 }
 
 static void handle_config_vendor_model_subscription_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -2131,6 +2220,12 @@ static void handle_config_vendor_model_subscription_get(access_model_handle_t ha
 
     send_reply(handle, p_message, CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_LIST, response_buffer,
             sizeof(config_msg_vendor_model_subscription_list_t) + subscription_list_size, nrf_mesh_unique_token_get());
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_VENDOR_MODEL_SUBSCRIPTION_GET;
+    evt.params.model_subscription_get.model_handle = model_handle;
+    app_evt_send(&evt);
 }
 
 static inline uint32_t heartbeat_publication_count_decode(uint8_t count_log)
@@ -2244,7 +2339,7 @@ static void handle_heartbeat_publication_get(access_model_handle_t handle, const
     status_message.status       = ACCESS_STATUS_SUCCESS;
     status_message.destination  = p_hb_pub->dst;
 
-    /* As per Mesh Profile Specification v1.0, section 4.2.17.2 log(n) should be
+    /* As per @tagMeshSp section 4.2.17.2 log(n) should be
     larger than or equal to n */
     status_message.count_log    = heartbeat_publication_count_encode(p_hb_pub->count);
     status_message.period_log   = heartbeat_pubsub_period_encode(p_hb_pub->period);
@@ -2254,6 +2349,11 @@ static void handle_heartbeat_publication_get(access_model_handle_t handle, const
 
     send_reply(handle, p_message, CONFIG_OPCODE_HEARTBEAT_PUBLICATION_STATUS,
               (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_HEARTBEAT_PUBLICATION_GET;
+    app_evt_send(&evt);
 }
 
 static void handle_heartbeat_publication_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -2299,10 +2399,10 @@ static void handle_heartbeat_publication_set(access_model_handle_t handle, const
 
     if (status_message.status == ACCESS_STATUS_SUCCESS)
     {
-        const config_server_evt_t evt = {
-            .type = CONFIG_SERVER_EVT_HEARTBEAT_PUBLICATION_SET,
-            .params.heartbeat_publication_set.p_publication_state = &hb_pub
-        };
+        config_server_evt_t evt;
+        memset(&evt, 0, sizeof(config_server_evt_t));
+        evt.type = CONFIG_SERVER_EVT_HEARTBEAT_PUBLICATION_SET;
+        evt.params.heartbeat_publication_set.p_publication_state = &hb_pub;
         app_evt_send(&evt);
     }
 }
@@ -2323,7 +2423,7 @@ static void handle_heartbeat_subscription_get(access_model_handle_t handle, cons
     /* When the Heartbeat Subscription Source or Destination state is set to the unassigned address,
      the value of - the Source and Destination fields of the Status message shall be set to the
      unassigned address and the values of the CountLog, PeriodLog, MinHops, and MaxHops fields shall
-     be set to 0x00. Refer to Mesh Profile Specification v1.0, section 4.4.1.2.16 */
+     be set to 0x00. Refer to @tagMeshSp section 4.4.1.2.16 */
     status_message.status = ACCESS_STATUS_SUCCESS;
     if (p_hb_sub->src == NRF_MESH_ADDR_UNASSIGNED ||
         p_hb_sub->dst == NRF_MESH_ADDR_UNASSIGNED)
@@ -2347,6 +2447,11 @@ static void handle_heartbeat_subscription_get(access_model_handle_t handle, cons
 
     send_reply(handle, p_message, CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS,
                (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_HEARTBEAT_SUBSCRIPTION_GET;
+    app_evt_send(&evt);
 }
 
 static void handle_heartbeat_subscription_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -2363,7 +2468,7 @@ static void handle_heartbeat_subscription_set(access_model_handle_t handle, cons
         .src    = p_pdu->source,
         .dst    = p_pdu->destination,
         .period = heartbeat_pubsub_period_decode(p_pdu->period_log)
-        /* other state values shall remain unchanged, see Mesh Profile Specification v1.0, section 4.4.1.2.16 */
+        /* other state values shall remain unchanged, see @tagMeshSp section 4.4.1.2.16 */
     };
 
     if (heartbeat_subscription_set(&new_subscription_state) != NRF_SUCCESS)
@@ -2384,10 +2489,10 @@ static void handle_heartbeat_subscription_set(access_model_handle_t handle, cons
     send_reply(handle, p_message, CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS,
                (const uint8_t *) &status_message, sizeof(status_message), nrf_mesh_unique_token_get());
 
-    const config_server_evt_t evt = {
-        .type = CONFIG_SERVER_EVT_HEARTBEAT_SUBSCRIPTION_SET,
-        .params.heartbeat_subscription_set.p_subscription_state = p_hb_sub
-    };
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_HEARTBEAT_SUBSCRIPTION_SET;
+    evt.params.heartbeat_subscription_set.p_subscription_state = p_hb_sub;
     app_evt_send(&evt);
 }
 
@@ -2443,6 +2548,7 @@ static void handle_model_app_bind_unbind(access_model_handle_t handle, const acc
     uint16_t appkey_index = p_pdu->appkey_index & CONFIG_MSG_KEY_INDEX_12_MASK;
     dsm_handle_t appkey_handle = dsm_appkey_index_to_appkey_handle(appkey_index);
     config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
 
     if (p_message->opcode.opcode == CONFIG_OPCODE_MODEL_APP_BIND)
     {
@@ -2507,6 +2613,7 @@ static void handle_netkey_add_update(access_model_handle_t handle, const access_
     uint32_t status;
     dsm_handle_t network_handle;
     config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
     if (p_message->opcode.opcode == CONFIG_OPCODE_NETKEY_ADD)
     {
         status = dsm_subnet_add(netkey_index, p_pdu->netkey, &network_handle);
@@ -2602,8 +2709,10 @@ static void handle_netkey_delete(access_model_handle_t handle, const access_mess
     if (NRF_SUCCESS == status)
     {
         send_netkey_status(handle, p_message, ACCESS_STATUS_SUCCESS, netkey_index);
-        const config_server_evt_t evt = {.type = CONFIG_SERVER_EVT_NETKEY_DELETE,
-                                         .params.netkey_delete.netkey_handle = network_handle};
+        config_server_evt_t evt;
+        memset(&evt, 0, sizeof(config_server_evt_t));
+        evt.type = CONFIG_SERVER_EVT_NETKEY_DELETE;
+        evt.params.netkey_delete.netkey_handle = network_handle;
         app_evt_send(&evt);
     }
     else if (NRF_ERROR_FORBIDDEN == status)
@@ -2633,6 +2742,11 @@ static void handle_netkey_get(access_model_handle_t handle, const access_message
     packed_index_list_create(netkey_indexes, buffer, num_netkeys);
 
     send_reply(handle, p_message, CONFIG_OPCODE_NETKEY_LIST, buffer, reply_length, nrf_mesh_unique_token_get());
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_NETKEY_GET;
+    app_evt_send(&evt);
 }
 
 static void handle_node_identity_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -2643,6 +2757,10 @@ static void handle_node_identity_get(access_model_handle_t handle, const access_
     }
 
     const config_msg_identity_get_t * p_pdu = (const config_msg_identity_get_t *) p_message->p_data;
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_NODE_IDENTITY_GET;
+    evt.params.identity_get.netkey_index = p_pdu->netkey_index;
 
 #if MESH_FEATURE_GATT_PROXY_ENABLED
     access_status_t access_status = ACCESS_STATUS_SUCCESS;
@@ -2672,6 +2790,8 @@ static void handle_node_identity_get(access_model_handle_t handle, const access_
 
     send_reply(handle, p_message, CONFIG_OPCODE_NODE_IDENTITY_STATUS,
                (const uint8_t *) &reply, sizeof(config_msg_identity_status_t), nrf_mesh_unique_token_get());
+
+    app_evt_send(&evt);
 }
 
 static void handle_node_identity_set(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -2736,6 +2856,12 @@ static void handle_node_identity_set(access_model_handle_t handle, const access_
 
     send_reply(handle, p_message, CONFIG_OPCODE_NODE_IDENTITY_STATUS,
                (const uint8_t *) &reply, sizeof(config_msg_identity_status_t), nrf_mesh_unique_token_get());
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_NODE_IDENTITY_SET;
+    evt.params.identity_set.netkey_index = p_pdu->netkey_index;
+    app_evt_send(&evt);
 }
 
 static void handle_node_reset(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
@@ -2798,6 +2924,7 @@ static void handle_model_app_get(access_model_handle_t handle, const access_mess
     }
 
     const config_msg_model_app_get_t * p_pdu = (const config_msg_model_app_get_t *) p_message->p_data;
+
     /* Get the model handle: */
     access_model_handle_t model_handle;
     access_model_id_t model_id;
@@ -2806,6 +2933,7 @@ static void handle_model_app_get(access_model_handle_t handle, const access_mess
     uint16_t response_opcode = p_message->opcode.opcode == CONFIG_OPCODE_SIG_MODEL_APP_GET ?
             CONFIG_OPCODE_SIG_MODEL_APP_LIST : CONFIG_OPCODE_VENDOR_MODEL_APP_LIST;
     uint8_t response_buffer[sizeof(config_msg_vendor_model_app_list_t) + PACKED_INDEX_LIST_SIZE(DSM_APP_MAX)];
+
 
     if (ACCESS_ELEMENT_INDEX_INVALID == element_index)
     {
@@ -2853,9 +2981,15 @@ static void handle_model_app_get(access_model_handle_t handle, const access_mess
                                                       appkey_instances,
                                                       appkey_count);
     send_reply(handle, p_message, response_opcode, response_buffer, response_size, nrf_mesh_unique_token_get());
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = p_message->opcode.opcode == CONFIG_OPCODE_SIG_MODEL_APP_GET ?
+        CONFIG_SERVER_EVT_SIG_MODEL_APP_GET : CONFIG_SERVER_EVT_VENDOR_MODEL_APP_GET;
+    evt.params.model_app_get.model_handle = model_handle;
+    app_evt_send(&evt);
 }
 
-#if MESH_FEATURE_FRIEND_ENABLED
 static void handle_config_low_power_node_polltimeout_get(access_model_handle_t handle, const access_message_rx_t * p_message, void * p_args)
 {
     if (!IS_PACKET_LENGTH_VALID_WITH_ID(config_msg_low_power_node_polltimeout_get_t, p_message))
@@ -2871,15 +3005,22 @@ static void handle_config_low_power_node_polltimeout_get(access_model_handle_t h
 
     config_msg_low_power_node_polltimeout_status_t response = {p_pdu->lpn_address, {0, 0, 0}};
 
+#if MESH_FEATURE_FRIEND_ENABLED
     uint32_t remaining_time = friend_remaining_poll_timeout_time_get(p_pdu->lpn_address);
     response.polltimeout[0] = 0xFF & remaining_time;
     response.polltimeout[1] = 0xFF & (remaining_time >> 8);
     response.polltimeout[2] = 0xFF & (remaining_time >> 16);
+#endif
 
     send_reply(handle, p_message, CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_STATUS,
                (const uint8_t *) &response, sizeof(response), nrf_mesh_unique_token_get());
+
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_LOW_POWER_NODE_POLLTIMEOUT_GET;
+    evt.params.lpn_polltimeout_get.lpn_address = p_pdu->lpn_address;
+    app_evt_send(&evt);
 }
-#endif
 
 static void apply_reset(void)
 {
@@ -2893,7 +3034,9 @@ static void apply_reset(void)
     else
 #endif
     {
-        const config_server_evt_t evt = { .type = CONFIG_SERVER_EVT_NODE_RESET };
+        config_server_evt_t evt;
+        memset(&evt, 0, sizeof(config_server_evt_t));
+        evt.type = CONFIG_SERVER_EVT_NODE_RESET;
         app_evt_send(&evt);
         m_node_reset_pending = NODE_RESET_IDLE;
     }
@@ -2941,9 +3084,11 @@ static void mesh_event_cb(const nrf_mesh_evt_t * p_evt)
             break;
 
         case NRF_MESH_EVT_FLASH_STABLE:
-            if (NODE_RESET_FLASHING == m_node_reset_pending)
+            if (NODE_RESET_FLASHING == m_node_reset_pending && flash_manager_is_stable())
             {
-                const config_server_evt_t evt = { .type = CONFIG_SERVER_EVT_NODE_RESET };
+                config_server_evt_t evt;
+                memset(&evt, 0, sizeof(config_server_evt_t));
+                evt.type = CONFIG_SERVER_EVT_NODE_RESET;
                 app_evt_send(&evt);
                 m_node_reset_pending = NODE_RESET_IDLE;
             }
@@ -3002,9 +3147,7 @@ static const access_opcode_handler_t opcode_handlers[] =
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_SIG_MODEL_APP_GET)                            , handle_model_app_get },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_VENDOR_MODEL_APP_GET)                         , handle_model_app_get },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETWORK_TRANSMIT_GET)                         , handle_config_network_transmit_get},
-#if MESH_FEATURE_FRIEND_ENABLED
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_GET)               , handle_config_low_power_node_polltimeout_get},
-#endif
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETWORK_TRANSMIT_SET)                         , handle_config_network_transmit_set}
 };
 

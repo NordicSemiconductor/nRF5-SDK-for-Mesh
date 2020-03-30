@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -48,7 +48,7 @@
 #define IS_OVERFLOW_PENDING() (NRF_RTC1->EVENTS_OVRFLW == 1)
 /* Margin is required to prevent situation when written CC value is equal to COUNTER.
  * Situation with equality will cause losing interrupt for the tail counting until next overflow. */
-#define PROTECTION_MARGIN_FOR_TIMER_START   2ul
+#define PROTECTION_MARGIN_FOR_TIMER_START   3ul
 #define PROTECTION_MARGIN_FOR_OVFW_HANDLER  1ul
 
 #define TIMER_US_TO_TICKS(US)                              \

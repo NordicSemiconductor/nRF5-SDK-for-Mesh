@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -38,8 +38,6 @@
 #ifndef NRF_MESH_CONFIG_APP_H__
 #define NRF_MESH_CONFIG_APP_H__
 
-#include "light_switch_example_common.h"
-
 /**
  * @defgroup NRF_MESH_CONFIG_APP nRF Mesh app config
  *
@@ -68,6 +66,12 @@
 /** Device version identifier. */
 #define DEVICE_VERSION_ID (0x0000)
 
+/** Number of On-Off client models. */
+#define CLIENT_MODEL_INSTANCE_COUNT  (2)
+
+/** Maximum available number of servers to choose correct TTL for the network. */
+#define MAX_AVAILABLE_SERVER_NODE_NUMBER  (40)
+
 /** @} end of DEVICE_CONFIG */
 
 /**
@@ -78,7 +82,8 @@
 /**
  * The default TTL value for the node.
  */
-#define ACCESS_DEFAULT_TTL (SERVER_NODE_COUNT > NRF_MESH_TTL_MAX ? NRF_MESH_TTL_MAX : SERVER_NODE_COUNT)
+#define ACCESS_DEFAULT_TTL (MAX_AVAILABLE_SERVER_NODE_NUMBER > NRF_MESH_TTL_MAX ? \
+        NRF_MESH_TTL_MAX : MAX_AVAILABLE_SERVER_NODE_NUMBER)
 
 /**
  * The number of models in the application.

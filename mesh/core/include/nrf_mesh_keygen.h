@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2020, Nordic Semiconductor ASA
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -45,7 +45,7 @@
  * @defgroup MESH_KEYGEN Key Generation
  * @ingroup MESH_CORE
  * @brief Generation of the keys and value needed for mesh operation as specified by
- * the Bluetooth Mesh Profile Specification v1.0.
+ * @tagMeshSp.
  * @{
  */
 
@@ -63,8 +63,7 @@ typedef struct
 } nrf_mesh_keygen_friendship_secmat_params_t;
 
 /**
- * AID generation from application key. As specified by the Bluetooth Mesh Profile Specification v1.0,
- * section 3.8.6.2.
+ * AID generation from application key. As specified by @tagMeshSp section 3.8.6.2.
  *
  * @param[in] p_appkey Pointer to the application key of size @ref NRF_MESH_KEY_SIZE.
  * @param[out] p_aid Pointer to an @c uint8_t value to store the resulting AID.
@@ -76,7 +75,7 @@ uint32_t nrf_mesh_keygen_aid(const uint8_t * p_appkey, uint8_t * p_aid);
 
 /**
  * Generation of network security material:  NID, encryption key, and privacy key from the given
- * network key. As specified by the Bluetooth Mesh Profile Specification v1.0, section 3.8.6.3.
+ * network key. As specified by @tagMeshSp section 3.8.6.3.
  *
  * @param[in] p_netkey Pointer to the network key of size @ref NRF_MESH_KEY_SIZE.
  * @param[out] p_secmat Pointer to a @c nrf_mesh_network_secmat_t struct, in order to store the
@@ -89,7 +88,7 @@ uint32_t nrf_mesh_keygen_network_secmat(const uint8_t * p_netkey, nrf_mesh_netwo
 
 /**
  * Generation of friendship network security material:  NID, encryption key, and privacy key from the given
- * network key and friendship parameters. As specified by the Bluetooth Mesh Profile Specification v1.0, section 3.8.6.3.
+ * network key and friendship parameters. As specified by @tagMeshSp section 3.8.6.3.
  *
  * @param[in] p_netkey Pointer to the network key of size @ref NRF_MESH_KEY_SIZE.
  * @param[in] p_params Pointer to friendship parameter structure
@@ -104,7 +103,7 @@ uint32_t nrf_mesh_keygen_friendship_secmat(const uint8_t * p_netkey, const nrf_m
 
 /**
  * Generation of network beacon security material:  beacon key and net_id from the given network key.
- * As specified by the Bluetooth Mesh Profile Specification v1.0, section 3.8.6.3.2 and 3.8.6.3.4.
+ * As specified by @tagMeshSp section 3.8.6.3.2 and 3.8.6.3.4.
  *
  * @param[in] p_netkey Pointer to the network key of size @ref NRF_MESH_KEY_SIZE.
  * @param[out] p_secmat Pointer to a @c nrf_mesh_beacon_secmat_t struct, in order to store the
@@ -117,7 +116,7 @@ uint32_t nrf_mesh_keygen_beacon_secmat(const uint8_t * p_netkey, nrf_mesh_beacon
 
 /**
  * Generation of identity key.
- * As specified by the Bluetooth Mesh Profile Specification v1.0, section 3.8.6.3.3.
+ * As specified by @tagMeshSp section 3.8.6.3.3.
  *
  * @param[in] p_netkey Pointer to the network key of size @ref NRF_MESH_KEY_SIZE.
  * @param[out] p_key Pointer to a size @ref NRF_MESH_KEY_SIZE array for storing the resulting
@@ -130,7 +129,7 @@ uint32_t nrf_mesh_keygen_identitykey(const uint8_t * p_netkey, uint8_t * p_key);
 
 /**
  * Generation of the 16-bit virtual address from the virtual address UUID.
- * As specified by the Bluetooth Mesh Profile Specification v1.0, section 3.4.2.3.
+ * As specified by @tagMeshSp section 3.4.2.3.
  *
  * @param[in] p_virtual_uuid Pointer to the virtual address UUID key of size @ref NRF_MESH_KEY_SIZE.
  * @param[out] p_address Pointer to an @c uint16_t value for storing the resulting 16-bit address.
