@@ -4,8 +4,8 @@
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
-# 1. Redistributions of source code must retain the above copyright notice, this
-#    list of conditions and the following disclaimer.
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
 #
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
@@ -27,7 +27,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import sys
+from sys import argv, exit
 import subprocess
 import multiprocessing
 
@@ -37,7 +37,8 @@ To quit, enter 'q': """
 
 
 def list_devices():
-    return [int(d) for d in subprocess.check_output(['nrfjprog', '-i']).splitlines()]
+    return [int(d)
+            for d in subprocess.check_output(['nrfjprog', '-i']).splitlines()]
 
 
 def select_devices(devices):
@@ -45,10 +46,10 @@ def select_devices(devices):
     number = None
     while number is None:
         try:
-            number = input(USAGE_STRING)
+            number = str(input(USAGE_STRING))
             if number.lower() == "q":
                 return []
-            elif number.lower() == 'a':
+            elif number.lower() == "a":
                 return devices
             else:
                 ids = set([int(n) for n in number.split(",")])
@@ -62,14 +63,12 @@ def select_devices(devices):
 
 
 def flash(args):
-    device, hexfile = args
+    device, hexfile, mode = args
     device = str(device)
-    prefix = "# %s: " % (device)
-    print(prefix + "Erasing device...")
-    subprocess.check_output(["nrfjprog", "-s", device, "--eraseall"])
-    print(prefix + "Programming " + hexfile)
-    subprocess.check_output(["nrfjprog", "-s", device, "--program", hexfile])
-    print(prefix + "Resetting...")
+    print("# %s: Programming '--%s': %s" % (device, mode, hexfile))
+    subprocess.check_output(["nrfjprog", "-s", device,
+                             "--program", hexfile, "--%s" % mode])
+    print("# %s: Resetting..." % device)
     subprocess.check_output(["nrfjprog",  "-s", device, "--reset"])
 
 
@@ -81,19 +80,23 @@ def main():
         print("".join(["%d: %s\n" % (i, devices[i]) for i in device_range]))
     else:
         print("No devices connected")
-        sys.exit(0)
+        exit(0)
 
     devices = select_devices(devices)
 
     if len(devices) == 0:
         print("No device(s) selected")
-        sys.exit(0)
+        exit(0)
 
-    hexfile = sys.argv[1]
-    with multiprocessing.Pool(len(devices)) as p:
-        p.map(flash, [(d, hexfile) for d in devices])
+    hexfile = argv[1]
+    # NOTE: this format is so that interface can later expand
+    # to take other flags (or flags to be passed to nrfjprog)
+    mode = "sectorerase" if '--sectorerase' in argv else "chiperase"
 
-    sys.exit(0)
+    p = multiprocessing.Pool(len(devices))  # 'with' statement breaks python2
+    p.map(flash, [(d, hexfile, mode) for d in devices])
+
+    exit(0)
 
 
 if __name__ == "__main__":
