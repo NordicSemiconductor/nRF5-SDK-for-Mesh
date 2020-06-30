@@ -144,15 +144,17 @@ static const light_ctl_setup_server_callbacks_t ctl_setup_srv_cbs =
 
 static int32_t ctl_state_delta_max_compute(app_light_ctl_setup_server_t * p_app,
                                            uint32_t initial_present_temperature32,
-                                           uint32_t initial_present_delta_uv)
+                                           uint32_t target_temperature32,
+                                           int16_t initial_present_delta_uv,
+                                           int16_t target_delta_uv)
 {
     int32_t temp_delta;
     int32_t duv_delta;
 
     /* Compute which is the bigest delta, and return it */
-    temp_delta = (int32_t)light_ctl_utils_temperature32_to_temperature(p_app->state.target_temperature32) -
+    temp_delta = (int32_t)light_ctl_utils_temperature32_to_temperature(target_temperature32) -
                  (int32_t)light_ctl_utils_temperature32_to_temperature(initial_present_temperature32);
-    duv_delta =  p_app->state.target_delta_uv - initial_present_delta_uv;
+    duv_delta = target_delta_uv - initial_present_delta_uv;
 
     return (abs(temp_delta) > abs(duv_delta) ? temp_delta : duv_delta);
 }
@@ -189,6 +191,15 @@ static void ctl_state_get_cb(const light_ctl_setup_server_t * p_self,
     {
         p_out->remaining_time_ms = app_transition_remaining_time_get(&p_app->state.transition);
     }
+
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1,
+      "GET CTL: pr L: %d T: %d   tgt L: %d T: %d  rem-tt: %d ms req-delta: %d \n",
+      p_out->present_lightness,
+      light_ctl_utils_temperature32_to_temperature(p_out->present_temperature32),
+      p_out->target_lightness,
+      light_ctl_utils_temperature32_to_temperature(p_out->target_temperature32),
+      p_out->remaining_time_ms,
+      p_params->required_delta);
 }
 
 static void ctl_state_set_cb(const light_ctl_setup_server_t * p_self,
@@ -221,23 +232,27 @@ static void ctl_state_set_cb(const light_ctl_setup_server_t * p_self,
 
     /* Process the temperature and delta UV states (CTL specific - no lightness involved) */
     p_app->app_light_ctl_get_cb(p_app, &present_ctl_state);
-    p_app->state.target_temperature32 = p_in->temperature32;
-    p_app->state.target_delta_uv = p_in->delta_uv;
+    p_app->state.target_temp32_snapshot = p_in->temperature32;
+    p_app->state.target_duv_snapshot = p_in->delta_uv;
+    p_app->state.init_present_temp32_snapshot = p_app->state.present_temperature32;
+    p_app->state.init_present_duv_snapshot = p_app->state.present_delta_uv;
 
-    ERROR_CHECK(light_ctl_mc_temperature32_state_set(p_self->state.handle, p_app->state.target_temperature32));
-    ERROR_CHECK(light_ctl_mc_delta_uv_state_set(p_self->state.handle, p_app->state.target_delta_uv));
+    ERROR_CHECK(light_ctl_mc_temperature32_state_set(p_self->state.handle, p_app->state.target_temp32_snapshot));
+    ERROR_CHECK(light_ctl_mc_delta_uv_state_set(p_self->state.handle, p_app->state.target_duv_snapshot));
 
     /* If this is first time since boot, set all of the values, otherwise, check which values to set */
     if (!p_self->state.initialized || (present_ctl_state.temperature32 != p_in->temperature32) ||
         (present_ctl_state.delta_uv != p_in->delta_uv))
     {
         int32_t delta = ctl_state_delta_max_compute(p_app, present_ctl_state.temperature32,
-                                                    present_ctl_state.delta_uv);
+                                                    p_app->state.target_temp32_snapshot,
+                                                    present_ctl_state.delta_uv,
+                                                    p_app->state.target_duv_snapshot);
         transition_parameters_set(p_app, delta, p_in_transition, APP_CTL_TRANSITION_SET);
 
         transition_time_ms = p_params->transition_time_ms;
         __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
-              "SET: target lightness: %d temperature: %d duv: %d delay: %d  tt: %d  req-delta: %d \n",
+              "CTL SET: target lightness: %d temperature: %d duv: %d delay: %d  tt: %d  req-delta: %d \n",
               p_in->lightness,
               light_ctl_utils_temperature32_to_temperature(p_in->temperature32),
               p_in->delta_uv,
@@ -257,7 +272,7 @@ static void ctl_state_set_cb(const light_ctl_setup_server_t * p_self,
         p_out->present_lightness = ll_out.present_lightness;
         p_out->target_lightness  = ll_out.target_lightness;
         p_out->present_temperature32 = p_app->state.present_temperature32;
-        p_out->target_temperature32 = p_app->state.target_temperature32;
+        p_out->target_temperature32 = p_app->state.target_temp32_snapshot;
         p_out->remaining_time_ms = transition_time_ms;
     }
 }
@@ -299,6 +314,11 @@ static void ctl_state_temperature32_get_cb(const light_ctl_setup_server_t * p_se
         p_out->target_temperature32 = p_app->state.target_temperature32;
         p_out->remaining_time_ms = app_transition_remaining_time_get(&p_app->state.transition);
     }
+
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "GET Temp: pr: %d tgt: %d tt: %d\n",
+          light_ctl_utils_temperature32_to_temperature(p_out->present_temperature32),
+          light_ctl_utils_temperature32_to_temperature(p_out->target_temperature32),
+          p_out->remaining_time_ms);
 }
 
 static void ctl_state_temperature32_set_cb(const light_ctl_setup_server_t * p_self,
@@ -319,25 +339,30 @@ static void ctl_state_temperature32_set_cb(const light_ctl_setup_server_t * p_se
 
     p_app->app_light_ctl_get_cb(p_app, &present_ctl_state);
 
-    p_app->state.target_temperature32 = p_in->temperature32;
-    p_app->state.target_delta_uv = p_in->delta_uv;
+    p_app->state.target_temp32_snapshot = p_in->temperature32;
+    p_app->state.target_duv_snapshot = p_in->delta_uv;
+    p_app->state.init_present_temp32_snapshot = p_app->state.present_temperature32;
+    p_app->state.init_present_duv_snapshot = p_app->state.present_delta_uv;
 
-    ERROR_CHECK(light_ctl_mc_temperature32_state_set(p_self->state.handle, p_app->state.target_temperature32));
-    ERROR_CHECK(light_ctl_mc_delta_uv_state_set(p_self->state.handle, p_app->state.target_delta_uv));
+
+    ERROR_CHECK(light_ctl_mc_temperature32_state_set(p_self->state.handle, p_app->state.target_temp32_snapshot));
+    ERROR_CHECK(light_ctl_mc_delta_uv_state_set(p_self->state.handle, p_app->state.target_duv_snapshot));
 
     /* If this is first time since boot, set all of the values, otherwise, check which values to set */
     if (!p_self->state.initialized || (present_ctl_state.temperature32 != p_in->temperature32) ||
         (present_ctl_state.delta_uv != p_in->delta_uv))
     {
         int32_t delta = ctl_state_delta_max_compute(p_app, present_ctl_state.temperature32,
-                                                    present_ctl_state.delta_uv);
+                                                    p_app->state.target_temp32_snapshot,
+                                                    present_ctl_state.delta_uv,
+                                                    p_app->state.target_duv_snapshot);
         transition_parameters_set(p_app, delta, p_in_transition, APP_CTL_TRANSITION_SET);
 
         transition_time_ms = p_params->transition_time_ms;
         __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
-              "SET: target temperature: %d  duv: %d,  delay: %d  tt: %d  req-delta: %d \n",
-              light_ctl_utils_temperature32_to_temperature(p_app->state.target_temperature32),
-              p_app->state.target_delta_uv,
+              "Temp SET: target temperature: %d  duv: %d,  delay: %d  tt: %d  req-delta: %d \n",
+              light_ctl_utils_temperature32_to_temperature(p_in->temperature32),
+              p_in->delta_uv,
               p_app->state.transition.delay_ms,
               p_params->transition_time_ms,
               p_params->required_delta);
@@ -353,9 +378,9 @@ static void ctl_state_temperature32_set_cb(const light_ctl_setup_server_t * p_se
     if (p_out != NULL)
     {
         p_out->present_temperature32 = p_app->state.present_temperature32;
-        p_out->target_temperature32 = p_app->state.target_temperature32;
+        p_out->target_temperature32 = p_app->state.target_temp32_snapshot;
         p_out->present_delta_uv = p_app->state.present_delta_uv;
-        p_out->target_delta_uv = p_app->state.target_delta_uv;
+        p_out->target_delta_uv = p_app->state.target_duv_snapshot;
         p_out->remaining_time_ms = transition_time_ms;
     }
 }
@@ -506,11 +531,16 @@ static void ctl_state_delta_set_cb(const light_ctl_setup_server_t * p_self,
     light_ctl_temperature_range_set_params_t range_set;
     ERROR_CHECK(light_ctl_mc_temperature32_range_state_get(p_self->state.handle, &range_set));
 
+    if (p_app->state.new_tid)
+    {
+        p_app->state.init_present_temp32_snapshot = p_app->state.present_temperature32;
+        p_app->state.init_present_duv_snapshot = p_app->state.present_delta_uv;
+    }
     target_temperature32 = p_app->state.new_tid ?
                            present_ctl_state.temperature32 + delta32 :
                            p_app->state.initial_present_temperature32 + delta32;
 
-    p_app->state.target_temperature32 =
+    p_app->state.target_temp32_snapshot =
         target_temperature32 > (int64_t)range_set.temperature32_range_max ? range_set.temperature32_range_max :
         target_temperature32 < (int64_t)range_set.temperature32_range_min ? range_set.temperature32_range_min :
         target_temperature32;
@@ -527,7 +557,7 @@ static void ctl_state_delta_set_cb(const light_ctl_setup_server_t * p_self,
     if (p_out != NULL)
     {
         p_out->present_temperature32 = p_app->state.present_temperature32;
-        p_out->target_temperature32 = p_app->state.target_temperature32;
+        p_out->target_temperature32 = p_app->state.target_temp32_snapshot;
         p_out->remaining_time_ms = p_params->transition_time_ms;
     }
 }
@@ -559,16 +589,16 @@ static void ctl_state_move_set_cb(const light_ctl_setup_server_t * p_self,
     if (p_in->delta_temperature > 0 &&
         p_app->state.transition.requested_params.transition_time_ms > 0)
     {
-        p_app->state.target_temperature32 = range_set.temperature32_range_max;
+        p_app->state.target_temp32_snapshot = range_set.temperature32_range_max;
     }
     else if (p_in->delta_temperature < 0 &&
              p_app->state.transition.requested_params.transition_time_ms > 0)
     {
-        p_app->state.target_temperature32 = range_set.temperature32_range_min;
+        p_app->state.target_temp32_snapshot = range_set.temperature32_range_min;
     }
     else
     {
-        p_app->state.target_temperature32 = p_app->state.present_temperature32;
+        p_app->state.target_temp32_snapshot = p_app->state.present_temperature32;
     }
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "MOVE SET: delta: %d  delay: %d  tt: %d\n",
@@ -582,7 +612,7 @@ static void ctl_state_move_set_cb(const light_ctl_setup_server_t * p_self,
         p_out->present_temperature32 = p_app->state.present_temperature32;
         /* Insert values as expected in level status message for Move Set */
         p_out->target_temperature32 =
-            p_app->state.target_temperature32 == range_set.temperature32_range_max ? UINT32_MAX : 0;
+            p_app->state.target_temp32_snapshot == range_set.temperature32_range_max ? UINT32_MAX : 0;
         /* Response to Move Set message is sent with unknown transition time value, if given
          * transition time is non-zero. */
         p_out->remaining_time_ms = (p_params->transition_time_ms == 0 || p_in->delta_temperature == 0) ?
@@ -749,9 +779,11 @@ static void transition_start_cb(const app_transition_t * p_transition)
         (p_app->state.transition.requested_params.transition_type == APP_CTL_TRANSITION_SET) ||
         (p_app->state.transition.requested_params.transition_type == APP_CTL_TRANSITION_MOVE_SET))
     {
-        p_app->state.initial_present_temperature32 = present_ctl_state.temperature32;
-        p_app->state.initial_present_delta_uv = present_ctl_state.delta_uv;
+        p_app->state.initial_present_temperature32 = p_app->state.init_present_temp32_snapshot;
+        p_app->state.initial_present_delta_uv = p_app->state.init_present_duv_snapshot;
     }
+    p_app->state.target_temperature32 = p_app->state.target_temp32_snapshot;
+    p_app->state.target_delta_uv = p_app->state.target_duv_snapshot;
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Element %d: starting transition: initial-t32: %d delta: %d tt: %d\n",
           p_app->light_ctl_setup_srv.settings.element_index,
@@ -896,6 +928,9 @@ static void transition_complete_cb(const app_transition_t * p_transition)
 
     p_app = transition_to_app(p_transition);
     app_transition_params_t * p_params = app_transition_ongoing_get(&p_app->state.transition);
+
+    p_app->state.target_temperature32 = p_app->state.target_temp32_snapshot;
+    p_app->state.target_delta_uv = p_app->state.target_duv_snapshot;
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Element %d: transition completed\n",
           p_app->light_ctl_setup_srv.settings.element_index);

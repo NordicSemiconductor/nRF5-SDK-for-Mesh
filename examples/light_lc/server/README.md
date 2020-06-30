@@ -1,5 +1,6 @@
 # Light LC server example
 
+@tag52840and52833and52832
 @tag52810nosupport
 
 This example demonstrates how the light controller uses the data coming from sensors and switches
@@ -64,8 +65,6 @@ The Light LC Setup Server supports BLE Mesh Occupancy and Ambient Lux Level sens
 are received through the Sensor Status messages.
 Sensors use the Sensor Server model to publish Sensor Status messages.
 
-For demonstration purposes, this example includes a prebuilt HEX file with the occupancy sensor example.
-
 The Light LC Setup Server model uses the Proportional Integral (PI) Feedback Regulator to control
 the lightness output. The PI Feedback Regulator reads the ambient light sensors' data at regular intervals.
 
@@ -75,20 +74,19 @@ For more information about the Light LC models, see [Light LC models documentati
 
 ## Hardware requirements @anchor light_lc_server_example_hw_requirements
 
-You need at least two supported development kits for this example:
+You need at least three compatible development kits for this example:
 
-- One nRF52 development kit for the [Light switch client](@ref light_switch_demo_client).
-- One or more nRF52 development kits for the light LC servers.
-- One or more nRF52 development kits running mesh firmware with the provided precompiled occupancy sensor example.
+- One compatible development kit for the [Light switch client](@ref light_switch_demo_client).
+- One or more compatible development kits for the light LC servers.
+- One or more compatible development kits for the [Sensor server](@ref md_examples_sensor_README).
 
-Additionally, you need one development kit for the provisioner
-if you decide to use the [static provisioner example](@ref md_examples_provisioner_README).
-For details, see [software requirements](@ref light_lightness_example_sw_requirements).
+Additionally, you need one of the following for provisioning:
+- One compatible development kit for the provisioner if you decide to use the [static provisioner example](@ref md_examples_provisioner_README).
+- An iOS or Android smartphone if you decide to provision using the @link_nrf_mesh_app mobile application.
 
-See @ref md_doc_user_guide_mesh_compatibility for the supported development kits.
+See @ref md_doc_user_guide_mesh_compatibility for information about the compatible development kits.
 
 @note This example uses the PWM peripheral to control the brightness of the LED.
-For this reason, it cannot be run on the nRF51 devices.
 
 
 ---
@@ -96,22 +94,19 @@ For this reason, it cannot be run on the nRF51 devices.
 ## Software requirements @anchor light_lc_server_example_sw_requirements
 
 To test this example, you need to use the following additional software:
-    - The client example from the light switch example folder:
+    - The client example from the [Light switch example](@ref md_examples_light_switch_README) folder:
       `<InstallFolder>/examples/light_switch/client`
-        - See the [Light switch example](@ref md_examples_light_switch_README) page for more information
-          about the client example.
-    - As the Sensor Server model is not implemented in this version of the nRF5 SDK for Mesh, use the
-    precompiled version of the occupancy sensor example. The precompiled occupancy sensor example HEX
-    files are available at `<InstallFolder>/examples/light_lc/server/bin`.
-    - Depending on your choice of the provisioning method:
-        - If you decide to use the static provisioner example, you need the provisioner example:
-          `<InstallFolder>/examples/provisioner`
-            - See the [Provisioner example](@ref md_examples_provisioner_README) page for more information
-            about the provisioner example.
+    - The server example from the [Sensor example](@ref md_examples_sensor_README) folder:
+      `<InstallFolder>/examples/sensor/server` for use as an emulated occupancy sensor.
+    - Depending on the provisioning method:
         - If you decide to provision using the mobile application, you need to download and install
         @link_nrf_mesh_app (available for @link_nrf_mesh_app_ios and @link_nrf_mesh_app_android).
+        - If you decide to use the static provisioner example, you need the [provisioner example](@ref md_examples_provisioner_README).
     
-    
+@note The Sensor server example implements an emulated Motion Detect sensor. It does
+not implement an ambient light sensor.
+
+
 ---
 
 ## Setup @anchor light_lc_server_example_setup
@@ -139,15 +134,8 @@ The following LED and button assignments are defined for this example:
             - Light Control Time Fade Standby Manual
             - Light Control Time Run On
 
-            See Section 4.1.3 of the Mesh Device Properties v1.1, @link_MeshProperties, and @link_MeshCharacteristics
+            See Section 4.1.3 of the @tagMeshDevPr, @link_MeshProperties, and @link_MeshCharacteristics
             for more information about the properties.
-- Sensor Server:
-    - LED 1: Reflects the value of the Presence Detect state of the emulated occupancy sensor.
-    - When interacting with the boards, use the following buttons or RTT input:
-    | RTT input   | DK buttons  |  Effect                                                      |
-    |-------------|-------------|--------------------------------------------------------------|
-    | `1`         | 1           | Toggles the value of the emulated Presence Detect state.     |
-    | `4`         | 4           | All mesh data is erased and the device is reset.             |
 
 
 ---
@@ -155,14 +143,8 @@ The following LED and button assignments are defined for this example:
 
 ## Testing the example @anchor light_lc_server_example_testing
 
-To test the light LC server example, first build this example and the light switch client example by following the instructions in [Building the mesh stack](@ref md_doc_getting_started_how_to_build).
-
-@par Using 40+ servers with static provisioner
-If you have more than 40 boards for the servers and decided to use the static provisioner example:
-1. Set `MAX_PROVISIONEE_NUMBER` (in `example_network_config.h`) to the number of boards available.
-2. Rebuild the provisioner example.
-3. Set `MAX_AVAILABLE_SERVER_NODE_NUMBER` in `nrf_mesh_config_app.h`
-of the client example to the value set for `MAX_PROVISIONEE_NUMBER`.
+To test the light LC server example, first build this example, the light switch client example,
+and the sensor server example by following the instructions in [Building the mesh stack](@ref md_doc_getting_started_how_to_build).
 
 @note
 The @link_ModelSpec mentions that the default value of the mode of the light controller to be set
@@ -180,46 +162,24 @@ provisioning approach:
 
 ### Evaluating using the static provisioner @anchor light_lc_server_example_testing_dk
 
-Complete the following steps:
-1. Flash the examples by following the instructions in @ref md_doc_getting_started_how_to_run_examples,
-including:
-    -# Erase the flash of your development boards and program the SoftDevice.
-    -# Flash the provisioner and the client firmware on individual boards and the server firmwares on other boards.
-2. After the reset at the end of the flashing process, press Button 1 on the provisioner board
-to start the provisioning process:
-    -# The provisioner provisions and configures the client and assigns the address 0x100 to the client node.
-    -# The two instances of the Light Switch client models are instantiated on separate secondary elements.
-    For this reason, they get consecutive addresses starting with 0x101.
-    -# The provisioner also provisions and configures the servers at random. It assigns the Light LC servers
-    consecutive addresses starting with 0x501, and adds them to odd and even groups. It assigns
-    the Sensor servers consecutive addresses starting with 0x801, and adds them to odd and even
-    groups.
-@note - The sequence of provisioned devices depends on the sequence of received unprovisioned beacons.
-@note - You can use [RTT viewer](@ref segger-rtt) to view the RTT output generated by the provisioner.
-The provisioner prints details about the provisioning and the configuration process in the RTT log.
-3. Observe that the LED 1 on the provisioner board is turned ON when provisioner is scanning and provisioning a device.
-4. Observe that the LED 2 on the provisioner board is turned ON when configuration procedure is in progress.
-5. Wait until LED 1 on the provisioner board remains lit steadily for a few seconds, which indicates that
-all available boards have been provisioned and configured.
-
-If the provisioner encounters an error during the provisioning or configuration process for a certain node,
-you can reset the provisioner to restart this process for that node.
+See [provisioner example testing section](@ref provisioner_example_evaluating) for detailed steps required
+to provision and configure the boards using the static provisioner.
 
 ### Evaluating using the nRF Mesh mobile app @anchor light_lc_server_example_testing_app
 
-See @ref nrf-mesh-mobile-app "the information on the main Examples page" for detailed steps required
+See [Evaluating examples using the nRF Mesh mobile application](@ref nrf-mesh-mobile-app) for detailed steps required
 to provision and configure the boards using the nRF Mesh mobile app.
 
 The following naming convention is used in the app:
 - Each server board is `nRF5x Mesh Light LC Setup Server`.
 - The Light switch client board is `nRF5x Mesh Switch`.
-- The Occupancy sensor board is `nRF5x Mesh Occupancy Sensor`.
+- The Occupancy sensor board is `nRF5x Mesh Sensor Setup Server`.
 
 The following model instances must be configured in the app for this example:
 - For the `nRF5x Mesh Light LC Setup Server` server boards: Light LC Setup Server,
   Light LC Server, Generic OnOff Server instantiated on the second element.
 - For the `nRF5x Mesh Switch` client board: Generic OnOff Client.
-- For the `nRF Mesh Sensor Server` server board(s): Sensor Server.
+- For the `nRF5x Mesh Sensor Setup Server` server board(s): Sensor Server.
 
 When [setting publication with nRF Mesh mobile app](@ref nrf-mesh-mobile-app-publication):
 - For the Light switch client example, set the publication address of the second Generic OnOff Client
@@ -242,7 +202,7 @@ At this stage, you can interact with the Light LC server example by using the fo
     - Even though this example does not provide the Light LC Client example, you can still send Light On and Light Off events to
     the Light LC Setup Server example, because the Light LC Light OnOff state of the Light LC Server is bound
     with the Generic OnOff state of the Generic OnOff Server model extended by the Light LC Server model instance.
-- Press Button 1 on the Sensor Server board to trigger the `Occupancy On` event.
+- Press Button 3 or Button 4 on the Sensor Server board to trigger the `Occupancy On` event.
 
 Issuing the `Occupancy On` event or the `Light On` event triggers the following chain of events, as shown on
 the Figure 6.4 of the @link_ModelSpec:

@@ -516,7 +516,8 @@ static void provisioner_pubkey_send(nrf_mesh_prov_ctx_t *p_provisioner_ctx, cons
 
 static void prov_utils_use_ecdh_offloading_expect(void)
 {
-    bool enabled = false;
+    /* this may be a false positive AddressSanitizer report because mock uses custom stack unwind mechanism. */
+    static bool enabled = false;
     mesh_config_entry_get_ExpectAndReturn(MESH_OPT_PROV_ECDH_OFFLOADING_EID, NULL, NRF_SUCCESS);
     mesh_config_entry_get_IgnoreArg_p_entry();
     mesh_config_entry_get_ReturnMemThruPtr_p_entry(&enabled, sizeof(bool));

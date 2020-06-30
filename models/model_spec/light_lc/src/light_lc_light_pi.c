@@ -70,6 +70,9 @@
 /** Fixed point multiplier for coefficients */
 #define LIGHT_PI_COEFFICIENT_MULT (100)
 
+/** Divisor for converting raw Illuminance characteristic values to Lux. */
+#define LIGHT_PI_ILLUMINANCE_TO_LUX_DIV (100)
+
 /** @tagMeshMdlSp requires I be 0-65535 (Table 6.53). */
 #define ANTI_RESET_WINDUP(i) MAX(MIN(LIGHT_PI_INTEGRAL_MAX, i), LIGHT_PI_INTEGRAL_MIN)
 
@@ -201,7 +204,7 @@ void light_lc_light_pi_update(light_lc_setup_server_t * p_s_server)
     /* get the values out of the states for the luxlevel and lightness */
     luxlevel_out = light_lc_state_utils_luxlevel_out_get(p_s_server);
 
-    e_adjustment_error = (int64_t) luxlevel_out - (int64_t) ROUNDED_DIV(ambient_luxlevel_illum, LIGHT_PI_COEFFICIENT_MULT);
+    e_adjustment_error = (int64_t)ROUNDED_DIV((int64_t)luxlevel_out - (int64_t)ambient_luxlevel_illum, LIGHT_PI_ILLUMINANCE_TO_LUX_DIV);
 
     regulator_accuracy = light_lc_state_utils_property_get(p_s_server, LIGHT_LC_SERVER_REGULATOR_ACCURACY_PID);
 
@@ -223,8 +226,8 @@ void light_lc_light_pi_update(light_lc_setup_server_t * p_s_server)
     }
 #if LIGHT_PI_DEBUG
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Accuracy=%d, D=%d, Luxlevel SP=%d, measured=%d, E=%d, U=%d\n",
-          regulator_accuracy, d_accuracy, ROUNDED_DIV(luxlevel_out, LIGHT_PI_COEFFICIENT_MULT),
-          ROUNDED_DIV(ambient_luxlevel_illum, LIGHT_PI_COEFFICIENT_MULT), e_adjustment_error, u_regulator_input);
+          regulator_accuracy, d_accuracy, ROUNDED_DIV(luxlevel_out, LIGHT_PI_ILLUMINANCE_TO_LUX_DIV),
+          ROUNDED_DIV(ambient_luxlevel_illum, LIGHT_PI_ILLUMINANCE_TO_LUX_DIV), e_adjustment_error, u_regulator_input);
 #endif
 
     t_summation_interval = LIGHT_LC_LIGHT_PI_SUMMATION_INTERVAL_MS;
@@ -236,7 +239,7 @@ void light_lc_light_pi_update(light_lc_setup_server_t * p_s_server)
 
     if (u_regulator_input >= 0)
     {
-        /* Divide by 1000 to convert msec to sec, divide by coefficient fixed point */
+        /* Divide by 1000 to convert msec to sec, divide by conversion factor used for coefficient fixed point conversion */
         i_internal_sum +=
             ((int64_t) u_regulator_input * (int64_t) t_summation_interval * (int64_t) k_iu / 1000) / LIGHT_PI_COEFFICIENT_MULT;
         l_regulator_output =

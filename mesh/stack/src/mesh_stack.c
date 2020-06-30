@@ -208,7 +208,6 @@ void mesh_stack_config_clear(void)
     net_state_reset();
 }
 
-
 bool mesh_stack_is_device_provisioned(void)
 {
     return nrf_mesh_is_device_provisioned();
@@ -288,4 +287,16 @@ uint32_t mesh_stack_persistence_flash_usage(const uint32_t ** pp_start, uint32_t
 health_server_t * mesh_stack_health_server_get(void)
 {
     return &m_health_server;
+}
+
+void mesh_stack_power_down(void)
+{
+    // turn off scanner and advertiser
+
+    // turn off SD GATT
+
+    // turn off timer
+
+    // start power down storage
+
 }

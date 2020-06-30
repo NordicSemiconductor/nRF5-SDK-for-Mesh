@@ -49,7 +49,7 @@
 /* Margin is required to prevent situation when written CC value is equal to COUNTER.
  * Situation with equality will cause losing interrupt for the tail counting until next overflow. */
 #define PROTECTION_MARGIN_FOR_TIMER_START   3ul
-#define PROTECTION_MARGIN_FOR_OVFW_HANDLER  1ul
+#define PROTECTION_MARGIN_FOR_OVFW_HANDLER  2ul
 
 #define TIMER_US_TO_TICKS(US)                              \
             ((uint32_t)ROUNDED_DIV(                        \
@@ -95,8 +95,9 @@ void nrf_mesh_timer_ovfw_handle(void)
             if (m_tail_timer_counter > NRF_RTC1->COUNTER)
             {
                 _DISABLE_IRQS(was_masked);
-                NRF_RTC1->CC[1] = m_tail_timer_counter > NRF_RTC1->COUNTER + PROTECTION_MARGIN_FOR_OVFW_HANDLER ?
-                        m_tail_timer_counter : NRF_RTC1->COUNTER + PROTECTION_MARGIN_FOR_TIMER_START;
+                uint32_t cnt = NRF_RTC1->COUNTER;
+                NRF_RTC1->CC[1] = m_tail_timer_counter > cnt + PROTECTION_MARGIN_FOR_OVFW_HANDLER ?
+                        m_tail_timer_counter : cnt + PROTECTION_MARGIN_FOR_TIMER_START;
                 _ENABLE_IRQS(was_masked);
                 NRF_RTC1->EVTENSET = RTC_EVTEN_COMPARE1_Msk;
                 NRF_RTC1->INTENSET = RTC_INTENSET_COMPARE1_Msk;

@@ -45,10 +45,10 @@ def select_devices(devices):
     number = None
     while number is None:
         try:
-            number = input(USAGE_STRING)
+            number = str(input(USAGE_STRING))
             if number.lower() == "q":
                 return []
-            elif number.lower() == 'a':
+            elif number.lower() == "a":
                 return devices
             else:
                 ids = set([int(n) for n in number.split(",")])
@@ -62,15 +62,16 @@ def select_devices(devices):
 
 
 def flash(args):
-    device, hexfile = args
+    device, hexfile, mode = args
     device = str(device)
-    prefix = "# %s: " % (device)
-    print(prefix + "Erasing device...")
-    subprocess.check_output(["nrfjprog", "-s", device, "--eraseall"])
-    print(prefix + "Programming " + hexfile)
-    subprocess.check_output(["nrfjprog", "-s", device, "--program", hexfile])
-    print(prefix + "Resetting...")
-    subprocess.check_output(["nrfjprog",  "-s", device, "--reset"])
+    cmd = ["nrfjprog", "-s", device, "--program", hexfile, "%s" % mode]
+    print("# Programming ...")
+    print(' '.join(cmd))
+    subprocess.check_output(cmd)
+    cmd = ["nrfjprog",  "-s", device, "--reset"]
+    print("# Resetting ...")
+    print(' '.join(cmd))
+    subprocess.check_output(cmd)
 
 
 def main():
@@ -90,8 +91,9 @@ def main():
         sys.exit(0)
 
     hexfile = sys.argv[1]
+    mode = sys.argv[2]
     with multiprocessing.Pool(len(devices)) as p:
-        p.map(flash, [(d, hexfile) for d in devices])
+        p.map(flash, [(d, hexfile, mode) for d in devices])
 
     sys.exit(0)
 

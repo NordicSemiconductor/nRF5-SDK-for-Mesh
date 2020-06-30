@@ -47,6 +47,8 @@
 #define MESH_UUID                           (0xFEE4)
 #define MESH_ADV_DATA_TYPE                  (0x16)
 #define BLE_ADV_PACKET_PAYLOAD_MAX_LENGTH   (31)
+#define BLE_AD_DATA_OVERHEAD                (1)
+#define MESH_DFU_DATA_OVERHEAD              (3)
 
 #define MESH_PACKET_BLE_OVERHEAD            (BLE_GAP_ADDR_LEN)                                                      /* overhead before advertisement payload */
 #define MESH_PACKET_ADV_OVERHEAD            (1 /* adv_type */ + 2 /* UUID */ + 2 /* handle */ + 2 /* version */)    /* overhead inside adv data */

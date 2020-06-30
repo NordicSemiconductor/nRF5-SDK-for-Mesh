@@ -473,6 +473,7 @@ void advertiser_address_default_get(ble_gap_addr_t * p_addr)
             NRF_MESH_ASSERT(false);
     }
 
+    p_addr->addr_id_peer = 0;
     memcpy(p_addr->addr, (uint8_t*) NRF_FICR->DEVICEADDR, BLE_GAP_ADDR_LEN);
     set_gap_addr_type(p_addr);
 }

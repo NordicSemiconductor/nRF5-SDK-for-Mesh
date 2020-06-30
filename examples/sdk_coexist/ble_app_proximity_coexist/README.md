@@ -1,5 +1,8 @@
 # SDK Proximity coexistence example
 
+@tag52840and52833and52832
+@tag52810nosupport
+
 This example demonstrates how nRF5 SDK for Mesh and nRF5 SDK examples can be used together
 at the same time. It is built around two examples and has two parts:
 - The mesh part of this example implements the
@@ -21,10 +24,24 @@ Before you start testing this coexistence example, see the following pages:
 
 ---
 
+## Hardware requirements @anchor coexistence_proximity_example_hw_reqs
+
+You need development kits required by the [light switch client example](@ref md_examples_light_switch_client_README)
+from the nRF5 SDK for Mesh.
+
+@note
+While this example is compatible with nRF52840 and nRF52833 development kits, the nRF5 SDK for Mesh only provides SES files for nRF52832.
+
+Additionally, you need one development kit for the [static provisioner example](@ref md_examples_provisioner_README).
+For details, see [software requirements](@ref coexistence_proximity_example_sw_reqs).
+
+---
+
 ## Software requirements @anchor coexistence_proximity_example_sw_reqs
 
 This example does not support PB-GATT for provisioning.
-For this purpose, use the [static provisioner example](@ref md_examples_provisioner_README).
+For this purpose, use the static provisioner example: `<InstallFolder>/examples/provisioner`.
+See the [provisioner example](@ref md_examples_provisioner_README) page for more information.
 
 ---
 

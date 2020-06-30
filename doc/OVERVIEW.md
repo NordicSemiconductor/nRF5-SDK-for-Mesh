@@ -20,6 +20,8 @@ You can also find detailed information about Bluetooth Mesh in @link_btsig_intro
 ## Release notes @anchor overview_release_notes
 Check the @subpage md_RELEASE_NOTES page for the list of all the changes made in each release.
 
+---
+
 ## Supported devices @anchor supported_devices
 
 The nRF5 SDK for Mesh fully supports the following Nordic devices:
@@ -29,6 +31,8 @@ The nRF5 SDK for Mesh fully supports the following Nordic devices:
 - nRF52810 (limited support)
 
 For details, see the @ref md_doc_user_guide_mesh_compatibility page.
+
+---
 
 ## Supported features @anchor support_list
 
@@ -58,8 +62,9 @@ yet to be qualified:
 - Generic OnOff Server and Client
 - Generic PowerOnOff Server and Client
 - Light Lightness Setup Server (with associated models) and Light Lightness Client
-- Light CTL Server (with associated models) and Light CTL Client
-- Light LC Server (with associated models) and Light LC Client
+- Light CTL Setup Server (with associated models) and Light CTL Client
+- Light LC Setup Server (with associated models) and Light LC Client
+- Sensor Setup Server (with associated models) and Sensor Client
 
 For more information about the models in the nRF5 SDK for Mesh, see @ref
 md_doc_user_guide_modules_models_main.
@@ -69,6 +74,7 @@ The nRF5 SDK for Mesh also includes the following features that are specific to 
 - @ref md_doc_user_guide_modules_instaburst
 
 
+---
 ## Where to get started @anchor getting_started
 
 Regardless of your familiarity with Bluetooth Mesh, you can start working with the nRF5 SDK for Mesh
@@ -93,6 +99,8 @@ After setting up the toolchain, continue with the following pages:
 If you've been using one of the previous versions of the nRF SDK for Mesh,
 check the @ref md_MIGRATION_GUIDE in the Getting Started section.
 
+
+---
 ## Repository structure @anchor repo_structure
 
 The nRF5 SDK for Mesh repository is organized as follows:
@@ -115,10 +123,7 @@ It is provided for reference only.
 Currently, there is no system in place for integrating fixes through the public GitHub mirror.
 For this reason, pull requests on GitHub are not accepted.
 
-@note Markdown documentation files in GitHub are placed as close as possible to the code.
-This placement does not correspond to the structure of this documentation website.
-However, the contents of both the files on GitHub and this documentation website are the same.
-
+---
 ## Reporting issues @anchor reporting_issues
 
 All bug reports and fix suggestions are appreciated. Please report all issues on 

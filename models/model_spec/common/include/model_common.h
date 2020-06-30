@@ -74,20 +74,31 @@
 #define LIGHT_CTL_SETUP_SERVER_INSTANCES_MAX (0)
 #endif
 
+/**
+ * The number of the Scene Setup Server instances used by the application
+ */
+#ifndef SCENE_SETUP_SERVER_INSTANCES_MAX
+#define SCENE_SETUP_SERVER_INSTANCES_MAX (0)
+#endif
+
 /** Model common record entry ID */
-#define MESH_APP_MODEL_COMMON_ID                (0x0001)
+#define MESH_APP_MODEL_COMMON_ID                    (0x0001)
 /** Start of Light Lightness Setup Server record entry IDs */
-#define MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_START (0x1000)
+#define MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_START     (0x1000)
 /** End of Light Lightness Setup Server record entry IDs */
-#define MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_END   (0x10FF)
+#define MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_END       (0x10FF)
 /** Start of LC Setup Server record entry IDs */
-#define MESH_APP_MODEL_LIGHT_LC_SERVER_ID_START       (0x1100)
+#define MESH_APP_MODEL_LIGHT_LC_SERVER_ID_START     (0x1100)
 /** End of Light LC Setup Server record entry IDs */
-#define MESH_APP_MODEL_LIGHT_LC_SERVER_ID_END         (0x12FF)
+#define MESH_APP_MODEL_LIGHT_LC_SERVER_ID_END       (0x12FF)
 /** Start of Light CTL Setup Server record entry IDs */
-#define MESH_APP_MODEL_LIGHT_CTL_SERVER_ID_START      (0x1300)
+#define MESH_APP_MODEL_LIGHT_CTL_SERVER_ID_START    (0x1300)
 /** End of Light CTL Setup Server record entry IDs */
-#define MESH_APP_MODEL_LIGHT_CTL_SERVER_ID_END        (0x13FF)
+#define MESH_APP_MODEL_LIGHT_CTL_SERVER_ID_END      (0x13FF)
+/** Start of Scene Setup Server record entry IDs */
+#define MESH_APP_MODEL_SCENE_SERVER_ID_START        (0x1400)
+/** End of Scene Setup Server record entry IDs */
+#define MESH_APP_MODEL_SCENE_SERVER_ID_END          (0x14FF)
 
 /** Transition time value to indicate unknown transition time */
 #define MODEL_TRANSITION_TIME_UNKNOWN               (UINT32_MAX)
@@ -301,6 +312,7 @@ bool model_transaction_is_new(tid_tracker_t * p_tid_tracker);
  *
  * @param[in] p_timer               Pointer to the @ref model_timer_t structure.
  *
+ * @retval NRF_SUCCESS              If the timer was successfully scheduled.
  * @retval NRF_ERROR_NULL           If `p_timer` or the timer callback is null.
  * @retval NRF_ERROR_INVALID_PARAM  If specified timout is too short.
  */
@@ -331,8 +343,8 @@ uint64_t model_timer_elapsed_ticks_get(model_timer_t * p_timer);
  *
  * @param[in]  p_timer      Pointer to @ref model_timer_t structure.
  *
- * @retval NRF_ERROR_NULL           If p_timer is NULL.
  * @retval NRF_SUCCESS              If the timer was successfully created.
+ * @retval NRF_ERROR_NULL           If p_timer is NULL.
  * @retval NRF_ERROR_INVALID_PARAM  If a parameter was invalid.
  * @retval NRF_ERROR_INVALID_STATE  If the application timer module has not been initialized or
  *                                  the timer is running.
@@ -353,10 +365,10 @@ void model_common_init(void);
  * @note Actual metadata is restored automatically if it was not found or if read out data is not
  * equal configuration parameters.
  *
- * @retval NRF_ERROR_NOT_FOUND    Persistent memory metadata was not found, stored default values.
+ * @retval NRF_SUCCESS            Presistent memory data applied successfully. Default values are
+ *                                stored if no data existed.
  * @retval NRF_ERROR_INVALID_DATA Data stored in the persistent memory was corrupted, old data was
- *                                cleared and restored with default values.
- * @retval NRF_SUCCESS            Presistent memory data applied successfully.
+ *                                cleared and restored with default values. Stack config is cleared.
  */
 uint32_t model_common_config_apply(void);
 

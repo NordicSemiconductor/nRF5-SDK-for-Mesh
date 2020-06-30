@@ -108,6 +108,12 @@
  * @ingroup MESH_API_GROUP_MODELS
  * @}
  *
+ * @defgroup MESH_API_GROUP_SENSOR_MODELS Sensor Models
+ * Sensor Model as defined in the @tagMeshMdlSp
+ * @{
+ * @ingroup MESH_API_GROUP_MODELS
+ * @}
+ *
  * @defgroup MESH_API_GROUP_LIGHT_MODELS Lighting Models
  * Lighting Models as defined in the @tagMeshMdlSp
  * @{

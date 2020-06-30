@@ -233,6 +233,7 @@ void test_instance_init(void)
                                  advertiser.config.adv_addr.addr,
                                  BLE_GAP_ADDR_LEN);
     TEST_ASSERT_EQUAL(BLE_GAP_ADDR_TYPE_PUBLIC, advertiser.config.adv_addr.addr_type);
+    TEST_ASSERT_EQUAL(0, advertiser.config.adv_addr.addr_id_peer);
 }
 
 

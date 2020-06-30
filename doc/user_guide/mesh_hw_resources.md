@@ -94,49 +94,53 @@ The examples are built with the [minimum recommended version of GNU Arm Embedded
 
 | Flash usage (kB) | RAM usage (kB) | Example                                                                         |
 |-----------------:|---------------:|:--------------------------------------------------------------------------------|
-|           95.952 |         11.712 | [Beaconing](@ref md_examples_beaconing_README)                                  |
-|           98.600 |         11.992 | [DFU without serial interface](@ref md_examples_dfu_README)                     |
-|          108.664 |         15.112 | [DFU with serial interface](@ref md_examples_dfu_README)                        |
-|          111.360 |         13.008 | [Dimming client](@ref md_examples_dimming_README)                               |
-|          115.432 |         13.156 | [Dimming server](@ref md_examples_dimming_README)                               |
-|          112.608 |         13.400 | [EnOcean switch translator client](@ref md_examples_enocean_switch_README)      |
-|          114.416 |         13.032 | [Light CTL client](@ref md_examples_light_ctl_README)                           |
-|          149.932 |         17.264 | [Light CTL+LC server](@ref md_examples_light_ctl_README)                        |
-|          136.088 |         15.648 | [Light CTL server](@ref md_examples_light_ctl_README)                           |
-|          138.652 |         16.076 | [Light LC server](@ref md_examples_light_lc_server_README)                      |
-|          113.988 |         12.996 | [Light Lightness client](@ref md_examples_light_lightness_README)               |
-|          124.808 |         14.468 | [Light Lightness server](@ref md_examples_light_lightness_README)               |
-|          109.808 |         12.976 | [Light switch client](@ref md_examples_light_switch_client_README)              |
-|          123.536 |         17.052 | [Light switch server](@ref md_examples_light_switch_server_README)              |
-|          123.836 |         13.308 | [Low Power node](@ref md_examples_lpn_README)                                   |
-|          103.528 |         11.112 | [PB-remote client](@ref md_examples_pb_remote_README)                           |
-|           99.532 |         11.540 | [PB-remote server](@ref md_examples_pb_remote_README)                           |
-|          109.064 |         12.440 | [Provisioner](@ref md_examples_provisioner_README)                              |
-|           97.052 |         14.448 | [Serial](@ref md_examples_serial_README)                                        |
+|           96.240 |         11.784 | [Beaconing](@ref md_examples_beaconing_README)                                  |
+|           98.776 |         12.064 | [DFU without serial interface](@ref md_examples_dfu_README)                     |
+|          109.048 |         15.184 | [DFU with serial interface](@ref md_examples_dfu_README)                        |
+|          111.608 |         13.096 | [Dimming client](@ref md_examples_dimming_README)                               |
+|          115.680 |         13.244 | [Dimming server](@ref md_examples_dimming_README)                               |
+|          112.824 |         13.504 | [EnOcean switch translator client](@ref md_examples_enocean_switch_README)      |
+|          114.648 |         13.120 | [Light CTL client](@ref md_examples_light_ctl_README)                           |
+|          151.156 |         17.368 | [Light CTL+LC server](@ref md_examples_light_ctl_README)                        |
+|          137.152 |         15.752 | [Light CTL server](@ref md_examples_light_ctl_README)                           |
+|          139.300 |         16.164 | [Light LC server](@ref md_examples_light_lc_server_README)                      |
+|          114.220 |         13.084 | [Light Lightness client](@ref md_examples_light_lightness_README)               |
+|          125.328 |         14.556 | [Light Lightness server](@ref md_examples_light_lightness_README)               |
+|          110.040 |         13.064 | [Light switch client](@ref md_examples_light_switch_client_README)              |
+|          123.944 |         17.252 | [Light switch server](@ref md_examples_light_switch_server_README)              |
+|          124.108 |         13.272 | [Low Power node](@ref md_examples_lpn_README)                                   |
+|          103.848 |         11.184 | [PB-remote client](@ref md_examples_pb_remote_README)                           |
+|           99.836 |         11.612 | [PB-remote server](@ref md_examples_pb_remote_README)                           |
+|          110.048 |         12.528 | [Provisioner](@ref md_examples_provisioner_README)                              |
+|          119.208 |         17.128 | [Sensor client](@ref md_examples_sensor_README)                                 |
+|          117.600 |         13.320 | [Sensor server](@ref md_examples_sensor_README)                                 |
+|           96.636 |         14.232 | [Serial](@ref md_examples_serial_README)                                        |
 
 ### Build type: `MinSizeRel` (`-Os`), Logging: None @anchor resource_usage_ram_and_flash_nRF52832-2
 
 | Flash usage (kB) | RAM usage (kB) | Example                                                                         |
 |-----------------:|---------------:|:--------------------------------------------------------------------------------|
-|           82.844 |          9.448 | [Beaconing](@ref md_examples_beaconing_README)                                  |
-|           83.348 |          9.728 | [DFU without serial interface](@ref md_examples_dfu_README)                     |
-|           92.740 |         12.848 | [DFU with serial interface](@ref md_examples_dfu_README)                        |
-|           93.624 |         12.992 | [Dimming client](@ref md_examples_dimming_README)                               |
-|           98.256 |         13.140 | [Dimming server](@ref md_examples_dimming_README)                               |
-|           94.680 |         13.384 | [EnOcean switch translator client](@ref md_examples_enocean_switch_README)      |
-|           94.888 |         13.016 | [Light CTL client](@ref md_examples_light_ctl_README)                           |
-|          124.484 |         17.248 | [Light CTL+LC server](@ref md_examples_light_ctl_README)                        |
-|          114.784 |         15.632 | [Light CTL server](@ref md_examples_light_ctl_README)                           |
-|          116.308 |         16.060 | [Light LC server](@ref md_examples_light_lc_server_README)                      |
-|           94.716 |         12.980 | [Light Lightness client](@ref md_examples_light_lightness_README)               |
-|          106.544 |         14.452 | [Light Lightness server](@ref md_examples_light_lightness_README)               |
-|           93.320 |         12.960 | [Light switch client](@ref md_examples_light_switch_client_README)              |
-|          103.528 |         17.036 | [Light switch server](@ref md_examples_light_switch_server_README)              |
-|          108.164 |         13.292 | [Low Power node](@ref md_examples_lpn_README)                                   |
-|           83.252 |         11.096 | [PB-remote client](@ref md_examples_pb_remote_README)                           |
-|           83.488 |          9.276 | [PB-remote server](@ref md_examples_pb_remote_README)                           |
-|           86.992 |         12.424 | [Provisioner](@ref md_examples_provisioner_README)                              |
-|           84.264 |         12.184 | [Serial](@ref md_examples_serial_README)                                        |
+|           82.924 |          9.520 | [Beaconing](@ref md_examples_beaconing_README)                                  |
+|           83.428 |          9.800 | [DFU without serial interface](@ref md_examples_dfu_README)                     |
+|           92.884 |         12.920 | [DFU with serial interface](@ref md_examples_dfu_README)                        |
+|           93.640 |         13.080 | [Dimming client](@ref md_examples_dimming_README)                               |
+|           98.288 |         13.228 | [Dimming server](@ref md_examples_dimming_README)                               |
+|           94.680 |         13.488 | [EnOcean switch translator client](@ref md_examples_enocean_switch_README)      |
+|           94.904 |         13.104 | [Light CTL client](@ref md_examples_light_ctl_README)                           |
+|          124.612 |         17.352 | [Light CTL+LC server](@ref md_examples_light_ctl_README)                        |
+|          114.976 |         15.736 | [Light CTL server](@ref md_examples_light_ctl_README)                           |
+|          116.292 |         16.148 | [Light LC server](@ref md_examples_light_lc_server_README)                      |
+|           94.732 |         13.068 | [Light Lightness client](@ref md_examples_light_lightness_README)               |
+|          106.640 |         14.540 | [Light Lightness server](@ref md_examples_light_lightness_README)               |
+|           93.336 |         13.048 | [Light switch client](@ref md_examples_light_switch_client_README)              |
+|          103.720 |         17.236 | [Light switch server](@ref md_examples_light_switch_server_README)              |
+|          108.404 |         13.256 | [Low Power node](@ref md_examples_lpn_README)                                   |
+|           83.348 |         11.168 | [PB-remote client](@ref md_examples_pb_remote_README)                           |
+|           83.584 |          9.348 | [PB-remote server](@ref md_examples_pb_remote_README)                           |
+|           87.328 |         12.512 | [Provisioner](@ref md_examples_provisioner_README)                              |
+|           95.256 |         17.112 | [Sensor client](@ref md_examples_sensor_README)                                 |
+|           97.184 |         13.304 | [Sensor server](@ref md_examples_sensor_README)                                 |
+|           83.640 |         11.968 | [Serial](@ref md_examples_serial_README)                                        |
 
 
 ---

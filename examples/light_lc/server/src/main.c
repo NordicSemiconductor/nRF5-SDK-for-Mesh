@@ -334,21 +334,25 @@ static void mesh_init(void)
     };
 
     uint32_t status = mesh_stack_init(&init_params, &m_device_provisioned);
-    switch (status)
+
+    if (status == NRF_SUCCESS)
     {
-    case NRF_ERROR_INVALID_DATA:
-        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
-              "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
-		__LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before start provisioning.\n");
-        break;
-    case NRF_SUCCESS:
-        break;
-    default:
-        APP_ERROR_CHECK(status);
+        /* Check if application stored data is valid, if not clear all data and use default values. */
+        status = model_common_config_apply();
     }
 
-    /* Check if application stored data is valid, if not clear all data and use default values. */
-    (void) model_common_config_apply();
+    switch (status)
+    {
+        case NRF_ERROR_INVALID_DATA:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
+                  "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before starting of the provisioning process.\n");
+            break;
+        case NRF_SUCCESS:
+            break;
+        default:
+            APP_ERROR_CHECK(status);
+    }
 }
 
 static void initialize(void)

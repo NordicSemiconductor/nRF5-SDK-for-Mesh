@@ -1,5 +1,6 @@
 # Low Power node example
 
+@tag52840and52833and52832
 @tag52810nosupport
 
 This example shows the implementation of a device supporting the Low Power node (LPN) feature. It
@@ -39,11 +40,12 @@ over BLE. The DFU over BLE is disabled by default. See @link_bootloader_and_dfu_
 
 ## Hardware requirements @anchor examples_lpn_requirements_hw
 
-Running this example requires three PCA10040 Development Kits:
-- One development kit for the LPN device running the Low Power Node example.
-- Two development kits for the light switch server device running the
+You need three compatible development kits for this example:
+- One compatible development kit for the LPN device running the Low Power Node example.
+- Two compatible development kits for the light switch server device running the
 [light switch server example](@ref light_switch_demo_server), which also includes a friend functionality.
 
+See @ref md_doc_user_guide_mesh_compatibility for information about the compatible development kits.
 
 ---
 

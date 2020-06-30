@@ -166,7 +166,7 @@ uint32_t mesh_friend_receive_window_set(uint8_t receive_window_ms);
 uint32_t mesh_friend_friendships_get(const mesh_friendship_t ** pp_friendships, uint8_t * p_count);
 
 /**
- * Gets the structures of statisctics for the given friendship.
+ * Gets the structures of statistics for the given friendship.
  *
  * Friendship statistics are only gathered if @c FRIEND_DEBUG is enabled.
  *

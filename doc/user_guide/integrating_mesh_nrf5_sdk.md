@@ -139,7 +139,7 @@ before they can be used. See the SDK documentation page @link_SDK_configuration_
     - `examples/common/src/mesh_provisionee.c`
 @note
 If various mesh features are not needed (for example, DFU), the corresponding files may simply be
-omitted from the project file. However, add `examples/nrf_mesh_weak.c` in their place to
+omitted from the project file. However, add `examples/common/src/nrf_mesh_weak.c` in their place to
 provide stubs for the missing API functions.
 2. Add the following folders to the project include path of the nRF5 SDK example:
     - `mesh/core/api`

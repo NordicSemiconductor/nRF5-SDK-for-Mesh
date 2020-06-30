@@ -59,7 +59,7 @@ NRF_MESH_STATIC_ASSERT((MESH_APP_MODEL_LIGHT_LC_SERVER_ID_START + (0x16 * LIGHT_
 /* Property section of lc state utils */
 typedef struct
 {
-    int property_id;
+    uint16_t property_id;
     uint8_t data_size;
     const mesh_config_entry_id_t * flash_var_id;
 #if LIGHT_LC_STATE_UTILS_DEBUG
@@ -359,6 +359,9 @@ light_lc_light_onoff_status_params_t light_lc_state_utils_light_onoff_get(light_
         ret.target_light_onoff = p_s_server->transition_info.requested_light_onoff;
         ret.remaining_time_ms = p_s_server->transition_info.requested_transition_time_ms;
 
+        __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "light_onoff_get: return: pr %d  tgt %d  rem_time %d\n",
+        ret.present_light_onoff, ret.target_light_onoff, ret.remaining_time_ms);
+
         return ret;
     }
 
@@ -375,12 +378,18 @@ light_lc_light_onoff_status_params_t light_lc_state_utils_light_onoff_get(light_
     }
     else
     {
+        /* We're out of sync - that can happen when node powers up. */
         if (ret.present_light_onoff != p_s_server->transition_info.present_light_onoff)
         {
-            /* We're out of sync - that can happen when we boot */
             p_s_server->transition_info.present_light_onoff = (bool)light_onoff;
         }
+        /* It is necessary to set target value to present value, even if transition time is zero
+         * to let higher layers use it during power up. */
+        ret.target_light_onoff = ret.present_light_onoff;
     }
+
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "light_onoff_get: return: pr %d  tgt %d  rem_time %d\n",
+    ret.present_light_onoff, ret.target_light_onoff, ret.remaining_time_ms);
 
     return ret;
 }

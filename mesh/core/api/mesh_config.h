@@ -97,7 +97,7 @@ bool mesh_config_is_busy(void);
 /**
  * Calculate the longest time required to store all power down state.
  *
- * To ensure that all power-down state can be safely stored in persisent storage before running out of power, the user must
+ * To ensure that all power-down state can be safely stored in persistent storage before running out of power, the user must
  * call @ref mesh_config_power_down some time before power loss. This function can be used to gather requirements for
  * a brown-out detection module that can notify the application of an impending power loss.
  *
@@ -108,6 +108,16 @@ bool mesh_config_is_busy(void);
  * @returns Required storage time in microseconds.
  */
 uint32_t mesh_config_power_down_time_get(void);
+
+/**
+ * Clean up the file area. It removes all stored file entries. Deleter of all active entries will be called.
+ *
+ * @note The file data is not safely removed until the mesh config module goes out of the busy
+ * state, as indicated by @ref mesh_config_is_busy or the @ref NRF_MESH_EVT_CONFIG_STABLE event.
+ *
+ * @param[in] file_id The unique file identifier.
+ */
+void mesh_config_file_clear(uint16_t file_id);
 
 /** @} */
 

@@ -59,6 +59,8 @@
 #include "light_lc_setup_server.h"
 #include "light_ctl_setup_server.h"
 #include "light_ctl_client.h"
+#include "sensor_setup_server.h"
+#include "sensor_client.h"
 
 #include "provisioner_helper.h"
 #include "node_setup.h"
@@ -137,10 +139,13 @@ static const prov_cfg_t m_ctl_server[]    = {DECLARE_CONFIGURATION(CONFIG_SCENAR
 static const prov_cfg_t m_ctl_lc_server[] = {DECLARE_CONFIGURATION(CONFIG_SCENARIO_LIGHT_CTL_LC_SERVER_EXAMPLE)};
 static const prov_cfg_t m_ctl_client[]    = {DECLARE_CONFIGURATION(CONFIG_SCENARIO_LIGHT_CTL_CLIENT_EXAMPLE)};
 static const prov_cfg_t m_sensor_server[] = {DECLARE_CONFIGURATION(CONFIG_SCENARIO_SENSOR_SERVER_EXAMPLE)};
+static const prov_cfg_t m_sensor_client[] = {DECLARE_CONFIGURATION(CONFIG_SCENARIO_SENSOR_CLIENT_EXAMPLE)};
+static const prov_cfg_t m_lpn_client[]    = {DECLARE_CONFIGURATION(CONFIG_SCENARIO_LPN_EXAMPLE)};
 
 static const prov_scenario_t m_scenarios[] =
 {
     {EX_URI_ENOCEAN,       m_onoff_client},
+    {EX_URI_LPN,           m_lpn_client},
     {EX_URI_DM_CLIENT,     m_level_client},
     {EX_URI_DM_SERVER,     m_level_server},
     {EX_URI_LS_CLIENT,     m_onoff_client},
@@ -151,7 +156,8 @@ static const prov_scenario_t m_scenarios[] =
     {EX_URI_CTL_SERVER,    m_ctl_server},
     {EX_URI_CTL_LC_SERVER, m_ctl_lc_server},
     {EX_URI_CTL_CLIENT,    m_ctl_client},
-    {EX_URI_SENSOR_SERVER, m_sensor_server}
+    {EX_URI_SENSOR_SERVER, m_sensor_server},
+    {EX_URI_SENSOR_CLIENT, m_sensor_client}
 };
 
 static uint16_t m_current_node_addr;
@@ -391,6 +397,8 @@ static const char * model_name_by_id_get(uint16_t model_id)
             return "Sensor server";
         case SENSOR_SETUP_SERVER_MODEL_ID:
             return "Sensor setup server";
+        case SENSOR_CLIENT_MODEL_ID:
+            return "Sensor client";
         default:
             return "Unknown model";
     }
@@ -466,6 +474,7 @@ static void config_step_execute(void)
         case NODE_SETUP_CONFIG_APPKEY_BIND_ONOFF_CLIENT:
         case NODE_SETUP_CONFIG_APPKEY_BIND_LL_CLIENT:
         case NODE_SETUP_CONFIG_APPKEY_BIND_CTL_CLIENT:
+        case NODE_SETUP_CONFIG_APPKEY_BIND_SENSOR_CLIENT:
         {
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App key bind: %s on element address 0x%04x\n",
                   model_name_by_id_get(mp_config_step->model_id), m_current_element_addr);
@@ -508,6 +517,8 @@ static void config_step_execute(void)
         case NODE_SETUP_CONFIG_PUBLICATION_CTL_SERVER:
         case NODE_SETUP_CONFIG_PUBLICATION_CTL_SETUP_SERVER:
         case NODE_SETUP_CONFIG_PUBLICATION_CTL_TEMPERATURE_SERVER:
+        case NODE_SETUP_CONFIG_PUBLICATION_SENSOR_SERVER:
+        case NODE_SETUP_CONFIG_PUBLICATION_SENSOR_SETUP_SERVER:
         {
             access_publish_period_t publish_period =
             {
@@ -529,12 +540,11 @@ static void config_step_execute(void)
 
         /* The sensor server should publish state on the same address as a client
          * since the LC server is a consumer of these messages.  */
-        case NODE_SETUP_CONFIG_PUBLICATION_SENSOR_SERVER:
-        case NODE_SETUP_CONFIG_PUBLICATION_SENSOR_SETUP_SERVER:
         case NODE_SETUP_CONFIG_PUBLICATION_LEVEL_CLIENT:
         case NODE_SETUP_CONFIG_PUBLICATION_ONOFF_CLIENT:
         case NODE_SETUP_CONFIG_PUBLICATION_LL_CLIENT:
         case NODE_SETUP_CONFIG_PUBLICATION_CTL_CLIENT:
+        case NODE_SETUP_CONFIG_PUBLICATION_SENSOR_CLIENT:
         {
             access_publish_period_t publish_period =
             {
@@ -566,6 +576,8 @@ static void config_step_execute(void)
         case NODE_SETUP_CONFIG_SUBSCRIPTION_CTL_SERVER:
         case NODE_SETUP_CONFIG_SUBSCRIPTION_CTL_SETUP_SERVER:
         case NODE_SETUP_CONFIG_SUBSCRIPTION_CTL_TEMPERATURE_SERVER:
+        case NODE_SETUP_CONFIG_SUBSCRIPTION_SENSOR_SERVER:
+        case NODE_SETUP_CONFIG_SUBSCRIPTION_SENSOR_SETUP_SERVER:
         {
             status = sub_state_set(m_current_element_addr,
                                    client_pub_address_get(m_current_node_addr));
@@ -576,10 +588,22 @@ static void config_step_execute(void)
             break;
         }
 
+        case NODE_SETUP_CONFIG_SUBSCRIPTION_LC_SERVER_ON_SENSOR_STATUS:
+        {
+            status = sub_state_set(m_current_element_addr,
+                                   server_pub_address_get(m_current_node_addr));
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Adding subscription to address 0x%04x for %s on element address 0x%04x\n",
+                  server_pub_address_get(m_current_node_addr),
+                  model_name_by_id_get(mp_config_step->model_id),
+                  m_current_element_addr);
+            break;
+        }
+
         case NODE_SETUP_CONFIG_SUBSCRIPTION_LEVEL_CLIENT:
         case NODE_SETUP_CONFIG_SUBSCRIPTION_ONOFF_CLIENT:
         case NODE_SETUP_CONFIG_SUBSCRIPTION_LL_CLIENT:
         case NODE_SETUP_CONFIG_SUBSCRIPTION_CTL_CLIENT:
+        case NODE_SETUP_CONFIG_SUBSCRIPTION_SENSOR_CLIENT:
         {
             status = sub_state_set(m_current_element_addr,
                                    server_pub_address_get(m_current_element_addr));

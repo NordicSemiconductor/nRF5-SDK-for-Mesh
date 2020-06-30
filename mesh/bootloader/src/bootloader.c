@@ -214,7 +214,7 @@ static void rx_cb(mesh_packet_t* p_packet)
         bl_cmd_t rx_cmd;
         rx_cmd.type = BL_CMD_TYPE_RX;
         rx_cmd.params.rx.p_dfu_packet = (dfu_packet_t*) &p_adv_data->handle;
-        rx_cmd.params.rx.length = p_adv_data->adv_data_length - 3;
+        rx_cmd.params.rx.length = p_adv_data->adv_data_length - MESH_DFU_DATA_OVERHEAD;
         bl_cmd_handler(&rx_cmd);
     }
 }
@@ -264,9 +264,9 @@ static uint32_t bl_evt_handler(bl_evt_t* p_evt)
         case BL_EVT_TYPE_TX_ABORT:
             transport_tx_abort(p_evt->params.tx.abort.tx_slot);
             break;
+#ifdef RBC_MESH_SERIAL
         case BL_EVT_TYPE_TX_SERIAL:
         {
-#ifdef RBC_MESH_SERIAL
             serial_evt_t serial_evt;
             serial_evt.opcode = SERIAL_EVT_OPCODE_DFU;
             memcpy(&serial_evt.params.dfu.packet,
@@ -278,8 +278,8 @@ static uint32_t bl_evt_handler(bl_evt_t* p_evt)
                 return NRF_ERROR_INTERNAL;
             }
             break;
-#endif
         }
+#endif
         case BL_EVT_TYPE_TIMER_SET:
             set_timeout(US_TO_RTC_TICKS(p_evt->params.timer.set.delay_us), TIMEOUT_ACTION_DFU_TIMEOUT);
             break;

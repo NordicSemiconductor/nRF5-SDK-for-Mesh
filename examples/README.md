@@ -49,6 +49,7 @@ The following examples are provided with this SDK:
 * @subpage md_examples_lpn_README demonstrates the Low Power node feature.
 * @subpage md_examples_provisioner_README demonstrates the provisioning process and can be extended by other functionalities.
 * @subpage md_examples_pb_remote_README demonstrates the use of remote provisioning to provision devices outside of the provisioner's radio range.
+* @subpage md_examples_sensor_README demonstrates how to use the [Sensor model](@ref SENSOR_MODEL).
 * @subpage md_examples_serial_README demonstrates how to  use the serial interface to create a mesh connectivity device.
 
 
@@ -85,6 +86,7 @@ See the following table for an overview of which example works with [PB-ADV](@re
 | @ref md_examples_provisioner_README           |   N/A    |   N/A    |
 | @ref md_examples_sdk_coexist_README           |   X      |   -      |
 | @ref md_examples_pb_remote_README*            |   X      |   -      |
+| @ref md_examples_sensor_README                |   X      |   X      |
 | @ref md_examples_serial_README*               |   X      |   -      |
 
 All these examples use the 16-byte static OOB value. The static OOB value is stored in `STATIC_AUTH_DATA`, which is defined in `example_common.h`.
@@ -106,7 +108,7 @@ For more information about provisioning, see the following pages:
 You can use @link_nrf_mesh_app (available for @link_nrf_mesh_app_ios and @link_nrf_mesh_app_android) with almost all of the Mesh examples
 for provisioning and configuring the boards. The only example that does not support the mobile application is the @ref md_examples_provisioner_README "mesh provisioner".
 
-This said, the nRF Mesh mobile application is recommended for use with the following examples:
+This said, the nRF Mesh mobile application is _recommended_ for use with the following examples:
 - @ref md_examples_light_switch_README
 - @ref md_examples_enocean_switch_README
 - @ref md_examples_dimming_README
@@ -114,6 +116,7 @@ This said, the nRF Mesh mobile application is recommended for use with the follo
 - @ref md_examples_light_lightness_README
 - @ref md_examples_light_lc_server_README
 - @ref md_examples_light_ctl_README
+- @ref md_examples_sensor_README
 
 Check the section about evaluating the example using the nRF Mesh mobile application on the documentation pages of these examples for example-specific information, like the name of the nodes in the application.
 

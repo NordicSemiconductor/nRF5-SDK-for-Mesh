@@ -40,14 +40,15 @@
 
 #include "mesh_config.h"
 #include "mesh_config_listener.h"
+#include "mesh_opt.h"
 #include "mesh_config_backend_mock.h"
 #include "event_mock.h"
 #include "nordic_common.h"
 #include "manual_mock_queue.h"
 #include "test_assert.h"
 
-#define FILE_ID_0   5
-#define FILE_ID_1   1234
+#define FILE_ID_0   MESH_OPT_ACCESS_FILE_ID
+#define FILE_ID_1   MESH_OPT_NET_STATE_FILE_ID
 
 #define TEST_ENTRY(index) (MESH_CONFIG_ENTRY_ID((index < 3 ? FILE_ID_0 : FILE_ID_1), 0x1000 + index))
 #define TEST_ENTRY_PARAMS(index) CONCAT_3(m_entry, index, _params)
@@ -187,21 +188,6 @@ void tearDown(void)
     listener_Destroy();
 }
 
-static void entry_param_check(mesh_config_entry_id_t id, mesh_config_entry_flags_t flag)
-{
-    for (uint32_t i = 0; i < sizeof(mesh_config_entries); i++)
-    {
-        if (mesh_config_entries[i].p_id->file == id.file)
-        {
-            uint32_t index = id.record - mesh_config_entries[i].p_id->record;
-            TEST_ASSERT_TRUE(index < mesh_config_entries[i].max_count);
-            TEST_ASSERT_TRUE(mesh_config_entries[i].p_state[index] == flag);
-            return;
-        }
-    }
-    TEST_FAIL_MESSAGE("Entry wasn't found. Test is broken.");
-}
-
 static uint32_t entry_set(mesh_config_entry_id_t id, const void * p_entry)
 {
     const entry_t * p_value = p_entry;
@@ -262,10 +248,6 @@ static void event_handler(const nrf_mesh_evt_t * p_evt, int calls)
             }
             TEST_ASSERT_EQUAL(expect.params.config_load_failure.reason,
                               p_evt->params.config_load_failure.reason);
-            if (p_evt->params.config_load_failure.reason != MESH_CONFIG_LOAD_FAILURE_INVALID_ID)
-            {
-                entry_param_check(p_evt->params.config_load_failure.id, MESH_CONFIG_ENTRY_FLAG_DIRTY);
-            }
             break;
         case NRF_MESH_EVT_CONFIG_STABLE:
             break;
@@ -402,13 +384,6 @@ void test_custom_load(void)
                 .return_value = NRF_ERROR_INVALID_DATA
             };
             entry_set_Expect(&entry_set);
-        }
-        else if (vector_broken[i].failure == MESH_CONFIG_LOAD_FAILURE_INVALID_ID)
-        {
-            if (vector_broken[i].load.id.file == FILE_ID_0 || vector_broken[i].load.id.file == FILE_ID_1)
-            {
-                mesh_config_backend_erase_ExpectAndReturn(vector_broken[i].load.id, NRF_SUCCESS);
-            }
         }
 
         config_evt_Expect(&load_fail_evt);
@@ -1013,10 +988,58 @@ void test_collision_check(void)
     TEST_NRF_MESH_ASSERT_EXPECT(mesh_config_init());
 }
 
+void test_clear_file(void)
+{
+    /* Run set-test first to populate the entries: */
+    test_set();
+    TEST_ASSERT_EACH_EQUAL_UINT8(true, m_active, NRF_SECTION_ENTRIES);
+
+    for (uint32_t i = 0; i < NRF_SECTION_ENTRIES; ++i)
+    {
+        for (uint32_t j = 0; j < mesh_config_entries[i].max_count; ++j)
+        {
+            /* Expect active state in flags */
+            TEST_ASSERT_EQUAL_HEX8(MESH_CONFIG_ENTRY_FLAG_ACTIVE, mesh_config_entries[i].p_state[j]);
+        }
+    }
+
+    mesh_config_backend_file_clean_Expect(mesh_config_files[1].p_backend_data);
+
+    mesh_config_file_clear(FILE_ID_1);
+
+    uint32_t active_state_checker = 0;
+    for (uint32_t i = 0; i < NRF_SECTION_ENTRIES; ++i)
+    {
+        for (uint32_t j = 0; j < mesh_config_entries[i].max_count; ++j)
+        {
+            if (mesh_config_entries[i].p_id->file == FILE_ID_0)
+            { /* Expect active state in flags for file FILE_ID_0 */
+                TEST_ASSERT_EQUAL_HEX8(MESH_CONFIG_ENTRY_FLAG_ACTIVE, mesh_config_entries[i].p_state[j]);
+                /* Check that the deleters are not called for active entries in the active file. */
+                TEST_ASSERT_TRUE(m_active[active_state_checker]);
+            }
+            else
+            { /* Expect not active state in flags for file FILE_ID_1 */
+                TEST_ASSERT_EQUAL_HEX8(0, mesh_config_entries[i].p_state[j]);
+                /* Check that the deleters are called for active entries in the removed file. */
+                TEST_ASSERT_FALSE(m_active[active_state_checker]);
+            }
+        }
+
+        active_state_checker++;
+    }
+}
+
 void test_clear_all(void)
 {
     /* Run set-test first to populate the entries: */
     test_set();
+    TEST_ASSERT_EACH_EQUAL_UINT8(true, m_active, NRF_SECTION_ENTRIES);
+
+    for (uint32_t i = 2; i < NRF_SECTION_ENTRIES; i++)
+    {
+        mesh_config_files[i].id = MESH_OPT_FIRST_FREE_ID + i; // the rest files are custom
+    }
 
     for (uint32_t i = 0; i < NRF_SECTION_ENTRIES; ++i)
     {
@@ -1029,14 +1052,9 @@ void test_clear_all(void)
 
     mesh_config_files[0].strategy = MESH_CONFIG_STRATEGY_ON_POWER_DOWN;
 
-    for (uint32_t i = 0; i < NRF_SECTION_ENTRIES; ++i)
+    for (uint32_t i = 0; i < 2; i++)
     {
-        for (uint32_t j = 0; j < mesh_config_entries[i].max_count; ++j)
-        {
-            mesh_config_entry_id_t id = {.file = mesh_config_entries[i].p_id->file,
-                                         .record = mesh_config_entries[i].p_id->record + j};
-            mesh_config_backend_erase_ExpectAndReturn(id, NRF_SUCCESS);
-        }
+        mesh_config_backend_file_clean_Expect(mesh_config_files[i].p_backend_data);
     }
 
     nrf_mesh_evt_t stable_evt = {.type = NRF_MESH_EVT_CONFIG_STABLE};
@@ -1044,15 +1062,11 @@ void test_clear_all(void)
 
     mesh_config_clear();
 
-    for (uint32_t i = 0; i < NRF_SECTION_ENTRIES; ++i)
+    for (uint32_t i = 0; i < 2; i++)
     {
-        for (uint32_t j = 0; j < mesh_config_entries[i].max_count; ++j)
-        {
-            mesh_config_backend_evt_t backend_evt = {MESH_CONFIG_BACKEND_EVT_TYPE_STORE_COMPLETE,
-                                                     .id.file = mesh_config_entries[i].p_id->file,
-                                                     .id.record = mesh_config_entries[i].p_id->record + j};
-            m_backend_evt_cb(&backend_evt);
-        }
+        mesh_config_backend_evt_t backend_evt = {MESH_CONFIG_BACKEND_EVT_TYPE_FILE_CLEAN_COMPLETE,
+                                                 .id.file = mesh_config_entries[i].p_id->file};
+        m_backend_evt_cb(&backend_evt);
     }
 
     for (uint32_t i = 0; i < NRF_SECTION_ENTRIES; ++i)
@@ -1063,4 +1077,70 @@ void test_clear_all(void)
             TEST_ASSERT_EQUAL_HEX8(0, mesh_config_entries[i].p_state[j]);
         }
     }
+
+    // check that we called deleters for every active entry
+    TEST_ASSERT_EACH_EQUAL_UINT8(false, m_active, NRF_SECTION_ENTRIES);
+}
+
+void test_file_to_entry_prioritization(void)
+{ /* Check that the file changes go first the entry changes go second. */
+
+    TEST_ASSERT_FALSE(mesh_config_is_busy());
+
+    /* clean file 0 */
+    mesh_config_backend_file_clean_Expect(mesh_config_files[0].p_backend_data);
+    mesh_config_file_clear(FILE_ID_0);
+
+    TEST_ASSERT_TRUE(mesh_config_is_busy());
+
+    /* Do one successful set for entry from file 0. */
+    entry_t entry = {1,2};
+    entry_set_params_t expect_params = {.id           = *mesh_config_entries[0].p_id,
+                                        .entry        = entry,
+                                        .return_value = NRF_SUCCESS};
+    entry_set_Expect(&expect_params);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_config_entry_set(expect_params.id, &entry));
+    /* Entry is triggered for processing and waits for file processing completing. */
+    TEST_ASSERT_EQUAL(MESH_CONFIG_ENTRY_FLAG_DIRTY | MESH_CONFIG_ENTRY_FLAG_ACTIVE, mesh_config_entries[0].p_state[0]);
+
+    TEST_ASSERT_TRUE(mesh_config_is_busy());
+
+    /* clean file 1 */
+    mesh_config_backend_file_clean_Expect(mesh_config_files[1].p_backend_data);
+    mesh_config_file_clear(FILE_ID_1);
+
+    TEST_ASSERT_TRUE(mesh_config_is_busy());
+
+    /* file 0 is ready. */
+    mesh_config_backend_evt_t backend_evt1 = {MESH_CONFIG_BACKEND_EVT_TYPE_FILE_CLEAN_COMPLETE,
+                                             .id.file = mesh_config_entries[0].p_id->file};
+    m_backend_evt_cb(&backend_evt1);
+
+    TEST_ASSERT_TRUE(mesh_config_is_busy());
+
+    /* file 1 is ready. Mesh config fulfilled file related work and starts immediately accumulated entries. */
+    mesh_config_backend_store_ExpectWithArrayAndReturn(expect_params.id,
+                                                       (const uint8_t *) &entry,
+                                                       sizeof(entry),
+                                                       sizeof(entry),
+                                                       NRF_SUCCESS);
+    mesh_config_backend_evt_t backend_evt2 = {MESH_CONFIG_BACKEND_EVT_TYPE_FILE_CLEAN_COMPLETE,
+                                             .id.file = mesh_config_entries[1].p_id->file};
+    m_backend_evt_cb(&backend_evt2);
+    /* File handling has been completed. Entry process started. */
+    TEST_ASSERT_EQUAL(MESH_CONFIG_ENTRY_FLAG_BUSY | MESH_CONFIG_ENTRY_FLAG_ACTIVE, mesh_config_entries[0].p_state[0]);
+
+    TEST_ASSERT_TRUE(mesh_config_is_busy());
+
+    /* Start expectation stable event after finishing entry processing. */
+    nrf_mesh_evt_t stable_evt = {.type = NRF_MESH_EVT_CONFIG_STABLE};
+    config_evt_Expect(&stable_evt);
+
+    mesh_config_backend_evt_t backend_evt3 = {.type = MESH_CONFIG_BACKEND_EVT_TYPE_STORE_COMPLETE,
+                                             .id   = expect_params.id};
+    m_backend_evt_cb(&backend_evt3);
+    /* Entry is stored in the persistent memory. */
+    TEST_ASSERT_EQUAL(MESH_CONFIG_ENTRY_FLAG_ACTIVE, mesh_config_entries[0].p_state[0]);
+
+    TEST_ASSERT_FALSE(mesh_config_is_busy());
 }

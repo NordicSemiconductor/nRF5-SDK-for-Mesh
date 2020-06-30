@@ -40,6 +40,7 @@
 #include "mesh_config_entry.h"
 #include "mesh_config_backend.h"
 #include "mesh_config_listener.h"
+#include "mesh_opt.h"
 #include "utils.h"
 #include "event.h"
 
@@ -65,6 +66,9 @@ NRF_MESH_SECTION_DEF_FLASH(mesh_config_entry_listeners, const mesh_config_listen
  * Power Down
  * Configuration cleaning */
 static bool m_emergency_action;
+/* Counter of entities that are in progress with hw part. */
+static uint32_t m_entry_in_progress_cnt;
+static uint32_t m_file_in_progress_cnt;
 
 /* This is architectural hook because dsm entries with the same id can have differed size.
  * Otherwise, these entries will be interpreted as invalid length entries.
@@ -137,6 +141,11 @@ static void listeners_notify(const mesh_config_entry_params_t * p_params,
 static void dirty_entries_process(void)
 {
 #if PERSISTENT_STORAGE
+    if (m_file_in_progress_cnt != 0)
+    { /* the file metadata might not be ready till the current moment. */
+        return;
+    }
+
     FOR_EACH_ENTRY(p_params)
     {
         const mesh_config_file_params_t * p_file = file_params_find(p_params->p_id->file);
@@ -170,6 +179,7 @@ static void dirty_entries_process(void)
                     switch (status)
                     {
                         case NRF_SUCCESS:
+                            m_entry_in_progress_cnt++;
                             p_params->p_state[j] &= (mesh_config_entry_flags_t)~MESH_CONFIG_ENTRY_FLAG_DIRTY;
                             p_params->p_state[j] |= MESH_CONFIG_ENTRY_FLAG_BUSY;
                             break;
@@ -214,21 +224,14 @@ static mesh_config_backend_iterate_action_t restore_callback(mesh_config_entry_i
     if (p_params == NULL)
     {
         load_failure = MESH_CONFIG_LOAD_FAILURE_INVALID_ID;
-        const mesh_config_file_params_t * p_file = file_params_find(id.file);
-        if (p_file != NULL)
-        {
-            (void)mesh_config_backend_erase(id);
-        }
     }
     else if (entry_len < p_params->entry_size)
     {
         load_failure = MESH_CONFIG_LOAD_FAILURE_INVALID_LENGTH;
-        *entry_flags_get(p_params, id) = MESH_CONFIG_ENTRY_FLAG_DIRTY;
     }
     else if (p_params->callbacks.setter(id, p_entry) != NRF_SUCCESS)
     {
         load_failure = MESH_CONFIG_LOAD_FAILURE_INVALID_DATA;
-        *entry_flags_get(p_params, id) = MESH_CONFIG_ENTRY_FLAG_DIRTY;
     }
     else
     {
@@ -253,22 +256,16 @@ static mesh_config_backend_iterate_action_t restore_callback(mesh_config_entry_i
 }
 
 #if PERSISTENT_STORAGE
-static void backend_evt_handler(const mesh_config_backend_evt_t * p_evt)
+static void backend_entry_evt_handler(const mesh_config_backend_evt_t * p_evt)
 {
     const mesh_config_entry_params_t * p_params = entry_params_find(p_evt->id);
-
-    if (p_params == NULL && MESH_CONFIG_BACKEND_EVT_TYPE_ERASE_COMPLETE == p_evt->type)
-    { /* Check whether entry with known file id was deleted. */
-        const mesh_config_file_params_t * p_file = file_params_find(p_evt->id.file);
-        NRF_MESH_ASSERT(p_file);
-        return;
-    }
-
     NRF_MESH_ASSERT(p_params);
 
     mesh_config_entry_flags_t * p_flags = entry_flags_get(p_params, p_evt->id);
     NRF_MESH_ASSERT_DEBUG(*p_flags & MESH_CONFIG_ENTRY_FLAG_BUSY);
     *p_flags &= (mesh_config_entry_flags_t)~MESH_CONFIG_ENTRY_FLAG_BUSY;
+    NRF_MESH_ASSERT(m_entry_in_progress_cnt != 0);
+    m_entry_in_progress_cnt--;
 
     if (p_evt->type == MESH_CONFIG_BACKEND_EVT_TYPE_STORAGE_MEDIUM_FAILURE)
     {
@@ -280,17 +277,41 @@ static void backend_evt_handler(const mesh_config_backend_evt_t * p_evt)
         };
         event_handle(&evt);
     }
+}
 
-    if (mesh_config_is_busy())
+static void backend_file_evt_handler(const mesh_config_backend_evt_t * p_evt)
+{
+    (void)p_evt;
+    NRF_MESH_ASSERT(m_file_in_progress_cnt != 0);
+    m_file_in_progress_cnt--;
+ }
+
+static void backend_evt_handler(const mesh_config_backend_evt_t * p_evt)
+{
+    if (p_evt->type == MESH_CONFIG_BACKEND_EVT_TYPE_FILE_CLEAN_COMPLETE)
     {
-        dirty_entries_process();
+        backend_file_evt_handler(p_evt);
     }
     else
     {
-        m_emergency_action = false;
-        nrf_mesh_evt_t evt = {.type = NRF_MESH_EVT_CONFIG_STABLE};
-        event_handle(&evt);
+        backend_entry_evt_handler(p_evt);
     }
+
+    if (m_file_in_progress_cnt != 0)
+    { /* fulfill the file logic first. */
+        return;
+    }
+
+    dirty_entries_process();
+
+    if (m_entry_in_progress_cnt != 0)
+    { /* fulfill the entry logic second. */
+        return;
+    }
+
+    m_emergency_action = false;
+    nrf_mesh_evt_t evt = {.type = NRF_MESH_EVT_CONFIG_STABLE};
+    event_handle(&evt);
 }
 #endif
 
@@ -322,6 +343,9 @@ static void entry_validation(void)
 
 void mesh_config_init(void)
 {
+    m_entry_in_progress_cnt = 0;
+    m_file_in_progress_cnt = 0;
+
     entry_validation();
 #if PERSISTENT_STORAGE
     mesh_config_backend_init(entry_params_get(0), CONFIG_ENTRY_COUNT, file_params_get(0), CONFIG_FILE_COUNT, backend_evt_handler);
@@ -350,26 +374,8 @@ void mesh_config_power_down(void)
 
 bool mesh_config_is_busy(void)
 {
-#if PERSISTENT_STORAGE
-    FOR_EACH_ENTRY(p_params)
-    {
-        for (uint32_t j = 0; j < p_params->max_count; ++j)
-        {
-            if (p_params->p_state[j] &
-               (mesh_config_entry_flags_t)(MESH_CONFIG_ENTRY_FLAG_DIRTY | MESH_CONFIG_ENTRY_FLAG_BUSY))
-            {
-                const mesh_config_file_params_t * p_file = file_params_find(p_params->p_id->file);
-                NRF_MESH_ASSERT(p_file);
-                if (p_file->strategy == MESH_CONFIG_STRATEGY_CONTINUOUS ||
-                   (p_file->strategy == MESH_CONFIG_STRATEGY_ON_POWER_DOWN && m_emergency_action))
-                {
-                    return true;
-                }
-            }
-        }
-    }
-#endif
-    return false;
+
+    return m_entry_in_progress_cnt != 0 || m_file_in_progress_cnt != 0;
 }
 
 bool mesh_config_entry_available_id(mesh_config_entry_id_t * p_base_id)
@@ -416,7 +422,7 @@ uint32_t mesh_config_entry_get(mesh_config_entry_id_t id, void * p_entry)
     const mesh_config_entry_params_t * p_params = entry_params_find(id);
     if (p_params)
     {
-        if (p_params->has_default || *entry_flags_get(p_params, id) & MESH_CONFIG_ENTRY_FLAG_ACTIVE)
+        if (p_params->has_default || (*entry_flags_get(p_params, id) & MESH_CONFIG_ENTRY_FLAG_ACTIVE))
         {
             p_params->callbacks.getter(id, p_entry);
         }
@@ -462,16 +468,55 @@ uint32_t mesh_config_power_down_time_get(void)
     return mesh_config_backend_power_down_time_get();
 }
 
+void mesh_config_file_clear(uint16_t file_id)
+{
+    const mesh_config_file_params_t * p_file = file_params_find(file_id);
+    NRF_MESH_ASSERT(p_file);
+
+    FOR_EACH_ENTRY(p_params)
+    {
+        if (p_params->p_id->file != file_id)
+        {
+            continue;
+        }
+
+        for (uint32_t j = 0; j < p_params->max_count; ++j)
+        {
+            if (p_params->p_state[j] & MESH_CONFIG_ENTRY_FLAG_ACTIVE)
+            {
+                mesh_config_entry_id_t id = *p_params->p_id;
+                id.record += j;
+
+                if (p_params->callbacks.deleter)
+                {
+                    p_params->callbacks.deleter(id);
+                }
+                listeners_notify(p_params, MESH_CONFIG_CHANGE_REASON_DELETE, id, NULL);
+
+                p_params->p_state[j] &=  /* no longer active and request to the entry processor does not have sense. */
+                                    (mesh_config_entry_flags_t)~(MESH_CONFIG_ENTRY_FLAG_ACTIVE | MESH_CONFIG_ENTRY_FLAG_DIRTY);
+            }
+        }
+    }
+
+#if PERSISTENT_STORAGE
+    if (p_file->strategy != MESH_CONFIG_STRATEGY_NON_PERSISTENT)
+    {
+        m_file_in_progress_cnt++;
+        mesh_config_backend_file_clean(p_file->p_backend_data);
+    }
+#endif
+}
+
 void mesh_config_clear(void)
 {
     m_emergency_action = true;
-    FOR_EACH_ENTRY(p_params)
+
+    FOR_EACH_FILE(p_file)
     {
-        for (uint32_t count = 0; count < p_params->max_count; count++)
+        if (MESH_OPT_FIRST_FREE_ID > p_file->id)
         {
-            mesh_config_entry_id_t entry_id = *(p_params->p_id);
-            entry_id.record += count;
-            (void) mesh_config_entry_delete(entry_id);
+            mesh_config_file_clear(p_file->id);
         }
     }
 }

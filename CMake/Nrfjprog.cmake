@@ -14,8 +14,13 @@ if (NRFJPROG AND MERGEHEX AND PYTHON_EXECUTABLE)
 
         add_dependencies(merge merge_${target})
 
+        add_custom_target(app_flash_${target}
+            COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CONFIG_DIR}/nrfjprog.py ${CMAKE_CURRENT_BINARY_DIR}/${target}.hex --sectorerase
+            USES_TERMINAL
+            DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${target}.hex)
+
         add_custom_target(flash_${target}
-            COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CONFIG_DIR}/nrfjprog.py ${CMAKE_CURRENT_BINARY_DIR}/${target}_merged.hex
+            COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CONFIG_DIR}/nrfjprog.py ${CMAKE_CURRENT_BINARY_DIR}/${target}_merged.hex --chiperase
             USES_TERMINAL
             DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${target}_merged.hex)
 

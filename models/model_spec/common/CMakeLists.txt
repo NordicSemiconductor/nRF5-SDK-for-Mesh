@@ -6,8 +6,9 @@ set(MODEL_COMMON_INCLUDE_DIRS
 
 set(lint_include_dirs
     ${MODEL_COMMON_INCLUDE_DIRS}
-    ${ACCESS_INCLUDE_DIRS}
     ${MESH_INCLUDE_DIRS}
+    ${CONFIG_SERVER_INCLUDE_DIRS}   # This is required because of mesh_stack.h
+    ${HEALTH_SERVER_INCLUDE_DIRS}   # This is required because of mesh_stack.h
     ${${SOFTDEVICE}_INCLUDE_DIRS}
     ${${PLATFORM}_INCLUDE_DIRS}
     ${${nRF5_SDK_VERSION}_INCLUDE_DIRS}

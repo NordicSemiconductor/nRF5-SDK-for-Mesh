@@ -25,7 +25,7 @@ to avoid bugs in your application.
 You can check the complete model implementation and its layout
 in the `models/vendor/simple_on_off` directory.
 
-If you want to see this model integrated into a complete application, take a look at
+If you want to see how this model can be integrated into a complete application, take a look at
 the @ref md_examples_light_switch_README and at the `examples/light_switch` directory.
 
 ---
@@ -89,7 +89,8 @@ for the Simple OnOff model to work.
 ### Implementing the server model @anchor simple_onoff_model_implementing_server
 
 The behavior of the simple OnOff server is illustrated by the following message sequence chart.
-![Simple OnOff behavior](img/simple_on_off_model.png "Simple OnOff behavior")
+
+![Simple OnOff behavior](img/simple_on_off_model.png)
 
 When the OnOff server receives SET and GET messages:
 - It calls a callback function provided by the application.

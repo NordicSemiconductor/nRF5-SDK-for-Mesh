@@ -60,6 +60,7 @@
 
 #include "device_state_manager_mock.h"
 #include "mesh_config_entry_mock.h"
+#include "mesh_config_mock.h"
 #include "nrf_mesh_events_mock.h"
 #include "nrf_mesh_mock.h"
 #include "nrf_mesh_utils_mock.h"
@@ -1016,6 +1017,7 @@ void setUp(void)
 {
     device_state_manager_mock_Init();
     mesh_config_entry_mock_Init();
+    mesh_config_mock_Init();
     nrf_mesh_mock_Init();
     nrf_mesh_events_mock_Init();
     nrf_mesh_utils_mock_Init();
@@ -1075,6 +1077,8 @@ void tearDown(void)
     device_state_manager_mock_Destroy();
     mesh_config_entry_mock_Verify();
     mesh_config_entry_mock_Destroy();
+    mesh_config_mock_Verify();
+    mesh_config_mock_Destroy();
     nrf_mesh_mock_Verify();
     nrf_mesh_mock_Destroy();
     nrf_mesh_events_mock_Verify();
@@ -2234,32 +2238,7 @@ void test_config_load_reload(void)
     /**************************************** access clear\persistent data erase *****************************************/
     access_reliable_cancel_all_StubWithCallback(access_reliable_cancel_all_cb);
     access_publish_clear_Expect();
-
-    entry_id = MESH_OPT_ACCESS_METADATA_EID;
-
-    mesh_config_entry_delete_ExpectAndReturn(entry_id, NRF_SUCCESS);
-
-    for (uint16_t idx = 0; idx < ACCESS_SUBSCRIPTION_LIST_COUNT; idx++)
-    {
-        entry_id = MESH_OPT_ACCESS_SUBSCRIPTIONS_EID;
-        entry_id.record += idx;
-        mesh_config_entry_delete_ExpectAndReturn(entry_id, NRF_SUCCESS);
-    }
-
-    for (uint16_t idx = 0; idx < ACCESS_ELEMENT_COUNT; idx++)
-    {
-        entry_id = MESH_OPT_ACCESS_ELEMENTS_EID;
-        entry_id.record += idx;
-        mesh_config_entry_delete_ExpectAndReturn(entry_id, NRF_SUCCESS);
-    }
-
-    for (access_model_handle_t hndl = 0; hndl < ACCESS_MODEL_COUNT; hndl++)
-    {
-        entry_id = MESH_OPT_ACCESS_MODELS_EID;
-        entry_id.record += hndl;
-        mesh_config_entry_delete_ExpectAndReturn(entry_id, NRF_SUCCESS);
-    }
-
+    mesh_config_file_clear_Expect(MESH_OPT_ACCESS_FILE_ID);
     access_clear();
 }
 

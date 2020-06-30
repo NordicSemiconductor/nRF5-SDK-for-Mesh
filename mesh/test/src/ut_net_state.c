@@ -48,6 +48,7 @@
 #include "nrf_mesh_events.h"
 
 #include "mesh_config_entry_mock.h"
+#include "mesh_config_mock.h"
 #include "event_mock.h"
 
 /*****************************************************************************
@@ -124,6 +125,7 @@ void setUp(void)
     m_critical_section_counter = 0;
     event_mock_Init();
     mesh_config_entry_mock_Init();
+    mesh_config_mock_Init();
 
     net_state_init();
 }
@@ -140,6 +142,8 @@ void tearDown(void)
     TEST_ASSERT_EQUAL(0, m_critical_section_counter);
     mesh_config_entry_mock_Verify();
     mesh_config_entry_mock_Destroy();
+    mesh_config_mock_Verify();
+    mesh_config_mock_Destroy();
 }
 
 static void evt_notify(nrf_mesh_evt_type_t evt_type)
@@ -938,8 +942,7 @@ void test_reset(void)
     TEST_ASSERT_EQUAL(0x1234, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
 
-    mesh_config_entry_delete_ExpectAndReturn(MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_EID, NRF_SUCCESS);
-    mesh_config_entry_delete_ExpectAndReturn(MESH_OPT_NET_STATE_IV_INDEX_EID, NRF_SUCCESS);
+    mesh_config_file_clear_Expect(MESH_OPT_NET_STATE_FILE_ID);
     m_seqnum_block_params.callbacks.deleter(MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_EID);
     m_iv_index_params.callbacks.deleter(MESH_OPT_NET_STATE_IV_INDEX_EID);
     expect_config_seqnum(NETWORK_SEQNUM_FLASH_BLOCK_SIZE);

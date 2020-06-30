@@ -50,6 +50,7 @@ typedef enum
 {
     MESH_CONFIG_BACKEND_EVT_TYPE_STORE_COMPLETE, /**< Store complete. */
     MESH_CONFIG_BACKEND_EVT_TYPE_ERASE_COMPLETE, /**< Erase complete. */
+    MESH_CONFIG_BACKEND_EVT_TYPE_FILE_CLEAN_COMPLETE, /**< File clean complete. */
     MESH_CONFIG_BACKEND_EVT_TYPE_STORAGE_MEDIUM_FAILURE, /**< The storage medium has irrevocably failed. */
 } mesh_config_backend_evt_type_t;
 
@@ -177,6 +178,17 @@ void mesh_config_backend_read_all(mesh_config_backend_iterate_cb_t cb);
  * @returns The maximum power down time in microseconds.
  */
 uint32_t mesh_config_backend_power_down_time_get(void);
+
+/**
+ * Cleans the file content.
+ * The backend passes a @ref MESH_CONFIG_BACKEND_EVT_TYPE_FILE_CLEAN_COMPLETE event to the event handler
+ * once the file is cleaned.
+ *
+ * It is possible to clean several files in parallel. The backend creates queue from requests.
+ *
+ * @param[in] p_file File to clean content.
+ */
+void mesh_config_backend_file_clean(mesh_config_backend_file_t * p_file);
 
 /** @} */
 

@@ -145,6 +145,15 @@ typedef struct
     /** Initial present delta_uv required for handling Set/Delta Set message. */
     int16_t initial_present_delta_uv;
 
+    /** Present temperature32 value when message was received */
+    uint32_t init_present_temp32_snapshot;
+    /** Requested target temperature32 */
+    uint32_t target_temp32_snapshot;
+    /** Present DUV value when message was received */
+    int16_t init_present_duv_snapshot;
+    /** Requested target DUV */
+    int16_t target_duv_snapshot;
+
     /** To detect if TID is new while processing delta transition */
     bool new_tid;
 

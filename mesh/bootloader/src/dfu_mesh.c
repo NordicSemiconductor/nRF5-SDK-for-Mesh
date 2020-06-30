@@ -53,8 +53,8 @@
 * Local defines
 *****************************************************************************/
 #define TX_REPEATS_DEFAULT              (3)
-#define TX_REPEATS_FWID                 (TX_REPEATS_INF)
-#define TX_REPEATS_READY                (TX_REPEATS_INF)
+#define TX_REPEATS_FWID                 (TX_REPEATS_DEFAULT * 5)
+#define TX_REPEATS_READY                (TX_REPEATS_DEFAULT)
 #define TX_REPEATS_READY_FWD            (1)
 #define TX_REPEATS_START                (TX_REPEATS_DEFAULT * 2)
 #define TX_REPEATS_DATA                 (TX_REPEATS_DEFAULT)
@@ -80,6 +80,8 @@
 #define REQ_RX_COUNT_RETRY              (8)
 
 #define DATA_REQ_SEGMENT_NONE           (0)
+
+#define LOST_START_EDGE                 (10)
 
 /*****************************************************************************
 * Local typedefs
@@ -141,6 +143,7 @@ static req_cache_entry_t        m_req_cache[REQ_CACHE_SIZE];
 static uint8_t                  m_req_index;
 static uint8_t                  m_tx_slots;
 static uint16_t                 m_data_req_segment;
+static uint8_t                  m_lost_start_edge;
 
 #ifdef RTT_LOG
 static const char*              m_state_strs[] =
@@ -843,9 +846,17 @@ static uint32_t target_rx_data(dfu_packet_t* p_packet, uint16_t length, bool* p_
         m_transaction.segment_count - m_transaction.signature_length / SEGMENT_LENGTH)
     {
         p_addr = addr_from_seg(p_packet->payload.data.segment, m_transaction.p_start_addr);
-        error_code = dfu_transfer_data((uint32_t) p_addr,
-                p_packet->payload.data.data,
-                length - (DFU_PACKET_LEN_DATA - SEGMENT_LENGTH));
+
+        if (length < (DFU_PACKET_LEN_DATA - SEGMENT_LENGTH))
+        {
+            error_code = NRF_ERROR_INVALID_LENGTH;
+        }
+        else
+        {
+            error_code = dfu_transfer_data((uint32_t) p_addr,
+                    p_packet->payload.data.data,
+                    length - (DFU_PACKET_LEN_DATA - SEGMENT_LENGTH));
+        }
     }
     else /* treat signature packets at the end */
     {
@@ -858,13 +869,21 @@ static uint32_t target_rx_data(dfu_packet_t* p_packet, uint16_t length, bool* p_
         }
         else
         {
-            memcpy(&m_transaction.signature[index * SEGMENT_LENGTH],
-                    p_packet->payload.data.data,
-                    length - (DFU_PACKET_LEN_DATA - SEGMENT_LENGTH));
+            if (length < (DFU_PACKET_LEN_DATA - SEGMENT_LENGTH) ||
+                length > DFU_PACKET_LEN_DATA)
+            {
+                error_code = NRF_ERROR_INVALID_LENGTH;
+            }
+            else
+            {
+                memcpy(&m_transaction.signature[index * SEGMENT_LENGTH],
+                        p_packet->payload.data.data,
+                        length - (DFU_PACKET_LEN_DATA - SEGMENT_LENGTH));
 
-            __LOG("Signature packet #%u\n", index);
-            m_transaction.signature_bitmap |= (1 << index);
-            error_code = NRF_SUCCESS;
+                __LOG("Signature packet #%u\n", index);
+                m_transaction.signature_bitmap |= (1 << index);
+                error_code = NRF_SUCCESS;
+            }
         }
     }
 
@@ -901,12 +920,20 @@ static uint32_t handle_data_packet(dfu_packet_t* p_packet, uint16_t length)
         case DFU_STATE_READY:
             if (p_packet->payload.start.segment == 0)
             {
+                m_lost_start_edge = 0;
                 target_rx_start(p_packet, &do_relay);
                 status = NRF_SUCCESS;
             }
             else
             {
+                m_lost_start_edge++;
+                if (m_lost_start_edge < LOST_START_EDGE)  // reach some edge to be sure that we really missed start
+                {
+                    return NRF_SUCCESS;
+                }
+
                 __LOG("ERROR: Received non-0 segment.\n");
+                m_lost_start_edge = 0;
                 tid_cache_entry_put(m_transaction.transaction_id);
                 start_req(m_transaction.type, &m_transaction.target_fwid_union); /* go back to req, we've missed packet 0 */
                 status = NRF_ERROR_INVALID_STATE;
@@ -963,14 +990,16 @@ static uint32_t handle_data_packet(dfu_packet_t* p_packet, uint16_t length)
             status = NRF_ERROR_INVALID_STATE;
             break;
     }
-    if (status == NRF_SUCCESS)
-    {
-        packet_cache_put(p_packet);
-    }
 
+    bool is_cached = false;
     if (do_relay)
     {
-        relay_packet(p_packet, length);
+        is_cached = NRF_SUCCESS == relay_packet(p_packet, length);
+    }
+
+    if (status == NRF_SUCCESS && !is_cached)
+    {
+        packet_cache_put(p_packet);
     }
 
     return status;
@@ -1116,7 +1145,15 @@ static uint32_t handle_data_req_packet(dfu_packet_t* p_packet)
             }
             else
             {
-                status = relay_packet(p_packet, 8);
+                status = relay_packet(p_packet, DFU_PACKET_LEN_DATA_REQ);
+
+#if RBC_MESH_SERIAL
+                bl_evt_t tx_evt;
+                tx_evt.type = BL_EVT_TYPE_TX_SERIAL;
+                tx_evt.params.tx.serial.p_dfu_packet = p_packet;
+                tx_evt.params.tx.serial.length = DFU_PACKET_LEN_DATA_REQ;
+                bootloader_evt_send(&tx_evt);
+#endif
             }
         }
         else /* In transfer */

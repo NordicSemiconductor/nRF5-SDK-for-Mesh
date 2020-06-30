@@ -122,6 +122,10 @@ static void app_level_transition_start_cb(const app_transition_t * p_transition)
     app_level_server_t * p_app = (app_level_server_t *) p_transition->p_context;
     app_transition_params_t * p_params = app_transition_ongoing_get(&p_app->state.transition);
 
+    p_app->state.delta = p_params->required_delta;
+    p_app->state.initial_present_level = p_app->state.init_present_snapshot;
+    p_app->state.target_level = p_app->state.target_snapshot;
+
     if (p_app->level_transition_cb != NULL)
     {
         p_app->level_transition_cb(p_app, p_params->transition_time_ms,
@@ -140,15 +144,15 @@ static void app_level_transition_tick_cb(const app_transition_t * p_transition)
     if (p_params->transition_type != APP_TRANSITION_TYPE_MOVE_SET)
     {
         /* Calculate new value using linear interpolation and provide to the application. */
-        int32_t delta = (p_app->state.target_level - p_app->state.params.set.initial_present_level);
-        p_app->state.present_level = p_app->state.params.set.initial_present_level +
+        int32_t delta = (p_app->state.target_level - p_app->state.initial_present_level);
+        p_app->state.present_level = p_app->state.initial_present_level +
                                         (delta * (int64_t)app_transition_elapsed_time_get(&p_app->state.transition) /
                                           (int64_t)p_params->transition_time_ms);
     }
     else
     {
-        p_app->state.present_level = p_app->state.params.move.initial_present_level +
-                                        (((int64_t)app_transition_elapsed_time_get(&p_app->state.transition) * (int64_t)p_app->state.params.move.required_move) /
+        p_app->state.present_level = p_app->state.initial_present_level +
+                                        (((int64_t)app_transition_elapsed_time_get(&p_app->state.transition) * (int64_t)p_app->state.delta) /
                                           (int64_t)p_params->transition_time_ms);
     }
 
@@ -163,6 +167,12 @@ static void app_level_transition_complete_cb(const app_transition_t * p_transiti
 {
     app_level_server_t * p_app = (app_level_server_t *) p_transition->p_context;
     app_transition_params_t * p_params = app_transition_ongoing_get(&p_app->state.transition);
+
+    /* This handles a case, when a new transition has a non-zero delay, but zero transition time.
+     * This also handles a case, when such request is received in the middle of another transition.
+     * In usual cases when transition time is non-zero, this assignment will have no effect since
+     * this copying is already done at start of the transition. */
+    p_app->state.target_level = p_app->state.target_snapshot;
 
     if (p_params->transition_type != APP_TRANSITION_TYPE_MOVE_SET)
     {
@@ -231,14 +241,13 @@ static void generic_level_state_set_cb(const generic_level_server_t * p_self,
     transition_params_set(p_app, p_in_transition);
 
     /* Update internal representation of Level value, process timing. */
-    p_app->state.target_level = p_in->level;
+    p_app->state.target_snapshot = p_in->level;
     p_params->transition_type = APP_TRANSITION_TYPE_SET;
-    p_app->state.params.set.initial_present_level = p_app->state.present_level;
-    p_app->state.params.set.required_delta = p_app->state.target_level - p_app->state.present_level;
-    p_params->required_delta = p_app->state.target_level - p_app->state.present_level;
+    p_app->state.init_present_snapshot = p_app->state.present_level;
+    p_params->required_delta = p_app->state.target_snapshot - p_app->state.init_present_snapshot;
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "SET: Level: %d  delay: %d  tt: %d  req-delta: %d \n",
-          p_app->state.target_level,  p_app->state.transition.delay_ms, p_params->transition_time_ms,
+          p_app->state.target_snapshot,  p_app->state.transition.delay_ms, p_params->transition_time_ms,
           p_params->required_delta);
 
     app_transition_trigger(&p_app->state.transition);
@@ -247,7 +256,7 @@ static void generic_level_state_set_cb(const generic_level_server_t * p_self,
     if (p_out != NULL)
     {
         p_out->present_level = p_app->state.present_level;
-        p_out->target_level = p_app->state.target_level;
+        p_out->target_level = p_app->state.target_snapshot;
         p_out->remaining_time_ms = p_params->transition_time_ms;
     }
 }
@@ -273,18 +282,17 @@ static void generic_level_state_delta_set_cb(const generic_level_server_t * p_se
     }
     else
     {
-        p_app->state.params.set.initial_present_level = p_app->state.present_level;
+        p_app->state.init_present_snapshot = p_app->state.present_level;
     }
 
-    p_app->state.target_level = p_app->state.params.set.initial_present_level + delta;
-    p_app->state.params.set.required_delta = delta;
+    p_app->state.target_snapshot = p_app->state.init_present_snapshot + delta;
     p_params->required_delta = delta;
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Delta SET: delta: %d  delay: %d  tt: %d\n",
           p_in->delta_level, p_app->state.transition.delay_ms, p_params->transition_time_ms);
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Delta SET: initial-level: %d  present-level: %d  target-level: %d\n",
-          p_app->state.params.set.initial_present_level, p_app->state.present_level, p_app->state.target_level);
+          p_app->state.init_present_snapshot, p_app->state.present_level, p_app->state.target_snapshot);
 
     app_transition_trigger(&p_app->state.transition);
 
@@ -292,10 +300,9 @@ static void generic_level_state_delta_set_cb(const generic_level_server_t * p_se
     if (p_out != NULL)
     {
         p_out->present_level = p_app->state.present_level;
-        p_out->target_level = p_app->state.target_level;
+        p_out->target_level = p_app->state.target_snapshot;
         p_out->remaining_time_ms = p_params->transition_time_ms;
     }
-
 }
 
 static void generic_level_state_move_set_cb(const generic_level_server_t * p_self,
@@ -313,16 +320,15 @@ static void generic_level_state_move_set_cb(const generic_level_server_t * p_sel
        Generic Level state when the transition speed is negative. */
     if (p_in->move_level > 0)
     {
-        p_app->state.target_level = INT16_MAX;
+        p_app->state.target_snapshot = INT16_MAX;
     }
     else
     {
-        p_app->state.target_level = INT16_MIN;
+        p_app->state.target_snapshot = INT16_MIN;
     }
 
-    p_app->state.params.move.required_move = (int32_t) p_in->move_level;
-    p_app->state.params.move.initial_present_level = p_app->state.present_level;
     p_params->required_delta = (int32_t) p_in->move_level;
+    p_app->state.init_present_snapshot = p_app->state.present_level;
     p_params->transition_type = APP_TRANSITION_TYPE_MOVE_SET;
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "MOVE SET: move-level: %d  delay: %d  tt: %d \n",
@@ -334,7 +340,7 @@ static void generic_level_state_move_set_cb(const generic_level_server_t * p_sel
     if (p_out != NULL)
     {
         p_out->present_level = p_app->state.present_level;
-        p_out->target_level = p_app->state.target_level;
+        p_out->target_level = p_app->state.target_snapshot;
         /* Response to Move Set message is sent with unknown transition time value, if
         given transition time is non-zero. */
         p_out->remaining_time_ms = (p_params->transition_time_ms == 0) ?

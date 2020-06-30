@@ -51,6 +51,10 @@ See the following list for the complete overview of models implemented in the nR
     - Configuration model
         - Source files: `<InstallFolder>/models/foundation/config`
         - @ref CONFIG_MODEL "API reference"
+- Sensor models
+    - Sensor model
+        - Source files: `<InstallFolder>/models/model_spec/sensor`
+        - @ref SENSOR_MODEL "API reference"
 - Light models
     - Light Lightness models
         - Source files: `<InstallFolder>/models/model_spec/light_lightness`

@@ -90,8 +90,8 @@ void event_handle(const nrf_mesh_evt_t * p_evt)
         if (EVENT_HANDLER_CLEANING_REQUIRED == m_event_handler_state)
         {
             event_list_clean();
-            m_event_handler_state = EVENT_HANDLER_IDLE;
         }
+        m_event_handler_state = EVENT_HANDLER_IDLE;
     }
 }
 

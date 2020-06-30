@@ -302,9 +302,14 @@ void test_config(void)
 
     for (uint32_t i = 0; i < CORE_TX_ROLE_COUNT; ++i)
     {
-        cfg.tx_interval_ms = 100 * (i + 1);
-        advertiser_interval_set_ExpectAndSave(mp_advertisers[i], 100 * (i + 1));
-        mesh_opt_core_adv_set(i, &cfg);
+        cfg.tx_interval_ms = MAX(BEARER_ADV_INT_MIN_MS, 10);
+        advertiser_interval_set_ExpectAndSave(mp_advertisers[i], cfg.tx_interval_ms);
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_core_adv_set(i, &cfg));
+        advertiser_mock_Verify();
+
+        cfg.tx_interval_ms = MAX(BEARER_ADV_INT_MIN_MS, (NETWORK_RELAY_INTERVAL_STEPS_MAX + 1) * 10);
+        advertiser_interval_set_ExpectAndSave(mp_advertisers[i], cfg.tx_interval_ms);
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_core_adv_set(i, &cfg));
         advertiser_mock_Verify();
     }
     for (uint32_t i = 0; i < CORE_TX_ROLE_COUNT; ++i)

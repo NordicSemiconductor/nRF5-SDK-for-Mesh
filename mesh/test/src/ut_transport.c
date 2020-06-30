@@ -53,6 +53,7 @@
 #include "nrf_mesh_externs_mock.h"
 #include "core_tx_mock.h"
 #include "net_state_mock.h"
+#include "mesh_mem_mock.h"
 
 #define BEARER_FLAG 0x12345678
 #define TX_TOKEN    (nrf_mesh_tx_token_t) 0xABCDEF
@@ -74,6 +75,7 @@ void setUp(void)
     nrf_mesh_externs_mock_Init();
     core_tx_mock_Init();
     net_state_mock_Init();
+    mesh_mem_mock_Init();
 
     bearer_event_critical_section_begin_Ignore();
     bearer_event_critical_section_end_Ignore();
@@ -106,6 +108,8 @@ void tearDown(void)
     core_tx_mock_Destroy();
     net_state_mock_Verify();
     net_state_mock_Destroy();
+    mesh_mem_mock_Verify();
+    mesh_mem_mock_Destroy();
 }
 
 static transport_control_packet_t m_expected_control_packet;
@@ -356,6 +360,9 @@ void test_duplicate_sar_tx(void)
     timer_now_IgnoreAndReturn(0);
     timer_sch_reschedule_Ignore();
 
+    uint8_t ctx_payload[PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE + sizeof(buffer)];
+    mesh_mem_alloc_ExpectAndReturn(PACKET_MESH_TRS_TRANSMIC_SMALL_SIZE + sizeof(buffer), ctx_payload);
+
     network_tx_packet_buffer_t packet_buffer;
     packet_mesh_net_packet_t net_buffer;
     packet_buffer.p_payload = net_buffer.pdu;
@@ -530,6 +537,7 @@ void test_segmentation_and_micsize_rules(void)
 {
     nrf_mesh_network_secmat_t net_secmat;
     nrf_mesh_application_secmat_t app_secmat = {};
+    uint8_t * p_ctx_payload = NULL;
 
     uint8_t buffer[NRF_MESH_SEG_PAYLOAD_SIZE_MAX];
     is_network_allocation_count_checked = false;
@@ -635,6 +643,10 @@ void test_segmentation_and_micsize_rules(void)
             net_buf.user_data.token = NRF_MESH_SAR_TOKEN;
             const uint32_t total_len = test_vector[i].data_len + test_vector[i].expected.mic_size;
 
+            p_ctx_payload = malloc(total_len);
+            TEST_ASSERT_NOT_NULL(p_ctx_payload);
+            mesh_mem_alloc_ExpectAndReturn(total_len, p_ctx_payload);
+
             network_tx_packet_buffer_t * p_net_buf = &segment_buffers[0];
 
             for (uint32_t len = 0; len < total_len; len += PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE)
@@ -657,5 +669,11 @@ void test_segmentation_and_micsize_rules(void)
 
         TEST_ASSERT_EQUAL(NRF_SUCCESS, transport_tx(&tx_params, NULL));
         network_mock_Verify();
+
+        if (p_ctx_payload != NULL)
+        {
+            free(p_ctx_payload);
+            p_ctx_payload = NULL;
+        }
     }
 }

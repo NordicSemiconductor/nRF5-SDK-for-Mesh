@@ -41,7 +41,8 @@
 #include "nrf_mesh_assert.h"
 
 #include "light_lc_messages.h"
-#include "sensor_utils.h"
+#include "sensor_messages.h"
+#include "light_lc_sensor_utils.h"
 #include "light_lc_state_utils.h"
 #include "light_lc_fsm.h"
 #include "light_lc_occupancy_sensor.h"

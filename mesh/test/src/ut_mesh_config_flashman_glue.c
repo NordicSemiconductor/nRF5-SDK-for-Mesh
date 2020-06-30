@@ -56,7 +56,8 @@ typedef enum
 {
     EVENT_STORE_COMPLETE,
     EVENT_ERASE_COMPLETE,
-    EVENT_ERROR
+    EVENT_ERROR,
+    EVENT_FILE_CLEANING_COMPLETE
 } event_stage_t;
 
 static flash_manager_queue_empty_cb_t m_flash_stable_cb;
@@ -83,18 +84,23 @@ static void backend_event(const mesh_config_backend_evt_t * p_evt)
 {
     TEST_ASSERT_NOT_NULL(p_evt);
     TEST_ASSERT_TRUE(p_evt->id.file == m_file.file_id);
-    TEST_ASSERT_TRUE(p_evt->id.record == m_file.curr_pos);
 
     switch (m_event_stage)
     {
         case EVENT_STORE_COMPLETE:
+            TEST_ASSERT_TRUE(p_evt->id.record == m_file.curr_pos);
             TEST_ASSERT_TRUE(p_evt->type == MESH_CONFIG_BACKEND_EVT_TYPE_STORE_COMPLETE);
             break;
         case EVENT_ERASE_COMPLETE:
+            TEST_ASSERT_TRUE(p_evt->id.record == m_file.curr_pos);
             TEST_ASSERT_TRUE(p_evt->type == MESH_CONFIG_BACKEND_EVT_TYPE_ERASE_COMPLETE);
             break;
         case EVENT_ERROR:
+            TEST_ASSERT_TRUE(p_evt->id.record == m_file.curr_pos);
             TEST_ASSERT_TRUE(p_evt->type == MESH_CONFIG_BACKEND_EVT_TYPE_STORAGE_MEDIUM_FAILURE);
+            break;
+        case EVENT_FILE_CLEANING_COMPLETE:
+            TEST_ASSERT_TRUE(p_evt->type == MESH_CONFIG_BACKEND_EVT_TYPE_FILE_CLEAN_COMPLETE);
             break;
         default:
             TEST_FAIL();
@@ -132,6 +138,8 @@ static uint32_t flash_manager_add_cb(flash_manager_t * p_manager, const flash_ma
     m_write_complete_cb = p_config->write_complete_cb;
     m_invalidate_complete_cb = p_config->invalidate_complete_cb;
     m_remove_complete_cb = p_config->remove_complete_cb;
+
+    p_manager->config = *p_config;
 
     return NRF_SUCCESS;
 }
@@ -302,4 +310,61 @@ void test_flashman_glue_events(void)
     m_invalidate_complete_cb(&m_file.glue_data.flash_manager, ((fm_entry_t *)p_fm_entry)->header.handle, FM_RESULT_ERROR_NOT_FOUND);
 
     free(p_fm_entry);
+}
+
+void test_file_clean_normal(void)
+{
+    m_event_stage = EVENT_ERROR;
+
+    flash_manager_t * p_manager = &m_file.glue_data.flash_manager;
+    fm_mem_listener_t * p_listener = &m_file.glue_data.listener;
+
+    /* 1. Run cleaning */
+    flash_manager_remove_ExpectAndReturn(p_manager, NRF_SUCCESS);
+    mesh_config_backend_file_clean(&m_file);
+
+    /* 2. Complete cleaning and start metadata restoring.  */
+    /* result is checked in flash_manager_add_cb. */
+    flash_manager_add_StubWithCallback(flash_manager_add_cb);
+    flash_manager_mem_listener_register_Expect(p_listener);
+    m_remove_complete_cb(p_manager);
+
+    /* 3. Complete metadata restoring. */
+    p_manager->internal.state = FM_STATE_READY;
+    m_event_stage = EVENT_FILE_CLEANING_COMPLETE;
+    TEST_ASSERT_NOT_NULL(p_listener->callback);
+    TEST_ASSERT_NOT_NULL(p_listener->p_args);
+    p_listener->callback(p_listener->p_args);
+}
+
+void test_file_clean_lack_of_memory(void)
+{
+    m_event_stage = EVENT_ERROR;
+
+    flash_manager_t * p_manager = &m_file.glue_data.flash_manager;
+    fm_mem_listener_t * p_listener = &m_file.glue_data.listener;
+
+    /* 1. Start file cleaning with lack of memory in the flash manager. */
+    flash_manager_remove_ExpectAndReturn(p_manager, NRF_ERROR_NO_MEM);
+    flash_manager_mem_listener_register_Expect(p_listener);
+    mesh_config_backend_file_clean(&m_file);
+
+    /* 2. Restart the file cleaning using listener wrapper. */
+    flash_manager_remove_ExpectAndReturn(p_manager, NRF_SUCCESS);
+    mesh_config_backend_file_clean(&m_file);
+
+    /* 3. Start file restoring with lack of memory in the flash manager. */
+    flash_manager_add_ExpectAnyArgsAndReturn(NRF_ERROR_NO_MEM);
+    flash_manager_mem_listener_register_Expect(p_listener);
+    m_remove_complete_cb(p_manager);
+
+    /* 4. Restart the file restoring using listener wrapper. */
+    flash_manager_add_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    flash_manager_mem_listener_register_Expect(p_listener);
+    p_listener->callback(p_listener->p_args);
+
+    /* 4. Complete metadata restoring.  */
+    p_manager->internal.state = FM_STATE_READY;
+    m_event_stage = EVENT_FILE_CLEANING_COMPLETE;
+    p_listener->callback(p_listener->p_args);
 }

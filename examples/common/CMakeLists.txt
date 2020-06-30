@@ -5,6 +5,8 @@ set(COMMON_EXAMPLES_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/app_light_lc.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/app_level.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/app_light_ctl.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_sensor.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_sensor_utils.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/app_transition.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/assertion_handler_weak.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ble_dfu_support.c"
@@ -133,6 +135,7 @@ set(lint_include_dirs
     ${CMAKE_SOURCE_DIR}/models/model_spec/light_lc/include
     ${CMAKE_SOURCE_DIR}/models/model_spec/light_lightness/include
     ${CMAKE_SOURCE_DIR}/models/model_spec/light_ctl/include
+    ${CMAKE_SOURCE_DIR}/models/model_spec/sensor/include
     ${CMAKE_SOURCE_DIR}/external/rtt/include
     ${CMAKE_SOURCE_DIR}/examples/templates
     ${SDK_ROOT}/components/libraries/pwm/

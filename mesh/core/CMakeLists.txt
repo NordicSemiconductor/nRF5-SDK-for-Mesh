@@ -18,6 +18,7 @@ set(MESH_CORE_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/aes_cmac.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/timer_scheduler.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/timer.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/long_timer.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/rand.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/nrf_mesh_opt.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_opt.c"
@@ -157,6 +158,8 @@ set(lint_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../access/api
     ${CMAKE_CURRENT_SOURCE_DIR}/../test/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../friend/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../gatt/api
+    ${CMAKE_CURRENT_SOURCE_DIR}/../gatt/include
     ${CMAKE_SOURCE_DIR}/examples/templates
     ${CMAKE_SOURCE_DIR}/external/rtt/include
     ${${SOFTDEVICE}_INCLUDE_DIRS}

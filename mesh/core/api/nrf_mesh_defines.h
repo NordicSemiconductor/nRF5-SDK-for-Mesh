@@ -167,7 +167,7 @@
 #define NETWORK_RELAY_INTERVAL_STEPS_MAX ((1 << 5) - 1)
 
 /** Maximum allowed relay interval in milliseconds. */
-#define NETWORK_RELAY_INTERVAL_MAX_MS (NETWORK_RELAY_INTERVAL_STEPS_MAX * 10)
+#define NETWORK_RELAY_INTERVAL_MAX_MS ((NETWORK_RELAY_INTERVAL_STEPS_MAX + 1) * 10)
 
 /** The minimum time between IV updates, in minutes. */
 #define NETWORK_MIN_IV_UPDATE_INTERVAL_MINUTES (96 * 60)

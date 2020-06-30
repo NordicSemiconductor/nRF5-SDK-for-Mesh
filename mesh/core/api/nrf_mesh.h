@@ -577,7 +577,11 @@ bool nrf_mesh_process(void);
 uint32_t nrf_mesh_on_sd_evt(uint32_t sd_evt);
 
 /**
- * Set a callback which will be called for every packet being received.
+ * Set a callback which will be called for every received non-filtered packet.
+ *
+ * The main BT Mesh packets are not filtered and will be passed to the callback.
+ *
+ * See @ref MESH_API_GROUP_BEARER_FILTER for the details about packet's filtering.
  *
  * This function must be called after @ref nrf_mesh_init().
  *

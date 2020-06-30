@@ -45,7 +45,6 @@
 #include "core_tx_friend_mock.h"
 #include "nrf_mesh_externs_mock.h"
 #include "event_mock.h"
-#include "timer_scheduler_mock.h"
 #include "friend_sublist_mock.h"
 #include "net_state_mock.h"
 #include "network_mock.h"
@@ -54,6 +53,7 @@
 #include "test_helper.h"
 #include "test_assert.h"
 #include "device_state_manager_mock.h"
+#include "long_timer_mock.h"
 
 #include "mesh_opt_friend.h"
 #include "log.h"
@@ -88,7 +88,7 @@ static nrf_mesh_network_secmat_t m_friend_secmat;
 static uint16_t m_friend_counter;
 static uint16_t m_lpn_src = LPN_SRC;
 static uint32_t m_time_now;
-static timer_event_t * mp_confirm_send_timer;
+static long_timer_t * mp_confirm_send_timer;
 static nrf_mesh_rx_metadata_t m_rx_metadata;
 static network_tx_packet_buffer_t m_net_buf;
 static uint8_t m_trs_pdu[PACKET_MESH_TRS_UNSEG_ACCESS_MAX_SIZE];
@@ -165,6 +165,13 @@ static void event_handle_stub(const nrf_mesh_evt_t * p_evt,
     TEST_ASSERT_EQUAL_nrf_mesh_evt_t(expected, (*p_evt));
 }
 
+uint64_t lt_remaining_time_get_stub(const long_timer_t * p_timer, int num_calls)
+{
+    TEST_ASSERT_NOT_NULL(p_timer);
+
+    return p_timer->remaining_time_us;
+}
+
 static void unicast_address_get_Expect(void)
 {
     static uint16_t local_address = FRIEND_SRC;
@@ -224,19 +231,20 @@ timestamp_t timer_now(void)
     return m_time_now;
 }
 
-static void timer_sch_reschedule_stub(timer_event_t* p_timer_evt, timestamp_t new_timestamp, int num)
+static void lt_schedule_stub_cb(long_timer_t * p_timer, lt_callback_t callback, void * p_context, uint64_t delay_us, int num)
 {
-    TEST_ASSERT(p_timer_evt != NULL);
-    TEST_ASSERT(p_timer_evt->cb != NULL);
+    TEST_ASSERT(p_timer != NULL);
+    TEST_ASSERT(callback != NULL);
+    TEST_ASSERT(p_context != NULL);
 
-    mp_confirm_send_timer = p_timer_evt;
-    mp_confirm_send_timer->timestamp = new_timestamp;
+    mp_confirm_send_timer = p_timer;
+    mp_confirm_send_timer->callback = callback;
+    mp_confirm_send_timer->p_context = p_context;
 }
 
-static void timer_trigger(timer_event_t * p_timer)
+static void timer_trigger(long_timer_t * p_timer)
 {
-    timer_sch_abort_Expect(p_timer);
-    p_timer->cb(timer_now(), p_timer->p_context);
+    p_timer->callback(p_timer->p_context);
 }
 
 static void friend_rx(transport_control_opcode_t opcode,
@@ -334,10 +342,13 @@ static void friend_request_Receive(uint16_t prev_address, uint16_t dst)
               &m_rx_metadata);
 }
 
-static void poll_timeout_schedule_Expect(uint32_t timeout_us)
+static void poll_timeout_schedule_Expect(timestamp_t rx_timestamp, uint32_t timeout_us)
 {
-    timer_sch_reschedule_Expect(NULL, timeout_us);
-    timer_sch_reschedule_IgnoreArg_p_timer_evt();
+    timestamp_t diff = timer_now() - rx_timestamp;
+    lt_schedule_Expect(NULL, NULL, NULL, diff < timeout_us ? timeout_us - diff : 0);
+    lt_schedule_IgnoreArg_p_timer();
+    lt_schedule_IgnoreArg_callback();
+    lt_schedule_IgnoreArg_p_context();
 }
 
 static uint32_t network_packet_alloc_stub(network_tx_packet_buffer_t * p_buf,
@@ -376,7 +387,7 @@ static void friend_relay_Expect(const packet_mesh_trs_packet_t * p_packet,
                                    m_rx_metadata.params.scanner.timestamp +
                                    MS_TO_US(RECEIVE_DELAY_MS));
     core_tx_friend_schedule_IgnoreArg_p_bearer();
-    poll_timeout_schedule_Expect(m_rx_metadata.params.scanner.timestamp +
+    poll_timeout_schedule_Expect(m_rx_metadata.params.scanner.timestamp,
                                  MS_TO_US(POLL_TIMEOUT_MS));
 }
 
@@ -410,7 +421,7 @@ static void friend_update_Expect(nrf_mesh_key_refresh_phase_t phase)
                                    m_rx_metadata.params.scanner.timestamp +
                                    MS_TO_US(RECEIVE_DELAY_MS));
     core_tx_friend_schedule_IgnoreArg_p_bearer();
-    poll_timeout_schedule_Expect(m_rx_metadata.params.scanner.timestamp +
+    poll_timeout_schedule_Expect(m_rx_metadata.params.scanner.timestamp,
                                  MS_TO_US(POLL_TIMEOUT_MS));
 }
 
@@ -499,14 +510,14 @@ static void friend_offer_Expect(void)
     evt.params.friend_request.p_net = &m_default_secmat;
     evt.params.friend_request.p_metadata = &m_rx_metadata;
     event_queue_Expect(&evt);
-    poll_timeout_schedule_Expect(offer_delay + SEC_TO_US(1));
+    poll_timeout_schedule_Expect(0, offer_delay + SEC_TO_US(1));
 }
 
 static void friendship_state_reset_Expect(void)
 {
     core_tx_friend_disable_ExpectAnyArgs();
     friend_sublist_clear_ExpectAnyArgs();
-    timer_sch_abort_ExpectAnyArgs();
+    lt_abort_ExpectAnyArgs();
 }
 
 static void friendship_terminated_event_Expect(void)
@@ -539,7 +550,7 @@ static void friendship_Terminate(void)
     const mesh_friendship_t * p_friendships[MESH_FRIEND_FRIENDSHIP_COUNT];
     uint8_t count = MESH_FRIEND_FRIENDSHIP_COUNT;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_friend_friendships_get(&p_friendships[0], &count));
-    timer_sch_reschedule_StubWithCallback(timer_sch_reschedule_stub);
+    lt_schedule_StubWithCallback(lt_schedule_stub_cb);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_friend_friendship_terminate(p_friendships[0]));
 }
 
@@ -551,7 +562,7 @@ static void friendship_Terminate_by_friend_clear(void)
     const mesh_friendship_t * p_friendships[MESH_FRIEND_FRIENDSHIP_COUNT];
     uint8_t count = MESH_FRIEND_FRIENDSHIP_COUNT;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_friend_friendships_get(&p_friendships[0], &count));
-    timer_sch_reschedule_StubWithCallback(timer_sch_reschedule_stub);
+    lt_schedule_StubWithCallback(lt_schedule_stub_cb);
     friend_clear_confirm_Expect(p_friendships[0]->lpn.src, p_friendships[0]->lpn.request_count);
 
     friend_clear_Receive(p_friendships[0]->lpn.src, p_friendships[0]->lpn.request_count);
@@ -575,13 +586,13 @@ void setUp(void)
     core_tx_friend_mock_Init();
     nrf_mesh_externs_mock_Init();
     event_mock_Init();
-    timer_scheduler_mock_Init();
     friend_sublist_mock_Init();
     net_state_mock_Init();
     network_mock_Init();
     event_queue_Init();
     nrf_mesh_events_mock_Init();
     device_state_manager_mock_Init();
+    long_timer_mock_Init();
 
     __LOG_INIT(0xFFFFFFFF, LOG_LEVEL_DBG3, LOG_CALLBACK_DEFAULT);
 
@@ -640,8 +651,6 @@ void tearDown(void)
     event_mock_Destroy();
     event_queue_Verify();
     event_queue_Destroy();
-    timer_scheduler_mock_Verify();
-    timer_scheduler_mock_Destroy();
     friend_sublist_mock_Verify();
     friend_sublist_mock_Destroy();
     net_state_mock_Verify();
@@ -652,6 +661,8 @@ void tearDown(void)
     nrf_mesh_events_mock_Destroy();
     device_state_manager_mock_Verify();
     device_state_manager_mock_Destroy();
+    long_timer_mock_Verify();
+    long_timer_mock_Destroy();
 }
 
 /*******************************************************************************
@@ -898,6 +909,7 @@ void test_confirm_send_timer(void)
     uint32_t i;
 
     /* Last termination should over-write the first entry (corresponding to LPN_SRC) */
+    lt_remaining_time_get_StubWithCallback(lt_remaining_time_get_stub);
     for (i = 0; i < (FRIEND_RECENT_LPNS_LIST_COUNT + 1); i++)
     {
         friendship_Establish();

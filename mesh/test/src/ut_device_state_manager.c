@@ -59,6 +59,7 @@
 #include "heartbeat_mock.h"
 #include "mesh_opt_friend_mock.h"
 #include "mesh_config_entry_mock.h"
+#include "mesh_config_mock.h"
 
 /* Enable this to check that the handle ordering is as expected (0..N-1). */
 #define TEST_EXPLICIT_ORDERING 1
@@ -394,6 +395,7 @@ void setUp(void)
     heartbeat_mock_Init();
     mesh_opt_friend_mock_Init();
     mesh_config_entry_mock_Init();
+    mesh_config_mock_Init();
 
     bearer_event_critical_section_begin_Ignore();
     bearer_event_critical_section_end_Ignore();
@@ -409,7 +411,7 @@ void setUp(void)
 
 void tearDown(void)
 {
-    mesh_config_entry_delete_IgnoreAndReturn(NRF_SUCCESS);
+    mesh_config_file_clear_Expect(MESH_OPT_DSM_FILE_ID);
     dsm_clear();
 
     nrf_mesh_mock_Verify();
@@ -434,6 +436,8 @@ void tearDown(void)
     mesh_opt_friend_mock_Destroy();
     mesh_config_entry_mock_Verify();
     mesh_config_entry_mock_Destroy();
+    mesh_config_mock_Verify();
+    mesh_config_mock_Destroy();
 }
 
 static void persist_expected_metadata(void)

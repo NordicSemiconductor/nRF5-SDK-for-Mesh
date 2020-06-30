@@ -53,6 +53,9 @@
 #include "hal.h"
 #include "advertiser.h"
 #include "ad_listener.h"
+#ifdef NRF_MESH_SERIAL_ENABLE
+#include "serial.h"
+#endif
 
 /** Check that the enums used for DFU enums for TYPE, STATE, END, and ROLE fit the assumptions */
 NRF_MESH_STATIC_ASSERT(NRF_MESH_DFU_TYPE__LAST      <= UINT8_MAX);
@@ -584,11 +587,25 @@ static uint32_t dfu_evt_handler(const bl_evt_t* p_evt)
                 }
             }
             break;
-
+#ifdef NRF_MESH_SERIAL_ENABLE
         case BL_EVT_TYPE_TX_SERIAL:
-            __LOG(LOG_SRC_DFU, LOG_LEVEL_INFO, "\tSERIAL TX!\n");
-            break;
+            {
+                __LOG(LOG_SRC_DFU, LOG_LEVEL_INFO, "\tSERIAL TX (type: %u)\n", p_evt->params.tx.serial.p_dfu_packet->packet_type);
 
+                serial_packet_t *p_packet;
+                if (serial_packet_buffer_get(SERIAL_PACKET_LENGTH_OVERHEAD + p_evt->params.tx.serial.length, &p_packet) != NRF_SUCCESS)
+                {
+                    break;
+                }
+
+                p_packet->opcode = SERIAL_OPCODE_CMD_OPENMESH_DFU_DATA,
+                memcpy(p_packet->payload.cmd.openmesh.dfu_data.dfu_packet,
+                       p_evt->params.tx.serial.p_dfu_packet,
+                       p_evt->params.tx.serial.length);
+                serial_tx(p_packet);
+            }
+            break;
+#endif
         case BL_EVT_TYPE_TX_ABORT:
             if (p_evt->params.tx.abort.tx_slot >= NRF_MESH_DFU_TX_SLOTS)
             {

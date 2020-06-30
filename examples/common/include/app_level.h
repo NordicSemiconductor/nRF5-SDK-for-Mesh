@@ -146,13 +146,15 @@ typedef struct
     /** Target value of the Level state, as received from the model interface. */
     int16_t target_level;
 
-    union
-    {
-        /* Parameters for Set Transition */
-        set_transition_t set;
-        /* Parameters for Move Transition */
-        move_transition_t move;
-    } params;
+    /** For storing actual required amount of level change. */
+    int32_t delta;
+    /** Initial present level required for handling Set/Delta Set message. */
+    int16_t initial_present_level;
+
+    /** Present value when message was received */
+    int16_t init_present_snapshot;
+    /** Requested target */
+    int16_t target_snapshot;
 
     /** Structure for using transition module functionality */
     app_transition_t transition;
@@ -250,7 +252,7 @@ uint32_t app_level_current_value_publish(app_level_server_t * p_app);
 
 /** Initializes the behavioral module for the Generic Level model
  *
- * @param[in] p_app                 Pointer to [app_level_server_t](@ref __app_level_server_t) 
+ * @param[in] p_app                 Pointer to [app_level_server_t](@ref __app_level_server_t)
  *                                  context.
  * @param[in] element_index         Element index on which this server will be instantiated.
  *

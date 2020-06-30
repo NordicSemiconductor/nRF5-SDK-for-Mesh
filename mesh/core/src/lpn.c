@@ -45,8 +45,7 @@
 #include "scanner.h"
 #include "transport.h"
 #include "packet_mesh.h"
-#include "timer.h"
-#include "timer_scheduler.h"
+#include "long_timer.h"
 #include "utils.h"
 #include "event.h"
 #include "nrf_mesh_assert.h"
@@ -176,7 +175,7 @@ typedef struct
     uint8_t             fsn;
     uint8_t             poll_attempts_count;
     uint8_t             frndreq_attempts_count;
-    timer_event_t       timeout_scheduler;
+    long_timer_t        timeout_scheduler;
     transport_control_packet_t * p_subman_data;
 } lpn_t;
 
@@ -190,8 +189,8 @@ DECLARE_GUARD_PROTOTYPE(GUARD_LIST)
 static void lpn_fsm_action(fsm_action_id_t action_id, void * p_data);
 static bool lpn_fsm_guard(fsm_action_id_t action_id, void * p_data);
 static void lpn_fault_task_post(void);
-static void receive_delay_handle(timestamp_t timestamp, void * p_context);
-static void timeout_handle(timestamp_t timestamp, void * p_context);
+static void receive_delay_handle(void * p_context);
+static void timeout_handle(void * p_context);
 static void friend_offer_handle(const transport_control_packet_t * p_control_packet,
                                 const nrf_mesh_rx_metadata_t * p_rx_metadata);
 static void friend_update_handle(const transport_control_packet_t * p_control_packet,
@@ -549,16 +548,10 @@ static void a_offer_received_notify(void * p_data)
 
 static void a_poll_schedule(void * p_data)
 {
-    timestamp_t timestamp = timer_now();
     fsm_transac_data_t * p_trasac_data = p_data;
 
-    if (p_data != NULL)
-    {
-        timestamp += MS_TO_US(p_trasac_data->poll_scheduler.delay_ms);
-    }
-
-    m_lpn.timeout_scheduler.cb = timeout_handle;
-    timer_sch_reschedule(&m_lpn.timeout_scheduler, timestamp);
+    lt_schedule(&m_lpn.timeout_scheduler, timeout_handle, NULL,
+        p_trasac_data != NULL ? MS_TO_US((uint64_t)p_trasac_data->poll_scheduler.delay_ms) : 0ull);
 }
 
 static void a_fault_notify(void * p_data)
@@ -658,10 +651,8 @@ static void friend_update_handle(const transport_control_packet_t * p_control_pa
     fsm_event_post(&m_lpn_fsm, E_FRIEND_UPDATE_RX, &data);
 }
 
-static void receive_delay_handle(timestamp_t timestamp, void * p_context)
+static void receive_delay_handle(void * p_context)
 {
-    (void)timestamp;
-
     /* Note: ReceiveDelay already takes into account the timeslot start time,
      * ReceiveWindow timeout should also consider it:
      *                            |          Actual ReceiveDelay          |  Actual ReceiveWindow  |
@@ -672,14 +663,11 @@ static void receive_delay_handle(timestamp_t timestamp, void * p_context)
      */
 
     scanner_enable();
-    m_lpn.timeout_scheduler.cb = timeout_handle;
-    timestamp_t new_timestamp = timer_now() + ((uint32_t) p_context) + TIMESLOT_SHORTEST_START_TIME_US;
-    timer_sch_reschedule(&m_lpn.timeout_scheduler, new_timestamp);
+    lt_schedule(&m_lpn.timeout_scheduler, timeout_handle, NULL, ((uint32_t) p_context) + TIMESLOT_SHORTEST_START_TIME_US);
 }
 
-static void timeout_handle(timestamp_t timestamp, void * p_context)
+static void timeout_handle(void * p_context)
 {
-    (void)timestamp;
     (void)p_context;
 
     scanner_disable();
@@ -709,22 +697,22 @@ static void transmit_and_reschedule(const transport_control_packet_t * p_packet,
                                     uint32_t receive_window_ms)
 {
     uint32_t err_code = transport_control_tx(p_packet, token);
-    timestamp_t next_timeout = timer_now();
+
     if (err_code == NRF_SUCCESS)
     {
-        next_timeout += MS_TO_US(receive_delay_ms) + TIMER_JITTER_US;
-        m_lpn.timeout_scheduler.p_context = (void*) MS_TO_US(receive_window_ms);
-        m_lpn.timeout_scheduler.cb = receive_delay_handle;
+        lt_schedule(&m_lpn.timeout_scheduler,
+                    receive_delay_handle,
+                    (void*) MS_TO_US(receive_window_ms),
+                    MS_TO_US((uint64_t)receive_delay_ms) + TIMER_JITTER_US);
     }
     else
     {
         __LOG(LOG_SRC_FSM, LOG_LEVEL_DBG1, "LPN transport TX failed (%u)\n", err_code);
-        next_timeout += MS_TO_US(receive_delay_ms) + MS_TO_US(receive_window_ms);
-        m_lpn.timeout_scheduler.p_context = NULL;
-        m_lpn.timeout_scheduler.cb = timeout_handle;
+        lt_schedule(&m_lpn.timeout_scheduler,
+                    timeout_handle,
+                    NULL,
+                    MS_TO_US((uint64_t)receive_delay_ms + receive_window_ms));
     }
-
-    timer_sch_reschedule(&m_lpn.timeout_scheduler, next_timeout);
 }
 
 static void event_send(const nrf_mesh_evt_t * p_evt)
@@ -758,7 +746,7 @@ static void lpn_terminate_task(void)
 {
     fsm_event_post(&m_lpn_fsm, E_TERMINATE, NULL);
 
-    timer_sch_abort(&m_lpn.timeout_scheduler);
+    lt_abort(&m_lpn.timeout_scheduler);
 
     nrf_mesh_evt_t evt;
     termination_evt_prepare(&evt, NRF_MESH_EVT_FRIENDSHIP_TERMINATED_REASON_LPN);

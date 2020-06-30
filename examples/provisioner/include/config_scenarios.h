@@ -38,12 +38,6 @@
 #ifndef CONFIG_SCENARIOS_H_
 #define CONFIG_SCENARIOS_H_
 
-// Section for dummy definitions for sensor models IDs since sensor has not been implemented yet
-// todo remove section after MBTLE-3483 is done
-#define SENSOR_SERVER_MODEL_ID       0x1100
-#define SENSOR_SETUP_SERVER_MODEL_ID 0x1101
-// end of section
-
 /* USER_NOTE: Add more steps here if you want to customize the nodes further. */
 /* Node setup steps */
 #define CFG_DECLARE(A, B)  A,
@@ -145,6 +139,7 @@ typedef enum
     NODE_SETUP_CONFIG_PUBLICATION_LC_SETUP_SERVER,  \
     NODE_SETUP_CONFIG_SUBSCRIPTION_LC_SERVER,       \
     NODE_SETUP_CONFIG_SUBSCRIPTION_LC_SETUP_SERVER, \
+    NODE_SETUP_CONFIG_SUBSCRIPTION_LC_SERVER_ON_SENSOR_STATUS, \
     CONFIG_ONOFF_SERVER
 
 #define CONFIG_CTL_TEMPERATURE_SERVER                      \
@@ -167,7 +162,15 @@ typedef enum
     NODE_SETUP_CONFIG_APPKEY_BIND_SENSOR_SERVER,        \
     NODE_SETUP_CONFIG_APPKEY_BIND_SENSOR_SETUP_SERVER,  \
     NODE_SETUP_CONFIG_PUBLICATION_SENSOR_SERVER,        \
-    NODE_SETUP_CONFIG_PUBLICATION_SENSOR_SETUP_SERVER
+    NODE_SETUP_CONFIG_PUBLICATION_SENSOR_SETUP_SERVER,  \
+    NODE_SETUP_CONFIG_SUBSCRIPTION_SENSOR_SERVER,       \
+    NODE_SETUP_CONFIG_SUBSCRIPTION_SENSOR_SETUP_SERVER
+
+#define CONFIG_SENSOR_CLIENT                     \
+    NODE_SETUP_GET_NEXT_ELEMENT,                 \
+    NODE_SETUP_CONFIG_APPKEY_BIND_SENSOR_CLIENT, \
+    NODE_SETUP_CONFIG_PUBLICATION_SENSOR_CLIENT, \
+    NODE_SETUP_CONFIG_SUBSCRIPTION_SENSOR_CLIENT
 
 /* USER_NOTE:
 You can define one or more such configuration steps for a given node in your network. The choice
@@ -176,6 +179,11 @@ of the steps can be done in @ref setup_select_steps() function.
 #define CONFIG_SCENARIO_LIGHT_SWITCH_CLIENT_EXAMPLE    \
     CONFIG_SCENARIO_COMMON,                            \
     CONFIG_ONOFF_CLIENT,                               \
+    CONFIG_ONOFF_CLIENT,                               \
+    NODE_SETUP_DONE
+
+#define CONFIG_SCENARIO_LPN_EXAMPLE                    \
+    CONFIG_SCENARIO_COMMON,                            \
     CONFIG_ONOFF_CLIENT,                               \
     NODE_SETUP_DONE
 
@@ -236,6 +244,12 @@ of the steps can be done in @ref setup_select_steps() function.
 #define CONFIG_SCENARIO_SENSOR_SERVER_EXAMPLE \
     CONFIG_SCENARIO_COMMON,                   \
     CONFIG_SENSOR_SERVER,                     \
+    NODE_SETUP_DONE
+
+#define CONFIG_SCENARIO_SENSOR_CLIENT_EXAMPLE  \
+    CONFIG_SCENARIO_COMMON,                    \
+    CONFIG_SENSOR_CLIENT,                      \
+    CONFIG_SENSOR_CLIENT,                      \
     NODE_SETUP_DONE
 
 #endif /* CONFIG_SCENARIOS_H_ */

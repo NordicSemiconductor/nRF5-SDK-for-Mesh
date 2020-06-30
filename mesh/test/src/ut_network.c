@@ -58,6 +58,7 @@
 #include "net_packet_mock.h"
 #include "nrf_mesh_externs_mock.h"
 #include "friend_internal_mock.h"
+#include "mesh_lpn_mock.h"
 #include "manual_mock_queue.h"
 
 #define TOKEN 0x12345678U
@@ -108,6 +109,7 @@ void setUp(void)
     nrf_mesh_externs_mock_Init();
     friend_internal_mock_Init();
     alloc_packet_mock_Init();
+    mesh_lpn_mock_Init();
 
     core_tx_packet_alloc_StubWithCallback(core_tx_packet_alloc_mock);
 }
@@ -136,6 +138,8 @@ void tearDown(void)
     friend_internal_mock_Destroy();
     alloc_packet_mock_Verify();
     alloc_packet_mock_Destroy();
+    mesh_lpn_mock_Verify();
+    mesh_lpn_mock_Destroy();
 }
 /*****************************************************************************
 * Helper functions
@@ -276,7 +280,9 @@ void test_init(void)
 void test_enable(void)
 {
     net_state_enable_Expect();
+#if !MESH_FEATURE_LPN_ENABLED
     net_beacon_enable_Expect();
+#endif
     network_enable();
 }
 
@@ -545,6 +551,9 @@ void test_packet_in(void)
                 }
                 if (vector[i].fail_step > STEP_DO_RELAY)
                 {
+#if MESH_FEATURE_LPN_ENABLED
+                    mesh_lpn_is_in_friendship_ExpectAndReturn(false);
+#endif
                     relay_Expect(&vector[i].meta, vector[i].length, &p_relay_packet,
                                  bearer_selector, vector[i].fail_step == STEP_PACKET_ALLOC);
                 }
@@ -684,6 +693,9 @@ void test_packet_in_friendship_secmat_translation(void)
         }
 
         TEST_ASSERT_TRUE(vector[i].fail_step > STEP_DO_RELAY);
+#if MESH_FEATURE_LPN_ENABLED
+        mesh_lpn_is_in_friendship_ExpectAndReturn(false);
+#endif
         relay_Expect(&relay_expect_meta, vector[i].length, &p_relay_packet, CORE_TX_BEARER_TYPE_ALLOW_ALL & ~CORE_TX_BEARER_TYPE_LOCAL, false);
 
         network_packet_in(net_packet.pdu, vector[i].length, &rx_meta);
@@ -698,3 +710,82 @@ void test_packet_in_friendship_secmat_translation(void)
     }
 }
 
+/* This is slightly modified version of test_packet_in, to explicitly test bypassing relay in lpn mode */
+void test_relay_in_lpn(void)
+{
+#if MESH_FEATURE_LPN_ENABLED
+    net_beacon_init_Expect();
+    net_state_init_Expect();
+    nrf_mesh_init_params_t init_params = {.relay_cb = NULL};
+    network_init(&init_params);
+
+    nrf_mesh_network_secmat_t secmat;
+    secmat.nid = 0xAF;
+    struct
+    {
+        network_packet_metadata_t meta;
+        uint32_t length;
+    } vector = {{{NRF_MESH_ADDRESS_TYPE_GROUP, 0xFFFF}, 0x0001, 5, false, {SEQNUM, IV_INDEX}, &secmat}, 18};
+
+    nrf_mesh_rx_metadata_t rx_meta;
+
+    packet_mesh_net_packet_t net_packet;
+    uint8_t mic_len = 4;
+    memset(&net_packet, 0xAB, sizeof(net_packet));
+    memset(&m_transport_packet_in_expect, 0, sizeof(m_transport_packet_in_expect));
+
+    net_packet_obfuscation_start_get_ExpectAndReturn(&net_packet, &net_packet.pdu[1]);
+
+    /* 1: Decrypt */
+    net_packet_decrypt_ExpectAndReturn(NULL,
+                                       vector.length,
+                                       &net_packet,
+                                       NULL,
+                                       NET_PACKET_KIND_TRANSPORT,
+                                       NRF_SUCCESS);
+
+    net_packet_decrypt_IgnoreArg_p_net_decrypted_packet();
+    net_packet_decrypt_ReturnMemThruPtr_p_net_decrypted_packet(&net_packet, vector.length);
+
+    net_packet_decrypt_IgnoreArg_p_net_metadata();
+    net_packet_decrypt_ReturnThruPtr_p_net_metadata(&vector.meta);
+
+    /* 2: Send to transport */
+    net_packet_payload_len_get_ExpectAndReturn(&vector.meta,
+                                               vector.length,
+                                               vector.length - 9 - mic_len);
+    transport_packet_in_StubWithCallback(transport_packet_in_callback);
+
+    m_transport_packet_in_expect.p_packet = (const packet_mesh_trs_packet_t *) &net_packet.pdu[9];
+    m_transport_packet_in_expect.trs_packet_len = vector.length - 9 - mic_len;
+    m_transport_packet_in_expect.p_net_metadata = &vector.meta;
+    m_transport_packet_in_expect.p_rx_metadata  = &rx_meta;
+    m_transport_packet_in_expect.calls          = 1;
+
+    /* 3: Check friendship secmat translation. */
+    friend_friendship_established_ExpectAnyArgsAndReturn(false);
+
+    /* 4: Relay if needed: */
+    nrf_mesh_rx_address_get_ExpectAndReturn(vector.meta.src, NULL, false);
+    nrf_mesh_rx_address_get_IgnoreArg_p_address();
+
+    core_tx_adv_is_enabled_ExpectAndReturn(CORE_TX_ROLE_RELAY, true);
+
+    if (vector.meta.ttl >= 2)
+    {
+        mesh_lpn_is_in_friendship_ExpectAndReturn(true);
+    }
+
+    msg_cache_entry_add_Expect(vector.meta.src, vector.meta.internal.sequence_number);
+
+    network_packet_in(net_packet.pdu, vector.length, &rx_meta);
+
+    TEST_ASSERT_EQUAL(0, m_transport_packet_in_expect.calls);
+    TEST_ASSERT_EQUAL(0, m_relay_callback_expect.calls);
+    core_tx_mock_Verify();
+    transport_mock_Verify();
+    nrf_mesh_externs_mock_Verify();
+    net_packet_mock_Verify();
+    friend_internal_mock_Verify();
+#endif
+}

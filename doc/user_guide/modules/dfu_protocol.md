@@ -221,7 +221,7 @@ storage between the bootloader and the bootloader settings (called [device page]
 in the Mesh DFU), the MBR parameter storage in the Mesh DFU protocol goes between the bootloader
 and the application area.
 
-![Flash memory map](doc/libraries/images/bootloader_memory_nrf52.svg)
+![Flash memory map](images/bootloader_memory_nrf52.svg)
 
 The memory map contains the following major firmware elements:
 - SoftDevice

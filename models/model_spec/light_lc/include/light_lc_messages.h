@@ -98,7 +98,6 @@ typedef enum
     LIGHT_LC_PROPERTY_OPCODE_SET = 0x62,
     LIGHT_LC_PROPERTY_OPCODE_SET_UNACKNOWLEDGED = 0x63,
     LIGHT_LC_PROPERTY_OPCODE_STATUS = 0x64,
-    SENSOR_OPCODE_STATUS = 0x52,
 } light_lc_opcode_t;
 
 /** Packed message structure typedefs are used for packing and unpacking byte stream. */

@@ -1140,10 +1140,16 @@ void flash_manager_on_defrag_end(flash_manager_t * p_manager)
 {
     if (p_manager != NULL)
     {
-        p_manager->internal.p_seal = entry_get(get_first_entry(p_manager->config.p_area),
+        const fm_entry_t * p_first_entry = get_first_entry(p_manager->config.p_area);
+
+        p_manager->internal.p_seal = entry_get(p_first_entry,
                                       get_area_end(p_manager->config.p_area),
                                       HANDLE_SEAL);
-        NRF_MESH_ASSERT(p_manager->internal.p_seal != NULL);
+        if (p_manager->internal.p_seal == NULL)
+        {
+            NRF_MESH_ERROR_CHECK(recover_seal(p_manager));
+        }
+
         p_manager->internal.state = FM_STATE_READY;
         p_manager->internal.invalid_bytes = 0;
     }

@@ -185,7 +185,7 @@ uint32_t app_transition_remaining_time_get(app_transition_t * p_transition);
  */
 uint32_t app_transition_elapsed_time_get(app_transition_t * p_transition);
 
-/** Checks is the transition time has been complete.
+/** Checks if the transition time has been complete.
  *
  *
  * @param[in]  p_transition   Pointer to transition context.

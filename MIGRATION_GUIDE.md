@@ -9,6 +9,10 @@ Always refer to the migration guide from the latest documentation release on the
 regardless of the versions you are migrating to and from.
 
 **Table of contents**
+- [Migration from v4.1.0 to v4.2.0](@ref md_doc_migration_4_1_0_to_4_2_0)
+    - [Recompiled Bootloader binaries](@ref bootloader_binaries_recompiled)
+    - [Removed prebuilt sensor for LC example](@ref lc_example_sensor)
+    - [Updated nrfutil branch](@ref nrfutil_updated)
 - [Migration from v4.0.0 to v4.1.0](@ref md_doc_migration_4_0_0_to_4_1_0)
     - [Updated GNU ARM Embedded Toolchain required minimum version to 9-2019-q4-major](@ref arm_embedded_version_update)
     - [UUID generation updated](@ref migration_400_uuid_update)
@@ -21,6 +25,7 @@ regardless of the versions you are migrating to and from.
     - [AD Type filtering](@ref ad_type_filtering)
     - [New nRF5 SDK version support](@ref new_nrf5_sdk_version_support)
     - [Changes to Device State Manager API](@ref device_state_manager_api_changes)
+    - [Updated DFU](@ref dfu_updates)
 - [Migration from v3.0.0 to v3.1.0](@ref md_doc_migration_3_0_0_to_3_1_0)
     - [Example UUIDs updated](@ref migration_310_uuid_update)
     - [PB-ADV bearer selection define change](@ref migration_310_pb-adv_change)
@@ -29,6 +34,33 @@ regardless of the versions you are migrating to and from.
 - [Migration from v2.2.0 to v3.0.0](@ref md_doc_migration_2_2_0_to_3_0_0)
 - [Migration from v2.0.1 to v2.2.0](@ref md_doc_migration_2_0_1_to_2_2_0)
 - [Migration from v1.0.1 to v2.0.0](@ref md_doc_migration_1_0_1_to_2_0_0)
+
+
+---
+
+## Migration from v4.1.0 to v4.2.0 @anchor md_doc_migration_4_1_0_to_4_2_0
+
+Read this migration guide together with the [nRF5 SDK for Mesh v4.2.0 release notes](@ref release_notes_420).
+
+### Recompiled Bootloader binaries @anchor bootloader_binaries_recompiled
+- The bootloader binaries were recompiled in the latest version of the nRF5 SDK for Mesh,
+  for the first time since the recompilation for [nRF5 SDK for Mesh v3.1.0](@ref release_notes_310).
+
+#### Required actions
+- Make sure to use the latest version of the binaries.
+- During DFU, bootloader should be updated first to get the new code.
+
+### Removed prebuilt sensor for LC example @anchor lc_example_sensor
+- With the changes to LC and sensor server examples in the nRF5 SDK for Mesh v4.2, the prebuilt sensor used for the LC example in the nRF5 SDK for Mesh v4.1 has been removed.
+
+#### Required actions
+- You must now compile and use the sensor server example with the LC example.
+
+### Updated nrfutil branch @anchor nrfutil_updated
+- The `mesh_dfu` branch in the `pc-nrfutil` GitHub repository has been updated.
+
+#### Required actions
+- Use the newest version of this branch when performing DFU.
 
 
 ---
@@ -42,12 +74,10 @@ Read this migration guide together with the [nRF5 SDK for Mesh v4.1.0 release no
 been updated to 9-2019-q4-major.
 
 #### Required actions
-
 - Ensure that the version of the GNU ARM Embedded Toolchain installed is at least 9-2019-q4-major.
 The installer can be downloaded from the @link_armnone page.
 
 ### UUID generation updated @anchor migration_400_uuid_update
-
 - Updated the `nrf_mesh_configure_device_uuid_reset()` API, so that the raw output is aligned
 with the format from the UUID version 4. This update changes the auto-generated UUID value for the device.
 
@@ -77,7 +107,6 @@ a flash. It will no longer erase all the data managed by the Mesh configuration 
 Now, it is a responsibility of the application to erase application specific data.
 
 #### Required actions
-
 - New projects:
     - Do not define `ACCESS_FLASH_PAGE_COUNT`, `DSM_FLASH_PAGE_COUNT` or `NET_FLASH_PAGE_COUNT`
     in new projects, as Mesh configuration now takes care of computing the required page counts.
@@ -152,7 +181,7 @@ to receive non-mesh packets through the @ref nrf_mesh_rx_cb_set function.
 
 - Added support for the nRF5 SDK v15.3.0, which requires a different `SDK_ROOT` path in SEGGER Embedded Studio.
 
-#### Required changes
+#### Required actions
 
 - Make sure you set the correct `SDK_ROOT` path to the nRF5 SDK v15.3.0 location in SEGGER Embedded Studio.
 To set SDK_ROOT path, see the [First time setup](@ref how_to_build_segger_setup) page.
@@ -163,11 +192,18 @@ To set SDK_ROOT path, see the [First time setup](@ref how_to_build_segger_setup)
 - The @ref dsm_address_is_rx function is now deprecated and has been replaced
 by the `nrf_mesh_is_address_rx` function.
 
-#### Required changes
+#### Required actions
 
 - Use the `nrf_mesh_is_address_rx` function instead of @ref dsm_address_is_rx
 if you need to check whether the device will process packets received on the given
 destination address.
+
+### Updated DFU @anchor dfu_updates
+- DFU has received updates and bugfixes in the nRF5 SDK for Mesh v3.2.0 that impact the upgrade from previous release versions. 
+
+#### Required actions
+- The DFU update from the SDK v3.1.0 to the SDK v3.2.0 or newer will require you to first unprovision the node (execute Node Reset), and then carry out the DFU transfer.
+  Otherwise, the node will always fall into assertion after DFU.
 
 
 ---

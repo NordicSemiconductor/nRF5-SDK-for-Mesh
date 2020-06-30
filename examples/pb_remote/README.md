@@ -1,5 +1,7 @@
 # Remote provisioning example
 
+@tagSupportAllCompatibleBoards
+
 This example demonstrates the PB remote models, which allows you to provision devices
 that are outside of the provisioner's radio range. Normally, you have to be within radio range
 of the device you want to provision, but PB remote channels your commands through the mesh.
@@ -32,14 +34,14 @@ For more information about remote provisioning API, see the [PB-remote API refer
 
 ## Hardware requirements @anchor pb-remote_example_requirements_hw
 
-You need at least three supported development kits for this example:
-- One development kit for the client.
-- Two or more development kits for the server.
+You need at least three compatible development kits for this example:
+- One compatible development kit for the client.
+- Two or more compatible development kits for the server.
 
 The servers act as provisionees until they are included in the network, after which they will be able
 to act as servers to help provision new devices.
 
-See @ref md_doc_user_guide_mesh_compatibility for the supported development kits.
+See @ref md_doc_user_guide_mesh_compatibility for information about the compatible development kits.
 
 ---
 

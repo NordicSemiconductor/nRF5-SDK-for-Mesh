@@ -113,12 +113,15 @@ typedef struct
 {
     /** Present value of the lightness state */
     uint16_t present_lightness;
-
     /** Target value of the lightness state, as received from the model interface. */
     uint16_t target_lightness;
-
     /** Initial present lightness required for handling Set/Delta Set message. */
     uint16_t initial_present_lightness;
+
+    /** Present value when message was received */
+    uint16_t init_present_snapshot;
+    /** Requested target */
+    uint16_t target_snapshot;
 
     /** To detect if TID is new while processing delta transition */
     bool new_tid;
@@ -306,7 +309,7 @@ uint32_t app_light_lightness_binding_setup(app_light_lightness_setup_server_t * 
  *                                  being to sent to this destination. Wait for
  *                                  the transmission to finish before sending
  *                                  new segmented packets.
- * 
+ *
  */
 uint32_t app_light_lightness_current_value_publish(app_light_lightness_setup_server_t * p_app);
 

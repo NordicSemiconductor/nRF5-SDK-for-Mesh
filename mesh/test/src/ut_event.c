@@ -92,9 +92,12 @@ static void event_cb2(const nrf_mesh_evt_t * p_evt)
     TEST_ASSERT_TRUE(test_step == TEST_IN_CB2);
     test_step++;
     event_handler_remove(&event_handler3);
+    TEST_ASSERT_NOT_NULL(event_handler3.node.p_next);
     event_handler_remove(&event_handler2);
+    TEST_ASSERT_NOT_NULL(event_handler2.node.p_next);
     event_handler_remove(&event_handler4);
     event_handler_add(&event_handler5);
+    TEST_ASSERT_NOT_NULL(event_handler4.node.p_next);
 }
 
 static void event_cb3(const nrf_mesh_evt_t * p_evt)
@@ -134,6 +137,10 @@ void test_event_handling(void)
     event_handler_add(&event_handler4);
 
     event_handle(&event);
+
+    TEST_ASSERT_NULL(event_handler3.node.p_next);
+    TEST_ASSERT_NULL(event_handler2.node.p_next);
+    TEST_ASSERT_NULL(event_handler4.node.p_next);
 
     TEST_ASSERT_TRUE(test_step == FINAL_VALUE);
 }

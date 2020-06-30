@@ -268,10 +268,10 @@ link_segger_website="<a href=\"https://www.segger.com/products/development-tools
 link_seggerstudio="<a href=\"https://www.segger.com/products/development-tools/embedded-studio/?L=0\" target=\"_blank\">SEGGER Embedded Studio</a>" \
 link_seggerstudio_macros="<a href=\"https://studio.segger.com/ide_project_macros.htm \" target=\"_blank\">SES Project macros</a>" \
 link_armnone="<a href=\"https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads\" target=\"_blank\">arm-none-eabi-gcc</a>" \
-link_armnone_extended="<a href="https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads\" target="_blank">GNU ARM Embedded Toolchain</a>" \
-link_armcc="<a href=\"https://developer.arm.com/products/software-development-tools/compilers/arm-compiler/downloads/version-5\" target=\"_blank\">armcc v5</a>" \
+link_armnone_extended="<a href=\"https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads\" target="_blank">GNU ARM Embedded Toolchain</a>" \
+link_armcc="<a href=\"https://developer.arm.com/tools-and-software/embedded/arm-compiler/downloads/legacy-compilers#arm-compiler-5\" target=\"_blank\">armcc v5</a>" \
 link_keil="<a href=\"http://www2.keil.com/mdk5/compiler/5/\" target=\"_blank\">Keil</a>" \
-link_keil_extended="<a href="http://www2.keil.com/mdk5/compiler/5/\" target="_blank">ARM Compiler Version 5</a>" \
+link_keil_extended="<a href=\"http://www2.keil.com/mdk5/compiler/5/\" target="_blank">ARM Compiler Version 5</a>" \
 link_keiluvision="<a href=\"http://www2.keil.com/mdk5/uvision/\" target=\"_blank\">Keil uVision IDE</a>" \
 link_make="<a href=\"http://pubs.opengroup.org/onlinepubs/9699919799/utilities/make.html\" target=\"_blank\">make</a>" \
 link_unity="<a href=\"https://github.com/ThrowTheSwitch/Unity\" target=\"_blank\">Unity</a>" \
@@ -374,9 +374,12 @@ link_nrf5xclt_download="<a href="../ug_nrf5x_cltools/UG/cltools/nrf5x_installati
 ALIASES               += \
 tagGreenTick="@htmlonly<CENTER><font color=\"green\">✔</font></CENTER>@endhtmlonly" \
 tagRedCross="@htmlonly<CENTER><font color=\"red\">✖</font></CENTER>@endhtmlonly" \
-tag52810nosupport="<div class=\"whichnRF nRF52\"><span>This example is <b>not</b> supported by the <b>nRF52810</b> SoC.</span></div>" \
+tag52810nosupport="<div class=\"whichnRF nRF52\"><span>This example is <b>not</b> compatible with the <b>nRF52810</b> device.</span></div>" \
+tag52840and52833and52832="<div class=\"whichnRF nRF52840\"><span>You can test this example on the following devices: <b>nRF52840</b>, <b>nRF52833</b>, and <b>nRF52832</b>.</span></div>" \
+tagSupportAllCompatibleBoards="<div class=\"whichnRF nRF52840\"><span>You can test this example on the following devices: <b>nRF52840</b>, <b>nRF52833</b>, <b>nRF52832</b>, and <b>nRF52810</b>.</span></div>" \
 tagMeshSp="Mesh Profile Specification (MshPRFv1.0.1)" \
 tagMeshMdlSp="Mesh Model Specification (MshMDLv1.0.1)" \
+tagMeshDevPr="Mesh Device Properties (MDPv1.2)" \
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"
@@ -943,6 +946,7 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/models/model_spec/light_lightness/include" \
 "@PROJECT_SOURCE_DIR@/models/model_spec/light_lc/include" \
 "@PROJECT_SOURCE_DIR@/models/model_spec/light_ctl/include" \
+"@PROJECT_SOURCE_DIR@/models/model_spec/sensor/include" \
 "@PROJECT_SOURCE_DIR@/models/vendor/rssi_monitor/include" \
 "@PROJECT_SOURCE_DIR@/models/vendor/rssi_monitor/README.md" \
 "@PROJECT_SOURCE_DIR@/models/vendor/rssi_monitor/doc" \
@@ -982,6 +986,7 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/examples/light_lightness/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/light_lc/server/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/light_ctl/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/sensor/README.md" \
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -1072,6 +1077,7 @@ EXAMPLE_RECURSIVE      = NO
 IMAGE_PATH             = "@PROJECT_SOURCE_DIR@/mesh/doc" \
                          "@PROJECT_SOURCE_DIR@/models/proprietary/pb_remote/doc" \
                          "@PROJECT_SOURCE_DIR@/models/vendor/rssi_monitor/doc/img" \
+                         "@PROJECT_SOURCE_DIR@/models/vendor/simple_on_off/img" \
                          "@PROJECT_SOURCE_DIR@/doc/images" \
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should

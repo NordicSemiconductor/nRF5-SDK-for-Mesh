@@ -43,12 +43,7 @@
 typedef struct
 {
     flash_manager_t flash_manager;
+    fm_mem_listener_t listener;
 } mesh_config_backend_glue_data_t;
-
-/** The hardware\system dependent part of the record iterator. */
-typedef struct
-{
-    fm_entry_t * p_entry;
-} mesh_config_backend_glue_iterator_t;
 
 #endif /* MESH_CONFIG_FLASHMAN_GLUE_H_ */

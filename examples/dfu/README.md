@@ -1,6 +1,7 @@
 # DFU example
 @anchor dfu_example
 
+@tag52840and52833and52832
 @tag52810nosupport
 
 This Device Firmware Update (DFU) example illustrates how to create an application that can be updated
@@ -12,7 +13,16 @@ More information about the DFU can be found in the @ref md_doc_user_guide_module
 
 ---
 
-## Software requirements @anchor dfu_example_requirements_hw
+## Hardware requirements @anchor dfu_example_requirements_hw
+
+You need one compatible development kit for this DFU example.
+
+See @ref md_doc_user_guide_mesh_compatibility for information about
+the compatible development kits.
+
+---
+
+## Software requirements @anchor dfu_example_requirements_sw
 
 This DFU application requires a bootloader and a valid device page to function correctly.
 

@@ -53,8 +53,6 @@
  * The IDs must be unique. */
 #define MESH_APP_FILE_ID (0x0010)
 
-MESH_CONFIG_FILE(m_provisioner_file, MESH_APP_FILE_ID, MESH_CONFIG_STRATEGY_CONTINUOUS);
-
 enum
 {
     PROVISIONER_RECORD  = 0x0001

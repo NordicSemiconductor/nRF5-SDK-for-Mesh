@@ -1,5 +1,6 @@
 # Dimming examples
 
+@tag52840and52833and52832
 @tag52810nosupport
 
 This example demonstrates the interaction between a mesh dimmable light and a dimmer. The mesh
@@ -40,8 +41,9 @@ servers.
 ### Dimming server @anchor dimming_example_dimming_server
 
 The dimming server has a provisionee role in the network. It instantiates one instance
-of the Generic Level Server model to control the state of LED 1. It uses the @link_APP_PWM library
-of the nRF5 SDK to control the brightness of the LED. It can either be provisioned and configured
+of the Generic Level Server model to control the state of LED 1. It uses the nRF5 SDK's @link_APP_PWM library,
+which is controlled by the lightness value and which controls the brightness of the LED.
+It can either be provisioned and configured
 by the provisioner device or by a GATT-based provisioner. The provisioner configures this
 server model instance to communicate with the client model on the client board and to publish
 a message when the value of the Level state changes.
@@ -68,29 +70,25 @@ and the [Generic Level server behaviour documentation](@ref APP_LEVEL).
 
 ## Hardware requirements @anchor dimming_example_requirements_hw
 
-You need at least two supported development kits for this example:
-- One development kit for the client.
-- One or more development kits for the servers.
+You need at least two compatible development kits for this example:
+- One compatible development kit for the client.
+- One or more compatible development kits for the servers.
 
-Additionally, you need one of the following:
-- One nRF52 development kit for the provisioner if you decide to use the [static provisioner example](@ref md_examples_provisioner_README).
-- @link_nrf_mesh_app (@link_nrf_mesh_app_ios or @link_nrf_mesh_app_android) if you decide
-to provision using the application.
+Additionally, you need one of the following for provisioning:
+- One compatible development kit for the provisioner if you decide to use the [static provisioner example](@ref md_examples_provisioner_README).
+- An iOS or Android smartphone if you decide to provision using the @link_nrf_mesh_app mobile application.
 
-See @ref md_doc_user_guide_mesh_compatibility for information about the supported development kits.
-
-@note This example uses the PWM peripheral for dimming. Therefore, it cannot be run on nRF51 devices.
+See @ref md_doc_user_guide_mesh_compatibility for information about the compatible development kits.
 
 
 ---
 
 ## Software requirements @anchor dimming_example_requirements_sw
 
-If you decide to use the static provisioner example, you need
-the provisioner example: `<InstallFolder>/examples/provisioner`
+Depending on the provisioning method:
+- If you decide to provision using a mobile application, you need @link_nrf_mesh_app (@link_nrf_mesh_app_ios or @link_nrf_mesh_app_android) installed on the smartphone.
+- If you decide to use the static provisioner example, you need the [provisioner example](@ref md_examples_provisioner_README).
 
-See the [provisioner details](@ref md_examples_provisioner_README) page for more information
-about the provisioner example.
 
 ---
 
@@ -131,11 +129,11 @@ You can find the source code of this example in the following folder:
   - When interacting with the boards:
     - You cannot use buttons on the server boards since dimming server does not use the `simple_hal` module.
     - Use the following RTT input:
-        | RTT inputs    | DK Buttons    |   Effect                                                              |
-        |---------------|---------------|-----------------------------------------------------------------------|
-        | `1`           | -             | The brightness of the LED 1 _decresses_ in large steps.               |
-        | `2`           | -             | The brightness of the LED 1 _increases_ in large steps.               |
-        | `4`           | -             | Clear all the states to reset the node.                               |
+        | RTT inputs    | DK Buttons    |   Effect                                                                          |
+        |---------------|---------------|-----------------------------------------------------------------------------------|
+        | `1`           | -             | The lightness value for LED 1 (and its brightness) is _decreased_ in large step.  |
+        | `2`           | -             | The lightness value for LED 1 (and its brightness) is _increased_ in large step.  |
+        | `4`           | -             | Clear all the states to reset the node.                                           |
 
 
 
@@ -146,11 +144,6 @@ You can find the source code of this example in the following folder:
 To test the dimming example, build the examples by following the instructions in
 [Building the mesh stack](@ref md_doc_getting_started_how_to_build).
 
-@note
-If you have more than 40 boards for the server and decided to use the static provisioner example,
-set `MAX_PROVISIONEE_NUMBER` (in `example_network_config.h`) to the number of boards available
-and rebuild the provisioner example.
-
 After building is complete, use one of the following methods, depending on the preferred
 provisioning approach:
 - [Evaluating using the static provisioner](@ref dimming_prov_prov_example)
@@ -158,34 +151,12 @@ provisioning approach:
 
 ### Evaluating using the static provisioner @anchor dimming_prov_prov_example
 
-1. Flash the examples by following the instructions in @ref md_doc_getting_started_how_to_run_examples,
-including:
-    1. Erase the flash of your development kits and program the SoftDevice.
-    2. Flash the provisioner firmware on one board, the client firmware on another board,
-    and the server firmware on the remaining board or boards.
-2. After the reset at the end of the flashing process, press Button 1 on the provisioner board
-to start the provisioning process:
-    -# The provisioner provisions and configures the client.
-    -# The provisioner configures the two client model instances on the client board to communicate
-    with the Odd and Even server groups.
-    -# The provisioner also provisions and configures the servers at random.
-    It assigns them consecutive addresses starting with 0x301, and adds them to odd and even groups.
-@note You can use [RTT viewer](@ref segger-rtt) to view the RTT output generated by the provisioner.
-The provisioner prints details about the provisioning and the configuration process in the RTT log.
-3. Observe that the LED 1 on the provisioner board is turned ON when provisioner is scanning
-and provisioning a device.
-4. Observe that the LED 2 on the provisioner board is turned ON when configuration procedure
-is in progress.
-5. Wait until LED 1 on the provisioner board remains ON steadily for a few seconds,
-which indicates that all available boards have been provisioned and configured.
-
-
-If the provisioner encounters an error during the provisioning or configuration process for one
-of the nodes, you can reset the provisioner to restart the process for that node.
+See [provisioner example testing section](@ref provisioner_example_evaluating) for detailed steps required
+to provision and configure the boards using the static provisioner.
 
 ### Evaluating using the nRF Mesh mobile app @anchor dimming_prov_nrf_mesh
 
-See @ref nrf-mesh-mobile-app "the information on the main Examples page" for detailed steps required
+See [Evaluating examples using the nRF Mesh mobile application](@ref nrf-mesh-mobile-app) for detailed steps required
 to provision and configure the boards using the nRF Mesh mobile app.
 
 When using the nRF Mesh app with this example, the following naming convention is used in the app:
@@ -195,7 +166,6 @@ When using the nRF Mesh app with this example, the following naming convention i
 The following model instances must be configured in the app for this example:
 - For the `nRF5x Mesh Dimmable Light` server board: Generic Level Server.
 - For the `nRF5x Mesh Dimmer` client board: Generic Level Client.
-
 
 ### Interacting with the boards @anchor dimming_example_testing_interacting
 

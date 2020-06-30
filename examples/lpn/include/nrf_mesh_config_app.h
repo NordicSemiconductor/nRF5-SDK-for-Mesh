@@ -94,7 +94,7 @@
  */
 #define ACCESS_MODEL_COUNT (1 + /* Configuration server */  \
                             1 + /* Health server */  \
-                            2   /* Generic OnOff clients */)
+                            1   /* Generic OnOff client */)
 
 /**
  * The number of elements in the application.

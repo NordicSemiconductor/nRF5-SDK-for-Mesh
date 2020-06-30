@@ -13,11 +13,11 @@ to send packets between them over mesh.
 
 ## Requirements @anchor pyaci_demo_sending_packets_requirements
 
-You need at least two supported boards for this demonstration,
+You need at least two compatible development kits for this demonstration,
 [flashed](@ref examples_how_to_run_examples) with the following example:
 - @ref md_examples_serial_README
 
-See @ref md_doc_user_guide_mesh_compatibility for the supported boards.
+See @ref md_doc_user_guide_mesh_compatibility for information about the compatible development kits.
 
 ---
 

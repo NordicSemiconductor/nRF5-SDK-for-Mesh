@@ -14,6 +14,8 @@ You can then configure the required software toolchains and the process of build
 If you used one of the previous versions of the nRF SDK for Mesh,
 check the @subpage md_MIGRATION_GUIDE.
 
+
+---
 ## What to do next @anchor after_setup
 
 Once you install the toolchain and you are familiar with the building process,

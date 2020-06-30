@@ -240,7 +240,6 @@ mesh_adv_data_t* mesh_packet_adv_data_get(mesh_packet_t* p_packet)
         return NULL;
     }
 
-    mesh_adv_data_t* p_mesh_adv_data = (mesh_adv_data_t*) &p_packet->payload[0];
     if (p_packet->header.length <= MESH_PACKET_BLE_OVERHEAD ||
         p_packet->header.length > MESH_PACKET_BLE_OVERHEAD + BLE_ADV_PACKET_PAYLOAD_MAX_LENGTH)
     {
@@ -248,21 +247,23 @@ mesh_adv_data_t* mesh_packet_adv_data_get(mesh_packet_t* p_packet)
     }
 
     /* loop through all ad data structures */
-    while (p_mesh_adv_data->adv_data_type != MESH_ADV_DATA_TYPE ||
-           p_mesh_adv_data->mesh_uuid != MESH_UUID)
+    mesh_adv_data_t * p_mesh_adv_data = NULL;
+    for (ble_ad_t * p_ad_data = (ble_ad_t *)p_packet->payload;
+         (uint8_t *)p_ad_data < &p_packet->payload[p_packet->header.length - MESH_PACKET_BLE_OVERHEAD] &&
+                 p_ad_data->adv_data_length > 0;
+         p_ad_data = (ble_ad_t*) ((uint8_t*) p_ad_data + p_ad_data->adv_data_length + BLE_AD_DATA_OVERHEAD))
     {
-        if ((p_mesh_adv_data->adv_data_length + ((uint32_t) p_mesh_adv_data - (uint32_t) (p_packet->payload))
-               > p_packet->header.length - MESH_PACKET_BLE_OVERHEAD) ||
-            ((uint8_t*) p_mesh_adv_data >= &p_packet->payload[p_packet->header.length - MESH_PACKET_BLE_OVERHEAD]))
+        if (p_ad_data->adv_data_type == MESH_ADV_DATA_TYPE &&
+            p_ad_data->adv_data_length > MESH_DFU_DATA_OVERHEAD &&
+            p_ad_data->adv_data_length <= BLE_ADV_PACKET_PAYLOAD_MAX_LENGTH &&
+            *(uint16_t *)p_ad_data->data == MESH_UUID)
         {
-            /* invalid ad length */
-            return NULL;
+            p_mesh_adv_data = (mesh_adv_data_t*)p_ad_data;
+            break;
         }
-        p_mesh_adv_data += p_mesh_adv_data->adv_data_length + 1; /* length field in ad data is not considered */
-    }
+     }
 
-    /* The network packet overlaps with AD-data */
-    return (mesh_adv_data_t*) p_mesh_adv_data;
+    return p_mesh_adv_data;
 }
 
 rbc_mesh_value_handle_t mesh_packet_handle_get(mesh_packet_t* p_packet)

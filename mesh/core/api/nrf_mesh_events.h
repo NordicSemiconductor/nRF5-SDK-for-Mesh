@@ -123,6 +123,8 @@ typedef enum
     /** The node has received a Friend Request from an LPN. Unless the friendship is actively
      * terminated, the request is accepted automatically. */
     NRF_MESH_EVT_FRIEND_REQUEST,
+    /** The mesh stack completed and stopped all activities and ready to power off. */
+    NRF_MESH_EVT_READY_TO_POWER_OFF,
 } nrf_mesh_evt_type_t;
 
 /**

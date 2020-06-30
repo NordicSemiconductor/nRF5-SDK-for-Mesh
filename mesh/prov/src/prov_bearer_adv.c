@@ -704,6 +704,13 @@ static void handle_transaction_start_packet(nrf_mesh_prov_bearer_adv_t * p_pb_ad
                 p_pb_adv->buffer.state = PROV_BEARER_ADV_BUF_STATE_RX;
                 p_pb_adv->buffer.finished_segments = 1;
                 uint32_t payload_length = length - PB_ADV_PACKET_OVERHEAD - PROV_BEARER_PACKET_TRANSACTION_START_OVERHEAD;
+
+                if (payload_length > PROV_BEARER_ADV_PACKET_START_PAYLOAD_MAXLEN)
+                {
+                    __LOG(LOG_SRC_PROV, LOG_LEVEL_WARN, "Got malformed packet.\n");
+                    return;
+                }
+
                 memcpy(p_pb_adv->buffer.payload, p_packet->pdu.payload.transaction.start.payload, payload_length);
 
                 if (p_pb_adv->buffer.length == payload_length)
@@ -749,36 +756,43 @@ static void handle_transaction_continuation_packet(nrf_mesh_prov_bearer_adv_t * 
 {
     if (p_pb_adv->buffer.state == PROV_BEARER_ADV_BUF_STATE_RX)
     {
-        if (p_packet->transaction_number == p_pb_adv->transaction_in)
-        {
-            /* Check segment bitfield, to figure out if we've received this packet before: */
-            if (!((1 << p_packet->pdu.id) & p_pb_adv->buffer.finished_segments))
-            {
-                /* First time we receive this packet. */
-                uint32_t data_index = (PROV_BEARER_ADV_PACKET_START_PAYLOAD_MAXLEN + (p_packet->pdu.id - 1) * PROV_BEARER_ADV_PACKET_CONTINUATION_PAYLOAD_MAXLEN);
-                uint32_t payload_length = length - PB_ADV_PACKET_OVERHEAD - PROV_BEARER_PACKET_TRANSACTION_CONTINUATION_OVERHEAD;
-                memcpy(&p_pb_adv->buffer.payload[data_index], p_packet->pdu.payload.transaction.continuation.payload, payload_length);
-
-                p_pb_adv->buffer.finished_segments |= (1 << p_packet->pdu.id);
-
-                /* Here's some neat bitfield magic for you:
-                 * If (and only if) all packets in an N-segment transaction
-                 * have been received, the bitmap should have N number of 1's
-                 * on the lower half of the bitfield. Adding 1 to this full
-                 * bitfield should give a single bit with offset N.
-                 * E.g. N=5: 0b00011111 + 1 == 0b00100000 == (1 << 5).
-                 * If a single bit is missing, we'll get a different result.
-                 */
-                if (p_pb_adv->buffer.finished_segments + 1 == (1 << transaction_total_segment_count_get(p_pb_adv->buffer.length)))
-                {
-                    /* All segments received. */
-                    prov_buffer_rx(p_pb_adv, &p_pb_adv->buffer);
-                }
-            }
-        }
-        else
+        if (p_packet->transaction_number != p_pb_adv->transaction_in)
         {
             __LOG(LOG_SRC_PROV, LOG_LEVEL_WARN, "Got segment from unexpected transaction number.\n");
+            return;
+        }
+
+        /* Check segment bitfield, to figure out if we've received this packet before: */
+        if (!((1 << p_packet->pdu.id) & p_pb_adv->buffer.finished_segments))
+        {
+            /* First time we receive this packet. */
+            uint32_t data_index = (PROV_BEARER_ADV_PACKET_START_PAYLOAD_MAXLEN + (p_packet->pdu.id - 1) * PROV_BEARER_ADV_PACKET_CONTINUATION_PAYLOAD_MAXLEN);
+            uint32_t payload_length = length - PB_ADV_PACKET_OVERHEAD - PROV_BEARER_PACKET_TRANSACTION_CONTINUATION_OVERHEAD;
+
+            if (payload_length > PROV_BEARER_ADV_PACKET_CONTINUATION_PAYLOAD_MAXLEN ||
+                data_index + payload_length > PROV_PDU_MAX_LENGTH)
+            {
+                __LOG(LOG_SRC_PROV, LOG_LEVEL_WARN, "Got malformed packet.\n");
+                return;
+            }
+
+            memcpy(&p_pb_adv->buffer.payload[data_index], p_packet->pdu.payload.transaction.continuation.payload, payload_length);
+
+            p_pb_adv->buffer.finished_segments |= (1 << p_packet->pdu.id);
+
+            /* Here's some neat bitfield magic for you:
+             * If (and only if) all packets in an N-segment transaction
+             * have been received, the bitmap should have N number of 1's
+             * on the lower half of the bitfield. Adding 1 to this full
+             * bitfield should give a single bit with offset N.
+             * E.g. N=5: 0b00011111 + 1 == 0b00100000 == (1 << 5).
+             * If a single bit is missing, we'll get a different result.
+             */
+            if (p_pb_adv->buffer.finished_segments + 1 == (1 << transaction_total_segment_count_get(p_pb_adv->buffer.length)))
+            {
+                /* All segments received. */
+                prov_buffer_rx(p_pb_adv, &p_pb_adv->buffer);
+            }
         }
     }
     else

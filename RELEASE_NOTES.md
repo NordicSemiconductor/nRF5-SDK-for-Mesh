@@ -3,12 +3,13 @@
 This page contains all the notes for the major and minor production releases of the nRF5 SDK for Mesh.
 
 **Table of contents**
+- [BLE Mesh v4.2.0](@ref release_notes_420)
+    - [New features and highlights](@ref release_notes_420_highlights)
+    - [Changes](@ref release_notes_420_changes)
+    - [Bugfixes](@ref release_notes_420_bugfixes)
+    - [Limitations](@ref release_notes_420_limitations)
+    - [Known issues](@ref release_notes_420_known_issues)
 - [BLE Mesh v4.1.0](@ref release_notes_410)
-    - [New features and highlights](@ref release_notes_410_highlights)
-    - [Changes](@ref release_notes_410_changes)
-    - [Bugfixes](@ref release_notes_410_bugfixes)
-    - [Limitations](@ref release_notes_410_limitations)
-    - [Known issues](@ref release_notes_410_known_issues)
 - [BLE Mesh v4.0.0](@ref release_notes_400)
 - [BLE Mesh v3.2.0](@ref release_notes_320)
 - [BLE Mesh v3.1.0](@ref release_notes_310)
@@ -30,9 +31,80 @@ This page contains all the notes for the major and minor production releases of 
 Check [Migration guide](@ref md_MIGRATION_GUIDE) for mandatory changes to your projects caused by
 the release of new features and updates.
 
+## BLE Mesh v4.2.0 @anchor release_notes_420
+
+@par Release Date: Week 26, 2020
+
+This is a minor release that introduces sensor client and server models with examples, as well as bugfixes.
+Because of updates to DFU and the recompilation of bootloader binaries, it is recommended to upgrade to this version.
+
+### New features and highlights @anchor release_notes_420_highlights
+- Implemented Sensor Client and Server model with the respective [API](@ref SENSOR_MODEL) and [examples](@ref md_examples_sensor_README).
+- Implemented bugfixes to DFU.
+
+### Changes @anchor release_notes_420_changes
+- Added support for friendship poll timeouts greater than 2100 seconds for both Friend and Low Power nodes. This fixes the previously known MBTLE-3563 issue.
+- Added a new flashing target in order to enable sector-only erase.
+- Added functionality to clean mesh config files. The files are now cleaned as flash pages and not anymore as separate entries.
+- Updated Level, Lightness, and CTL behavioral modules. The state variables for ongoing transitions for these modules are not affected until the delay for newly received message expires.
+- Modified the common part for models, so that the device will boot as unprovisioned device if the stack detects the wrong model metadata.
+- Bootloader binaries were recompiled because of changes and fixes to DFU.
+- Made several minor improvements to the documentation pages.
+  For example, reorganized sections on the [Building the mesh stack and examples](@ref md_doc_getting_started_how_to_build) page.
+
+#### Example updates
+- Added support for sensor server and client examples to the static provisioner.
+- Updated the [Light LC example](@ref md_examples_light_lc_server_README) to work with the new sensor example.
+    - Removed a pre-compiled hex file for the sensor example used for evaluating the LC server examples. This is now replaced by the Sensor server example.
+
+### Bugfixes @anchor release_notes_420_bugfixes
+- Fixed an issue where the timer functionality missed the COMPARE event from RTC1 if CC and COUNTER were close enough. (MBTLE-3811)
+- Fixed an issue where setting the maximum values for RelayRetransmitIntervalSteps field in the Config Relay Set message and NetworkTransmitIntervalSteps field in the Config Network Transmit Set message would cause an assertion. (MBTLE-3851)
+- Fixed an issue where the provisioner example would assert when attempting to reset the device multiple times. (MBTLE-3855)
+- Fixed an issue where the PyACI interface time-out would occur after installing nRF Command Line Tools v10.7.0. (MBTLE-3878)
+- Fixed an issue where the Light PI regulator code would wrongly assume that the luxlevel_out value is in "lux" instead of "illuminance" characteristic format. (MBTLE-3879)
+- Fixed an issue where the Light ON event would not be generated at the boot time. (MBTLE-3880)
+- Fixed an issue with documentation for the RX callback section on the [Beaconing example page](@ref md_examples_beaconing_README) and for the @ref nrf_mesh_rx_cb_set() API. (MBTLE-3881)
+- Fixed an issue where a few unit tests would fail when running on Linux. (MBTLE-3933)
+- Fixed several other bugs.
+
+#### DFU bugfixes
+- Fixed an issue where a PC-connected device not undergoing DFU would not respond to requests for missing packets. (MBTLE-3686)
+- Fixed an issue where the DFU functionality would infinitely send or retransmit the state packets within the network. (MBTLE-3687)
+- Updated nrfutil for mesh DFU in order to add dynamic delay and additional logging messages. This allows nrfutil to wait for sufficient amount of time to allow full erase of bank area for large DFU transfers. (MBTLE-3813, MBTLE-3823)
+- Fixed several other bugs.
+
+#### Known issue fixes
+- Fixed a previously known issue where the DFU segment recovery may get deadlocked. (MBTLE-3423)
+
+### Limitations @anchor release_notes_420_limitations
+- The replay protection list is not stored in flash. (MBTLE-1975)
+- If a poll is planned during the delay of another poll, the attempt counter is reset to the default
+  value. (MBTLE-3175)
+- It is not possible to use SAR for both request and response by using loopback. Use separate
+  elements for such client-server models instantiated on the same device. (MBTLE-3439)
+- The PA/LNA module is supported on nRF52840 and nRF52833, but only verified on nRF52832.
+  (MBTLE-3576)
+
+### Known issues @anchor release_notes_420_known_issues
+- If the mesh stack is configured with the IRQ priority @ref NRF_MESH_IRQ_PRIORITY_THREAD and runs
+  in the main loop with app_scheduler, there might be delays of ~15 ms. (MBTLE-2624)
+- During the provisioning of a device, the Device Name is changed to the default `nRF5x` after
+  completion of the PB-GATT connection. The name is later changed back to the correct name when the
+  initial configuration of the device is complete. (MBTLE-3151)
+- The app_timer library fails to trigger the timer correctly if no active timer is present
+  for the RTC_MAX/2 value. (A workaround has been implemented for this issue in `app_timer_workaround.c`.) (MBTLE-3347)
+- The Mesh Configuration Power Down files require significant time for storing if defragmentation is
+  in progress. (MBTLE-3467)
+- After the firmware upgrade, if the composition data has been changed
+  or corrupted persistent data has been found (or both), the device will boot up as unprovisioned device.
+  If the device is provisioned at that point without resetting, it asserts.
+  As a workaround, reset the device once more before the start of provisioning. (MBTLE-3840)
+- If Proxy Server changes the SNB beacon state by itself, this change is not propagated to the Proxy Client. (MBTLE-3945)
+- Sensor Status Delta Trigger does not consider Status Min Interval. (MBTLE-3968)
+
 
 ---
-
 
 ## BLE Mesh v4.1.0 @anchor release_notes_410
 
@@ -60,9 +132,9 @@ and fixes several bugs.
 - Added improvements to the static provisioner to include lighting and sensor scenarios.
     - The static provisioner example has been updated to support new examples: Light lightness, Light CTL and Light LC server.
 - Additionally, provisioner was moved out of the light switch example dependencies and got separate configuration files.
-    - The node configuration module was made flexible to support complex configuration scenarios like the combination of CTL and LC servers.  
+    - The node configuration module was made flexible to support complex configuration scenarios like the combination of CTL and LC servers.
     Servers from the supported examples now publish statuses on group addresses instead of unicast clients' addresses.
-    This allows to combine clients from one example and servers from another example if they support the client-server part of the same model. 
+    This allows to combine clients from one example and servers from another example if they support the client-server part of the same model.
         - For example, you can combine the EnOcean switch translator (Generic OnOff client) with the light lightness server (Generic OnOff server), and so on.
 
 #### Documentation

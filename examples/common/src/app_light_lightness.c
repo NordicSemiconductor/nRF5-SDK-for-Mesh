@@ -173,6 +173,9 @@ static void light_lightness_state_get_cb(const light_lightness_setup_server_t * 
         p_out->target_lightness = p_app->state.target_lightness;
         p_out->remaining_time_ms = app_transition_remaining_time_get(&p_app->state.transition);
     }
+
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "GET Lightness: pr: %d tgt: %d tt: %d\n",
+          p_out->present_lightness, p_out->target_lightness, p_out->remaining_time_ms);
 }
 
 static void light_lightness_state_set_cb(const light_lightness_setup_server_t * p_self,
@@ -205,28 +208,29 @@ static void light_lightness_state_set_cb(const light_lightness_setup_server_t * 
 
     /* There is a special case for lightness value of `0`. If requested lightness is zero, and
      * present value is also zero, target should be zero */
-    p_app->state.target_lightness = p_in->lightness > range.range_max ? range.range_max :
-                                    p_in->lightness < range.range_min && p_in->lightness != 0 ? range.range_min :
-                                    p_in->lightness;
+    p_app->state.target_snapshot = p_in->lightness > range.range_max ? range.range_max :
+                                   p_in->lightness < range.range_min && p_in->lightness != 0 ? range.range_min :
+                                   p_in->lightness;
+    p_app->state.init_present_snapshot = p_app->state.present_lightness;
 
-    ERROR_CHECK(light_lightness_mc_actual_state_set(p_self->state.handle, p_app->state.target_lightness));
-    if (p_app->state.target_lightness >= LIGHT_LIGHTNESS_LAST_MIN)
+    ERROR_CHECK(light_lightness_mc_actual_state_set(p_self->state.handle, p_app->state.target_snapshot));
+    if (p_app->state.target_snapshot >= LIGHT_LIGHTNESS_LAST_MIN)
     {
-        ERROR_CHECK(light_lightness_mc_last_state_set(p_self->state.handle, p_app->state.target_lightness,
+        ERROR_CHECK(light_lightness_mc_last_state_set(p_self->state.handle, p_app->state.target_snapshot,
                                                       LIGHT_LIGHTNESS_MC_WRITE_DESTINATION_FLASH_ONLY));
     }
 
     if (!p_self->state.initialized || (present_lightness != p_in->lightness))
     {
         (void) transition_parameters_set(p_app,
-                                         (int32_t)p_app->state.target_lightness - (int32_t)present_lightness,
+                                         (int32_t)p_app->state.target_snapshot - (int32_t)present_lightness,
                                          p_in_transition,
                                          APP_TRANSITION_TYPE_SET);
 
         transition_time_ms = p_params->transition_time_ms;
         __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
               "SET: target lightness: %d  delay: %d  tt: %d  req-delta: %d \n",
-              p_app->state.target_lightness,
+              p_app->state.target_snapshot,
               p_app->state.transition.delay_ms,
               p_params->transition_time_ms,
               p_params->required_delta);
@@ -242,10 +246,9 @@ static void light_lightness_state_set_cb(const light_lightness_setup_server_t * 
     if (p_out != NULL)
     {
         p_out->present_lightness = p_app->state.present_lightness;
-        p_out->target_lightness  = p_app->state.target_lightness;
+        p_out->target_lightness  = p_app->state.target_snapshot;
         p_out->remaining_time_ms = transition_time_ms;
     }
-
 }
 
 static void light_lightness_state_delta_set_cb(const light_lightness_setup_server_t * p_self,
@@ -279,16 +282,21 @@ static void light_lightness_state_delta_set_cb(const light_lightness_setup_serve
     /* If delta is too large, target value should get clipped to range limits */
     range_get(p_self->state.handle, &range);
 
+    if (p_app->state.new_tid)
+    {
+        p_app->state.init_present_snapshot = p_app->state.present_lightness;
+    }
+
     target_lightness = p_app->state.new_tid ?
                         (int32_t)p_app->state.present_lightness + p_in->delta_lightness :
-                        (int32_t)p_app->state.initial_present_lightness + p_in->delta_lightness;
+                        (int32_t)p_app->state.init_present_snapshot + p_in->delta_lightness;
 
     /* There is a special case for target lightness values of less than or equal to `0`.
      * If calculated target is less than or equal to zero, target should be zero. */
-    p_app->state.target_lightness = target_lightness <= 0 ? 0 :
-                                    target_lightness > range.range_max ? range.range_max :
-                                    target_lightness < range.range_min ? range.range_min :
-                                    target_lightness;
+    p_app->state.target_snapshot = target_lightness <= 0 ? 0 :
+                                   target_lightness > range.range_max ? range.range_max :
+                                   target_lightness < range.range_min ? range.range_min :
+                                   target_lightness;
 
     (void) transition_parameters_set(p_app,
                                      p_in->delta_lightness,
@@ -300,7 +308,7 @@ static void light_lightness_state_delta_set_cb(const light_lightness_setup_serve
           p_in->delta_lightness,
           p_app->state.transition.delay_ms,
           p_params->transition_time_ms,
-          p_app->state.target_lightness);
+          p_app->state.target_snapshot);
 
     app_transition_trigger(&p_app->state.transition);
 
@@ -308,7 +316,7 @@ static void light_lightness_state_delta_set_cb(const light_lightness_setup_serve
     if (p_out != NULL)
     {
         p_out->present_lightness = p_app->state.present_lightness;
-        p_out->target_lightness  = p_app->state.target_lightness;
+        p_out->target_lightness  = p_app->state.target_snapshot;
         p_out->remaining_time_ms = p_params->transition_time_ms;
     }
 }
@@ -346,16 +354,16 @@ static void light_lightness_state_move_set_cb(const light_lightness_setup_server
     if (p_in->delta > 0 &&
         p_app->state.transition.requested_params.transition_time_ms > 0)
     {
-        p_app->state.target_lightness = range.range_max;
+        p_app->state.target_snapshot = range.range_max;
     }
     else if (p_in->delta < 0 &&
              p_app->state.transition.requested_params.transition_time_ms > 0)
     {
-        p_app->state.target_lightness = range.range_min;
+        p_app->state.target_snapshot = range.range_min;
     }
     else
     {
-        p_app->state.target_lightness = p_app->state.present_lightness;
+        p_app->state.target_snapshot = p_app->state.present_lightness;
     }
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
@@ -710,8 +718,9 @@ static void transition_delay_start_cb(const app_transition_t * p_transition)
     p_app = transition_to_app(p_transition);
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
-          "Element %d: starting delay\n",
-          p_app->light_lightness_setup_server.settings.element_index);
+          "Element %d: starting delay, present-lightness: %d\n",
+          p_app->light_lightness_setup_server.settings.element_index,
+          p_app->state.present_lightness);
 #endif
 }
 
@@ -722,16 +731,14 @@ static void transition_start_cb(const app_transition_t * p_transition)
     p_app = transition_to_app(p_transition);
     app_transition_params_t * p_params = app_transition_ongoing_get(&p_app->state.transition);
 
-    uint16_t present_lightness;
-    p_app->app_light_lightness_get_cb(p_app, &present_lightness);
-
     if((p_app->state.transition.requested_params.transition_type == APP_TRANSITION_TYPE_DELTA_SET &&
        p_app->state.new_tid) ||
        (p_app->state.transition.requested_params.transition_type == APP_TRANSITION_TYPE_SET) ||
        (p_app->state.transition.requested_params.transition_type == APP_TRANSITION_TYPE_MOVE_SET))
     {
-       p_app->state.initial_present_lightness = present_lightness;
+       p_app->state.initial_present_lightness = p_app->state.init_present_snapshot;
     }
+    p_app->state.target_lightness = p_app->state.target_snapshot;
 
     p_app->state.published_ms = 0;
 
@@ -845,9 +852,11 @@ static void transition_complete_cb(const app_transition_t * p_transition)
     p_app = transition_to_app(p_transition);
     app_transition_params_t * p_params = app_transition_ongoing_get(&p_app->state.transition);
 
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
-          "Element %d: transition completed\n",
-          p_app->light_lightness_setup_server.settings.element_index);
+    /* This handles a case, when a new transition has a non-zero delay, but zero transition time.
+     * This also handles a case, when such request is received in the middle of another transition.
+     * In usual cases when transition time is non-zero, this assignment will have no effect since
+     * this copying is already done at start of the transition. */
+    p_app->state.target_lightness = p_app->state.target_snapshot;
 
     if (p_params->transition_type != APP_TRANSITION_TYPE_MOVE_SET)
     {
@@ -855,6 +864,11 @@ static void transition_complete_cb(const app_transition_t * p_transition)
     }
 
     present_lightness_set_with_range_clip(p_app);
+
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
+      "Element %d: transition completed, present-L: %d\n",
+      p_app->light_lightness_setup_server.settings.element_index,
+      p_app->state.present_lightness);
 
     /* The transition is complete */
     if (p_app->app_light_lightness_transition_cb != NULL)

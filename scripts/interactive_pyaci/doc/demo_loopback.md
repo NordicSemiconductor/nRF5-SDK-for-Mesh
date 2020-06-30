@@ -14,11 +14,11 @@ with PyACI to verify that the serial transport layer is working as intended.
 
 ## Requirements @anchor pyaci_demo_loopback_requirements
 
-You need at least one supported board for this demonstration,
+You need at least one compatible development kit for this demonstration,
 [flashed](@ref examples_how_to_run_examples) with the following example:
 - @ref md_examples_serial_README
 
-See @ref md_doc_user_guide_mesh_compatibility for the supported boards.
+See @ref md_doc_user_guide_mesh_compatibility for information about the compatible development kits.
 
 
 ---

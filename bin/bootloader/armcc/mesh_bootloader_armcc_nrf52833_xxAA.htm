@@ -3,7 +3,7 @@
 <title>Static Call Graph - [mesh\bootloader\mesh_bootloader_armcc_nrf52833_xxAA.elf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image mesh\bootloader\mesh_bootloader_armcc_nrf52833_xxAA.elf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Tue Nov 05 13:29:48 2019
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Thu Jun 25 16:43:11 2020
 <BR><P>
 <H3>Maximum Stack Usage =       1068 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -704,7 +704,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;bootloader_enable
 </UL>
 
-<P><STRONG><a name="[5a]"></a>dfu_mesh_app_is_valid</STRONG> (Thumb, 62 bytes, Stack size 8 bytes, dfu_mesh.o(.text))
+<P><STRONG><a name="[5a]"></a>dfu_mesh_app_is_valid</STRONG> (Thumb, 60 bytes, Stack size 8 bytes, dfu_mesh.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = dfu_mesh_app_is_valid &rArr; fw_is_verified &rArr; bootloader_info_entry_get &rArr; info_entry_get
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fw_is_verified
@@ -968,8 +968,6 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;radio_event_handler
 </UL>
 
-<P><STRONG><a name="[141]"></a>fifo_flush</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, fifo.o(.text), UNUSED)
-
 <P><STRONG><a name="[55]"></a>fifo_is_empty</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, fifo.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;bootloader_abort
 <LI><a href="#[24]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SWI3_EGU3_IRQHandler
@@ -1063,8 +1061,8 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[36]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;bl_evt_handler
 </UL>
 
-<P><STRONG><a name="[58]"></a>mesh_packet_adv_data_get</STRONG> (Thumb, 76 bytes, Stack size 20 bytes, mesh_packet.o(.text))
-<BR><BR>[Stack]<UL><LI>Max Depth = 20<LI>Call Chain = mesh_packet_adv_data_get
+<P><STRONG><a name="[58]"></a>mesh_packet_adv_data_get</STRONG> (Thumb, 78 bytes, Stack size 12 bytes, mesh_packet.o(.text))
+<BR><BR>[Stack]<UL><LI>Max Depth = 12<LI>Call Chain = mesh_packet_adv_data_get
 </UL>
 <BR>[Called By]<UL><LI><a href="#[37]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;rx_cb
 </UL>
@@ -1224,9 +1222,9 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[18]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RTC0_IRQHandler
 </UL>
 
-<P><STRONG><a name="[142]"></a>transport_tx_evt_set</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, transport.o(.text), UNUSED)
+<P><STRONG><a name="[141]"></a>transport_tx_evt_set</STRONG> (Thumb, 24 bytes, Stack size 0 bytes, transport.o(.text), UNUSED)
 
-<P><STRONG><a name="[143]"></a>transport_tx_evt_get</STRONG> (Thumb, 30 bytes, Stack size 0 bytes, transport.o(.text), UNUSED)
+<P><STRONG><a name="[142]"></a>transport_tx_evt_get</STRONG> (Thumb, 30 bytes, Stack size 0 bytes, transport.o(.text), UNUSED)
 
 <P><STRONG><a name="[a7]"></a>uECC_verify</STRONG> (Thumb, 540 bytes, Stack size 488 bytes, uECC.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 788<LI>Call Chain = uECC_verify &rArr; vli_modMult_n &rArr; vli_mult &rArr; muladd
@@ -1279,7 +1277,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;signature_check
 </UL>
 
-<P><STRONG><a name="[144]"></a>SystemCoreClockUpdate</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, system_nrf52833.o(.text), UNUSED)
+<P><STRONG><a name="[143]"></a>SystemCoreClockUpdate</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, system_nrf52833.o(.text), UNUSED)
 
 <P><STRONG><a name="[3b]"></a>SystemInit</STRONG> (Thumb, 372 bytes, Stack size 12 bytes, system_nrf52833.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 12<LI>Call Chain = SystemInit
@@ -1470,7 +1468,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[36]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;bl_evt_handler
 </UL>
 
-<P><STRONG><a name="[145]"></a>_ll_udiv</STRONG> (Thumb, 238 bytes, Stack size 48 bytes, lludivv7m.o(.text), UNUSED)
+<P><STRONG><a name="[144]"></a>_ll_udiv</STRONG> (Thumb, 238 bytes, Stack size 48 bytes, lludivv7m.o(.text), UNUSED)
 
 <P><STRONG><a name="[d1]"></a>__aeabi_llsl</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, llshl.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[d0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;segment_is_missing
@@ -1478,7 +1476,7 @@ Global Symbols
 <LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dfu_transfer_data
 </UL>
 
-<P><STRONG><a name="[146]"></a>_ll_shift_l</STRONG> (Thumb, 38 bytes, Stack size 0 bytes, llshl.o(.text), UNUSED)
+<P><STRONG><a name="[145]"></a>_ll_shift_l</STRONG> (Thumb, 38 bytes, Stack size 0 bytes, llshl.o(.text), UNUSED)
 
 <P><STRONG><a name="[9d]"></a>memcmp</STRONG> (Thumb, 88 bytes, Stack size 8 bytes, memcmp.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = memcmp
@@ -1503,7 +1501,7 @@ Global Symbols
 <BR><BR>[Calls]<UL><LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy4
 </UL>
 
-<P><STRONG><a name="[147]"></a>_memcpy_lastbytes</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rt_memcpy_v6.o(.text), UNUSED)
+<P><STRONG><a name="[146]"></a>_memcpy_lastbytes</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rt_memcpy_v6.o(.text), UNUSED)
 
 <P><STRONG><a name="[89]"></a>__aeabi_memcpy4</STRONG> (Thumb, 0 bytes, Stack size 8 bytes, rt_memcpy_w.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = __aeabi_memcpy4
@@ -1516,11 +1514,11 @@ Global Symbols
 <LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_memcpy
 </UL>
 
-<P><STRONG><a name="[148]"></a>__aeabi_memcpy8</STRONG> (Thumb, 0 bytes, Stack size 8 bytes, rt_memcpy_w.o(.text), UNUSED)
+<P><STRONG><a name="[147]"></a>__aeabi_memcpy8</STRONG> (Thumb, 0 bytes, Stack size 8 bytes, rt_memcpy_w.o(.text), UNUSED)
 
-<P><STRONG><a name="[149]"></a>__rt_memcpy_w</STRONG> (Thumb, 100 bytes, Stack size 8 bytes, rt_memcpy_w.o(.text), UNUSED)
+<P><STRONG><a name="[148]"></a>__rt_memcpy_w</STRONG> (Thumb, 100 bytes, Stack size 8 bytes, rt_memcpy_w.o(.text), UNUSED)
 
-<P><STRONG><a name="[14a]"></a>_memcpy_lastbytes_aligned</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rt_memcpy_w.o(.text), UNUSED)
+<P><STRONG><a name="[149]"></a>_memcpy_lastbytes_aligned</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rt_memcpy_w.o(.text), UNUSED)
 
 <P><STRONG><a name="[4f]"></a>__aeabi_memset</STRONG> (Thumb, 16 bytes, Stack size 0 bytes, aeabi_memset.o(.text))
 <BR><BR>[Calls]<UL><LI><a href="#[102]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_memset
@@ -1561,19 +1559,19 @@ Global Symbols
 <LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;bootloader_init
 </UL>
 
-<P><STRONG><a name="[14b]"></a>__aeabi_memclr8</STRONG> (Thumb, 0 bytes, Stack size 4 bytes, rt_memclr_w.o(.text), UNUSED)
+<P><STRONG><a name="[14a]"></a>__aeabi_memclr8</STRONG> (Thumb, 0 bytes, Stack size 4 bytes, rt_memclr_w.o(.text), UNUSED)
 
-<P><STRONG><a name="[14c]"></a>__rt_memclr_w</STRONG> (Thumb, 78 bytes, Stack size 4 bytes, rt_memclr_w.o(.text), UNUSED)
+<P><STRONG><a name="[14b]"></a>__rt_memclr_w</STRONG> (Thumb, 78 bytes, Stack size 4 bytes, rt_memclr_w.o(.text), UNUSED)
 
 <P><STRONG><a name="[104]"></a>_memset_w</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, rt_memclr_w.o(.text), UNUSED)
 <BR><BR>[Called By]<UL><LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_memclr
 </UL>
 
-<P><STRONG><a name="[14d]"></a>__use_two_region_memory</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, heapauxi.o(.text), UNUSED)
+<P><STRONG><a name="[14c]"></a>__use_two_region_memory</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, heapauxi.o(.text), UNUSED)
 
-<P><STRONG><a name="[14e]"></a>__rt_heap_escrow$2region</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, heapauxi.o(.text), UNUSED)
+<P><STRONG><a name="[14d]"></a>__rt_heap_escrow$2region</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, heapauxi.o(.text), UNUSED)
 
-<P><STRONG><a name="[14f]"></a>__rt_heap_expand$2region</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, heapauxi.o(.text), UNUSED)
+<P><STRONG><a name="[14e]"></a>__rt_heap_expand$2region</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, heapauxi.o(.text), UNUSED)
 
 <P><STRONG><a name="[45]"></a>__user_setup_stackheap</STRONG> (Thumb, 74 bytes, Stack size 8 bytes, sys_stackheap_outer.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = __user_setup_stackheap
@@ -1593,31 +1591,31 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[48]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_entry_main
 </UL>
 
-<P><STRONG><a name="[150]"></a>__user_libspace</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, libspace.o(.text), UNUSED)
+<P><STRONG><a name="[14f]"></a>__user_libspace</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, libspace.o(.text), UNUSED)
 
 <P><STRONG><a name="[105]"></a>__user_perproc_libspace</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, libspace.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[45]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__user_setup_stackheap
 </UL>
 
-<P><STRONG><a name="[151]"></a>__user_perthread_libspace</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, libspace.o(.text), UNUSED)
+<P><STRONG><a name="[150]"></a>__user_perthread_libspace</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, libspace.o(.text), UNUSED)
 
 <P><STRONG><a name="[4e]"></a>_sys_exit</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, sys_exit.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[4d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_exit_exit
 </UL>
 
-<P><STRONG><a name="[152]"></a>__I$use$semihosting</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, use_no_semi.o(.text), UNUSED)
+<P><STRONG><a name="[151]"></a>__I$use$semihosting</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, use_no_semi.o(.text), UNUSED)
 
-<P><STRONG><a name="[153]"></a>__use_no_semihosting_swi</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, use_no_semi.o(.text), UNUSED)
+<P><STRONG><a name="[152]"></a>__use_no_semihosting_swi</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, use_no_semi.o(.text), UNUSED)
 
-<P><STRONG><a name="[154]"></a>__semihosting_library_function</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, indicate_semi.o(.text), UNUSED)
+<P><STRONG><a name="[153]"></a>__semihosting_library_function</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, indicate_semi.o(.text), UNUSED)
 
 <P><STRONG><a name="[43]"></a>_fp_init</STRONG> (Thumb, 10 bytes, Stack size 0 bytes, fpinit.o(x$fpl$fpinit))
 <BR><BR>[Called By]<UL><LI><a href="#[42]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_lib_init_fp_1
 </UL>
 
-<P><STRONG><a name="[155]"></a>__fplib_config_fpu_vfp</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, fpinit.o(x$fpl$fpinit), UNUSED)
+<P><STRONG><a name="[154]"></a>__fplib_config_fpu_vfp</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, fpinit.o(x$fpl$fpinit), UNUSED)
 
-<P><STRONG><a name="[156]"></a>__fplib_config_pureend_doubles</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, fpinit.o(x$fpl$fpinit), UNUSED)
+<P><STRONG><a name="[155]"></a>__fplib_config_pureend_doubles</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, fpinit.o(x$fpl$fpinit), UNUSED)
 <P>
 <H3>
 Local Symbols
@@ -1631,7 +1629,7 @@ Local Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> bootloader.o(.text)
 </UL>
-<P><STRONG><a name="[36]"></a>bl_evt_handler</STRONG> (Thumb, 540 bytes, Stack size 40 bytes, bootloader.o(.text))
+<P><STRONG><a name="[36]"></a>bl_evt_handler</STRONG> (Thumb, 534 bytes, Stack size 40 bytes, bootloader.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 1044 + Unknown Stack Size
 <LI>Call Chain = bl_evt_handler &rArr; bl_cmd_handler &rArr; dfu_mesh_timeout &rArr; signature_check &rArr; uECC_verify &rArr; vli_modMult_n &rArr; vli_mult &rArr; muladd
 </UL>
@@ -1831,7 +1829,7 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[7c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dfu_mesh_timeout
 </UL>
 
-<P><STRONG><a name="[a8]"></a>beacon_set</STRONG> (Thumb, 226 bytes, Stack size 80 bytes, dfu_mesh.o(.text))
+<P><STRONG><a name="[a8]"></a>beacon_set</STRONG> (Thumb, 228 bytes, Stack size 80 bytes, dfu_mesh.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 84<LI>Call Chain = beacon_set &rArr; __aeabi_memclr4
 </UL>
 <BR>[Calls]<UL><LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;bootloader_evt_send
@@ -1915,7 +1913,7 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;handle_data_packet
 </UL>
 
-<P><STRONG><a name="[b8]"></a>target_rx_data</STRONG> (Thumb, 188 bytes, Stack size 72 bytes, dfu_mesh.o(.text))
+<P><STRONG><a name="[b8]"></a>target_rx_data</STRONG> (Thumb, 204 bytes, Stack size 72 bytes, dfu_mesh.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 208<LI>Call Chain = target_rx_data &rArr; request_missing_data &rArr; dfu_transfer_get_oldest_missing_entry
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dfu_transfer_data
@@ -1928,7 +1926,7 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;handle_data_packet
 </UL>
 
-<P><STRONG><a name="[bd]"></a>handle_data_packet</STRONG> (Thumb, 300 bytes, Stack size 72 bytes, dfu_mesh.o(.text))
+<P><STRONG><a name="[bd]"></a>handle_data_packet</STRONG> (Thumb, 338 bytes, Stack size 72 bytes, dfu_mesh.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 416 + Unknown Stack Size
 <LI>Call Chain = handle_data_packet &rArr; target_rx_start &rArr; start_target &rArr; bootloader_info_entry_put &rArr; entry_write &rArr; flash_write &rArr; __aeabi_memcpy4
 </UL>
@@ -1947,7 +1945,7 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;dfu_mesh_rx
 </UL>
 
-<P><STRONG><a name="[bf]"></a>handle_state_packet</STRONG> (Thumb, 228 bytes, Stack size 24 bytes, dfu_mesh.o(.text))
+<P><STRONG><a name="[bf]"></a>handle_state_packet</STRONG> (Thumb, 230 bytes, Stack size 24 bytes, dfu_mesh.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 124<LI>Call Chain = handle_state_packet &rArr; start_ready &rArr; beacon_set &rArr; __aeabi_memclr4
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ready_packet_matches_our_req

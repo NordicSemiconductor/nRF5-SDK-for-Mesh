@@ -1730,3 +1730,31 @@ void test_queue_empty_double_add(void)
     TEST_NRF_MESH_ASSERT_EXPECT(flash_manager_action_queue_empty_cb_set(queue_empty_cb));
 }
 
+void test_defragmentation_invalidated_page(void)
+{
+    flash_manager_defrag_init_ExpectAndReturn(false);
+    flash_manager_init();
+    g_flash_queue_slots = 0xFFFFFF;
+
+    flash_manager_defragging_IgnoreAndReturn(false);
+
+    static flash_manager_page_t area __attribute__((aligned(PAGE_SIZE)));
+    flash_manager_t manager;
+    flash_manager_config_t config =
+    {
+        .p_area = &area,
+        .page_count = 1,
+        .min_available_space = 0,
+        .write_complete_cb = NULL,
+        .invalidate_complete_cb = NULL
+    };
+    memset(&area, 0xFF, PAGE_SIZE);
+    build_test_page(&area, 1, NULL, 0, false);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, flash_manager_add(&manager, &config));
+
+    queue_empty_cb_Expect();
+    flash_manager_on_defrag_end(&manager);
+
+    TEST_ASSERT_EQUAL(manager.internal.p_seal, &area.raw[sizeof(flash_manager_metadata_t)]);
+    TEST_ASSERT_EACH_EQUAL_UINT8(0xFF, &area.raw[sizeof(flash_manager_metadata_t)], PAGE_SIZE - sizeof(flash_manager_metadata_t));
+}

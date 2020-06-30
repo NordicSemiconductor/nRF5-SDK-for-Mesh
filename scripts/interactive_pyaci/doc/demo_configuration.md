@@ -25,14 +25,14 @@ that is running the Generic OnOff server.
 
 ## Requirements @anchor pyaci_demo_configuration_reqs
 
-You need at least two supported boards for this demonstration,
-with the following examples [flashed](@ref examples_how_to_run_examples) on separate boards:
+You need at least two compatible development kits for this demonstration,
+with the following examples [flashed](@ref examples_how_to_run_examples) on separate development kits:
 - @ref md_examples_serial_README
 - @ref md_examples_light_switch_README
     - Light switch server is mandatory.
     - Light switch client is optional.
 
-See @ref md_doc_user_guide_mesh_compatibility for the supported boards.
+See @ref md_doc_user_guide_mesh_compatibility for information about the compatible development kits.
     
 ---
     

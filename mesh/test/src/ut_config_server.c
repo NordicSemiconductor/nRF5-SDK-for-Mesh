@@ -274,12 +274,12 @@ static void config_server_evt_cb(const config_server_evt_t * p_evt)
         switch (p_evt->type)
         {
             case CONFIG_SERVER_EVT_HEARTBEAT_PUBLICATION_SET:
-                TEST_ASSERT_EQUAL_heartbeat_publication_state_t(*expected_evt.params.heartbeat_publication_set.p_publication_state, 
+                TEST_ASSERT_EQUAL_heartbeat_publication_state_t(*expected_evt.params.heartbeat_publication_set.p_publication_state,
                                         *p_evt->params.heartbeat_publication_set.p_publication_state);
                 break;
 
             case CONFIG_SERVER_EVT_HEARTBEAT_SUBSCRIPTION_SET:
-                TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(*expected_evt.params.heartbeat_subscription_set.p_subscription_state, 
+                TEST_ASSERT_EQUAL_heartbeat_subscription_state_t(*expected_evt.params.heartbeat_subscription_set.p_subscription_state,
                                         *p_evt->params.heartbeat_subscription_set.p_subscription_state);
                 break;
 
@@ -317,6 +317,10 @@ void setUp(void)
 #if MESH_FRIEND_FEATURE_ENABLED
     friend_internal_mock_Init();
     mesh_friend_mock_Init();
+#endif
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    proxy_mock_Init();
+    mesh_opt_gatt_mock_Init();
 #endif
     m_previous_reply_received = false;
     mp_previous_reply_buffer = NULL;
@@ -370,6 +374,12 @@ void tearDown(void)
     friend_internal_mock_Destroy();
     mesh_friend_mock_Verify();
     mesh_friend_mock_Destroy();
+#endif
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    proxy_mock_Verify();
+    proxy_mock_Destroy();
+    mesh_opt_gatt_mock_Verify();
+    mesh_opt_gatt_mock_Destroy();
 #endif
 }
 
@@ -650,11 +660,12 @@ void test_config_relay_set(void)
     memset(&evt, 0, sizeof(config_server_evt_t));
     evt.type = CONFIG_SERVER_EVT_RELAY_SET;
 
+    /* Set the corner case values */
     const config_msg_relay_set_t message =
         {
             .relay_state = CONFIG_RELAY_STATE_SUPPORTED_ENABLED,
-            .relay_retransmit_count = 2,
-            .relay_retransmit_interval_steps = 1
+            .relay_retransmit_count = 7,
+            .relay_retransmit_interval_steps = 31
         };
     evt.params.relay_set.interval_steps = message.relay_retransmit_interval_steps;
     evt.params.relay_set.relay_state = message.relay_state;
@@ -2447,7 +2458,7 @@ void test_polltimeout_get(void)
 #endif
             config_server_evt_mock_Expect(&evt);
         }
-        
+
         send_message(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_GET, (const uint8_t *) &message, sizeof(message));
 
         if (!is_valid)
@@ -2517,23 +2528,23 @@ void test_heartbeat_pub_set(void)
 
     const config_msg_heartbeat_publication_set_t message =
         {
-            .destination = 0x201,                
-            .count_log = 0,           
-            .period_log = 0,                
-            .ttl = 1,                      
-            .features = 0,                     
-            .netkey_index = 0,           
+            .destination = 0x201,
+            .count_log = 0,
+            .period_log = 0,
+            .ttl = 1,
+            .features = 0,
+            .netkey_index = 0,
         };
 
 
-    const heartbeat_publication_state_t pub = 
+    const heartbeat_publication_state_t pub =
         {
-            .dst = message.destination,                
-            .count = message.count_log,           
-            .period = message.period_log,                
-            .ttl = message.ttl,                      
-            .features = message.features,                     
-            .netkey_index = message.netkey_index,           
+            .dst = message.destination,
+            .count = message.count_log,
+            .period = message.period_log,
+            .ttl = message.ttl,
+            .features = message.features,
+            .netkey_index = message.netkey_index,
         };
 
     dsm_handle_t subnet_handle = 2;
@@ -2548,13 +2559,13 @@ void test_heartbeat_pub_set(void)
     TEST_ASSERT_EQUAL(sizeof(config_msg_heartbeat_publication_status_t), m_previous_reply.length);
 
     const config_msg_heartbeat_publication_status_t * p_reply = (const config_msg_heartbeat_publication_status_t *) m_previous_reply.p_buffer;
-    TEST_ASSERT_EQUAL(ACCESS_STATUS_SUCCESS, p_reply->status);                       
+    TEST_ASSERT_EQUAL(ACCESS_STATUS_SUCCESS, p_reply->status);
     TEST_ASSERT_EQUAL(message.destination, p_reply->destination);
     TEST_ASSERT_EQUAL(message.count_log, p_reply->count_log);
     TEST_ASSERT_EQUAL(message.period_log, p_reply->period_log);
     TEST_ASSERT_EQUAL(message.ttl, p_reply->ttl);
     TEST_ASSERT_EQUAL(message.features, p_reply->features);
-    TEST_ASSERT_EQUAL(message.netkey_index, p_reply->netkey_index);            
+    TEST_ASSERT_EQUAL(message.netkey_index, p_reply->netkey_index);
 }
 
 
@@ -2566,9 +2577,9 @@ void test_heartbeat_sub_set(void)
 
     const config_msg_heartbeat_subscription_set_t message =
         {
-            .source = 0x200,                        
-            .destination = 0x200,                   
-            .period_log = 4,                     
+            .source = 0x200,
+            .destination = 0x200,
+            .period_log = 4,
         };
 
     const heartbeat_subscription_state_t sub = {
@@ -2588,8 +2599,8 @@ void test_heartbeat_sub_set(void)
     TEST_ASSERT_EQUAL(sizeof(config_msg_heartbeat_subscription_status_t), m_previous_reply.length);
 
     const config_msg_heartbeat_subscription_status_t * p_reply = (const config_msg_heartbeat_subscription_status_t *) m_previous_reply.p_buffer;
-    TEST_ASSERT_EQUAL(ACCESS_STATUS_SUCCESS, p_reply->status);                       
-    TEST_ASSERT_EQUAL(message.source, p_reply->source);                        
-    TEST_ASSERT_EQUAL(message.destination, p_reply->destination);                   
-    TEST_ASSERT_EQUAL(message.period_log, p_reply->period_log);                                     
+    TEST_ASSERT_EQUAL(ACCESS_STATUS_SUCCESS, p_reply->status);
+    TEST_ASSERT_EQUAL(message.source, p_reply->source);
+    TEST_ASSERT_EQUAL(message.destination, p_reply->destination);
+    TEST_ASSERT_EQUAL(message.period_log, p_reply->period_log);
 }

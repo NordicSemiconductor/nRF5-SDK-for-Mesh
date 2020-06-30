@@ -551,8 +551,7 @@ static void legacy_remove(void)
 
 void net_state_reset(void)
 {
-    (void)mesh_config_entry_delete(MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_EID);
-    (void)mesh_config_entry_delete(MESH_OPT_NET_STATE_IV_INDEX_EID);
+    mesh_config_file_clear(MESH_OPT_NET_STATE_FILE_ID);
 
     memset(&m_net_state, 0, sizeof(m_net_state));
     m_status.is_iv_state_set_externally = 0;

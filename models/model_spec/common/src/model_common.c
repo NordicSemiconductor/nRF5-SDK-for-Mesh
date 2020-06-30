@@ -47,6 +47,7 @@
 #include "utils.h"
 #include "mesh_opt.h"
 #include "mesh_config_entry.h"
+#include "mesh_stack.h"
 
 typedef struct
 {
@@ -424,6 +425,9 @@ uint32_t model_common_config_apply(void)
 {
     if (m_status.is_load_failed)
     {
+        /* Loading of the model failed in some way, so the stack config also need to be cleared. */
+        mesh_stack_config_clear();
+
         light_lightness_mc_clear();
         light_lc_mc_clear();
         light_ctl_mc_clear();
@@ -437,8 +441,8 @@ uint32_t model_common_config_apply(void)
 
     if (!m_status.is_metadata_stored)
     {
+        /* Store default values */
         metadata_store();
-        return NRF_ERROR_NOT_FOUND;
     }
 
     return NRF_SUCCESS;

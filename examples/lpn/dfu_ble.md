@@ -37,7 +37,7 @@ to 1 in `examples/lpn/include/app_config.h`.
 
 ## Hardware requirements @anchor examples_lpn_dfu_ble_requirements_hw
 
-Performing DFU over BLE using PC requires one additional [supported board](@ref md_doc_user_guide_mesh_compatibility), besides the boards required by @ref md_examples_lpn_README.
+Performing DFU over BLE using PC requires one additional [compatible development kit](@ref md_doc_user_guide_mesh_compatibility), besides the development kits required by @ref md_examples_lpn_README.
 
 ---
 

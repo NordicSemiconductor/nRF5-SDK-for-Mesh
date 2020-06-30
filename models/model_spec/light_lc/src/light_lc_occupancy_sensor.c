@@ -37,7 +37,7 @@
 
 #include "light_lc_occupancy_sensor.h"
 
-#include "sensor_utils.h"
+#include "light_lc_sensor_utils.h"
 #include "light_lc_state_utils.h"
 #include "light_lc_fsm.h"
 #include "light_lc_server_property_constants.h"
@@ -75,7 +75,7 @@ uint32_t light_lc_occupancy_sensor_data_received(light_lc_setup_server_t * p_s_s
     p_msg_rover = p_msg_data;
     while ((p_msg_rover - p_msg_data) < msg_length)
     {
-        p_msg_rover = sensor_utils_parse_marshalled_entry(p_msg_rover, &format, &data_length,
+        p_msg_rover = light_lc_sensor_utils_parse_marshalled_entry(p_msg_rover, &format, &data_length,
                                                           &property_id, &p_data_value);
         if (p_msg_rover == NULL)
         {

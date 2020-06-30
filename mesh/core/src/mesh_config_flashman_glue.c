@@ -79,6 +79,9 @@ typedef struct
 static mesh_config_backend_evt_cb_t m_evt_cb;
 static uint8_t m_allocated_page_count;
 
+static void file_remove(mesh_config_backend_file_t * p_file);
+static void file_restore(mesh_config_backend_file_t * p_file);
+
 static const uint8_t * flash_area_end_get(void)
 {
     return ((const uint8_t *) flash_manager_recovery_page_get());
@@ -146,7 +149,87 @@ static void invalidate_complete_cb(const flash_manager_t * p_manager,
 
 static void remove_complete_cb(const flash_manager_t * p_manager)
 {
-    (void)p_manager;
+    mesh_config_backend_glue_data_t * p_glue = PARENT_BY_FIELD_GET(mesh_config_backend_glue_data_t,
+                                                            flash_manager,
+                                                            p_manager);
+    mesh_config_backend_file_t * p_file = PARENT_BY_FIELD_GET(mesh_config_backend_file_t,
+                                                              glue_data,
+                                                              p_glue);
+
+    file_restore(p_file);
+}
+
+static void file_remove_listener_wrapper(void * p_args)
+{
+    file_remove((mesh_config_backend_file_t *)p_args);
+}
+
+static void file_restore_listener_wrapper(void * p_args)
+{
+    file_restore((mesh_config_backend_file_t *)p_args);
+}
+
+static void file_ready_listener(void * p_args)
+{
+    mesh_config_backend_file_t * p_file = (mesh_config_backend_file_t *)p_args;
+
+    if (p_file->glue_data.flash_manager.internal.state != FM_STATE_READY)
+    {
+        p_file->glue_data.listener.callback = file_ready_listener;
+        p_file->glue_data.listener.p_args = p_file;
+        flash_manager_mem_listener_register(&p_file->glue_data.listener);
+        return;
+    }
+
+    mesh_config_backend_evt_t event;
+    event.type = MESH_CONFIG_BACKEND_EVT_TYPE_FILE_CLEAN_COMPLETE;
+    event.id.file = p_file->file_id;
+    m_evt_cb(&event);
+}
+
+static void file_remove(mesh_config_backend_file_t * p_file)
+{
+    flash_manager_t * p_manager = &p_file->glue_data.flash_manager;
+
+    uint32_t status = flash_manager_remove(p_manager);
+    NRF_MESH_ASSERT(status == NRF_ERROR_NO_MEM || status == NRF_SUCCESS);
+
+    if (status == NRF_ERROR_NO_MEM)
+    {
+        p_file->glue_data.listener.callback = file_remove_listener_wrapper;
+        p_file->glue_data.listener.p_args = p_file;
+        flash_manager_mem_listener_register(&p_file->glue_data.listener);
+    }
+}
+
+static void file_restore(mesh_config_backend_file_t * p_file)
+{
+    flash_manager_t * p_manager = &p_file->glue_data.flash_manager;
+    const flash_manager_config_t config =
+    {
+        .write_complete_cb = write_complete_cb,
+        .invalidate_complete_cb = invalidate_complete_cb,
+        .remove_complete_cb = remove_complete_cb,
+        .min_available_space = p_file->size,
+        .p_area = p_manager->config.p_area,
+        .page_count = p_manager->config.page_count
+    };
+
+    uint32_t status = flash_manager_add(p_manager, &config);
+    NRF_MESH_ASSERT(status == NRF_ERROR_NO_MEM || status == NRF_SUCCESS);
+
+    if (status == NRF_ERROR_NO_MEM)
+    {
+        p_file->glue_data.listener.callback = file_restore_listener_wrapper;
+        p_file->glue_data.listener.p_args = p_file;
+        flash_manager_mem_listener_register(&p_file->glue_data.listener);
+    }
+    else
+    {
+        p_file->glue_data.listener.callback = file_ready_listener;
+        p_file->glue_data.listener.p_args = p_file;
+        flash_manager_mem_listener_register(&p_file->glue_data.listener);
+    }
 }
 
 void mesh_config_backend_glue_init(mesh_config_backend_evt_cb_t evt_cb)
@@ -242,6 +325,11 @@ uint32_t mesh_config_backend_file_create(mesh_config_backend_file_t * p_file)
     __LOG(LOG_SRC_FM, LOG_LEVEL_DBG3, "Mesh config area: 0x%08x file_id: 0x%04x\n",
           config.p_area, p_file->file_id);
     return flash_manager_add(p_manager, &config);
+}
+
+void mesh_config_backend_file_clean(mesh_config_backend_file_t * p_file)
+{
+    file_remove(p_file);
 }
 
 uint32_t mesh_config_backend_record_write(mesh_config_backend_file_t * p_file, const uint8_t * p_data, uint32_t length)

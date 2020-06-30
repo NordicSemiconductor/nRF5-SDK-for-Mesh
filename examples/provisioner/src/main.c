@@ -106,6 +106,8 @@ static network_stats_data_stored_t m_nw_state;
 static bool m_node_prov_setup_started;
 static nrf_mesh_evt_handler_t m_mesh_core_event_handler = { .evt_cb = app_mesh_core_event_cb };
 
+MESH_CONFIG_FILE(m_provisioner_file, MESH_APP_FILE_ID, MESH_CONFIG_STRATEGY_CONTINUOUS);
+
 MESH_CONFIG_ENTRY(provisioner,
                   PROVISIONER_ENTRY_ID,
                   1,
@@ -184,7 +186,9 @@ static void app_config_successful_cb(void)
 
 static void app_config_failed_cb(void)
 {
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Configuration of device %u failed. Press Button 1 to retry.\n", m_nw_state.configured_devices);
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Configuration of device %u failed.\n", m_nw_state.configured_devices);
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Press Button 1 to retry configuration.\n");
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Press Button 2 to start provisioning new nodes.\n");
     m_node_prov_setup_started = false;
     hal_led_pin_set(APP_CONFIGURATION_LED, 0);
 }
@@ -251,6 +255,30 @@ static void app_config_client_event_cb(config_client_event_type_t event_type, co
 }
 
 
+static void provisioning_start(void)
+{
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Start provisioning procedure ...\n");
+
+    prov_helper_provision_next_device();
+    prov_helper_scan_start();
+
+    hal_led_pin_set(APP_PROVISIONING_LED, 1);
+}
+
+static void provisioning_resume(void)
+{
+    if (!m_node_prov_setup_started)
+    {
+        /* If previously provisioned device is not configured. */
+        if (m_nw_state.configured_devices < m_nw_state.provisioned_devices)
+        {
+            m_nw_state.provisioned_devices--;
+            provisioning_start();
+            m_node_prov_setup_started = true;
+        }
+    }
+}
+
 /** Check if all devices have been provisioned. If not, provision remaining devices.
  *  Check if all devices have been configured. If not, start configuring them.
  */
@@ -271,12 +299,7 @@ static void check_network_state(void)
         }
         else
         {
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Start provisioning procedure ...\n");
-
-            prov_helper_provision_next_device();
-            prov_helper_scan_start();
-
-            hal_led_pin_set(APP_PROVISIONING_LED, 1);
+            provisioning_start();
         }
 
         m_node_prov_setup_started = true;
@@ -358,6 +381,12 @@ static void button_event_handler(uint32_t button_number)
             break;
         }
 
+        case 2:
+        {
+            provisioning_resume();
+            break;
+        }
+
         /* Initiate node reset */
         case 4:
         {
@@ -423,7 +452,7 @@ static void mesh_init(void)
     {
         case NRF_ERROR_INVALID_DATA:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
-			__LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before start provisioning.\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before starting of the provisioning process.\n");
             break;
         case NRF_SUCCESS:
             break;

@@ -1,5 +1,6 @@
 # Serial example
 
+@tag52840and52833and52832
 @tag52810nosupport
 
 This example implements the serial interface for the mesh stack. It can be used
@@ -41,6 +42,13 @@ the @ref SERIAL_OPCODE_EVT_PROV_ECDH_REQUEST event to the host processor with th
 and private keys. The host processor then performs the ECDH shared secret calculation
 and sends the calculated value back using the @ref SERIAL_OPCODE_CMD_PROV_ECDH_SECRET
 serial command.
+
+---
+
+## Hardware requirements @anchor serial_example_hw
+
+You need one of the compatible development kits for this example.
+See @ref md_doc_user_guide_mesh_compatibility for more information.
 
 ---
 

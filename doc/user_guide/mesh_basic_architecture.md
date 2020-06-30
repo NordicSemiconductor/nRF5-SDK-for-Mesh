@@ -35,7 +35,7 @@ for a concise introduction to the Bluetooth Mesh.
 
 The following figure demonstrates how the data packets flow between mesh nodes and their layers within the mesh stack structure.
 
-![Basic data flow within a mesh network in the nRF5 SDK for Mesh](img/mesh_data_packet_flow.svg)
+![Basic data flow within a mesh network in the nRF5 SDK for Mesh](images/mesh_data_packet_flow.svg)
 
 For example, after a light switch is pressed on the source node, the following process takes place:
 - Source

@@ -571,6 +571,7 @@ void test_packet_out(void)
         net_packet_buffer.user_data.p_metadata->p_security_material = &test_network;
         net_packet_buffer.user_data.payload_len = test_vector.lengths.transport;
         net_packet_buffer.user_data.role = CORE_TX_ROLE_ORIGINATOR;
+        net_packet_buffer.user_data.bearer_selector = CORE_TX_BEARER_TYPE_ADV;
 
         TEST_ASSERT_EQUAL(NRF_ERROR_NO_MEM, network_packet_alloc(&net_packet_buffer));
     }

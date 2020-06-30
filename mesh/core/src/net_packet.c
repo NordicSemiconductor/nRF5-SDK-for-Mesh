@@ -43,6 +43,11 @@
 #include "enc.h"
 #include "nordic_common.h"
 
+#include "nrf_mesh_gatt.h"
+#if MESH_FEATURE_GATT_ENABLED
+#include "mesh_gatt.h"
+#endif
+
 /** Offset of the start of the encrypted part of the network packet. */
 #define NET_PACKET_ENCRYPTION_START_OFFSET PACKET_MESH_NET_DST0_OFFSET
 /** Offset of the start of the obfuscated part of the network packet. */
@@ -238,7 +243,14 @@ uint32_t net_packet_decrypt(network_packet_metadata_t * p_net_metadata,
                     p_net_decrypted_packet != NULL &&
                     p_net_decrypted_packet != p_net_encrypted_packet);
 
-    if (net_packet_len < PACKET_MESH_NET_PDU_OFFSET || net_packet_len > PACKET_MESH_NET_MAX_SIZE)
+    static const uint32_t net_packet_max_len[] = {
+        [NET_PACKET_KIND_TRANSPORT]    = PACKET_MESH_NET_MAX_SIZE,
+#if MESH_FEATURE_GATT_ENABLED
+        [NET_PACKET_KIND_PROXY_CONFIG] = MESH_GATT_PROXY_PDU_MAX_SIZE,
+#endif
+    };
+
+    if (net_packet_len < PACKET_MESH_NET_PDU_OFFSET || net_packet_len > net_packet_max_len[packet_kind])
     {
         return NRF_ERROR_INVALID_LENGTH;
     }

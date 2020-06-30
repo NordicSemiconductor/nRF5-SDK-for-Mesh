@@ -37,6 +37,7 @@ from aci.aci_evt import event_deserialize
 import queue
 
 EVT_Q_BUF = 128
+SEGGER_UART_BYTES_MAX = 63
 
 
 class Device(object):
@@ -188,7 +189,9 @@ class Uart(threading.Thread, Device):
         with self._write_lock:
             if self.keep_running:
                 self.logger.debug("TX: %s", bytearray(data).hex())
-                self.serial.write(bytearray(data))
+                while len(data) > 0:
+                    self.serial.write(bytearray(data[:SEGGER_UART_BYTES_MAX]))
+                    data = data[SEGGER_UART_BYTES_MAX:]
                 self.process_command(data)
 
     def __repr__(self):

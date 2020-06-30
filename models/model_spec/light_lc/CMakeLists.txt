@@ -6,7 +6,7 @@ set(LIGHT_LC_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/light_lc_state_utils.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/light_lc_occupancy_sensor.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/light_lc_ambient_light_sensor.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sensor_utils.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/light_lc_sensor_utils.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/light_lc_mc.c")
 
 set(LIGHT_LC_CLIENT_SOURCE_FILES
@@ -25,7 +25,7 @@ set(LIGHT_LC_SETUP_SERVER_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/light_lc_state_utils.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/light_lc_occupancy_sensor.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/light_lc_ambient_light_sensor.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sensor_utils.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/light_lc_sensor_utils.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/light_lc_mc.c"
     "${MODEL_COMMON_SOURCE_FILES}" CACHE INTERNAL "")
 
@@ -37,6 +37,7 @@ set(target_include_dirs
     ${LIGHT_LC_CLIENT_INCLUDE_DIRS}
     ${LIGHT_LC_SETUP_SERVER_INCLUDE_DIRS}
     ${LIGHT_LIGHTNESS_SETUP_SERVER_INCLUDE_DIRS}
+    ${SENSOR_CLIENT_INCLUDE_DIRS}
     ${GENERIC_PONOFF_CLIENT_INCLUDE_DIRS}
     ${GENERIC_ONOFF_SERVER_INCLUDE_DIRS}
     ${GENERIC_LEVEL_SERVER_INCLUDE_DIRS}

@@ -1,5 +1,6 @@
 # Light CTL example
 
+@tag52840and52833and52832
 @tag52810nosupport
 
 This example demonstrates how you can use mesh messages and events
@@ -113,44 +114,41 @@ More information about the Light CTL models can be found in the
 
 ## Hardware requirements @anchor light_ctl_example_hw_requirements
 
-You need at least two supported development kits for this example:
+You need at least two compatible development kits for this example:
 
-- One nRF52 development kit for the client.
-- One or more nRF52 development kits for the servers.
+- One compatible development kit for the client.
+- One or more compatible development kits for the servers.
 
   On the server boards, you can either run the Light CTL Server example or
   the Light CTL Server with Light LC Server example, or both of them.
 
   If you choose the Light CTL Server with Light LC Server example, you also need at least one of the
   following:
-  - One nRF52 development kit for emulating the occupancy sensor.
-  - One nRF52 development kit for the [Light switch client](@ref light_switch_demo_client).
+  - One compatible development kit for emulating the occupancy sensor.
+  - One compatible development kit for the [Light switch client](@ref light_switch_demo_client).
 
   See [Light LC Server example testing](@ref light_lc_server_example_testing) section
   for more information about how the Light switch client and sensor example is used for testing
   the Light LC Server model.
 
-Additionally, you need one development kit for the provisioner
-if you decide to use the [static provisioner example](@ref md_examples_provisioner_README).
-For details, see [software requirements](@ref light_lightness_example_sw_requirements).
+Additionally, you need one of the following for provisioning:
+- One compatible development kit for the provisioner if you decide to use the [static provisioner example](@ref md_examples_provisioner_README).
+- An iOS or Android smartphone if you decide to provision using the @link_nrf_mesh_app mobile application.
 
-See @ref md_doc_user_guide_mesh_compatibility for the supported kits.
+See @ref md_doc_user_guide_mesh_compatibility for information about the compatible development kits.
 
 @note This example uses the PWM peripheral to control the brightness of the LEDs.
-For this reason, it cannot be run on nRF51 devices.
+For this reason, it cannot be run on nRF51 devices,
+even after solving the issues related to their [deprecated compatibility](@ref compatibility_nRF51).
 
 
 ---
 
 ## Software requirements @anchor light_ctl_example_sw_requirements
 
-Depending on your choice of the provisioning method:
-- If you decide to use the static provisioner example, you need the provisioner example:
-`<InstallFolder>/examples/provisioner`
-    - See the [Provisioner example](@ref md_examples_provisioner_README) page for more information
-    about the provisioner example.
-- If you decide to provision using the mobile application, you need to download and install
-@link_nrf_mesh_app (available for @link_nrf_mesh_app_ios and @link_nrf_mesh_app_android).
+Depending on the provisioning method:
+- If you decide to provision using a mobile application, you need @link_nrf_mesh_app (@link_nrf_mesh_app_ios or @link_nrf_mesh_app_android) installed on the smartphone.
+- If you decide to use the static provisioner example, you need the [provisioner example](@ref md_examples_provisioner_README).
 
 
 ---
@@ -159,15 +157,6 @@ Depending on your choice of the provisioning method:
 
 You can find the source code of this example in the following folder:
 `<InstallFolder>/examples/light_ctl`
-
-If you decide to use the static provisioner example, you need
-the provisioner example: `<InstallFolder>/examples/provisioner`
-
-See the [Provisioner example](@ref md_examples_provisioner_README) page for more information
-about the provisioner example.
-
-If you decide to provision using the mobile application, you need to download and install
-@link_nrf_mesh_app (available for @link_nrf_mesh_app_ios and @link_nrf_mesh_app_android).
 
 
 ### LED and button assignments @anchor light_ctl_example_setup_leds_buttons
@@ -201,7 +190,7 @@ If you decide to provision using the mobile application, you need to download an
           - Light Control Time Fade Standby Manual
           - Light Control Time Run On
 
-          See Section 4.1.3 of the Mesh Device Properties v1.1, @link_MeshProperties, and
+          See Section 4.1.3 of the @tagMeshDevPr, @link_MeshProperties, and
           @link_MeshCharacteristics for more information about the properties.
     @note As Light LC Server is used for automated control of the lightness, buttons to change
     the LED brightness manually (that is, by changing the lightness) are not provided.
@@ -246,13 +235,6 @@ If you decide to provision using the mobile application, you need to download an
 To test the light CTL example, build the examples by following the instructions in
 [Building the mesh stack](@ref md_doc_getting_started_how_to_build).
 
-@par Using 40+ servers with static provisioner
-If you have more than 40 boards for the servers and decided to use the static provisioner example:
-1. Set `MAX_PROVISIONEE_NUMBER` (in `example_network_config.h`) to the number of boards available.
-2. Rebuild the provisioner example.
-3. Set `MAX_AVAILABLE_SERVER_NODE_NUMBER` in `nrf_mesh_config_app.h`
-of the client example to the value set for `MAX_PROVISIONEE_NUMBER`.
-
 @note
 The @link_ModelSpec mentions that the default value of the mode of the light controller should be set
 to `(0x0)`. This means that the light controller is turned off by default.
@@ -269,33 +251,12 @@ provisioning approach:
 
 ### Evaluating using the static provisioner @anchor light_ctl_example_testing_dk
 
-Complete the following steps:
-1. Flash the examples by following the instructions in @ref md_doc_getting_started_how_to_run_examples,
-including:
-    -# Erase the flash of your development boards and program the SoftDevice.
-    -# Flash the provisioner and the client firmware on individual boards and the server firmware on other boards.
-2. After the reset at the end of the flashing process, press Button 1 on the provisioner board
-to start the provisioning process:
-    -# The provisioner provisions and configures the client and assigns the address 0x100 to the client node.
-    -# The two instances of the Light Lightnes client models are instantiated on separate secondary elements.
-    For this reason, they get consecutive addresses starting with 0x101.
-    -# The provisioner also provisions and configures the servers at random. It assigns them consecutive
-    addresses starting with 0x601 for Light CTL servers and with 0x701 for Light CTL Server
-    with Light LC servers, and adds them to odd and even groups.
-@note - The sequence of provisioned devices depends on the sequence of received unprovisioned beacons.
-@note - You can use [RTT viewer](@ref segger-rtt) to view the RTT output generated by the provisioner.
-The provisioner prints details about the provisioning and the configuration process in the RTT log.
-3. Observe that the LED 1 on the provisioner board is turned on when provisioner is scanning and provisioning a device.
-4. Observe that the LED 2 on the provisioner board is turned on when configuration procedure is in progress.
-5. Wait until LED 1 on the provisioner board remains lit steadily for a few seconds, which indicates that
-all available boards have been provisioned and configured.
-
-If the provisioner encounters an error during the provisioning or configuration process for a certain node,
-you can reset the provisioner to restart this process for that node.
+See [provisioner example testing section](@ref provisioner_example_evaluating) for detailed steps required
+to provision and configure the boards using the static provisioner.
 
 ### Evaluating using the nRF Mesh mobile app @anchor light_ctl_example_testing_app
 
-See @ref nrf-mesh-mobile-app "Evaluating examples using the nRF Mesh mobile application" for detailed steps required
+See [Evaluating examples using the nRF Mesh mobile application](@ref nrf-mesh-mobile-app) for detailed steps required
 to provision and configure the boards using the nRF Mesh mobile app.
 
 The following naming convention is used in the app:

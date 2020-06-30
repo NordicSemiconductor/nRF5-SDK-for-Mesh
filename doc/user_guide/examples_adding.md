@@ -28,7 +28,7 @@ For example, copy the contents of `examples/beaconing`.
     For example:
 
             set(WEAK_SOURCE_FILES
-                "${CMAKE_CURRENT_SOURCE_DIR}/nrf_mesh_weak.c"
+                "${CMAKE_CURRENT_SOURCE_DIR}/common/src/nrf_mesh_weak.c"
                 "${CMAKE_CURRENT_SOURCE_DIR}/common/src/app_error_weak.c"
                 "${CMAKE_CURRENT_SOURCE_DIR}/common/src/assertion_handler_weak.c"
                 CACHE INTERNAL "")

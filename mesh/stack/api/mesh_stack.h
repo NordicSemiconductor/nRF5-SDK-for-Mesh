@@ -135,7 +135,10 @@ typedef struct
  * @retval NRF_ERROR_NULL          The @c p_params parameter was @c NULL.
  * @retval NRF_ERROR_INVALID_STATE The device has already been configured.
  * @retval NRF_ERROR_INVALID_DATA  Data in the persistent memory was corrupted.
- *                                 Stack is reset to default settings, and it will start as unprovisioned device.
+ *                                 Stack is reset to default settings, all persistent data is lost.
+ *                                 Device requires reset to start as unprovisioned one.
+ *                                 @warning After this status, no mesh API functions can be
+ *                                 called since it might cause unpredictable behavior.
  * @retval NRF_ERROR_INVALID_PARAM One or more of the parameters in the @c p_params structure
  *                                 were invalid.
  * @retval NRF_SUCCESS             Initialization was successful.
@@ -155,6 +158,20 @@ uint32_t mesh_stack_init(const mesh_stack_init_params_t * p_init_params,
  * @retval NRF_SUCCESS             The mesh stack was successfully started.
  */
 uint32_t mesh_stack_start(void);
+
+/**
+ * Start the power down procedure.
+ * The function stops timer scheduler (timeslot system still works
+ * to store @ref MESH_CONFIG_STRATEGY_ON_POWER_DOWN files, app_timer works as well).
+ * The function stops and disables scanner, advertiser and GATT functionality.
+ * When the power down procedure has been completed, the event
+ * @ref NRF_MESH_EVT_READY_TO_POWER_OFF is generated and the stack is ready for power off.
+ *
+ * @warning After calling this function, no mesh API functions can be
+ *          called since it might cause unpredictable behavior.
+ *
+ */
+void mesh_stack_power_down(void);
 
 /**
  * Store received provisioning data in flash.

@@ -56,7 +56,7 @@
 
 #include "friend_queue.h"
 #include "friend_sublist.h"
-#include "timer_scheduler.h"
+#include "long_timer.h"
 #include "core_tx_friend.h"
 #include "log.h"
 
@@ -64,8 +64,8 @@ NRF_MESH_STATIC_ASSERT((NRF_MESH_FRIEND_TOKEN_END - NRF_MESH_FRIEND_TOKEN_BEGIN)
                        >= MESH_FRIEND_FRIENDSHIP_COUNT);
 
 #define FRIEND_OFFER_TIMEOUT_MS 1000
-#define FRIEND_CLEAR_INITIAL_TIMEOUT_MS 1000
-#define FRIEND_POLL_TIMEOUT_MAX_US (UINT32_MAX / 2)
+#define FRIEND_CLEAR_INITIAL_TIMEOUT_MS 1000ull
+#define FRIEND_POLL_TIMEOUT_MAX_US (MS_TO_US((uint64_t)MESH_LPN_POLL_TIMEOUT_MAX_MS))
 #define FRIEND_RECENT_LPNS_LIST_COUNT (MESH_FRIEND_FRIENDSHIP_COUNT + 1)
 
 #define FACTOR_MULTIPLY(factor, value) ((factor * 0.5 + 1) * value)
@@ -94,8 +94,8 @@ typedef struct
     uint8_t fsn;                      /**< Friend Sequence Number. */
     friend_queue_t queue;             /**< Friend queue.  */
     friend_sublist_t sublist;         /**< Subscription list of the LPN. */
-    timer_event_t poll_timeout;       /**< Poll timeout timer. */
-    timer_event_t clear_repeat_timer; /**< Friend clear repeat timer. */
+    long_timer_t poll_timeout;        /**< Poll timeout timer. */
+    long_timer_t clear_repeat_timer;  /**< Friend clear repeat timer. */
     uint8_t clear_repeat_count;       /**< Number of times to send the friend clear message. */
     core_tx_friend_t bearer;          /**< Bearer instance. */
 } friendship_t;
@@ -105,7 +105,7 @@ typedef struct
     uint16_t last_lpn;                /**< Address of the recently seen LPN. */
     uint16_t last_req_count;          /**< Value of the LPN counter received in the friend request. */
     nrf_mesh_tx_token_t token;        /**< Bearer TX token. */
-    timer_event_t confirm_send_timer; /**< Respond to valid Friend clear message in this period. */
+    long_timer_t confirm_send_timer;  /**< Respond to valid Friend clear message in this period. */
 } recent_lpns_t;
 
 typedef struct
@@ -120,6 +120,13 @@ typedef struct
     uint16_t tx_delay_ms;
 #endif
 } friend_t;
+
+/*****************************************************************************
+* Static function declarations
+*****************************************************************************/
+static void poll_timeout_cb(void * p_context);
+static void friend_clear_timeout_cb(void * p_context);
+static void confirm_send_timer_cb(void * p_context);
 
 /*****************************************************************************
 * Static globals
@@ -197,29 +204,29 @@ static uint32_t confirm_timer_entry_find(uint16_t lpn_addr)
 /* Find empty entry, and if not found, then nearest expiring entry. */
 static uint32_t confirm_timer_entry_get(void)
 {
-    uint32_t i;
-    timestamp_t nearest_expiry = timer_now();
-    uint32_t nearest_expiry_idx = FRIEND_RECENT_LPNS_LIST_COUNT;
-    for (i = 0; i < FRIEND_RECENT_LPNS_LIST_COUNT; i++)
+    uint64_t lowest_remaining_time_us = UINT64_MAX;
+    uint32_t idx = 0;
+
+    for (uint32_t i = 0; i < FRIEND_RECENT_LPNS_LIST_COUNT; i++)
     {
         if (m_friend.recent_lpns[i].last_lpn == NRF_MESH_ADDR_UNASSIGNED)
         {
+            idx = i;
             break;
         }
-        else if ((i == 0) ||
-                 !(TIMER_OLDER_THAN(nearest_expiry, m_friend.recent_lpns[i].confirm_send_timer.timestamp)))
+        else
         {
-            nearest_expiry = m_friend.recent_lpns[i].confirm_send_timer.timestamp;
-            nearest_expiry_idx = i;
+            uint64_t current_remaining_time_us = lt_remaining_time_get(&m_friend.recent_lpns[i].confirm_send_timer);
+
+            if (current_remaining_time_us < lowest_remaining_time_us)
+            {
+                idx = i;
+                lowest_remaining_time_us = current_remaining_time_us;
+            }
         }
     }
 
-    if (i == FRIEND_RECENT_LPNS_LIST_COUNT)
-    {
-        i = nearest_expiry_idx;
-    }
-
-    return i;
+    return idx;
 }
 
 static void confirm_timer_add(uint16_t lpn_addr, uint32_t poll_timeout_ms, uint32_t req_count)
@@ -238,9 +245,10 @@ static void confirm_timer_add(uint16_t lpn_addr, uint32_t poll_timeout_ms, uint3
           lpn_addr, poll_timeout_ms, entry);
     m_friend.recent_lpns[entry].last_lpn = lpn_addr;
     m_friend.recent_lpns[entry].last_req_count = req_count;
-    timer_sch_reschedule(&m_friend.recent_lpns[entry].confirm_send_timer,
-                         timer_now() + MS_TO_US(poll_timeout_ms));
-
+    lt_schedule(&m_friend.recent_lpns[entry].confirm_send_timer,
+                confirm_send_timer_cb,
+                &m_friend.recent_lpns[entry],
+                MS_TO_US((uint64_t)poll_timeout_ms));
 }
 
 static void confirm_timer_clear(uint16_t lpn_addr)
@@ -252,16 +260,9 @@ static void confirm_timer_clear(uint16_t lpn_addr)
         {
             __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Cleared\n");
             m_friend.recent_lpns[i].last_lpn = NRF_MESH_ADDR_UNASSIGNED;
-            timer_sch_abort(&m_friend.recent_lpns[i].confirm_send_timer);
+            lt_abort(&m_friend.recent_lpns[i].confirm_send_timer);
         }
     }
-}
-
-static timestamp_t remaining_poll_timeout_time_get(const friendship_t * p_friendship)
-{
-    const timestamp_t time_now = timer_now();
-    return (/* MS_TO_US(p_friendship->friendship.poll_timeout_ms) - */
-            TIMER_DIFF(p_friendship->poll_timeout.timestamp, time_now));
 }
 
 static bool friend_address_is_known(const friendship_t * p_friendship,
@@ -330,7 +331,7 @@ static void friendship_state_reset(friendship_t * p_friendship)
     core_tx_friend_disable(&p_friendship->bearer);
     friend_queue_clear(&p_friendship->queue);
     friend_sublist_clear(&p_friendship->sublist);
-    timer_sch_abort(&p_friendship->poll_timeout);
+    lt_abort(&p_friendship->poll_timeout);
 }
 
 static void friendship_terminate(friendship_t * p_friendship,
@@ -395,19 +396,6 @@ static bool friend_clear_is_valid_lpn_counter(uint16_t friend_request_lpn_counte
     return ((friend_clear_lpn_counter - friend_request_lpn_counter) < 256);
 }
 
-static void repeat_count_set(friendship_t * p_friendship)
-{
-    /* A Friend Clear Procedure timer shall be started with the period equal to
-     * two times the Friend Poll Timeout value. */
-    uint64_t repeat_timeout_us =
-        MS_TO_US((uint64_t) p_friendship->friendship.poll_timeout_ms) * 2;
-
-    while ((repeat_timeout_us >>= 1) != 0)
-    {
-        p_friendship->clear_repeat_count++;
-    }
-}
-
 static friendship_t * friendship_find(uint16_t lpn_address)
 {
     for (uint32_t i = 0; i < MESH_FRIEND_FRIENDSHIP_COUNT; ++i)
@@ -420,29 +408,17 @@ static friendship_t * friendship_find(uint16_t lpn_address)
     return NULL;
 }
 
-static void poll_timeout_schedule(friendship_t * p_friendship,
-                                  timestamp_t poll_timeout_us)
+static void poll_timeout_schedule(friendship_t * p_friendship, timestamp_t rx_timestamp, uint64_t poll_timeout_us)
 {
-    timer_sch_reschedule(&p_friendship->poll_timeout, poll_timeout_us);
+    timestamp_t diff = timer_now() - rx_timestamp;
+    lt_schedule(&p_friendship->poll_timeout, poll_timeout_cb, p_friendship,
+                diff < poll_timeout_us ? poll_timeout_us - diff : 0);
 }
 
-static void friend_clear_timeout_schedule(friendship_t * p_friendship)
+static void friend_clear_timeout_schedule(friendship_t * p_friendship, uint64_t clear_repeat_timeout_us)
 {
-    NRF_MESH_ASSERT_DEBUG(p_friendship->clear_repeat_count > 0);
-    timer_sch_reschedule(&p_friendship->clear_repeat_timer,
-                         timer_now() + MS_TO_US(FRIEND_CLEAR_INITIAL_TIMEOUT_MS));
+    lt_schedule(&p_friendship->clear_repeat_timer, friend_clear_timeout_cb, p_friendship, clear_repeat_timeout_us);
 }
-
-static void friend_clear_interval_update(friendship_t * p_friendship)
-{
-    NRF_MESH_ASSERT_DEBUG(p_friendship->clear_repeat_count > 0);
-    /* TODO: Long running timer. */
-    p_friendship->clear_repeat_timer.interval =
-        MIN((uint64_t) 2 * p_friendship->clear_repeat_timer.interval,
-            FRIEND_POLL_TIMEOUT_MAX_US);
-    p_friendship->clear_repeat_count--;
-}
-
 
 static friendship_t * free_friendship_context_get(void)
 {
@@ -486,11 +462,6 @@ static uint32_t friendship_alloc(friendship_t ** pp_friendship,
     else if ((1 << min_queue_size_log) > MESH_FRIEND_QUEUE_SIZE)
     {
         return NRF_ERROR_RESOURCES;
-    }
-    else if (MS_TO_US(poll_timeout_ms) > FRIEND_POLL_TIMEOUT_MAX_US)
-    {
-        /* TODO: Long running timer. */
-        return NRF_ERROR_NOT_SUPPORTED;
     }
 
     /* TODO: More parameter sanitazion? */
@@ -720,7 +691,7 @@ static void friend_clear_confirm_tx(uint16_t lpn_src, uint16_t lpn_req_count,
                           status == NRF_ERROR_FORBIDDEN);
 }
 
-static void poll_timeout_cb(timestamp_t timeout, void * p_context)
+static void poll_timeout_cb(void * p_context)
 {
     NRF_MESH_ASSERT_DEBUG(p_context != NULL);
     friendship_t * p_friendship = p_context;
@@ -729,27 +700,27 @@ static void poll_timeout_cb(timestamp_t timeout, void * p_context)
                          NRF_MESH_EVT_FRIENDSHIP_TERMINATED_REASON_TIMEOUT);
 }
 
-static void friend_clear_timeout_cb(timestamp_t timeout, void * p_context)
+static void friend_clear_timeout_cb(void * p_context)
 {
     friendship_t * p_friendship = p_context;
-    if (p_friendship->clear_repeat_count > 0)
+
+    p_friendship->clear_repeat_count++;
+    uint64_t next_timeout_us = MS_TO_US(FRIEND_CLEAR_INITIAL_TIMEOUT_MS) << p_friendship->clear_repeat_count;
+
+    /* Friend Clear Procedure timer shall be started with the period equal to two times the Friend Poll Timeout value */
+    if (next_timeout_us <= 2 * MS_TO_US((uint64_t)p_friendship->friendship.poll_timeout_ms))
     {
         friend_clear_tx(p_friendship);
-        friend_clear_interval_update(p_friendship);
-    }
-    else
-    {
-        timer_sch_abort(&p_friendship->clear_repeat_timer);
+        friend_clear_timeout_schedule(p_friendship, next_timeout_us);
     }
 }
 
-static void confirm_send_timer_cb(timestamp_t timeout, void * p_context)
+static void confirm_send_timer_cb(void * p_context)
 {
     recent_lpns_t * p_recent_lpns = p_context;
     __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Removing last seen LPN: 0x%04x\n", p_recent_lpns->last_lpn);
 
     p_recent_lpns->last_lpn = NRF_MESH_ADDR_UNASSIGNED;
-    timer_sch_abort(&p_recent_lpns->confirm_send_timer);
 }
 
 static recent_lpns_t * recent_lpns_get(const transport_control_packet_t * p_control_packet,
@@ -837,9 +808,9 @@ static void friend_poll_handle(const transport_control_packet_t * p_control_pack
             if (p_friendship->friendship.lpn.prev_friend_src != NRF_MESH_ADDR_UNASSIGNED &&
                 p_friendship->friendship.lpn.prev_friend_src != unicast_address)
             {
-                repeat_count_set(p_friendship);
+                p_friendship->clear_repeat_count = 0;
                 friend_clear_tx(p_friendship);
-                friend_clear_timeout_schedule(p_friendship);
+                friend_clear_timeout_schedule(p_friendship, MS_TO_US(FRIEND_CLEAR_INITIAL_TIMEOUT_MS));
             }
             __LOG(LOG_SRC_FRIEND, LOG_LEVEL_DBG1, "Friendship established (0x%04x)\n",
                   p_friendship->friendship.lpn.src);
@@ -879,8 +850,8 @@ static void friend_poll_handle(const transport_control_packet_t * p_control_pack
     }
 
     poll_timeout_schedule(p_friendship,
-                          (p_rx_metadata->params.scanner.timestamp +
-                           MS_TO_US(p_friendship->friendship.poll_timeout_ms)));
+                          p_rx_metadata->params.scanner.timestamp,
+                          MS_TO_US((uint64_t)p_friendship->friendship.poll_timeout_ms));
 }
 
 static void friend_request_handle(const transport_control_packet_t * p_control_packet,
@@ -984,8 +955,8 @@ static void friend_request_handle(const transport_control_packet_t * p_control_p
     /* If we don't receive a Friend Poll within 1 second after sending the
      * Friend Offer, the establishment has failed. */
     poll_timeout_schedule(p_friendship,
-                          (p_rx_metadata->params.scanner.timestamp +
-                           MS_TO_US(FRIEND_OFFER_TIMEOUT_MS + offer_delay_ms)));
+                          p_rx_metadata->params.scanner.timestamp,
+                          MS_TO_US(FRIEND_OFFER_TIMEOUT_MS + (uint64_t)offer_delay_ms));
 }
 
 static void friend_clear_handle(const transport_control_packet_t * p_control_packet,
@@ -1071,7 +1042,7 @@ static void friend_clear_confirm_handle(const transport_control_packet_t * p_con
         return;
     }
 
-    timer_sch_abort(&p_friendship->clear_repeat_timer);
+    lt_abort(&p_friendship->clear_repeat_timer);
 }
 
 static void friend_sublist_add_handle(const transport_control_packet_t * p_control_packet,
@@ -1114,8 +1085,8 @@ static void friend_sublist_add_handle(const transport_control_packet_t * p_contr
     }
 
     poll_timeout_schedule(p_friendship,
-                          (p_rx_metadata->params.scanner.timestamp +
-                           MS_TO_US(p_friendship->friendship.poll_timeout_ms)));
+                          p_rx_metadata->params.scanner.timestamp,
+                          MS_TO_US((uint64_t)p_friendship->friendship.poll_timeout_ms));
 }
 
 static void friend_sublist_remove_handle(const transport_control_packet_t * p_control_packet,
@@ -1145,8 +1116,8 @@ static void friend_sublist_remove_handle(const transport_control_packet_t * p_co
 
     friend_sublist_confirm_tx(p_friendship, transaction_number, p_rx_metadata);
     poll_timeout_schedule(p_friendship,
-                          (p_rx_metadata->params.scanner.timestamp +
-                           MS_TO_US(p_friendship->friendship.poll_timeout_ms)));
+                          p_rx_metadata->params.scanner.timestamp,
+                          MS_TO_US((uint64_t)p_friendship->friendship.poll_timeout_ms));
 }
 
 static const transport_control_packet_handler_t m_transport_opcode_handlers[] = {
@@ -1294,11 +1265,6 @@ uint32_t mesh_friend_init(void)
     for (uint32_t i = 0; i < MESH_FRIEND_FRIENDSHIP_COUNT; ++i)
     {
         m_friend.friends[i].state = FRIEND_STATE_IDLE;
-        m_friend.friends[i].poll_timeout.p_context = &m_friend.friends[i];
-        m_friend.friends[i].poll_timeout.cb = poll_timeout_cb;
-        m_friend.friends[i].clear_repeat_timer.p_context = &m_friend.friends[i];
-        m_friend.friends[i].clear_repeat_timer.cb = friend_clear_timeout_cb;
-
         friend_queue_init(&m_friend.friends[i].queue);
         friend_sublist_init(&m_friend.friends[i].sublist);
 
@@ -1309,8 +1275,6 @@ uint32_t mesh_friend_init(void)
     for (uint32_t i = 0; i < FRIEND_RECENT_LPNS_LIST_COUNT; i++)
     {
         m_friend.recent_lpns[i].last_lpn = NRF_MESH_ADDR_UNASSIGNED;
-        m_friend.recent_lpns[i].confirm_send_timer.p_context = &m_friend.recent_lpns[i];
-        m_friend.recent_lpns[i].confirm_send_timer.cb = confirm_send_timer_cb;
     }
 
     /* TODO: Handle enabled/disabled state. */
@@ -1577,11 +1541,11 @@ uint32_t friend_remaining_poll_timeout_time_get(uint16_t src)
     friendship_t * p_friendship = friendship_find(src);
     if (p_friendship != NULL)
     {
-        return ROUNDED_DIV(US_TO_MS(remaining_poll_timeout_time_get(p_friendship)), 100);
+        return ROUNDED_DIV(US_TO_MS(lt_remaining_time_get(&p_friendship->poll_timeout)), 100);
     }
     else
     {
-        return 0;
+        return 0ul;
     }
 }
 

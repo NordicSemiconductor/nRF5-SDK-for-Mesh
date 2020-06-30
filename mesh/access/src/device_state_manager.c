@@ -1706,48 +1706,7 @@ static void dsm_mesh_config_clear(void)
     m_status.is_metadata_stored = 0;
     m_status.is_load_failed = 0;
 
-    (void)mesh_config_entry_delete(MESH_OPT_DSM_METADATA_EID);
-    (void)mesh_config_entry_delete(MESH_OPT_DSM_UNICAST_ADDR_EID);
-
-    mesh_config_entry_id_t id = MESH_OPT_DSM_NONVIRTUAL_ADDR_RECORD_EID;
-
-    for (uint16_t i = 0; i < DSM_NONVIRTUAL_ADDR_MAX; i++)
-    {
-        id.record = MESH_OPT_DSM_NONVIRTUAL_ADDR_RECORD + i;
-        (void)mesh_config_entry_delete(id);
-    }
-
-    id = MESH_OPT_DSM_VIRTUAL_ADDR_RECORD_EID;
-
-    for (uint16_t i = 0; i < DSM_VIRTUAL_ADDR_MAX; i++)
-    {
-        id.record = MESH_OPT_DSM_VIRTUAL_ADDR_RECORD + i;
-        (void)mesh_config_entry_delete(id);
-    }
-
-    id = MESH_OPT_DSM_SUBNETS_RECORD_EID;
-
-    for (uint16_t i = 0; i < DSM_SUBNET_MAX; i++)
-    {
-        id.record = MESH_OPT_DSM_SUBNETS_RECORD + i;
-        (void)mesh_config_entry_delete(id);
-    }
-
-    id = MESH_OPT_DSM_APPKEYS_RECORD_EID;
-
-    for (uint16_t i = 0; i < DSM_APP_MAX; i++)
-    {
-        id.record = MESH_OPT_DSM_APPKEYS_RECORD + i;
-        (void)mesh_config_entry_delete(id);
-    }
-
-    id = MESH_OPT_DSM_DEVKEYS_RECORD_EID;
-
-    for (uint16_t i = 0; i < DSM_DEVICE_MAX; i++)
-    {
-        id.record = MESH_OPT_DSM_DEVKEYS_RECORD + i;
-        (void)mesh_config_entry_delete(id);
-    }
+    mesh_config_file_clear(MESH_OPT_DSM_FILE_ID);
 }
 
 static void legacy_remove(void)

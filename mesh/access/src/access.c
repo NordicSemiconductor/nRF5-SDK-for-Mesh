@@ -952,39 +952,16 @@ static void access_mesh_config_clear(void)
 {
     m_status.is_metadata_stored = 0;
     m_status.is_load_failed = 0;
-    m_status.is_restoring_ended = 0;
 
-    (void)mesh_config_entry_delete(MESH_OPT_ACCESS_METADATA_EID);
-
-    mesh_config_entry_id_t id = MESH_OPT_ACCESS_SUBSCRIPTIONS_EID;
-
-    for (uint16_t i = 0; i < ACCESS_SUBSCRIPTION_LIST_COUNT; i++)
-    {
-        id.record = MESH_OPT_ACCESS_SUBSCRIPTIONS_RECORD + i;
-        (void)mesh_config_entry_delete(id);
-    }
-
-    id = MESH_OPT_ACCESS_ELEMENTS_EID;
-
-    for (uint16_t i = 0; i < ACCESS_ELEMENT_COUNT; i++)
-    {
-        id.record = MESH_OPT_ACCESS_ELEMENTS_RECORD + i;
-        (void)mesh_config_entry_delete(id);
-    }
-
-    id = MESH_OPT_ACCESS_MODELS_EID;
-
-    for (uint16_t i = 0; i < ACCESS_MODEL_COUNT; i++)
-    {
-        id.record = MESH_OPT_ACCESS_MODELS_RECORD + i;
-        (void)mesh_config_entry_delete(id);
-    }
+    mesh_config_file_clear(MESH_OPT_ACCESS_FILE_ID);
 }
 
 /* If the persistent feature is switched off then metadata is never restored.
  * Branch for model restoring will be bypassed. */
 uint32_t access_load_config_apply(void)
 {
+    m_status.is_restoring_ended = 1;
+
     if (!!m_status.is_load_failed)
     {
         return NRF_ERROR_INVALID_DATA;
@@ -1011,7 +988,6 @@ uint32_t access_load_config_apply(void)
         }
     }
 
-    m_status.is_restoring_ended = 1;
     initialization_data_store();
 
     if (!m_status.is_metadata_stored)

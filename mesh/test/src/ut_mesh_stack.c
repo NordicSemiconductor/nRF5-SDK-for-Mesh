@@ -321,3 +321,8 @@ void test_mesh_stack_persistence_flash_usage(void)
     TEST_ASSERT_EQUAL(0, length);
 #endif
 }
+
+
+void test_mesh_stack_power_down(void)
+{
+}

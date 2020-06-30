@@ -1,5 +1,6 @@
 # Light lightness example
 
+@tag52840and52833and52832
 @tag52810nosupport
 
 This example demonstrates how you can use mesh messages and events
@@ -82,33 +83,29 @@ More information about the Light Lightness models can be found in the
 
 ## Hardware requirements @anchor light_lightness_example_hw_requirements
 
-You need at least two supported development kits for this example:
+You need at least two compatible development kits for this example:
 
-- One nRF52 development kit for the client.
-- One or more nRF52 development kits for the servers.
+- One compatible development kit for the client.
+- One or more compatible development kits for the servers.
 
-Additionally, you need one development kit for the provisioner
-if you decide to use the [static provisioner example](@ref md_examples_provisioner_README).
-For details, see [software requirements](@ref light_lightness_example_sw_requirements).
+Additionally, you need one of the following for provisioning:
+- One compatible development kit for the provisioner if you decide to use the [static provisioner example](@ref md_examples_provisioner_README).
+- An iOS or Android smartphone if you decide to provision using the @link_nrf_mesh_app mobile application.
 
-See @ref md_doc_user_guide_mesh_compatibility for the supported development kits.
+See @ref md_doc_user_guide_mesh_compatibility for information about the compatible development kits.
 
 @note This example uses the PWM peripheral to control the brightness of the LED.
-For this reason, it cannot be run on nRF51 devices.
+For this reason, it cannot be run on nRF51 devices,
+even after solving the issues related to their [deprecated compatibility](@ref compatibility_nRF51).
 
 
 ---
 
 ## Software requirements @anchor light_lightness_example_sw_requirements
 
-Depending on your choice of the provisioning method:
-- If you decide to use the static provisioner example, you need the provisioner example:
-`<InstallFolder>/examples/provisioner`
-    - See the [Provisioner example](@ref md_examples_provisioner_README) page for more information
-    about the provisioner example.
-- If you decide to provision using the mobile application, you need to download and install
-@link_nrf_mesh_app (available for @link_nrf_mesh_app_ios and @link_nrf_mesh_app_android).
-
+Depending on the provisioning method:
+- If you decide to provision using a mobile application, you need @link_nrf_mesh_app (@link_nrf_mesh_app_ios or @link_nrf_mesh_app_android) installed on the smartphone.
+- If you decide to use the static provisioner example, you need the [provisioner example](@ref md_examples_provisioner_README).
 
 ---
 
@@ -126,11 +123,11 @@ You can find the source code of this example in the following folder:
     - You cannot use buttons on the server boards, because the Light Lightness Setup Server
     does not use the `simple_hal` module.
     - Instead of the buttons on the server boards, use the following RTT input:
-      | RTT input     | DK Button     |   Effect                                                             |
-      |---------------|---------------|----------------------------------------------------------------------|
-      | `1`           | -             | The brightness of the LED 1 is _decreased_ in large step.            |
-      | `2`           | -             | The brightness of the LED 1 is _increased_ in large step.            |
-      | `4`           | -             | All mesh data is erased and the device is reset.                     |
+      | RTT input     | DK Button     |   Effect                                                                            |
+      |---------------|---------------|-------------------------------------------------------------------------------------|
+      | `1`           | -             | The lightness value for LED 1 (and its brightness) is _decreased_ in large step.    |
+      | `2`           | -             | The lightness value for LED 1 (and its brightness) is _increased_ in large step.    |
+      | `4`           | -             | All mesh data is erased and the device is reset.                                    |
 
 - Client:
     - When interacting with the boards, you can use one of the following options:
@@ -166,11 +163,6 @@ You can find the source code of this example in the following folder:
 To test the light lightness example, build the examples by following the instructions in
 [Building the mesh stack](@ref md_doc_getting_started_how_to_build).
 
-@note
-If you have more than 40 boards for the server and decided to use the static provisioner example,
-set `MAX_PROVISIONEE_NUMBER` (in `example_network_config.h`) to the number of boards available
-and rebuild the provisioner example.
-
 After building is complete, use one of the following methods, depending on the preferred
 provisioning approach:
 - [Evaluating using the static provisioner](@ref light_lightness_example_testing_dk)
@@ -179,32 +171,12 @@ provisioning approach:
 
 ### Evaluating using the static provisioner @anchor light_lightness_example_testing_dk
 
-Complete the following steps:
-1. Flash the examples by following the instructions in @ref md_doc_getting_started_how_to_run_examples,
-including:
-    -# Erase the flash of your development boards and program the SoftDevice.
-    -# Flash the provisioner and the client firmware on individual boards and the server firmware on other boards.
-2. After the reset at the end of the flashing process, press Button 1 on the provisioner board
-to start the provisioning process:
-    -# The provisioner provisions and configures the client and assigns the address 0x100 to the client node.
-    -# The two instances of the Light Lightness client models are instantiated on separate secondary elements.
-    For this reason, they get consecutive addresses starting with 0x101.
-    -# The provisioner also provisions and configures the servers at random. It assigns them consecutive
-    addresses starting with 0x401, and adds them to odd and even groups.
-@note - The sequence of provisioned devices depends on the sequence of received unprovisioned beacons.
-@note - You can use [RTT viewer](@ref segger-rtt) to view the RTT output generated by the provisioner.
-The provisioner prints details about the provisioning and the configuration process in the RTT log.
-3. Observe that the LED 1 on the provisioner board is turned ON when provisioner is scanning and provisioning a device.
-4. Observe that the LED 2 on the provisioner board is turned ON when configuration procedure is in progress.
-5. Wait until LED 1 on the provisioner board remains lit steadily for a few seconds, which indicates that
-all available boards have been provisioned and configured.
-
-If the provisioner encounters an error during the provisioning or configuration process for a certain node,
-you can reset the provisioner to restart this process for that node.
+See [provisioner example testing section](@ref provisioner_example_evaluating) for detailed steps required
+to provision and configure the boards using the static provisioner.
 
 ### Evaluating using the nRF Mesh mobile app @anchor light_lightness_example_testing_app
 
-See @ref nrf-mesh-mobile-app "the information on the main Examples page" for detailed steps required
+See [Evaluating examples using the nRF Mesh mobile application](@ref nrf-mesh-mobile-app) for detailed steps required
 to provision and configure the boards using the nRF Mesh mobile app.
 
 The following naming convention is used in the app:

@@ -67,6 +67,9 @@
 #if MESH_FEATURE_FRIEND_ENABLED
 #include "friend_internal.h"
 #endif
+#if MESH_FEATURE_LPN_ENABLED
+#include "mesh_lpn.h"
+#endif
 
 /********************
  * Static variables *
@@ -374,7 +377,11 @@ uint32_t network_packet_in(const uint8_t * p_packet, uint32_t net_packet_len, co
 
         }
 #endif
-        if (should_relay(&net_metadata, p_rx_metadata))
+        if (should_relay(&net_metadata, p_rx_metadata)
+#if MESH_FEATURE_LPN_ENABLED
+            && !mesh_lpn_is_in_friendship()
+#endif
+            )
         {
             if (packet_relay(&net_metadata, p_net_payload, payload_len, p_rx_metadata) == NRF_SUCCESS)
             {

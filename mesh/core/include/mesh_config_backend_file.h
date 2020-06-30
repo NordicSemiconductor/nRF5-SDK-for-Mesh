@@ -46,12 +46,6 @@
     #error "There is no chosen backend for the persistent storage framework"
 #endif
 
-/** The record iterator. */
-typedef struct
-{
-    mesh_config_backend_glue_iterator_t iterator;
-} mesh_config_backend_record_iterator_t;
-
 /** The file descriptor for backend. */
 typedef struct
 {

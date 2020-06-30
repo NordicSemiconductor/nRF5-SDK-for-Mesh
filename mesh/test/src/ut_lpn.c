@@ -45,8 +45,7 @@
 
 #include "transport_mock.h"
 #include "bearer_event_mock.h"
-#include "timer_mock.h"
-#include "timer_scheduler_mock.h"
+#include "long_timer_mock.h"
 #include "scanner_mock.h"
 #include "event_mock.h"
 #include "nrf_mesh_externs_mock.h"
@@ -55,8 +54,7 @@ void setUp(void)
 {
     transport_mock_Init();
     bearer_event_mock_Init();
-    timer_mock_Init();
-    timer_scheduler_mock_Init();
+    long_timer_mock_Init();
     scanner_mock_Init();
     event_mock_Init();
     nrf_mesh_externs_mock_Init();
@@ -68,10 +66,8 @@ void tearDown(void)
     transport_mock_Destroy();
     bearer_event_mock_Verify();
     bearer_event_mock_Destroy();
-    timer_mock_Verify();
-    timer_mock_Destroy();
-    timer_scheduler_mock_Verify();
-    timer_scheduler_mock_Destroy();
+    long_timer_mock_Verify();
+    long_timer_mock_Destroy();
     scanner_mock_Verify();
     scanner_mock_Destroy();
     event_mock_Verify();

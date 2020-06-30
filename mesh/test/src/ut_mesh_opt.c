@@ -45,55 +45,21 @@
 #include "mesh_opt_gatt.h"
 #include "mesh_opt_prov.h"
 
-#include "mesh_config_entry_mock.h"
+#include "mesh_config_mock.h"
 
 void setUp(void)
 {
-    mesh_config_entry_mock_Init();
+    mesh_config_mock_Init();
 }
 
 void tearDown(void)
 {
-    mesh_config_entry_mock_Verify();
-    mesh_config_entry_mock_Destroy();
+    mesh_config_mock_Verify();
+    mesh_config_mock_Destroy();
 }
 
 void test_mesh_opt_clear(void)
 {
-    mesh_config_entry_id_t entry_id;
-
-    for (uint8_t cnt = 0; cnt < MESH_OPT_CORE_ADV_COUNT; cnt++)
-    {
-        entry_id = MESH_OPT_CORE_ADV_EID;
-        entry_id.record += cnt;
-        mesh_config_entry_delete_ExpectAndReturn(entry_id, NRF_SUCCESS);
-        entry_id = MESH_OPT_CORE_TX_POWER_EID;
-        entry_id.record += cnt;
-        mesh_config_entry_delete_ExpectAndReturn(entry_id, NRF_SUCCESS);
-        entry_id = MESH_OPT_CORE_ADV_ADDR_EID;
-        entry_id.record += cnt;
-        mesh_config_entry_delete_ExpectAndReturn(entry_id, NRF_SUCCESS);
-    }
-    entry_id = MESH_OPT_CORE_SEC_NWK_BCN_EID;
-    mesh_config_entry_delete_ExpectAndReturn(entry_id, NRF_SUCCESS);
-    entry_id = MESH_OPT_CORE_HB_PUBLICATION_EID;
-    mesh_config_entry_delete_ExpectAndReturn(entry_id, NRF_SUCCESS);
-
-    entry_id = MESH_OPT_PROV_ECDH_OFFLOADING_EID;
-    mesh_config_entry_delete_ExpectAndReturn(entry_id, NRF_SUCCESS);
-
-    entry_id = MESH_OPT_HEALTH_PRIMARY_EID;
-    mesh_config_entry_delete_ExpectAndReturn(entry_id, NRF_SUCCESS);
-
-#if MESH_FEATURE_FRIEND_ENABLED
-    entry_id = MESH_OPT_FRIEND_EID;
-    mesh_config_entry_delete_ExpectAndReturn(entry_id, NRF_SUCCESS);
-#endif
-
-#if MESH_FEATURE_GATT_PROXY_ENABLED
-    entry_id = MESH_OPT_GATT_PROXY_EID;
-    mesh_config_entry_delete_ExpectAndReturn(entry_id, NRF_SUCCESS);
-#endif
-
+    mesh_config_file_clear_Expect(MESH_OPT_CORE_FILE_ID);
     mesh_opt_clear();
 }
