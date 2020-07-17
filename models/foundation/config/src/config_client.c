@@ -178,6 +178,8 @@ static const config_message_lut_t m_config_message_lut[] =
     {CONFIG_OPCODE_MODEL_APP_STATUS,              PACKET_LENGTH_WITH_ID(config_msg_app_status_t, true),          PACKET_LENGTH_WITH_ID(config_msg_app_status_t, false)},
     {CONFIG_OPCODE_MODEL_PUBLICATION_STATUS,      PACKET_LENGTH_WITH_ID(config_msg_publication_status_t, true),  PACKET_LENGTH_WITH_ID(config_msg_publication_status_t, false)},
     {CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS,     PACKET_LENGTH_WITH_ID(config_msg_subscription_status_t, true), PACKET_LENGTH_WITH_ID(config_msg_subscription_status_t, false)},
+    {CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_LIST,   sizeof(config_msg_sig_model_subscription_list_t),							PAYLOAD_LENGTH_MAX},
+    {CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_LIST,   sizeof(config_msg_vendor_model_subscription_list_t),							PAYLOAD_LENGTH_MAX},
     {CONFIG_OPCODE_NETKEY_STATUS,                 sizeof(config_msg_netkey_status_t),                            sizeof(config_msg_netkey_status_t)},
     {CONFIG_OPCODE_NETKEY_LIST,                   0,                                                             PAYLOAD_LENGTH_MAX},
     {CONFIG_OPCODE_NODE_RESET_STATUS,             0,                                                             0},
@@ -198,6 +200,8 @@ static const access_opcode_handler_t m_opcode_handlers[] =
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_MODEL_APP_STATUS),              config_opcode_handler },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS),      config_opcode_handler },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS),     config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_LIST),     config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_LIST),     config_opcode_handler },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETKEY_STATUS),                 config_opcode_handler },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETKEY_LIST),                   config_opcode_handler },
     { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NODE_RESET_STATUS),             config_opcode_handler },
@@ -776,7 +780,8 @@ uint32_t config_client_model_subscription_get(uint16_t element_address, access_m
     config_msg_model_id_set(&p_msg->model_id, &model_id, sig_model);
 
     config_opcode_t opcode = sig_model ? CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_GET : CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_GET;
-    return send_reliable(opcode, length, CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS);
+    config_opcode_t reply_opcode = sig_model ? CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_LIST : CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_LIST;
+    return send_reliable(opcode, length, reply_opcode);
 }
 
 uint32_t config_client_model_subscription_overwrite(uint16_t element_address, nrf_mesh_address_t address, access_model_id_t model_id)
