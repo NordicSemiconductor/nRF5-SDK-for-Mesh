@@ -1175,3 +1175,13 @@ void flash_manager_action_queue_empty_cb_set(flash_manager_queue_empty_cb_t queu
         m_queue_empty_cb = NULL;
     }
 }
+
+bool flash_manager_is_building(flash_manager_t * p_manager)
+{
+    return (p_manager->internal.state == FM_STATE_BUILDING);
+}
+
+bool flash_manager_is_removing(flash_manager_t * p_manager)
+{
+    return (p_manager->internal.state == FM_STATE_REMOVING);
+}

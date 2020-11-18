@@ -88,7 +88,7 @@ uint32_t proxy_enable(void);
  *       no effect. The network ID will not be advertised until the node ID is finished.
  *
  * @retval NRF_SUCCESS Successfully started the proxy.
- * @retval NRF_ERROR_INVALID_STATE The proxy is currently not enabled.
+ * @retval NRF_ERROR_INVALID_STATE The proxy is currently not enabled or not initialized.
  */
 uint32_t proxy_start(void);
 
@@ -109,7 +109,7 @@ uint32_t proxy_start(void);
  * function should be used before proxy_start().
  *
  * @retval NRF_SUCCESS Successfully stopped and disabled the proxy state.
- * @retval NRF_ERROR_INVALID_STATE The proxy state is currently not enabled-
+ * @retval NRF_ERROR_INVALID_STATE The proxy state is currently not enabled or not initialized.
  */
 uint32_t proxy_stop(void);
 
@@ -174,6 +174,7 @@ void proxy_subnet_added(uint16_t net_key_index, const uint8_t * p_network_id);
  */
 void proxy_net_packet_processed(const network_packet_metadata_t * p_net_metadata,
                                 const nrf_mesh_rx_metadata_t * p_rx_meta);
+
 /**
  * Checks whether the node ID state for the given beacon info is running.
  *

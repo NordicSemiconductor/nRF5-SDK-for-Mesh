@@ -106,8 +106,9 @@ static uint32_t allocate_packet(network_tx_packet_buffer_t * p_buffer)
         if (p_buffer->user_data.role != CORE_TX_ROLE_RELAY)
 #endif
         {
-            p_buffer->user_data.p_metadata->internal.iv_index = net_state_tx_iv_index_get();
-            uint32_t status = net_state_seqnum_alloc(&p_buffer->user_data.p_metadata->internal.sequence_number);
+            uint32_t status = net_state_iv_index_and_seqnum_alloc(
+                    &p_buffer->user_data.p_metadata->internal.iv_index,
+                    &p_buffer->user_data.p_metadata->internal.sequence_number);
 
             if (status != NRF_SUCCESS)
             {

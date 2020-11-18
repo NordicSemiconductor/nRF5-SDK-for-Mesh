@@ -7,6 +7,7 @@ add_executable(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/node_setup.c"
     "${MBTLE_SOURCE_DIR}/examples/common/src/rtt_input.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/simple_hal.c"
+    "${SDK_ROOT}/modules/nrfx/drivers/src/nrfx_gpiote.c"
     ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${WEAK_SOURCE_FILES}
     ${MESH_CORE_SOURCE_FILES}
@@ -41,6 +42,8 @@ target_include_directories(${target} PUBLIC
     ${LIGHT_CTL_SETUP_SERVER_INCLUDE_DIRS}
     ${SENSOR_CLIENT_INCLUDE_DIRS}
     ${SENSOR_SETUP_SERVER_INCLUDE_DIRS}
+    ${SCENE_CLIENT_INCLUDE_DIRS}
+    ${SCENE_SETUP_SERVER_INCLUDE_DIRS}
     ${CONFIG_CLIENT_INCLUDE_DIRS}
     ${CONFIG_SERVER_INCLUDE_DIRS}
     ${HEALTH_SERVER_INCLUDE_DIRS}
@@ -76,6 +79,9 @@ get_property(target_include_dirs TARGET ${target} PROPERTY INCLUDE_DIRECTORIES)
 add_pc_lint(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c;${CMAKE_CURRENT_SOURCE_DIR}/src/provisioner_helper.c;${CMAKE_CURRENT_SOURCE_DIR}/src/node_setup.c"
     "${target_include_dirs}"
-    "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES}")
-
+    "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES};-DSCENE_SETUP_SERVER_INSTANCES_MAX=1")
+add_pc_lint(no_scene_${target}
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c;${CMAKE_CURRENT_SOURCE_DIR}/src/provisioner_helper.c;${CMAKE_CURRENT_SOURCE_DIR}/src/node_setup.c"
+    "${target_include_dirs}"
+    "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES};-DSCENE_SETUP_SERVER_INSTANCES_MAX=0")
 add_ses_project(${target})

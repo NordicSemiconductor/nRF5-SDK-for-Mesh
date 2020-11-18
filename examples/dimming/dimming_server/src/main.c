@@ -46,6 +46,7 @@
 #include "nrf_mesh_config_core.h"
 #include "nrf_mesh_gatt.h"
 #include "nrf_mesh_configure.h"
+#include "nrf_mesh_events.h"
 #include "nrf_mesh.h"
 #include "mesh_stack.h"
 #include "device_state_manager.h"
@@ -58,6 +59,8 @@
 
 /* Models */
 #include "generic_level_server.h"
+#include "scene_setup_server.h"
+#include "model_config_file.h"
 
 /* Logging and RTT */
 #include "log.h"
@@ -70,12 +73,14 @@
 #include "pwm_utils.h"
 #include "nrf_mesh_config_examples.h"
 #include "app_level.h"
+#include "app_dtt.h"
 #include "ble_softdevice_support.h"
 
 /*****************************************************************************
  * Definitions
  *****************************************************************************/
-#define APP_LEVEL_STEP_SIZE     (16384L)
+#define APP_LEVEL_STEP_SIZE         (16384L)
+#define APP_LEVEL_ELEMENT_INDEX     (0)
 
 /* Controls if the model instance should force all mesh messages to be segmented messages. */
 #define APP_FORCE_SEGMENTATION  (false)
@@ -86,17 +91,42 @@
 /*****************************************************************************
  * Forward declaration of static functions
  *****************************************************************************/
+static void mesh_events_handle(const nrf_mesh_evt_t * p_evt);
 static void app_level_server_set_cb(const app_level_server_t * p_server, int16_t present_level);
 static void app_level_server_get_cb(const app_level_server_t * p_server, int16_t * p_present_level);
 static void app_level_server_transition_cb(const app_level_server_t * p_server,
                                                 uint32_t transition_time_ms, uint16_t target_level,
                                                 app_transition_type_t transition_type);
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static void app_level_scene_transition_cb(const app_scene_setup_server_t * p_app,
+                                          uint32_t transition_time_ms,
+                                          uint16_t target_scene);
+#endif
 
 /*****************************************************************************
  * Static variables
  *****************************************************************************/
 static bool m_device_provisioned;
+static nrf_mesh_evt_handler_t m_event_handler =
+{
+    .evt_cb = mesh_events_handle,
+};
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+/* Defaut Transition Time server structure definition and initialization */
+APP_DTT_SERVER_DEF(m_dtt_server_0,
+                   APP_FORCE_SEGMENTATION,
+                   APP_MIC_SIZE,
+                   NULL)
+
+/* Scene Setup server structure definition and initialization */
+APP_SCENE_SETUP_SERVER_DEF(m_scene_server_0,
+                           APP_FORCE_SEGMENTATION,
+                           APP_MIC_SIZE,
+                           app_level_scene_transition_cb,
+                           &m_dtt_server_0.server);
+#endif
 
 /* Application level generic level server structure definition and initialization */
 APP_LEVEL_SERVER_DEF(m_level_server_0,
@@ -147,18 +177,55 @@ static void app_level_server_transition_cb(const app_level_server_t * p_server,
                                        transition_time_ms, target_level, transition_type);
 }
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static void app_level_scene_transition_cb(const app_scene_setup_server_t * p_app,
+                                          uint32_t transition_time_ms,
+                                          uint16_t target_scene)
+{
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Transition time: %d, Target Scene: %d\n",
+                                       transition_time_ms, target_scene);
+}
+#endif
+
 static void app_model_init(void)
 {
-    /* Instantiate level server on element index 0 */
-    ERROR_CHECK(app_level_init(&m_level_server_0, 0));
+    /* Instantiate level server on element index APP_LEVEL_ELEMENT_INDEX */
+    ERROR_CHECK(app_level_init(&m_level_server_0, APP_LEVEL_ELEMENT_INDEX));
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App Level Model handle: %d\n",
+          m_level_server_0.server.model_handle);
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    /* Instantiate Generic Default Transition Time server as needed by Scene models */
+    ERROR_CHECK(app_dtt_init(&m_dtt_server_0, APP_LEVEL_ELEMENT_INDEX));
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App DTT Model handle: %d\n",
+          m_dtt_server_0.server.model_handle);
+
+    /* Instantiate scene server and register onoff server to have scene support */
+   ERROR_CHECK(app_scene_model_init(&m_scene_server_0, APP_LEVEL_ELEMENT_INDEX));
+   ERROR_CHECK(app_scene_model_add(&m_scene_server_0, &m_level_server_0.scene_if));
+   ERROR_CHECK(app_level_scene_context_set(&m_level_server_0, &m_scene_server_0));
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App Scene Model handle: %d, Element index: %d\n",
+          m_scene_server_0.scene_setup_server.model_handle,
+          m_scene_server_0.scene_setup_server.settings.element_index);
+#endif
+
 }
 
 /*************************************************************************************************/
+
+static void mesh_events_handle(const nrf_mesh_evt_t * p_evt)
+{
+    if (p_evt->type == NRF_MESH_EVT_ENABLED)
+    {
+        APP_ERROR_CHECK(app_level_value_restore(&m_level_server_0));
+    }
+}
 
 static void node_reset(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset  -----\n");
     /* This function may return if there are ongoing flash operations. */
+    model_config_file_clear();
     mesh_stack_device_reset();
 }
 
@@ -282,6 +349,9 @@ static void models_init_cb(void)
 
 static void mesh_init(void)
 {
+    /* Initialize the application storage for models */
+    model_config_file_init();
+
     mesh_stack_init_params_t init_params =
     {
         .core.irq_priority       = NRF_MESH_IRQ_PRIORITY_LOWEST,
@@ -292,11 +362,20 @@ static void mesh_init(void)
     };
 
     uint32_t status = mesh_stack_init(&init_params, &m_device_provisioned);
+
+    if (status == NRF_SUCCESS)
+    {
+        /* Check if application stored data is valid, if not clear all data and use default values. */
+        status = model_config_file_config_apply();
+    }
+
     switch (status)
     {
         case NRF_ERROR_INVALID_DATA:
+            /* Clear model config file as loading failed */
+            model_config_file_clear();
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before starting of the provisioning process.\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reboot device before starting of the provisioning process.\n");
             break;
         case NRF_SUCCESS:
             break;
@@ -350,6 +429,9 @@ static void start(void)
 
     mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());
 
+    /* NRF_MESH_EVT_ENABLED is triggered in the mesh IRQ context after the stack is fully enabled.
+     * This event is used to call Model APIs for establishing bindings and publish a model state information. */
+    nrf_mesh_evt_handler_add(&m_event_handler);
     ERROR_CHECK(mesh_stack_start());
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);

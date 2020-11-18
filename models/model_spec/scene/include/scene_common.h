@@ -60,11 +60,11 @@
  * */
 #define SCENE_REGISTER_SCENE_NUMBER_MIN (1)
 
-/** 
+/**
  * Defines the default value for the Current Scene from @tagMeshMdlSp section 5.1.3.2 and Target
  * Scene from @tagMeshMdlSp section 5.1.3.3.
  */
-#define SCENE_NUMBER_DEFAULT_SCENE (0x0000)
+#define SCENE_NUMBER_NO_SCENE (0x0000)
 
 /* See "@tagMeshDevPr, section 4.1.3".  0 is a prohibited value for property ID, so it can represent
  * "no property id" without concern for a collision.
@@ -76,10 +76,15 @@
 
 /** Scene Register size definitions
  *
- * Although the Scene Register array has a variable size, it is never bigger than 16 elements. So 
+ * Although the Scene Register array has a variable size, it is never bigger than 16 elements. So
  * we set 16 elements to be used as array size. See @tagMeshMdlSp section 5.1.3.1.
+ *
+ * @warning Changing this value to anything other than `16` makes the Scene Model non-compliant with
+ * the @tagMeshMdlSp.
  */
+#ifndef SCENE_REGISTER_ARRAY_SIZE
 #define SCENE_REGISTER_ARRAY_SIZE (16)
+#endif
 
 /**
  * Status code values used by @ref scene_status_params_t and @ref scene_register_status_params_t.
@@ -125,7 +130,7 @@ typedef struct
     uint16_t scenes[SCENE_REGISTER_ARRAY_SIZE]; /**< A list of scenes stored within an element */
 } scene_register_status_params_t;
 
-/** Parameters for the Scene Delete message. */ 
+/** Parameters for the Scene Delete message. */
 typedef struct
 {
     uint16_t scene_number;              /**< Number of the scene to be deleted */

@@ -134,6 +134,8 @@
                             1 + /* Generic Level Server (extended by Light Lightness Server)                    */ \
                             1 + /* Light Lightness Server (extended by Light Lightness Setup Server)            */ \
                             1 + /* Light Lightness Setup Server (required by Light LC Server)                   */ \
+                            1 + /* Scene Server (extends Scene Setup Server)                                    */ \
+                            1 + /* Scene Setup Server                                                           */ \
                             /* Element 1:                                                                       */ \
                             1 + /* Generic OnOff Server (extended by Light LC Server)                           */ \
                             1 + /* Light LC Server (extended by Light LC Setup Server)                          */ \
@@ -146,6 +148,17 @@
  * cannot be in the same element and a separate element is needed for each new instance of the same model.
  */
 #define ACCESS_ELEMENT_COUNT (2)
+
+/**
+ * The number of scene setup server instances used by the application.
+ */
+#ifndef SCENE_SETUP_SERVER_INSTANCES_MAX
+#define SCENE_SETUP_SERVER_INSTANCES_MAX (1)
+#endif
+
+/** Number of Scene Models to support storage.
+ */
+#define APP_SCENE_MODEL_COUNT (1)
 
 /**
  * The number of allocated subscription lists for the application.
@@ -213,6 +226,20 @@
 /** GATT proxy feature. To be enabled only in combination with linking GATT proxy files. */
 #define MESH_FEATURE_GATT_PROXY_ENABLED                 (1)
 /** @} end of MESH_CONFIG_GATT */
+
+/**
+ * @defgroup MESH_CONFIG_CORE_TX Core TX configuration
+ * @{
+ */
+
+/**
+ * Core mesh originator queue buffer size.
+ *
+ * Increase the buffer size to be able to send more messages when recovering a scene.
+ */
+#define CORE_TX_QUEUE_BUFFER_SIZE_ORIGINATOR 512
+/** @} end of MESH_CONFIG_CORE_TX */
+
 /** @} end of NRF_MESH_CONFIG_CORE */
 
 /**

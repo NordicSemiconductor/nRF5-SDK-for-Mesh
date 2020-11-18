@@ -1,3 +1,917 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="953px" height="558px" viewBox="-0.5 -0.5 953 558" content="&lt;mxfile host=&quot;app.diagrams.net&quot; modified=&quot;2020-05-12T15:29:14.761Z&quot; agent=&quot;5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36&quot; etag=&quot;RRA5KuUb3LAgJc3sOilD&quot; version=&quot;13.1.0&quot; type=&quot;device&quot;&gt;&lt;diagram name=&quot;provisioning_cfg&quot; id=&quot;provisioning_cfg&quot;&gt;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&lt;/diagram&gt;&lt;/mxfile&gt;"><defs><linearGradient x1="0%" y1="0%" x2="0%" y2="100%" id="mx-gradient-f5f5f5-1-b3b3b3-1-s-0"><stop offset="0%" style="stop-color:#f5f5f5"/><stop offset="100%" style="stop-color:#B3B3B3"/></linearGradient></defs><g><rect x="2" y="157" width="933" height="15" fill="none" stroke="none" pointer-events="all"/><path d="M 2 172 L 935 172 L 935 157 L 2 157 L 2 172" fill="url(#mx-gradient-f5f5f5-1-b3b3b3-1-s-0)" stroke="#666666" stroke-miterlimit="10" pointer-events="all"/><path d="M 2 397 L 935 397 L 935 382 L 2 382 L 2 397" fill="url(#mx-gradient-f5f5f5-1-b3b3b3-1-s-0)" stroke="#666666" stroke-miterlimit="10" pointer-events="all"/><path d="M 2 396 L 935 396 L 935 383 L 2 383 L 2 396" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 937px; height: 1px; padding-top: 390px; margin-left: 0px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Addresses for Even group: 0xc002, 0xc004<br /></font></div></div></div></foreignObject><text x="469" y="393" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Addresses for Even group: 0xc002, 0xc004&#xa;</text></switch></g><rect x="75" y="405" width="800" height="22" fill="none" stroke="none" pointer-events="all"/><path d="M 63.15 417 L 71.05 406.22 L 68.85 412.96 L 79.17 412.96 L 76.97 406.22 L 84.88 417 L 76.97 427.78 L 79.17 421.04 L 68.85 421.04 L 71.05 427.78 L 63.15 417" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,74.01,416.5)" pointer-events="all"/><path d="M 190.56 417 L 198.46 406.22 L 196.26 412.96 L 206.58 412.96 L 204.38 406.22 L 212.28 417 L 204.38 427.78 L 206.58 421.04 L 196.26 421.04 L 198.46 427.78 L 190.56 417" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,201.42,416.5)" pointer-events="all"/><path d="M 325.86 417 L 333.77 406.22 L 331.57 412.96 L 341.89 412.96 L 339.69 406.22 L 347.59 417 L 339.69 427.78 L 341.89 421.04 L 331.57 421.04 L 333.77 427.78 L 325.86 417" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,336.73,416.5)" pointer-events="all"/><path d="M 461.17 417 L 469.08 406.22 L 466.88 412.96 L 477.2 412.96 L 475 406.22 L 482.9 417 L 475 427.78 L 477.2 421.04 L 466.88 421.04 L 469.08 427.78 L 461.17 417" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,472.04,416.5)" pointer-events="all"/><path d="M 591.54 417 L 599.45 406.22 L 597.25 412.96 L 607.57 412.96 L 605.37 406.22 L 613.27 417 L 605.37 427.78 L 607.57 421.04 L 597.25 421.04 L 599.45 427.78 L 591.54 417" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,602.41,416.5)" pointer-events="all"/><path d="M 720.93 417 L 728.83 406.22 L 726.63 412.96 L 736.95 412.96 L 734.75 406.22 L 742.65 417 L 734.75 427.78 L 736.95 421.04 L 726.63 421.04 L 728.83 427.78 L 720.93 417" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,731.79,416.5)" pointer-events="all"/><path d="M 864.14 417 L 872.04 406.22 L 869.84 412.96 L 880.16 412.96 L 877.96 406.22 L 885.86 417 L 877.96 427.78 L 880.16 421.04 L 869.84 421.04 L 872.04 427.78 L 864.14 417" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,875,416.5)" pointer-events="all"/><rect x="66" y="127" width="809" height="22" fill="none" stroke="none" pointer-events="all"/><path d="M 54.12 139 L 62.04 128.22 L 59.84 134.96 L 70.18 134.96 L 67.98 128.22 L 75.9 139 L 67.98 149.78 L 70.18 143.04 L 59.84 143.04 L 62.04 149.78 L 54.12 139" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,65.01,138.5)" pointer-events="all"/><path d="M 181.85 139 L 189.78 128.22 L 187.57 134.96 L 197.92 134.96 L 195.72 128.22 L 203.64 139 L 195.72 149.78 L 197.92 143.04 L 187.57 143.04 L 189.78 149.78 L 181.85 139" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,192.75,138.5)" pointer-events="all"/><path d="M 317.51 139 L 325.44 128.22 L 323.23 134.96 L 333.58 134.96 L 331.37 128.22 L 339.3 139 L 331.37 149.78 L 333.58 143.04 L 323.23 143.04 L 325.44 149.78 L 317.51 139" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,328.41,138.5)" pointer-events="all"/><path d="M 453.17 139 L 461.09 128.22 L 458.89 134.96 L 469.24 134.96 L 467.03 128.22 L 474.96 139 L 467.03 149.78 L 469.24 143.04 L 458.89 143.04 L 461.09 149.78 L 453.17 139" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,464.06,138.5)" pointer-events="all"/><path d="M 583.88 139 L 591.8 128.22 L 589.6 134.96 L 599.94 134.96 L 597.74 128.22 L 605.66 139 L 597.74 149.78 L 599.94 143.04 L 589.6 143.04 L 591.8 149.78 L 583.88 139" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,594.77,138.5)" pointer-events="all"/><path d="M 713.6 139 L 721.52 128.22 L 719.32 134.96 L 729.66 134.96 L 727.46 128.22 L 735.38 139 L 727.46 149.78 L 729.66 143.04 L 719.32 143.04 L 721.52 149.78 L 713.6 139" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,724.49,138.5)" pointer-events="all"/><path d="M 863.12 139 L 871.04 128.22 L 868.84 134.96 L 879.18 134.96 L 876.98 128.22 L 884.9 139 L 876.98 149.78 L 879.18 143.04 L 868.84 143.04 L 871.04 149.78 L 863.12 139" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,874.01,138.5)" pointer-events="all"/><rect x="0" y="0" width="951" height="122" fill="none" stroke="none" pointer-events="all"/><path d="M 0 122 L 940 122 L 940 0 L 0 0 L 0 122" fill="#d9e1e2" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-end; justify-content: unsafe center; width: 938px; height: 1px; padding-top: 119px; margin-left: 1px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Odd group</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">: sub - 0xc003: pub - 0xc005 (LC server is subscribed on 0xc005 to receive sensor server statuses)</font><font style="font-size: 19px ; font-family: &quot;calibri&quot; ; color: #333f48 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><br /></font></div></div></div></foreignObject><text x="470" y="119" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Odd group: sub - 0xc003: pub - 0xc005 (LC server is subscribed on 0xc005 to receive sensor server statuses)</text></switch></g><path d="M 534 97 L 661 97 L 661 11 L 534 11 L 534 97" fill="#00a9ce" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 54px; margin-left: 535px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="598" y="58" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 535 43 L 661 43" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 535 42 L 661 42 L 661 11 L 535 11 L 535 42" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 130px; height: 1px; padding-top: 27px; margin-left: 533px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL<br />Server Example<br /></font></div></div></div></foreignObject><text x="598" y="30" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL...</text></switch></g><path d="M 535 96 L 661 96 L 661 42 L 535 42 L 535 96" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 130px; height: 1px; padding-top: 69px; margin-left: 533px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="line-height: 90%"><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element0</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />Main:0x0601</font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i><br />Element1</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />Temperature:0x0602<br /></font></p></div></div></div></foreignObject><text x="598" y="73" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element0:...</text></switch></g><path d="M 7 97 L 128 97 L 128 11 L 7 11 L 7 97" fill="#00a9ce" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 119px; height: 1px; padding-top: 54px; margin-left: 8px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="68" y="58" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 7 43 L 127 43" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 7 42 L 127 42 L 127 11 L 7 11 L 7 42" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 124px; height: 1px; padding-top: 27px; margin-left: 5px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">OnOff Server<br />Example<br /></font></div></div></div></foreignObject><text x="67" y="30" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">OnOff Server...</text></switch></g><path d="M 7 95 L 127 95 L 127 42 L 7 42 L 7 95" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 124px; height: 1px; padding-top: 69px; margin-left: 5px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element0</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />OnOff server:0x0201<br /></font></div></div></div></foreignObject><text x="67" y="72" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element0:...</text></switch></g><path d="M 134 96 L 261 96 L 261 11 L 134 11 L 134 96" fill="#0077c8" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 54px; margin-left: 135px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="198" y="57" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 134 42 L 261 42 L 261 11 L 134 11 L 134 42" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 27px; margin-left: 132px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Dimming(Level)<br />Server Example<br /></font></div></div></div></foreignObject><text x="198" y="30" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Dimming(Level)...</text></switch></g><path d="M 134 43 L 261 43" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 134 95 L 261 95 L 261 42 L 134 42 L 134 95" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 69px; margin-left: 132px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element0</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />Level server:0x0301<br /></font></div></div></div></foreignObject><text x="198" y="72" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element0:...</text></switch></g><path d="M 268 96 L 395 96 L 395 11 L 268 11 L 268 96" fill="#6ad1e3" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 54px; margin-left: 269px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="332" y="57" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 268 43 L 395 43" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 268 42 L 395 42 L 395 11 L 268 11 L 268 42" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 27px; margin-left: 266px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light lightness<br />Server Example<br /></font></div></div></div></foreignObject><text x="332" y="30" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light lightness...</text></switch></g><path d="M 268 95 L 395 95 L 395 42 L 268 42 L 268 95" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 69px; margin-left: 266px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element0</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />Main: 0x0401<br /></font></div></div></div></foreignObject><text x="332" y="72" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element0:...</text></switch></g><path d="M 401 96 L 528 96 L 528 11 L 401 11 L 401 96" fill="#0033a0" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 54px; margin-left: 402px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="465" y="57" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 401 42 L 528 42 L 528 11 L 401 11 L 401 42" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 27px; margin-left: 399px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light LC<br />Server Example<br /></font></div></div></div></foreignObject><text x="465" y="30" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light LC...</text></switch></g><path d="M 401 43 L 528 43" fill="none" stroke="#ffffff" stroke-miterlimit="10" pointer-events="all"/><path d="M 401 95 L 528 95 L 528 42 L 401 42 L 401 95" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 69px; margin-left: 399px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="line-height: 90%"><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element0</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />Main: 0x0501<br /></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element1</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />Light LC: 0x0502<br /></font></p></div></div></div></foreignObject><text x="465" y="72" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element0:...</text></switch></g><path d="M 668 96 L 795 96 L 795 11 L 668 11 L 668 96" fill="#0077c8" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 54px; margin-left: 669px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="732" y="57" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 668 42 L 795 42 L 795 11 L 668 11 L 668 42" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 27px; margin-left: 666px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light LC+CTL<br />Server Example<br /></font></div></div></div></foreignObject><text x="732" y="30" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light LC+CTL...</text></switch></g><path d="M 668 43 L 795 43" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 668 91 L 795 91 L 795 47 L 668 47 L 668 91" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 69px; margin-left: 666px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="line-height: 60% ; font-size: 9px"><font style="font-size: 9px"><font style="font-family: &quot;verdana&quot; ; color: rgb(0 , 0 , 0) ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1 ; font-size: 9px"><i> Element0</i></font><font style="font-family: &quot;verdana&quot; ; color: rgb(0 , 0 , 0) ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1 ; font-size: 9px">: Main: 0x0701<br /></font><font style="font-family: &quot;verdana&quot; ; color: rgb(0 , 0 , 0) ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1 ; font-size: 9px"><i> Element1</i></font><font style="font-family: &quot;verdana&quot; ; color: rgb(0 , 0 , 0) ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1 ; font-size: 9px">:<br />Temperature: 0x0702<br /></font><font style="font-family: &quot;verdana&quot; ; color: rgb(0 , 0 , 0) ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1 ; font-size: 9px"><i> Element2</i></font></font><font style="font-family: &quot;verdana&quot; ; color: rgb(0 , 0 , 0) ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1 ; font-size: 9px"><font style="font-size: 9px">:<br />Light LC: 0x0703</font><br /></font></p></div></div></div></foreignObject><text x="732" y="73" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element0: Main: 0x070...</text></switch></g><rect x="802" y="12" width="127" height="85" fill="none" stroke="none" pointer-events="all"/><path d="M 802 97 L 929 97 L 929 12 L 802 12 L 802 97" fill="#6ad1e3" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 55px; margin-left: 803px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="866" y="58" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 802 44 L 928 44" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 802 43 L 928 43 L 928 12 L 802 12 L 802 43" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 130px; height: 1px; padding-top: 28px; margin-left: 800px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Sensor Server   Example<br /></font></div></div></div></foreignObject><text x="865" y="31" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Sensor Server   Exampl...</text></switch></g><path d="M 802 96 L 928 96 L 928 43 L 802 43 L 802 96" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 130px; height: 1px; padding-top: 70px; margin-left: 800px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i> Element0</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />Main: 0x0801<br /></font></div></div></div></foreignObject><text x="865" y="73" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element0:...</text></switch></g><rect x="2" y="432" width="950" height="122" fill="none" stroke="none" pointer-events="all"/><path d="M 2 554 L 942 554 L 942 432 L 2 432 L 2 554" fill="#d9e1e2" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-start; justify-content: unsafe center; width: 938px; height: 1px; padding-top: 436px; margin-left: 3px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Even group</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">: sub - 0xc002: pub - 0xc004 </font><font style="font-size: 19px ; font-family: &quot;calibri&quot; ; color: #333f48 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><span style="color: rgb(0 , 0 , 0) ; font-family: &quot;verdana&quot; ; font-size: 11px">(LC server is subscribed on 0xc004 to receive sensor server statuses)</span><br /></font></div></div></div></foreignObject><text x="472" y="448" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Even group: sub - 0xc002: pub - 0xc004 (LC server is subscribed on 0xc004 to receive sensor server statuses)&#xa;</text></switch></g><rect x="9" y="460" width="121" height="86" fill="none" stroke="none" pointer-events="all"/><path d="M 9 546 L 130 546 L 130 460 L 9 460 L 9 546" fill="#00a9ce" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 119px; height: 1px; padding-top: 503px; margin-left: 10px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="70" y="507" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 9 492 L 129 492" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 9 491 L 129 491 L 129 460 L 9 460 L 9 491" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 124px; height: 1px; padding-top: 476px; margin-left: 7px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">OnOff Server<br />Example<br /></font></div></div></div></foreignObject><text x="69" y="479" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">OnOff Server...</text></switch></g><path d="M 9 545 L 129 545 L 129 492 L 9 492 L 9 545" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 124px; height: 1px; padding-top: 519px; margin-left: 7px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element0</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />OnOff server:0x0202<br /></font></div></div></div></foreignObject><text x="69" y="522" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element0:...</text></switch></g><path d="M 136 545 L 263 545 L 263 460 L 136 460 L 136 545" fill="#0077c8" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 503px; margin-left: 137px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="200" y="506" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 136 491 L 263 491 L 263 460 L 136 460 L 136 491" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 476px; margin-left: 134px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Dimming(Level)<br />Server Example<br /></font></div></div></div></foreignObject><text x="200" y="479" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Dimming(Level)...</text></switch></g><path d="M 136 493 L 263 493" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 136 545 L 263 545 L 263 492 L 136 492 L 136 545" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 519px; margin-left: 134px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element0</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />Level server:0x0302<br /></font></div></div></div></foreignObject><text x="200" y="522" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element0:...</text></switch></g><path d="M 270 545 L 397 545 L 397 460 L 270 460 L 270 545" fill="#6ad1e3" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 503px; margin-left: 271px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="334" y="506" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 270 493 L 397 493" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 270 491 L 397 491 L 397 460 L 270 460 L 270 491" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 476px; margin-left: 268px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light lightness<br />Server Example<br /></font></div></div></div></foreignObject><text x="334" y="479" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light lightness...</text></switch></g><path d="M 270 545 L 397 545 L 397 492 L 270 492 L 270 545" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 519px; margin-left: 268px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element0</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />Main: 0x0402<br /></font></div></div></div></foreignObject><text x="334" y="522" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element0:...</text></switch></g><path d="M 536 546 L 663 546 L 663 460 L 536 460 L 536 546" fill="#00a9ce" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 503px; margin-left: 537px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="600" y="507" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 537 493 L 663 493" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 537 492 L 663 492 L 663 461 L 537 461 L 537 492" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 130px; height: 1px; padding-top: 477px; margin-left: 535px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL<br />Server Example<br /></font></div></div></div></foreignObject><text x="600" y="480" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL...</text></switch></g><path d="M 537 546 L 663 546 L 663 492 L 537 492 L 537 546" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 130px; height: 1px; padding-top: 519px; margin-left: 535px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="line-height: 90%"><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element0</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />Main:0x0604</font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i><br />Element1</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />Temperature:0x0605<br /></font></p></div></div></div></foreignObject><text x="600" y="523" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element0:...</text></switch></g><path d="M 805 546 L 932 546 L 932 461 L 805 461 L 805 546" fill="#6ad1e3" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 504px; margin-left: 806px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="869" y="507" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 805 493 L 931 493" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 805 492 L 931 492 L 931 462 L 805 462 L 805 492" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 130px; height: 1px; padding-top: 477px; margin-left: 803px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Sensor Server  Example<br /></font></div></div></div></foreignObject><text x="868" y="481" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Sensor Server  Example&#xa;</text></switch></g><path d="M 805 545 L 931 545 L 931 492 L 805 492 L 805 545" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 130px; height: 1px; padding-top: 519px; margin-left: 803px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i> Element0</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />Main: 0x0802<br /></font></div></div></div></foreignObject><text x="868" y="522" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element0:...</text></switch></g><path d="M 403 545 L 530 545 L 530 460 L 403 460 L 403 545" fill="#0033a0" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 503px; margin-left: 404px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="467" y="506" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 403 491 L 530 491 L 530 460 L 403 460 L 403 491" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 476px; margin-left: 401px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light LC<br />Server Example<br /></font></div></div></div></foreignObject><text x="467" y="479" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light LC...</text></switch></g><path d="M 403 493 L 530 493" fill="none" stroke="#ffffff" stroke-miterlimit="10" pointer-events="all"/><path d="M 403 545 L 530 545 L 530 492 L 403 492 L 403 545" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 519px; margin-left: 401px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="line-height: 90%"><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"> </font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element0</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />Main: 0x0504<br /> </font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element1</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">:<br />Light LC: 0x0505<br /></font></p></div></div></div></foreignObject><text x="467" y="522" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element0:...</text></switch></g><path d="M 670 545 L 797 545 L 797 460 L 670 460 L 670 545" fill="#0077c8" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 503px; margin-left: 671px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="734" y="506" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 670 491 L 797 491 L 797 460 L 670 460 L 670 491" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 476px; margin-left: 668px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light LC+CTL<br />Server Example<br /></font></div></div></div></foreignObject><text x="734" y="479" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light LC+CTL...</text></switch></g><path d="M 670 493 L 797 493" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 670 541 L 797 541 L 797 497 L 670 497 L 670 541" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 519px; margin-left: 668px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="line-height: 60% ; font-size: 9px"><font style="font-size: 9px"><font style="font-family: &quot;verdana&quot; ; color: rgb(0 , 0 , 0) ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1 ; font-size: 9px"><i> Element0</i></font><font style="font-family: &quot;verdana&quot; ; color: rgb(0 , 0 , 0) ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1 ; font-size: 9px">: Main: 0x0704<br /></font><font style="font-family: &quot;verdana&quot; ; color: rgb(0 , 0 , 0) ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1 ; font-size: 9px"><i> Element1</i></font><font style="font-family: &quot;verdana&quot; ; color: rgb(0 , 0 , 0) ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1 ; font-size: 9px">:<br />Temperature: 0x0705<br /></font><font style="font-family: &quot;verdana&quot; ; color: rgb(0 , 0 , 0) ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1 ; font-size: 9px"><i> Element2</i></font></font><font style="font-family: &quot;verdana&quot; ; color: rgb(0 , 0 , 0) ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1 ; font-size: 9px"><font style="font-size: 9px">:<br />Light LC: 0x0706</font><br /></font></p></div></div></div></foreignObject><text x="734" y="523" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element0: Main: 0x070...</text></switch></g><rect x="135" y="215" width="740" height="152" fill="none" stroke="none" pointer-events="all"/><path d="M 135 349 L 838.9 349 L 838.9 307 L 135 307 L 135 349" fill="#d9e1e2" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-end; justify-content: unsafe center; width: 702px; height: 1px; padding-top: 346px; margin-left: 136px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Even group</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">: sub - 0xc004: pub - 0xc002</font><font style="font-size: 19px ; font-family: &quot;calibri&quot; ; color: #333f48 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><br /></font></div></div></div></foreignObject><text x="487" y="346" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Even group: sub - 0xc004: pub - 0xc002</text></switch></g><path d="M 135 259 L 840.18 259 L 840.18 215 L 135 215 L 135 259" fill="#d9e1e2" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-start; justify-content: unsafe center; width: 703px; height: 1px; padding-top: 219px; margin-left: 136px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Odd group</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">: sub - 0xc005: pub - 0xc003</font><font style="font-size: 19px ; font-family: &quot;calibri&quot; ; color: #333f48 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><br /></font></div></div></div></foreignObject><text x="488" y="231" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Odd group: sub - 0xc005: pub - 0xc003</text></switch></g><path d="M 283.87 325 L 410.98 325 L 410.98 240 L 283.87 240 L 283.87 325" fill="#0077c8" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 283px; margin-left: 285px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="347" y="286" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 283.87 259 L 410.98 259 L 410.98 240 L 283.87 240 L 283.87 259" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 250px; margin-left: 282px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element1</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">: 0x0105<br /></font></div></div></div></foreignObject><text x="347" y="253" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element1: 0x0105&#xa;</text></switch></g><path d="M 283.87 261 L 410.98 261" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 283.87 307 L 410.98 307 L 410.98 260 L 283.87 260 L 283.87 307" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 284px; margin-left: 282px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Dimming(Level) Client Example<br /></font></div></div></div></foreignObject><text x="347" y="287" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Dimming(Level) Client...</text></switch></g><path d="M 283.87 326 L 410.98 326 L 410.98 307 L 283.87 307 L 283.87 326" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 317px; margin-left: 282px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element2</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">: 0x0106<br /></font></div></div></div></foreignObject><text x="347" y="320" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element2: 0x0106&#xa;</text></switch></g><path d="M 421.42 325 L 548.53 325 L 548.53 240 L 421.42 240 L 421.42 325" fill="#6ad1e3" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 283px; margin-left: 422px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="485" y="286" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 422.29 260 L 549.4 260" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 422.29 259 L 549.4 259 L 549.4 240 L 422.29 240 L 422.29 259" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 250px; margin-left: 420px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element1</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">: 0x0109<br /></font></div></div></div></foreignObject><text x="486" y="253" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element1: 0x0109&#xa;</text></switch></g><path d="M 422.29 306 L 549.4 306 L 549.4 259 L 422.29 259 L 422.29 306" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 283px; margin-left: 420px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light lightness Client Example<br /></font></div></div></div></foreignObject><text x="486" y="286" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light lightness Client...</text></switch></g><path d="M 422.29 308 L 549.4 308" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 422.29 326 L 549.4 326 L 549.4 307 L 422.29 307 L 422.29 326" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 317px; margin-left: 420px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element2</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">: 0x010a<br /></font></div></div></div></foreignObject><text x="486" y="320" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element2: 0x010a&#xa;</text></switch></g><path d="M 560.72 325 L 687.82 325 L 687.82 240 L 560.72 240 L 560.72 325" fill="#0033a0" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 283px; margin-left: 562px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="624" y="286" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 560.72 259 L 687.82 259 L 687.82 240 L 560.72 240 L 560.72 259" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 250px; margin-left: 559px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element1</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">: 0x010d<br /></font></div></div></div></foreignObject><text x="624" y="253" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element1: 0x010d&#xa;</text></switch></g><path d="M 560.72 260 L 687.82 260" fill="none" stroke="#ffffff" stroke-miterlimit="10" pointer-events="all"/><path d="M 560.72 306 L 687.82 306 L 687.82 259 L 560.72 259 L 560.72 306" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 283px; margin-left: 559px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL Client<br />Example<br /></font></div></div></div></foreignObject><text x="624" y="286" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL Client...</text></switch></g><path d="M 560.72 308 L 687.82 308" fill="none" stroke="#ffffff" stroke-miterlimit="10" pointer-events="all"/><path d="M 560.72 326 L 687.82 326 L 687.82 307 L 560.72 307 L 560.72 326" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 317px; margin-left: 559px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element2</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">: 0x010e<br /></font></div></div></div></foreignObject><text x="624" y="320" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element2: 0x010e&#xa;</text></switch></g><path d="M 145 325 L 272.1 325 L 272.1 239 L 145 239 L 145 325" fill="#00a9ce" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 282px; margin-left: 146px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="209" y="286" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 145 259 L 272.1 259" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 145 258 L 272.1 258 L 272.1 239 L 145 239 L 145 258" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 249px; margin-left: 143px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element1</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">: 0x0101<br /></font></div></div></div></foreignObject><text x="209" y="252" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element1: 0x0101&#xa;</text></switch></g><path d="M 145 305 L 272.1 305 L 272.1 258 L 145 258 L 145 305" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 282px; margin-left: 143px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">OnOff (or EnOcean)<br />Client Example<br /></font></div></div></div></foreignObject><text x="209" y="285" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">OnOff (or EnOcean)...</text></switch></g><path d="M 145 307 L 272.1 307" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 145 325 L 272.1 325 L 272.1 306 L 145 306 L 145 325" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 316px; margin-left: 143px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element2</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">: 0x0102<br /></font></div></div></div></foreignObject><text x="209" y="319" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element2: 0x0102&#xa;</text></switch></g><path d="M 283.87 308 L 410.98 308" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 700.88 326 L 827.99 326 L 827.99 240 L 700.88 240 L 700.88 326" fill="#00a9ce" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 125px; height: 1px; padding-top: 283px; margin-left: 702px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"></p></div></div></div></foreignObject><text x="764" y="287" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle"></text></switch></g><path d="M 700.88 260 L 827.99 260" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 700.88 259 L 827.99 259 L 827.99 240 L 700.88 240 L 700.88 259" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 250px; margin-left: 699px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element1</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">: 0x0111<br /></font></div></div></div></foreignObject><text x="764" y="253" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element1: 0x0111&#xa;</text></switch></g><path d="M 700.88 306 L 827.99 306 L 827.99 259 L 700.88 259 L 700.88 306" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 283px; margin-left: 699px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Sensor Client   Example<br /></font></div></div></div></foreignObject><text x="764" y="286" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Sensor Client   Exampl...</text></switch></g><path d="M 700.88 308 L 827.99 308" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/><path d="M 700.88 326 L 827.99 326 L 827.99 307 L 700.88 307 L 700.88 326" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 131px; height: 1px; padding-top: 317px; margin-left: 699px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1"><i>Element2</i></font><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">: 0x0112<br /></font></div></div></div></foreignObject><text x="764" y="320" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Element2: 0x0112&#xa;</text></switch></g><path d="M 613.27 366 L 621.27 355.22 L 619.05 361.96 L 629.49 361.96 L 627.27 355.22 L 635.27 366 L 627.27 376.78 L 629.49 370.04 L 619.05 370.04 L 621.27 376.78 L 613.27 366" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,624.27,365.5)" pointer-events="all"/><path d="M 336.42 367 L 344.42 356.22 L 342.2 362.96 L 352.64 362.96 L 350.42 356.22 L 358.42 367 L 350.42 377.78 L 352.64 371.04 L 342.2 371.04 L 344.42 377.78 L 336.42 367" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,347.42,366.5)" pointer-events="all"/><path d="M 197.55 365 L 205.55 354.22 L 203.33 360.96 L 213.77 360.96 L 211.55 354.22 L 219.55 365 L 211.55 375.78 L 213.77 369.04 L 203.33 369.04 L 205.55 375.78 L 197.55 365" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,208.55,364.5)" pointer-events="all"/><path d="M 2 172 L 935 172 L 935 159 L 2 159 L 2 172" fill="none" stroke="none" pointer-events="all"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 937px; height: 1px; padding-top: 166px; margin-left: 0px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; "><font style="font-size: 11px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Addresses for Odd group: 0xc003, 0xc005<br /></font></div></div></div></foreignObject><text x="469" y="169" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Addresses for Odd group: 0xc003, 0xc005&#xa;</text></switch></g><path d="M 755 366 L 763 355.22 L 760.78 361.96 L 771.22 361.96 L 769 355.22 L 777 366 L 769 376.78 L 771.22 370.04 L 760.78 370.04 L 763 376.78 L 755 366" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,766,365.5)" pointer-events="all"/><path d="M 471 365 L 479 354.22 L 476.78 360.96 L 487.22 360.96 L 485 354.22 L 493 365 L 485 375.78 L 487.22 369.04 L 476.78 369.04 L 479 375.78 L 471 365" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,482,364.5)" pointer-events="all"/><path d="M 615 194 L 623 183.22 L 620.78 189.96 L 631.22 189.96 L 629 183.22 L 637 194 L 629 204.78 L 631.22 198.04 L 620.78 198.04 L 623 204.78 L 615 194" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,626,193.5)" pointer-events="all"/><path d="M 755 194 L 763 183.22 L 760.78 189.96 L 771.22 189.96 L 769 183.22 L 777 194 L 769 204.78 L 771.22 198.04 L 760.78 198.04 L 763 204.78 L 755 194" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,766,193.5)" pointer-events="all"/><path d="M 471 193 L 479 182.22 L 476.78 188.96 L 487.22 188.96 L 485 182.22 L 493 193 L 485 203.78 L 487.22 197.04 L 476.78 197.04 L 479 203.78 L 471 193" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,482,192.5)" pointer-events="all"/><path d="M 197.55 194 L 205.55 183.22 L 203.33 189.96 L 213.77 189.96 L 211.55 183.22 L 219.55 194 L 211.55 204.78 L 213.77 198.04 L 203.33 198.04 L 205.55 204.78 L 197.55 194" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,208.55,193.5)" pointer-events="all"/><path d="M 336.42 195 L 344.42 184.22 L 342.2 190.96 L 352.64 190.96 L 350.42 184.22 L 358.42 195 L 350.42 205.78 L 352.64 199.04 L 342.2 199.04 L 344.42 205.78 L 336.42 195" fill="#00a9ce" stroke="#00a9ce" stroke-miterlimit="10" transform="rotate(270,347.42,194.5)" pointer-events="all"/></g><switch><g requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"/><a transform="translate(0,-5)" xlink:href="https://desk.draw.io/support/solutions/articles/16000042487" target="_blank"><text text-anchor="middle" font-size="10px" x="50%" y="100%">Viewer does not support full SVG 1.1</text></a></switch></svg>
+<!-- Generated by Microsoft Visio, SVG Export provisioning_cfg.svg Page-1 -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events"
+		xmlns:v="http://schemas.microsoft.com/visio/2003/SVGExtensions/" width="9.3805in" height="5.46317in"
+		viewBox="0 0 675.396 393.348" xml:space="preserve" color-interpolation-filters="sRGB" class="st19">
+	<v:documentProperties v:langID="1033" v:metric="true" v:viewMarkup="false"/>
+
+	<style type="text/css">
+	<![CDATA[
+		.st1 {fill:none;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st2 {fill:url(#grad0-7);stroke:#666666;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st3 {fill:#000000;font-family:Arial;font-size:0.630112em}
+		.st4 {fill:#00a9ce;stroke:#00a9ce;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st5 {fill:#d9e1e2;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st6 {fill:#000000;font-family:Arial;font-size:0.630112em;font-style:italic}
+		.st7 {font-size:1em;font-style:normal}
+		.st8 {fill:#00a9ce;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st9 {fill:none}
+		.st10 {stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st11 {font-size:1em}
+		.st12 {fill:#0077c8;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st13 {fill:#6ad1e3;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st14 {fill:#0033a0;stroke:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st15 {fill:#ffffff;font-family:Arial;font-size:0.630112em}
+		.st16 {stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st17 {fill:#ffffff;font-family:Arial;font-size:0.630112em;font-style:italic}
+		.st18 {fill:#000000;font-family:Arial;font-size:0.515556em;font-style:italic}
+		.st19 {fill:none;fill-rule:evenodd;font-size:12px;overflow:visible;stroke-linecap:square;stroke-miterlimit:3}
+	]]>
+	</style>
+
+	<defs id="Patterns_And_Gradients">
+		<linearGradient id="grad0-7" x1="0" y1="0" x2="1" y2="0" gradientTransform="rotate(90 0.5 0.5)">
+			<stop offset="0" stop-color="#f5f5f5" stop-opacity="1"/>
+			<stop offset="1" stop-color="#b3b3b3" stop-opacity="1"/>
+		</linearGradient>
+	</defs>
+	<g v:mID="0" v:index="1" v:groupContext="foregroundPage">
+		<title>Page-1</title>
+		<v:pageProperties v:drawingScale="1" v:pageScale="1" v:drawingUnits="24" v:shadowOffsetX="8.50394"
+				v:shadowOffsetY="-8.50394"/>
+		<v:layer v:name="Connector" v:index="0"/>
+		<g id="group110000-1" transform="translate(1.79232,-271.084)" v:mID="110000" v:groupContext="group" v:layerMember="0">
+			<title>Shape110000</title>
+			<g id="shape1-2" v:mID="1" v:groupContext="shape" v:layerMember="0">
+				<title>Shape1</title>
+				<rect x="0" y="382.719" width="661.181" height="10.6299" class="st1"/>
+			</g>
+			<g id="shape2-4" v:mID="2" v:groupContext="shape" v:layerMember="0">
+				<title>Shape2</title>
+				<rect x="0" y="382.719" width="661.181" height="10.6299" class="st2"/>
+			</g>
+		</g>
+		<g id="shape3-8" v:mID="3" v:groupContext="shape" v:layerMember="0" transform="translate(1.79232,-111.635)">
+			<title>Shape3</title>
+			<rect x="0" y="382.719" width="661.181" height="10.6299" class="st2"/>
+		</g>
+		<g id="shape4-11" v:mID="4" v:groupContext="shape" v:layerMember="0" transform="translate(1.79232,-112.344)">
+			<title>Shape4</title>
+			<desc>Addresses for Even group: 0xc002, 0xc004</desc>
+			<v:textBlock v:margins="rect(0,0,0,0)"/>
+			<v:textRect cx="330.591" cy="388.742" width="662.6" height="10.6299"/>
+			<rect x="0" y="384.136" width="661.181" height="9.2126" class="st1"/>
+			<text x="258.29" y="391.01" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Addresses for Even group: 0xc002, 0xc004</text>		</g>
+		<g id="group510000-14" transform="translate(53.5246,-90.375)" v:mID="510000" v:groupContext="group" v:layerMember="0">
+			<title>Shape510000</title>
+			<g id="shape5-15" v:mID="5" v:groupContext="shape" v:layerMember="0">
+				<title>Shape5</title>
+				<rect x="0" y="377.758" width="566.929" height="15.5906" class="st1"/>
+			</g>
+			<g id="shape6-17" v:mID="6" v:groupContext="shape" v:layerMember="0"
+					transform="translate(-393.694,393.607) rotate(-90)">
+				<title>Shape6</title>
+				<path d="M0 393.35 L5.6 385.71 L4.04 390.48 L11.35 390.48 L9.8 385.71 L15.4 393.35 L9.8 400.99 L11.35 396.21 L4.04
+							 396.21 L5.6 400.99 L0 393.35 Z" class="st4"/>
+			</g>
+			<g id="shape7-19" v:mID="7" v:groupContext="shape" v:layerMember="0"
+					transform="translate(-303.405,393.607) rotate(-90)">
+				<title>Shape7</title>
+				<path d="M0 393.35 L5.6 385.71 L4.04 390.48 L11.35 390.48 L9.8 385.71 L15.4 393.35 L9.8 400.99 L11.35 396.21 L4.04
+							 396.21 L5.6 400.99 L0 393.35 Z" class="st4"/>
+			</g>
+			<g id="shape8-21" v:mID="8" v:groupContext="shape" v:layerMember="0"
+					transform="translate(-207.517,393.607) rotate(-90)">
+				<title>Shape8</title>
+				<path d="M0 393.35 L5.6 385.71 L4.04 390.48 L11.35 390.48 L9.8 385.71 L15.4 393.35 L9.8 400.99 L11.35 396.21 L4.04
+							 396.21 L5.6 400.99 L0 393.35 Z" class="st4"/>
+			</g>
+			<g id="shape9-23" v:mID="9" v:groupContext="shape" v:layerMember="0"
+					transform="translate(-111.629,393.607) rotate(-90)">
+				<title>Shape9</title>
+				<path d="M0 393.35 L5.6 385.71 L4.04 390.48 L11.35 390.48 L9.8 385.71 L15.4 393.35 L9.8 400.99 L11.35 396.21 L4.04
+							 396.21 L5.6 400.99 L0 393.35 Z" class="st4"/>
+			</g>
+			<g id="shape10-25" v:mID="10" v:groupContext="shape" v:layerMember="0"
+					transform="translate(-19.2408,393.607) rotate(-90)">
+				<title>Shape10</title>
+				<path d="M0 393.35 L5.6 385.71 L4.04 390.48 L11.35 390.48 L9.8 385.71 L15.4 393.35 L9.8 400.99 L11.35 396.21 L4.04
+							 396.21 L5.6 400.99 L0 393.35 Z" class="st4"/>
+			</g>
+			<g id="shape11-27" v:mID="11" v:groupContext="shape" v:layerMember="0"
+					transform="translate(72.4477,393.607) rotate(-90)">
+				<title>Shape11</title>
+				<path d="M0 393.35 L5.6 385.71 L4.04 390.48 L11.35 390.48 L9.8 385.71 L15.4 393.35 L9.8 400.99 L11.35 396.21 L4.04
+							 396.21 L5.6 400.99 L0 393.35 Z" class="st4"/>
+			</g>
+			<g id="shape12-29" v:mID="12" v:groupContext="shape" v:layerMember="0"
+					transform="translate(173.935,393.607) rotate(-90)">
+				<title>Shape12</title>
+				<path d="M0 393.35 L5.6 385.71 L4.04 390.48 L11.35 390.48 L9.8 385.71 L15.4 393.35 L9.8 400.99 L11.35 396.21 L4.04
+							 396.21 L5.6 400.99 L0 393.35 Z" class="st4"/>
+			</g>
+		</g>
+		<g id="group1310000-31" transform="translate(47.1467,-287.383)" v:mID="1310000" v:groupContext="group" v:layerMember="0">
+			<title>Shape1310000</title>
+			<g id="shape13-32" v:mID="13" v:groupContext="shape" v:layerMember="0">
+				<title>Shape13</title>
+				<rect x="0" y="377.758" width="573.307" height="15.5906" class="st1"/>
+			</g>
+			<g id="shape14-34" v:mID="14" v:groupContext="shape" v:layerMember="0"
+					transform="translate(-393.696,393.626) rotate(-90)">
+				<title>Shape14</title>
+				<path d="M0 393.35 L5.61 385.71 L4.05 390.48 L11.38 390.48 L9.82 385.71 L15.44 393.35 L9.82 400.99 L11.38 396.21
+							 L4.05 396.21 L5.61 400.99 L0 393.35 Z" class="st4"/>
+			</g>
+			<g id="shape15-36" v:mID="15" v:groupContext="shape" v:layerMember="0"
+					transform="translate(-303.174,393.626) rotate(-90)">
+				<title>Shape15</title>
+				<path d="M0 393.35 L5.61 385.71 L4.05 390.48 L11.38 390.48 L9.82 385.71 L15.44 393.35 L9.82 400.99 L11.38 396.21
+							 L4.05 396.21 L5.61 400.99 L0 393.35 Z" class="st4"/>
+			</g>
+			<g id="shape16-38" v:mID="16" v:groupContext="shape" v:layerMember="0"
+					transform="translate(-207.038,393.626) rotate(-90)">
+				<title>Shape16</title>
+				<path d="M0 393.35 L5.61 385.71 L4.05 390.48 L11.38 390.48 L9.82 385.71 L15.44 393.35 L9.82 400.99 L11.38 396.21
+							 L4.05 396.21 L5.61 400.99 L0 393.35 Z" class="st4"/>
+			</g>
+			<g id="shape17-40" v:mID="17" v:groupContext="shape" v:layerMember="0"
+					transform="translate(-110.902,393.626) rotate(-90)">
+				<title>Shape17</title>
+				<path d="M0 393.35 L5.61 385.71 L4.05 390.48 L11.38 390.48 L9.82 385.71 L15.44 393.35 L9.82 400.99 L11.38 396.21
+							 L4.05 396.21 L5.61 400.99 L0 393.35 Z" class="st4"/>
+			</g>
+			<g id="shape18-42" v:mID="18" v:groupContext="shape" v:layerMember="0"
+					transform="translate(-18.2744,393.626) rotate(-90)">
+				<title>Shape18</title>
+				<path d="M0 393.35 L5.61 385.71 L4.05 390.48 L11.38 390.48 L9.82 385.71 L15.44 393.35 L9.82 400.99 L11.38 396.21
+							 L4.05 396.21 L5.61 400.99 L0 393.35 Z" class="st4"/>
+			</g>
+			<g id="shape19-44" v:mID="19" v:groupContext="shape" v:layerMember="0"
+					transform="translate(73.6512,393.626) rotate(-90)">
+				<title>Shape19</title>
+				<path d="M0 393.35 L5.61 385.71 L4.05 390.48 L11.38 390.48 L9.82 385.71 L15.44 393.35 L9.82 400.99 L11.38 396.21
+							 L4.05 396.21 L5.61 400.99 L0 393.35 Z" class="st4"/>
+			</g>
+			<g id="shape20-46" v:mID="20" v:groupContext="shape" v:layerMember="0"
+					transform="translate(179.611,393.626) rotate(-90)">
+				<title>Shape20</title>
+				<path d="M-0 393.35 L5.61 385.71 L4.05 390.48 L11.38 390.48 L9.82 385.71 L15.44 393.35 L9.82 400.99 L11.38 396.21
+							 L4.05 396.21 L5.61 400.99 L-0 393.35 Z" class="st4"/>
+			</g>
+		</g>
+		<g id="shape119-48" v:mID="119" v:groupContext="shape" v:layerMember="0" transform="translate(1.79232,-271.084)">
+			<title>Shape119</title>
+			<desc>Addresses for Odd group: 0xc003, 0xc005</desc>
+			<v:textBlock v:margins="rect(0,0,0,0)"/>
+			<v:textRect cx="330.591" cy="388.742" width="662.6" height="10.6299"/>
+			<rect x="0" y="384.136" width="661.181" height="9.2126" class="st1"/>
+			<text x="259.76" y="391.01" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Addresses for Odd group: 0xc003, 0xc005</text>		</g>
+		<g id="shape116-51" v:mID="116" v:groupContext="shape" v:layerMember="0"
+				transform="translate(-13.4964,265.212) rotate(-90)">
+			<title>Shape116</title>
+			<path d="M0 393.35 L5.67 385.71 L4.09 390.48 L11.5 390.48 L9.92 385.71 L15.59 393.35 L9.92 400.99 L11.5 396.21 L4.09
+						 396.21 L5.67 400.99 L0 393.35 Z" class="st4"/>
+		</g>
+		<g id="shape117-53" v:mID="117" v:groupContext="shape" v:layerMember="0"
+				transform="translate(-209.689,265.921) rotate(-90)">
+			<title>Shape117</title>
+			<path d="M0 393.35 L5.67 385.71 L4.09 390.48 L11.5 390.48 L9.92 385.71 L15.59 393.35 L9.92 400.99 L11.5 396.21 L4.09
+						 396.21 L5.67 400.99 L0 393.35 Z" class="st4"/>
+		</g>
+		<g id="shape118-55" v:mID="118" v:groupContext="shape" v:layerMember="0"
+				transform="translate(-308.101,264.503) rotate(-90)">
+			<title>Shape118</title>
+			<path d="M0 393.35 L5.67 385.71 L4.09 390.48 L11.5 390.48 L9.92 385.71 L15.59 393.35 L9.92 400.99 L11.5 396.21 L4.09
+						 396.21 L5.67 400.99 L0 393.35 Z" class="st4"/>
+		</g>
+		<g id="shape120-57" v:mID="120" v:groupContext="shape" v:layerMember="0" transform="translate(86.9422,265.212) rotate(-90)">
+			<title>Shape120</title>
+			<path d="M0 393.35 L5.67 385.71 L4.09 390.48 L11.5 390.48 L9.92 385.71 L15.59 393.35 L9.92 400.99 L11.5 396.21 L4.09
+						 396.21 L5.67 400.99 L0 393.35 Z" class="st4"/>
+		</g>
+		<g id="shape121-59" v:mID="121" v:groupContext="shape" v:layerMember="0"
+				transform="translate(-114.318,264.503) rotate(-90)">
+			<title>Shape121</title>
+			<path d="M0 393.35 L5.67 385.71 L4.09 390.48 L11.5 390.48 L9.92 385.71 L15.59 393.35 L9.92 400.99 L11.5 396.21 L4.09
+						 396.21 L5.67 400.99 L0 393.35 Z" class="st4"/>
+		</g>
+		<g id="shape122-61" v:mID="122" v:groupContext="shape" v:layerMember="0"
+				transform="translate(-12.2704,143.322) rotate(-90)">
+			<title>Shape122</title>
+			<path d="M0 393.35 L5.67 385.71 L4.09 390.48 L11.5 390.48 L9.92 385.71 L15.59 393.35 L9.92 400.99 L11.5 396.21 L4.09
+						 396.21 L5.67 400.99 L0 393.35 Z" class="st4"/>
+		</g>
+		<g id="shape123-63" v:mID="123" v:groupContext="shape" v:layerMember="0"
+				transform="translate(-308.101,143.322) rotate(-90)">
+			<title>Shape123</title>
+			<path d="M0 393.35 L5.67 385.71 L4.09 390.48 L11.5 390.48 L9.92 385.71 L15.59 393.35 L9.92 400.99 L11.5 396.21 L4.09
+						 396.21 L5.67 400.99 L0 393.35 Z" class="st4"/>
+		</g>
+		<g id="shape124-65" v:mID="124" v:groupContext="shape" v:layerMember="0" transform="translate(86.9422,143.322) rotate(-90)">
+			<title>Shape124</title>
+			<path d="M0 393.35 L5.67 385.71 L4.09 390.48 L11.5 390.48 L9.92 385.71 L15.59 393.35 L9.92 400.99 L11.5 396.21 L4.09
+						 396.21 L5.67 400.99 L0 393.35 Z" class="st4"/>
+		</g>
+		<g id="shape125-67" v:mID="125" v:groupContext="shape" v:layerMember="0"
+				transform="translate(-114.318,142.613) rotate(-90)">
+			<title>Shape125</title>
+			<path d="M0 393.35 L5.67 385.71 L4.09 390.48 L11.5 390.48 L9.92 385.71 L15.59 393.35 L9.92 400.99 L11.5 396.21 L4.09
+						 396.21 L5.67 400.99 L0 393.35 Z" class="st4"/>
+		</g>
+		<g id="shape126-69" v:mID="126" v:groupContext="shape" v:layerMember="0"
+				transform="translate(-209.689,144.031) rotate(-90)">
+			<title>Shape126</title>
+			<path d="M0 393.35 L5.67 385.71 L4.09 390.48 L11.5 390.48 L9.92 385.71 L15.59 393.35 L9.92 400.99 L11.5 396.21 L4.09
+						 396.21 L5.67 400.99 L0 393.35 Z" class="st4"/>
+		</g>
+		<g id="shape5410009-71" v:mID="5410009" v:groupContext="shape" v:layerMember="0"
+				transform="translate(183.776,142.968) rotate(-90)">
+			<title>Shape124.5410009</title>
+			<path d="M0 393.35 L5.67 385.71 L4.09 390.48 L11.5 390.48 L9.92 385.71 L15.59 393.35 L9.92 400.99 L11.5 396.21 L4.09
+						 396.21 L5.67 400.99 L0 393.35 Z" class="st4"/>
+		</g>
+		<g id="shape5410010-73" v:mID="5410010" v:groupContext="shape" v:layerMember="0"
+				transform="translate(185.8,264.149) rotate(-90)">
+			<title>Shape124.5410010</title>
+			<path d="M0 393.35 L5.67 385.71 L4.09 390.48 L11.5 390.48 L9.92 385.71 L15.59 393.35 L9.92 400.99 L11.5 396.21 L4.09
+						 396.21 L5.67 400.99 L0 393.35 Z" class="st4"/>
+		</g>
+		<g id="shape21-75" v:mID="21" v:groupContext="shape" v:layerMember="0" transform="translate(0.375,-306.517)">
+			<title>Shape21</title>
+			<rect x="0" y="306.892" width="673.937" height="86.4567" class="st1"/>
+		</g>
+		<g id="group5410058-77" transform="translate(0.375,-306.517)" v:mID="5410058" v:groupContext="group">
+			<title>Sheet.5410058</title>
+			<g id="shape22-78" v:mID="22" v:groupContext="shape" v:layerMember="0">
+				<title>Shape22</title>
+				<desc>Odd group: sub - 0xc003: pub - 0xc005 (LC server is subscribe...</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="333.071" cy="382.01" width="663.31" height="83.622"/>
+				<rect x="0" y="306.892" width="666.142" height="86.4567" class="st5"/>
+				<text x="149.41" y="384.28" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Odd group<tspan
+							class="st7">: sub </tspan><tspan class="st7">-</tspan><tspan class="st7"> </tspan><tspan class="st7">0xc003: pub </tspan><tspan
+							class="st7">-</tspan><tspan class="st7"> </tspan><tspan class="st7">0xc005 (LC server is subscribed on 0xc005 to receive sensor server statuses)</tspan></text>			</g>
+			<g id="shape23-88" v:mID="23" v:groupContext="shape" v:layerMember="0" transform="translate(378.425,-17.7165)">
+				<title>Shape23</title>
+				<rect x="0" y="332.404" width="90" height="60.9449" class="st8"/>
+			</g>
+			<g id="shape24-90" v:mID="24" v:groupContext="shape" v:layerMember="0" transform="translate(379.134,-55.9843)">
+				<title>Shape24</title>
+				<path d="M0 393.35 L89.29 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L89.29 393.35" class="st10"/>
+			</g>
+			<g id="shape25-93" v:mID="25" v:groupContext="shape" v:layerMember="0" transform="translate(379.134,-56.6929)">
+				<title>Shape25</title>
+				<desc>Light CTL Server Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="44.6457" cy="382.364" width="90.71" height="23.3858"/>
+				<rect x="0" y="371.38" width="89.2913" height="21.9685" class="st1"/>
+				<text x="28.25" y="380.1" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL<v:newlineChar/><tspan
+							x="17.75" dy="1.2em" class="st11">Server Example</tspan></text>			</g>
+			<g id="shape26-97" v:mID="26" v:groupContext="shape" v:layerMember="0" transform="translate(379.134,-18.4252)">
+				<title>Shape26</title>
+				<desc>Element0: Main/Scene:0x0601 Element1: Temperature:0x0602</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="44.6457" cy="374.215" width="90.71" height="39.685"/>
+				<rect x="0" y="355.081" width="89.2913" height="38.2677" class="st1"/>
+				<text x="27.62" y="362.87" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element0<tspan
+							class="st7">:<v:newlineChar/></tspan><tspan x="11.23" dy="1.201em" class="st7">Main</tspan><tspan
+							class="st7" v:langID="1044">/Scene</tspan><tspan class="st7">:0x0601<v:newlineChar/></tspan><tspan
+							x="27.62" dy="1.202em" class="st11">Element1</tspan><tspan class="st7">:<v:newlineChar/></tspan><tspan
+							x="9.55" dy="1.201em" class="st7">Temperature:0x0602</tspan></text>			</g>
+			<g id="shape27-107" v:mID="27" v:groupContext="shape" v:layerMember="0" transform="translate(4.96063,-17.7165)">
+				<title>Shape27</title>
+				<rect x="0" y="332.404" width="85.748" height="60.9449" class="st8"/>
+			</g>
+			<g id="shape28-109" v:mID="28" v:groupContext="shape" v:layerMember="0" transform="translate(4.96063,-55.9843)">
+				<title>Shape28</title>
+				<path d="M0 393.35 L85.04 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L85.04 393.35" class="st10"/>
+			</g>
+			<g id="shape29-112" v:mID="29" v:groupContext="shape" v:layerMember="0" transform="translate(4.96063,-56.6929)">
+				<title>Shape29</title>
+				<desc>OnOff Server Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="42.5197" cy="382.364" width="86.46" height="23.3858"/>
+				<rect x="0" y="371.38" width="85.0394" height="21.9685" class="st1"/>
+				<text x="20.25" y="380.1" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>OnOff Server<v:newlineChar/><tspan
+							x="27.81" dy="1.2em" class="st11">Example</tspan></text>			</g>
+			<g id="shape30-116" v:mID="30" v:groupContext="shape" v:layerMember="0" transform="translate(4.96063,-19.1339)">
+				<title>Shape30</title>
+				<desc>Element0: OnOff server:0x0201 Scene server: 0x0201</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="42.5197" cy="374.569" width="86.46" height="38.9764"/>
+				<rect x="0" y="355.789" width="85.0394" height="37.5591" class="st1"/>
+				<text x="25.5" y="367.77" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element0<tspan
+							class="st7">:<v:newlineChar/></tspan><tspan x="7.43" dy="1.201em" class="st7">OnOff server:0x0201<v:lf/></tspan><tspan
+							x="5.74" dy="1.2em" class="st7" v:langID="1044">Scene server: 0x0201</tspan></text>			</g>
+			<g id="shape31-122" v:mID="31" v:groupContext="shape" v:layerMember="0" transform="translate(94.9606,-18.4252)">
+				<title>Shape31</title>
+				<rect x="0" y="333.112" width="90" height="60.2362" class="st12"/>
+			</g>
+			<g id="shape32-124" v:mID="32" v:groupContext="shape" v:layerMember="0" transform="translate(94.9606,-56.6929)">
+				<title>Shape32</title>
+				<desc>Dimming(Level) Server Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="382.364" width="91.42" height="23.3858"/>
+				<rect x="0" y="371.38" width="90" height="21.9685" class="st1"/>
+				<text x="18.53" y="380.1" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Dimming(Level)<v:newlineChar/><tspan
+							x="18.1" dy="1.2em" class="st11">Server Example</tspan></text>			</g>
+			<g id="shape33-128" v:mID="33" v:groupContext="shape" v:layerMember="0" transform="translate(94.9606,-55.9843)">
+				<title>Shape33</title>
+				<path d="M0 393.35 L90 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90 393.35" class="st10"/>
+			</g>
+			<g id="shape34-131" v:mID="34" v:groupContext="shape" v:layerMember="0" transform="translate(94.9606,-19.1339)">
+				<title>Shape34</title>
+				<desc>Element0: Level server:0x0301 Scene server: 0x0301</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="374.569" width="91.42" height="38.9764"/>
+				<rect x="0" y="355.789" width="90" height="37.5591" class="st1"/>
+				<text x="27.98" y="367.77" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element0<tspan
+							class="st7">:<v:newlineChar/></tspan><tspan x="10.95" dy="1.201em" class="st7">Level server:0x0301<v:newlineChar/></tspan><tspan
+							x="8.22" dy="1.2em" class="st7" v:langID="1044">Scene server: 0x0301</tspan></text>			</g>
+			<g id="shape35-137" v:mID="35" v:groupContext="shape" v:layerMember="0" transform="translate(189.921,-18.4252)">
+				<title>Shape35</title>
+				<rect x="-1.61131E-13" y="333.112" width="90" height="60.2362" class="st13"/>
+			</g>
+			<g id="shape36-139" v:mID="36" v:groupContext="shape" v:layerMember="0" transform="translate(189.921,-55.9843)">
+				<title>Shape36</title>
+				<path d="M-0 393.35 L90 393.35 L-0 393.35 Z" class="st9"/>
+				<path d="M-0 393.35 L90 393.35" class="st10"/>
+			</g>
+			<g id="shape37-142" v:mID="37" v:groupContext="shape" v:layerMember="0" transform="translate(189.921,-56.6929)">
+				<title>Shape37</title>
+				<desc>Light lightness Server Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="382.364" width="91.42" height="23.3858"/>
+				<rect x="-1.61131E-13" y="371.38" width="90" height="21.9685" class="st1"/>
+				<text x="20.83" y="380.1" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light lightness<v:newlineChar/><tspan
+							x="18.1" dy="1.2em" class="st11">Server Example</tspan></text>			</g>
+			<g id="shape38-146" v:mID="38" v:groupContext="shape" v:layerMember="0" transform="translate(189.921,-19.1339)">
+				<title>Shape38</title>
+				<desc>Element0: Main: 0x0401 Scene server: 0x0401</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="374.569" width="91.42" height="38.9764"/>
+				<rect x="-1.61131E-13" y="355.789" width="90" height="37.5591" class="st1"/>
+				<text x="27.98" y="367.77" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element0<tspan
+							class="st7">:<v:newlineChar/></tspan><tspan x="22.3" dy="1.201em" class="st7">Main: 0x</tspan><tspan
+							class="st7" v:langID="1044">0</tspan><tspan class="st7">401<v:newlineChar/></tspan><tspan x="8.22"
+							dy="1.2em" class="st7" v:langID="1044">Scene server: 0x0401</tspan></text>			</g>
+			<g id="shape39-154" v:mID="39" v:groupContext="shape" v:layerMember="0" transform="translate(284.173,-18.4252)">
+				<title>Shape39</title>
+				<rect x="0" y="333.112" width="90" height="60.2362" class="st14"/>
+			</g>
+			<g id="shape40-156" v:mID="40" v:groupContext="shape" v:layerMember="0" transform="translate(284.173,-56.6929)">
+				<title>Shape40</title>
+				<desc>Light LC Server Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="382.364" width="91.42" height="23.3858"/>
+				<rect x="0" y="371.38" width="90" height="21.9685" class="st1"/>
+				<text x="30.92" y="380.1" class="st15" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light LC<v:newlineChar/><tspan
+							x="18.1" dy="1.2em" class="st11">Server Example</tspan></text>			</g>
+			<g id="shape41-160" v:mID="41" v:groupContext="shape" v:layerMember="0" transform="translate(284.173,-55.9843)">
+				<title>Shape41</title>
+				<path d="M0 393.35 L90 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90 393.35" class="st16"/>
+			</g>
+			<g id="shape42-163" v:mID="42" v:groupContext="shape" v:layerMember="0" transform="translate(284.173,-19.1339)">
+				<title>Shape42</title>
+				<desc>Element0: Main/Scene: 0x0501 Element1: Light LC: 0x0502</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="374.569" width="91.42" height="38.9764"/>
+				<rect x="0" y="355.789" width="90" height="37.5591" class="st1"/>
+				<text x="27.98" y="363.22" class="st17" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element0<tspan
+							class="st7">:<v:newlineChar/></tspan><tspan x="10.53" dy="1.201em" class="st7">Main</tspan><tspan
+							class="st7" v:langID="1044">/Scene</tspan><tspan class="st7">: 0x0501<v:newlineChar/></tspan><tspan
+							x="27.98" dy="1.202em" class="st11">Element1</tspan><tspan class="st7">:<v:newlineChar/></tspan><tspan
+							x="16.41" dy="1.201em" class="st7">Light LC: 0x0502</tspan></text>			</g>
+			<g id="shape43-173" v:mID="43" v:groupContext="shape" v:layerMember="0" transform="translate(473.386,-18.4252)">
+				<title>Shape43</title>
+				<rect x="0" y="333.112" width="90" height="60.2362" class="st12"/>
+			</g>
+			<g id="shape44-175" v:mID="44" v:groupContext="shape" v:layerMember="0" transform="translate(473.386,-56.6929)">
+				<title>Shape44</title>
+				<desc>Light LC+CTL Server Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="382.364" width="91.42" height="23.3858"/>
+				<rect x="0" y="371.38" width="90" height="21.9685" class="st1"/>
+				<text x="21.57" y="380.1" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light LC+CTL<v:newlineChar/><tspan
+							x="18.1" dy="1.2em" class="st11">Server Example</tspan></text>			</g>
+			<g id="shape45-179" v:mID="45" v:groupContext="shape" v:layerMember="0" transform="translate(473.386,-55.9843)">
+				<title>Shape45</title>
+				<path d="M0 393.35 L90 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90 393.35" class="st10"/>
+			</g>
+			<g id="shape46-182" v:mID="46" v:groupContext="shape" v:layerMember="0" transform="translate(473.386,-21.9685)">
+				<title>Shape46</title>
+				<desc>Element0: Main: 0x0701 Element1: Temperature: 0x0702 Element2...</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="377.758" width="91.42" height="32.5984"/>
+				<rect x="0" y="362.167" width="90" height="31.1811" class="st1"/>
+				<text x="12.5" y="364.75" class="st18" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element0<tspan
+							class="st7">: Main: 0x0701<v:newlineChar/></tspan><tspan x="30.21" dy="1.203em" class="st11"> </tspan>Element1<tspan
+							class="st7">:<v:newlineChar/></tspan><tspan x="15.42" dy="1.201em" class="st7">Temperature: 0x0702<v:newlineChar/></tspan><tspan
+							x="30.21" dy="1.202em" class="st11"> </tspan>Element2<tspan class="st7">:<v:newlineChar/></tspan><tspan
+							x="21.61" dy="1.201em" class="st7">Light LC: 0x0703</tspan></text>			</g>
+			<g id="group4710000-192" transform="translate(568.346,-17.7165)" v:mID="4710000" v:groupContext="group"
+					v:layerMember="0">
+				<title>Shape4710000</title>
+				<g id="shape47-193" v:mID="47" v:groupContext="shape" v:layerMember="0">
+					<title>Shape47</title>
+					<rect x="0" y="333.112" width="90" height="60.2362" class="st1"/>
+				</g>
+				<g id="shape48-195" v:mID="48" v:groupContext="shape" v:layerMember="0">
+					<title>Shape48</title>
+					<rect x="0" y="333.112" width="90" height="60.2362" class="st13"/>
+				</g>
+				<g id="shape49-197" v:mID="49" v:groupContext="shape" v:layerMember="0" transform="translate(0,-37.5591)">
+					<title>Shape49</title>
+					<path d="M0 393.35 L89.29 393.35 L0 393.35 Z" class="st9"/>
+					<path d="M0 393.35 L89.29 393.35" class="st10"/>
+				</g>
+				<g id="shape50-200" v:mID="50" v:groupContext="shape" v:layerMember="0" transform="translate(0,-38.2677)">
+					<title>Shape50</title>
+					<desc>Sensor Server   Example</desc>
+					<v:textBlock v:margins="rect(0,0,0,0)"/>
+					<v:textRect cx="44.6457" cy="382.364" width="90.71" height="23.3858"/>
+					<rect x="0" y="371.38" width="89.2913" height="21.9685" class="st1"/>
+					<text x="2.62" y="384.63" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Sensor Server   Example</text>				</g>
+				<g id="shape51-203" v:mID="51" v:groupContext="shape" v:layerMember="0" transform="translate(0,-0.708661)">
+					<title>Shape51</title>
+					<desc>Element0: Main: 0x0801</desc>
+					<v:textBlock v:margins="rect(0,0,0,0)"/>
+					<v:textRect cx="44.6457" cy="374.569" width="90.71" height="38.9764"/>
+					<rect x="0" y="355.789" width="89.2913" height="37.5591" class="st1"/>
+					<text x="28.67" y="372.31" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element0<tspan
+								class="st7">:<v:newlineChar/></tspan><tspan x="21.95" dy="1.201em" class="st7">Main: 0x0801</tspan></text>				</g>
+			</g>
+		</g>
+		<g id="group5410059-208" transform="translate(1.79232,-0.375)" v:mID="5410059" v:groupContext="group">
+			<title>Sheet.5410059</title>
+			<g id="shape52-209" v:mID="52" v:groupContext="shape" v:layerMember="0">
+				<title>Shape52</title>
+				<rect x="0" y="306.892" width="673.228" height="86.4567" class="st1"/>
+			</g>
+			<g id="shape53-211" v:mID="53" v:groupContext="shape" v:layerMember="0">
+				<title>Shape53</title>
+				<desc>Even group: sub - 0xc002: pub - 0xc004 (LC server is subscrib...</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="333.071" cy="318.939" width="663.31" height="85.748"/>
+				<rect x="0" y="306.892" width="666.142" height="86.4567" class="st5"/>
+				<text x="147.93" y="321.21" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Even group<tspan
+							class="st7">: sub </tspan><tspan class="st7">-</tspan><tspan class="st7"> </tspan><tspan class="st7">0xc002: pub </tspan><tspan
+							class="st7">-</tspan><tspan class="st7"> </tspan><tspan class="st7">0xc004</tspan><tspan class="st7"> </tspan><tspan
+							class="st7">(LC server is subscribed on 0xc004 to receive sensor server statuses)</tspan></text>			</g>
+			<g id="group5410000-223" transform="translate(4.96063,-5.66929)" v:mID="5410000" v:groupContext="group"
+					v:layerMember="0">
+				<title>Shape5410000</title>
+				<g id="shape54-224" v:mID="54" v:groupContext="shape" v:layerMember="0">
+					<title>Shape54</title>
+					<rect x="0" y="332.404" width="85.748" height="60.9449" class="st1"/>
+				</g>
+				<g id="shape55-226" v:mID="55" v:groupContext="shape" v:layerMember="0">
+					<title>Shape55</title>
+					<rect x="0" y="332.404" width="85.748" height="60.9449" class="st8"/>
+				</g>
+				<g id="shape56-228" v:mID="56" v:groupContext="shape" v:layerMember="0" transform="translate(0,-38.2677)">
+					<title>Shape56</title>
+					<path d="M0 393.35 L85.04 393.35 L0 393.35 Z" class="st9"/>
+					<path d="M0 393.35 L85.04 393.35" class="st10"/>
+				</g>
+				<g id="shape57-231" v:mID="57" v:groupContext="shape" v:layerMember="0" transform="translate(0,-38.9764)">
+					<title>Shape57</title>
+					<desc>OnOff Server Example</desc>
+					<v:textBlock v:margins="rect(0,0,0,0)"/>
+					<v:textRect cx="42.5197" cy="382.364" width="86.46" height="23.3858"/>
+					<rect x="0" y="371.38" width="85.0394" height="21.9685" class="st1"/>
+					<text x="20.25" y="380.1" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>OnOff Server<v:newlineChar/><tspan
+								x="27.81" dy="1.2em" class="st11">Example</tspan></text>				</g>
+			</g>
+			<g id="shape58-235" v:mID="58" v:groupContext="shape" v:layerMember="0" transform="translate(4.96063,-6.37795)">
+				<title>Shape58</title>
+				<desc>Element0: OnOff server:0x0202 Scene server: 0x0202</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="42.5197" cy="374.569" width="86.46" height="38.9764"/>
+				<rect x="0" y="355.789" width="85.0394" height="37.5591" class="st1"/>
+				<text x="25.5" y="367.77" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element0<tspan
+							class="st7">:<v:newlineChar/></tspan><tspan x="7.43" dy="1.201em" class="st7">OnOff server:0x0202<v:newlineChar/></tspan><tspan
+							x="5.74" dy="1.2em" class="st7" v:langID="1044">Scene server: 0x0202</tspan></text>			</g>
+			<g id="shape59-241" v:mID="59" v:groupContext="shape" v:layerMember="0" transform="translate(94.9606,-6.37795)">
+				<title>Shape59</title>
+				<rect x="0" y="333.112" width="90" height="60.2362" class="st12"/>
+			</g>
+			<g id="shape60-243" v:mID="60" v:groupContext="shape" v:layerMember="0" transform="translate(94.9606,-44.6457)">
+				<title>Shape60</title>
+				<desc>Dimming(Level) Server Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="382.364" width="91.42" height="23.3858"/>
+				<rect x="0" y="371.38" width="90" height="21.9685" class="st1"/>
+				<text x="18.53" y="380.1" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Dimming(Level)<v:newlineChar/><tspan
+							x="18.1" dy="1.2em" class="st11">Server Example</tspan></text>			</g>
+			<g id="shape61-247" v:mID="61" v:groupContext="shape" v:layerMember="0" transform="translate(94.9606,-43.2283)">
+				<title>Shape61</title>
+				<path d="M0 393.35 L90 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90 393.35" class="st10"/>
+			</g>
+			<g id="shape62-250" v:mID="62" v:groupContext="shape" v:layerMember="0" transform="translate(94.9606,-6.37795)">
+				<title>Shape62</title>
+				<desc>Element0: Level server:0x0302 Scene server: 0x0302</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="374.569" width="91.42" height="38.9764"/>
+				<rect x="0" y="355.789" width="90" height="37.5591" class="st1"/>
+				<text x="27.98" y="367.77" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element0<tspan
+							class="st7">:<v:newlineChar/></tspan><tspan x="10.95" dy="1.201em" class="st7">Level server:0x0302<v:newlineChar/></tspan><tspan
+							x="8.22" dy="1.2em" class="st7" v:langID="1044">Scene server: 0x0302</tspan></text>			</g>
+			<g id="shape63-256" v:mID="63" v:groupContext="shape" v:layerMember="0" transform="translate(189.921,-6.37795)">
+				<title>Shape63</title>
+				<rect x="0" y="333.112" width="90" height="60.2362" class="st13"/>
+			</g>
+			<g id="shape64-258" v:mID="64" v:groupContext="shape" v:layerMember="0" transform="translate(189.921,-43.2283)">
+				<title>Shape64</title>
+				<path d="M0 393.35 L90 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90 393.35" class="st10"/>
+			</g>
+			<g id="shape65-261" v:mID="65" v:groupContext="shape" v:layerMember="0" transform="translate(189.921,-44.6457)">
+				<title>Shape65</title>
+				<desc>Light lightness Server Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="382.364" width="91.42" height="23.3858"/>
+				<rect x="0" y="371.38" width="90" height="21.9685" class="st1"/>
+				<text x="20.83" y="380.1" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light lightness<v:newlineChar/><tspan
+							x="18.1" dy="1.2em" class="st11">Server Example</tspan></text>			</g>
+			<g id="shape66-265" v:mID="66" v:groupContext="shape" v:layerMember="0" transform="translate(189.921,-6.37795)">
+				<title>Shape66</title>
+				<desc>Element0: Main: 0x0402 Scene server: 0x0402</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="374.569" width="91.42" height="38.9764"/>
+				<rect x="0" y="355.789" width="90" height="37.5591" class="st1"/>
+				<text x="27.98" y="367.77" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element0<tspan
+							class="st7">:<v:newlineChar/></tspan><tspan x="22.3" dy="1.201em" class="st7">Main: 0x0402<v:newlineChar/></tspan><tspan
+							x="8.22" dy="1.2em" class="st7" v:langID="1044">Scene server: 0x0402</tspan></text>			</g>
+			<g id="shape67-271" v:mID="67" v:groupContext="shape" v:layerMember="0" transform="translate(378.425,-5.66929)">
+				<title>Shape67</title>
+				<rect x="0" y="332.404" width="90" height="60.9449" class="st8"/>
+			</g>
+			<g id="shape68-273" v:mID="68" v:groupContext="shape" v:layerMember="0" transform="translate(379.134,-43.2283)">
+				<title>Shape68</title>
+				<path d="M0 393.35 L89.29 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L89.29 393.35" class="st10"/>
+			</g>
+			<g id="shape69-276" v:mID="69" v:groupContext="shape" v:layerMember="0" transform="translate(379.134,-43.937)">
+				<title>Shape69</title>
+				<desc>Light CTL Server Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="44.6457" cy="382.364" width="90.71" height="23.3858"/>
+				<rect x="0" y="371.38" width="89.2913" height="21.9685" class="st1"/>
+				<text x="28.25" y="380.1" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL<v:newlineChar/><tspan
+							x="17.75" dy="1.2em" class="st11">Server Example</tspan></text>			</g>
+			<g id="shape70-280" v:mID="70" v:groupContext="shape" v:layerMember="0" transform="translate(379.134,-5.66929)">
+				<title>Shape70</title>
+				<desc>Element0: Main/Scene:0x0604 Element1: Temperature:0x0605</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="44.6457" cy="374.215" width="90.71" height="39.685"/>
+				<rect x="0" y="355.081" width="89.2913" height="38.2677" class="st1"/>
+				<text x="27.62" y="362.87" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element0<tspan
+							class="st7">:<v:newlineChar/></tspan><tspan x="11.23" dy="1.201em" class="st7">Main</tspan><tspan
+							class="st7" v:langID="1044">/Scene</tspan><tspan class="st7">:0x0604<v:newlineChar/></tspan><tspan
+							x="27.62" dy="1.202em" class="st11">Element1</tspan><tspan class="st7">:<v:newlineChar/></tspan><tspan
+							x="9.55" dy="1.201em" class="st7">Temperature:0x0605</tspan></text>			</g>
+			<g id="shape71-290" v:mID="71" v:groupContext="shape" v:layerMember="0" transform="translate(569.055,-5.66929)">
+				<title>Shape71</title>
+				<rect x="0" y="333.112" width="90" height="60.2362" class="st13"/>
+			</g>
+			<g id="shape72-292" v:mID="72" v:groupContext="shape" v:layerMember="0" transform="translate(569.055,-43.2283)">
+				<title>Shape72</title>
+				<path d="M0 393.35 L89.29 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L89.29 393.35" class="st10"/>
+			</g>
+			<g id="shape73-295" v:mID="73" v:groupContext="shape" v:layerMember="0" transform="translate(569.055,-43.937)">
+				<title>Shape73</title>
+				<desc>Sensor Server  Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="44.6457" cy="382.719" width="90.71" height="22.6772"/>
+				<rect x="0" y="372.089" width="89.2913" height="21.2598" class="st1"/>
+				<text x="3.67" y="384.99" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Sensor Server  Example</text>			</g>
+			<g id="shape74-298" v:mID="74" v:groupContext="shape" v:layerMember="0" transform="translate(569.055,-6.37795)">
+				<title>Shape74</title>
+				<desc>Element0: Main: 0x0802</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="44.6457" cy="374.569" width="90.71" height="38.9764"/>
+				<rect x="0" y="355.789" width="89.2913" height="37.5591" class="st1"/>
+				<text x="28.67" y="372.31" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element0<tspan
+							class="st7">:<v:newlineChar/></tspan><tspan x="21.95" dy="1.201em" class="st7">Main: 0x0802</tspan></text>			</g>
+			<g id="shape75-303" v:mID="75" v:groupContext="shape" v:layerMember="0" transform="translate(284.173,-6.37795)">
+				<title>Shape75</title>
+				<rect x="-1.61131E-13" y="333.112" width="90" height="60.2362" class="st14"/>
+			</g>
+			<g id="shape76-305" v:mID="76" v:groupContext="shape" v:layerMember="0" transform="translate(284.173,-44.6457)">
+				<title>Shape76</title>
+				<desc>Light LC Server Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="382.364" width="91.42" height="23.3858"/>
+				<rect x="-1.61131E-13" y="371.38" width="90" height="21.9685" class="st1"/>
+				<text x="30.92" y="380.1" class="st15" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light LC<v:newlineChar/><tspan
+							x="18.1" dy="1.2em" class="st11">Server Example</tspan></text>			</g>
+			<g id="shape77-309" v:mID="77" v:groupContext="shape" v:layerMember="0" transform="translate(284.173,-43.2283)">
+				<title>Shape77</title>
+				<path d="M-0 393.35 L90 393.35 L-0 393.35 Z" class="st9"/>
+				<path d="M-0 393.35 L90 393.35" class="st16"/>
+			</g>
+			<g id="shape78-312" v:mID="78" v:groupContext="shape" v:layerMember="0" transform="translate(284.173,-6.37795)">
+				<title>Shape78</title>
+				<desc>Element0: Main/Scene: 0x0504 Element1: Light LC: 0x0505</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="374.569" width="91.42" height="38.9764"/>
+				<rect x="-1.61131E-13" y="355.789" width="90" height="37.5591" class="st1"/>
+				<text x="27.98" y="363.22" class="st17" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element0<tspan
+							class="st7">:<v:newlineChar/></tspan><tspan x="10.53" dy="1.201em" class="st7">Main</tspan><tspan
+							class="st7" v:langID="1044">/Scene</tspan><tspan class="st7">: 0x0504<v:newlineChar/></tspan><tspan
+							x="27.98" dy="1.202em" class="st11">Element1</tspan><tspan class="st7">:<v:newlineChar/></tspan><tspan
+							x="16.41" dy="1.201em" class="st7">Light LC: 0x0505</tspan></text>			</g>
+			<g id="shape79-322" v:mID="79" v:groupContext="shape" v:layerMember="0" transform="translate(473.386,-6.37795)">
+				<title>Shape79</title>
+				<rect x="0" y="333.112" width="90" height="60.2362" class="st12"/>
+			</g>
+			<g id="shape80-324" v:mID="80" v:groupContext="shape" v:layerMember="0" transform="translate(473.386,-44.6457)">
+				<title>Shape80</title>
+				<desc>Light LC+CTL Server Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="382.364" width="91.42" height="23.3858"/>
+				<rect x="0" y="371.38" width="90" height="21.9685" class="st1"/>
+				<text x="21.57" y="380.1" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light LC+CTL<v:newlineChar/><tspan
+							x="18.1" dy="1.2em" class="st11">Server Example</tspan></text>			</g>
+			<g id="shape81-328" v:mID="81" v:groupContext="shape" v:layerMember="0" transform="translate(473.386,-43.2283)">
+				<title>Shape81</title>
+				<path d="M0 393.35 L90 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90 393.35" class="st10"/>
+			</g>
+			<g id="shape82-331" v:mID="82" v:groupContext="shape" v:layerMember="0" transform="translate(473.386,-9.2126)">
+				<title>Shape82</title>
+				<desc>Element0: Main: 0x0704 Element1: Temperature: 0x0705 Element2...</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45" cy="377.758" width="91.42" height="32.5984"/>
+				<rect x="0" y="362.167" width="90" height="31.1811" class="st1"/>
+				<text x="12.5" y="364.75" class="st18" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element0<tspan
+							class="st7">: Main: 0x0704<v:newlineChar/></tspan><tspan x="30.21" dy="1.203em" class="st11"> </tspan>Element1<tspan
+							class="st7">:<v:newlineChar/></tspan><tspan x="15.42" dy="1.201em" class="st7">Temperature: 0x0705<v:newlineChar/></tspan><tspan
+							x="30.21" dy="1.202em" class="st11"> </tspan>Element2<tspan class="st7">:<v:newlineChar/></tspan><tspan
+							x="21.61" dy="1.201em" class="st7">Light LC: 0x0706</tspan></text>			</g>
+		</g>
+		<g id="group5410066-341" transform="translate(32.771,-134.869)" v:mID="5410066" v:groupContext="group">
+			<title>Sheet.5410066</title>
+			<g id="shape5410054-342" v:mID="5410054" v:groupContext="shape" transform="translate(0,-11.7435)">
+				<title>Sheet.5410054</title>
+				<desc>Even group: sub - 0xc004: pub - 0xc002</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:verticalAlign="2"/>
+				<v:textRect cx="297.638" cy="378.608" width="595.28" height="29.4803"/>
+				<rect x="0" y="363.868" width="595.276" height="29.4803" class="st5"/>
+				<text x="230.59" y="385.75" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Even group: sub - 0xc004: pub - 0xc002</text>			</g>
+			<g id="shape5410019-345" v:mID="5410019" v:groupContext="shape" transform="translate(0,-81.5973)">
+				<title>Sheet.5410019</title>
+				<desc>Odd group: sub - 0xc005: pub - 0xc003</desc>
+				<v:textBlock v:margins="rect(4,4,4,4)" v:verticalAlign="0"/>
+				<v:textRect cx="297.638" cy="378.608" width="595.28" height="29.4803"/>
+				<rect x="0" y="363.868" width="595.276" height="29.4803" class="st5"/>
+				<text x="232.06" y="378.67" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Odd group: sub - 0xc005: pub - 0xc003</text>			</g>
+			<g id="shape83-348" v:mID="83" v:groupContext="shape" v:layerMember="0">
+				<title>Shape83</title>
+				<rect x="0" y="285.632" width="524.409" height="107.717" class="st1"/>
+			</g>
+			<g id="shape86-350" v:mID="86" v:groupContext="shape" v:layerMember="0" transform="translate(105.499,-29.7638)">
+				<title>Shape86</title>
+				<rect x="1.61131E-13" y="333.112" width="90.075" height="60.2362" class="st12"/>
+			</g>
+			<g id="shape87-352" v:mID="87" v:groupContext="shape" v:layerMember="0" transform="translate(105.499,-76.5354)">
+				<title>Shape87</title>
+				<desc>Element1: 0x0105</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="386.616" width="91.5" height="14.8819"/>
+				<rect x="1.61131E-13" y="379.884" width="90.075" height="13.4646" class="st1"/>
+				<text x="14.56" y="388.89" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element1<tspan
+							class="st7">: 0x0105</tspan></text>			</g>
+			<g id="shape88-356" v:mID="88" v:groupContext="shape" v:layerMember="0" transform="translate(105.499,-75.1181)">
+				<title>Shape88</title>
+				<path d="M0 393.35 L90.08 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90.08 393.35" class="st10"/>
+			</g>
+			<g id="shape89-359" v:mID="89" v:groupContext="shape" v:layerMember="0" transform="translate(105.499,-42.5197)">
+				<title>Shape89</title>
+				<desc>Dimming(Level) Client Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="376.695" width="91.5" height="34.7244"/>
+				<rect x="1.61131E-13" y="360.041" width="90.075" height="33.3071" class="st1"/>
+				<text x="7.85" y="374.43" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Dimming(Level) Client <tspan
+							x="30.33" dy="1.2em" class="st11">Example</tspan></text>			</g>
+			<g id="shape90-363" v:mID="90" v:groupContext="shape" v:layerMember="0" transform="translate(105.499,-29.0551)">
+				<title>Shape90</title>
+				<desc>Element2: 0x0106</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="386.616" width="91.5" height="14.8819"/>
+				<rect x="1.61131E-13" y="379.884" width="90.075" height="13.4646" class="st1"/>
+				<text x="14.56" y="388.89" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element2<tspan
+							class="st7">: 0x0106</tspan></text>			</g>
+			<g id="shape91-367" v:mID="91" v:groupContext="shape" v:layerMember="0" transform="translate(202.977,-29.7638)">
+				<title>Shape91</title>
+				<rect x="0" y="333.112" width="90.075" height="60.2362" class="st13"/>
+			</g>
+			<g id="shape92-369" v:mID="92" v:groupContext="shape" v:layerMember="0" transform="translate(203.594,-75.8268)">
+				<title>Shape92</title>
+				<path d="M0 393.35 L90.08 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90.08 393.35" class="st10"/>
+			</g>
+			<g id="shape93-372" v:mID="93" v:groupContext="shape" v:layerMember="0" transform="translate(203.594,-76.5354)">
+				<title>Shape93</title>
+				<desc>Element1: 0x0109</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="386.616" width="91.5" height="14.8819"/>
+				<rect x="0" y="379.884" width="90.075" height="13.4646" class="st1"/>
+				<text x="14.56" y="388.89" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element1<tspan
+							class="st7">: 0x0109</tspan></text>			</g>
+			<g id="shape94-376" v:mID="94" v:groupContext="shape" v:layerMember="0" transform="translate(203.594,-43.2283)">
+				<title>Shape94</title>
+				<desc>Light lightness Client Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="376.695" width="91.5" height="34.7244"/>
+				<rect x="0" y="360.041" width="90.075" height="33.3071" class="st1"/>
+				<text x="10.15" y="374.43" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light lightness Client <tspan
+							x="30.33" dy="1.2em" class="st11">Example</tspan></text>			</g>
+			<g id="shape95-380" v:mID="95" v:groupContext="shape" v:layerMember="0" transform="translate(203.594,-41.811)">
+				<title>Shape95</title>
+				<path d="M0 393.35 L90.08 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90.08 393.35" class="st10"/>
+			</g>
+			<g id="shape96-383" v:mID="96" v:groupContext="shape" v:layerMember="0" transform="translate(203.594,-29.0551)">
+				<title>Shape96</title>
+				<desc>Element2: 0x010a</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="386.616" width="91.5" height="14.8819"/>
+				<rect x="0" y="379.884" width="90.075" height="13.4646" class="st1"/>
+				<text x="14.56" y="388.89" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element2<tspan
+							class="st7">: 0x010a</tspan></text>			</g>
+			<g id="shape97-387" v:mID="97" v:groupContext="shape" v:layerMember="0" transform="translate(301.69,-29.7638)">
+				<title>Shape97</title>
+				<rect x="0" y="333.112" width="90.075" height="60.2362" class="st14"/>
+			</g>
+			<g id="shape98-389" v:mID="98" v:groupContext="shape" v:layerMember="0" transform="translate(301.69,-76.5354)">
+				<title>Shape98</title>
+				<desc>Element1: 0x010d</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="386.616" width="91.5" height="14.8819"/>
+				<rect x="0" y="379.884" width="90.075" height="13.4646" class="st1"/>
+				<text x="14.56" y="388.89" class="st17" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element1<tspan
+							class="st7">: 0x010d</tspan></text>			</g>
+			<g id="shape99-393" v:mID="99" v:groupContext="shape" v:layerMember="0" transform="translate(301.69,-75.8268)">
+				<title>Shape99</title>
+				<path d="M0 393.35 L90.08 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90.08 393.35" class="st16"/>
+			</g>
+			<g id="shape100-396" v:mID="100" v:groupContext="shape" v:layerMember="0" transform="translate(301.69,-43.2283)">
+				<title>Shape100</title>
+				<desc>Light CTL Client Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="376.695" width="91.5" height="34.7244"/>
+				<rect x="0" y="360.041" width="90.075" height="33.3071" class="st1"/>
+				<text x="17.93" y="374.43" class="st15" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL Client<v:newlineChar/><tspan
+							x="30.33" dy="1.2em" class="st11">Example</tspan></text>			</g>
+			<g id="shape101-400" v:mID="101" v:groupContext="shape" v:layerMember="0" transform="translate(301.69,-41.811)">
+				<title>Shape101</title>
+				<path d="M0 393.35 L90.08 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90.08 393.35" class="st16"/>
+			</g>
+			<g id="shape102-403" v:mID="102" v:groupContext="shape" v:layerMember="0" transform="translate(301.69,-29.0551)">
+				<title>Shape102</title>
+				<desc>Element2: 0x010e</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="386.616" width="91.5" height="14.8819"/>
+				<rect x="0" y="379.884" width="90.075" height="13.4646" class="st1"/>
+				<text x="14.56" y="388.89" class="st17" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element2<tspan
+							class="st7">: 0x010e</tspan></text>			</g>
+			<g id="shape103-407" v:mID="103" v:groupContext="shape" v:layerMember="0" transform="translate(7.08328,-29.7638)">
+				<title>Shape103</title>
+				<rect x="0" y="332.404" width="90.075" height="60.9449" class="st8"/>
+			</g>
+			<g id="shape104-409" v:mID="104" v:groupContext="shape" v:layerMember="0" transform="translate(7.08328,-76.5354)">
+				<title>Shape104</title>
+				<path d="M0 393.35 L90.08 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90.08 393.35" class="st10"/>
+			</g>
+			<g id="shape105-412" v:mID="105" v:groupContext="shape" v:layerMember="0" transform="translate(7.08328,-77.2441)">
+				<title>Shape105</title>
+				<desc>Element1: 0x0101</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="386.616" width="91.5" height="14.8819"/>
+				<rect x="0" y="379.884" width="90.075" height="13.4646" class="st1"/>
+				<text x="14.56" y="388.89" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element1<tspan
+							class="st7">: 0x0101</tspan></text>			</g>
+			<g id="shape106-416" v:mID="106" v:groupContext="shape" v:layerMember="0" transform="translate(7.08328,-43.937)">
+				<title>Shape106</title>
+				<desc>OnOff (or EnOcean) Client Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="376.695" width="91.5" height="34.7244"/>
+				<rect x="0" y="360.041" width="90.075" height="33.3071" class="st1"/>
+				<text x="11.21" y="374.43" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>OnOff (or EnOcean)<v:newlineChar/><tspan
+							x="19.61" dy="1.2em" class="st11">Client Example</tspan></text>			</g>
+			<g id="shape107-420" v:mID="107" v:groupContext="shape" v:layerMember="0" transform="translate(7.08328,-42.5197)">
+				<title>Shape107</title>
+				<path d="M0 393.35 L90.08 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90.08 393.35" class="st10"/>
+			</g>
+			<g id="shape108-423" v:mID="108" v:groupContext="shape" v:layerMember="0" transform="translate(7.08328,-29.7638)">
+				<title>Shape108</title>
+				<desc>Element2: 0x0102</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="386.616" width="91.5" height="14.8819"/>
+				<rect x="0" y="379.884" width="90.075" height="13.4646" class="st1"/>
+				<text x="14.56" y="388.89" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element2<tspan
+							class="st7">: 0x0102</tspan></text>			</g>
+			<g id="shape109-427" v:mID="109" v:groupContext="shape" v:layerMember="0" transform="translate(105.499,-41.811)">
+				<title>Shape109</title>
+				<path d="M0 393.35 L90.08 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90.08 393.35" class="st10"/>
+			</g>
+			<g id="shape110-430" v:mID="110" v:groupContext="shape" v:layerMember="0" transform="translate(401.019,-29.0551)">
+				<title>Shape110</title>
+				<rect x="0" y="332.404" width="90.075" height="60.9449" class="st8"/>
+			</g>
+			<g id="shape111-432" v:mID="111" v:groupContext="shape" v:layerMember="0" transform="translate(401.019,-75.8268)">
+				<title>Shape111</title>
+				<path d="M0 393.35 L90.08 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90.08 393.35" class="st10"/>
+			</g>
+			<g id="shape112-435" v:mID="112" v:groupContext="shape" v:layerMember="0" transform="translate(401.019,-76.5354)">
+				<title>Shape112</title>
+				<desc>Element1: 0x0111</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="386.616" width="91.5" height="14.8819"/>
+				<rect x="0" y="379.884" width="90.075" height="13.4646" class="st1"/>
+				<text x="14.56" y="388.89" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element1<tspan
+							class="st7">: 0x0111</tspan></text>			</g>
+			<g id="shape113-439" v:mID="113" v:groupContext="shape" v:layerMember="0" transform="translate(401.019,-43.2283)">
+				<title>Shape113</title>
+				<desc>Sensor Client   Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="376.695" width="91.5" height="34.7244"/>
+				<rect x="0" y="360.041" width="90.075" height="33.3071" class="st1"/>
+				<text x="4.48" y="378.96" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Sensor Client   Example</text>			</g>
+			<g id="shape114-442" v:mID="114" v:groupContext="shape" v:layerMember="0" transform="translate(401.019,-41.811)">
+				<title>Shape114</title>
+				<path d="M0 393.35 L90.08 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90.08 393.35" class="st10"/>
+			</g>
+			<g id="shape115-445" v:mID="115" v:groupContext="shape" v:layerMember="0" transform="translate(401.019,-29.0551)">
+				<title>Shape115</title>
+				<desc>Element2: 0x0112</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="386.616" width="91.5" height="14.8819"/>
+				<rect x="0" y="379.884" width="90.075" height="13.4646" class="st1"/>
+				<text x="14.56" y="388.89" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element2<tspan
+							class="st7">: 0x0112</tspan></text>			</g>
+			<g id="shape5410060-449" v:mID="5410060" v:groupContext="shape" v:layerMember="0"
+					transform="translate(497.608,-29.207)">
+				<title>Shape86.5410060</title>
+				<rect x="1.61131E-13" y="333.112" width="90.075" height="60.2362" class="st12"/>
+			</g>
+			<g id="shape5410061-451" v:mID="5410061" v:groupContext="shape" v:layerMember="0"
+					transform="translate(497.608,-75.9786)">
+				<title>Shape87.5410061</title>
+				<desc>Element1: 0x0115</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="386.616" width="91.5" height="14.8819"/>
+				<rect x="1.61131E-13" y="379.884" width="90.075" height="13.4646" class="st1"/>
+				<text x="14.56" y="388.89" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element1<tspan
+							class="st7">: 0x01</tspan><tspan class="st7" v:langID="1044">1</tspan><tspan class="st7">5</tspan></text>			</g>
+			<g id="shape5410062-457" v:mID="5410062" v:groupContext="shape" v:layerMember="0"
+					transform="translate(497.608,-74.5613)">
+				<title>Shape88.5410062</title>
+				<path d="M0 393.35 L90.08 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90.08 393.35" class="st10"/>
+			</g>
+			<g id="shape5410063-460" v:mID="5410063" v:groupContext="shape" v:layerMember="0"
+					transform="translate(497.608,-41.9629)">
+				<title>Shape89.5410063</title>
+				<desc>Scene Client Example</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="376.695" width="91.5" height="34.7244"/>
+				<rect x="1.61131E-13" y="360.041" width="90.075" height="33.3071" class="st1"/>
+				<text x="7.84" y="378.96" class="st3" v:langID="1044"><v:paragraph v:horizAlign="1"/><v:tabList/>Scene Client Example</text>			</g>
+			<g id="shape5410064-463" v:mID="5410064" v:groupContext="shape" v:layerMember="0"
+					transform="translate(497.608,-28.4983)">
+				<title>Shape90.5410064</title>
+				<desc>Element2: 0x0116</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="45.0375" cy="386.616" width="91.5" height="14.8819"/>
+				<rect x="1.61131E-13" y="379.884" width="90.075" height="13.4646" class="st1"/>
+				<text x="14.56" y="388.89" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Element2<tspan
+							class="st7">: 0x01</tspan><tspan class="st7" v:langID="1044">1</tspan><tspan class="st7">6</tspan></text>			</g>
+			<g id="shape5410065-469" v:mID="5410065" v:groupContext="shape" v:layerMember="0"
+					transform="translate(497.608,-41.2542)">
+				<title>Shape109.5410065</title>
+				<path d="M0 393.35 L90.08 393.35 L0 393.35 Z" class="st9"/>
+				<path d="M0 393.35 L90.08 393.35" class="st10"/>
+			</g>
+		</g>
+	</g>
+</svg>

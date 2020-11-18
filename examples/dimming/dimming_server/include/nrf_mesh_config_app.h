@@ -79,7 +79,13 @@
  * @note To fit the configuration and health models, this value must equal at least
  * the number of models needed by the application plus two.
  */
-#define ACCESS_MODEL_COUNT (3)
+#define ACCESS_MODEL_COUNT (/* Element 0:                                       */ \
+                            1 + /* Config Server                                */ \
+                            1 + /* Health Server                                */ \
+                            1 + /* Generic Level Server                         */ \
+                            1 + /* Default Transition Time Server               */ \
+                            1 + /* Scene Server                                 */ \
+                            1   /* Scene Setup Server (extends Scene Server)    */)
 
 /**
  * The number of elements in the application.
@@ -88,6 +94,23 @@
  * cannot be in the same element and a separate element is needed for each new instance of the same model.
  */
 #define ACCESS_ELEMENT_COUNT (1)
+
+/**
+ * The number of (root only) default transition time instances used by the application.
+ */
+#define GENERIC_DTT_SERVER_INSTANCES_MAX (1)
+
+/**
+ * The number of generic level instances used by the application. *
+ */
+#define GENERIC_LEVEL_SERVER_INSTANCES_MAX (1)
+
+/**
+ * The number of scene setup server instances used by the application.
+ */
+#ifndef SCENE_SETUP_SERVER_INSTANCES_MAX
+#define SCENE_SETUP_SERVER_INSTANCES_MAX (1)
+#endif
 
 /**
  * The number of allocated subscription lists for the application.

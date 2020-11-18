@@ -50,6 +50,7 @@ set(MESH_CORE_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/core_tx_lpn.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_lpn_subman.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/core_tx_local.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/emergency_cache.c"
 
     # uri.c is not in use.
     # It is an optional feature to include

@@ -66,6 +66,51 @@ static void app_actual_set_cb(const light_lc_setup_server_t * p_s_server,
 static void app_actual_get_cb(const light_lc_setup_server_t * p_s_server,
                               uint16_t * p_actual_value);
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    const struct 
+    {
+        const light_lc_state_t lc_state;
+    } lc_state_vector[] = {
+        { LIGHT_LC_STATE_LIGHT_LC_OCC_MODE },
+        { LIGHT_LC_STATE_LIGHT_LC_MODE },
+        { LIGHT_LC_STATE_LIGHT_LC_LIGHT_ONOFF },
+        { LIGHT_LC_STATE_AMBIENT_LUXLEVEL_ON },
+        { LIGHT_LC_STATE_AMBIENT_LUXLEVEL_PROLONG },
+        { LIGHT_LC_STATE_AMBIENT_LUXLEVEL_STANDBY },
+        { LIGHT_LC_STATE_LIGHTNESS_ON },
+        { LIGHT_LC_STATE_LIGHTNESS_PROLONG },
+        { LIGHT_LC_STATE_LIGHTNESS_STANDBY },
+        { LIGHT_LC_STATE_REGULATOR_ACCURACY },
+        { LIGHT_LC_STATE_REGULATOR_KID },
+        { LIGHT_LC_STATE_REGULATOR_KIU },
+        { LIGHT_LC_STATE_REGULATOR_KPD },
+        { LIGHT_LC_STATE_REGULATOR_KPU },
+        { LIGHT_LC_STATE_TIME_FADE },
+        { LIGHT_LC_STATE_TIME_FADE_ON },
+        { LIGHT_LC_STATE_TIME_FADE_STANDBY_AUTO },
+        { LIGHT_LC_STATE_TIME_FADE_STANDBY_MANUAL },
+        { LIGHT_LC_STATE_TIME_OCCUPANCY_DELAY },
+        { LIGHT_LC_STATE_TIME_PROLONG },
+        { LIGHT_LC_STATE_TIME_RUN_ON },
+    };
+
+static void app_light_lc_scene_store(const app_scene_model_interface_t * p_app_scene_if,
+                                     uint8_t scene_index);
+static void app_light_lc_scene_recall(const app_scene_model_interface_t * p_app_scene_if,
+                                      uint8_t scene_index,
+                                      uint32_t delay_ms,
+                                      uint32_t transition_time_ms);
+static void app_light_lc_scene_delete(const app_scene_model_interface_t * p_app_scene_if,
+                                      uint8_t scene_index);
+
+const app_scene_callbacks_t m_scene_light_lc_cbs =
+{
+    .scene_store_cb = app_light_lc_scene_store,
+    .scene_recall_cb = app_light_lc_scene_recall,
+    .scene_delete_cb = app_light_lc_scene_delete
+};
+#endif
+
 /**** end of callback declarations ****/
 
 static const light_lc_setup_server_callbacks_t m_lc_setup_srv_cbs =
@@ -95,16 +140,36 @@ static void add_lightness_set_cb(const void * p_app_v, uint16_t lightness)
     }
 }
 
+
 /* LC model interface callbacks */
 
 static void app_persist_set_cb(const light_lc_setup_server_t * p_s_server,
                                const light_lc_state_t lc_state,
                                const void * p_value)
 {
-    if (light_lc_mc_state_set(p_s_server->state.handle,lc_state, p_value) != NRF_SUCCESS)
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    uint32_t old_value = 0;
+    ERROR_CHECK(light_lc_mc_state_get(p_s_server->state.handle, lc_state, &old_value));
+#endif
+
+    if (light_lc_mc_state_set(p_s_server->state.handle, lc_state, p_value) != NRF_SUCCESS)
     {
         __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Cannot set lc_state %d\n", lc_state);
     }
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    uint32_t new_value = 0;
+    ERROR_CHECK(light_lc_mc_state_get(p_s_server->state.handle, lc_state, &new_value));
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, 
+            "Persist set: lc_state[%d]  old_value: %lu  new_value: %lu\n", 
+            lc_state, old_value, new_value);
+    if (old_value != new_value)
+    {
+        app_light_lc_setup_server_t * p_app;
+        p_app = PARENT_BY_FIELD_GET(app_light_lc_setup_server_t, light_lc_setup_srv, p_s_server);
+        app_scene_model_scene_changed(p_app->p_app_scene);
+    }
+#endif
 }
 
 static void app_persist_get_cb(const light_lc_setup_server_t * p_s_server,
@@ -166,6 +231,141 @@ static uint32_t app_lc_setup_server_init(light_lc_setup_server_t * p_s_server, u
     return light_lc_setup_server_init(p_s_server, element_index);
 }
 
+/***** Scene Interface functions *****/
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static void app_light_lc_scene_store(const app_scene_model_interface_t * p_app_scene_if,
+                                     uint8_t scene_index)
+{
+    app_light_lc_setup_server_t * p_app;
+
+    p_app = PARENT_BY_FIELD_GET(app_light_lc_setup_server_t, scene_if, p_app_scene_if);
+
+    /* The light_lightness storeage is not added to the scene, but is handled throught the light lc
+       setup server. */
+    p_app->p_app_ll->scene_if.p_callbacks->scene_store_cb(&p_app->p_app_ll->scene_if, scene_index);
+
+    for(uint32_t i = 0; i < ARRAY_SIZE(lc_state_vector); i++)
+    {
+        uint32_t value = 0;
+        ERROR_CHECK(light_lc_mc_state_get(p_app->light_lc_setup_srv.state.handle,
+                                            lc_state_vector[i].lc_state, 
+                                            &value));
+        ERROR_CHECK(light_lc_mc_scene_state_store(p_app->light_lc_setup_srv.state.handle,
+                                                    scene_index, 
+                                                    lc_state_vector[i].lc_state, 
+                                                    &value));
+        __LOG(LOG_SRC_APP, LOG_LEVEL_DBG2, "SCENE STORE: lc_state[%d]: value: %lu\n",
+                lc_state_vector[i].lc_state,
+                value);
+    }
+
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "SCENE STORE: handel: %d  scene index: %d\n",
+            p_app->light_lc_setup_srv.state.handle,
+            scene_index);
+}
+
+static void app_light_lc_scene_recall(const app_scene_model_interface_t * p_app_scene_if,
+                                       uint8_t scene_index,
+                                       uint32_t delay_ms,
+                                       uint32_t transition_time_ms)
+{
+    app_light_lc_setup_server_t * p_app;
+
+    p_app = PARENT_BY_FIELD_GET(app_light_lc_setup_server_t, scene_if, p_app_scene_if);
+
+    /* The Scene Recall behavior for the Light LC Server model has different handling of the recall
+       operation based on the Light LC Mode. See @tagMeshMdlSp secton 6.5.1.3.2.*/
+    uint8_t mode;
+    ERROR_CHECK(light_lc_mc_scene_state_recall(p_app->light_lc_setup_srv.state.handle,
+                                               scene_index, 
+                                               LIGHT_LC_STATE_LIGHT_LC_MODE, 
+                                               &mode));
+
+    /* The Recall operation shall start with the Light LC State Machine in Off state. */
+    ERROR_CHECK(light_lc_fsm_mode_on_off_event_generate(&p_app->light_lc_setup_srv, false));
+
+    if (!mode) /* Light LC Mode is equal to 0b0. */
+    {
+        /* The light_lightness recall is only excecuted when the LC Mode is off. */
+        p_app->p_app_ll->scene_if.p_callbacks->scene_recall_cb(&p_app->p_app_ll->scene_if,
+                                                               scene_index,
+                                                               delay_ms,
+                                                               transition_time_ms);
+    }
+
+    /* Start recall operations. */
+    for (uint32_t i = 0; i < ARRAY_SIZE(lc_state_vector); i++)
+    {
+        uint32_t old_value = 0;
+        uint32_t value = 0;
+        ERROR_CHECK(light_lc_mc_state_get(p_app->light_lc_setup_srv.state.handle,
+                                            lc_state_vector[i].lc_state, 
+                                            &old_value));
+        ERROR_CHECK(light_lc_mc_scene_state_recall(p_app->light_lc_setup_srv.state.handle,
+                                                scene_index, 
+                                                lc_state_vector[i].lc_state, 
+                                                &value));
+        ERROR_CHECK(light_lc_mc_state_set(p_app->light_lc_setup_srv.state.handle,
+                                        lc_state_vector[i].lc_state, 
+                                        &value));
+
+        if (old_value != value)
+        {
+            uint16_t property_id;
+            uint8_t property_value_size;
+            uint32_t property_value = 0;
+            light_lc_property_status_params_t out_data = {0};
+            ERROR_CHECK(light_lc_state_utils_property_id_from_lc_state(lc_state_vector[i].lc_state, &property_id));
+            ERROR_CHECK(light_lc_state_utils_property_data_size_get(property_id, &property_value_size));
+            property_value = light_lc_state_utils_property_get(&p_app->light_lc_setup_srv, property_id);
+            out_data.property_id = property_id;
+            memcpy(out_data.property_buffer, &property_value, property_value_size);
+            (void) light_lc_setup_server_property_status_publish(&p_app->light_lc_setup_srv, &out_data);           
+        }
+    }
+
+    /* Set Light LC Mode state to current value*/
+    ERROR_CHECK(light_lc_fsm_mode_on_off_event_generate(&p_app->light_lc_setup_srv, 
+                                                        (bool) mode));
+
+    /* Recall Light LC Occupancy Mode state */
+    light_lc_occupancy_mode_status_params_t out_occ_data;
+    out_occ_data.occupancy_mode = light_lc_state_utils_occ_mode_get(&p_app->light_lc_setup_srv);
+    uint32_t status = light_lc_server_occ_mode_status_publish(&p_app->light_lc_setup_srv.lc_srv, &out_occ_data);
+    if (status != NRF_SUCCESS)
+    {
+        __LOG(LOG_SRC_APP, LOG_LEVEL_WARN, "light_lc_server_occ_mode_status_publish ignore publish_status: status(%d).\n", status);
+    }
+
+
+    /* Recall Light LC Light OnOff state */
+    light_lc_light_onoff_status_params_t out_onoff_data =
+                        light_lc_state_utils_light_onoff_get(&p_app->light_lc_setup_srv);
+    ERROR_CHECK(light_lc_fsm_light_on_off_event_generate(&p_app->light_lc_setup_srv, 
+                                                        (bool) out_onoff_data.present_light_onoff, 
+                                                        NULL));
+
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1, "SCENE RECALL:  handle %d  scene index %d  mode: %d\n",
+              p_app->light_lc_setup_srv.state.handle,
+              scene_index,
+              mode);
+}
+
+static void app_light_lc_scene_delete(const app_scene_model_interface_t * p_app_scene_if,
+                                      uint8_t scene_index)
+{
+    app_light_lc_setup_server_t * p_app;
+    p_app = PARENT_BY_FIELD_GET(app_light_lc_setup_server_t, scene_if, p_app_scene_if);
+
+    /* The light_lightness recall is only excecuted when the LC Mode is off. */
+    p_app->p_app_ll->scene_if.p_callbacks->scene_delete_cb(&p_app->p_app_ll->scene_if, scene_index);
+
+    /* No need to do anything else */
+}
+#endif /* SCENE_SETUP_SERVER_INSTANCES_MAX > 0 */
+
+
 /***** Interface functions *****/
 
 uint32_t app_light_lc_model_init(app_light_lc_setup_server_t * p_app,
@@ -183,6 +383,10 @@ uint32_t app_light_lc_model_init(app_light_lc_setup_server_t * p_app,
     /* Set up the added callback from light lightness to LC */
     p_app->p_app_ll->app_add_notify.p_app_notify_v = p_app;
     p_app->p_app_ll->app_add_notify.app_notify_set_cb = add_lightness_set_cb;
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    p_app->scene_if.p_callbacks = &m_scene_light_lc_cbs;
+#endif
 
     /* Setup the flash for the LC server */
     status = light_lc_mc_open(&p_app->light_lc_setup_srv.state.handle);
@@ -204,8 +408,25 @@ uint32_t app_light_lc_ponoff_binding(app_light_lc_setup_server_t * p_app, bool *
         return NRF_ERROR_NULL;
     }
 
-    ERROR_CHECK(light_lightness_mc_onpowerup_state_get(p_app->p_app_ll->light_lightness_setup_server.state.handle,
-                                                     &onpowerup_value));
+    ERROR_CHECK(light_lightness_mc_onpowerup_state_get(
+                    p_app->p_app_ll->light_lightness_setup_server.state.handle,
+                    &onpowerup_value));
 
-    return light_lc_setup_server_ponoff_binding_setup(&p_app->light_lc_setup_srv, onpowerup_value, p_lc_control);
+    return light_lc_setup_server_ponoff_binding_setup(&p_app->light_lc_setup_srv, 
+                                                      onpowerup_value, 
+                                                      p_lc_control);
 }
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+uint32_t app_light_lc_scene_context_set(app_light_lc_setup_server_t * p_app, 
+                                        app_scene_setup_server_t  * p_app_scene)
+{
+    if (p_app == NULL || p_app_scene == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+
+    p_app->p_app_scene = p_app_scene;
+    return (app_light_lightness_scene_context_set(p_app->p_app_ll, p_app_scene));
+}
+#endif

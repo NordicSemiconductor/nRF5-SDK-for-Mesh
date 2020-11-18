@@ -117,6 +117,24 @@ static void light_lightness_state_delta_set_cb(const light_lightness_setup_serve
                                                const model_transition_t * p_in_transition,
                                                light_lightness_status_params_t * p_out);
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static void app_light_lightness_scene_store(const app_scene_model_interface_t * p_app_scene_if,
+                                            uint8_t scene_index);
+static void app_light_lightness_scene_recall(const app_scene_model_interface_t * p_app_scene_if,
+                                             uint8_t scene_index,
+                                             uint32_t delay_ms,
+                                             uint32_t transition_time_ms);
+static void app_light_lightness_scene_delete(const app_scene_model_interface_t * p_app_scene_if,
+                                             uint8_t scene_index);
+
+const app_scene_callbacks_t m_scene_light_lightness_cbs =
+{
+    .scene_store_cb = app_light_lightness_scene_store,
+    .scene_recall_cb = app_light_lightness_scene_recall,
+    .scene_delete_cb = app_light_lightness_scene_delete
+};
+#endif
+
 /**** end of callback declarations ****/
 
 static const light_lightness_setup_server_callbacks_t light_lightness_setup_srv_cbs =
@@ -139,6 +157,22 @@ static void range_get(uint16_t state_handle, light_lightness_range_status_params
     ERROR_CHECK(light_lightness_mc_range_status_state_get(state_handle, &p_range->status));
 }
 
+static uint16_t target_snapshot_get(uint16_t state_handle, uint16_t lightness)
+{
+    light_lightness_range_status_params_t range;
+    uint16_t target_snapshot;
+
+    /* If delta is too large, target value should get clipped to range limits */
+    range_get(state_handle, &range);
+
+    /* There is a special case for lightness value of `0`. If requested lightness is zero, and
+     * present value is also zero, target should be zero */
+    target_snapshot = lightness > range.range_max ? range.range_max :
+                      lightness < range.range_min && lightness != 0 ? range.range_min :
+                      lightness;
+
+    return target_snapshot;
+}
 /***** Light Lightness model interface callbacks ****/
 
 static void light_lightness_state_get_cb(const light_lightness_setup_server_t * p_self,
@@ -187,7 +221,6 @@ static void light_lightness_state_set_cb(const light_lightness_setup_server_t * 
     app_light_lightness_setup_server_t * p_app;
     uint16_t present_lightness;
     uint32_t transition_time_ms;
-    light_lightness_range_status_params_t range;
 
     p_app = PARENT_BY_FIELD_GET(app_light_lightness_setup_server_t,
                                 light_lightness_setup_server,
@@ -203,14 +236,7 @@ static void light_lightness_state_set_cb(const light_lightness_setup_server_t * 
 
     p_app->app_light_lightness_get_cb(p_app, &present_lightness);
 
-    /* If delta is too large, target value should get clipped to range limits */
-    range_get(p_self->state.handle, &range);
-
-    /* There is a special case for lightness value of `0`. If requested lightness is zero, and
-     * present value is also zero, target should be zero */
-    p_app->state.target_snapshot = p_in->lightness > range.range_max ? range.range_max :
-                                   p_in->lightness < range.range_min && p_in->lightness != 0 ? range.range_min :
-                                   p_in->lightness;
+    p_app->state.target_snapshot = target_snapshot_get(p_self->state.handle, p_in->lightness);
     p_app->state.init_present_snapshot = p_app->state.present_lightness;
 
     ERROR_CHECK(light_lightness_mc_actual_state_set(p_self->state.handle, p_app->state.target_snapshot));
@@ -236,6 +262,10 @@ static void light_lightness_state_set_cb(const light_lightness_setup_server_t * 
               p_params->required_delta);
 
         app_transition_trigger(&p_app->state.transition);
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+        app_scene_model_scene_changed(p_app->p_app_scene);
+#endif
     }
     else
     {
@@ -312,6 +342,13 @@ static void light_lightness_state_delta_set_cb(const light_lightness_setup_serve
 
     app_transition_trigger(&p_app->state.transition);
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    if (p_in->delta_lightness != 0)
+    {
+        app_scene_model_scene_changed(p_app->p_app_scene);
+    }
+#endif
+
     /* Prepare response */
     if (p_out != NULL)
     {
@@ -373,6 +410,13 @@ static void light_lightness_state_move_set_cb(const light_lightness_setup_server
           p_params->transition_time_ms);
 
     app_transition_trigger(&p_app->state.transition);
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    if ((p_in->delta != 0) && (p_app->state.transition.requested_params.transition_time_ms > 0))
+    {
+        app_scene_model_scene_changed(p_app->p_app_scene);
+    }
+#endif
 
     /* Prepare response */
     if (p_out != NULL)
@@ -919,6 +963,90 @@ static void transition_parameters_set(app_light_lightness_setup_server_t * p_app
 }
 
 
+/***** Scene Interface functions *****/
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static void app_light_lightness_scene_store(const app_scene_model_interface_t * p_app_scene_if,
+                                            uint8_t scene_index)
+{
+    app_light_lightness_setup_server_t * p_app = 
+                PARENT_BY_FIELD_GET(app_light_lightness_setup_server_t, scene_if, p_app_scene_if);
+    ERROR_CHECK(light_lightness_mc_scene_actual_state_store(
+                    p_app->light_lightness_setup_server.state.handle, 
+                    scene_index, 
+                    p_app->state.present_lightness));
+
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1,
+            "SCENE STORE: handle: %d  scene index: %d  present lightness: %d\n",
+            p_app->light_lightness_setup_server.state.handle,
+            scene_index,
+            p_app->state.present_lightness);
+}
+
+static void app_light_lightness_scene_recall(const app_scene_model_interface_t * p_app_scene_if,
+                                             uint8_t scene_index,
+                                             uint32_t delay_ms,
+                                             uint32_t transition_time_ms)
+{
+    uint16_t present_lightness;
+    uint16_t recall_lightness;
+
+    app_light_lightness_setup_server_t * p_app = 
+                PARENT_BY_FIELD_GET(app_light_lightness_setup_server_t, scene_if, p_app_scene_if);
+
+    p_app->app_light_lightness_get_cb(p_app, &present_lightness);
+
+    ERROR_CHECK(light_lightness_mc_scene_actual_state_recall(
+                    p_app->light_lightness_setup_server.state.handle, 
+                    scene_index, 
+                    &recall_lightness));
+
+    p_app->state.target_snapshot = 
+        target_snapshot_get(p_app->light_lightness_setup_server.state.handle, recall_lightness);
+    p_app->state.init_present_snapshot = p_app->state.present_lightness;
+
+    ERROR_CHECK(light_lightness_mc_actual_state_set(p_app->light_lightness_setup_server.state.handle, 
+                                                    p_app->state.target_snapshot));
+
+    if (p_app->state.target_snapshot >= LIGHT_LIGHTNESS_LAST_MIN)
+    {
+        ERROR_CHECK(light_lightness_mc_last_state_set(p_app->light_lightness_setup_server.state.handle,
+                                                      p_app->state.target_snapshot,
+                                                      LIGHT_LIGHTNESS_MC_WRITE_DESTINATION_FLASH_ONLY));
+    }
+
+    model_transition_t in_transition = {.delay_ms = delay_ms, 
+                                        .transition_time_ms = transition_time_ms};
+
+    if (!p_app->light_lightness_setup_server.state.initialized || (present_lightness != recall_lightness))
+    {
+        app_transition_abort(&p_app->state.transition);
+        
+        transition_parameters_set(p_app, 
+                                  (int32_t)p_app->state.target_snapshot - (int32_t)present_lightness,
+                                  &in_transition, 
+                                  APP_TRANSITION_TYPE_SET);
+
+        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
+            "SCENE RECALL: target lightness: %d  delay: %d  tt: %d \n",
+            p_app->state.target_snapshot,
+            in_transition.delay_ms,
+            in_transition.transition_time_ms);
+
+        app_transition_trigger(&p_app->state.transition);
+    }
+}
+
+static void app_light_lightness_scene_delete(const app_scene_model_interface_t * p_app_scene_if,
+                                             uint8_t scene_index)
+{
+    app_light_lightness_setup_server_t * p_app = 
+                PARENT_BY_FIELD_GET(app_light_lightness_setup_server_t, scene_if, p_app_scene_if);
+    app_transition_abort(&p_app->state.transition);
+    /* No need to do anything else */
+}
+#endif /* SCENE_SETUP_SERVER_INSTANCES_MAX > 0 */
+
 /***** Interface functions *****/
 
 uint32_t app_light_lightness_model_init(app_light_lightness_setup_server_t * p_app, uint8_t element)
@@ -944,6 +1072,10 @@ uint32_t app_light_lightness_model_init(app_light_lightness_setup_server_t * p_a
     {
         return status;
     }
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    p_app->scene_if.p_callbacks = &m_scene_light_lightness_cbs;
+#endif
 
     p_app->state.transition.delay_start_cb = transition_delay_start_cb;
     p_app->state.transition.transition_start_cb = transition_start_cb;
@@ -996,6 +1128,11 @@ uint32_t app_light_lightness_current_value_publish(app_light_lightness_setup_ser
     }
 
     app_transition_abort(&p_app->state.transition);
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    uint16_t old_present_lightness = p_app->state.present_lightness;
+#endif
+
     p_app->app_light_lightness_get_cb(p_app, &p_app->state.present_lightness);
 
     if (p_app->state.present_lightness >= LIGHT_LIGHTNESS_LAST_MIN)
@@ -1013,15 +1150,27 @@ uint32_t app_light_lightness_current_value_publish(app_light_lightness_setup_ser
         p_app->app_add_notify.app_notify_set_cb(p_app->app_add_notify.p_app_notify_v, p_app->state.present_lightness);
     }
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    if (old_present_lightness != p_app->state.present_lightness)
+    {
+        app_scene_model_scene_changed(p_app->p_app_scene);
+    }
+#endif
+
     return publish_lightness(p_app, 0);
 }
 
-uint32_t app_light_lightness_direct_actual_set(app_light_lightness_setup_server_t * p_app, uint16_t lightness_value)
+uint32_t app_light_lightness_direct_actual_set(app_light_lightness_setup_server_t * p_app, 
+                                               uint16_t lightness_value)
 {
     if (p_app == NULL)
     {
         return NRF_ERROR_NULL;
     }
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    uint16_t old_present_lightness = p_app->state.present_lightness;
+#endif
 
     p_app->state.present_lightness = lightness_value;
 
@@ -1046,5 +1195,26 @@ uint32_t app_light_lightness_direct_actual_set(app_light_lightness_setup_server_
     ERROR_CHECK(light_lightness_mc_actual_state_set(p_app->light_lightness_setup_server.state.handle,
                                                     p_app->state.present_lightness));
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    if (old_present_lightness != p_app->state.present_lightness)
+    {
+        app_scene_model_scene_changed(p_app->p_app_scene);
+    }
+#endif
+
     return NRF_SUCCESS;
 }
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+uint32_t app_light_lightness_scene_context_set(app_light_lightness_setup_server_t * p_app, 
+                                               app_scene_setup_server_t  * p_app_scene)
+{
+    if (p_app == NULL || p_app_scene == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+
+    p_app->p_app_scene = p_app_scene;
+    return NRF_SUCCESS;
+}
+#endif

@@ -1,7 +1,7 @@
-# Flash manager 
+# Flash manager
 
-The flash manager takes care of persistent storage for the mesh data.
-It stores data as handle/value pairs in individually managed multi-page flash sections. 
+The flash manager takes care of persistent storage for the Bluetooth mesh data.
+It stores data as handle/value pairs in individually managed multi-page flash sections.
 
 The flash entries are stored in the following format:
 
@@ -31,13 +31,13 @@ See also @ref FLASH_MANAGER "Flash manager API documentation" and @ref md_doc_us
 You can use any number of individual flash manager areas.
 
 Each area is made up of between one and 255 flash pages
-and has a handle-address space separated from other managers. 
+and has a handle-address space separated from other managers.
 Each flash page in a managed area is made up of:
-- a metadata header 
+- a metadata header
 - a data section
 
 The metadata header has a total of 8 bytes and holds the following values:
- 
+
 Field                            | Size    | Offset  | Value    | Description
 ---------------------------------|---------|---------|----------|------------
 Metadata length                  | 8 bits  | 0 bytes | `8`      | Length of the metadata in bytes.
@@ -63,7 +63,7 @@ Writing an entry with the same handle to the same manager twice will invalidate 
 ### Searching with handle filters @anchor flash_manager_handles_filters
 Handle filters allow searching for entries based on matching criteria on their handles.
 This allows you to group handles together in ranges without having to search for every handle
-in the range individually. 
+in the range individually.
 
 Filters are patterns and masks applied to the handles.
 The mask tells the manager on which bits in the handle to look for pattern matching.
@@ -78,7 +78,7 @@ from where the search is initiated (non-inclusive). Passing `NULL` starts the se
 from the beginning of the managed area. To keep searching through the area, keep passing
 the pointer yielded from the previous call to the search function.
 
-@note Entries are returned in order of flashing, not in sequential handle order. 
+@note Entries are returned in order of flashing, not in sequential handle order.
 
 
 ---
@@ -98,7 +98,7 @@ For more details on the defrag procedure, see the `flash_manager_defrag.c` file.
 
 The defragmentation procedure requires a dedicated flash page.
 This flash page is used to take a copy of all valid handles before their originals are erased.
-This allows for recovering entries if a power failure occurs during the procedure. 
+This allows for recovering entries if a power failure occurs during the procedure.
 
 @note Defragmentation moves entries around in the managed flash area.
 Never keep raw pointers to entries across contexts, as they may be invalidated with every written entry.
@@ -130,10 +130,10 @@ and considers the last handle invalid until it is followed by a seal.
 The flash areas can be located anywhere in the device flash. There are several exceptions:
   - Address `0x0000000` is considered invalid.
   - The address of the defragmentation recovery page is reserved.
-  
+
 By default, the defragmentation recovery page is one of the following:
     - the last page before the bootloader starts,
-    - the last page in the device flash if the bootloader is not present 
+    - the last page in the device flash if the bootloader is not present
     (determined by the `UICR->BOOTLOADERADDR` register).
 
 This location can be overriden by defining `FLASH_MANAGER_RECOVERY_PAGE` in the compiler defines.

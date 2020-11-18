@@ -486,6 +486,20 @@ void flash_manager_action_queue_empty_cb_set(flash_manager_queue_empty_cb_t queu
  */
 const void * flash_manager_recovery_page_get(void);
 
+/** Checks whether given flash manager is building the file area.
+ *
+ * @retval     true   if the flash manager is building the file area.
+ * @retval     false  if the flash manager is not building the file area.
+ */
+bool flash_manager_is_building(flash_manager_t * p_manager);
+
+/** Checks whether given flash manager is removing the file area.
+ *
+ * @retval     true   if the flash manager is removing the file area.
+ * @retval     false  if the flash manager is not removing the file area.
+ */
+bool flash_manager_is_removing(flash_manager_t * p_manager);
+
 
 /** Waits for the flash manager to complete all its operations. */
 static inline void flash_manager_wait(void)

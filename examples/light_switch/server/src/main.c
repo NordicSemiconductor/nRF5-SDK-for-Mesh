@@ -47,6 +47,7 @@
 #include "nrf_mesh_config_core.h"
 #include "nrf_mesh_gatt.h"
 #include "nrf_mesh_configure.h"
+#include "nrf_mesh_events.h"
 #include "nrf_mesh.h"
 #include "mesh_stack.h"
 #include "device_state_manager.h"
@@ -59,6 +60,8 @@
 
 /* Models */
 #include "generic_onoff_server.h"
+#include "scene_setup_server.h"
+#include "model_config_file.h"
 
 /* Logging and RTT */
 #include "log.h"
@@ -71,6 +74,8 @@
 #include "light_switch_example_common.h"
 #include "app_onoff.h"
 #include "ble_softdevice_support.h"
+#include "app_dtt.h"
+#include "app_scene.h"
 
 /*****************************************************************************
  * Definitions
@@ -87,16 +92,39 @@
 /*****************************************************************************
  * Forward declaration of static functions
  *****************************************************************************/
+static void mesh_events_handle(const nrf_mesh_evt_t * p_evt);
 static void app_onoff_server_set_cb(const app_onoff_server_t * p_server, bool onoff);
 static void app_onoff_server_get_cb(const app_onoff_server_t * p_server, bool * p_present_onoff);
 static void app_onoff_server_transition_cb(const app_onoff_server_t * p_server,
                                                 uint32_t transition_time_ms, bool target_onoff);
-
-
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static void app_onoff_scene_transition_cb(const app_scene_setup_server_t * p_app,
+                                          uint32_t transition_time_ms,
+                                          uint16_t target_scene);
+#endif
 /*****************************************************************************
  * Static variables
  *****************************************************************************/
 static bool m_device_provisioned;
+static nrf_mesh_evt_handler_t m_event_handler =
+{
+    .evt_cb = mesh_events_handle,
+};
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+/* Defaut Transition Time server structure definition and initialization */
+APP_DTT_SERVER_DEF(m_dtt_server_0,
+                   APP_FORCE_SEGMENTATION,
+                   APP_MIC_SIZE,
+                   NULL)
+
+/* Scene Setup server structure definition and initialization */
+APP_SCENE_SETUP_SERVER_DEF(m_scene_server_0,
+                           APP_FORCE_SEGMENTATION,
+                           APP_MIC_SIZE,
+                           app_onoff_scene_transition_cb,
+                           &m_dtt_server_0.server)
+#endif
 
 /* Generic OnOff server structure definition and initialization */
 APP_ONOFF_SERVER_DEF(m_onoff_server_0,
@@ -132,19 +160,50 @@ static void app_onoff_server_transition_cb(const app_onoff_server_t * p_server,
                                        transition_time_ms, target_onoff);
 }
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static void app_onoff_scene_transition_cb(const app_scene_setup_server_t * p_app,
+                                          uint32_t transition_time_ms,
+                                          uint16_t target_scene)
+{
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Transition time: %d, Target Scene: %d\n",
+                                       transition_time_ms, target_scene);
+}
+#endif
+
 static void app_model_init(void)
 {
     /* Instantiate onoff server on element index APP_ONOFF_ELEMENT_INDEX */
     ERROR_CHECK(app_onoff_init(&m_onoff_server_0, APP_ONOFF_ELEMENT_INDEX));
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App OnOff Model Handle: %d\n", m_onoff_server_0.server.model_handle);
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    /* Instantiate Generic Default Transition Time server as needed by Scene models */
+    ERROR_CHECK(app_dtt_init(&m_dtt_server_0, APP_ONOFF_ELEMENT_INDEX));
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App DTT Model Handle: %d\n", m_dtt_server_0.server.model_handle);
+
+    /* Instantiate scene server and register onoff server to have scene support */
+    ERROR_CHECK(app_scene_model_init(&m_scene_server_0, APP_ONOFF_ELEMENT_INDEX));
+    ERROR_CHECK(app_scene_model_add(&m_scene_server_0, &m_onoff_server_0.scene_if));
+    ERROR_CHECK(app_onoff_scene_context_set(&m_onoff_server_0, &m_scene_server_0));
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App Scene Model Handle: %d\n", m_scene_server_0.scene_setup_server.model_handle);
+#endif
 }
 
 /*************************************************************************************************/
 
+static void mesh_events_handle(const nrf_mesh_evt_t * p_evt)
+{
+    if (p_evt->type == NRF_MESH_EVT_ENABLED)
+    {
+        APP_ERROR_CHECK(app_onoff_value_restore(&m_onoff_server_0));
+    }
+}
+
 static void node_reset(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset  -----\n");
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
+    model_config_file_clear();
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
     /* This function may return if there are ongoing flash operations. */
     mesh_stack_device_reset();
 }
@@ -224,8 +283,8 @@ static void app_rtt_input_handler(int key)
 
 static void device_identification_start_cb(uint8_t attention_duration_s)
 {
-    hal_led_mask_set(LEDS_MASK, false);
-    hal_led_blink_ms(BSP_LED_2_MASK  | BSP_LED_3_MASK,
+    hal_led_mask_set(HAL_LED_MASK, false);
+    hal_led_blink_ms(HAL_LED_MASK_HALF,
                      LED_BLINK_ATTENTION_INTERVAL_MS,
                      LED_BLINK_ATTENTION_COUNT(attention_duration_s));
 }
@@ -255,8 +314,8 @@ static void provisioning_complete_cb(void)
 
     unicast_address_print();
     hal_led_blink_stop();
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
+    hal_led_mask_set(HAL_LED_MASK, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
 }
 
 static void models_init_cb(void)
@@ -267,6 +326,9 @@ static void models_init_cb(void)
 
 static void mesh_init(void)
 {
+    /* Initialize the application storage for models */
+    model_config_file_init();
+
     mesh_stack_init_params_t init_params =
     {
         .core.irq_priority       = NRF_MESH_IRQ_PRIORITY_LOWEST,
@@ -277,11 +339,20 @@ static void mesh_init(void)
     };
 
     uint32_t status = mesh_stack_init(&init_params, &m_device_provisioned);
+
+    if (status == NRF_SUCCESS)
+    {
+        /* Check if application stored data is valid, if not clear all data and use default values. */
+        status = model_config_file_config_apply();
+    }
+
     switch (status)
     {
         case NRF_ERROR_INVALID_DATA:
+            /* Clear model config file as loading failed */
+            model_config_file_clear();
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before starting of the provisioning process.\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reboot device before starting of the provisioning process.\n");
             break;
         case NRF_SUCCESS:
             break;
@@ -338,12 +409,15 @@ static void start(void)
 
     mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());
 
+    /* NRF_MESH_EVT_ENABLED is triggered in the mesh IRQ context after the stack is fully enabled.
+     * This event is used to call Model APIs for establishing bindings and publish a model state information. */
+    nrf_mesh_evt_handler_add(&m_event_handler);
     ERROR_CHECK(mesh_stack_start());
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
 
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
+    hal_led_mask_set(HAL_LED_MASK_UPPER_HALF, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(HAL_LED_MASK_UPPER_HALF, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
 }
 
 int main(void)

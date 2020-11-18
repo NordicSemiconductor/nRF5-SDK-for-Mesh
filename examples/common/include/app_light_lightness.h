@@ -44,6 +44,9 @@
 #include "app_timer.h"
 #include "app_transition.h"
 #include "list.h"
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+#include "app_scene.h"
+#endif
 
 /**
  * @defgroup APP_LIGHT_LIGHTNESS Light Lightness Setup Server behaviour
@@ -248,6 +251,14 @@ struct __app_light_lightness_setup_server_t
     bool abort_move;
     /** Internal variable. */
     list_node_t node;
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+    /** Internal variable. Scene callback interface. 
+     * @note Available only if  @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1. */
+    app_scene_model_interface_t scene_if;
+    /** Internal variable. Pointer to app_scene context. 
+     * @note Available only if  @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1. */
+    app_scene_setup_server_t  * p_app_scene;
+#endif
 };
 
 /** Initializes the behavioral module for the generic Light Lightness model
@@ -331,6 +342,22 @@ uint32_t app_light_lightness_current_value_publish(app_light_lightness_setup_ser
  */
 uint32_t app_light_lightness_direct_actual_set(app_light_lightness_setup_server_t * p_app, uint16_t lightness_value);
 
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+/** Sets the scene context
+ *
+ * This is needed for app light lightness to inform app scene when the state change occurs.
+ * @note Available only if @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1.
+ *
+ * @param[in] p_app                 Pointer to [app_light_lightness_setup_server_t](@ref 
+ *                                  __app_light_lightness_setup_server_t) context.
+ * @param[in] p_app_scene           Pointer to scene behavioral moduel context.
+ *
+ * @retval NRF_SUCCESS              Value is restored successfully
+ * @retval NRF_ERROR_NULL           If NULL pointer is provided as input context
+ */
+uint32_t app_light_lightness_scene_context_set(app_light_lightness_setup_server_t * p_app, 
+                                               app_scene_setup_server_t  * p_app_scene);
+#endif
 
 /** @} end of APP_LIGHT_LIGHTNESS */
 #endif /* APP_LIGHT_LIGHTNESS_H__*/

@@ -396,6 +396,7 @@ static void beacon_rx(uint32_t iv_index, bool iv_update, bool key_refresh)
 
 static void drain_seqnums(void)
 {
+    uint32_t iv_index = 0;
     uint32_t seqnum = 0;
     uint32_t allocated_seqnums = NETWORK_SEQNUM_FLASH_BLOCK_SIZE;
 
@@ -408,7 +409,8 @@ static void drain_seqnums(void)
             expect_config_seqnum(allocated_seqnums);
         }
 
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+        TEST_ASSERT_EQUAL(m_expected_iv_idx_input.iv_index, iv_index);
         TEST_ASSERT_EQUAL(seq_expect, seqnum);
 
         if (seq_expect == allocated_seqnums - NETWORK_SEQNUM_FLASH_BLOCK_SIZE - NETWORK_SEQNUM_FLASH_BLOCK_THRESHOLD)
@@ -487,6 +489,7 @@ void test_iv_seqnum_initiated(void)
 {
     /* iv index is always 0 at init */
     uint32_t current_iv_index = 0;
+    uint32_t iv_index;
     uint32_t seqnum;
 
     /* We have to allocate sequence numbers in flash before we start transmitting */
@@ -498,7 +501,8 @@ void test_iv_seqnum_initiated(void)
     /* One more seqnum alloc and we should automatically start iv update. */
     event_handle_ExpectAnyArgs();
     expect_config_iv_data(current_iv_index + 1, NET_STATE_IV_UPDATE_IN_PROGRESS);
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0, iv_index);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
     current_iv_index++;
     verify_ivi_state_in_progress(current_iv_index);
@@ -519,7 +523,8 @@ void test_iv_seqnum_initiated(void)
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
     /* next allocated seqnum is reset to 0 */
     uint32_t new_seqnum;
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&new_seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &new_seqnum));
+    TEST_ASSERT_EQUAL(1, iv_index);
     TEST_ASSERT_NOT_EQUAL(seqnum+1, new_seqnum);
     TEST_ASSERT_EQUAL(0, new_seqnum);
 }
@@ -528,6 +533,7 @@ void test_iv_lock(void)
 {
     /* iv index is always 0 at init */
     uint32_t current_iv_index = 0;
+    uint32_t iv_index;
     uint32_t seqnum;
 
     /* We have to allocate sequence numbers in flash before we start transmitting */
@@ -547,7 +553,8 @@ void test_iv_lock(void)
             expect_config_seqnum(allocated_seqnums);
         }
 
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+        TEST_ASSERT_EQUAL(0, iv_index);
         TEST_ASSERT_EQUAL(seq_expect, seqnum);
 
         if (seq_expect == allocated_seqnums - NETWORK_SEQNUM_FLASH_BLOCK_SIZE - NETWORK_SEQNUM_FLASH_BLOCK_THRESHOLD &&
@@ -557,7 +564,7 @@ void test_iv_lock(void)
         }
     }
     /* Can't allow a wrap-around */
-    TEST_ASSERT_EQUAL(NRF_ERROR_FORBIDDEN, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_ERROR_FORBIDDEN, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
     /* Even though we're out of seq no and it's been more than 96 hours, no iv_update can be started
      * due to the lock. */
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
@@ -574,54 +581,62 @@ void test_iv_lock(void)
     /* Already in progress */
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, net_state_iv_update_start());
     /* Still using the old Seq No, which we are out of. */
-    TEST_ASSERT_EQUAL(NRF_ERROR_FORBIDDEN, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_ERROR_FORBIDDEN, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
 }
 
 void test_iv_beacons(void)
 {
     /* iv index is always 0 at init */
     uint32_t current_iv_index = 0;
+    uint32_t iv_index;
     uint32_t seqnum;
 
     /* We have to allocate sequence numbers in flash before we start transmitting */
     start_from_scratch();
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0, iv_index);
     TEST_ASSERT_EQUAL(0, seqnum);
     verify_ivi_state_normal(current_iv_index);
 
     /* The other guy is doing an iv update */
     beacon_rx(current_iv_index+1, true, false);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0, iv_index);
     TEST_ASSERT_EQUAL(1, seqnum);
     /* We will not follow until 96 hours has passed */
     skip_minutes_and_expect_config_iv_data(96*60 + 3, current_iv_index, NET_STATE_IV_UPDATE_NORMAL);
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0, iv_index);
     TEST_ASSERT_EQUAL(2, seqnum);
     /* A timer event after the limit has passed will trigger the state change */
     current_iv_index++;
     iv_update_state_in_progress_trigger(current_iv_index);
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0, iv_index);
     TEST_ASSERT_EQUAL(3, seqnum);
     verify_ivi_state_in_progress(current_iv_index);
 
     /* The other guy is already in normal state */
     beacon_rx(current_iv_index, false, false);
     verify_ivi_state_in_progress(current_iv_index);
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0, iv_index);
     TEST_ASSERT_EQUAL(4, seqnum);
 
     /* We will not follow until 96 hours has passed */
     skip_minutes_and_expect_config_iv_data(96*60 + 3, current_iv_index, NET_STATE_IV_UPDATE_IN_PROGRESS);
     verify_ivi_state_in_progress(current_iv_index);
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0, iv_index);
     TEST_ASSERT_EQUAL(5, seqnum);
     /* A timer event after the limit has passed will trigger the state change */
     iv_update_state_normal_trigger(current_iv_index);
     /* Reset seqnum */
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(1, iv_index);
     TEST_ASSERT_EQUAL(0, seqnum);
 
     /* Some other node is trying to catch up with the IV update procedure */
@@ -630,7 +645,8 @@ void test_iv_beacons(void)
 
     /* Time passes and we can do iv update again */
     skip_minutes_and_expect_config_iv_data(96*60 + 3, current_iv_index, NET_STATE_IV_UPDATE_NORMAL);
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(1, iv_index);
     TEST_ASSERT_EQUAL(1, seqnum);
 
     /* Some other node is behind on its updates and gets ignored */
@@ -643,7 +659,8 @@ void test_iv_beacons(void)
     beacon_rx(current_iv_index+1, true, false);
     current_iv_index++;
     verify_ivi_state_in_progress(current_iv_index);
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(1, iv_index);
     TEST_ASSERT_EQUAL(2, seqnum);
 
     /* IV Update in Progress state is timed out. Switching to Normal state. */
@@ -662,12 +679,14 @@ void test_iv_beacons(void)
     verify_ivi_state_normal(current_iv_index);
 
     /* Reset seqnum */
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(12, iv_index);
     TEST_ASSERT_EQUAL(0, seqnum);
 
     beacon_rx(current_iv_index+10, false, false);
     verify_ivi_state_normal(current_iv_index);
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(12, iv_index);
     TEST_ASSERT_EQUAL(1, seqnum);
 
     /* This time 96 hours is not sufficient since we can't have another IV Index recovery
@@ -675,14 +694,16 @@ void test_iv_beacons(void)
     skip_minutes_and_expect_config_iv_data(96*60 + 4, current_iv_index, NET_STATE_IV_UPDATE_NORMAL);
     beacon_rx(current_iv_index+10, false, false);
     verify_ivi_state_normal(current_iv_index);
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(12, iv_index);
     TEST_ASSERT_EQUAL(2, seqnum);
 
     /* Another 96 hours and we are allowed to do IV Recovery again. */
     /* IV Update Normal Operation state timeout is passed, the timeout counter won't be changed anymore. */
     skip_minutes(96*60+3);
     verify_ivi_state_normal(current_iv_index);
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(12, iv_index);
     TEST_ASSERT_EQUAL(3, seqnum);
 
     /* Do a recovery with the IV update flag set */
@@ -693,7 +714,8 @@ void test_iv_beacons(void)
     evt_notify(NRF_MESH_EVT_CONFIG_STABLE);
     current_iv_index += 11;
     verify_ivi_state_normal(current_iv_index);
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(23, iv_index);
     TEST_ASSERT_EQUAL(0, seqnum);
 
     /* Elapse some time so we can do recovery again */
@@ -704,7 +726,8 @@ void test_iv_beacons(void)
     /* But we will not accept IV indices larger than NETWORK_IV_RECOVERY_LIMIT */
     beacon_rx(current_iv_index + NETWORK_IV_RECOVERY_LIMIT+1, false, false);
     verify_ivi_state_normal(current_iv_index);
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(23, iv_index);
     TEST_ASSERT_EQUAL(1, seqnum);
 
     event_handle_ExpectAnyArgs();
@@ -715,7 +738,8 @@ void test_iv_beacons(void)
     current_iv_index += NETWORK_IV_RECOVERY_LIMIT;
     verify_ivi_state_normal(current_iv_index);
     /* Reset seqnum */
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(23 + NETWORK_IV_RECOVERY_LIMIT, iv_index);
     TEST_ASSERT_EQUAL(0, seqnum);
 }
 
@@ -726,9 +750,11 @@ void test_iv_testmode(void)
 
     /* iv index is always 0 at init */
     uint32_t current_iv_index = 0;
+    uint32_t iv_index;
     uint32_t seqnum;
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0, iv_index);
     TEST_ASSERT_EQUAL(0, seqnum);
     verify_ivi_state_normal(current_iv_index);
 
@@ -774,13 +800,15 @@ void test_mesh_config_recover(void)
 {
     mesh_opt_iv_index_persist_data_t dummy_iv_idx;
     mesh_opt_seqnum_persist_data_t dummy_seqnum;
+    uint32_t iv_index;
     uint32_t seqnum;
 
     /* We have to allocate sequence numbers in flash before we start transmitting */
     start_from_scratch();
 
     /* Now we get a sequence number */
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0, iv_index);
     TEST_ASSERT_EQUAL(0, seqnum);
 
     /* reset net state module */
@@ -788,7 +816,8 @@ void test_mesh_config_recover(void)
     /* Load again with different parameters */
     start_from_persist_state(0x1234, 0x5678, NET_STATE_IV_UPDATE_IN_PROGRESS, 0);
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0x1234 - 1, iv_index);
     TEST_ASSERT_EQUAL(0x5678, seqnum);
     TEST_ASSERT_EQUAL(0x1233, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
@@ -798,7 +827,8 @@ void test_mesh_config_recover(void)
     net_state_module_reset();
     start_from_persist_state(0x7890, 0xABCD, NET_STATE_IV_UPDATE_NORMAL, 0);
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0x7890, iv_index);
     TEST_ASSERT_EQUAL(0xABCD, seqnum);
     TEST_ASSERT_EQUAL(0x7890, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
@@ -822,7 +852,8 @@ void test_mesh_config_recover(void)
     m_seqnum_block_params.callbacks.setter(MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_EID, &m_expected_seqnum_input);
     evt_notify(NRF_MESH_EVT_CONFIG_STABLE);
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0x1000, iv_index);
     TEST_ASSERT_EQUAL(0, seqnum);
     TEST_ASSERT_EQUAL(0x1000, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
@@ -845,7 +876,8 @@ void test_mesh_config_recover(void)
     m_seqnum_block_params.callbacks.setter(MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_EID, &m_expected_seqnum_input);
     evt_notify(NRF_MESH_EVT_CONFIG_STABLE);
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0x1000-1, iv_index);
     TEST_ASSERT_EQUAL(0x2000, seqnum);
     TEST_ASSERT_EQUAL(0x1000-1, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
@@ -870,7 +902,8 @@ void test_mesh_config_recover(void)
     m_iv_index_params.callbacks.setter(MESH_OPT_NET_STATE_IV_INDEX_EID, &m_expected_iv_idx_input);
     evt_notify(NRF_MESH_EVT_CONFIG_STABLE);
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0, iv_index);
     TEST_ASSERT_EQUAL(0, seqnum);
     TEST_ASSERT_EQUAL(0, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
@@ -896,7 +929,8 @@ void test_mesh_config_recover(void)
     m_iv_index_params.callbacks.setter(MESH_OPT_NET_STATE_IV_INDEX_EID, &m_expected_iv_idx_input);
     evt_notify(NRF_MESH_EVT_CONFIG_STABLE);
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0, iv_index);
     TEST_ASSERT_EQUAL(0, seqnum);
     TEST_ASSERT_EQUAL(0, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
@@ -917,7 +951,8 @@ void test_mesh_config_recover(void)
     m_iv_index_params.callbacks.setter(MESH_OPT_NET_STATE_IV_INDEX_EID, &m_expected_iv_idx_input);
     evt_notify(NRF_MESH_EVT_CONFIG_STABLE);
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0, iv_index);
     TEST_ASSERT_EQUAL(0, seqnum);
     TEST_ASSERT_EQUAL(0, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
@@ -936,8 +971,10 @@ void test_reset(void)
     /* We have to allocate sequence numbers in flash before we start transmitting */
     start_from_persist_state(0x1234, 0x5000, NET_STATE_IV_UPDATE_NORMAL, 0);
 
+    uint32_t iv_index;
     uint32_t seqnum;
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0x1234, iv_index);
     TEST_ASSERT_EQUAL(0x5000, seqnum);
     TEST_ASSERT_EQUAL(0x1234, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
@@ -953,7 +990,8 @@ void test_reset(void)
     TEST_ASSERT_EQUAL(0, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0, iv_index);
     TEST_ASSERT_EQUAL(0, seqnum);
 }
 
@@ -997,6 +1035,7 @@ void test_testmode_transition_run(void)
 
 void test_restoring_from_legacy(void)
 {
+    uint32_t iv_index;
     uint32_t seqnum;
     mesh_opt_seqnum_persist_data_legacy_t dummy_legacy_seqnum;
     mesh_opt_iv_index_persist_data_legacy_t dummy_legacy_iv_idx;
@@ -1015,7 +1054,8 @@ void test_restoring_from_legacy(void)
     m_seqnum_block_params.callbacks.setter(MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_EID, &m_expected_seqnum_input);
     evt_notify(NRF_MESH_EVT_CONFIG_STABLE);
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0x1000, iv_index);
     TEST_ASSERT_EQUAL(0x2000, seqnum);
     TEST_ASSERT_EQUAL(0x1000, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
@@ -1036,7 +1076,8 @@ void test_restoring_from_legacy(void)
     m_seqnum_block_params.callbacks.setter(MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_EID, &m_expected_seqnum_input);
     evt_notify(NRF_MESH_EVT_CONFIG_STABLE);
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0x1000-1, iv_index);
     TEST_ASSERT_EQUAL(0x2000, seqnum);
     TEST_ASSERT_EQUAL(0x1000-1, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_IN_PROGRESS, net_state_iv_update_get());
@@ -1057,7 +1098,8 @@ void test_restoring_from_legacy(void)
     m_seqnum_block_params.callbacks.setter(MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_EID, &m_expected_seqnum_input);
     evt_notify(NRF_MESH_EVT_CONFIG_STABLE);
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0x1000, iv_index);
     TEST_ASSERT_EQUAL(0, seqnum);
     TEST_ASSERT_EQUAL(0x1000, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
@@ -1070,7 +1112,8 @@ void test_restoring_from_legacy(void)
 
     start_from_scratch();
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0, iv_index);
     TEST_ASSERT_EQUAL(0, seqnum);
     TEST_ASSERT_EQUAL(0, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
@@ -1084,7 +1127,8 @@ void test_restoring_from_legacy(void)
 
     start_from_scratch();
 
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(0, iv_index);
     TEST_ASSERT_EQUAL(0, seqnum);
     TEST_ASSERT_EQUAL(0, net_state_tx_iv_index_get());
     TEST_ASSERT_EQUAL(NET_STATE_IV_UPDATE_NORMAL, net_state_iv_update_get());
@@ -1092,6 +1136,7 @@ void test_restoring_from_legacy(void)
 
 void test_verify_timeout_counter_restored_after_restart(void)
 {
+    uint32_t iv_index;
     uint32_t seqnum = 0;
 
     struct {
@@ -1117,8 +1162,17 @@ void test_verify_timeout_counter_restored_after_restart(void)
         start_from_persist_state(variants[var].current_iv_index, NETWORK_SEQNUM_IV_UPDATE_START_THRESHOLD, variants[var].current_iv_update_state, m_iv_update_timeout_counter);
 
         /* This shall not trigger IV Update. */
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
         TEST_ASSERT_EQUAL(NETWORK_SEQNUM_IV_UPDATE_START_THRESHOLD, seqnum);
+
+        if (variants[var].current_iv_update_state == NET_STATE_IV_UPDATE_NORMAL)
+        {
+            TEST_ASSERT_EQUAL(variants[var].current_iv_index, iv_index);
+        }
+        else
+        {
+            TEST_ASSERT_EQUAL(variants[var].current_iv_index - 1, iv_index);
+        }
 
         /* Skip the remaining time before IV Update state transition. */
         skip_minutes_and_expect_config_iv_data(variants[var].state_timeout - m_iv_update_timeout_counter, variants[var].current_iv_index, variants[var].current_iv_update_state);
@@ -1139,6 +1193,7 @@ void test_verify_timeout_counter_restored_after_restart(void)
 
 void test_provisioning_iv_update_normal(void)
 {
+    uint32_t iv_index;
     uint32_t seqnum;
 
     /* Start from the scratch. */
@@ -1153,7 +1208,8 @@ void test_provisioning_iv_update_normal(void)
 
     /* Allocate one more seqnum to set the pending flag to true, but
      * this shall not trigger IV Update. */
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
+    TEST_ASSERT_EQUAL(TEST_IV_INDEX, iv_index);
     TEST_ASSERT_EQUAL(NETWORK_SEQNUM_IV_UPDATE_START_THRESHOLD, seqnum);
 
     /* Wait for IV Update process to be ready to transition to Normal Operation state.
@@ -1183,11 +1239,12 @@ void test_provisioning_iv_update_in_progress(void)
 
 void test_seqnum_protection(void)
 {
+    uint32_t iv_index;
     uint32_t seqnum;
 
-    TEST_ASSERT_EQUAL(NRF_ERROR_FORBIDDEN, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_ERROR_FORBIDDEN, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
     /* Start from the scratch. */
     start_from_scratch();
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_seqnum_alloc(&seqnum));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, net_state_iv_index_and_seqnum_alloc(&iv_index, &seqnum));
     TEST_ASSERT_EQUAL(0, seqnum);
 }

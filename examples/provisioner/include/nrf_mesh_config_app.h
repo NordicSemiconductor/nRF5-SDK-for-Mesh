@@ -108,6 +108,14 @@
 #define ACCESS_ELEMENT_COUNT (1) /* Provisioner node has only 1 element */
 
 /**
+ * The number of scene setup server instances used by the application. This is only used to
+ * enable/disable the scene setup server configuration in the different servers.
+ */
+#ifndef SCENE_SETUP_SERVER_INSTANCES_MAX
+#define SCENE_SETUP_SERVER_INSTANCES_MAX (1)
+#endif
+
+/**
  * The number of allocated subscription lists for the application.
  *
  * @note This value must equal @ref ACCESS_MODEL_COUNT minus the number of

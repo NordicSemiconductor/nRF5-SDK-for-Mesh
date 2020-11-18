@@ -1,7 +1,7 @@
 # Simple OnOff model
 
-The Mesh Model Specification specifies a Generic OnOff Model to be used in real applications
-with the mesh. This vendor-specific model is a simplified version of the Generic OnOff Model.
+The Bluetooth mesh model specification specifies a Generic OnOff Model to be used in real applications
+with the Bluetooth mesh. This vendor-specific model is a simplified version of the Generic OnOff Model.
 It is an introductory example for @ref md_doc_user_guide_modules_models_creating, but you can also
 use it in your applications.
 
@@ -32,7 +32,7 @@ the @ref md_examples_light_switch_README and at the `examples/light_switch` dire
 
 ## Properties and features @anchor simple_onoff_model_overview
 
-A mesh application is specified using a client-server architecture, where client and server
+A Bluetooth mesh application is specified using a client-server architecture, where client and server
 models use publish and subscribe mechanism to communicate with each other.
 For this reason, the intended functionality of this model will be realized using two parts:
 - the server model, used for maintaining the OnOff state;
@@ -264,7 +264,7 @@ is used to keep track of whether a transaction is currently active and to
 prevent running multiple simultaneous transactions.
 
 @note
-In a mesh network, messages may be delivered out of order, or may not be delivered at all.
+In a Bluetooth mesh network, messages may be delivered out of order, or may not be delivered at all.
 For this reason, a client must perform only one transaction at a time with its corresponding server.
 
 The client model uses a callback function to provide information about the state of the server to

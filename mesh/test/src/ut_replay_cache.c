@@ -46,19 +46,95 @@
 #include "replay_cache.h"
 #include "nrf_mesh_config_core.h"
 #include "nrf_mesh_events.h"
+#include "mesh_opt.h"
+
+#include "mesh_config_entry_mock.h"
+#include "mesh_config_mock.h"
 
 #define ADDR_BASE   1000
 
+/* These are the copy of definitions from replay_cache.c. They shall be synchronized. */
+/** Replay cache start ID of the item range */
+#define MESH_OPT_REPLY_CACHE_RECORD      0x0001
+/** SeqZero cache start ID of the item range */
+#define MESH_OPT_SEQZERO_CACHE_RECORD    (MESH_OPT_REPLY_CACHE_RECORD + REPLAY_CACHE_ENTRIES)
+
+/*****************************************************************************
+* Extern stub
+*****************************************************************************/
+extern const mesh_config_entry_params_t m_replay_cache_params;
+extern const mesh_config_entry_params_t m_seqzero_cache_params;
+
 static nrf_mesh_evt_handler_cb_t m_evt_handler;
 static uint32_t m_iv_index;
+static bool m_is_iv_index_in_progress;
+static uint16_t m_fragmented_record_id;
+
+static uint32_t entry_set_cb(mesh_config_entry_id_t id, const void* p_entry, int num_calls)
+{
+    (void)num_calls;
+
+    TEST_ASSERT_EQUAL(MESH_OPT_REPLAY_CACHE_FILE_ID, id.file);
+
+    if (m_is_iv_index_in_progress)
+    {
+        m_fragmented_record_id = id.record;
+    }
+
+    if (IS_IN_RANGE(id.record, MESH_OPT_REPLY_CACHE_RECORD,
+                    MESH_OPT_REPLY_CACHE_RECORD + REPLAY_CACHE_ENTRIES - 1))
+    {
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, m_replay_cache_params.callbacks.setter(id, p_entry));
+        return NRF_SUCCESS;
+    }
+
+    if (IS_IN_RANGE(id.record, MESH_OPT_SEQZERO_CACHE_RECORD,
+                    MESH_OPT_SEQZERO_CACHE_RECORD + REPLAY_CACHE_ENTRIES - 1))
+    {
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, m_seqzero_cache_params.callbacks.setter(id, p_entry));
+        return NRF_SUCCESS;
+    }
+
+    TEST_FAIL();
+    return NRF_ERROR_INTERNAL;
+}
+
+static uint32_t entry_delete_cb(mesh_config_entry_id_t id, int num_calls)
+{
+    (void)num_calls;
+
+    TEST_ASSERT_TRUE(m_is_iv_index_in_progress);
+    TEST_ASSERT_EQUAL(MESH_OPT_REPLAY_CACHE_FILE_ID, id.file);
+
+    if (IS_IN_RANGE(m_fragmented_record_id, MESH_OPT_REPLY_CACHE_RECORD,
+                    MESH_OPT_REPLY_CACHE_RECORD + REPLAY_CACHE_ENTRIES - 1))
+    {
+        TEST_ASSERT_TRUE(IS_IN_RANGE(id.record, MESH_OPT_REPLY_CACHE_RECORD,
+                         MESH_OPT_REPLY_CACHE_RECORD + REPLAY_CACHE_ENTRIES - 1));
+        return NRF_SUCCESS;
+    }
+
+    if (IS_IN_RANGE(m_fragmented_record_id, MESH_OPT_SEQZERO_CACHE_RECORD,
+                    MESH_OPT_SEQZERO_CACHE_RECORD + REPLAY_CACHE_ENTRIES - 1))
+    {
+        TEST_ASSERT_TRUE(IS_IN_RANGE(id.record, MESH_OPT_SEQZERO_CACHE_RECORD,
+                         MESH_OPT_SEQZERO_CACHE_RECORD + REPLAY_CACHE_ENTRIES - 1));
+        return NRF_SUCCESS;
+    }
+
+    TEST_FAIL();
+    return NRF_ERROR_INTERNAL;
+}
 
 static void do_iv_update(uint32_t new_iv_index)
 {
+    m_is_iv_index_in_progress = true;
     m_iv_index = new_iv_index;
     const nrf_mesh_evt_t evt = {
         .type = NRF_MESH_EVT_IV_UPDATE_NOTIFICATION, // don't really care about the params.
     };
     m_evt_handler(&evt);
+    m_is_iv_index_in_progress = false;
 }
 
 void nrf_mesh_evt_handler_add(nrf_mesh_evt_handler_t * p_evt_handler)
@@ -75,6 +151,12 @@ uint32_t net_state_beacon_iv_index_get(void)
 
 void setUp(void)
 {
+    mesh_config_entry_mock_Init();
+    mesh_config_mock_Init();
+
+    mesh_config_entry_set_StubWithCallback(entry_set_cb);
+    mesh_config_entry_delete_StubWithCallback(entry_delete_cb);
+
     m_iv_index = 0;
     replay_cache_init();
     TEST_ASSERT_NOT_NULL(m_evt_handler);
@@ -83,7 +165,13 @@ void setUp(void)
 
 void tearDown(void)
 {
+    mesh_config_file_clear_Expect(MESH_OPT_REPLAY_CACHE_FILE_ID);
     replay_cache_clear();
+
+    mesh_config_entry_mock_Verify();
+    mesh_config_entry_mock_Destroy();
+    mesh_config_mock_Verify();
+    mesh_config_mock_Destroy();
 }
 
 void test_add(void)
@@ -220,6 +308,7 @@ void test_clear(void)
     }
     TEST_ASSERT_EQUAL(ADDR_BASE + REPLAY_CACHE_ENTRIES, addr);
 
+    mesh_config_file_clear_Expect(MESH_OPT_REPLAY_CACHE_FILE_ID);
     replay_cache_clear();
     for (uint32_t i = ADDR_BASE; i <= addr; ++i)
     {
@@ -251,7 +340,8 @@ void test_seqauth_init(void)
 void test_seqauth_seq_less_than_seqzero(void)
 {
     TEST_NRF_MESH_ASSERT_EXPECT(replay_cache_seqauth_add(ADDR_BASE, 10, 0, 12));
-    TEST_NRF_MESH_ASSERT_EXPECT(replay_cache_has_seqauth(ADDR_BASE, 10, 0, 12));
+    TEST_ASSERT_TRUE(replay_cache_has_seqauth(ADDR_BASE, 10, 0, 12));
+    TEST_ASSERT_FALSE(replay_cache_is_seqauth_last(ADDR_BASE, 10, 0, 12));
 }
 
 void test_seqauth_adding_less_than_exists(void)

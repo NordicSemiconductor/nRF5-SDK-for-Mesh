@@ -335,12 +335,14 @@ void test_alloc(void)
 
         if (vector[i].core_tx_alloc_ok)
         {
+            uint32_t iv_index = IV_INDEX;
             uint32_t seqnum = SEQNUM;
-            net_state_tx_iv_index_get_ExpectAndReturn(IV_INDEX);
-            net_state_seqnum_alloc_ExpectAndReturn(&metadata.internal.sequence_number,
-                                                   vector[i].seqnum_alloc_ok ? NRF_SUCCESS
-                                                                             : NRF_ERROR_FORBIDDEN);
-            net_state_seqnum_alloc_ReturnMemThruPtr_p_seqnum(&seqnum, sizeof(seqnum));
+            net_state_iv_index_and_seqnum_alloc_ExpectAndReturn(&metadata.internal.iv_index,
+                                                            &metadata.internal.sequence_number,
+                                                            vector[i].seqnum_alloc_ok ? NRF_SUCCESS
+                                                                                      : NRF_ERROR_FORBIDDEN);
+            net_state_iv_index_and_seqnum_alloc_ReturnMemThruPtr_p_iv_index(&iv_index, sizeof(iv_index));
+            net_state_iv_index_and_seqnum_alloc_ReturnMemThruPtr_p_seqnum(&seqnum, sizeof(seqnum));
 
 
             if (vector[i].seqnum_alloc_ok)

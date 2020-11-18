@@ -1,3 +1,380 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="1032px" height="621px" viewBox="-0.5 -0.5 1032 621" content="&lt;mxfile host=&quot;Chrome&quot; modified=&quot;2020-03-04T16:00:59.370Z&quot; agent=&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36&quot; etag=&quot;kpL-aS4nOxX8A3tLfR3P&quot; version=&quot;12.7.9&quot; type=&quot;device&quot;&gt;&lt;diagram name=&quot;Page-1&quot; id=&quot;Page-1&quot;&gt;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&lt;/diagram&gt;&lt;/mxfile&gt;"><defs/><g><path d="M 0 620 L 1030 620 L 1030 0 L 0 0 L 0 620" fill="#31859b" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-end; justify-content: unsafe center; width: 1028px; height: 1px; padding-top: 617px; margin-left: 1px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #ffffff ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL examples' model composition<br /></font></div></div></div></foreignObject><text x="515" y="617" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL examples' model composition&#xa;</text></switch></g><path d="M 368 590 L 1016 590 L 1016 94 L 368 94 L 368 590" fill="#92cddc" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-end; justify-content: unsafe center; width: 652px; height: 1px; padding-top: 587px; margin-left: 366px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL Server example<br /></font></p></div></div></div></foreignObject><text x="692" y="587" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL Server example&#xa;</text></switch></g><path d="M 13 344 L 348 344 L 348 114.5 L 13 114.5 L 13 344" fill="#92cddc" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-end; justify-content: unsafe center; width: 339px; height: 1px; padding-top: 341px; margin-left: 11px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL Client example<br /></font></div></div></div></foreignObject><text x="181" y="341" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL Client example&#xa;</text></switch></g><path d="M 29 217.5 L 333 217.5 L 333 125.5 L 29 125.5 L 29 217.5" fill="#b7dde8" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 308px; height: 1px; padding-top: 172px; margin-left: 27px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL Client model<br /></font></div></div></div></foreignObject><text x="181" y="175" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL Client model&#xa;</text></switch></g><path d="M 381 190 L 685 190 L 685 109 L 381 109 L 381 190" fill="#b7dde8" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-end; justify-content: unsafe center; width: 308px; height: 1px; padding-top: 187px; margin-left: 379px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL Server model<br /></font></div></div></div></foreignObject><text x="533" y="187" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL Server model&#xa;</text></switch></g><path d="M 392 164 L 670 164 L 670 119 L 392 119 L 392 164" fill="#dbeef3" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 282px; height: 1px; padding-top: 142px; margin-left: 390px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL Lightness state<br /></font></div></div></div></foreignObject><text x="531" y="145" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL Lightness state&#xa;</text></switch></g><path d="M 28.5 321.5 L 332.5 321.5 L 332.5 229.5 L 28.5 229.5 L 28.5 321.5" fill="#b7dde8" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 308px; height: 1px; padding-top: 276px; margin-left: 27px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL Client model<br /></font></div></div></div></foreignObject><text x="181" y="279" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL Client model&#xa;</text></switch></g><path d="M 702 155 L 1006 155 L 1006 109 L 702 109 L 702 155" fill="#b7dde8" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 308px; height: 1px; padding-top: 132px; margin-left: 700px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Generic OnOff Server model<br /></font></div></div></div></foreignObject><text x="854" y="136" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Generic OnOff Server model&#xa;</text></switch></g><path d="M 702 210 L 1006 210 L 1006 164 L 702 164 L 702 210" fill="#b7dde8" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 308px; height: 1px; padding-top: 187px; margin-left: 700px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Generic Default Transition Time Server model<br /></font></div></div></div></foreignObject><text x="854" y="191" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Generic Default Transition Time Server model&#xa;</text></switch></g><path d="M 701 266 L 1005 266 L 1005 220 L 701 220 L 701 266" fill="#b7dde8" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 308px; height: 1px; padding-top: 243px; margin-left: 699px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Generic Power OnOff Setup Server model<br /></font></div></div></div></foreignObject><text x="853" y="247" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Generic Power OnOff Setup Server model&#xa;</text></switch></g><path d="M 700 380 L 1004 380 L 1004 334 L 700 334 L 700 380" fill="#b7dde8" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 308px; height: 1px; padding-top: 357px; margin-left: 698px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Generic Level Server model<br /></font></div></div></div></foreignObject><text x="852" y="361" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Generic Level Server model&#xa;</text></switch></g><path d="M 702 322 L 1006 322 L 1006 276 L 702 276 L 702 322" fill="#b7dde8" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 308px; height: 1px; padding-top: 299px; margin-left: 700px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Generic Power OnOff Server model<br /></font></div></div></div></foreignObject><text x="854" y="303" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Generic Power OnOff Server model&#xa;</text></switch></g><path d="M 368 76 L 1015 76 L 1015 16 L 368 16 L 368 76" fill="#92cddc" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 651px; height: 1px; padding-top: 46px; margin-left: 366px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">[same models and states]<br /></font><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL Server example<br /></font></p></div></div></div></foreignObject><text x="691" y="50" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">[same models and states]...</text></switch></g><path d="M 332.8 276.61 L 368 276.59" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><path d="M 181 125.5 L 181 46 L 368 46" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><path d="M 700 436 L 1004 436 L 1004 390 L 700 390 L 700 436" fill="#b7dde8" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 308px; height: 1px; padding-top: 413px; margin-left: 698px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light Lightness Server model<br /></font></div></div></div></foreignObject><text x="852" y="417" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light Lightness Server model&#xa;</text></switch></g><path d="M 700 496 L 1004 496 L 1004 450 L 700 450 L 700 496" fill="#b7dde8" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 308px; height: 1px; padding-top: 473px; margin-left: 698px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light Lightness Setup Server model<br /></font></div></div></div></foreignObject><text x="852" y="477" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light Lightness Setup Server model&#xa;</text></switch></g><path d="M 382 560 L 686 560 L 686 360 L 382 360 L 382 560" fill="#b7dde8" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-end; justify-content: unsafe center; width: 308px; height: 1px; padding-top: 557px; margin-left: 380px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL Setup Server model<br /></font></div></div></div></foreignObject><text x="534" y="557" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL Setup Server model&#xa;</text></switch></g><path d="M 391.5 474 L 676.5 474 L 676.5 430 L 391.5 430 L 391.5 474" fill="#dbeef3" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 289px; height: 1px; padding-top: 452px; margin-left: 390px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL Delta UV Default state<br /></font></div></div></div></foreignObject><text x="534" y="456" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL Delta UV Default state&#xa;</text></switch></g><path d="M 392 529 L 677 529 L 677 484 L 392 484 L 392 529" fill="#dbeef3" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 289px; height: 1px; padding-top: 507px; margin-left: 390px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL Temperature Default state<br /></font></div></div></div></foreignObject><text x="534" y="510" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL Temperature Default state&#xa;</text></switch></g><path d="M 391.5 415 L 676.5 415 L 676.5 370 L 391.5 370 L 391.5 415" fill="#dbeef3" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 289px; height: 1px; padding-top: 393px; margin-left: 390px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><p style="margin-left: 0 ; margin-right: 0 ; margin-top: 0px ; margin-bottom: 0px ; text-indent: 0 ; direction: ltr"><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL Temperature Range </font><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">state<br /></font></p></div></div></div></foreignObject><text x="534" y="396" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL Temperature Range state&#xa;</text></switch></g><path d="M 381 340 L 685 340 L 685 200.75 L 381 200.75 L 381 340" fill="#b7dde8" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-end; justify-content: unsafe center; width: 308px; height: 1px; padding-top: 337px; margin-left: 379px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL Temperature Server model  <br /></font></div></div></div></foreignObject><text x="533" y="337" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL Temperature Server model  &#xa;</text></switch></g><path d="M 392 255 L 670 255 L 670 210 L 392 210 L 392 255" fill="#dbeef3" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 282px; height: 1px; padding-top: 233px; margin-left: 390px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL Temperature state<br /></font></div></div></div></foreignObject><text x="531" y="236" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL Temperature state&#xa;</text></switch></g><path d="M 392 311 L 670 311 L 670 266 L 392 266 L 392 311" fill="#dbeef3" stroke="#000000" stroke-miterlimit="10" pointer-events="none"/><g transform="translate(-0.5 -0.5)"><switch><foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 282px; height: 1px; padding-top: 289px; margin-left: 390px;"><div style="box-sizing: border-box; font-size: 0; text-align: center; "><div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: none; white-space: normal; word-wrap: normal; "><font style="font-size: 14px ; font-family: &quot;verdana&quot; ; color: #000000 ; direction: ltr ; letter-spacing: 0px ; line-height: 120% ; opacity: 1">Light CTL Delta UV state<br /></font></div></div></div></foreignObject><text x="531" y="292" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">Light CTL Delta UV state&#xa;</text></switch></g></g><switch><g requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"/><a transform="translate(0,-5)" xlink:href="https://desk.draw.io/support/solutions/articles/16000042487" target="_blank"><text text-anchor="middle" font-size="10px" x="50%" y="100%">Viewer does not support full SVG 1.1</text></a></switch></svg>
+<!-- Generated by Microsoft Visio, SVG Export ctl_example_structure.svg ctl_example_structure -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events"
+		xmlns:v="http://schemas.microsoft.com/visio/2003/SVGExtensions/" width="9.88542in" height="7.58801in"
+		viewBox="0 0 711.75 546.337" xml:space="preserve" color-interpolation-filters="sRGB" class="st12">
+	<v:documentProperties v:langID="1033" v:viewMarkup="false"/>
+
+	<style type="text/css">
+	<![CDATA[
+		.st1 {fill:#31859b;stroke:#000000;stroke-linecap:butt;stroke-width:0.75}
+		.st2 {fill:none;stroke:none;stroke-linecap:butt;stroke-width:0.75}
+		.st3 {fill:#ffffff;font-family:Verdana;font-size:0.833336em}
+		.st4 {fill:#92cddc;stroke:#000000;stroke-linecap:butt;stroke-width:0.75}
+		.st5 {fill:#4bacc6;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.75}
+		.st6 {fill:#000000;font-family:Verdana;font-size:0.833336em}
+		.st7 {fill:#b7dde8;stroke:#000000;stroke-linecap:butt;stroke-width:0.75}
+		.st8 {font-size:1em}
+		.st9 {fill:none}
+		.st10 {stroke:#000000;stroke-linecap:butt;stroke-width:0.75}
+		.st11 {fill:#dbeef3;stroke:#000000;stroke-linecap:butt;stroke-width:0.75}
+		.st12 {fill:none;fill-rule:evenodd;font-size:12px;overflow:visible;stroke-linecap:square;stroke-miterlimit:3}
+	]]>
+	</style>
+
+	<g v:mID="0" v:index="1" v:groupContext="foregroundPage">
+		<title>ctl_example_structure</title>
+		<v:pageProperties v:drawingScale="1" v:pageScale="1" v:drawingUnits="19" v:shadowOffsetX="9" v:shadowOffsetY="-9"/>
+		<g id="shape2-1" v:mID="2" v:groupContext="shape" transform="translate(18.75,-18.8284)">
+			<title>Sheet.2</title>
+			<rect x="0" y="37.5784" width="674.25" height="508.758" class="st1"/>
+		</g>
+		<g id="shape3-3" v:mID="3" v:groupContext="shape" transform="translate(204.928,-19.3456)">
+			<title>Sheet.3</title>
+			<desc>Light CTL example composition</desc>
+			<v:textBlock v:margins="rect(0,0,0,0)"/>
+			<v:textRect cx="143.534" cy="541.682" width="287.07" height="9.30892"/>
+			<rect x="0" y="537.028" width="287.068" height="9.30892" class="st2"/>
+			<text x="65.06" y="544.68" class="st3" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL example composition</text>		</g>
+		<g id="shape4-6" v:mID="4" v:groupContext="shape" transform="translate(257.291,-34.0201)">
+			<title>Sheet.4</title>
+			<rect x="0" y="110.628" width="428.598" height="435.709" class="st4"/>
+		</g>
+		<g id="shape62-8" v:mID="62" v:groupContext="shape" transform="translate(266.988,-167.646)">
+			<title>Sheet.62</title>
+			<rect x="0" y="252.524" width="414.053" height="293.813" class="st5"/>
+		</g>
+		<g id="shape5-10" v:mID="5" v:groupContext="shape" transform="translate(375.592,-38.8685)">
+			<title>Sheet.5</title>
+			<desc>Light CTL server model example</desc>
+			<v:textBlock v:margins="rect(0,0,0,0)"/>
+			<v:textRect cx="93.1107" cy="541.682" width="186.23" height="9.30892"/>
+			<rect x="0" y="537.028" width="186.221" height="9.30892" class="st2"/>
+			<text x="11.9" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL server model example</text>		</g>
+		<g id="shape6-13" v:mID="6" v:groupContext="shape" transform="translate(27.8003,-308.116)">
+			<title>Sheet.6</title>
+			<rect x="0" y="397.976" width="216.562" height="148.361" class="st4"/>
+		</g>
+		<g id="shape7-15" v:mID="7" v:groupContext="shape" transform="translate(43.2936,-309.48)">
+			<title>Sheet.7</title>
+			<desc>Light CTL client model example</desc>
+			<v:textBlock v:margins="rect(0,0,0,0)"/>
+			<v:textRect cx="93.1107" cy="541.682" width="186.23" height="9.30892"/>
+			<rect x="0" y="537.028" width="186.221" height="9.30892" class="st2"/>
+			<text x="14.22" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL client model example</text>		</g>
+		<g id="shape8-18" v:mID="8" v:groupContext="shape" transform="translate(38.1436,-389.892)">
+			<title>Sheet.8</title>
+			<rect x="0" y="486.863" width="196.522" height="59.4736" class="st7"/>
+		</g>
+		<g id="shape9-20" v:mID="9" v:groupContext="shape" transform="translate(51.0511,-415.686)">
+			<title>Sheet.9</title>
+			<desc>Light CTL Client model</desc>
+			<v:textBlock v:margins="rect(0,0,0,0)"/>
+			<v:textRect cx="85.3533" cy="541.682" width="170.71" height="9.30892"/>
+			<rect x="0" y="537.028" width="170.707" height="9.30892" class="st2"/>
+			<text x="28.61" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL Client model</text>		</g>
+		<g id="shape14-23" v:mID="14" v:groupContext="shape" transform="translate(37.8204,-322.661)">
+			<title>Sheet.14</title>
+			<rect x="0" y="486.863" width="196.522" height="59.4736" class="st7"/>
+		</g>
+		<g id="shape15-25" v:mID="15" v:groupContext="shape" transform="translate(51.0511,-348.455)">
+			<title>Sheet.15</title>
+			<desc>Light CTL Client model</desc>
+			<v:textBlock v:margins="rect(0,0,0,0)"/>
+			<v:textRect cx="85.3533" cy="541.682" width="170.71" height="9.30892"/>
+			<rect x="0" y="537.028" width="170.707" height="9.30892" class="st2"/>
+			<text x="28.61" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL Client model</text>		</g>
+		<g id="shape26-28" v:mID="26" v:groupContext="shape" transform="translate(257.291,-481.365)">
+			<title>Sheet.26</title>
+			<rect x="0" y="507.549" width="428.543" height="38.7872" class="st4"/>
+		</g>
+		<g id="shape27-30" v:mID="27" v:groupContext="shape" transform="translate(361.348,-496.492)">
+			<title>Sheet.27</title>
+			<desc>[same models and states] Light CTL server model example</desc>
+			<v:textBlock v:margins="rect(0,0,0,0)"/>
+			<v:textRect cx="104.747" cy="541.682" width="209.5" height="9.30892"/>
+			<rect x="0" y="537.028" width="209.494" height="9.30892" class="st2"/>
+			<text x="39.1" y="538.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>[same models and states]<v:lf/><tspan
+						x="23.53" dy="1.2em" class="st8" v:langID="1044">Light CTL </tspan>s<tspan class="st8" v:langID="1044">erver </tspan>model <tspan
+						class="st8" v:langID="1044">example</tspan></text>		</g>
+		<g id="shape28-36" v:mID="28" v:groupContext="shape" transform="translate(234.536,-351.68)">
+			<title>Sheet.28</title>
+			<path d="M0 546.34 L22.76 546.32 L0 546.34 Z" class="st9"/>
+			<path d="M0 546.34 L22.76 546.32" class="st10"/>
+		</g>
+		<g id="shape29-39" v:mID="29" v:groupContext="shape" transform="translate(136.404,-449.366)">
+			<title>Sheet.29</title>
+			<path d="M0 546.34 L0 494.94 L120.89 494.94 L0 546.34 Z" class="st9"/>
+			<path d="M0 546.34 L0 494.94 L120.89 494.94" class="st10"/>
+		</g>
+		<g id="group60-42" transform="translate(477.731,-385.447)" v:mID="60" v:groupContext="group">
+			<title>Sheet.60</title>
+			<g id="shape16-43" v:mID="16" v:groupContext="shape">
+				<title>Sheet.16</title>
+				<rect x="0" y="516.6" width="196.522" height="29.7368" class="st7"/>
+			</g>
+			<g id="shape17-45" v:mID="17" v:groupContext="shape" transform="translate(3.23225,-10.6018)">
+				<title>Sheet.17</title>
+				<desc>Generic OnOff Server model</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="95.0285" cy="541.682" width="190.06" height="9.30892"/>
+				<rect x="0" y="537.028" width="190.057" height="9.30892" class="st2"/>
+				<text x="24.13" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Generic OnOff Server model</text>			</g>
+		</g>
+		<g id="group61-48" transform="translate(480.317,-427.843)" v:mID="61" v:groupContext="group">
+			<title>Sheet.61</title>
+			<g id="shape18-49" v:mID="18" v:groupContext="shape" transform="translate(-2.58581,2.90904)">
+				<title>Sheet.18</title>
+				<rect x="0" y="516.6" width="196.522" height="29.7368" class="st7"/>
+			</g>
+			<g id="shape19-51" v:mID="19" v:groupContext="shape" transform="translate(-2.58581,-6.65846)">
+				<title>Sheet.19</title>
+				<desc>Generic Default Transition Time Server model</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="98.9072" cy="541.682" width="197.82" height="9.30892"/>
+				<rect x="0" y="537.028" width="197.814" height="9.30892" class="st2"/>
+				<text x="0.87" y="538.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Generic Default Transition Time Server <tspan
+							x="83.54" dy="1.2em" class="st8">model</tspan></text>			</g>
+		</g>
+		<g id="group63-55" transform="translate(477.731,-306.472)" v:mID="63" v:groupContext="group">
+			<title>Sheet.63</title>
+			<g id="shape20-56" v:mID="20" v:groupContext="shape" transform="translate(0.646454,0)">
+				<title>Sheet.20</title>
+				<rect x="0" y="516.6" width="196.522" height="29.7368" class="st7"/>
+			</g>
+			<g id="shape21-58" v:mID="21" v:groupContext="shape" transform="translate(0,-10.6018)">
+				<title>Sheet.21</title>
+				<desc>Generic Power OnOff Setup Server model</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="98.9072" cy="541.682" width="197.82" height="9.30892"/>
+				<rect x="0" y="537.028" width="197.814" height="9.30892" class="st2"/>
+				<text x="11.71" y="538.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Generic Power OnOff Setup Server <tspan
+							x="83.54" dy="1.2em" class="st8">model</tspan></text>			</g>
+		</g>
+		<g id="group65-62" transform="translate(477.731,-345.959)" v:mID="65" v:groupContext="group">
+			<title>Sheet.65</title>
+			<g id="shape24-63" v:mID="24" v:groupContext="shape" transform="translate(0.646447,0)">
+				<title>Sheet.24</title>
+				<rect x="0" y="516.6" width="196.522" height="29.7368" class="st7"/>
+			</g>
+			<g id="shape25-65" v:mID="25" v:groupContext="shape" transform="translate(0,-10.6018)">
+				<title>Sheet.25</title>
+				<desc>Generic Power OnOff Server model</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="98.9072" cy="541.682" width="197.82" height="9.30892"/>
+				<rect x="0" y="537.028" width="197.814" height="9.30892" class="st2"/>
+				<text x="11" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Generic Power OnOff Server model</text>			</g>
+		</g>
+		<g id="group66-68" transform="translate(477.731,-266.984)" v:mID="66" v:groupContext="group">
+			<title>Sheet.66</title>
+			<g id="shape67-69" v:mID="67" v:groupContext="shape">
+				<title>Sheet.67</title>
+				<rect x="0" y="516.6" width="196.522" height="29.7368" class="st7"/>
+			</g>
+			<g id="shape68-71" v:mID="68" v:groupContext="shape" transform="translate(0.646458,-10.6018)">
+				<title>Sheet.68</title>
+				<desc>Generic Level Server model</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="97.9376" cy="541.682" width="195.88" height="9.30892"/>
+				<rect x="0" y="537.028" width="195.875" height="9.30892" class="st2"/>
+				<text x="28.52" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Generic Level Server model</text>			</g>
+		</g>
+		<g id="group69-74" transform="translate(274.745,-187.441)" v:mID="69" v:groupContext="group">
+			<title>Sheet.69</title>
+			<g id="shape55-75" v:mID="55" v:groupContext="shape">
+				<title>Sheet.55</title>
+				<rect x="0" y="516.6" width="196.522" height="29.7368" class="st7"/>
+			</g>
+			<g id="shape56-77" v:mID="56" v:groupContext="shape" transform="translate(0.948126,-10.6018)">
+				<title>Sheet.56</title>
+				<desc>Scene Setup Server model</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="96.9679" cy="541.682" width="193.94" height="9.30892"/>
+				<rect x="0" y="537.028" width="193.936" height="9.30892" class="st2"/>
+				<text x="29.94" y="544.68" class="st6" v:langID="1044"><v:paragraph v:horizAlign="1"/><v:tabList/>Scene<tspan
+							class="st8" v:langID="1033"> </tspan><tspan class="st8" v:langID="1033">Setup Server model</tspan></text>			</g>
+		</g>
+		<g id="group70-82" transform="translate(274.745,-223.241)" v:mID="70" v:groupContext="group">
+			<title>Sheet.70</title>
+			<g id="shape53-83" v:mID="53" v:groupContext="shape">
+				<title>Sheet.53</title>
+				<rect x="0" y="516.6" width="196.522" height="29.7368" class="st7"/>
+			</g>
+			<g id="shape54-85" v:mID="54" v:groupContext="shape" transform="translate(0.948126,-10.6018)">
+				<title>Sheet.54</title>
+				<desc>Scene Server model</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="97.9376" cy="541.682" width="195.88" height="9.30892"/>
+				<rect x="0" y="537.028" width="195.875" height="9.30892" class="st2"/>
+				<text x="47.31" y="544.68" class="st6" v:langID="1044"><v:paragraph v:horizAlign="1"/><v:tabList/>Scene<tspan
+							class="st8" v:langID="1033"> </tspan><tspan class="st8" v:langID="1033">Server model</tspan></text>			</g>
+		</g>
+		<g id="group71-90" transform="translate(274.745,-400.369)" v:mID="71" v:groupContext="group">
+			<title>Sheet.71</title>
+			<g id="shape10-91" v:mID="10" v:groupContext="shape" transform="translate(0.0215484,-4.54747E-13)">
+				<title>Sheet.10</title>
+				<rect x="0" y="493.974" width="196.522" height="52.3627" class="st7"/>
+			</g>
+			<g id="shape11-93" v:mID="11" v:groupContext="shape" transform="translate(12.9291,-4.29876)">
+				<title>Sheet.11</title>
+				<desc>Light CTL Server model</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="85.3533" cy="541.682" width="170.71" height="9.30892"/>
+				<rect x="0" y="537.028" width="170.707" height="9.30892" class="st2"/>
+				<text x="26.35" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL Server model</text>			</g>
+			<g id="shape12-96" v:mID="12" v:groupContext="shape" transform="translate(7.13253,-16.8078)">
+				<title>Sheet.12</title>
+				<rect x="0" y="517.246" width="179.714" height="29.0904" class="st11"/>
+			</g>
+			<g id="shape13-98" v:mID="13" v:groupContext="shape" transform="translate(1.02318E-12,-27.4096)">
+				<title>Sheet.13</title>
+				<desc>Light CTL Lightness state</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="96.9894" cy="541.682" width="193.98" height="9.30892"/>
+				<rect x="0" y="537.028" width="193.979" height="9.30892" class="st2"/>
+				<text x="33.67" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL Lightness state</text>			</g>
+		</g>
+		<g id="group72-101" transform="translate(274.745,-263.321)" v:mID="72" v:groupContext="group">
+			<title>Sheet.72</title>
+			<g id="shape34-102" v:mID="34" v:groupContext="shape">
+				<title>Sheet.34</title>
+				<rect x="0" y="417.046" width="196.522" height="129.291" class="st7"/>
+			</g>
+			<g id="shape35-104" v:mID="35" v:groupContext="shape" transform="translate(8.40387,-6.8901)">
+				<title>Sheet.35</title>
+				<desc>Light CTL Setup Server model</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="89.2104" cy="541.682" width="178.43" height="9.30892"/>
+				<rect x="0" y="537.028" width="178.421" height="9.30892" class="st2"/>
+				<text x="13.81" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL Setup Server model</text>			</g>
+			<g id="shape36-107" v:mID="36" v:groupContext="shape" transform="translate(6.1413,-55.5949)">
+				<title>Sheet.36</title>
+				<rect x="0" y="517.893" width="184.239" height="28.4439" class="st11"/>
+			</g>
+			<g id="shape37-109" v:mID="37" v:groupContext="shape" transform="translate(11.3129,-65.5503)">
+				<title>Sheet.37</title>
+				<desc>Light CTL Delta UV Default state</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="89.6953" cy="541.682" width="179.4" height="9.30892"/>
+				<rect x="0" y="537.028" width="179.391" height="9.30892" class="st2"/>
+				<text x="8.27" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL Delta UV Default state</text>			</g>
+			<g id="shape38-112" v:mID="38" v:groupContext="shape" transform="translate(6.46453,-20.04)">
+				<title>Sheet.38</title>
+				<rect x="0" y="517.246" width="184.239" height="29.0904" class="st11"/>
+			</g>
+			<g id="shape39-114" v:mID="39" v:groupContext="shape" transform="translate(8.40387,-30.6419)">
+				<title>Sheet.39</title>
+				<desc>Light CTL Temperature Default state</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="89.2104" cy="541.682" width="178.43" height="9.30892"/>
+				<rect x="0" y="537.028" width="178.421" height="9.30892" class="st2"/>
+				<text x="11.68" y="538.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL Temperature Default <tspan
+							x="76.68" dy="1.2em" class="st8">state</tspan></text>			</g>
+			<g id="shape40-118" v:mID="40" v:groupContext="shape" transform="translate(6.1413,-93.7356)">
+				<title>Sheet.40</title>
+				<rect x="0" y="517.246" width="184.239" height="29.0904" class="st11"/>
+			</g>
+			<g id="shape41-120" v:mID="41" v:groupContext="shape" transform="translate(8.40387,-104.337)">
+				<title>Sheet.41</title>
+				<desc>Light CTL Temperature Range state</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="91.1498" cy="541.682" width="182.3" height="9.30892"/>
+				<rect x="0" y="537.028" width="182.3" height="9.30892" class="st2"/>
+				<text x="1.69" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL Temperature Range state</text>			</g>
+		</g>
+		<g id="group73-123" transform="translate(477.731,-188.01)" v:mID="73" v:groupContext="group">
+			<title>Sheet.73</title>
+			<g id="shape32-124" v:mID="32" v:groupContext="shape">
+				<title>Sheet.32</title>
+				<rect x="0" y="516.6" width="196.522" height="29.7368" class="st7"/>
+			</g>
+			<g id="shape33-126" v:mID="33" v:groupContext="shape" transform="translate(0.323229,-10.8604)">
+				<title>Sheet.33</title>
+				<desc>Light Lightness Setup Server model</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="97.9376" cy="541.682" width="195.88" height="9.30892"/>
+				<rect x="0" y="537.028" width="195.875" height="9.30892" class="st2"/>
+				<text x="8.13" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light Lightness Setup Server model</text>			</g>
+		</g>
+		<g id="group74-129" transform="translate(477.731,-227.497)" v:mID="74" v:groupContext="group">
+			<title>Sheet.74</title>
+			<g id="shape30-130" v:mID="30" v:groupContext="shape">
+				<title>Sheet.30</title>
+				<rect x="0" y="516.6" width="196.522" height="29.7368" class="st7"/>
+			</g>
+			<g id="shape31-132" v:mID="31" v:groupContext="shape" transform="translate(0.646458,-10.214)">
+				<title>Sheet.31</title>
+				<desc>Light Lightness Server model</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="97.9376" cy="541.682" width="195.88" height="9.30892"/>
+				<rect x="0" y="537.028" width="195.875" height="9.30892" class="st2"/>
+				<text x="24.54" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light Lightness Server model</text>			</g>
+		</g>
+		<g id="shape75-135" v:mID="75" v:groupContext="shape" transform="translate(383.349,-170.749)">
+			<title>Sheet.75</title>
+			<desc>Main element (first)</desc>
+			<v:textBlock v:margins="rect(0,0,0,0)"/>
+			<v:textRect cx="96.9679" cy="541.682" width="193.94" height="9.30892"/>
+			<rect x="0" y="537.028" width="193.936" height="9.30892" class="st2"/>
+			<text x="47.01" y="544.68" class="st6" v:langID="1044"><v:paragraph v:horizAlign="1"/><v:tabList/>Main element (first)</text>		</g>
+		<g id="shape76-138" v:mID="76" v:groupContext="shape" transform="translate(266.988,-54.3834)">
+			<title>Sheet.76</title>
+			<rect x="0" y="439.547" width="414.053" height="106.79" class="st5"/>
+		</g>
+		<g id="group59-140" transform="translate(479.024,-124.847)" v:mID="59" v:groupContext="group">
+			<title>Sheet.59</title>
+			<g id="shape22-141" v:mID="22" v:groupContext="shape">
+				<title>Sheet.22</title>
+				<rect x="0" y="516.6" width="196.522" height="29.7368" class="st7"/>
+			</g>
+			<g id="shape23-143" v:mID="23" v:groupContext="shape" transform="translate(0.646458,-10.6018)">
+				<title>Sheet.23</title>
+				<desc>Generic Level Server model</desc>
+				<v:textBlock v:margins="rect(0,0,0,0)"/>
+				<v:textRect cx="97.9376" cy="541.682" width="195.88" height="9.30892"/>
+				<rect x="0" y="537.028" width="195.875" height="9.30892" class="st2"/>
+				<text x="28.52" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Generic Level Server model</text>			</g>
+		</g>
+		<g id="shape42-146" v:mID="42" v:groupContext="shape" transform="translate(274.143,-69.8982)">
+			<title>Sheet.42</title>
+			<rect x="0" y="461.894" width="196.522" height="84.4429" class="st7"/>
+		</g>
+		<g id="shape43-148" v:mID="43" v:groupContext="shape" transform="translate(277.633,-73.0012)">
+			<title>Sheet.43</title>
+			<desc>Light CTL Temperature Server model  </desc>
+			<v:textBlock v:margins="rect(0,0,0,0)"/>
+			<v:textRect cx="96.8108" cy="541.682" width="193.63" height="9.30892"/>
+			<rect x="0" y="537.028" width="193.622" height="9.30892" class="st2"/>
+			<text x="0.14" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL Temperature Server model  </text>		</g>
+		<g id="shape44-151" v:mID="44" v:groupContext="shape" transform="translate(281.254,-119.271)">
+			<title>Sheet.44</title>
+			<rect x="0" y="517.246" width="179.714" height="29.0904" class="st11"/>
+		</g>
+		<g id="shape45-153" v:mID="45" v:groupContext="shape" transform="translate(266.364,-129.873)">
+			<title>Sheet.45</title>
+			<desc>Light CTL Temperature state</desc>
+			<v:textBlock v:margins="rect(0,0,0,0)"/>
+			<v:textRect cx="104.747" cy="541.682" width="209.5" height="9.30892"/>
+			<rect x="0" y="537.028" width="209.494" height="9.30892" class="st2"/>
+			<text x="32.79" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL Temperature state</text>		</g>
+		<g id="shape46-156" v:mID="46" v:groupContext="shape" transform="translate(281.254,-85.4131)">
+			<title>Sheet.46</title>
+			<rect x="0" y="517.246" width="179.714" height="29.0904" class="st11"/>
+		</g>
+		<g id="shape47-158" v:mID="47" v:groupContext="shape" transform="translate(278,-96.0149)">
+			<title>Sheet.47</title>
+			<desc>Light CTL Delta UV state</desc>
+			<v:textBlock v:margins="rect(0,0,0,0)"/>
+			<v:textRect cx="93.1107" cy="541.682" width="186.23" height="9.30892"/>
+			<rect x="0" y="537.028" width="186.221" height="9.30892" class="st2"/>
+			<text x="31.54" y="544.68" class="st6" v:langID="1033"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL Delta UV state</text>		</g>
+		<g id="shape77-161" v:mID="77" v:groupContext="shape" transform="translate(371.713,-57.4863)">
+			<title>Sheet.77</title>
+			<desc>Light CTL element (second)</desc>
+			<v:textBlock v:margins="rect(0,0,0,0)"/>
+			<v:textRect cx="96.9679" cy="541.682" width="193.94" height="9.30892"/>
+			<rect x="0" y="537.028" width="193.936" height="9.30892" class="st2"/>
+			<text x="27.59" y="544.68" class="st6" v:langID="1044"><v:paragraph v:horizAlign="1"/><v:tabList/>Light CTL element (second)</text>		</g>
+	</g>
+</svg>

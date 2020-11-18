@@ -164,7 +164,7 @@ void test_init(void)
     advertiser_address_default_get_ReturnThruPtr_p_addr(&m_adv_addr);
     core_tx_bearer_add_StubWithCallback(core_tx_bearer_add_mock);
 
-    core_tx_lpn_init();
+    core_tx_lpn_init(RADIO_POWER_NRF_0DBM);
     TEST_ASSERT_NOT_NULL(mp_tx_complete_event);
     TEST_ASSERT_NOT_NULL(mp_bearer);
 }

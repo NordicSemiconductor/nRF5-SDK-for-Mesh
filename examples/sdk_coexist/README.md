@@ -11,6 +11,6 @@ For details, see @ref md_doc_user_guide_integrating_mesh_nrf5_sdk.
 
 The following coexistance examples are available in the nRF5 SDK for Mesh:
 
-* @subpage md_examples_sdk_coexist_ble_app_proximity_coexist_README demonstrates how to add mesh functionality to Proximity Application example from nRF5 SDK.
+* @subpage md_examples_sdk_coexist_ble_app_proximity_coexist_README demonstrates how to add Bluetooth mesh functionality to Proximity Application example from nRF5 SDK.
 
-* @subpage md_examples_sdk_coexist_ble_app_uart_coexist_README demonstrates how to add mesh functionality to UART/Serial Port Emulation example from nRF5 SDK.
+* @subpage md_examples_sdk_coexist_ble_app_uart_coexist_README demonstrates how to add Bluetooth mesh functionality to UART/Serial Port Emulation example from nRF5 SDK.

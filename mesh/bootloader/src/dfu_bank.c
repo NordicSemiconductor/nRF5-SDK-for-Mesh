@@ -76,7 +76,7 @@ static void flash_bank_entry_fw(bl_info_bank_t* p_bank_entry, bl_info_entry_t* p
 {
     /* Invalidate the section we're about to overwrite */
     uint32_t new_flags = ~m_dfu_type;
-    bootloader_info_entry_overwrite(BL_INFO_TYPE_FLAGS, (bl_info_entry_t*) &new_flags);
+    (void) bootloader_info_entry_overwrite(BL_INFO_TYPE_FLAGS, (bl_info_entry_t*) &new_flags);
 
     switch (m_dfu_type)
     {
@@ -105,26 +105,35 @@ static void flash_bank_entry_fw(bl_info_bank_t* p_bank_entry, bl_info_entry_t* p
             break;
 
         case DFU_TYPE_SD:
-            /* Check to see if the bank transfer has been executed */
-            if (memcmp(p_bank_entry->p_bank_addr,
-                        (uint32_t*) bootloader_info_entry_get(BL_INFO_TYPE_SEGMENT_SD)->segment.start,
-                        p_bank_entry->length) != 0)
             {
-                /* We need interrupts enabled for the SVC calls below to
-                 * function, but don't want to be intterupted by anything else
-                 * now. */
-                interrupts_disable();
-                __enable_irq();
+                /* Check to see if the bank transfer has been executed */
+                bl_info_entry_t* p_sd_entry = bootloader_info_entry_get(BL_INFO_TYPE_SEGMENT_SD);
+                if (p_sd_entry == NULL)
+                {
+                    APP_ERROR_CHECK(NRF_ERROR_NULL);
+                    return;
+                }
 
-                /* move the bank with MBR. */
-                sd_mbr_command_t sd_mbr_cmd;
+                if (memcmp(p_bank_entry->p_bank_addr,
+                            (uint32_t*) p_sd_entry->segment.start,
+                            p_bank_entry->length) != 0)
+                {
+                    /* We need interrupts enabled for the SVC calls below to
+                    * function, but don't want to be intterupted by anything else
+                    * now. */
+                    interrupts_disable();
+                    __enable_irq();
 
-                sd_mbr_cmd.command               = SD_MBR_COMMAND_COPY_SD;
-                sd_mbr_cmd.params.copy_sd.src    = p_bank_entry->p_bank_addr;
-                sd_mbr_cmd.params.copy_sd.len    = p_bank_entry->length / sizeof(uint32_t);
-                sd_mbr_cmd.params.copy_sd.dst    = (uint32_t*) 0x1000;
-                APP_ERROR_CHECK(sd_mbr_command(&sd_mbr_cmd));
-                return; /* Can't be reached, only here for readability. */
+                    /* move the bank with MBR. */
+                    sd_mbr_command_t sd_mbr_cmd;
+
+                    sd_mbr_cmd.command               = SD_MBR_COMMAND_COPY_SD;
+                    sd_mbr_cmd.params.copy_sd.src    = p_bank_entry->p_bank_addr;
+                    sd_mbr_cmd.params.copy_sd.len    = p_bank_entry->length / sizeof(uint32_t);
+                    sd_mbr_cmd.params.copy_sd.dst    = (uint32_t*) 0x1000;
+                    APP_ERROR_CHECK(sd_mbr_command(&sd_mbr_cmd));
+                    return; /* Can't be reached, only here for readability. */
+                }
             }
             break;
 
@@ -147,12 +156,12 @@ static void flash_bank_entry_fw(bl_info_bank_t* p_bank_entry, bl_info_entry_t* p
                 bl_info_entry_t* p_app_entry = bootloader_info_entry_get(BL_INFO_TYPE_SEGMENT_APP);
 
                 APP_ERROR_CHECK_BOOL(p_app_entry != NULL);
-                APP_ERROR_CHECK_BOOL(IS_PAGE_ALIGNED(p_app_entry->segment.start));
+                APP_ERROR_CHECK_BOOL(IS_PAGE_ALIGNED(p_app_entry->segment.start)); /*lint !e613 Possible use of null pointer. */
 
                 /* Erase existing FW */
                 bl_evt_t flash_evt;
                 flash_evt.type = BL_EVT_TYPE_FLASH_ERASE;
-                flash_evt.params.flash.erase.start_addr = p_app_entry->segment.start;
+                flash_evt.params.flash.erase.start_addr = p_app_entry->segment.start; /*lint !e613 Possible use of null pointer. */
                 flash_evt.params.flash.erase.length = ((p_bank_entry->length + (PAGE_SIZE - 1)) & ~(PAGE_SIZE - 1)); /* Pad the rest of the page */
                 if (bootloader_evt_send(&flash_evt) != NRF_SUCCESS)
                 {
@@ -164,7 +173,7 @@ static void flash_bank_entry_fw(bl_info_bank_t* p_bank_entry, bl_info_entry_t* p
                 flash_evt.type = BL_EVT_TYPE_FLASH_WRITE;
                 flash_evt.params.flash.write.p_data = (uint8_t*) p_bank_entry->p_bank_addr;
                 flash_evt.params.flash.write.length = p_bank_entry->length;
-                flash_evt.params.flash.write.start_addr = p_app_entry->segment.start;
+                flash_evt.params.flash.write.start_addr = p_app_entry->segment.start; /*lint !e613 Possible use of null pointer. */
                 if (bootloader_evt_send(&flash_evt) != NRF_SUCCESS)
                 {
                     m_waiting_for_idle = true;
@@ -180,7 +189,7 @@ static void flash_bank_entry_fw(bl_info_bank_t* p_bank_entry, bl_info_entry_t* p
 
     /* Wait for next state */
     p_bank_entry_replacement->bank.state = BL_INFO_BANK_STATE_FLASH_META;
-    bootloader_info_entry_overwrite((bl_info_type_t) (BL_INFO_TYPE_BANK_BASE + m_dfu_type), p_bank_entry_replacement);
+    (void) bootloader_info_entry_overwrite((bl_info_type_t) (BL_INFO_TYPE_BANK_BASE + m_dfu_type), p_bank_entry_replacement);
 }
 
 static void flash_bank_entry(void)
@@ -203,7 +212,7 @@ static void flash_bank_entry(void)
             {
                 m_waiting_for_idle = true;
                 bank_entry_replacement.bank.state = BL_INFO_BANK_STATE_FLASH_FW;
-                bootloader_info_entry_overwrite((bl_info_type_t) (BL_INFO_TYPE_BANK_BASE + m_dfu_type), &bank_entry_replacement);
+                (void) bootloader_info_entry_overwrite((bl_info_type_t) (BL_INFO_TYPE_BANK_BASE + m_dfu_type), &bank_entry_replacement);
 
                 /* Wait for this to take effect before moving on, as the
                    potential mbr commands in the flash_fw state may trigger
@@ -226,9 +235,8 @@ static void flash_bank_entry(void)
                 bl_info_entry_t* p_old_fwid_entry  = bootloader_info_entry_get(BL_INFO_TYPE_VERSION);
                 bl_info_entry_t* p_old_flags_entry = bootloader_info_entry_get(BL_INFO_TYPE_FLAGS);
                 APP_ERROR_CHECK_BOOL(p_old_fwid_entry != NULL);
-                APP_ERROR_CHECK_BOOL(p_bank_entry != NULL);
 
-                memcpy(&fwid_entry, p_old_fwid_entry, sizeof(bl_info_version_t));
+                memcpy(&fwid_entry, p_old_fwid_entry, sizeof(bl_info_version_t)); /*lint !e668: Possibly passing a null pointer. */
                 if (p_old_flags_entry == NULL)
                 {
                     memset(&flags_entry, 0xFF, sizeof(bl_info_flags_t));
@@ -290,7 +298,7 @@ static void flash_bank_entry(void)
                 /* Update state */
                 __LOG("Bank: Set state to FLASHED\n");
                 bank_entry_replacement.bank.state = BL_INFO_BANK_STATE_FLASHED;
-                bootloader_info_entry_overwrite((bl_info_type_t) (BL_INFO_TYPE_BANK_BASE + m_dfu_type), &bank_entry_replacement);
+                (void) bootloader_info_entry_overwrite((bl_info_type_t) (BL_INFO_TYPE_BANK_BASE + m_dfu_type), &bank_entry_replacement);
 
             }
             /* deliberate fallthrough */

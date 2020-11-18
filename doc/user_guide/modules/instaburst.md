@@ -1,24 +1,24 @@
 # Nordic Advertiser Extensions (Instaburst)
 
 The Instaburst feature is a drop-in replacement for the standard BLE Advertiser
-bearer for the mesh. When enabled, all communication in the core mesh will happen through
-Instaburst instead of regular advertisers, yielding higher throughput, but breaking
-compatibility with other Bluetooth Mesh implementations.
+bearer for the Bluetooth mesh. When enabled, all communication in the core Bluetooth mesh will happen
+through Instaburst instead of regular advertisers, yielding higher throughput, but breaking
+compatibility with other Bluetooth mesh implementations.
 
 In optimal conditions, Instaburst is able to transmit 498 bytes of raw advertising data every
 advertising interval, providing a 160-kbps bearer to the upper layers for 20-ms advertisement
-intervals. The mesh packets have significant overhead however, and under the same conditions
+intervals. The Bluetooth mesh packets have significant overhead however, and under the same conditions
 the maximum theoretical access layer payload throughput is around 60 kbps.
 
 @note
-Instaburst is a Nordic proprietary feature that does not adhere to the Bluetooth Mesh
+Instaburst is a Nordic proprietary feature that does not adhere to the Bluetooth mesh
 specification. It does not have the same requirements for test coverage, API stability
 or specification compliance as the rest of the Nordic nRF5 SDK for Mesh.
 
 **Table of contents**
 - [Protocol](@ref instaburst_protocol)
 - [Extended advertisements](@ref instaburst_extended_advertisements)
-- [Usage in the mesh](@ref instaburst_usage)
+- [Usage in Bluetooth mesh](@ref instaburst_usage)
 - [TX Buffer management](@ref instaburst_tx_buffer)
     - [Advertising events](@ref instaburst_tx_buffer_advertising_evt)
     - [Packets](@ref instaburst_tx_buffer_packets)
@@ -33,7 +33,7 @@ or specification compliance as the rest of the Nordic nRF5 SDK for Mesh.
 Instaburst uses a subset of the Bluetooth 5.0 Extended advertising events feature to increase the
 throughput. It runs a dynamic buffer allocation algorithm that makes a per-packet decision on
 whether to transmit it as a regular advertisement packet or as an extended advertising event.
-This maximizes throughput while minimizing the radio time spent by each mesh device.
+This maximizes throughput while minimizing the radio time spent by each Bluetooth mesh device.
 
 
 ---
@@ -53,7 +53,7 @@ specification).
     - If a bigger payload is required, the single auxiliary packet can point to a second
     auxiliary packet (*AUX_CHAIN_IND* in the Bluetooth specification), which contains more data.
 
-To remain scalable for larger mesh networks, the chain length is limited to this initial auxiliary
+To remain scalable for larger Bluetooth mesh networks, the chain length is limited to this initial auxiliary
 packet and a single chain packet.
 
 ![Extended advertising event, as implemented in Instaburst](images/adv_ext_evt.svg)
@@ -64,9 +64,9 @@ For more information about the extended advertisement protocol, see the Bluetoot
 ---
 
 
-## Usage in the mesh @anchor instaburst_usage
+## Usage in Bluetooth mesh @anchor instaburst_usage
 
-When Instaburst is enabled in the build, the mesh will:
+When Instaburst is enabled in the build, the Bluetooth mesh will:
 - _For TX:_ instantiate an Instaburst TX instance instead of its usual advertiser instance
 for the core message sending.
 - _For RX:_ register a processing callback with the Instaburst RX module, and funnel the payload

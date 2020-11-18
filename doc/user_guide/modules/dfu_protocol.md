@@ -1,18 +1,17 @@
-# Mesh DFU protocol
+# Proprietary mesh DFU protocol
 @anchor dfu-protocol
 
-A Device Firmware Update (DFU) is the process of updating the firmware on a mesh device.
+A Device Firmware Update (DFU) is the process of updating the firmware on a Bluetooth mesh device.
 
-The Nordic Semiconductor Mesh DFU protocol is adopted from the proprietary @link_openmesh_github
+Nordic Semiconductor's mesh DFU protocol is adopted from the proprietary @link_openmesh_github
 project, and operates on
 the proprietary OpenMesh protocol. The OpenMesh protocol is an advertising based protocol like the
-Bluetooth Mesh, but it does not support addressing, acknowledged message passing or encryption.
+Bluetooth mesh, but it does not support addressing, acknowledged message passing or encryption.
 
-This page and its subpages describe the Mesh DFU protocol, including @subpage md_tools_dfu_README
+This page and its subpages describe the proprietary mesh DFU protocol, including @subpage md_tools_dfu_README
 and @subpage md_mesh_bootloader_README.
-In this section, you can also learn more about @subpage md_doc_user_guide_modules_dfu_integrating_into_app
-and @subpage md_doc_user_guide_modules_dfu_configuring_performing using the [DFU example](@ref dfu_example) 
-included in the nRF5 SDK for Mesh.
+In this section, you can also learn more about @subpage md_doc_user_guide_modules_dfu_setup
+using the [DFU example](@ref dfu_example) included in the nRF5 SDK for Mesh.
 
 **Table of contents**
 - [Characteristics](@ref dfu-protocol-characteristics)
@@ -25,7 +24,7 @@ included in the nRF5 SDK for Mesh.
     - [Transfer banking](@ref dfu-protocol-banking)
     - [Memory map](@ref dfu-protocol-memory-map)
     - [Security](@ref dfu-protocol-security)
-- [Mesh DFU Firmware IDs](@ref dfu-protocol-fwid)
+- [DFU Firmware IDs](@ref dfu-protocol-fwid)
     - [Application firmware ID](@ref dfu-protocol-fwid-app)
     - [SoftDevice firmware ID](@ref dfu-protocol-fwid-sd)
     - [Bootloader firmware ID](@ref dfu-protocol-fwid-bl)
@@ -45,12 +44,12 @@ included in the nRF5 SDK for Mesh.
         - [Bootloader bank](@ref dfu-protocol-device-page-format-bl-bank)
         - [Application bank](@ref dfu-protocol-device-page-format-app-bank)
 
-        
+
 ---
 
 ## Characteristics @anchor dfu-protocol-characteristics
 
-The Mesh DFU protocol is optimized for updating all devices in a network as efficiently as
+The proprietary mesh DFU protocol is optimized for updating all devices in a network as efficiently as
 possible. Although it shares some tooling and code modules with @link_bootloader_and_dfu_modules,
 there are several differences both in protocol and operation to make updating of large amounts
 of devices as painless as possible.
@@ -68,21 +67,21 @@ of devices as painless as possible.
 | [Transfer banking](@ref dfu-protocol-banking)                 | Banking in an unused area of flash.                          | Banking in an unused area of flash.                   |
 | [Memory map](@ref dfu-protocol-memory-map)                    | Flash memory map with the MBR parameter storage between the bootloader and the bootloader settings.  | The same flash memory map as for the nRF5 SDK, but with the MBR parameter storage between the bootloader and the application area.    |
 | [Security](@ref dfu-protocol-security)                        | No encryption on the DFU level. Optional security key signing.           | No encryption on the DFU level. Optional security key signing.         |
- 
+
 
 ### Transfer modes and types @anchor dfu-protocol-transfer-modes
 
-The Mesh DFU supports two modes:
-- _background DFU_ that transfers the new firmware in the background in the application
+The proprietary mesh DFU supports two modes:
+- _Background DFU_ that transfers the new firmware in the background in the application
 while it is running, and reports to the application when the transfer is done.
 The application can then flash the new firmware when ready.
     - To learn how to configure the DFU example application with the background DFU mode,
     see [Configuring DFU over Mesh](@ref md_doc_user_guide_modules_dfu_configuring_performing).
-- _bootloader DFU_, in which the application is not running and the [Mesh Bootloader](@ref md_mesh_bootloader_README)
+- _Bootloader DFU_, in which the application is not running and the [Mesh Bootloader](@ref md_mesh_bootloader_README)
 takes care of the transfer.
     - This mode is primarily meant as a fallback mechanism, in case the application malfunctions.
 
-As part of each transfer mode, the Mesh DFU protocol is using three different transfer types (packages):
+As part of each transfer mode, the proprietary mesh DFU protocol is using three different transfer types (packages):
 - SoftDevice
 - bootloader
 - application
@@ -95,29 +94,29 @@ This saves time and memory if you want to make small changes in the bootloader.
 
 ### Roles @anchor dfu-protocol-roles
 
-The following roles are supported by the Mesh DFU:
+The following roles are supported by the proprietary mesh DFU:
     - The _source_ role is used when the device acts as an initiator of the DFU transfer.
     The source device controls an interval at which packets are sent.
     It also responds to [DFU data request](@ref dfu-packet-data-request) packets.
-    The source role is controlled by the nrfutil tool.
+    The source role is controlled by the nRF Util tool.
     See @link_nrfutil_github and [Requirements](@ref dfu_configuration_requirements)
-    for more information about `nrfutil`.
-    - The _target_ role is used when the device needs to be upgraded. The Mesh DFU module receives
-    the new firmware and notifies the application when the transfer is done. In this role the Mesh DFU
+    for more information about nRF Util.
+    - The _target_ role is used when the device needs to be upgraded. The proprietary mesh DFU module receives
+    the new firmware and notifies the application when the transfer is done. In this role the proprietary mesh DFU
     module also retransmits the DFU data packets it receives.
     - The _relay_ role is used to retransmit the [DFU data](@ref dfu-packet-data) packets received
     from other devices. In this role, the device does not store the received packets in the flash.
 
 See @ref md_doc_user_guide_modules_dfu_integrating_into_app for more information about
-when the DFU module switches to the target and relay roles. 
+when the DFU module switches to the target and relay roles.
 
 ### Concurrent transfers @anchor dfu-protocol-receive-and-relay
 
-Contrary to the nRF5 SDK DFU, the entire mesh network can be updated simultaneously
+Contrary to the nRF5 SDK DFU, the entire Bluetooth mesh network can be updated simultaneously
 with concurrent transfers.
 
-A mesh network can contain hundreds of devices, and updating all of them one by one can take
-a lot of time. To get around this, the Mesh DFU protocol lets mesh devices relay the data
+A Bluetooth mesh network can contain hundreds of devices, and updating all of them one by one can take
+a lot of time. To get around this, the proprietary mesh DFU protocol lets mesh network devices relay the data
 they are receiving to their neighbors. Both the passive mesh devices and the devices receiving
 a transfer will relay all data packets, thus ensuring that the DFU transfer reaches all devices
 in the network. This method is much faster than passing the entire DFU transfer to each device
@@ -133,17 +132,17 @@ A device that receives a DFU transfer will perform the following steps for each 
 Devices that are not directly interested in the contents of the transfer, will only perform steps 1,
 3, and 4 to ensure that the target devices further out in the network still receive the packets.
 
-To learn more about Mesh DFU packets, see @subpage md_doc_user_guide_modules_dfu_packet_format.
+To learn more about proprietary mesh DFU packets, see @subpage md_doc_user_guide_modules_dfu_packet_format.
 
 ### Mixed-device networks @anchor dfu-protocol-network
 
-Typically, a mesh network contains devices with several different roles and firmware. When
+Typically, a Bluetooth mesh network contains devices with several different roles and firmware. When
 performing a DFU transfer, it is important to be able to distinguish between these devices.
 If an update for light switch devices is flashed to a light bulb, it is likely that the light bulb stops
 working. This is different for one-to-one DFU transfers, like the ones performed by the nRF5 SDK DFU
 protocol, where the sender is able to identify the target device and send it the correct firmware.
 
-The Mesh DFU protocol deals with mixed-device networks by allowing each device type to have its own
+The proprietary mesh DFU protocol deals with mixed-device networks by allowing each device type to have its own
 application ID in addition to an application version number. When a device is notified of an
 upcoming DFU transfer, it can compare the application ID of the transfer with the application ID of
 its own firmware. If the application IDs match, and the incoming transfer has a higher version, the
@@ -153,17 +152,17 @@ to ignore it.
 
 ### Transfer rate @anchor dfu-protocol-transfer-rate
 
-Compared to the nRF5 SDK DFU protocol, a mesh DFU transfer is quite slow.
+Compared to the nRF5 SDK DFU protocol, the proprietary mesh DFU transfer is quite slow.
 For example, a 100 kB firmware image will take about an hour to transfer.
 
-The Mesh DFU protocol depends on redundancy to ensure reliable communication, and therefore takes
+The proprietary mesh DFU protocol depends on redundancy to ensure reliable communication, and therefore takes
 a lot longer to propagate the same amount of data than the nRF5 SDK DFU. The DFU data is sent
 in 16-byte chunks at regular intervals, with a few redundant transmissions for every packet
 to ensure that all devices receive it.
 
-The packet interval is controlled by the transfer source device. By default, the Mesh
+The packet interval is controlled by the transfer source device. By default, the Bluetooth mesh
 DFU tools emit a new packet every 500 ms (making the transfer rate `16 B/500 ms = 32 B/s`), but this
-number should be tuned according to the mesh network properties.
+number should be tuned according to the Bluetooth mesh network properties.
 
 Some network characteristics to consider are:
 - _Network density_: The amount of devices that are within radio range of each other impacts the
@@ -176,7 +175,7 @@ missing the transfer.
 rate, having too few paths to reach a target node can cause packet drops. The more a target node relies
 on several relay devices to all succeed with their transmissions, the higher the likelihood of missing that
 target node at some point during the transfer.
-- _External noise_: When deployed in a noisy environment, the Mesh DFU performs worse (like all wireless
+- _External noise_: When deployed in a noisy environment, the proprietary mesh DFU performs worse (like all wireless
 technologies).
 
 Because these characteristics are different for all deployments, it is not possible to make a general
@@ -186,9 +185,9 @@ rule that will work for all networks. To maximize the DFU performance:
 
 ### Background operation @anchor dfu-protocol-background
 
-Due to the relatively slow transfer rate of the Mesh DFU protocol, transfers could end up taking
+Due to the relatively slow transfer rate of the proprietary mesh DFU protocol, transfers could end up taking
 over an hour, which is an unacceptable downtime for a lot of applications. To deal with this, the
-Mesh DFU implements a background mode.
+proprietary mesh DFU implements a background mode.
 
 The background mode allows the application to continue the normal operation
 while the DFU transfer progresses. The background mode is the default mode of operation, unless there is
@@ -215,11 +214,11 @@ perform the transfer in the bootloader mode.
 
 ### Memory map @anchor dfu-protocol-memory-map
 
-The Mesh DFU protocol uses the same flash memory map as the nRF5 SDK
+The proprietary mesh DFU protocol uses the same flash memory map as the nRF5 SDK
 @link_bootloader_and_dfu_modules, with one minor difference. Instead of placing the MBR parameter
 storage between the bootloader and the bootloader settings (called [device page](@ref dfu-protocol-device-page)
-in the Mesh DFU), the MBR parameter storage in the Mesh DFU protocol goes between the bootloader
-and the application area.
+in the proprietary mesh DFU), the MBR parameter storage in the proprietary mesh DFU protocol goes between
+the bootloader and the application area.
 
 ![Flash memory map](images/bootloader_memory_nrf52.svg)
 
@@ -232,26 +231,26 @@ These correspond to the [transfer types](@ref dfu-protocol-transfer-modes) menti
 Each firmware element can be updated individually with a DFU transfer.
 
 The application uses the bootloader to perform the [receive-and-relay algorithm steps](@ref dfu-protocol-receive-and-relay),
-even when working in the background mode. When initializing the mesh framework, the DFU module initializes
+even when working in the background mode. When initializing the Bluetooth mesh framework, the DFU module initializes
 a command handler module in the bootloader, which runs alongside the application.
 
 To be able to run alongside the application, the bootloader reserves the last 768 bytes of RAM
-on the device. This reserved RAM is accounted for in all mesh project files and linker scripts.
+on the device. This reserved RAM is accounted for in all Bluetooth mesh project files and linker scripts.
 Failing to reserve these bytes causes unexpected behavior from the bootloader
 when the application starts.
 
 ### Security @anchor dfu-protocol-security
 
-Similarly to the nRF5 SDK, the Mesh DFU does not encrypt the DFU transfer data.
+Similarly to the nRF5 SDK, the proprietary mesh DFU does not encrypt the DFU transfer data.
 
-In the Mesh case, this is a limitation inherited from the OpenMesh protocol, and means that under
+In the Bluetooth mesh case, this is a limitation inherited from the OpenMesh protocol, and means that under
 no circumstance should security-sensitive data (like keys) be sent as part of a DFU transfer.
 
-The Mesh DFU does however feature Elliptic Curve Digital Signatures (ECDSA) for authenticating the transfers.
+The proprietary mesh DFU does however feature Elliptic Curve Digital Signatures (ECDSA) for authenticating the transfers.
 Although signing is optional, it is highly recommended to sign all transfers.
 Signing is performed with a private signing key when the DFU transfer is created,
-and all mesh devices can get preprogrammed with a matching public signing key to
-authenticate the firmware. If a mesh device has a public signing key, it will always require that
+and all Bluetooth mesh devices can get preprogrammed with a matching public signing key to
+authenticate the firmware. If a Bluetooth mesh device has a public signing key, it will always require that
 the signature passes before the transfer is finalized.
 
 The signing algorithm is performed by creating a SHA256 hash of the transfer metadata and firmware.
@@ -267,7 +266,7 @@ See the following table for the breakdown of the hash.
 | Firmware ID              | 10             | `F`          | _Firmware ID_ from the DFU state packet.                   |
 | Firmware data            | 10 + `F`       | `L`          | The entire firmware image (not including signature).       |
 
-@note The size of the firmware ID (`F`) depends on the type of transfer. See [Mesh DFU Firmware IDs](@ref dfu-protocol-fwid).
+@note The size of the firmware ID (`F`) depends on the type of transfer. See [DFU Firmware IDs](@ref dfu-protocol-fwid).
 
 The signature is created by ECDSA with the NIST P-256 curve (secp256r1):
 
@@ -292,15 +291,15 @@ as the target device will delete all knowledge of the transfer when the signatur
 
 ---
 
-## Mesh DFU Firmware IDs @anchor dfu-protocol-fwid
+## DFU Firmware IDs @anchor dfu-protocol-fwid
 
-All mesh DFU transfers are identified by a firmware ID. The structure of the firmware ID depends on
+All proprietary mesh DFU transfers are identified by a firmware ID. The structure of the firmware ID depends on
 the [transfer type](@ref dfu-protocol-transfer-modes):
 - [Application firmware ID](@ref dfu-protocol-fwid-app)
 - [SoftDevice firmware ID](@ref dfu-protocol-fwid-sd)
 - [Bootloader firmware ID](@ref dfu-protocol-fwid-bl)
 
-To decide whether to accept an incoming transfer or not, all mesh devices carry their current firmware IDs
+To decide whether to accept an incoming transfer or not, all Bluetooth mesh devices carry their current firmware IDs
 in their [device page](@ref dfu-protocol-device-page).
 
 ### Application firmware ID @anchor dfu-protocol-fwid-app
@@ -378,7 +377,7 @@ When in the background mode, the upgrade strategy is user-definable.
 
 ## Device page @anchor dfu-protocol-device-page
 
-All devices running the Mesh DFU bootloader are required to keep a device page in flash. The device
+All devices running the proprietary mesh DFU bootloader are required to keep a device page in flash. The device
 page defines the device configuration and acts as operational parameters for the bootloader.
 
 The device page must be generated on a host computer and flashed on each device before
@@ -410,7 +409,7 @@ There can only be one bank per transfer type.
 
 See the following table for the list of possible entries, including required and optional ones.
 
-| Entry                                                                       | ID       | Required           | 
+| Entry                                                                       | ID       | Required           |
 |-----------------------------------------------------------------------------|----------|--------------------|
 | [Signature public key](@ref dfu-protocol-device-page-format-signature-key)  | `0x0001` | @tagGreenTick      |
 | [Firmware ID](@ref dfu-protocol-device-page-format-fwid)                    | `0x0002` | @tagGreenTick      |
@@ -435,9 +434,9 @@ Public key used for signature verification.
 
 #### Firmware ID @anchor dfu-protocol-device-page-format-fwid
 
-Current firmware ID. For details, see [Mesh DFU Firmware IDs](@ref dfu-protocol-fwid).
+Current firmware ID. For details, see [DFU Firmware IDs](@ref dfu-protocol-fwid).
 
-@note The firmware ID entry is a concatenation of the three different Mesh firmware IDs.
+@note The firmware ID entry is a concatenation of the three different proprietary mesh firmware IDs.
 
 | Field               | Offset (bytes) | Size (bytes) |
 |---------------------|----------------|--------------|

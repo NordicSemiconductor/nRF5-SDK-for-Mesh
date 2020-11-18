@@ -88,6 +88,7 @@ static uint32_t m_app_timer_count = 0;
 
 static model_timer_t m_model_timer;
 static model_timer_t m_exp_model_timer;
+static bool m_test_expected_active;
 
 
 APP_TIMER_DEF(test_timer);
@@ -236,6 +237,8 @@ static void helper_model_timer_cb(void * p_context)
     TEST_ASSERT_EQUAL(m_app_timer_count, p_timer->last_rtc_stamp);
     TEST_ASSERT_EQUAL(m_exp_model_timer.total_rtc_ticks, p_timer->total_rtc_ticks);
     m_exp_model_timer.last_rtc_stamp = m_app_timer_count;
+
+    TEST_ASSERT_EQUAL(m_test_expected_active, model_timer_is_running(&m_model_timer));
 }
 
 static ret_code_t app_timer_create_mock(app_timer_id_t const * p_timer_id, app_timer_mode_t mode,
@@ -328,9 +331,11 @@ void test_model_timer_create(void)
     m_model_timer.mode = MODEL_TIMER_MODE_SINGLE_SHOT;
     m_model_timer.cb = helper_model_timer_cb;
     m_model_timer.p_timer_id = &test_timer;
+    m_test_expected_active = false;
 
     app_timer_create_StubWithCallback(app_timer_create_mock);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, model_timer_create(&m_model_timer));
+    TEST_ASSERT_EQUAL(false, model_timer_is_running(&m_model_timer));
 }
 
 void test_model_timer_schedule_single_shot()
@@ -348,6 +353,7 @@ void test_model_timer_schedule_single_shot()
     m_model_timer.mode = MODEL_TIMER_MODE_SINGLE_SHOT;
     m_model_timer.cb = helper_model_timer_cb;
     m_model_timer.p_timer_id = &test_timer;
+    m_test_expected_active = false;
 
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, model_timer_schedule(&m_model_timer));
 
@@ -359,19 +365,24 @@ void test_model_timer_schedule_single_shot()
     req_timeout_ticks = 5000;
     helper_setup_model_timer(MODEL_TIMER_MODE_SINGLE_SHOT, req_timeout_ticks, &m_model_timer);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, model_timer_schedule(&m_model_timer));
+    TEST_ASSERT_EQUAL(true, model_timer_is_running(&m_model_timer));
     helper_trigger_timer();
+    TEST_ASSERT_EQUAL(false, model_timer_is_running(&m_model_timer));
 
     /* test: Schedule with valid params, with a very long delay */
     req_timeout_ticks = APP_TIMER_MAX_TIMEOUT * 3 + 100 ;
     helper_setup_model_timer(MODEL_TIMER_MODE_SINGLE_SHOT, req_timeout_ticks, &m_model_timer);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, model_timer_schedule(&m_model_timer));
+    TEST_ASSERT_EQUAL(true, model_timer_is_running(&m_model_timer));
     helper_trigger_timer();
 
     for(uint32_t i = 0; i < (req_timeout_ticks/APP_TIMER_MAX_TIMEOUT); i++)
     {
+        TEST_ASSERT_EQUAL(true, model_timer_is_running(&m_model_timer));
         helper_trigger_timer();
     }
     TEST_ASSERT_EQUAL(0, m_model_timer.remaining_ticks);
+    TEST_ASSERT_EQUAL(false, model_timer_is_running(&m_model_timer));
 }
 
 void test_model_timer_schedule_repeat()
@@ -386,29 +397,36 @@ void test_model_timer_schedule_repeat()
     m_model_timer.mode = MODEL_TIMER_MODE_REPEATED;
     m_model_timer.cb = helper_model_timer_cb;
     m_model_timer.p_timer_id = &test_timer;
+    m_test_expected_active = true;
 
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, model_timer_schedule(&m_model_timer));
+    TEST_ASSERT_EQUAL(false, model_timer_is_running(&m_model_timer));
 
     memset(&m_model_timer, 0, sizeof(m_model_timer));
     helper_setup_model_timer(MODEL_TIMER_MODE_REPEATED, TIMEOUT_TICKS_2, (void *)TIMER_CONTEXT_2);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, model_timer_schedule(&m_model_timer));
+    TEST_ASSERT_EQUAL(true, model_timer_is_running(&m_model_timer));
 
     /* test: Schedule with valid params, with small delay, where timeout occurs immediately */
     req_timeout_ticks = 5000;
     helper_setup_model_timer(MODEL_TIMER_MODE_REPEATED, req_timeout_ticks, &m_model_timer);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, model_timer_schedule(&m_model_timer));
+    TEST_ASSERT_EQUAL(true, model_timer_is_running(&m_model_timer));
     for(uint32_t i = 0; i < 10; i++)
     {
         helper_trigger_timer();
+        TEST_ASSERT_EQUAL(true, model_timer_is_running(&m_model_timer));
     }
     TEST_ASSERT_EQUAL(0, m_model_timer.remaining_ticks);
 
     /* test: Schedule with valid params, with a very long delay */
     req_timeout_ticks = APP_TIMER_MAX_TIMEOUT * 3 + 100 ;
     helper_setup_model_timer(MODEL_TIMER_MODE_SINGLE_SHOT, req_timeout_ticks, &m_model_timer);
+    m_test_expected_active = false;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, model_timer_schedule(&m_model_timer));
+    TEST_ASSERT_EQUAL(true, model_timer_is_running(&m_model_timer));
 
-    for (uint32_t j = 0; j < 10; j++)
+    for (uint32_t j = 0; j < 11; j++)
     {
         for(uint32_t i = 0; i < (req_timeout_ticks/APP_TIMER_MAX_TIMEOUT); i++)
         {
@@ -416,6 +434,7 @@ void test_model_timer_schedule_repeat()
         }
         TEST_ASSERT_EQUAL(0, m_model_timer.remaining_ticks);
     }
+    TEST_ASSERT_EQUAL(false, model_timer_is_running(&m_model_timer));
 }
 
 void test_model_timer_abort(void)
@@ -424,10 +443,17 @@ void test_model_timer_abort(void)
 
     helper_setup_model_timer(MODEL_TIMER_MODE_SINGLE_SHOT, TIMEOUT_TICKS_2, (void *)TIMER_CONTEXT_2);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, model_timer_schedule(&m_model_timer));
+    TEST_ASSERT_EQUAL(true, model_timer_is_running(&m_model_timer));
 
     app_timer_stop_ExpectAnyArgsAndReturn(NRF_SUCCESS);
     model_timer_abort(&m_model_timer);
+    TEST_ASSERT_EQUAL(false, model_timer_is_running(&m_model_timer));
 
     TEST_ASSERT_EQUAL(0, m_model_timer.remaining_ticks);
     TEST_ASSERT_EQUAL(0, m_model_timer.timeout_rtc_ticks);
+}
+
+void test_model_timer_is_running(void)
+{
+    /* This is implicitly tested as a part of other functionality tests */
 }

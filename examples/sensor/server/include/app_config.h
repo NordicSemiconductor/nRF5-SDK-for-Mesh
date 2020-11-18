@@ -62,6 +62,9 @@
 #define APP_TIMER_ENABLED 1
 #define APP_TIMER_KEEPS_RTC_ACTIVE 1
 
+#define GPIOTE_ENABLED 1
+#define GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS 4
+
 /** @} end of APP_SDK_CONFIG */
 
 #endif /* APP_CONFIG_H__ */

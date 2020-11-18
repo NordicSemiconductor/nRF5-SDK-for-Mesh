@@ -17,7 +17,7 @@ if (BUILD_BOOTLOADER)
 
     message(STATUS "Mesh Bootloader build enabled")
 
-    set(BOOTLOADER_SOURCE_FILES
+    set(BOOTLOADER_SOURCE_FILES_LINT
         "${CMAKE_CURRENT_SOURCE_DIR}/src/bootloader.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/bootloader_app_bridge.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/bootloader_info.c"
@@ -33,7 +33,11 @@ if (BUILD_BOOTLOADER)
         "${CMAKE_CURRENT_SOURCE_DIR}/src/nrf_flash.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/radio_control.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/rand.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/transport.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/transport.c")
+
+    set(BOOTLOADER_SOURCE_FILES
+        ${BOOTLOADER_SOURCE_FILES_LINT}
+        # This files are not linted as they are 3 parties files.
         "${CMAKE_CURRENT_SOURCE_DIR}/src/uECC.c"
         "${SDK_ROOT}/components/libraries/sha256/sha256.c" CACHE INTERNAL "")
 
@@ -47,7 +51,7 @@ if (BUILD_BOOTLOADER)
         "${SDK_ROOT}/components/libraries/sha256" CACHE INTERNAL "")
 
     set(BOOTLOADER_DEFINES
-        -DNORDIC_SDK_VERSION=15
+        -DNORDIC_SDK_VERSION=17
         -DBOOTLOADER
         -DRBC_MESH_PACKET_POOL_SIZE=32
         -DuECC_CURVE=uECC_secp256r1
@@ -165,10 +169,12 @@ if (BUILD_BOOTLOADER)
     ################################################################################
     # PC-Lint target
     ################################################################################
+    set(LINT_FEATURE_INCLUSION_DEFINES
+        "-DRBC_MESH_SERIAL=1")
 
-    # add_pc_lint(mesh_bootloader
-    #     "${BOOTLOADER_SOURCE_FILES};${BOOTLOADER_SERIAL_SOURCE_FILES}"
-    #     "${BOOTLOADER_INCLUDE_DIRS};${${PLATFORM}_INCLUDE_DIRS};${${SOFTDEVICE}_INCLUDE_DIRS};${${BOARD}_INCLUDE_DIRS}"
-    #     "${BOOTLOADER_DEFINES};${${PLATFORM}_DEFINES};${${BOARD}_DEFINES}")
+    add_pc_lint(mesh_bootloader_${PLATFORM}
+        "${BOOTLOADER_SOURCE_FILES_LINT};${BOOTLOADER_SERIAL_SOURCE_FILES}"
+        "${BOOTLOADER_INCLUDE_DIRS};${${PLATFORM}_INCLUDE_DIRS};${${SOFTDEVICE}_INCLUDE_DIRS};${${BOARD}_INCLUDE_DIRS}"
+        "${BOOTLOADER_DEFINES};${${PLATFORM}_DEFINES};${${BOARD}_DEFINES};${LINT_FEATURE_INCLUSION_DEFINES}")
 
 endif (BUILD_BOOTLOADER)

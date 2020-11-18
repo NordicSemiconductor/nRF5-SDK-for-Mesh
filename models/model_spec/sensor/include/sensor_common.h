@@ -52,21 +52,31 @@
 /** Model Company ID */
 #define SENSOR_COMPANY_ID (0xFFFF)
 
-/* See "@tagMeshDevPr, section 4.1.3".  0 is a prohibited value for property ID, so it can represent
- * "no property id" without concern for a collision.
+/**
+ * Prohibited Property ID.
+ *
+ * See "@tagMeshDevPr, section 4.1.3".
  */
 #define SENSOR_NO_PROPERTY_ID (0)
 
-/* "@tagMeshDevPr"
- */
-/* Motion Sensed Property
+/**
+ * Motion Sensed Property ID.
+ *
+ * See "@tagMeshDevPr, section 4.1.3".
  */
 #define SENSOR_MOTION_SENSED_PROPERTY_ID (0x0042)
-/* "Presence Detected Property
+
+/**
+ * Presence Detected Property ID.
+ *
+ * See "@tagMeshDevPr, section 4.1.3".
  */
 #define SENSOR_PRESENCE_DETECT_PROPERTY_ID (0x004D)
 
-/* @tagMeshMdlSp section 4.1.1 descriptor is 8 bytes
+/**
+ * Sensor Descriptor size.
+ *
+ * See @tagMeshMdlSp, section 4.1.1.
  */
 #define SENSOR_DESCRIPTOR_MSG_SIZE (8)
 
@@ -77,194 +87,104 @@ typedef uint8_t * sensor_property_data_size_t;
  * This helps to minimize codefootprint.
  */
 
-/** Parameters for the Sensor Descriptor Get message.
- */
+/** Parameters for the Sensor Descriptor Get message. */
 typedef struct
 {
-    /**< Sensor property ID
-     */
-    uint16_t property_id;
+    uint16_t property_id;               /**< Sensor property ID */
 } sensor_descriptor_get_params_t;
 
-
-/** Parameters for the Sensor Cadence Get message.
- */
+/** Parameters for the Sensor Cadence Get message. */
 typedef struct
 {
-    /**< Sensor property ID
-     */
-    uint16_t property_id;
+    uint16_t property_id;               /**< Sensor property ID */
 } sensor_cadence_get_params_t;
 
-/** Parameters for the Sensor Settings Get message.
- */
+/** Parameters for the Sensor Settings Get message. */
 typedef struct
 {
-    /**< Sensor property ID
-     */
-    uint16_t property_id;
+    uint16_t property_id;               /**< Sensor property ID */
 } sensor_settings_get_params_t;
 
-/** Parameters for the Sensor Settings Status message.
- */
+/** Parameters for the Sensor Settings Status message. */
 typedef struct
 {
-    /**< Sensor property ID
-     */
-    uint16_t property_id;
-    /**< Sequence of Setting Property IDs identifying settings within a sensor
-     */
-    uint16_t * setting_property_ids;
+    uint16_t property_id;               /**< Sensor property ID */
+    uint16_t * setting_property_ids;    /**< Sequence of Setting Property IDs identifying settings within a sensor */
 } sensor_settings_status_params_t;
 
-/** Parameters for the Sensor Setting Get message.
- */
+/** Parameters for the Sensor Setting Get message. */
 typedef struct
 {
-    /**< Sensor property ID
-     */
-    uint16_t property_id;
-    /**< Setting Property ID identifying a setting within a sensor
-     */
-    uint16_t setting_property_id;
+    uint16_t property_id;               /**< Sensor property ID */
+    uint16_t setting_property_id;       /**< Setting Property ID identifying a setting within a sensor */
 } sensor_setting_get_params_t;
 
-/** Parameters for the Sensor Setting Set message.
- */
+/** Parameters for the Sensor Setting Set message. */
 typedef struct
 {
-    /**< Sensor property ID
-     */
-    uint16_t property_id;
-    /**< Setting Property ID identifying a setting within a sensor
-     */
-    uint16_t setting_property_id;
-    /**< Raw value for the setting
-     */
-    uint8_t setting_raw;
+    uint16_t property_id;               /**< Sensor property ID */
+    uint16_t setting_property_id;       /**< Setting Property ID identifying a setting within a sensor */
+    uint8_t setting_raw;                /**< Raw value for the setting */
 } sensor_setting_set_params_t;
 
-/** Parameters for the Sensor Setting Status message.
- */
+/** Parameters for the Sensor Setting Status message. */
 typedef struct
 {
-    /**< Sensor property ID
-     */
-    uint16_t property_id;
-    /**< Setting Property ID identifying a setting within a sensor
-     */
-    uint16_t setting_property_id;
-    /**< Read/Write access rights for the setting (Optional)
-     */
-    uint8_t setting_access;
-    /**< Raw value for the setting
-     */
-    uint8_t setting_raw;
+    uint16_t property_id;               /**< Sensor property ID */
+    uint16_t setting_property_id;       /**< Setting Property ID identifying a setting within a sensor */
+    uint8_t setting_access;             /**< Read/Write access rights for the setting (Optional) */
+    uint8_t setting_raw;                /**< Raw value for the setting */
 } sensor_setting_status_params_t;
 
-/** Parameters for the Sensor Get message.
- */
+/** Parameters for the Sensor Get message. */
 typedef struct
 {
-    /**< Sensor property ID
-     */
-    uint16_t property_id;
+    uint16_t property_id;               /**< Sensor property ID */
 } sensor_get_params_t;
 
 /** Parameters for the Sensor Column Get message. */
 typedef struct
 {
-    /**< Sensor property ID
-     */
-    uint16_t property_id;
-    /**< Raw value identifying a column
-     */
-    uint8_t raw_value_x;
+    uint16_t property_id;               /**< Sensor property ID */
+    uint8_t raw_value_x;                /**< Raw value identifying a column */
 } sensor_column_get_params_t;
 
-/** Parameters for the Sensor Column Status message.
- */
+/** Parameters for the Sensor Column Status message. */
 typedef struct
 {
-    /**< Identifies a sensor  and the Y axis
-     */
-    uint16_t property_id;
-    /**< Raw value representing the left corner of the column on the X axis
-     */
-    uint8_t raw_value_x;
-    /**< Raw value representing the width of the column (Optional)
-     */
-    uint8_t column_width;
-    /**< Raw value representing the height of the column on the Y axis
-     */
-    uint8_t raw_value_y;
+    uint16_t property_id;               /**< Identifies a sensor  and the Y axis */
+    uint8_t raw_value_x;                /**< Raw value representing the left corner of the column on the X axis */
+    uint8_t column_width;               /**< Raw value representing the width of the column (Optional) */
+    uint8_t raw_value_y;                /**< Raw value representing the height of the column on the Y axis */
 } sensor_column_status_params_t;
 
-/** Parameters for the Sensor Series Get message.
- */
+/** Parameters for the Sensor Series Get message. */
 typedef struct
 {
-    /**< Sensor property ID
-     */
-    uint16_t property_id;
-    /**< Raw value identifying a starting column (Optional)
-     */
-    uint8_t raw_value_x1;
-    /**< Raw value identifying an ending column
-     */
-    uint8_t raw_value_x2;
+    uint16_t property_id;               /**< Sensor property ID */
+    uint8_t raw_value_x1;               /**< Raw value identifying a starting column (Optional) */
+    uint8_t raw_value_x2;               /**< Raw value identifying an ending column */
 } sensor_series_get_params_t;
 
-/** Parameters for the Sensor Series Status message.
- */
+/** Parameters for the Sensor Series Status message. */
 typedef struct
 {
-    /**< Identifies a sensor
-     */
-    uint16_t property_id;
-    /**< The nth column X axis
-     */
-    uint8_t raw_value_x_n;
-    /**< The nth column width
-     */
-    uint8_t column_width_n;
-    /**< The nth column height
-     */
-    uint8_t raw_value_y_n;
+    uint16_t property_id;               /**< Identifies a sensor*/
+    uint8_t raw_value_x_n;              /**< The nth column X axis */
+    uint8_t column_width_n;             /**< The nth column width */
+    uint8_t raw_value_y_n;              /**< The nth column height */
 } sensor_series_status_params_t;
 
-/* just the property id in the error return
- */
-#define SENSOR_SERIES_ERR_MSG_SIZE (2)
-#define SENSOR_CADENCE_ERR_MSG_SIZE (2)
-#define SENSOR_SETTINGS_ERR_MSG_SIZE (2)
-#define SENSOR_SETTING_ERR_MSG_SIZE (4)
-#define SENSOR_DESCRIPTOR_ERR_MSG_SIZE (2)
-
-/** Sensor Descriptor - the sensor-specific sensor descriptor
- */
+/** Parameters for the Sensor Descriptor. */
 typedef struct
 {
-    /**< Property ID for sensor
-     */
-    uint16_t property_id;
-    /**< 12-bit value for possible positive sensor error
-     */
-    uint16_t positive_tolerance;
-    /**< 12-bit value for possible negative sensor error
-     */
-    uint16_t negative_tolerance;
-    /**< Sampling function applied to measured sensor values
-     */
-    uint8_t sampling_function;
-    /**< Period over which measurement is taken in seconds
-     */
-    uint8_t measurement_period;
-    /**< Interval between measurement updates in seconds
-     */
-    uint8_t update_interval;
+    uint16_t property_id;               /**< Property ID for sensor */
+    uint16_t positive_tolerance;        /**< 12-bit value for possible positive sensor error */
+    uint16_t negative_tolerance;        /**< 12-bit value for possible negative sensor error */
+    uint8_t sampling_function;          /**< Sampling function applied to measured sensor values */
+    uint8_t measurement_period;         /**< Period over which measurement is taken in seconds */
+    uint8_t update_interval;            /**< Interval between measurement updates in seconds */
 } sensor_descriptor_t;
-
 
 /**@} end of SENSOR_MODEL */
 #endif /* SENSOR_COMMON_H__ */

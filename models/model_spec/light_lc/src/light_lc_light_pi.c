@@ -210,7 +210,7 @@ void light_lc_light_pi_update(light_lc_setup_server_t * p_s_server)
 
     /* Divide by 2 since regulator_accuracy is is percentage 8, then /2 since width is 2D wide (-D
      * <=> +D) Then / 100 to use as a percentage */
-    d_accuracy = (regulator_accuracy * luxlevel_out / 2) / 2 / 100;
+    d_accuracy = (regulator_accuracy *  (ROUNDED_DIV(luxlevel_out, LIGHT_PI_ILLUMINANCE_TO_LUX_DIV)) / 2) / 2 / 100;
 
     if (e_adjustment_error > (int32_t) d_accuracy)
     {

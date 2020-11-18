@@ -73,6 +73,7 @@
 #include "nrf_mesh_utils.h"
 #include "test_helper.h"
 
+#define PUBLICATION_SET_TEST_ARRAY_SIZE   3
 #define CONFIG_SERVER_MODEL_ID  0x0000
 
 #define UNIQUE_TOKEN ((nrf_mesh_tx_token_t)0x55AA55AAul)
@@ -632,6 +633,65 @@ void test_gatt_proxy_set(void)
 #endif
 }
 
+void test_gatt_proxy_set_invalid_states(void)
+{
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    config_server_evt_t evt;
+    memset(&evt, 0, sizeof(config_server_evt_t));
+    evt.type = CONFIG_SERVER_EVT_GATT_PROXY_SET;
+    const config_msg_proxy_set_t message = { .proxy_state = CONFIG_GATT_PROXY_STATE_RUNNING_ENABLED };
+    evt.params.proxy_set.proxy_state = message.proxy_state;
+
+    /* Proxy not enabled. */
+    m_previous_reply_received = false;
+    proxy_is_enabled_ExpectAndReturn(false);
+    mesh_opt_gatt_proxy_set_ExpectAndReturn(true, NRF_SUCCESS);
+    proxy_start_ExpectAndReturn(NRF_SUCCESS);
+
+    config_server_evt_mock_Expect(&evt);
+    send_message(CONFIG_OPCODE_GATT_PROXY_SET, (const uint8_t *) &message, sizeof(config_msg_proxy_set_t));
+
+    TEST_ASSERT_TRUE(m_previous_reply_received);
+    VERIFY_REPLY_OPCODE(CONFIG_OPCODE_GATT_PROXY_STATUS);
+
+    TEST_ASSERT_NOT_NULL(mp_previous_reply_buffer);
+    TEST_ASSERT_EQUAL(sizeof(config_msg_proxy_status_t), m_previous_reply.length);
+    TEST_ASSERT_EQUAL_UINT8(CONFIG_GATT_PROXY_STATE_RUNNING_DISABLED, m_previous_reply.p_buffer[0]);
+
+    /* Config server does not assert if mesh_opt_gatt_proxy_set() returns NRF_ERROR_INVALID_STATE. */
+    m_previous_reply_received = false;
+    proxy_is_enabled_ExpectAndReturn(false);
+    mesh_opt_gatt_proxy_set_ExpectAndReturn(true, NRF_ERROR_INVALID_STATE);
+    proxy_start_ExpectAndReturn(NRF_SUCCESS);
+
+    config_server_evt_mock_Expect(&evt);
+    send_message(CONFIG_OPCODE_GATT_PROXY_SET, (const uint8_t *) &message, sizeof(config_msg_proxy_set_t));
+
+    TEST_ASSERT_TRUE(m_previous_reply_received);
+    VERIFY_REPLY_OPCODE(CONFIG_OPCODE_GATT_PROXY_STATUS);
+
+    TEST_ASSERT_NOT_NULL(mp_previous_reply_buffer);
+    TEST_ASSERT_EQUAL(sizeof(config_msg_proxy_status_t), m_previous_reply.length);
+    TEST_ASSERT_EQUAL_UINT8(CONFIG_GATT_PROXY_STATE_RUNNING_DISABLED, m_previous_reply.p_buffer[0]);
+
+    /* Config server doesn't assert if proxy_start() returns NRF_ERROR_INVALID_STATE. */
+    m_previous_reply_received = false;
+    proxy_is_enabled_ExpectAndReturn(false);
+    mesh_opt_gatt_proxy_set_ExpectAndReturn(true, NRF_SUCCESS);
+    proxy_start_ExpectAndReturn(NRF_ERROR_INVALID_STATE);
+
+    config_server_evt_mock_Expect(&evt);
+    send_message(CONFIG_OPCODE_GATT_PROXY_SET, (const uint8_t *) &message, sizeof(config_msg_proxy_set_t));
+
+    TEST_ASSERT_TRUE(m_previous_reply_received);
+    VERIFY_REPLY_OPCODE(CONFIG_OPCODE_GATT_PROXY_STATUS);
+
+    TEST_ASSERT_NOT_NULL(mp_previous_reply_buffer);
+    TEST_ASSERT_EQUAL(sizeof(config_msg_proxy_status_t), m_previous_reply.length);
+    TEST_ASSERT_EQUAL_UINT8(CONFIG_GATT_PROXY_STATE_RUNNING_DISABLED, m_previous_reply.p_buffer[0]);
+#endif
+}
+
 void test_config_relay_get(void)
 {
     config_server_evt_t evt;
@@ -814,13 +874,36 @@ void test_publication_get(void)
     }
 }
 
+static void returned_error_status_handler(config_msg_publication_set_t * p_message, bool sig_model, access_status_t error_status)
+{
+    m_previous_reply_received = false;
+    send_message(CONFIG_OPCODE_MODEL_PUBLICATION_SET, (const uint8_t *) p_message, sizeof(config_msg_publication_set_t) - sig_model * sizeof(uint16_t));
+
+    TEST_ASSERT_TRUE(m_previous_reply_received);
+    VERIFY_REPLY_OPCODE(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS);
+    TEST_ASSERT_EQUAL(sizeof(config_msg_publication_status_t) - sig_model * sizeof(uint16_t), m_previous_reply.length);
+
+    const config_msg_publication_status_t * p_reply = (const config_msg_publication_status_t *) m_previous_reply.p_buffer;
+    TEST_ASSERT_EQUAL(error_status, p_reply->status);
+    TEST_ASSERT_EQUAL(p_message->element_address, p_reply->element_address);
+    if (sig_model)
+    {
+        TEST_ASSERT_EQUAL_UINT16(p_message->state.model_id.sig.model_id, p_reply->state.model_id.sig.model_id);
+    }
+    else
+    {
+        TEST_ASSERT_EQUAL_UINT16(p_message->state.model_id.vendor.model_id, p_reply->state.model_id.vendor.model_id);
+        TEST_ASSERT_EQUAL_UINT16(p_message->state.model_id.vendor.company_id, p_reply->state.model_id.vendor.company_id);
+    }
+}
+
 void test_publication_set(void)
 {
     config_server_evt_t evt;
     memset(&evt, 0, sizeof(config_server_evt_t));
     evt.type = CONFIG_SERVER_EVT_MODEL_PUBLICATION_SET;
 
-    config_msg_publication_set_t messages[2] =
+    config_msg_publication_set_t messages[PUBLICATION_SET_TEST_ARRAY_SIZE] =
     {
         {
             .element_address = 0x1234,
@@ -846,12 +929,25 @@ void test_publication_set(void)
                 .model_id.vendor.model_id = 0x1244,
                 .model_id.vendor.company_id = 0x2288
             }
+        },
+        {
+            .element_address = 0x2a2a,
+            .publish_address = 0x2a2a,
+            .state = {
+                .appkey_index = 0x2a,
+                .publish_ttl = 0x2a,
+                .publish_period = ACCESS_PUBLISH_RESOLUTION_100MS << ACCESS_PUBLISH_STEP_NUM_BITS | 12,
+                .retransmit_count = 4,
+                .retransmit_interval = 5,
+                .model_id.vendor.model_id = 0x2a2a,
+                .model_id.vendor.company_id = 0x2a2a
+            }
         }
     };
 
-    bool credential_flag[2] = {0, 1};
+    bool credential_flag[PUBLICATION_SET_TEST_ARRAY_SIZE] = {0, 1, 0};
 
-    for (int i = 0; i < 2; ++i)
+    for (int i = 0; i < PUBLICATION_SET_TEST_ARRAY_SIZE; ++i)
     {
         messages[i].state.credential_flag = credential_flag[i];
         bool sig_model = !i;
@@ -872,38 +968,57 @@ void test_publication_set(void)
         dsm_appkey_index_to_appkey_handle_ExpectAndReturn(messages[i].state.appkey_index, appkey_handle);
 
         dsm_handle_t address_handle = 22115;
-        access_model_publish_address_set_ExpectAndReturn(model_handle, address_handle, NRF_SUCCESS);
+        // the first is for handle_config_model_publication_set
+        access_model_publish_address_get_ExpectAndReturn(model_handle, NULL, NRF_SUCCESS);
+        access_model_publish_address_get_IgnoreArg_p_address_handle();
+        access_model_publish_address_get_ReturnThruPtr_p_address_handle(&address_handle);
+        nrf_mesh_address_t publish_address = { .type = NRF_MESH_ADDRESS_TYPE_UNICAST, .value = messages[i].publish_address };
+        // the first is for handle_config_model_publication_set
+        dsm_address_get_ExpectAndReturn(address_handle, NULL, NRF_SUCCESS);
+        dsm_address_get_IgnoreArg_p_address();
+        dsm_address_get_ReturnThruPtr_p_address(&publish_address);
+
         access_model_publish_period_set_ExpectAndReturn(model_handle, ACCESS_PUBLISH_RESOLUTION_100MS, 0, NRF_SUCCESS);
-        access_model_publish_period_set_ExpectAndReturn(model_handle, (access_publish_resolution_t) (messages[i].state.publish_period >> ACCESS_PUBLISH_STEP_NUM_BITS),
-            messages[i].state.publish_period & (0xff >> (8 - ACCESS_PUBLISH_STEP_NUM_BITS)), NRF_SUCCESS);
+
+#if MESH_FEATURE_LPN_ENABLED
+        access_model_publish_friendship_credential_flag_set_ExpectAndReturn(model_handle, credential_flag[i], NRF_SUCCESS);
+#else
+        if (credential_flag[i] == 1)
+        {
+            returned_error_status_handler(&messages[i], sig_model, ACCESS_STATUS_FEATURE_NOT_SUPPORTED);
+            continue;
+        }
+#endif
+
+        if (i == 2)
+        { /* Check that if access_model_publish_retransmit_set returns not success the others are skipped.  */
+            access_model_publish_retransmit_set_ExpectAnyArgsAndReturn(NRF_ERROR_NOT_FOUND);
+            returned_error_status_handler(&messages[i], sig_model, ACCESS_STATUS_UNSPECIFIED_ERROR);
+            continue;
+        }
+
         access_publish_retransmit_t publish_retransmit =
         {
             .count = messages[i].state.retransmit_count,
             .interval_steps = messages[i].state.retransmit_interval
         };
         access_model_publish_retransmit_set_ExpectAndReturn(model_handle, publish_retransmit, NRF_SUCCESS);
+        access_model_publish_address_set_ExpectAndReturn(model_handle, address_handle, NRF_SUCCESS);
         access_model_publish_application_set_ExpectAndReturn(model_handle, appkey_handle, NRF_SUCCESS);
         access_model_publish_ttl_set_ExpectAndReturn(model_handle, messages[i].state.publish_ttl, NRF_SUCCESS);
-        access_model_publish_friendship_credential_flag_set_ExpectAndReturn(model_handle, credential_flag[i], NRF_SUCCESS);
+
+        access_model_publish_period_set_ExpectAndReturn(model_handle, (access_publish_resolution_t) (messages[i].state.publish_period >> ACCESS_PUBLISH_STEP_NUM_BITS),
+            messages[i].state.publish_period & (0xff >> (8 - ACCESS_PUBLISH_STEP_NUM_BITS)), NRF_SUCCESS);
+
         /* The following functions are called when the server assembles the response packet: */
         access_model_id_get_ExpectAndReturn(model_handle, NULL, NRF_SUCCESS);
         access_model_id_get_IgnoreArg_p_model_id();
         access_model_id_get_ReturnThruPtr_p_model_id(&expected_id);
 
-        // the first is for handle_config_model_publication_set
-        access_model_publish_address_get_ExpectAndReturn(model_handle, NULL, NRF_SUCCESS);
-        access_model_publish_address_get_IgnoreArg_p_address_handle();
-        access_model_publish_address_get_ReturnThruPtr_p_address_handle(&address_handle);
         // the second is for send_publication_status
         access_model_publish_address_get_ExpectAndReturn(model_handle, NULL, NRF_SUCCESS);
         access_model_publish_address_get_IgnoreArg_p_address_handle();
         access_model_publish_address_get_ReturnThruPtr_p_address_handle(&address_handle);
-
-        nrf_mesh_address_t publish_address = { .type = NRF_MESH_ADDRESS_TYPE_UNICAST, .value = messages[i].publish_address };
-        // the first is for handle_config_model_publication_set
-        dsm_address_get_ExpectAndReturn(address_handle, NULL, NRF_SUCCESS);
-        dsm_address_get_IgnoreArg_p_address();
-        dsm_address_get_ReturnThruPtr_p_address(&publish_address);
         // the second is for send_publication_status
         dsm_address_get_ExpectAndReturn(address_handle, NULL, NRF_SUCCESS);
         dsm_address_get_IgnoreArg_p_address();
@@ -2589,7 +2704,7 @@ void test_heartbeat_sub_set(void)
     };
 
     heartbeat_subscription_set_ExpectAndReturn(&sub, NRF_SUCCESS);
-    heartbeat_subscription_get_ExpectAnyArgsAndReturn(&sub);
+    heartbeat_subscription_get_ExpectAndReturn(&sub);
     evt.params.heartbeat_subscription_set.p_subscription_state = &sub;
     config_server_evt_mock_Expect(&evt);
     send_message(CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_SET, (const uint8_t *) &message, sizeof(config_msg_heartbeat_subscription_set_t));

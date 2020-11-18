@@ -48,9 +48,6 @@ uint32_t flash_write(void* p_dest, void* p_data, uint32_t length);
 uint32_t flash_erase(void* p_dest, uint32_t length);
 uint32_t bootloader_error_post(uint32_t error, const char* file, uint32_t line);
 
-//uint32_t timer_set(uint32_t delay_us);
-//uint32_t timer_abort(void);
-
 uint32_t tx_abort(uint8_t slot);
 void send_end_evt(dfu_end_t end_reason);
 bool bootloader_is_in_application(void);

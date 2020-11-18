@@ -12,16 +12,16 @@ that cannot support the advertising bearer.
 
 Provisioning over GATT and the Proxy protocol are mainly used by devices such as mobile phones
 or tablets to:
-- provision a new mesh device;
-- communicate with the rest of the mesh network through a proxy device.
+- provision a new Bluetooth mesh device;
+- communicate with the rest of the Bluetooth mesh network through a proxy device.
 
 They can also be used to realize low power devices by excluding the PB-ADV
 support, as shown in @ref md_examples_lpn_README.
 
 The GATT provisioning bearer (PB-GATT) provisions a device using Proxy PDUs, which are exchanged
 between the two roles of the Proxy protocol:
-- Proxy Server -- a node that supports at least two different mesh bearers
-- Proxy Client -- a node that supports a mesh bearer using the Proxy protocol.
+- Proxy Server -- a node that supports at least two different Bluetooth mesh bearers
+- Proxy Client -- a node that supports a Bluetooth mesh bearer using the Proxy protocol.
 
 The PDU size is determined based on the ATT_MTU. A single Proxy PDU can contain
 a full message or segments of the message.
@@ -49,7 +49,7 @@ to being a GATT Proxy server.
 
 The device first advertises both non-connectable and connectable Unprovisioned Device beacons:
 - The non-connectable beacon is used for PB-ADV.
-- The connectable beacon is used for PB-GATT and has a slightly different format, as it also includes the Mesh
+- The connectable beacon is used for PB-GATT and has a slightly different format, as it also includes the Bluetooth mesh
 Provisioning Service UUID. (For more information, see @link_MeshSpec, Section 7.1.2.2.1, page 271.)
 
 PB-GATT uses the interface provided in `mesh_adv.h` for advertising. Immediately after
@@ -59,7 +59,7 @@ The provisioning process starts.
 ### Resetting GATT database @anchor pb-gatt_sequence_resetting
 
 When the provisioning process is complete, the device must reset its GATT database to comply with
-the Mesh specification requirement of exposing only the Mesh Proxy service.
+the Bluetooth mesh specification requirement of exposing only the Bluetooth mesh Proxy service.
 
 The reset is done by the helper module `mesh_provisionee.c`. To reset the database, the SoftDevice
 is disabled and re-enabled. This means that any application service or setting needs to be

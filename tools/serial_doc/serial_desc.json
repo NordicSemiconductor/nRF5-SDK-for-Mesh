@@ -784,6 +784,21 @@
                         "status": [ "SUCCESS"
                         ]
                     }
+                },
+                {
+                    "name": "Net State Set",
+                    "description": "Sets the network state.",
+                    "response": {
+                        "status": [ "SUCCESS", "ERROR_INVALID_STATE"]
+                    }
+                },
+                {
+                    "name": "Net State Get",
+                    "description": "Gets the network state.",
+                    "response": {
+                        "status": [ "SUCCESS", "ERROR_INVALID_STATE", "ERROR_REJECTED" ],
+                        "params": "cmd_rsp_data_net_state_get"
+                    }
                 }
             ]
         },
@@ -1259,6 +1274,14 @@
         {
             "name": "Mesh Heartbeat Received",
             "description": "A heartbeat message has been received. To control the heartbeat subscriptions of the device through the local Configuration Client, add any mesh device key through _Device Key_ and bind the provided handle to the device Configuration Server through _Config Server Bind_. Use the provided device key handle to configure the device."
+        },
+        {
+            "name": "Mesh IV Entry Set Notification",
+            "description": "The mesh config entry for the IV index has been set."
+        },
+        {
+            "name": "Mesh SeqNum Entry Set Notification",
+            "description": "The mesh config entry for the next sequence number block has been set."
         },
         {
             "name": "Mesh SAR Failed",

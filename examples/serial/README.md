@@ -1,10 +1,10 @@
 # Serial example
 
 @tag52840and52833and52832
-@tag52810nosupport
+@tag52840dongle52810and52820nosupport
 
-This example implements the serial interface for the mesh stack. It can be used
-unaltered as connectivity firmware for mesh devices. You can also modify the example
+This example implements the serial interface for the Bluetooth mesh stack. It can be used
+unaltered as connectivity firmware for Bluetooth mesh devices. You can also modify the example
 to provide additional functionality.
 
 **Table of contents**
@@ -28,8 +28,8 @@ serial interface to notify the external host that the device is ready to accept 
 
 ## Offloading feature @anchor serial_example_offloading
 
-This example demonstrates how to offload certain mesh-related tasks to the external host
-using a serial interface, which improves the performance of the mesh stack.
+This example demonstrates how to offload certain Bluetooth-mesh-related tasks to the external host
+using a serial interface, which improves the performance of the Bluetooth mesh stack.
 The ECDH operations used in the provisioning process are a suitable candidate for such offloading.
 
 The ECDH offloading allows the device to take advantage of the more powerful
@@ -62,7 +62,7 @@ You can find the source code of the serial example in the following folder: `<In
 
 To test the serial example:
 1. Build the example by following the instructions in
-[Building the mesh stack](@ref md_doc_getting_started_how_to_build).
+[Building the Bluetooth mesh stack](@ref md_doc_getting_started_how_to_build).
 2. Program the board by following the instructions in
 @ref md_doc_getting_started_how_to_run_examples.
 3. When the the serial example is running, start testing it using the Interactive PyACI.

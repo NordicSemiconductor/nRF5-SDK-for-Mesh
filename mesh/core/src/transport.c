@@ -1478,19 +1478,21 @@ static uint32_t upper_trs_packet_decrypt(transport_packet_metadata_t * p_metadat
 
             /* Application key */
             p_metadata->p_security_material = NULL;
-            for (nrf_mesh_app_secmat_next_get(p_metadata->net.p_security_material,
-                                              p_metadata->type.access.app_key_id,
-                                              &p_metadata->p_security_material);
-                 p_metadata->p_security_material != NULL;
-                 nrf_mesh_app_secmat_next_get(p_metadata->net.p_security_material,
-                                              p_metadata->type.access.app_key_id,
-                                              &p_metadata->p_security_material))
-            {
-                if (test_transport_decrypt(p_metadata->p_security_material, &ccm_data))
+            const nrf_mesh_application_secmat_t * p_secmat[2] = { NULL, NULL };
+            do {
+                nrf_mesh_app_secmat_next_get(p_metadata->net.p_security_material,
+                                             p_metadata->type.access.app_key_id,
+                                             &p_secmat[0], &p_secmat[1]);
+
+                for (uint32_t i = 0; i < ARRAY_SIZE(p_secmat) && p_secmat[i] != NULL; i++)
                 {
-                    return NRF_SUCCESS;
+                    if (test_transport_decrypt(p_secmat[i], &ccm_data))
+                    {
+                        p_metadata->p_security_material = p_secmat[i];
+                        return NRF_SUCCESS;
+                    }
                 }
-            }
+            } while (p_secmat[0] != NULL);
         } while (p_metadata->net.dst.type == NRF_MESH_ADDRESS_TYPE_VIRTUAL &&
                  nrf_mesh_rx_address_get(p_metadata->net.dst.value, &p_metadata->net.dst));
     }

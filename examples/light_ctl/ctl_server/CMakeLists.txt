@@ -4,11 +4,13 @@ add_executable(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/app_light_ctl.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/app_light_lightness.c"
+    "${CMAKE_SOURCE_DIR}/examples/common/src/app_scene.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/app_transition.c"
     "${CMAKE_SOURCE_DIR}/mesh/stack/src/mesh_stack.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_provisionee.c"
     "${MBTLE_SOURCE_DIR}/examples/common/src/rtt_input.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_app_utils.c"
+    ${MODEL_CONFIG_FILE_SOURCE_FILES}
     ${PWM_UTILS_SOURCE_FILES}
     ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${WEAK_SOURCE_FILES}
@@ -22,6 +24,7 @@ add_executable(${target}
     ${GENERIC_LEVEL_SERVER_SOURCE_FILES}
     ${LIGHT_CTL_SETUP_SERVER_SOURCE_FILES}
     ${LIGHT_LIGHTNESS_SETUP_SERVER_SOURCE_FILES}
+    ${SCENE_SETUP_SERVER_SOURCE_FILES}
     ${ACCESS_SOURCE_FILES}
     ${MESH_APP_TIMER_SOURCE_FILES}
     ${PROV_PROVISIONEE_SOURCE_FILES}
@@ -44,6 +47,7 @@ target_include_directories(${target} PUBLIC
     ${GENERIC_LEVEL_SERVER_INCLUDE_DIRS}
     ${LIGHT_LIGHTNESS_SETUP_SERVER_INCLUDE_DIRS}
     ${LIGHT_CTL_SETUP_SERVER_INCLUDE_DIRS}
+    ${SCENE_SETUP_SERVER_INCLUDE_DIRS}
     ${MESH_INCLUDE_DIRS}
     ${${SOFTDEVICE}_INCLUDE_DIRS}
     ${${PLATFORM}_INCLUDE_DIRS}
@@ -81,7 +85,11 @@ set(lint_source_files
 add_pc_lint(${target}
     "${lint_source_files}"
     "${target_include_dirs}"
-    "${target_compile_defs}")
+    "${target_compile_defs};-DSCENE_SETUP_SERVER_INSTANCES_MAX=1")
+add_pc_lint(no_scene_${target}
+    "${lint_source_files}"
+    "${target_include_dirs}"
+    "${target_compile_defs};-DSCENE_SETUP_SERVER_INSTANCES_MAX=0")
 
 add_ses_project(${target})
 

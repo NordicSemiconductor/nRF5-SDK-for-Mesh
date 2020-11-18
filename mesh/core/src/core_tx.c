@@ -127,7 +127,7 @@ core_tx_bearer_bitmap_t core_tx_packet_alloc(const core_tx_alloc_params_t * p_pa
 
             if (result == CORE_TX_ALLOC_SUCCESS)
             {
-                m_packet.bearer_bitmap |= (1 << p_bearer->bearer_index);
+                m_packet.bearer_bitmap |= (1ULL << p_bearer->bearer_index);
             }
         }
     }
@@ -148,7 +148,7 @@ void core_tx_packet_send(void)
     {
         core_tx_bearer_t * p_bearer = PARENT_BY_FIELD_GET(core_tx_bearer_t, list_node, p_iterator);
 
-        if ((m_packet.bearer_bitmap & (1 << p_bearer->bearer_index)) > 0)
+        if ((m_packet.bearer_bitmap & (1ULL << p_bearer->bearer_index)) > 0)
         {
             p_bearer->p_interface->packet_send(p_bearer, m_packet.buffer.pdu, m_packet.length);
         }
@@ -164,7 +164,7 @@ void core_tx_packet_discard(void)
     {
         core_tx_bearer_t * p_bearer = PARENT_BY_FIELD_GET(core_tx_bearer_t, list_node, p_iterator);
 
-        if ((m_packet.bearer_bitmap & (1 << p_bearer->bearer_index)) > 0)
+        if ((m_packet.bearer_bitmap & (1ULL << p_bearer->bearer_index)) > 0)
         {
             p_bearer->p_interface->packet_discard(p_bearer);
         }

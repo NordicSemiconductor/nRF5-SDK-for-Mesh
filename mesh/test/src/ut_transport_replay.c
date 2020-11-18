@@ -37,13 +37,51 @@
 #include "unity.h"
 #include "cmock.h"
 
+#include "mesh_opt.h"
 #include "transport_test_common.h"
+#include "mesh_config_entry_mock.h"
+#include "mesh_config_mock.h"
+
+/* These are the copy of definitions from replay_cache.c. They shall be synchronized. */
+/** Replay cache start ID of the item range */
+#define MESH_OPT_REPLY_CACHE_RECORD      0x0001
+/** SeqZero cache start ID of the item range */
+#define MESH_OPT_SEQZERO_CACHE_RECORD    (MESH_OPT_REPLY_CACHE_RECORD + REPLAY_CACHE_ENTRIES)
+
+/*****************************************************************************
+* Extern stub
+*****************************************************************************/
+extern const mesh_config_entry_params_t m_replay_cache_params;
+extern const mesh_config_entry_params_t m_seqzero_cache_params;
 
 /**************************************************************************************************
  * This unit test tests all aspects of transport layer replay protection and redundancy checks.
  *************************************************************************************************/
-
 static timer_event_t* mp_incomplete_timer_evt;
+
+static uint32_t entry_set_cb(mesh_config_entry_id_t id, const void* p_entry, int num_calls)
+{
+    (void)num_calls;
+
+    TEST_ASSERT_EQUAL(MESH_OPT_REPLAY_CACHE_FILE_ID, id.file);
+
+    if (IS_IN_RANGE(id.record, MESH_OPT_REPLY_CACHE_RECORD,
+                    MESH_OPT_REPLY_CACHE_RECORD + REPLAY_CACHE_ENTRIES - 1))
+    {
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, m_replay_cache_params.callbacks.setter(id, p_entry));
+        return NRF_SUCCESS;
+    }
+
+    if (IS_IN_RANGE(id.record, MESH_OPT_SEQZERO_CACHE_RECORD,
+                    MESH_OPT_SEQZERO_CACHE_RECORD + REPLAY_CACHE_ENTRIES - 1))
+    {
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, m_seqzero_cache_params.callbacks.setter(id, p_entry));
+        return NRF_SUCCESS;
+    }
+
+    TEST_FAIL();
+    return NRF_ERROR_INTERNAL;
+}
 
 void timer_sch_reschedule_cb(timer_event_t* p_timer_evt, timestamp_t new_timestamp, int cmock_num_calls)
 {
@@ -59,11 +97,19 @@ void timer_sch_reschedule_cb(timer_event_t* p_timer_evt, timestamp_t new_timesta
 void setUp(void)
 {
     transport_test_common_setup();
+    mesh_config_entry_mock_Init();
+    mesh_config_mock_Init();
+    mesh_config_entry_set_StubWithCallback(entry_set_cb);
+    mesh_config_entry_delete_IgnoreAndReturn(NRF_SUCCESS);
 }
 
 void tearDown(void)
 {
     transport_test_common_teardown();
+    mesh_config_entry_mock_Verify();
+    mesh_config_entry_mock_Destroy();
+    mesh_config_mock_Verify();
+    mesh_config_mock_Destroy();
 }
 
 /*****************************************************************************
@@ -166,6 +212,25 @@ void test_replay_reject_full_list(void)
     expect_access_rx(10, src, NRF_MESH_ADDRESS_TYPE_UNICAST);
     net_meta_build(src, 0, m_iv_index, NRF_MESH_ADDRESS_TYPE_UNICAST, &meta);
     packet_unseg_rx(&meta, 10);
+}
+
+void test_sar_frame_skipping_with_seqno_less_seqauth(void)
+{
+    network_packet_metadata_t meta;
+    uint16_t src = 1;
+    do_iv_update(10);
+
+    sar_session_t sar_session = {
+        .seqzero = 1,
+        .segment_count = 1,
+        .total_len = PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE,
+    };
+
+    // receive a packet with sequence number 0 for seqzero 1
+    net_meta_build(src, 0, m_iv_index, NRF_MESH_ADDRESS_TYPE_UNICAST, &meta);
+    packet_seg_rx(&meta, PACKET_MESH_TRS_SEG_ACCESS_PDU_MAX_SIZE, 0, &sar_session);
+
+    // frame should be silently skipped. There will not be further handling.
 }
 
 void test_replay_sar_single_segment(void)

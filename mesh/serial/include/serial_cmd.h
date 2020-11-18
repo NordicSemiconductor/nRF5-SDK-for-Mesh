@@ -153,7 +153,9 @@
 #define SERIAL_OPCODE_CMD_MESH_PACKET_SEND                    (0xAB) /**< Params: @ref serial_cmd_mesh_packet_send_t */
 #define SERIAL_OPCODE_CMD_MESH_STATE_CLEAR                    (0xAC) /**< Params: None. */
 #define SERIAL_OPCODE_CMD_MESH_CONFIG_SERVER_BIND             (0xAD) /**< Params: @ref serial_cmd_mesh_config_server_devkey_bind_t */
-#define SERIAL_OPCODE_CMD_RANGE_MESH_END                      (0xAF) /**< MESH range end. */
+#define SERIAL_OPCODE_CMD_MESH_NET_STATE_SET                  (0xAE) /**< Params: @ref serial_cmd_mesh_net_state_set_t */
+#define SERIAL_OPCODE_CMD_MESH_NET_STATE_GET                  (0xAF) /**< Params: None. */
+#define SERIAL_OPCODE_CMD_RANGE_MESH_END                      (0xBF) /**< MESH range end. */
 
 #define SERIAL_OPCODE_CMD_RANGE_DFU_START                     (0xD0) /**< DFU range start. */
 #define SERIAL_OPCODE_CMD_DFU_JUMP_TO_BOOTLOADER              (0xD0) /**< Params: None. */
@@ -507,6 +509,15 @@ typedef struct __attribute((packed))
     uint16_t address_handle; /**< Handle of the address to get the raw representation of. */
 } serial_cmd_mesh_config_server_devkey_bind_t;
 
+/** Mesh net state set command parameters */
+typedef struct __attribute((packed))
+{
+    uint32_t  iv_index; /**< The IV index to set.*/
+    uint8_t   iv_update_in_progress; /**< Value indicating the phase of the IV update process. */
+    uint16_t  iv_update_timeout_counter; /**< Timeout counter for IV update process. */
+    uint32_t  next_seqnum_block; /**< The first sequence number block which is not yet allocated. */
+} serial_cmd_mesh_net_state_set_t;
+
 /** Mesh command parameters. */
 typedef union __attribute((packed))
 {
@@ -537,6 +548,7 @@ typedef union __attribute((packed))
 
     serial_cmd_mesh_packet_send_t                   packet_send;                   /**< Packet send parameters. */
     serial_cmd_mesh_config_server_devkey_bind_t     config_server_devkey_bind;     /**< Configuration Server: device key bind parameters. */
+    serial_cmd_mesh_net_state_set_t                 net_state_set;                 /**< Net state set parameters */
 } serial_cmd_mesh_t;
 
 /* **** PB-MESH Client **** */

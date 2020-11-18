@@ -126,7 +126,7 @@ static struct
     bool free;
     uint32_t length;
     config_opcode_t opcode;
-    uint8_t buffer[128];
+    uint8_t buffer[NRF_MESH_SEG_PAYLOAD_SIZE_MAX];
 } m_buffer;
 
 static access_reliable_cb_t m_reliable_cb;
@@ -917,11 +917,18 @@ void test_subscription_get(void)
     EXPECT_TX(CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_GET, &msg, sizeof(msg));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_model_subscription_get(element_address, model_id));
 
-    config_msg_subscription_status_t ack;
-    memset(&ack, 0x12, sizeof(ack));
+    union {
+        config_msg_vendor_model_subscription_list_t vendor_subscription_list;
+        config_msg_sig_model_subscription_list_t sig_subscription_list;
+        uint8_t raw[NRF_MESH_SEG_PAYLOAD_SIZE_MAX];
+    } ack;
+    ack.vendor_subscription_list.element_address = 1;
+    ack.vendor_subscription_list.vendor_company_id = 4;
+    ack.vendor_subscription_list.vendor_model_id = 3;
+    memset(&ack.vendor_subscription_list.subscriptions[0], 0x12, NRF_MESH_SEG_PAYLOAD_SIZE_MAX - sizeof(config_msg_vendor_model_app_list_t));
 
-    EXPECT_ACK(CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS, &ack, sizeof(ack));
-    send_ack(CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS, (const uint8_t *) &ack, sizeof(ack));
+    EXPECT_ACK(CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_LIST, &ack.vendor_subscription_list, NRF_MESH_SEG_PAYLOAD_SIZE_MAX);
+    send_ack(CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_LIST, (const uint8_t *) &ack.sig_subscription_list, NRF_MESH_SEG_PAYLOAD_SIZE_MAX);
     m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
 
     /* SIG version */
@@ -934,10 +941,12 @@ void test_subscription_get(void)
     EXPECT_TX(CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_GET, &msg, (sizeof(msg) - sizeof(uint16_t)));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_model_subscription_get(element_address, model_id));
 
-    memset(&ack, 0x32, sizeof(ack));
+    ack.sig_subscription_list.element_address = 1;
+    ack.sig_subscription_list.sig_model_id = 6;
+    memset(&ack.sig_subscription_list.subscriptions[0], 0x12, NRF_MESH_SEG_PAYLOAD_SIZE_MAX - sizeof(config_msg_sig_model_app_list_t));
 
-    EXPECT_ACK(CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS, &ack, sizeof(ack));
-    send_ack(CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS, (const uint8_t *) &ack, sizeof(ack));
+    EXPECT_ACK(CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_LIST, &ack.sig_subscription_list, NRF_MESH_SEG_PAYLOAD_SIZE_MAX);
+    send_ack(CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_LIST, (const uint8_t *) &ack.sig_subscription_list, NRF_MESH_SEG_PAYLOAD_SIZE_MAX);
     m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
 }
 
@@ -999,11 +1008,18 @@ void test_app_get(void)
     EXPECT_TX(CONFIG_OPCODE_VENDOR_MODEL_APP_GET, &msg, sizeof(msg));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_model_app_get(element_address, model_id));
 
-    config_msg_app_status_t ack;
-    memset(&ack, 0x12, sizeof(ack));
+    union {
+        config_msg_vendor_model_app_list_t vendor_app_list;
+        config_msg_sig_model_app_list_t sig_app_list;
+        uint8_t raw[NRF_MESH_SEG_PAYLOAD_SIZE_MAX];
+    } ack;
+    ack.vendor_app_list.element_address = 1;
+    ack.vendor_app_list.vendor_company_id = 4;
+    ack.vendor_app_list.vendor_model_id = 3;
+    memset(&ack.vendor_app_list.key_indexes[0], 0x12, NRF_MESH_SEG_PAYLOAD_SIZE_MAX - sizeof(config_msg_vendor_model_app_list_t));
 
-    EXPECT_ACK(CONFIG_OPCODE_MODEL_APP_STATUS, &ack, sizeof(ack));
-    send_ack(CONFIG_OPCODE_MODEL_APP_STATUS, (const uint8_t *) &ack, sizeof(ack));
+    EXPECT_ACK(CONFIG_OPCODE_VENDOR_MODEL_APP_LIST, &ack.vendor_app_list, NRF_MESH_SEG_PAYLOAD_SIZE_MAX);
+    send_ack(CONFIG_OPCODE_VENDOR_MODEL_APP_LIST, (const uint8_t *) &ack.vendor_app_list, NRF_MESH_SEG_PAYLOAD_SIZE_MAX);
     m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
 
     /* SIG version */
@@ -1016,10 +1032,12 @@ void test_app_get(void)
     EXPECT_TX(CONFIG_OPCODE_SIG_MODEL_APP_GET, &msg, (sizeof(msg) - sizeof(uint16_t)));
     TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_model_app_get(element_address, model_id));
 
-    memset(&ack, 0x32, sizeof(ack));
+    ack.sig_app_list.element_address = 1;
+    ack.sig_app_list.sig_model_id = 6;
+    memset(&ack.sig_app_list.key_indexes[0], 0x12, NRF_MESH_SEG_PAYLOAD_SIZE_MAX - sizeof(config_msg_sig_model_app_list_t));
 
-    EXPECT_ACK(CONFIG_OPCODE_MODEL_APP_STATUS, &ack, sizeof(ack));
-    send_ack(CONFIG_OPCODE_MODEL_APP_STATUS, (const uint8_t *) &ack, sizeof(ack));
+    EXPECT_ACK(CONFIG_OPCODE_SIG_MODEL_APP_LIST, &ack.sig_app_list, NRF_MESH_SEG_PAYLOAD_SIZE_MAX);
+    send_ack(CONFIG_OPCODE_SIG_MODEL_APP_LIST, (const uint8_t *) &ack.sig_app_list, NRF_MESH_SEG_PAYLOAD_SIZE_MAX);
     m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
 }
 
@@ -1318,6 +1336,144 @@ void test_config_client_heartbeat_subscription_get(void)
     EXPECT_ACK(CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS, &ack, sizeof(ack));
     send_ack(CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS, (const uint8_t *) &ack, sizeof(ack));
 
+    m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
+}
+
+void test_friend_get(void)
+{
+    __setup();
+
+    EXPECT_TX(CONFIG_OPCODE_FRIEND_GET, NULL, 0);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_friend_get());
+
+    const config_msg_friend_status_t status =
+        {
+            .friend_state = CONFIG_FRIEND_STATE_SUPPORTED_ENABLED,
+        };
+    EXPECT_ACK(CONFIG_OPCODE_FRIEND_STATUS, &status, sizeof(status));
+    send_ack(CONFIG_OPCODE_FRIEND_STATUS, (const uint8_t *) &status, sizeof(status));
+    m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
+}
+
+void test_friend_set(void)
+{
+    __setup();
+
+    const config_msg_friend_set_t msg =
+        {
+            .friend_state = CONFIG_FRIEND_STATE_SUPPORTED_ENABLED,
+        };
+    EXPECT_TX(CONFIG_OPCODE_FRIEND_SET, &msg, sizeof(msg));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_friend_set(CONFIG_FRIEND_STATE_SUPPORTED_ENABLED));
+
+    const config_msg_friend_status_t status =
+        {
+            .friend_state = CONFIG_FRIEND_STATE_SUPPORTED_ENABLED,
+        };
+    EXPECT_ACK(CONFIG_OPCODE_FRIEND_STATUS, &status, sizeof(status));
+    send_ack(CONFIG_OPCODE_FRIEND_STATUS, (const uint8_t *) &status, sizeof(status));
+    m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
+}
+
+void test_gatt_proxy_get(void)
+{
+    __setup();
+
+    EXPECT_TX(CONFIG_OPCODE_GATT_PROXY_GET, NULL, 0);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_gatt_proxy_get());
+
+    const config_msg_proxy_status_t status =
+        {
+            .proxy_state = CONFIG_GATT_PROXY_STATE_RUNNING_ENABLED,
+        };
+    EXPECT_ACK(CONFIG_OPCODE_GATT_PROXY_STATUS, &status, sizeof(status));
+    send_ack(CONFIG_OPCODE_GATT_PROXY_STATUS, (const uint8_t *) &status, sizeof(status));
+    m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
+}
+
+void test_gatt_proxy_set(void)
+{
+    __setup();
+
+    const config_msg_proxy_set_t msg =
+        {
+            .proxy_state = CONFIG_GATT_PROXY_STATE_RUNNING_ENABLED,
+        };
+    EXPECT_TX(CONFIG_OPCODE_GATT_PROXY_SET, &msg, sizeof(msg));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_gatt_proxy_set(CONFIG_GATT_PROXY_STATE_RUNNING_ENABLED));
+
+    const config_msg_proxy_status_t status =
+        {
+            .proxy_state = CONFIG_GATT_PROXY_STATE_RUNNING_ENABLED,
+        };
+    EXPECT_ACK(CONFIG_OPCODE_GATT_PROXY_STATUS, &status, sizeof(status));
+    send_ack(CONFIG_OPCODE_GATT_PROXY_STATUS, (const uint8_t *) &status, sizeof(status));
+    m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
+}
+
+void test_node_identity_get(void)
+{
+    __setup();
+
+    config_msg_key_index_12_t netkey_index = 12;
+    const config_msg_identity_get_t msg =
+        {
+            .netkey_index = netkey_index
+        };
+    EXPECT_TX(CONFIG_OPCODE_NODE_IDENTITY_GET, &msg, sizeof(msg));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_node_identity_get(netkey_index));
+
+    const config_msg_identity_status_t status =
+        {
+            .netkey_index = netkey_index,
+            .identity_state = CONFIG_IDENTITY_STATE_RUNNING
+        };
+    EXPECT_ACK(CONFIG_OPCODE_NODE_IDENTITY_STATUS, &status, sizeof(status));
+    send_ack(CONFIG_OPCODE_NODE_IDENTITY_STATUS, (const uint8_t *) &status, sizeof(status));
+    m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
+}
+
+void test_node_identity_set(void)
+{
+    __setup();
+
+    config_msg_key_index_12_t netkey_index = 12;
+    const config_msg_identity_set_t msg =
+        {
+            .netkey_index = netkey_index,
+            .identity_state = CONFIG_IDENTITY_STATE_RUNNING
+        };
+    EXPECT_TX(CONFIG_OPCODE_NODE_IDENTITY_SET, &msg, sizeof(msg));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_node_identity_set(netkey_index, CONFIG_IDENTITY_STATE_RUNNING));
+
+    const config_msg_identity_status_t status =
+        {
+            .netkey_index = netkey_index,
+            .identity_state = CONFIG_IDENTITY_STATE_RUNNING
+        };
+    EXPECT_ACK(CONFIG_OPCODE_NODE_IDENTITY_STATUS, &status, sizeof(status));
+    send_ack(CONFIG_OPCODE_NODE_IDENTITY_STATUS, (const uint8_t *) &status, sizeof(status));
+    m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
+}
+
+void test_low_power_node_polltimeout_get(void)
+{
+    __setup();
+
+    const config_msg_low_power_node_polltimeout_get_t msg =
+        {
+            .lpn_address = 0x1234,
+        };
+    EXPECT_TX(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_GET, &msg, sizeof(msg));
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, config_client_low_power_node_polltimeout_get(0x1234));
+
+    const config_msg_low_power_node_polltimeout_status_t status =
+        {
+            .lpn_address = 0x1234,
+            .polltimeout = {0xDE,0xAD,0xBE},
+        };
+    EXPECT_ACK(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_STATUS, &status, sizeof(status));
+    send_ack(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_STATUS, (const uint8_t *) &status, sizeof(status));
     m_reliable_cb(m_handle, NULL, ACCESS_RELIABLE_TRANSFER_SUCCESS);
 }
 

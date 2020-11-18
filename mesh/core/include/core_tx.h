@@ -45,7 +45,7 @@
 
 /** Maximum number of concurrent bearers. Limited by the number of bits in the
  * core_tx_bearer_bitmap_t type. */
-#define CORE_TX_BEARER_COUNT_MAX 32
+#define CORE_TX_BEARER_COUNT_MAX 64
 
 /**
  * @defgroup CORE_TX Core Transmission Handler
@@ -97,7 +97,7 @@ typedef struct
  *
  * @note The bearer bitmap represents bearer instances, not bearer types. Each bearer instance has a bearer type.
  */
-typedef uint32_t core_tx_bearer_bitmap_t;
+typedef uint64_t core_tx_bearer_bitmap_t;
 
 /**
  * @defgroup CORE_TX_BEARER_API Core TX bearer API

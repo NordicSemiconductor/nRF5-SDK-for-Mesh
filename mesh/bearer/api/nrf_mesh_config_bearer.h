@@ -136,7 +136,7 @@
 
 /** Number of flags available for allocation. */
 #ifndef BEARER_EVENT_FLAG_COUNT
-#define BEARER_EVENT_FLAG_COUNT     14
+#define BEARER_EVENT_FLAG_COUNT     17
 #endif
 
 /**

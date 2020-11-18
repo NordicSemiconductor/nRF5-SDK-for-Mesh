@@ -96,6 +96,14 @@ void flash_manager_defrag(const flash_manager_t * p_manager);
  */
 const void * flash_manager_defrag_recovery_page_get(void);
 
+/**
+ * Emergency freezing of the defragmentation process.
+ *
+ * @note  The functionality is used to stop ongoing defragmentation activity.
+ *        It helps to free flash availability for the emergency cache within power down.
+ */
+void flash_manager_defrag_freeze(void);
+
 /** @} */
 
 #endif /* FLASH_MANAGER_DEFRAG_H__ */

@@ -51,6 +51,9 @@
 #include "config_server.h"
 #include "hal.h"
 #include "mesh_stack.h"
+#include "mesh_opt_net_state.h"
+#include "mesh_config_entry.h"
+#include "mesh_config_listener.h"
 
 /* Ensure that we're mapping the size of the serial parameter to the
  * dsm_handle_t. If this triggers, someone changed the size of the
@@ -449,6 +452,41 @@ static void handle_config_devkey_bind(const serial_packet_t * p_cmd)
     serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, NULL, 0);
 }
 
+static void handle_net_state_set(const serial_packet_t * p_cmd)
+{
+#if PERSISTENT_STORAGE
+    serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, NRF_ERROR_INVALID_STATE, NULL, 0);
+#else
+    uint32_t status = net_state_iv_index_and_seqnum_block_set(
+                            p_cmd->payload.cmd.mesh.net_state_set.iv_index,
+                            p_cmd->payload.cmd.mesh.net_state_set.iv_update_in_progress,
+                            p_cmd->payload.cmd.mesh.net_state_set.next_seqnum_block);
+    serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, NULL, 0);
+#endif
+}
+
+static void handle_net_state_get(const serial_packet_t * p_cmd)
+{
+    mesh_opt_iv_index_persist_data_t iv_index_data;
+    mesh_opt_seqnum_persist_data_t   seqnum_data;
+
+    uint32_t status = mesh_config_entry_get(MESH_OPT_NET_STATE_IV_INDEX_EID, (void *)&iv_index_data);
+    if (status != NRF_SUCCESS)
+    {
+        serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, NULL, 0);
+        return;
+    }
+
+    status = mesh_config_entry_get(MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_EID, (void *)&seqnum_data);
+
+    serial_evt_cmd_rsp_data_net_state_get_t rsp = {
+        .iv_index = iv_index_data.iv_index,
+        .iv_update_in_progress = (uint8_t) iv_index_data.iv_update_in_progress,
+        .iv_update_timeout_counter = iv_index_data.iv_update_timeout_counter,
+        .next_seqnum_block = seqnum_data.next_block
+    };
+    serial_handler_common_cmd_rsp_nodata_on_error(p_cmd->opcode, status, (uint8_t *)&rsp, sizeof(rsp));
+}
 
 /*****************************************************************************
 * Static functions
@@ -487,8 +525,55 @@ static const mesh_serial_cmd_handler_t m_handlers[] =
     {SERIAL_OPCODE_CMD_MESH_ADDR_VIRTUAL_COUNT_MAX_GET,     0,                                                       0,  handle_cmd_addr_virtual_count_max_get},
     {SERIAL_OPCODE_CMD_MESH_PACKET_SEND, SERIAL_CMD_MESH_PACKET_SEND_OVERHEAD, sizeof(serial_cmd_mesh_packet_send_t) - SERIAL_CMD_MESH_PACKET_SEND_OVERHEAD,  handle_cmd_packet_send},
     {SERIAL_OPCODE_CMD_MESH_STATE_CLEAR,                    0,                                                       0,  handle_cmd_clear},
-    {SERIAL_OPCODE_CMD_MESH_CONFIG_SERVER_BIND,             sizeof(serial_cmd_mesh_config_server_devkey_bind_t),     0,  handle_config_devkey_bind}
+    {SERIAL_OPCODE_CMD_MESH_CONFIG_SERVER_BIND,             sizeof(serial_cmd_mesh_config_server_devkey_bind_t),     0,  handle_config_devkey_bind},
+    {SERIAL_OPCODE_CMD_MESH_NET_STATE_SET,                  sizeof(serial_cmd_mesh_net_state_set_t),                 0,  handle_net_state_set},
+    {SERIAL_OPCODE_CMD_MESH_NET_STATE_GET,                  0,                                                       0,  handle_net_state_get}
 };
+
+static void mesh_config_listener_cb(mesh_config_change_reason_t reason, mesh_config_entry_id_t id, const void * p_entry)
+{
+    if (reason == MESH_CONFIG_CHANGE_REASON_SET && id.file == MESH_OPT_NET_STATE_FILE_ID)
+    {
+        static serial_packet_t * p_serial_evt;
+
+        switch (id.record)
+        {
+            case MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_RECORD:
+            {
+                uint32_t status = serial_packet_buffer_get(sizeof(serial_evt_mesh_seqnum_entry_set_notification_t) + 1, &p_serial_evt);
+                if (status != NRF_SUCCESS)
+                {
+                    break;
+                }
+                mesh_opt_seqnum_persist_data_t * p_seqnum_data = (mesh_opt_seqnum_persist_data_t *)p_entry;
+                p_serial_evt->opcode = SERIAL_OPCODE_EVT_MESH_SEQNUM_ENTRY_SET_NOTIFICATION;
+                p_serial_evt->payload.evt.mesh.seqnum_entry_set.next_block = p_seqnum_data->next_block;
+                serial_tx(p_serial_evt);
+                break;
+            }
+            case MESH_OPT_NET_STATE_IV_INDEX_RECORD:
+            {
+                uint32_t status = serial_packet_buffer_get(sizeof(serial_evt_mesh_iv_entry_set_notification_t) + 1, &p_serial_evt);
+                if (status != NRF_SUCCESS)
+                {
+                    break;
+                }
+                mesh_opt_iv_index_persist_data_t * p_iv_index_data = (mesh_opt_iv_index_persist_data_t *)p_entry;
+                p_serial_evt->opcode = SERIAL_OPCODE_EVT_MESH_IV_ENTRY_SET_NOTIFICATION;
+                p_serial_evt->payload.evt.mesh.iv_entry_set.iv_index = p_iv_index_data->iv_index;
+                p_serial_evt->payload.evt.mesh.iv_entry_set.iv_update_in_progress = p_iv_index_data->iv_update_in_progress;
+                p_serial_evt->payload.evt.mesh.iv_entry_set.iv_update_timout_counter = p_iv_index_data->iv_update_timeout_counter;
+                serial_tx(p_serial_evt);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+}
+
+MESH_CONFIG_LISTENER(m_seqnum_listener, MESH_OPT_NET_STATE_SEQ_NUM_BLOCK_EID, mesh_config_listener_cb);
+MESH_CONFIG_LISTENER(m_iv_index_listener, MESH_OPT_NET_STATE_IV_INDEX_EID, mesh_config_listener_cb);
 
 static void serial_handler_mesh_evt_handle(const nrf_mesh_evt_t* p_evt)
 {

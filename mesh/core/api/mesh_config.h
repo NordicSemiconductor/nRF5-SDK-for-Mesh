@@ -76,6 +76,10 @@ void mesh_config_load(void);
  *
  * @note The configuration data is not cleared until the mesh configuration module leaves the busy
  * state, as indicated by the @ref mesh_config_is_busy function or the @ref NRF_MESH_EVT_CONFIG_STABLE event, or both.
+ *
+ * @warning  Mesh stack assertion will occur if this API is called when flash manager area of any
+ * of the mesh config files is not in `FM_STATE_READY` state. To ensure no assertions are generated
+ * this API should be called only when mesh config is [not in busy](@ref mesh_config_is_busy) state.
  */
 void mesh_config_clear(void);
 
@@ -114,6 +118,9 @@ uint32_t mesh_config_power_down_time_get(void);
  *
  * @note The file data is not safely removed until the mesh config module goes out of the busy
  * state, as indicated by @ref mesh_config_is_busy or the @ref NRF_MESH_EVT_CONFIG_STABLE event.
+ *
+ * @note If the file identified by given file_id is not found the API returns silently and no
+ * events should be expected.
  *
  * @param[in] file_id The unique file identifier.
  */

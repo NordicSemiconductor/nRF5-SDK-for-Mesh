@@ -276,7 +276,7 @@ typedef enum
 {
     /** The replay protection cache is full. */
     NRF_MESH_RX_FAILED_REASON_REPLAY_CACHE_FULL
-}nrf_mesh_rx_failed_reason_t;
+} nrf_mesh_rx_failed_reason_t;
 
 /**
  * RX failed event structure.
@@ -289,7 +289,7 @@ typedef struct
     uint8_t ivi : 1;
     /** Reason for the RX failure. */
     nrf_mesh_rx_failed_reason_t reason;
-}nrf_mesh_evt_rx_failed_t;
+} nrf_mesh_evt_rx_failed_t;
 
 /**
  * SAR session cancelled reason codes.

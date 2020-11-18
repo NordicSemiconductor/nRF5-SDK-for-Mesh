@@ -41,16 +41,20 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "hal.h"
+#include "boards.h"
+#include "utils.h"
 
 /**
  * @defgroup SIMPLE_HAL Simple Hardware Abstraction Layer
  * @ingroup MESH_API_GROUP_APP_SUPPORT
- * Simple hardware abstraction layer for the example applications.
+ * Simple hardware abstraction layer for the example applications. This module uses GPIOTE
+ * driver module. Therefore, `GPIOTE_ENABLED` must be set to `1` in the `app_config.h` file.
+ *
  * @{
  */
 
-/** Acceptable button press frequency in RTC ticks. */
-#define HAL_BUTTON_PRESS_FREQUENCY  HAL_MS_TO_RTC_TICKS(400)
+/** Acceptable button press interval in microseconds. */
+#define HAL_BUTTON_PRESS_DEBOUNCE_INTERVAL  MS_TO_US(400)
 
 /** Lowest possible blinking period in milliseconds. */
 #define HAL_LED_BLINK_PERIOD_MIN_MS (20)
@@ -60,9 +64,22 @@
 /** Set LED Mask state to On. */
 #define LED_MASK_STATE_ON     (true)
 
+/** LEDs mask full */
+#define HAL_LED_MASK ((1 << LEDS_NUMBER) - 1)
+/** LEDs mask half **/
+#if (LEDS_NUMBER == 1)
+    #define HAL_LED_MASK_HALF       (HAL_LED_MASK)
+    #define HAL_LED_MASK_LOWER_HALF (HAL_LED_MASK)
+    #define HAL_LED_MASK_UPPER_HALF (HAL_LED_MASK)
+#else
+    #define HAL_LED_MASK_HALF       ((1 << (LEDS_NUMBER/2)) - 1)
+    #define HAL_LED_MASK_LOWER_HALF (HAL_LED_MASK_HALF)
+    #define HAL_LED_MASK_UPPER_HALF (HAL_LED_MASK ^ HAL_LED_MASK_HALF)
+#endif
 
 /** Boards with user buttons */
-#define BUTTON_BOARD (defined(BOARD_PCA10040) || defined(BOARD_PCA10028) || defined(BOARD_PCA10056) || defined(BOARD_PCA10100)) //lint -e491 // Suppress "non-standard use of 'defined' preprocessor operator"
+#define BUTTON_BOARD (defined(BOARD_PCA10040) || defined(BOARD_PCA10028) || defined(BOARD_PCA10056) \
+                     || defined(BOARD_PCA10100) || defined(BOARD_PCA10059)) //lint -e491 // Suppress "non-standard use of 'defined' preprocessor operator"
 
 /**
  * Button event handler callback type.
@@ -75,6 +92,9 @@ void hal_leds_init(void);
 
 /**
  * Initializes the buttons on a DK.
+ *
+ * To use this API, `GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS` must be set to a value greater than or
+ * equal to `BUTTONS_NUMBER` in `app_config.h` file to support buttons on the DK board.
  *
  * @param[in] cb Button event callback.
  *

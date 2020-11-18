@@ -4,7 +4,7 @@ This guide presents the basics of how to create new models. You may implement yo
 vendor-specific model that will enable your devices to provide custom states and behaviors
 not covered by the already defined standard models.
 
-For the list of available Mesh Model APIs,
+For the list of available Bluetooth mesh model APIs,
 see \ref MESH_API_GROUP_MODELS in the API Reference section.
 
 **Table of contents**

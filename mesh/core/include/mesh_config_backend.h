@@ -37,13 +37,15 @@
 #ifndef MESH_CONFIG_BACKEND_H__
 #define MESH_CONFIG_BACKEND_H__
 
+#include <stdint.h>
+#include "mesh_config_entry.h"
+
 /**
  * @defgroup MESH_CONFIG_BACKEND Mesh configuration backend
  * Defines the API for mesh config backends. Every backend implements this API, but only one should
  * be linked.
  * @{
  */
-#include "mesh_config.h"
 
 /** Backend event type. */
 typedef enum
@@ -59,6 +61,8 @@ typedef struct
 {
     mesh_config_backend_evt_type_t type;
     mesh_config_entry_id_t id;
+    uint8_t * p_data;
+    uint32_t length;
 } mesh_config_backend_evt_t;
 
 /**
@@ -189,6 +193,21 @@ uint32_t mesh_config_backend_power_down_time_get(void);
  * @param[in] p_file File to clean content.
  */
 void mesh_config_backend_file_clean(mesh_config_backend_file_t * p_file);
+
+/**
+ * Puts the backend in the power down mode.
+ */
+void mesh_config_backend_power_down(void);
+
+/**
+ * Checks the available place in the allocated flash area for the file.
+ *
+ * @param[in] p_file File to check place.
+ *
+ * @return true    If the file has enough place to store all data in case of the power down.
+ *         false   Otherwise.
+ */
+bool mesh_config_backend_is_there_power_down_place(mesh_config_backend_file_t * p_file);
 
 /** @} */
 

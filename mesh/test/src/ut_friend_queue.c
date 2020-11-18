@@ -80,7 +80,7 @@ static void verify_packets_in_queues(void)
         for (queue_elem_t * p_elem = p_queues[i]->p_front; p_elem != NULL; p_elem = p_elem->p_next)
         {
             uint32_t index = (PARENT_BY_FIELD_GET(friend_packet_t, queue_elem, p_elem) - &m_queue.buffer[0]);
-            TEST_ASSERT_FALSE_MESSAGE(bitfield_get(packets_found, index), "Packet exists in two queues")
+            TEST_ASSERT_FALSE_MESSAGE(bitfield_get(packets_found, index), "Packet exists in two queues");
             bitfield_set(packets_found, index);
         }
     }

@@ -207,7 +207,7 @@ def main():
     for plt in platforms:
         plt_str += ''.join(plt["name"]) + '\n'
 
-    SOFTDEVICE = "s132_7.0.1"
+    SOFTDEVICE = "s132_7.2.0"
     DEVICE = "nrf52832_xxAA"
     parser = argparse.ArgumentParser(description="Device Page Generator")
     parser.add_argument("-d", "--device", help="Select device: " + ''.join(plt_str),

@@ -101,7 +101,7 @@ void setUp(void)
     net_state_iv_index_lock_Ignore();
     net_state_rx_iv_index_get_IgnoreAndReturn(m_iv_index_dummy);
     net_state_tx_iv_index_get_IgnoreAndReturn(m_iv_index_dummy);
-    net_state_seqnum_alloc_IgnoreAndReturn(NRF_SUCCESS);
+    net_state_iv_index_and_seqnum_alloc_IgnoreAndReturn(NRF_SUCCESS);
     bearer_event_critical_section_begin_Ignore();
     bearer_event_critical_section_end_Ignore();
     network_packet_alloc_IgnoreAndReturn(NULL);
@@ -141,8 +141,10 @@ void tearDown(void)
 /**************************************************************************/
 void nrf_mesh_app_secmat_next_get(const nrf_mesh_network_secmat_t * p_network_secmat,
                                   uint8_t aid,
-                                  const nrf_mesh_application_secmat_t ** pp_app_secmat)
+                                  const nrf_mesh_application_secmat_t ** pp_app_secmat,
+                                  const nrf_mesh_application_secmat_t ** pp_app_secmat_secondary)
 {
+    (void) pp_app_secmat_secondary;
     if (*pp_app_secmat == NULL)
     {
         *pp_app_secmat = &m_app_dummy;

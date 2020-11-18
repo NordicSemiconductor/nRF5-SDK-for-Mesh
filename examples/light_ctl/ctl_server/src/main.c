@@ -71,9 +71,10 @@
 #include "light_ctl_utils.h"
 #include "ble_softdevice_support.h"
 #include "app_timer.h"
-#include "model_common.h"
+#include "model_config_file.h"
 #include "mesh_config_listener.h"
 #include "light_ctl_mc.h"
+#include "app_scene.h"
 
 /*****************************************************************************
  * Definitions
@@ -119,6 +120,12 @@ static void temperature32_range_listener_cb(mesh_config_change_reason_t reason,
 static void ligth_ctl_lightness_transition_cb(const app_light_lightness_setup_server_t * p_server,
                                                    uint32_t transition_time_ms, uint16_t target_lightness);
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static void scene_transition_lightness_cb(const app_scene_setup_server_t * p_app,
+                                          uint32_t transition_time_ms,
+                                          uint16_t target_scene);
+#endif
+
 /*****************************************************************************
  * Static variables
  *****************************************************************************/
@@ -144,6 +151,14 @@ APP_LIGHT_CTL_SETUP_SERVER_DEF(m_light_ctl_server_0,
                                light_ctl_get_cb,
                                ligth_ctl_transition_cb)
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+/* Scene Setup server structure definition and initialization */
+APP_SCENE_SETUP_SERVER_DEF(m_scene_server_0,
+                           APP_FORCE_SEGMENTATION,
+                           APP_MIC_SIZE,
+                           scene_transition_lightness_cb,
+                           &m_light_ctl_server_0_ll.light_lightness_setup_server.generic_ponoff_setup_srv.generic_dtt_srv)
+#endif
 
 /* Application variables for holding instantaneous CTL state values */
 static app_light_ctl_temperature_duv_hw_state_t m_pwm0_present_ctl_value;
@@ -205,9 +220,9 @@ static void pwm_lightness_ctemp_duv_set(uint16_t lightness, uint16_t temperature
               warm_level, cool_level, delta_uv);
 
         m_pwm.channel = 0;
-        pwm_utils_level_set(&m_pwm, light_lightness_utils_actual_to_generic_level(warm_level));
+        (void)pwm_utils_level_set_unsigned(&m_pwm, warm_level);
         m_pwm.channel = 1;
-        pwm_utils_level_set(&m_pwm, light_lightness_utils_actual_to_generic_level(cool_level));
+        (void)pwm_utils_level_set_unsigned(&m_pwm, cool_level);
     }
     else
     {
@@ -270,6 +285,16 @@ static void ligth_ctl_lightness_transition_cb(const app_light_lightness_setup_se
                                        transition_time_ms, target_lightness);
 }
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static void scene_transition_lightness_cb(const app_scene_setup_server_t * p_app,
+                                          uint32_t transition_time_ms,
+                                          uint16_t target_scene)
+{
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Transition time: %d, Target Scene: %d\n",
+                                       transition_time_ms, target_scene);
+}
+#endif
+
 static void models_init_cb(void)
 {
     /* Initialize the CTL Setup Server and associated models */
@@ -283,6 +308,18 @@ static void models_init_cb(void)
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App CTL Model Handle: %d, Element index: %d\n",
           m_light_ctl_server_0.light_ctl_setup_srv.model_handle,
           m_light_ctl_server_0.light_ctl_setup_srv.settings.element_index);
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    /* Instantiate scene server and register light CTL server to have scene support */
+    ERROR_CHECK(app_scene_model_init(&m_scene_server_0, APP_CTL_ELEMENT_INDEX));
+    ERROR_CHECK(app_scene_model_add(&m_scene_server_0, &m_light_ctl_server_0_ll.scene_if));
+    ERROR_CHECK(app_light_lightness_scene_context_set(&m_light_ctl_server_0_ll, &m_scene_server_0));
+    ERROR_CHECK(app_scene_model_add(&m_scene_server_0, &m_light_ctl_server_0.scene_if));
+    ERROR_CHECK(app_light_ctl_scene_context_set(&m_light_ctl_server_0, &m_scene_server_0));
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App Scene Model handle: %d, Element index: %d\n",
+          m_scene_server_0.scene_setup_server.model_handle,
+          m_scene_server_0.scene_setup_server.settings.element_index);
+#endif
 }
 
 /*************************************************************************************************/
@@ -320,6 +357,7 @@ static void node_reset(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset  -----\n");
     /* This function may return if there are ongoing flash operations. */
+    model_config_file_clear();
     mesh_stack_device_reset();
 }
 
@@ -463,8 +501,8 @@ static void provisioning_complete_cb(void)
 
 static void mesh_init(void)
 {
-    /* Initiate the application storage for light lightness and lc server. */
-    model_common_init();
+    /* Initialize the application storage for models */
+    model_config_file_init();
 
     mesh_stack_init_params_t init_params =
     {
@@ -480,15 +518,17 @@ static void mesh_init(void)
     if (status == NRF_SUCCESS)
     {
         /* Check if application stored data is valid, if not clear all data and use default values. */
-        status = model_common_config_apply();
+        status = model_config_file_config_apply();
     }
 
     switch (status)
     {
         case NRF_ERROR_INVALID_DATA:
+            /* Clear model config file as loading failed */
+            model_config_file_clear();
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
                   "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before starting of the provisioning process.\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reboot device before starting of the provisioning process.\n");
             break;
         case NRF_SUCCESS:
             break;

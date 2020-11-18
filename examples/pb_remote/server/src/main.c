@@ -102,8 +102,8 @@ static void models_init_cb(void)
 
 static void device_identification_start_cb(uint8_t attention_duration_s)
 {
-    hal_led_mask_set(LEDS_MASK, false);
-    hal_led_blink_ms(BSP_LED_2_MASK  | BSP_LED_3_MASK,
+    hal_led_mask_set(HAL_LED_MASK, false);
+    hal_led_blink_ms(HAL_LED_MASK_HALF,
                      LED_BLINK_ATTENTION_INTERVAL_MS,
                      LED_BLINK_ATTENTION_COUNT(attention_duration_s));
 }
@@ -126,8 +126,8 @@ static void provisioning_complete_cb(void)
 
     unicast_address_print();
     hal_led_blink_stop();
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
+    hal_led_mask_set(HAL_LED_MASK, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
     /* TODO: This should be handled by the configuration server model. */
     mesh_key_index_t net_key_index;
     uint32_t count = 1;
@@ -159,7 +159,7 @@ static void mesh_init(void)
     {
         case NRF_ERROR_INVALID_DATA:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before starting of the provisioning process.\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reboot device before starting of the provisioning process.\n");
             break;
         case NRF_SUCCESS:
             break;
@@ -208,8 +208,8 @@ static void start(void)
 
     ERROR_CHECK(mesh_stack_start());
 
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
+    hal_led_mask_set(HAL_LED_MASK, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
 }
 
 int main(void)

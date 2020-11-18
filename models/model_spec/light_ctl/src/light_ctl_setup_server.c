@@ -1090,6 +1090,8 @@ uint32_t light_ctl_setup_server_init(light_ctl_setup_server_t * p_s_server,
         NRF_MESH_ERROR_CHECK(access_model_subscription_lists_share(p_s_server->model_handle,
                                                                    p_ll_s_server->model_handle));
         NRF_MESH_ERROR_CHECK(access_model_subscription_lists_share(p_s_server->model_handle,
+                                                                   p_ll_s_server->generic_ponoff_setup_srv.model_handle));
+        NRF_MESH_ERROR_CHECK(access_model_subscription_lists_share(p_s_server->model_handle,
                                                                    p_ll_s_server->generic_ponoff_setup_srv.generic_ponoff_srv.model_handle));
         NRF_MESH_ERROR_CHECK(access_model_subscription_lists_share(p_s_server->model_handle,
                                                                    p_ll_s_server->generic_ponoff_setup_srv.generic_ponoff_srv.generic_onoff_srv.model_handle));

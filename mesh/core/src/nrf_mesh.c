@@ -340,18 +340,13 @@ uint32_t nrf_mesh_init(const nrf_mesh_init_params_t * p_init_params)
     ad_listener_init();
 
     mesh_flash_init();
-#if PERSISTENT_STORAGE
     mesh_config_init();
-#endif
     mesh_opt_init();
 
 #if EXPERIMENTAL_INSTABURST_ENABLED
     core_tx_instaburst_init();
 #else
     core_tx_adv_init();
-#endif
-#if MESH_FEATURE_LPN_ENABLED
-    core_tx_lpn_init();
 #endif
     core_tx_local_init();
     network_init(p_init_params);

@@ -42,6 +42,9 @@
 
 #include "app_light_lightness.h"
 #include "light_lc_setup_server.h"
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+#include "app_scene.h"
+#endif
 
 /**
  * @defgroup APP_LIGHT_LC Light LC Setup Server behaviour
@@ -105,6 +108,14 @@ struct __app_light_lc_setup_server_t
 
     /** Pointer to the light lightness app structure */
     app_light_lightness_setup_server_t * p_app_ll;
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+    /** Internal variable. Scene callback interface. 
+     * @note Available only if  @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1. */
+    app_scene_model_interface_t scene_if;
+    /** Internal variable. Pointer to app_scene context. 
+     * @note Available only if  @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1. */
+    app_scene_setup_server_t  * p_app_scene;
+#endif
 };
 
 /** Initializes the behavioral module for the Light LC Setup Server model
@@ -149,6 +160,23 @@ uint32_t app_light_lc_model_init(app_light_lc_setup_server_t * p_app,
  * @retval NRF_ERROR_NOT_FOUND      Access handle invalid.
  */
 uint32_t app_light_lc_ponoff_binding(app_light_lc_setup_server_t * p_app, bool * p_lc_control);
+
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+/** Sets the scene context
+ *
+ * This is needed for app light lc to inform app scene when the state change occurs.
+ * @note Available only if @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1.
+ *
+ * @param[in] p_app                 Pointer to [app_light_lc_setup_server_t](@ref
+ *                                  __app_light_lc_setup_server_t) context.
+ * @param[in] p_app_scene           Pointer to scene behavioral moduel context.
+ *
+ * @retval NRF_SUCCESS              Value is restored successfully
+ * @retval NRF_ERROR_NULL           If NULL pointer is provided as input context
+ */
+uint32_t app_light_lc_scene_context_set(app_light_lc_setup_server_t * p_app, 
+                                         app_scene_setup_server_t  * p_app_scene);
+#endif
 
 /** @} end of APP_LIGHT_LC */
 #endif /* APP_LIGHT_LC_H__*/

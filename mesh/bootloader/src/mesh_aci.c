@@ -107,8 +107,6 @@ static void serial_command_handler(serial_cmd_t* p_serial_cmd)
 #endif
     serial_evt_t serial_evt;
     uint32_t error_code;
-    rbc_mesh_event_t app_evt;
-    (void) app_evt;
     switch (p_serial_cmd->opcode)
     {
         case SERIAL_CMD_OPCODE_ECHO:
@@ -119,7 +117,7 @@ static void serial_command_handler(serial_cmd_t* p_serial_cmd)
                 memcpy(serial_evt.params.echo.data, p_serial_cmd->params.echo.data, p_serial_cmd->length - 1);
             }
             __LOG("Echo. Responding...\n");
-            serial_handler_event_send(&serial_evt);
+            (void) serial_handler_event_send(&serial_evt);
             break;
 
         case SERIAL_CMD_OPCODE_RADIO_RESET:
@@ -176,6 +174,7 @@ static void serial_command_handler(serial_cmd_t* p_serial_cmd)
             if (error_code == NRF_SUCCESS)
             {
                 /* notify application */
+                rbc_mesh_event_t app_evt;
                 memset(&app_evt, 0, sizeof(app_evt));
                 app_evt.type = RBC_MESH_EVENT_TYPE_INITIALIZED;
 
@@ -235,6 +234,7 @@ static void serial_command_handler(serial_cmd_t* p_serial_cmd)
                     /* notify application */
                     if (error_code == NRF_SUCCESS)
                     {
+                        rbc_mesh_event_t app_evt;
                         memcpy(p_packet->payload, p_serial_cmd->params.value_set.value, data_len);
                         memset(&app_evt, 0, sizeof(app_evt));
                         app_evt.type = RBC_MESH_EVENT_TYPE_UPDATE_VAL;
@@ -446,7 +446,7 @@ static void serial_command_handler(serial_cmd_t* p_serial_cmd)
                 }
                 serial_evt.params.cmd_rsp.status = error_code_translate(error_code);
             }
-            serial_handler_event_send(&serial_evt);
+            (void) serial_handler_event_send(&serial_evt);
             break;
 
         case SERIAL_CMD_OPCODE_FLAG_GET:
@@ -460,7 +460,6 @@ static void serial_command_handler(serial_cmd_t* p_serial_cmd)
             }
             else
             {
-                uint32_t error_code;
                 bool flag_status = false;
                 switch ((aci_flag_t) p_serial_cmd->params.flag_set.flag)
                 {
@@ -492,7 +491,7 @@ static void serial_command_handler(serial_cmd_t* p_serial_cmd)
                 serial_evt.params.cmd_rsp.response.flag.value = flag_status;
                 serial_evt.params.cmd_rsp.status = error_code_translate(error_code);
             }
-            serial_handler_event_send(&serial_evt);
+            (void) serial_handler_event_send(&serial_evt);
             break;
 
         case SERIAL_CMD_OPCODE_DFU:
@@ -521,7 +520,7 @@ static void serial_command_handler(serial_cmd_t* p_serial_cmd)
                 /* send ack */
                 serial_evt.params.cmd_rsp.response.dfu.packet_type = p_serial_cmd->params.dfu.packet.packet_type;
                 serial_evt.params.cmd_rsp.status = error_code_translate(error_code);
-                serial_handler_event_send(&serial_evt);
+                (void) serial_handler_event_send(&serial_evt);
             }
             break;
 
@@ -531,7 +530,7 @@ static void serial_command_handler(serial_cmd_t* p_serial_cmd)
             serial_evt.params.cmd_rsp.command_opcode = p_serial_cmd->opcode;
             serial_evt.length = 3;
             serial_evt.params.cmd_rsp.status = ACI_STATUS_ERROR_CMD_UNKNOWN;
-            serial_handler_event_send(&serial_evt);
+            (void) serial_handler_event_send(&serial_evt);
     }
 }
 
@@ -620,6 +619,6 @@ void mesh_aci_rbc_event_handler(rbc_mesh_event_t* evt)
     serial_evt.params.event_update.handle = evt->params.rx.value_handle;
     memcpy(serial_evt.params.event_update.data, evt->params.rx.p_data, evt->params.rx.data_len);
 
-    serial_handler_event_send(&serial_evt);
+    (void) serial_handler_event_send(&serial_evt);
 }
 

@@ -46,6 +46,9 @@
 #include "app_transition.h"
 #include "app_light_lightness.h"
 #include "list.h"
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+#include "app_scene.h"
+#endif
 
 /**
  * @defgroup APP_LIGHT_CTL Light CTL Setup Server behaviour
@@ -243,6 +246,14 @@ struct __app_light_ctl_setup_server_t
     bool abort_move;
     /** Internal variable. */
     list_node_t node;
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+    /** Internal variable. Scene callback interface. 
+     * @note Available only if  @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1. */
+    app_scene_model_interface_t scene_if;
+    /** Internal variable. Pointer to app_scene context. 
+     * @note Available only if  @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1. */
+    app_scene_setup_server_t  * p_app_scene;
+#endif
 };
 
 /** Initializes the behavioral module for the Light CTL and Light Lightness models.
@@ -307,6 +318,23 @@ uint32_t app_light_ctl_binding_setup(app_light_ctl_setup_server_t * p_app);
  *                                  for the transmission to finish.
  */
 uint32_t app_light_ctl_current_value_publish(app_light_ctl_setup_server_t * p_app);
+
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+/** Sets the scene context
+ *
+ * This is needed for app light ctl to inform app scene when the state change occurs.
+ * @note Available only if @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1.
+ *
+ * @param[in] p_app                 Pointer to [app_light_ctl_setup_server_t](@ref
+ *                                  __app_light_ctl_setup_server_t) context.
+ * @param[in] p_app_scene           Pointer to scene behavioral moduel context.
+ *
+ * @retval NRF_SUCCESS              Value is restored successfully
+ * @retval NRF_ERROR_NULL           If NULL pointer is provided as input context
+ */
+uint32_t app_light_ctl_scene_context_set(app_light_ctl_setup_server_t * p_app, 
+                                         app_scene_setup_server_t  * p_app_scene);
+#endif
 
 /** @} end of APP_LIGHT_CTL */
 #endif /* APP_LIGHT_CTL_H__*/

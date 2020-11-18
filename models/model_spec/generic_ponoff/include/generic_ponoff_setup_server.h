@@ -217,27 +217,5 @@ struct __generic_ponoff_setup_server_t
  */
 uint32_t generic_ponoff_setup_server_init(generic_ponoff_setup_server_t * p_server, uint8_t element_index);
 
-/**
- * Publishes unsolicited Status message.
- *
- * This API can be used to send unsolicited messages to report updated state value as a result of
- * local action.
- *
- * @param[in]     p_server          Status server context pointer.
- * @param[in]     p_params          Message parameters.
- *
- * @retval NRF_SUCCESS              If the message is published successfully.
- * @retval NRF_ERROR_NULL           NULL pointer given to function.
- * @retval NRF_ERROR_NO_MEM         No memory available to send the message at this point.
- * @retval NRF_ERROR_NOT_FOUND      The model is not initialized.
- * @retval NRF_ERROR_INVALID_PARAM  Incorrect message parameters, the model not bound to application
- *                                  key, or publish address not set.
- * @retval NRF_ERROR_FORBIDDEN      Failed to allocate a sequence number from network.
- * @retval NRF_ERROR_INVALID_STATE  There's already a segmented packet that is being to sent to this
- *                                  destination. Wait for the transmission to finish before sending
- *                                  new segmented packets.
- */
-uint32_t generic_ponoff_setup_server_status_publish(generic_ponoff_setup_server_t * p_server, const generic_ponoff_status_params_t * p_params);
-
 /**@} end of GENERIC_PONOFF_SETUP_SERVER */
 #endif /* GENERIC_PONOFF_SETUP_SERVER_H__ */

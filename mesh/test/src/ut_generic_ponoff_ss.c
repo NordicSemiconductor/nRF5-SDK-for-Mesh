@@ -94,8 +94,10 @@ static generic_ponoff_status_params_t m_test_status;
     } while(0)
 
 static void * mp_model_args;
-static access_model_handle_t m_model_handle;
-static access_model_add_params_t m_model_init_params;
+static access_model_handle_t m_model_handle_ss;
+static access_model_handle_t m_model_handle_s;
+static access_model_add_params_t m_model_init_params_ss;
+static access_model_add_params_t m_model_init_params_s;
 static const access_opcode_handler_t * mp_opcode_handlers[2];
 static uint16_t m_num_opcodes[2];
 static uint8_t m_opcode_handlers_cnt;
@@ -104,9 +106,17 @@ static uint8_t m_element_index;
 static uint32_t access_model_add_mock(const access_model_add_params_t * p_init_params,
         access_model_handle_t * p_model_handle, int count)
 {
-    m_model_init_params = *p_init_params;
+    if (p_init_params->model_id.model_id == GENERIC_PONOFF_SETUP_SERVER_MODEL_ID)
+    {
+        m_model_init_params_ss = *p_init_params;
+        m_model_handle_ss = *p_model_handle;
+    }
+    else if (p_init_params->model_id.model_id == GENERIC_PONOFF_SERVER_MODEL_ID)
+    {
+        m_model_init_params_s = *p_init_params;
+        m_model_handle_s = *p_model_handle;
+    }
 
-    m_model_handle = *p_model_handle;
     mp_opcode_handlers[m_opcode_handlers_cnt] = p_init_params->p_opcode_handlers;
     m_num_opcodes[m_opcode_handlers_cnt] = p_init_params->opcode_count;
     m_opcode_handlers_cnt++;
@@ -364,27 +374,6 @@ void test_generic_ponoff_server_status_publish(void)
     TEST_ASSERT_EQUAL(NRF_SUCCESS, generic_ponoff_server_status_publish(&m_server.generic_ponoff_srv, &status));
 }
 
-void test_generic_ponoff_setup_server_status_publish(void)
-{
-    helper_init_model_context_and_expectations();
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, generic_ponoff_setup_server_init(&m_server, TEST_ELEMENT_INDEX));
-
-    /* Null checks */
-    TEST_ASSERT_EQUAL(NRF_ERROR_NULL, generic_ponoff_setup_server_status_publish(NULL, NULL));
-    TEST_ASSERT_EQUAL(NRF_ERROR_NULL, generic_ponoff_setup_server_status_publish(&m_server, NULL));
-
-    generic_ponoff_status_params_t status;
-
-    /* Invalid param check */
-    status.on_powerup = GENERIC_ON_POWERUP_MAX + 1;
-    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, generic_ponoff_setup_server_status_publish(&m_server, &status));
-
-    /* Valid param check - full length msg */
-    status.on_powerup = 2;
-    EXPECT_ONOFF_STATUS_PUBLISH_TX(m_server.model_handle, status);
-    TEST_ASSERT_EQUAL(NRF_SUCCESS, generic_ponoff_setup_server_status_publish(&m_server, &status));
-}
-
 void test_periodic_publish_cb(void)
 {
     helper_init_model_context_and_expectations();
@@ -392,8 +381,8 @@ void test_periodic_publish_cb(void)
 
     /* Trigger periodic publish cb */
     m_test_status.on_powerup = 1;
-    EXPECT_ONOFF_STATUS_PUBLISH_TX(m_server.model_handle, m_test_status);
-    m_model_init_params.publish_timeout_cb(TEST_MODEL_HANDLE, &m_server);
+    EXPECT_ONOFF_STATUS_PUBLISH_TX(m_server.generic_ponoff_srv.model_handle, m_test_status);
+    m_model_init_params_s.publish_timeout_cb(m_model_handle_s, &m_server.generic_ponoff_srv);
 }
 
 void test_handle_set(void)

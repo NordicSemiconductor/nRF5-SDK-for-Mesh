@@ -1,7 +1,7 @@
 # Mesh configuration
 
-Mesh configuration is a mesh submodule designed to abstract and simplify persistent key-value storage.
-It provides a high-level API with swappable storage backends that can be used to store mesh and
+Mesh configuration is a Bluetooth mesh submodule designed to abstract and simplify persistent key-value storage.
+It provides a high-level API with swappable storage backends that can be used to store Bluetooth mesh and
 application state.
 
 **Table of contents**
@@ -13,7 +13,7 @@ application state.
     - [Loading from persistent storage](@ref mesh_config_information_flow_loading)
     - [Setting a value](@ref mesh_config_information_flow_setting_value)
     - [Getting a value](@ref mesh_config_information_flow_getting_value)
-- [Usage in the mesh](@ref mesh_config_usage_mesh)
+- [Usage in Bluetooth mesh](@ref mesh_config_usage_mesh)
 - [Usage in the application](@ref mesh_config_usage_app)
     - [Storing state](@ref mesh_config_usage_app_storing)
     - [Creating entries](@ref mesh_config_usage_app_creating)
@@ -24,15 +24,15 @@ application state.
 
 ## Overview @anchor mesh_config_overview
 
-The mesh configuration module organizes data in files, where each file has a set of records, or entries.
-A mesh configuration entry is uniquely identified by a file/record pair, and it can represent any
+The Bluetooth mesh configuration module organizes data in files, where each file has a set of records, or entries.
+A Bluetooth mesh configuration entry is uniquely identified by a file/record pair, and it can represent any
 immutable structure with a predefined size.
 
 ![Mesh configuration module overview](images/mesh_config_overview.svg)
 
 ### State owners @anchor mesh_config_overview_state_owners
 
-An entry is owned by a *state owner* submodule outside the mesh configuration module.
+An entry is owned by a *state owner* submodule outside the Bluetooth mesh configuration module.
 The state owner holds the entry structure and is responsible for sanitizing and storing
 the actual representation of the value, or "live value". It provides access to the live value
 through a `setter`/`getter`/`deleter` interface.
@@ -45,7 +45,7 @@ with the deletion, only observe it.
 
 The state owner:
 - doesn't have to keep the live value in RAM, but must be able to atomically produce the live value
-on the request from the mesh configuration module.
+on the request from the configuration module.
 - can specify that the entry has a default value to use if the user hasn't explicitly set the entry.
 If the entry doesn't have a default value, attempts to read the value will result in an error
 until the value has been set or loaded from persistent storage.
@@ -60,11 +60,11 @@ of the `setter` and `getter` sequences.
 In some cases, other modules need to passively listen to state changes to a specific entry.
 These modules are called "change listeners".
 
-For example, the internal mesh Heartbeat module needs to know when the Proxy feature is enabled,
+For example, the internal Bluetooth mesh heartbeat module needs to know when the Proxy feature is enabled,
 as this triggers the Heartbeat module to publish a message.
 
 This pattern is a common source of unwanted coupling between modules. To reduce this coupling,
-the mesh config module provides @ref MESH_CONFIG_LISTENER_MODULE for registering passive change
+the Bluetooth mesh config module provides @ref MESH_CONFIG_LISTENER_MODULE for registering passive change
 listeners without involving the state owner. Any module can register a listener for any entry.
 It is then notified of any state changes after they are sanitized by the state owner.
 
@@ -73,11 +73,11 @@ It is then notified of any state changes after they are sanitized by the state o
 
 ### Backends @anchor mesh_config_overview_backends
 
-The mesh configuration module is designed to work on top of any key-value storage backend.
+The configuration module is designed to work on top of any key-value storage backend.
 In this initial version of the module, the only supported backend is @ref FLASH_MANAGER,
 with support for other backends planned for future releases.
 
-The mesh config backend API is considered internal and should never be called directly.
+The config backend API is considered internal and should never be called directly.
 
 
 ---
@@ -88,7 +88,7 @@ See the sequence charts in this section for an overview of the information flow 
 module.
 
 @note
-Use the mesh_config API for all user interaction with the mesh configuration module. Manipulating
+Use the mesh_config API for all user interaction with the configuration module. Manipulating
 the live values directly causes the module to fall out of sync.
 
 ### Loading from persistent storage @anchor mesh_config_information_flow_loading
@@ -100,7 +100,7 @@ The following sequence chart illustrates the flow of loading values from persist
 The following sequence chart illustrates the flow of storing values.
 
 The state owner's `setter` callback is called before the value is stored persistently.
-The entry should only be considered safely stored after the mesh config module emits an
+The entry should only be considered safely stored after the config module emits an
 @ref NRF_MESH_EVT_CONFIG_STABLE event. The user can also call @ref mesh_config_is_busy to determine
 whether the live values are in sync with the persistent storage.
 
@@ -115,17 +115,17 @@ The following sequence chart illustrates the flow of reading a value.
 ---
 
 
-## Usage in the mesh @anchor mesh_config_usage_mesh
+## Usage in Bluetooth mesh @anchor mesh_config_usage_mesh
 
-The mesh configuration module is used internally in the mesh to store options (through the @ref MESH_OPT
-API) and the runtime state. The mesh reserves the following file IDs:
+The configuration module is used internally in the Bluetooth mesh to store options (through the @ref MESH_OPT
+API) and the runtime state. The Bluetooth mesh reserves the following file IDs:
 
 | File ID            | Owner       | Purpose
 |--------------------|-------------|---------
 | `0x0000`           | `net_state` | Network runtime state, such as sequence number and IV index.
 | `0x0001`           | `dsm`       | Device State manager state, such as keys and addresses.
 | `0x0002`           | `access`    | Access state, such as model key bindings.
-| `0x0003`           | `mesh_opt`  | Mesh runtime options.
+| `0x0003`           | `mesh_opt`  | Bluetooth mesh runtime options.
 | `0x0004`- `0x000F` | -           | Reserved for future use.
 
 This usage can be compatible with the stack persistence used in nRF5 SDK for Mesh v3.2.0 (or an earlier
@@ -140,15 +140,15 @@ the pages in flash.
 
 ## Usage in the application @anchor mesh_config_usage_app
 
-The application may use the mesh configuration module to store its own state and create entries.
+The application may use the Bluetooth mesh configuration module to store its own state and create entries.
 
 ### Storing state @anchor mesh_config_usage_app_storing
-To store the state, declare a mesh config file with a unique file ID using the @ref MESH_CONFIG_FILE
+To store the state, declare a Bluetooth mesh config file with a unique file ID using the @ref MESH_CONFIG_FILE
 macro:
 ```C
 MESH_CONFIG_FILE(m_app_file, 0x0010, MESH_CONFIG_STRATEGY_CONTINUOUS);
 ```
-The file will be automatically registered in mesh configuration. The `CONTINUOUS` storage
+The file will be automatically registered in the Bluetooth mesh configuration. The `CONTINUOUS` storage
 strategy ensures that the file's entries are stored in persistent memory as soon as
 they are set.
 

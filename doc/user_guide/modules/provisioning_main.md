@@ -1,7 +1,7 @@
 # Provisioning
 
-Provisioning is the process of providing new devices in the mesh network with the information
-they need to join a network. To become a node and participate in the mesh communication,
+Provisioning is the process of providing new devices in the Bluetooth mesh network with the information
+they need to join a network. To become a node and participate in the Bluetooth mesh communication,
 each device must be provisioned.
 
 From the provisioning perspective, a device can be of one of the following types:
@@ -22,7 +22,7 @@ The nRF5 SDK for Mesh offers provisioning with one of the following two bearers:
 To perform provisioning of a device that is located outside of the provisioner's radio range,
 you can use the @subpage md_doc_user_guide_modules_provisioning_pb_remote feature.
 
-The APIs related to the provisioning process are independent of the underlaying bearers. 
+The APIs related to the provisioning process are independent of the underlaying bearers.
 See @subpage md_doc_user_guide_modules_provisioning_implementing for information about how to use
 provisionings APIs in the user application.
 
@@ -38,7 +38,7 @@ For more information, see the [Examples main page](@ref example_provisioning_bea
 
 During the provisioning process, the new unprovisioned device receives the following elements:
 - a unicast address of the primary element,
-- a network key and the associated key index, 
+- a network key and the associated key index,
 - IV index,
 - IV Update Flag,
 - Key Refresh Flag.
@@ -63,7 +63,7 @@ constraints.
 To enable this bearer, set @ref MESH_FEATURE_PB_ADV_ENABLED to `1`.
 
 @note This bearer can be disabled if not required. Moreover, it is independent
-of the advertising bearer (ADV) used for the mesh communication once the device
+of the advertising bearer (ADV) used for the Bluetooth mesh communication once the device
 is provisioned.
 
 This bearer is enabled by default for most of the examples in the nRF5 SDK for Mesh.
@@ -73,11 +73,11 @@ For more information, see the [Examples main page](@ref example_provisioning_bea
 
 ## PB-GATT bearer @anchor provisioning_main_pb-gatt
 
-Many mobile computing devices and computers have limited support for sending mesh packets
+Many mobile computing devices and computers have limited support for sending Bluetooth mesh packets
 on the advertisement channels in accordance with the @tagMeshSp. For these cases,
 GATT-based bearers are defined.
 
-The PB-GATT bearer is used to exchange the provisioning PDUs using Mesh Provisioning Service.
+The PB-GATT bearer is used to exchange the provisioning PDUs using Bluetooth mesh Provisioning Service.
 This bearer can be enabled on the provisionee devices to provision them using mobile applications.
 
 To enable this bearer, set the following defines to `1`:

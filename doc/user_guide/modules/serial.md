@@ -1,7 +1,7 @@
 # Serial interface library
 
-The serial interface to the mesh stack provides a way for external devices
-to interact with a device running the mesh stack via a serial port. The interface
+The serial interface to the Bluetooth mesh stack provides a way for external devices
+to interact with a device running the Bluetooth mesh stack via a serial port. The interface
 is based on the nRF8001 interface and runs a simple length-opcode-data format
 for both commands and events.
 

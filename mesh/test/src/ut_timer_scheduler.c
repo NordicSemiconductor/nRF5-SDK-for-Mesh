@@ -59,12 +59,14 @@ static timer_callback_t m_timer_cb;
 static timestamp_t      m_time_now;
 static uint32_t         m_ret_val;
 static uint32_t         m_cb_count;
+static uint32_t         m_timer_stop_count;
 static  bearer_event_flag_callback_t m_flag_cb;
 
 void setUp(void)
 {
     m_time_now = 0;
     m_cb_count = 0;
+    m_timer_stop_count = 0;
     m_ret_val = NRF_SUCCESS;
     m_last_timestamp = 0xFFFFFFFF;
     m_last_timer_order = 0xFFFFFFFF;
@@ -135,6 +137,7 @@ void timer_init(void)
 
 void timer_stop(void)
 {
+    m_timer_stop_count++;
 }
 
 void timer_start(timestamp_t timestamp, timer_callback_t cb)
@@ -873,4 +876,26 @@ void test_schedule_other_from_callback(void)
 
     TEST_ASSERT_EQUAL(1, m_cb_count);
     TEST_ASSERT_EQUAL(TIMER_EVENT_STATE_ADDED, evts[2].state); /* still queued. */
+}
+
+void test_timer_sch_stop(void)
+{
+    timer_event_t evt =
+    {
+        .cb = timer_sch_cb,
+        .timestamp = 1000,
+        .interval = 0,
+        .state = TIMER_EVENT_STATE_UNUSED
+    };
+
+    /* single */
+    timer_sch_schedule(&evt);
+    TEST_ASSERT_EQUAL(1000, m_last_timer_order);
+    TEST_ASSERT_EQUAL(0, m_cb_count);
+    m_time_now = 1000;
+
+    timer_sch_stop();
+    m_timer_cb(m_time_now);
+    TEST_ASSERT_EQUAL(0, m_cb_count);
+    TEST_ASSERT_EQUAL(2, m_timer_stop_count);
 }

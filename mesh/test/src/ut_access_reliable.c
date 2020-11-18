@@ -42,6 +42,7 @@
 #include "access_reliable.h"
 #include "packet_mesh.h"
 #include "test_assert.h"
+#include "access_utils.h"
 
 #include "access_mock.h"
 #include "access_config_mock.h"
@@ -90,11 +91,11 @@ static struct
     uint32_t num_calls;
 } m_status_cb;
 
-access_reliable_t m_reliables[ACCESS_RELIABLE_TRANSFER_COUNT];
+static access_reliable_t m_reliables[ACCESS_RELIABLE_TRANSFER_COUNT];
 
 /* ******************* Callback functions ******************* */
 
-void timer_sch_reschedule_cb(timer_event_t * p_evt, timestamp_t next_timeout, int num_calls)
+static void timer_sch_reschedule_cb(timer_event_t * p_evt, timestamp_t next_timeout, int num_calls)
 {
     TEST_ASSERT_MESSAGE(m_timer.sch_calls > 0, "Timer (re)schedule called more times than expected");
     m_timer.sch_calls--;
@@ -111,7 +112,7 @@ void timer_sch_reschedule_cb(timer_event_t * p_evt, timestamp_t next_timeout, in
     m_timer.current_state = TIMER_STATE_RUNNING;
 }
 
-void timer_sch_abort_cb(timer_event_t * p_evt, int num_calls)
+static void timer_sch_abort_cb(timer_event_t * p_evt, int num_calls)
 {
     TEST_ASSERT_MESSAGE(m_timer.abort_calls > 0, "Timer abort called more times than expected");
     m_timer.abort_calls--;
@@ -119,7 +120,7 @@ void timer_sch_abort_cb(timer_event_t * p_evt, int num_calls)
     m_timer.current_state = TIMER_STATE_STOPPED;
 }
 
-void status_cb(access_model_handle_t handle, void * p_args, access_reliable_status_t status)
+static void status_cb(access_model_handle_t handle, void * p_args, access_reliable_status_t status)
 {
     TEST_ASSERT_MESSAGE(m_status_cb.num_calls > 0, "Success callback called more times than expected");
     m_status_cb.num_calls--;
@@ -134,7 +135,7 @@ void status_cb(access_model_handle_t handle, void * p_args, access_reliable_stat
 
 /* ******************* Utility functions ******************* */
 
-void fire_timeout(timestamp_t timestamp, void * p_args)
+static void fire_timeout(timestamp_t timestamp, void * p_args)
 {
 
     uint32_t expected_calls = m_timer.sch_calls;
@@ -155,7 +156,7 @@ void fire_timeout(timestamp_t timestamp, void * p_args)
     }
 }
 
-void status_cb_Expect(access_model_handle_t handle, void * p_args, access_reliable_status_t status)
+static void status_cb_Expect(access_model_handle_t handle, void * p_args, access_reliable_status_t status)
 {
     m_status_cb.expected_data[m_status_cb.num_calls].handle = handle;
     m_status_cb.expected_data[m_status_cb.num_calls].p_args = p_args;
@@ -163,14 +164,14 @@ void status_cb_Expect(access_model_handle_t handle, void * p_args, access_reliab
     m_status_cb.num_calls++;
 }
 
-void timer_reschedule_ExpectAndReturn(timer_state_t state, timestamp_t timeout)
+static void timer_reschedule_ExpectAndReturn(timer_state_t state, timestamp_t timeout)
 {
     m_timer.sch_calls++;
     m_timer.expected_state = state;
     m_timer.expected_timeout = timeout;
 }
 
-void __timer_abort_ExpectAndReturn(timer_state_t state)
+static void __timer_abort_ExpectAndReturn(timer_state_t state)
 {
     m_timer.abort_calls++;
     m_timer.expected_state = state;
@@ -221,6 +222,30 @@ static void initialize_contexts(void)
             TEST_ASSERT_NOT_NULL(m_timer.p_evt);
             TEST_ASSERT_NOT_NULL(m_timer.p_evt->cb);
         }
+    }
+}
+
+static void reliable_message_readd_cb(access_model_handle_t handle, void * p_args, access_reliable_status_t status)
+{
+    static bool trigger = false;
+
+    printf("%s\n", (char *)p_args);
+    TEST_ASSERT_EQUAL(ACCESS_RELIABLE_TRANSFER_TIMEOUT, status);
+
+    if (!trigger)
+    {
+        uint8_t ttl = 0;
+        trigger = true;
+        access_model_publish_ttl_get_ExpectAndReturn(m_reliables[0].model_handle, NULL, NRF_SUCCESS);
+        access_model_publish_ttl_get_IgnoreArg_p_ttl();
+        access_model_publish_ttl_get_ReturnThruPtr_p_ttl(&ttl);
+        bearer_event_critical_section_begin_Expect();
+        bearer_event_critical_section_end_Expect();
+        bearer_event_critical_section_begin_Expect();
+        bearer_event_critical_section_end_Expect();
+        timer_now_ExpectAndReturn(0);
+        access_model_publish_ExpectAndReturn(m_reliables[0].model_handle, &m_reliables[0].message, NRF_SUCCESS);
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_reliable_publish(&m_reliables[0]));
     }
 }
 
@@ -755,4 +780,51 @@ void test_access_reliable_model_is_free(void)
     {
         TEST_ASSERT_EQUAL(true, access_reliable_model_is_free(m_reliables[i].model_handle));
     }
+}
+
+void test_readding_reliable_transac_in_timer_cb(void)
+{
+    const access_opcode_t opcode_3bytes[2] = {{0x0001, 0x1337}, {0x0002, 0x1338}};
+    const uint8_t data[2][NRF_MESH_UNSEG_PAYLOAD_SIZE_MAX] = {{0}};
+    access_reliable_t * p_reliable;
+    uint8_t ttl = 0;
+    uint32_t expected_timeout = ACCESS_RELIABLE_INTERVAL_DEFAULT;
+    timer_state_t timer_state = 0;
+
+    for (uint8_t i = 0; i < 2; i++)
+    {
+        p_reliable = &m_reliables[i];
+
+        p_reliable->model_handle = i;
+        p_reliable->status_cb = reliable_message_readd_cb;
+        p_reliable->timeout = ACCESS_RELIABLE_TIMEOUT_MIN + 1;
+
+        /* 1 byte opcode should push it just over the limit to SAR */
+        memcpy(&p_reliable->message.opcode, &opcode_3bytes[i], sizeof(access_opcode_t));
+        p_reliable->message.p_buffer = &data[i][0];
+        p_reliable->message.length   = NRF_MESH_UNSEG_PAYLOAD_SIZE_MAX -
+                access_utils_opcode_size_get(p_reliable->message.opcode);
+
+        timer_reschedule_ExpectAndReturn(timer_state++, expected_timeout);
+        access_model_publish_ttl_get_ExpectAndReturn(p_reliable->model_handle, NULL, NRF_SUCCESS);
+        access_model_publish_ttl_get_IgnoreArg_p_ttl();
+        access_model_publish_ttl_get_ReturnThruPtr_p_ttl(&ttl);
+        bearer_event_critical_section_begin_Expect();
+        bearer_event_critical_section_end_Expect();
+        bearer_event_critical_section_begin_Expect();
+        bearer_event_critical_section_end_Expect();
+        timer_now_ExpectAndReturn(0);
+        access_model_publish_ExpectAndReturn(p_reliable->model_handle, &p_reliable->message, NRF_SUCCESS);
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_reliable_publish(p_reliable));
+    }
+
+    const char * message[] = {"The first reliable message fired", "The second reliable message fired"};
+    for (uint8_t i = 0; i < 2; i++)
+    {
+        access_model_p_args_get_ExpectAndReturn(m_reliables[i].model_handle, NULL, NRF_SUCCESS);
+        access_model_p_args_get_IgnoreArg_pp_args();
+        access_model_p_args_get_ReturnThruPtr_pp_args((void **)&message[i]);
+    }
+    m_timer.p_evt->cb(ACCESS_RELIABLE_TIMEOUT_MIN + 2, NULL);
+    TEST_ASSERT_EQUAL(TIMER_DIFF(ACCESS_RELIABLE_INTERVAL_DEFAULT, ACCESS_RELIABLE_TIMEOUT_MIN + 2), m_timer.p_evt->interval);
 }

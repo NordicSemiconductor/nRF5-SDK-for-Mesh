@@ -77,7 +77,8 @@
 #define PM_CENTRAL_ENABLED 0
 #define NRFX_POWER_ENABLED 0
 #define POWER_ENABLED 0
-
+#define GPIOTE_ENABLED 1
+#define GPIOTE_CONFIG_NUM_OF_LOW_POWER_EVENTS 4
 /** @} end of APP_SDK_CONFIG */
 
 #endif /* APP_CONFIG_H__ */

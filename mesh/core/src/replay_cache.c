@@ -44,9 +44,21 @@
 #include "net_state.h"
 #include "nrf_mesh_events.h"
 #include "transport_internal.h"
+#include "mesh_opt.h"
+#include "mesh_config_entry.h"
+#include "mesh_config.h"
 
 /** Definition for the invalid SeqZero cache entry. */
 #define SEQZERO_CACHE_ENTRY_INVALID 0xFFFF
+
+/** Replay cache start ID of the item range */
+#define MESH_OPT_REPLY_CACHE_RECORD      0x0001
+/** SeqZero cache start ID of the item range */
+#define MESH_OPT_SEQZERO_CACHE_RECORD    (MESH_OPT_REPLY_CACHE_RECORD + REPLAY_CACHE_ENTRIES)
+/** Replay cache entry ID */
+#define MESH_OPT_REPLAY_CACHE_EID   MESH_CONFIG_ENTRY_ID(MESH_OPT_REPLAY_CACHE_FILE_ID, MESH_OPT_REPLY_CACHE_RECORD)
+/** SeqZero cache entry ID  */
+#define MESH_OPT_SEQZERO_CACHE_EID  MESH_CONFIG_ENTRY_ID(MESH_OPT_REPLAY_CACHE_FILE_ID, MESH_OPT_SEQZERO_CACHE_RECORD)
 
 typedef struct
 {
@@ -66,9 +78,9 @@ typedef struct
 static uint32_t m_current_iv_index;
 static replay_cache_entry_t m_replay_cache[REPLAY_CACHE_ENTRIES];
 static uint32_t m_entry_count;
-
 /** Cache for SeqZero values where each index corresponds to the m_replay_cache index. */
 static uint16_t m_seqzero_cache[REPLAY_CACHE_ENTRIES];
+static bool m_is_enabled;
 
 /**
  * Reconstruct the IV index from the entry's trimmed value and the current IV index.
@@ -111,8 +123,18 @@ static void on_iv_update(void)
         {
             // copy the last entry to this one and reduce count, wiping this entry while avoiding holes:
             m_entry_count--;
-            m_seqzero_cache[i] = m_seqzero_cache[m_entry_count];
-            m_replay_cache[i] = m_replay_cache[m_entry_count];
+
+            mesh_config_entry_id_t id = MESH_OPT_REPLAY_CACHE_EID;
+            id.record += i;
+            NRF_MESH_ERROR_CHECK(mesh_config_entry_set(id, &m_replay_cache[m_entry_count]));
+            id.record = m_entry_count + MESH_OPT_REPLY_CACHE_RECORD;
+            NRF_MESH_ERROR_CHECK(mesh_config_entry_delete(id));
+
+            id = MESH_OPT_SEQZERO_CACHE_EID;
+            id.record += i;
+            NRF_MESH_ERROR_CHECK(mesh_config_entry_set(id, &m_seqzero_cache[m_entry_count]));
+            id.record = m_entry_count + MESH_OPT_SEQZERO_CACHE_RECORD;
+            NRF_MESH_ERROR_CHECK(mesh_config_entry_delete(id));
         }
         else
         {
@@ -154,6 +176,8 @@ static inline bool seqauth_is_new(uint32_t entry_index, uint32_t new_iv_index, u
 
 static uint32_t entry_add(uint16_t src, uint32_t seqnum, uint32_t iv_index, uint32_t *p_index)
 {
+    mesh_config_entry_id_t id;
+
     for (uint_fast8_t i = 0; i < m_entry_count; ++i)
     {
         if (m_replay_cache[i].src == src)
@@ -162,6 +186,9 @@ static uint32_t entry_add(uint16_t src, uint32_t seqnum, uint32_t iv_index, uint
             {
                 m_replay_cache[i].iv_index = (uint16_t) iv_index;
                 m_replay_cache[i].seqnum = seqnum;
+                id = MESH_OPT_REPLAY_CACHE_EID;
+                id.record += i;
+                NRF_MESH_ERROR_CHECK(mesh_config_entry_set(id, &m_replay_cache[i]));
                 /* Do not modify SeqZero. */
             }
 
@@ -172,14 +199,21 @@ static uint32_t entry_add(uint16_t src, uint32_t seqnum, uint32_t iv_index, uint
             return NRF_SUCCESS;
         }
     }
+
     if (m_entry_count < REPLAY_CACHE_ENTRIES)
     {
         m_replay_cache[m_entry_count].src = src;
         m_replay_cache[m_entry_count].iv_index = (uint16_t) iv_index;
         m_replay_cache[m_entry_count].seqnum = seqnum;
+        id = MESH_OPT_REPLAY_CACHE_EID;
+        id.record += m_entry_count;
+        NRF_MESH_ERROR_CHECK(mesh_config_entry_set(id, &m_replay_cache[m_entry_count]));
 
         /* Reset SeqZero cache entry since the address is new. */
         m_seqzero_cache[m_entry_count] = SEQZERO_CACHE_ENTRY_INVALID;
+        id = MESH_OPT_SEQZERO_CACHE_EID;
+        id.record += m_entry_count;
+        NRF_MESH_ERROR_CHECK(mesh_config_entry_set(id, &m_seqzero_cache[m_entry_count]));
 
         if (p_index != NULL)
         {
@@ -192,16 +226,85 @@ static uint32_t entry_add(uint16_t src, uint32_t seqnum, uint32_t iv_index, uint
     return NRF_ERROR_NO_MEM;
 }
 
-void replay_cache_init(void)
+static uint32_t replay_cache_setter(mesh_config_entry_id_t entry_id, const void * p_entry)
 {
+    NRF_MESH_ASSERT(IS_IN_RANGE(entry_id.record, MESH_OPT_REPLY_CACHE_RECORD,
+                                      MESH_OPT_REPLY_CACHE_RECORD + REPLAY_CACHE_ENTRIES - 1));
+
+    uint16_t idx = entry_id.record - MESH_OPT_REPLY_CACHE_RECORD;
+    memcpy(&m_replay_cache[idx], p_entry, sizeof(replay_cache_entry_t));
+
+    if (!m_is_enabled)
+    {
+        m_entry_count++;
+    }
+
+    return NRF_SUCCESS;
+}
+
+static void replay_cache_getter(mesh_config_entry_id_t entry_id, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(IS_IN_RANGE(entry_id.record, MESH_OPT_REPLY_CACHE_RECORD,
+                                      MESH_OPT_REPLY_CACHE_RECORD + REPLAY_CACHE_ENTRIES - 1));
+
+    uint16_t idx = entry_id.record - MESH_OPT_REPLY_CACHE_RECORD;
+    memcpy(p_entry, &m_replay_cache[idx], sizeof(replay_cache_entry_t));
+}
+
+static uint32_t seqzero_cache_setter(mesh_config_entry_id_t entry_id, const void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(IS_IN_RANGE(entry_id.record, MESH_OPT_SEQZERO_CACHE_RECORD,
+                                      MESH_OPT_SEQZERO_CACHE_RECORD + REPLAY_CACHE_ENTRIES - 1));
+
+    uint16_t idx = entry_id.record - MESH_OPT_SEQZERO_CACHE_RECORD;
+    memcpy(&m_seqzero_cache[idx], p_entry, sizeof(uint16_t));
+
+    return NRF_SUCCESS;
+}
+
+static void seqzero_cache_getter(mesh_config_entry_id_t entry_id, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(IS_IN_RANGE(entry_id.record, MESH_OPT_SEQZERO_CACHE_RECORD,
+                                      MESH_OPT_SEQZERO_CACHE_RECORD + REPLAY_CACHE_ENTRIES - 1));
+
+    uint16_t idx = entry_id.record - MESH_OPT_SEQZERO_CACHE_RECORD;
+    memcpy(p_entry, &m_seqzero_cache[idx], sizeof(uint16_t));
+}
+
+MESH_CONFIG_ENTRY(replay_cache,
+                  MESH_OPT_REPLAY_CACHE_EID,
+                  REPLAY_CACHE_ENTRIES,
+                  sizeof(replay_cache_entry_t),
+                  replay_cache_setter,
+                  replay_cache_getter,
+                  NULL,
+                  false);
+
+MESH_CONFIG_ENTRY(seqzero_cache,
+                  MESH_OPT_SEQZERO_CACHE_EID,
+                  REPLAY_CACHE_ENTRIES,
+                  sizeof(uint16_t),
+                  seqzero_cache_setter,
+                  seqzero_cache_getter,
+                  NULL,
+                  false);
+
+MESH_CONFIG_FILE(m_replay_cache_file, MESH_OPT_REPLAY_CACHE_FILE_ID, REPLAY_CACHE_STORAGE_STRATEGY);
+
+void replay_cache_init(void)
+{ /* Initialization happens before data loading from the flash. */
     static nrf_mesh_evt_handler_t event_handler = {.evt_cb = evt_handler};
     nrf_mesh_evt_handler_add(&event_handler);
 
-    replay_cache_clear();
+    m_is_enabled = false;
+    m_entry_count = 0;
+    memset(m_replay_cache, 0, sizeof(m_replay_cache));
+    memset(m_seqzero_cache, 0, sizeof(m_seqzero_cache));
 }
 
 void replay_cache_enable(void)
 {
+    m_is_enabled = true;
     m_current_iv_index = net_state_beacon_iv_index_get();
 }
 
@@ -215,6 +318,9 @@ uint32_t replay_cache_seqauth_add(uint16_t src, uint32_t seqno, uint32_t iv_inde
     uint32_t status;
     uint32_t entry_index;
 
+    /* There is the assertion in this function because this situation should be handled by transport
+     * using checkers replay_cache_has_seqauth and replay_cache_is_seqauth_last.
+     * The frame should be silently skipped. If the situation happens here then there is something wrong with transport.  */
     NRF_MESH_ASSERT(seqno >= (uint32_t) seqzero);
 
     status = entry_add(src, seqno, iv_index, &entry_index);
@@ -222,7 +328,9 @@ uint32_t replay_cache_seqauth_add(uint16_t src, uint32_t seqno, uint32_t iv_inde
         && (m_seqzero_cache[entry_index] == SEQZERO_CACHE_ENTRY_INVALID
             || seqauth_is_new(entry_index, iv_index, seqno, seqzero)))
     {
-        m_seqzero_cache[entry_index] = seqzero;
+        mesh_config_entry_id_t id = MESH_OPT_SEQZERO_CACHE_EID;
+        id.record += entry_index;
+        NRF_MESH_ERROR_CHECK(mesh_config_entry_set(id, &seqzero));
     }
 
     return status;
@@ -243,7 +351,13 @@ bool replay_cache_has_elem(uint16_t src, uint32_t seqno, uint32_t iv_index)
 
 bool replay_cache_has_seqauth(uint16_t src, uint32_t seqno, uint32_t iv_index, uint16_t seqzero)
 {
-    NRF_MESH_ASSERT(seqno >= (uint32_t) seqzero);
+    if (seqno < (uint32_t) seqzero)
+    { /* Fault case, we need to drop data. Probably replay attack.
+         It returns true to go into the branch where
+         replay_cache_is_seqauth_last will filter out the message (return false).
+         Finally, transport will skip frame silently. (todo hidden intercomponent dependency should be refactored.) */
+        return true;
+    }
 
     for (uint_fast8_t i = 0; i < m_entry_count; ++i)
     {
@@ -259,7 +373,10 @@ bool replay_cache_has_seqauth(uint16_t src, uint32_t seqno, uint32_t iv_index, u
 
 bool replay_cache_is_seqauth_last(uint16_t src, uint32_t seqno, uint32_t iv_index, uint16_t seqzero)
 {
-    NRF_MESH_ASSERT(seqno >= (uint32_t) seqzero);
+    if (seqno < (uint32_t) seqzero)
+    { /* Fault case, we need to drop data. Probably replay attack. */
+        return false;
+    }
 
     for (uint_fast8_t i = 0; i < m_entry_count; ++i)
     {
@@ -282,4 +399,6 @@ void replay_cache_clear(void)
 {
     m_entry_count = 0;
     memset(m_replay_cache, 0, sizeof(m_replay_cache));
+    memset(m_seqzero_cache, 0, sizeof(m_seqzero_cache));
+    mesh_config_file_clear(MESH_OPT_REPLAY_CACHE_FILE_ID);
 }

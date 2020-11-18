@@ -2,7 +2,7 @@
 
 @tagSupportAllCompatibleBoards
 
-The provisoner example is the default Mesh network configurator.
+The provisoner example is the default Bluetooth mesh network configurator.
 It works in a fixed, predefined way and can be used as the static provisioner with the following examples:
 - [Dimming examples](@ref md_examples_dimming_README)
 - [EnOcean switch translator client example](@ref md_examples_enocean_switch_README)
@@ -10,6 +10,7 @@ It works in a fixed, predefined way and can be used as the static provisioner wi
 - [Light lightness example](@ref md_examples_light_lightness_README)
 - [Light LC server example](@ref md_examples_light_lc_server_README)
 - [Light CTL example](@ref md_examples_light_ctl_README)
+- [Scene example](@ref md_examples_scene_README)
 - [Sensor example](@ref md_examples_sensor_README)
 
 
@@ -18,12 +19,13 @@ It works in a fixed, predefined way and can be used as the static provisioner wi
     - [Node address assignments](@ref provisioner_example_assignment_node_address)
     - [Publish subscribe configuration](@ref provisioner_example_assignment_publish_subscribe)
     - [Provisioner state machine](@ref provisioner_example_assignment_state_machine)
-- [Usage of Mesh APIs](@ref provisioner_APIs)
+- [Usage of Bluetooth mesh APIs](@ref provisioner_APIs)
 - [Hardware requirements](@ref provisioner_example_hw_requirements)
 - [Setup](@ref provisioner_example_setup)
     - [LED and button assignments](@ref provisioner_example_setup_leds_buttons)
 - [Testing the example](@ref provisioner_example_testing)
     - [Specifying the maximum number of provisionee devices](@ref provisioner_example_testing_40boards)
+    - [Provisioning examples without Scene Setup Server model](@ref provisioner_example_no_scene_setup_server)
     - [Evaluating examples using the static provisioner](@ref provisioner_example_evaluating)
 
 Because of the asynchronous nature of the provisioning and configuration process, the provisioner is implemented as a multi-layered state machine.
@@ -44,9 +46,9 @@ configure them automatically.
 
 ## Network configuration and address assignment @anchor provisioner_example_assignment
 
-The following diagram shows how the provisioner configures Mesh examples.
+The following diagram shows how the provisioner configures Bluetooth mesh examples.
 
-![Typical configuration of Mesh examples by the provisioner](images/provisioning_cfg.svg "Typical configuration of Mesh examples by provisioner")
+![Typical configuration of Bluetooth mesh examples by the provisioner](images/provisioning_cfg.svg "Typical configuration of Bluetooth mesh examples by provisioner")
 
 ### Node address assignments @anchor provisioner_example_assignment_node_address
 
@@ -76,7 +78,8 @@ The following table shows the list of client examples.
 | @ref light_switch_example_testing_dk "Light switch"         | Light switch      |
 | @ref dimming_prov_prov_example "Dimming"                    | Dimming           |
 | @ref enocean_example_testing_dk "EnOcean translator client" | EnOcean (as a Light switch client) |
-| Sensor client                                               | Sensor            |
+| @ref scene_example_testing_dk "Scene client"                | Scene             |
+| @ref fast_cadence_example_testing_dk "Sensor client"        | Sensor            |
 
 The provisioner also provisions and configures the servers at random.
 It assigns them addresses and adds them to Odd and Even groups.
@@ -84,15 +87,15 @@ It assigns them addresses and adds them to Odd and Even groups.
 The starting addresses are different for each server example.
 Subsequently provisioned server boards get the next consecutive Odd and Even addresses.
 
-| Example                                             | Server example                                                | Primary<br>element address | 1st secondary<br>element address | 2nd secondary<br>element address | Next board's<br>Primary element address | ... |
-|-----------------------------------------------------|---------------------------------------------------------------|----------------------------|----------------------------------|----------------------------------|-----------------------------------------|-----|
-| @ref light_ctl_example_testing "Light CTL"          | Light CTL servers<br>Light CTL Server with Light LC servers   | 0x601<br>0x701             | 0x602<br>0x702                   | NA<br>0x703                      | 0x604<br>0x704                          | ... |
-| @ref light_lc_server_example_testing_dk "Light LC"  | Light LC servers                                              | 0x501                      | 0x502                            | NA                               | 0x504                                   | ... |
-| @ref light_lightness_example_testing_dk "Light lightness"   | Lightness servers                                     | 0x401                      | NA                               | NA                               | 0x402                                   | ... |
-| @ref light_switch_example_testing_dk "Light switch"         | Light switch servers                                  | 0x201                      | NA                               | NA                               | 0x202                                   | ... |
-| @ref dimming_prov_prov_example "Dimming"                    | Dimming servers                                       | 0x301                      | NA                               | NA                               | 0x302                                   | ... |
+| Example                                                     | Server example                                        | Primary<br>element address | 1st secondary<br>element address | 2nd secondary<br>element address | Next board's<br>Primary element address | ... |
+|-------------------------------------------------------------|-------------------------------------------------------|----------------------------|----------------------------------|----------------------------------|-----------------------------------------|-----|
+| @ref light_ctl_example_testing "Light CTL"                  | Light CTL servers with Scene servers<br>Light CTL Server with Light LC servers   | 0x601<br>0x701             | 0x602<br>0x702                   | NA<br>0x703                      | 0x604<br>0x704                          | ... |
+| @ref light_lc_server_example_testing_dk "Light LC"          | Light LC servers with Scene servers                   | 0x501                      | 0x502                            | NA                               | 0x504                                   | ... |
+| @ref light_lightness_example_testing_dk "Light lightness"   | Lightness servers with Scene servers                  | 0x401                      | NA                               | NA                               | 0x402                                   | ... |
+| @ref light_switch_example_testing_dk "Light switch"         | Light switch servers with Scene servers               | 0x201                      | NA                               | NA                               | 0x202                                   | ... |
+| @ref dimming_prov_prov_example "Dimming"                    | Dimming servers with Scene servers                    | 0x301                      | NA                               | NA                               | 0x302                                   | ... |
 | @ref enocean_example_testing_dk "EnOcean translator client" | Any server that extends the generic OnOff <br>server, for example Light switch server. | Depends on the server used.    |Depends on the server used. |Depends on the server used. |Depends on the server used. |... |
-| Sensor server                                       | Sensor server                                                 | 0x801                      | NA                               | NA                               | 0x802                                   | ... | 
+| @ref fast_cadence_example_testing_dk "Sensor server"        | Sensor server                                         | 0x801                      | NA                               | NA                               | 0x802                                   | ... |
 
 
 ### Publish subscribe configuration @anchor provisioner_example_assignment_publish_subscribe
@@ -133,7 +136,7 @@ However, for a specific use case, the API usage can be reduced into a set of
 simple steps, as implemented in the provisioner example:
 
 -#  Initialize:
-    -#  Core mesh stack.
+    -#  Core Bluetooth mesh stack.
     -#  Device state manager.
     -#  Access layer.
     -#  Load provisioner persistent data.
@@ -147,7 +150,7 @@ If the provisioner is not able to configure a device, you will receive a notific
 and can press a button to provision the next device or to try configuration one more time.
 
 In the example code, this behavior is split between the following modules:
-- `examples/provisioner/src/main.c` -- deals with the initialization and setup of the mesh stack.
+- `examples/provisioner/src/main.c` -- deals with the initialization and setup of the Bluetooth mesh stack.
 - `examples/provisioner/src/provisioner_helper.c` -- deals with the provisioning process.
 - `examples/provisioner/src/node_setup.c` -- deals with the configuration process of the
 node once the provisioning is completed.
@@ -172,7 +175,7 @@ See @ref md_doc_user_guide_mesh_compatibility for information about the compatib
 
 ## Setup @anchor provisioner_example_setup
 
-You can find the source code of the mesh provisioner in the following folder:
+You can find the source code of the Bluetooth mesh provisioner in the following folder:
 `<InstallFolder>/examples/provisioner`
 
 ### LED and button assignments @anchor provisioner_example_setup_leds_buttons
@@ -215,10 +218,27 @@ Complete the following steps:
 -# Rebuild the provisioner example.
 -# Set `MAX_AVAILABLE_SERVER_NODE_NUMBER` in `nrf_mesh_config_app.h` of the client example to the value set for `MAX_PROVISIONEE_NUMBER`.
 
+### Provisioning examples without Scene Setup Server model @anchor provisioner_example_no_scene_setup_server
+
+[Scene Setup Server model](@ref SCENE_SETUP_SERVER) does not have a corresponding server example of its own
+and is instead showcased by several examples:
+- [Dimming examples](@ref md_examples_dimming_README)
+- [Light switch example](@ref md_examples_light_switch_README)
+- [Light lightness example](@ref md_examples_light_lightness_README)
+- [Light LC server example](@ref md_examples_light_lc_server_README)
+- [Light CTL example](@ref md_examples_light_ctl_README)
+
+You can exclude this model for these examples.
+If you decide to do so, you will also need to exclude the Scene Setup Server model
+from the static provisioner to be able to provision the server example. Complete the following steps:
+1. Open the file `examples/provisioner/include/nrf_mesh_config_app.h`.
+-# Locate the `SCENE_SETUP_SERVER_INSTANCES_MAX` define. By default, its value is set to `1`.
+-# Set the value to `0` and recompile.
+
 ### Evaluating examples using the static provisioner @anchor provisioner_example_evaluating
 
-After building the examples (the provisioner example and the example(s) you want to evaluate)
-by following the instructions in [Building the mesh stack](@ref md_doc_getting_started_how_to_build),
+After building the examples (the provisioner example and the examples you want to evaluate)
+by following the instructions in [Building the Bluetooth mesh stack](@ref md_doc_getting_started_how_to_build),
 complete the following steps:
 1. Flash the examples by following the instructions in @ref md_doc_getting_started_how_to_run_examples,
 including:

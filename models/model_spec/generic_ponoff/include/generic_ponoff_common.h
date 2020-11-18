@@ -65,6 +65,8 @@ typedef enum
     /** If a transition was in progress when powered down, the element restores the target state
      *  when powered up. Otherwise the element restores the state it was in when powered down. */
     GENERIC_ON_POWERUP_RESTORE,
+    /* Invalid value */
+    GENERIC_ON_POWERUP_INVALID
 } generic_on_powerup_values_t;
 
 /**

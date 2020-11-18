@@ -91,7 +91,7 @@
 * Local defines
 *****************************************************************************/
 #define DEFRAG_RECOVER_STEP (erase_source)
-#define MAX_PROCEDURE_STEP (sizeof(m_procedure_steps) / sizeof(m_procedure_steps[0]))
+#define MAX_PROCEDURE_STEP (ARRAY_SIZE(m_procedure_steps))
 
 /*****************************************************************************
 * Local typedefs
@@ -141,6 +141,7 @@ typedef procedure_action_t (*defrag_procedure_step_t)(void);
 static flash_manager_recovery_area_t * mp_recovery_area; /**< Recovery area pointer into flash. */
 static defrag_t m_defrag; /**< Global defrag state. */
 static uint16_t m_token; /**< Flash operation token returned from the mesh flash module. */
+static bool m_is_frozen; /**< Is defragmentation functionality frozen or not. */
 
 /* We're iterating through pages with the assumption that one flash_manager_page_t and
  * flash_manager_recovery_area_t are exactly one page long, and that fm_entry_t is exactly one word.
@@ -461,6 +462,18 @@ static procedure_action_t post_process(void)
     }
 }
 
+/* This is state out of the regular defragmentation state machine. Normal defragmentation never comes here.
+ * This state is required only to freeze defragmentation immediately in case of power down situation.
+ * All requests to defragmentation state machine will be redirected to the end immediately.
+ * Hence the already planned flash manager actions that require defragmentation
+ * will be completed with error status FM_RESULT_ERROR_AREA_FULL. */
+static procedure_action_t freezing(void)
+{
+    m_defrag.wait_for_idle = false;
+    m_defrag.p_manager = NULL;
+    return PROCEDURE_END;
+}
+
 static const defrag_procedure_step_t m_procedure_steps[] =
 {
     check_for_invalid_entries,
@@ -472,7 +485,8 @@ static const defrag_procedure_step_t m_procedure_steps[] =
     write_back,
     invalidate_duplicate_entries,
     seal_storage_page,
-    post_process
+    post_process,
+    freezing
 };
 /*****************************************************************************
 * Static functions
@@ -590,6 +604,7 @@ static bool recover_defrag_progress(void)
 
 bool flash_manager_defrag_init(void)
 {
+    m_is_frozen = false;
 #ifdef FLASH_MANAGER_RECOVERY_PAGE
     mp_recovery_area = (flash_manager_recovery_area_t *) FLASH_MANAGER_RECOVERY_PAGE;
 #else
@@ -637,7 +652,7 @@ void flash_manager_defrag(const flash_manager_t * p_manager)
 
     m_defrag.p_manager = p_manager;
     m_defrag.p_storage_page = p_manager->config.p_area;
-    m_defrag.step = 0;
+    m_defrag.step = m_is_frozen ? MAX_PROCEDURE_STEP - 1 : 0;
     m_defrag.wait_for_idle = false;
     m_defrag.state = DEFRAG_STATE_PROCESSING;
     m_defrag.found_all_entries = false;
@@ -653,11 +668,18 @@ const void * flash_manager_defrag_recovery_page_get(void)
     return mp_recovery_area;
 }
 
+void flash_manager_defrag_freeze(void)
+{
+    m_is_frozen = true;
+    jump_to_step(freezing);
+}
+
 #ifdef UNIT_TEST
 void flash_manager_defrag_reset(void)
 {
     memset((uint8_t*)&m_defrag, 0, sizeof(m_defrag));
     mp_recovery_area = NULL;
     m_token = 0;
+    m_is_frozen = false;
 }
 #endif

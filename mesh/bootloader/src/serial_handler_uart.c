@@ -154,7 +154,7 @@ static void char_rx(uint8_t c)
             fail_evt.opcode = SERIAL_EVT_OPCODE_CMD_RSP;
             fail_evt.params.cmd_rsp.command_opcode = ((serial_cmd_t*) rx_buf.buffer)->opcode;
             fail_evt.params.cmd_rsp.status = ACI_STATUS_ERROR_BUSY;
-            serial_handler_event_send(&fail_evt);
+            (void) serial_handler_event_send(&fail_evt);
         }
         else
         {
@@ -291,7 +291,7 @@ bool serial_handler_event_send(serial_evt_t* evt)
     serial_data_t raw_data;
     raw_data.status_byte = 0;
     memcpy(raw_data.buffer, evt, evt->length + 1);
-    fifo_push(&m_tx_fifo, &raw_data);
+    (void) fifo_push(&m_tx_fifo, &raw_data);
 
     if (m_serial_state == SERIAL_STATE_IDLE)
     {

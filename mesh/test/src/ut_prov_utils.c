@@ -519,7 +519,6 @@ void test_confirmation_check(void)
     enc_aes_cmac_IgnoreArg_p_result();
     enc_aes_cmac_ReturnMemThruPtr_p_result(confirmation, PROV_CONFIRMATION_LEN);
 
-
     TEST_ASSERT_EQUAL(false, prov_utils_confirmation_check(&m_ctx));
 
     /************* Set to correct value *************/
@@ -548,8 +547,13 @@ void test_confirmation_check(void)
     enc_aes_cmac_IgnoreArg_p_result();
     enc_aes_cmac_ReturnMemThruPtr_p_result(confirmation, PROV_CONFIRMATION_LEN);
 
-
     TEST_ASSERT_EQUAL(true, prov_utils_confirmation_check(&m_ctx));
+
+    /************* Check rejection if there are identical random numbers *************/
+
+    m_ctx.role = NRF_MESH_PROV_ROLE_PROVISIONER;
+    memcpy(m_ctx.node_random, m_ctx.peer_random, 16);
+    TEST_ASSERT_EQUAL(false, prov_utils_confirmation_check(&m_ctx));
 }
 
 void test_options(void)

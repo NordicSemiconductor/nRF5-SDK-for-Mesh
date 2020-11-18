@@ -80,7 +80,7 @@ void pwm_utils_enable(pwm_utils_contex_t * p_ctx);
 /**
  * Set the PWM duty cycle corresponding to given int16 value.
  *
- * This function maps the range [INT16_MIN, INT16_MAX] to [0, PWM max], where PWM max is
+ * This function maps the range [INT16_MIN, INT16_MAX] to [1, PWM max], where PWM max is
  * the tick value for the 100% PWM duty cycle.
  *
  * @param[in] p_ctx   Pointer to a PWM utils context structure @ref pwm_utils_contex_t.
@@ -91,13 +91,39 @@ void pwm_utils_level_set(pwm_utils_contex_t * p_ctx, int16_t level);
 /**
  * Get the int16 value corresponding to the PWM duty cycle.
  *
- * This function maps the range [0, PWM max] to [INT16_MIN, INT16_MAX], where PWM max is
+ * This function maps the range [1, PWM max] to [INT16_MIN, INT16_MAX], where PWM max is
  * the tick value for the 100% PWM duty cycle.
  *
  * @param[in] p_ctx   Pointer to a PWM utils context structure @ref pwm_utils_contex_t.
  * @returns int16 representation of the current PWM duty cycle.
  */
 int16_t pwm_utils_level_get(pwm_utils_contex_t * p_ctx);
+
+/**
+ * Set the PWM duty cycle corresponding to given uint16 value.
+ *
+ * This function maps the range [0, UINT16_MAX] to [1, PWM max], where PWM max is
+ * the tick value for the 100% PWM duty cycle.
+ *
+ * @param[in] p_ctx   Pointer to a PWM utils context structure @ref pwm_utils_contex_t.
+ * @param[in] level   Desired PWM duty cycle represented in the form of uint16 value.
+ *
+ * @retval NRF_SUCCESS              Successfully set PWM duty cycle.
+ * @retval NRF_ERROR_INVALID_STATE  Invalid state to perform operation.
+ * @retval NRF_ERROR_BUSY           PPI channels for synchronization are still in use.
+ */
+uint32_t pwm_utils_level_set_unsigned(pwm_utils_contex_t * p_ctx, uint16_t level);
+
+/**
+ * Get the uint16 value corresponding to the PWM duty cycle.
+ *
+ * This function maps the range [1, PWM max] to [0, UINT16_MAX], where PWM max is
+ * the tick value for the 100% PWM duty cycle.
+ *
+ * @param[in] p_ctx   Pointer to a PWM utils context structure @ref pwm_utils_contex_t.
+ * @returns uint16 representation of the current PWM duty cycle.
+ */
+uint16_t pwm_utils_level_get_unsigned(pwm_utils_contex_t * p_ctx);
 
 /** @} end of PWM_UTILS */
 

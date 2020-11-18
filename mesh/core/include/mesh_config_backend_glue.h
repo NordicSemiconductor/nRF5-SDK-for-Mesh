@@ -40,7 +40,6 @@
 #include <stdlib.h>
 #include "mesh_config_backend_file.h"
 #include "mesh_config_backend.h"
-#include "mesh_config.h"
 
 /**
  * @defgroup mesh_config_backend_glue Mesh configuration backend glue

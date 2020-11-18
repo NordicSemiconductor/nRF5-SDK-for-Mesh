@@ -161,6 +161,8 @@ Command                                 | Opcode
 [Packet Send](#bluetooth-mesh-packet-send)              | `0xab`
 [State Clear](#bluetooth-mesh-state-clear)              | `0xac`
 [Config Server Bind](#bluetooth-mesh-config-server-bind)       | `0xad`
+[Net State Set](#bluetooth-mesh-net-state-set)            | `0xae`
+[Net State Get](#bluetooth-mesh-net-state-get)            | `0xaf`
 
 ---
 
@@ -2285,6 +2287,69 @@ Potential status codes:
 - `INVALID_LENGTH`
 
 _The response has no parameters._
+
+---
+### Bluetooth Mesh Net State Set {#bluetooth-mesh-net-state-set}
+
+_Opcode:_ `0xae`
+
+_Total length:_ 12 bytes
+
+Sets the network state.
+
+_Net State Set Parameters:_
+
+Type          | Name                                    | Size | Offset | Description
+--------------|-----------------------------------------|------|--------|------------
+`uint32_t`    | Iv Index                                | 4    | 0      | The IV index to set.
+`uint8_t`     | Iv Update In Progress                   | 1    | 4      | Value indicating the phase of the IV update process.
+`uint16_t`    | Iv Update Timeout Counter               | 2    | 5      | Timeout counter for IV update process.
+`uint32_t`    | Next Seqnum Block                       | 4    | 7      | The first sequence number block which is not yet allocated.
+
+#### Response
+
+Potential status codes:
+
+- `SUCCESS`
+
+- `ERROR_INVALID_STATE`
+
+- `INVALID_LENGTH`
+
+_The response has no parameters._
+
+---
+### Bluetooth Mesh Net State Get {#bluetooth-mesh-net-state-get}
+
+_Opcode:_ `0xaf`
+
+_Total length:_ 1 byte
+
+Gets the network state.
+
+_Net State Get takes no parameters._
+
+#### Response
+
+Potential status codes:
+
+- `SUCCESS`
+
+- `ERROR_INVALID_STATE`
+
+- `ERROR_REJECTED`
+
+- `INVALID_LENGTH`
+
+_Net State Get Response Parameters_
+
+Type          | Name                                    | Size | Offset | Description
+--------------|-----------------------------------------|------|--------|------------
+`uint32_t`    | Iv Index                                | 4    | 0      | The current IV index.
+`uint8_t`     | Iv Update In Progress                   | 1    | 4      | Value indicating the phase of the IV update process.
+`uint16_t`    | Iv Update Timeout Counter               | 2    | 5      | Current value of timeout counter for IV update.
+`uint32_t`    | Next Seqnum Block                       | 4    | 7      | The start of the next unused sequence number block.
+
 
 ---
 ### Direct Firmware Upgrade Jump To Bootloader {#direct-firmware-upgrade-jump-to-bootloader}

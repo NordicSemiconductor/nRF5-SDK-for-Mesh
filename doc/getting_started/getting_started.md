@@ -1,11 +1,11 @@
 # Getting started
 
 The nRF SDK for Mesh provides you with tools and instructions that allow you to start developing
-your own applications and use the Bluetooth Mesh features.
+your own applications and use the Bluetooth mesh features.
 
 To get started using the SDK, see @subpage md_doc_getting_started_mesh_quick_start.
 
-You can then configure the required software toolchains and the process of building a mesh stack:
+You can then configure the required software toolchains and the process of building a Bluetooth mesh stack:
 - @subpage md_doc_getting_started_how_to_toolchain
 - @subpage md_doc_getting_started_how_to_build
 - @subpage md_doc_getting_started_how_to_run_examples
@@ -24,7 +24,7 @@ you can start using the nRF SDK for Mesh to the full extent:
 and how to configure them.
 - See @ref md_examples_README to start using the nRF5 SDK for Mesh example applications.
     - Make sure to take a look at the @ref md_examples_light_switch_README. It shows how a simple
-    application can use the mesh stack and serves as an introduction to the Bluetooth Mesh concepts
+    application can use the Bluetooth mesh stack and serves as an introduction to the Bluetooth mesh concepts
     and SDK features and APIs.
-- @link_APIref contains the complete mesh stack API documentation.
+- @link_APIref contains the complete Bluetooth mesh stack API documentation.
 - @link_Structref lists data structures and data fields used by the APIs.

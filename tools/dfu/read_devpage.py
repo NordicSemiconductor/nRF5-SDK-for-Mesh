@@ -101,7 +101,7 @@ def read_device_page(device):
 
 
 if __name__ == "__main__":
-    devices = ["nrf51422_xxAC", "nrf52832_xxAA", "nrf52833_xxAA", "nrf52840_xxAA"]
+    devices = ["nrf51422_xxAC", "nrf52820_xxAA", "nrf52832_xxAA", "nrf52833_xxAA", "nrf52840_xxAA"]
     p = argparse.ArgumentParser("Device Page Reader")
     p.add_argument("-d", "--device", default=devices[1], action="store", choices=devices, help="Select device")
     args = p.parse_args()

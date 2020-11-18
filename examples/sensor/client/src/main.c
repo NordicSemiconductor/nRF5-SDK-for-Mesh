@@ -139,8 +139,8 @@ static const sensor_client_callbacks_t m_client_cbs =
 
 static void device_identification_start_cb(uint8_t attention_duration_s)
 {
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(BSP_LED_2_MASK  | BSP_LED_3_MASK,
+    hal_led_mask_set(HAL_LED_MASK, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(HAL_LED_MASK_HALF,
                      LED_BLINK_ATTENTION_INTERVAL_MS,
                      LED_BLINK_ATTENTION_COUNT(attention_duration_s));
 }
@@ -167,8 +167,8 @@ static void provisioning_complete_cb(void)
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Node Address: 0x%04x \n", node_address.address_start);
 
     hal_led_blink_stop();
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
+    hal_led_mask_set(HAL_LED_MASK, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
 }
 
 /* This callback is called periodically if model is configured for periodic publishing */
@@ -193,7 +193,7 @@ static void app_sensor_client_transaction_status_cb(access_model_handle_t model_
             break;
 
         case ACCESS_RELIABLE_TRANSFER_TIMEOUT:
-            hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
+            hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Acknowledged transfer timeout.\n");
             break;
 
@@ -477,7 +477,7 @@ static void app_sensor_client_setting_status_cb(const sensor_client_t * p_self,
 static void node_reset(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset  -----\n");
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
     /* This function may return if there are ongoing flash operations. */
     mesh_stack_device_reset();
 }
@@ -671,7 +671,7 @@ static void button_event_handler(uint32_t button_number)
         case NRF_ERROR_BUSY:
         case NRF_ERROR_INVALID_STATE:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Client %u cannot send\n", client);
-            hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
+            hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
             break;
 
         case NRF_ERROR_INVALID_PARAM:
@@ -743,7 +743,7 @@ static void mesh_init(void)
     {
         case NRF_ERROR_INVALID_DATA:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before starting of the provisioning process.\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reboot device before starting of the provisioning process.\n");
             break;
         case NRF_SUCCESS:
             break;
@@ -800,8 +800,8 @@ static void start(void)
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
 
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
+    hal_led_mask_set(HAL_LED_MASK, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
 }
 
 int main(void)

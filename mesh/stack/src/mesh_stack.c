@@ -44,7 +44,12 @@
 #include "config_server.h"
 #include "health_server.h"
 #include "net_state.h"
+#include "replay_cache.h"
 #include "hal.h"
+#include "scanner.h"
+#include "bearer_handler.h"
+#include "event.h"
+#include "timer_scheduler.h"
 #include "mesh_config.h"
 #include "mesh_config_backend_glue.h"
 #include "mesh_opt.h"
@@ -58,6 +63,39 @@
 #endif
 
 static health_server_t m_health_server;
+static nrf_mesh_evt_handler_t m_power_down_evt;
+static bool m_load_failed;
+
+static void device_power_down(const nrf_mesh_evt_t * p_evt)
+{
+    if (p_evt->type == NRF_MESH_EVT_DISABLED)
+    {
+        nrf_mesh_evt_t evt = {.type = NRF_MESH_EVT_READY_TO_POWER_OFF};
+        event_handle(&evt);
+    }
+
+    if (p_evt->type == NRF_MESH_EVT_CONFIG_STABLE)
+    {
+        bearer_handler_force_mode_disable();
+        NRF_MESH_ERROR_CHECK(nrf_mesh_disable());
+    }
+}
+
+static void load_monitor(const nrf_mesh_evt_t * p_evt)
+{
+    switch (p_evt->type)
+    {
+        case NRF_MESH_EVT_CONFIG_LOAD_FAILURE:
+            if (p_evt->params.config_load_failure.id.file < MESH_OPT_FIRST_FREE_ID)
+            {
+                m_load_failed = true;
+            }
+            break;
+
+        default:
+            break;
+    }
+}
 
 static void device_reset(void)
 {
@@ -109,12 +147,19 @@ uint32_t mesh_stack_init(const mesh_stack_init_params_t * p_init_params,
     }
 
     /* Load configuration, and check if the device has already been provisioned */
+    static nrf_mesh_evt_handler_t s_evt_handler = {
+        .evt_cb = load_monitor
+    };
+    nrf_mesh_evt_handler_add(&s_evt_handler);
+
     mesh_config_load();
+
+    nrf_mesh_evt_handler_remove(&s_evt_handler);
 
     uint32_t dsm_result = dsm_load_config_apply();
     uint32_t access_result = access_load_config_apply();
 
-    if (dsm_result == NRF_ERROR_INVALID_DATA || access_result == NRF_ERROR_INVALID_DATA)
+    if (dsm_result == NRF_ERROR_INVALID_DATA || access_result == NRF_ERROR_INVALID_DATA || m_load_failed)
     {
         mesh_stack_config_clear();
         status = NRF_ERROR_INVALID_DATA;
@@ -186,7 +231,26 @@ uint32_t mesh_stack_provisioning_data_store(const nrf_mesh_prov_provisioning_dat
         return status;
     }
 
-    NRF_MESH_ERROR_CHECK(net_state_iv_index_set(p_prov_data->iv_index, p_prov_data->flags.iv_update));
+    status = net_state_iv_index_set(p_prov_data->iv_index, p_prov_data->flags.iv_update);
+    if (status != NRF_SUCCESS)
+    {
+        return status;
+    }
+
+    if (p_prov_data->flags.key_refresh == 1)
+    {
+        status = dsm_subnet_update(netkey_handle, p_prov_data->netkey);
+        if (status != NRF_SUCCESS)
+        {
+            return status;
+        }
+
+        status = dsm_subnet_update_swap_keys(netkey_handle);
+        if (status != NRF_SUCCESS)
+        {
+            return status;
+        }
+    }
 
     /* Bind config server to the device key */
     status = config_server_bind(devkey_handle);
@@ -206,6 +270,7 @@ void mesh_stack_config_clear(void)
     access_clear();
     dsm_clear();
     net_state_reset();
+    replay_cache_clear();
 }
 
 bool mesh_stack_is_device_provisioned(void)
@@ -291,12 +356,32 @@ health_server_t * mesh_stack_health_server_get(void)
 
 void mesh_stack_power_down(void)
 {
-    // turn off scanner and advertiser
+    /* turn off scanner */
+    scanner_disable();
 
-    // turn off SD GATT
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    /* disables the node ID beacons if there are any */
+    (void)proxy_node_id_disable();
+    /* disconnect active connections if there are any */
+    proxy_disconnect();
+    (void)proxy_stop();
+    /* disable proxy to prevent restart of beaconing if it is enabled by default */
+    proxy_disable();
+#endif
 
-    // turn off timer
+    /* clean timers queue and turn off hw timer */
+    timer_sch_stop();
 
-    // start power down storage
+    /* turn off advertiser
+     * Advertisers shouldn't be turned off separately since they send data when timers fire.
+     * Timers have been stopped at this moment. */
 
+    /* register event to catch flash operation finishing */
+    m_power_down_evt.evt_cb = device_power_down;
+    event_handler_add(&m_power_down_evt);
+
+    /* Enforce the bearer handler to speed up data storing */
+    bearer_handler_force_mode_enable();
+    /* start power down storage */
+    mesh_config_power_down();
 }

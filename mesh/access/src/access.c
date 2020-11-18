@@ -482,6 +482,7 @@ static void access_state_clear(void)
         m_model_pool[i].model_info.element_index = ACCESS_ELEMENT_INDEX_INVALID;
         m_model_pool[i].publish_divisor = 1;
     }
+    m_default_ttl = ACCESS_DEFAULT_TTL;
 }
 
 static bool model_subscribes_to_addr(const access_common_t * p_model, dsm_handle_t address_handle)
@@ -600,10 +601,12 @@ static void divide_publish_interval(access_publish_resolution_t input_resolution
 
 static void access_publish_timing_update(access_model_handle_t handle)
 {
-    access_publish_resolution_t reg_res, fast_res;
-    uint8_t reg_steps, fast_steps;
+    access_publish_resolution_t reg_res = ACCESS_PUBLISH_RESOLUTION_100MS;
+    access_publish_resolution_t fast_res;
+    uint8_t reg_steps = 0;
+    uint8_t fast_steps;
 
-    NRF_MESH_ASSERT(access_model_publish_period_get(handle, &reg_res, &reg_steps) == NRF_SUCCESS);
+    NRF_MESH_ERROR_CHECK(access_model_publish_period_get(handle, &reg_res, &reg_steps));
     divide_publish_interval(reg_res, reg_steps, &fast_res, &fast_steps, m_model_pool[handle].publish_divisor);
     access_publish_period_set(&m_model_pool[handle].publication_state, fast_res, fast_steps);
 }
@@ -752,6 +755,25 @@ static void models_getter(mesh_config_entry_id_t id, void * p_entry)
     memcpy(p_data, &m_model_pool[idx].model_info, sizeof(access_model_state_data_t));
 }
 
+static uint32_t default_ttl_setter(mesh_config_entry_id_t id, const void * p_entry)
+{
+    if (id.record != MESH_OPT_ACCESS_DEFAULT_TTL_RECORD)
+    {
+        return NRF_ERROR_NOT_FOUND;
+    }
+
+    m_default_ttl = *((uint8_t *) p_entry);
+
+    return NRF_SUCCESS;
+}
+
+static void default_ttl_getter(mesh_config_entry_id_t id, void * p_entry)
+{
+    NRF_MESH_ASSERT_DEBUG(id.record == MESH_OPT_ACCESS_DEFAULT_TTL_RECORD);
+
+    *((uint8_t *) p_entry) = m_default_ttl;
+}
+
 MESH_CONFIG_ENTRY(access_metadata,
                   MESH_OPT_ACCESS_METADATA_EID,
                   1,
@@ -787,6 +809,15 @@ MESH_CONFIG_ENTRY(models,
                   models_getter,
                   NULL,
                   NULL);
+
+MESH_CONFIG_ENTRY(default_ttl,
+                  MESH_OPT_ACCESS_DEFAULT_TTL_EID,
+                  1,
+                  sizeof(uint8_t),
+                  default_ttl_setter,
+                  default_ttl_getter,
+                  NULL,
+                  true);
 
 MESH_CONFIG_FILE(m_access_file, MESH_OPT_ACCESS_FILE_ID, MESH_CONFIG_STRATEGY_CONTINUOUS);
 
@@ -849,7 +880,12 @@ static void sublist_invalidate(uint16_t index)
 
     mesh_config_entry_id_t entry_id = MESH_OPT_ACCESS_SUBSCRIPTIONS_EID;
     entry_id.record += index;
-    NRF_MESH_ERROR_CHECK(mesh_config_entry_delete(entry_id));
+    /* Due to the complex relationship between models, it is possible to allocate a subscription
+     * list for the generic models but then to deallocate it and to start using the shared
+     * subscription list. It causes the situation we have to invalidate entry that does not exist.
+     * Mesh config handles that correctly. However, we do not need to check the returned status
+     * anymore. */
+    (void) mesh_config_entry_delete(entry_id);
 }
 
 static void metadata_store(void)
@@ -1688,8 +1724,9 @@ uint32_t access_default_ttl_set(uint8_t ttl)
     }
     else
     {
-        m_default_ttl = ttl;
-        return NRF_SUCCESS;
+        mesh_config_entry_id_t entry_id = MESH_OPT_ACCESS_DEFAULT_TTL_EID;
+
+        return mesh_config_entry_set(entry_id, &ttl);
     }
 }
 

@@ -85,13 +85,27 @@ void net_state_enable(void);
 uint32_t net_state_iv_index_set(uint32_t iv_index, bool iv_update);
 
 /**
+ * Sets the initial IV index and IV update state, and starts sequence number from the supplied block.
+ *
+ * @param[in] iv_index Initial IV index value.
+ * @param[in] iv_update @c true if an IV index update is in progress.
+ * @param[in] next_seqnum_block The next seqnum block to allocate.
+ *
+ * @retval NRF_SUCCESS             Successfully set the IV index and IV update state.
+ * @retval NRF_ERROR_INVALID_STATE The function was called when the IV index and update state was
+ *                                 already set.
+ */
+uint32_t net_state_iv_index_and_seqnum_block_set(uint32_t iv_index, bool iv_update, uint32_t next_seqnum_block);
+
+/**
  * Reset the sequence number and IV index, and wipe the flashed state.
  */
 void net_state_reset(void);
 
 /**
- * Allocates a new network sequence number.
+ * Allocates a new network sequence number for the current IV index.
  *
+ * @param[out]     p_iv_index  Pointer to an integer where the IV index is written.
  * @param[out]     p_seqnum    Pointer to an integer where the allocated sequence number is written.
  *
  * @retval NRF_SUCCESS         A sequence number was successfully allocated.
@@ -102,7 +116,7 @@ void net_state_reset(void);
  *                             Attempt to allocate the sequence number before it has been restored
  *                             from persistent memory.
  */
-uint32_t net_state_seqnum_alloc(uint32_t * p_seqnum);
+uint32_t net_state_iv_index_and_seqnum_alloc(uint32_t * p_iv_index, uint32_t * p_seqnum);
 
 /**
  * Checks whether the next sequence number block allocated and stored to the flash or not.

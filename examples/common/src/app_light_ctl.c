@@ -126,6 +126,24 @@ static void ctl_state_delta_set_cb(const light_ctl_setup_server_t * p_self,
                                    const model_transition_t * p_in_transition,
                                    light_ctl_temperature_status_params_t * p_out);
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static void app_light_ctl_scene_store(const app_scene_model_interface_t * p_app_scene_if,
+                                      uint8_t scene_index);
+static void app_light_ctl_scene_recall(const app_scene_model_interface_t * p_app_scene_if,
+                                       uint8_t scene_index,
+                                       uint32_t delay_ms,
+                                       uint32_t transition_time_ms);
+static void app_light_ctl_scene_delete(const app_scene_model_interface_t * p_app_scene_if,
+                                       uint8_t scene_index);
+
+const app_scene_callbacks_t m_scene_light_ctl_cbs =
+{
+    .scene_store_cb = app_light_ctl_scene_store,
+    .scene_recall_cb = app_light_ctl_scene_recall,
+    .scene_delete_cb = app_light_ctl_scene_delete
+};
+#endif
+
 /**** end of callback declarations ****/
 
 static const light_ctl_setup_server_callbacks_t ctl_setup_srv_cbs =
@@ -261,6 +279,10 @@ static void ctl_state_set_cb(const light_ctl_setup_server_t * p_self,
               p_params->required_delta);
 
         app_transition_trigger(&p_app->state.transition);
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+        app_scene_model_scene_changed(p_app->p_app_scene);
+#endif
     }
     else
     {
@@ -368,6 +390,10 @@ static void ctl_state_temperature32_set_cb(const light_ctl_setup_server_t * p_se
               p_params->required_delta);
 
         app_transition_trigger(&p_app->state.transition);
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+        app_scene_model_scene_changed(p_app->p_app_scene);
+#endif
     }
     else
     {
@@ -553,6 +579,13 @@ static void ctl_state_delta_set_cb(const light_ctl_setup_server_t * p_self,
 
     app_transition_trigger(&p_app->state.transition);
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    if (p_in->delta_temperature != 0)
+    {
+        app_scene_model_scene_changed(p_app->p_app_scene);
+    }
+#endif
+
     /* Prepare response */
     if (p_out != NULL)
     {
@@ -605,6 +638,14 @@ static void ctl_state_move_set_cb(const light_ctl_setup_server_t * p_self,
           p_in->delta_temperature, p_app->state.transition.delay_ms,
           p_params->transition_time_ms);
     app_transition_trigger(&p_app->state.transition);
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    if ((p_in->delta_temperature != 0) && 
+        (p_app->state.transition.requested_params.transition_time_ms > 0))
+    {
+        app_scene_model_scene_changed(p_app->p_app_scene);
+    }
+#endif
 
     /* Prepare response */
     if (p_out != NULL)
@@ -1000,6 +1041,108 @@ static void transition_parameters_set(app_light_ctl_setup_server_t * p_app,
 }
 
 
+/***** Scene Interface functions *****/
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static void app_light_ctl_scene_store(const app_scene_model_interface_t * p_app_scene_if,
+                                      uint8_t scene_index)
+{
+    app_light_ctl_setup_server_t * p_app = 
+                PARENT_BY_FIELD_GET(app_light_ctl_setup_server_t, scene_if, p_app_scene_if);
+    ERROR_CHECK(light_ctl_mc_scene_temperature32_state_store (
+                    p_app->light_ctl_setup_srv.state.handle, 
+                    scene_index, 
+                    p_app->state.present_temperature32));
+    ERROR_CHECK(light_ctl_mc_scene_delta_uv_state_store (
+                    p_app->light_ctl_setup_srv.state.handle, 
+                    scene_index, 
+                    p_app->state.present_delta_uv));
+
+    __LOG(LOG_SRC_APP, LOG_LEVEL_DBG1,
+            "SCENE STORE: handel: %d  scene index: %d  present temperature: %d  present duv: %d\n",
+            p_app->light_ctl_setup_srv.state.handle,
+            scene_index,
+            light_ctl_utils_temperature32_to_temperature(p_app->state.present_temperature32),
+            p_app->state.present_delta_uv);
+}
+
+static void app_light_ctl_scene_recall(const app_scene_model_interface_t * p_app_scene_if,
+                                       uint8_t scene_index,
+                                       uint32_t delay_ms,
+                                       uint32_t transition_time_ms)
+{
+    app_light_ctl_setup_server_t * p_app;
+    app_light_ctl_temperature_duv_hw_state_t present_ctl_state;
+    uint32_t recall_temperature32;
+    int16_t recall_delta_uv;
+
+    p_app = PARENT_BY_FIELD_GET(app_light_ctl_setup_server_t, scene_if, p_app_scene_if);
+    app_transition_params_t * p_params = app_transition_requested_get(&p_app->state.transition);
+
+    /* Set a module flag to let the code know there is a CTL state set occurring */
+    p_app->ctl_state_set_active = true;
+
+    /* Process the temperature and delta UV states (CTL specific - no lightness involved) */
+    p_app->app_light_ctl_get_cb(p_app, &present_ctl_state);
+
+    ERROR_CHECK(light_ctl_mc_scene_temperature32_state_recall(
+                    p_app->light_ctl_setup_srv.state.handle, 
+                    scene_index, 
+                    &recall_temperature32));
+    ERROR_CHECK(light_ctl_mc_scene_delta_uv_state_recall(
+                    p_app->light_ctl_setup_srv.state.handle, 
+                    scene_index, 
+                    &recall_delta_uv));
+
+    p_app->state.target_temp32_snapshot = recall_temperature32;
+    p_app->state.target_duv_snapshot = recall_delta_uv;
+    p_app->state.init_present_temp32_snapshot = p_app->state.present_temperature32;
+    p_app->state.init_present_duv_snapshot = p_app->state.present_delta_uv;
+
+    ERROR_CHECK(light_ctl_mc_temperature32_state_set(p_app->light_ctl_setup_srv.state.handle, 
+                                                     p_app->state.target_temp32_snapshot));
+    ERROR_CHECK(light_ctl_mc_delta_uv_state_set(p_app->light_ctl_setup_srv.state.handle, 
+                                                p_app->state.target_duv_snapshot));
+
+    model_transition_t in_transition = {.delay_ms = delay_ms, 
+                                        .transition_time_ms = transition_time_ms};
+    
+    if ((!p_app->light_ctl_setup_srv.state.initialized) || 
+        (present_ctl_state.temperature32 != recall_temperature32) ||
+        (present_ctl_state.delta_uv != recall_delta_uv))
+    {
+        app_transition_abort(&p_app->state.transition);
+
+        int32_t delta = ctl_state_delta_max_compute(p_app, present_ctl_state.temperature32,
+                                                    p_app->state.target_temp32_snapshot,
+                                                    present_ctl_state.delta_uv,
+                                                    p_app->state.target_duv_snapshot);
+
+        transition_parameters_set(p_app, delta, &in_transition, APP_CTL_TRANSITION_SET);
+
+        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
+              "SCENE RECALL: temperature: %d duv: %d delay: %d  tt: %d  req-delta: %d \n",
+              light_ctl_utils_temperature32_to_temperature(recall_temperature32),
+              recall_delta_uv,
+              p_app->state.transition.delay_ms,
+              p_params->transition_time_ms,
+              p_params->required_delta);
+
+        app_transition_trigger(&p_app->state.transition);
+    }
+}
+
+static void app_light_ctl_scene_delete(const app_scene_model_interface_t * p_app_scene_if,
+                                       uint8_t scene_index)
+{
+    app_light_ctl_setup_server_t * p_app = 
+                PARENT_BY_FIELD_GET(app_light_ctl_setup_server_t, scene_if, p_app_scene_if);
+    app_transition_abort(&p_app->state.transition);
+    /* No need to do anything else */
+}
+#endif /* SCENE_SETUP_SERVER_INSTANCES_MAX > 0 */
+
+
 /***** Interface functions *****/
 
 uint32_t app_light_ctl_model_init(app_light_ctl_setup_server_t * p_app, uint8_t element_index,
@@ -1036,6 +1179,10 @@ uint32_t app_light_ctl_model_init(app_light_ctl_setup_server_t * p_app, uint8_t 
     {
         return status;
     }
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    p_app->scene_if.p_callbacks = &m_scene_light_ctl_cbs;
+#endif
 
     p_app->state.transition.delay_start_cb = transition_delay_start_cb;
     p_app->state.transition.transition_start_cb = transition_start_cb;
@@ -1096,6 +1243,11 @@ uint32_t app_light_ctl_current_value_publish(app_light_ctl_setup_server_t * p_ap
     app_transition_abort(&p_app->state.transition);
     app_transition_abort(&p_app->p_app_ll->state.transition);
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    uint32_t old_present_temperature32 = p_app->state.present_temperature32;
+    int16_t old_present_delta_uv = p_app->state.present_delta_uv;
+#endif
+
     p_app->app_light_ctl_get_cb(p_app, &present_ctl_state);
     p_app->p_app_ll->app_light_lightness_get_cb(p_app->p_app_ll, &lightness);
 
@@ -1117,5 +1269,27 @@ uint32_t app_light_ctl_current_value_publish(app_light_ctl_setup_server_t * p_ap
     ERROR_CHECK(light_lightness_mc_actual_state_set(p_app->p_app_ll->light_lightness_setup_server.state.handle,
                                                   lightness));
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    if ((old_present_temperature32 != p_app->state.present_temperature32) || 
+        (old_present_delta_uv != p_app->state.present_delta_uv))
+    {
+        app_scene_model_scene_changed(p_app->p_app_scene);
+    }
+#endif
+
     return ctl_publish(p_app, 0);
 }
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+uint32_t app_light_ctl_scene_context_set(app_light_ctl_setup_server_t * p_app, 
+                                         app_scene_setup_server_t  * p_app_scene)
+{
+    if (p_app == NULL || p_app_scene == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+
+    p_app->p_app_scene = p_app_scene;
+    return NRF_SUCCESS;
+}
+#endif

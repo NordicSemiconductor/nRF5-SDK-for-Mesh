@@ -1383,18 +1383,34 @@ static void handle_config_model_publication_set(access_model_handle_t handle, co
                 return;
         }
 
-        if (status == NRF_SUCCESS && publish_period.step_num != 0)
+#if MESH_FEATURE_LPN_ENABLED
+        status = access_model_publish_friendship_credential_flag_set(model_handle, p_pubstate->credential_flag);
+#else
+        if (!!p_pubstate->credential_flag)
+        {
+            status_error_pub_send(handle, p_message, sig_model, ACCESS_STATUS_FEATURE_NOT_SUPPORTED);
+            return;
+        }
+        status = NRF_SUCCESS;
+#endif
+
+        status = status == NRF_SUCCESS ? access_model_publish_retransmit_set(model_handle, publish_retransmit) : status;
+        status = status == NRF_SUCCESS ? access_model_publish_address_set(model_handle, publish_address_handle) : status;
+        status = status == NRF_SUCCESS ? access_model_publish_application_set(model_handle, publish_appkey_handle) : status;
+        status = status == NRF_SUCCESS ? access_model_publish_ttl_set(model_handle, p_pubstate->publish_ttl) : status;
+
+        if (status != NRF_SUCCESS)
+        {
+            status_error_pub_send(handle, p_message, sig_model, ACCESS_STATUS_UNSPECIFIED_ERROR);
+            return;
+        }
+
+        if (publish_period.step_num != 0)
         {
             /* Set publishing parameters for the model: */
             NRF_MESH_ASSERT(access_model_publish_period_set(model_handle, (access_publish_resolution_t) publish_period.step_res,
                             publish_period.step_num) == NRF_SUCCESS);
         }
-
-        NRF_MESH_ASSERT(access_model_publish_retransmit_set(model_handle, publish_retransmit) == NRF_SUCCESS);
-        NRF_MESH_ASSERT(access_model_publish_address_set(model_handle, publish_address_handle) == NRF_SUCCESS);
-        NRF_MESH_ASSERT(access_model_publish_application_set(model_handle, publish_appkey_handle) == NRF_SUCCESS);
-        NRF_MESH_ASSERT(access_model_publish_friendship_credential_flag_set(model_handle, p_pubstate->credential_flag) == NRF_SUCCESS);
-        NRF_MESH_ASSERT(access_model_publish_ttl_set(model_handle, p_pubstate->publish_ttl) == NRF_SUCCESS);
     }
     else
     {

@@ -41,8 +41,12 @@
 #include "mesh_config_backend.h"
 #include "mesh_config_listener.h"
 #include "mesh_opt.h"
+#if PERSISTENT_STORAGE == 0
+#include "bearer_event.h"
+#endif
 #include "utils.h"
 #include "event.h"
+#include "emergency_cache.h"
 
 #include "nrf_section.h"
 #include "nrf_error.h"
@@ -61,14 +65,17 @@ NRF_MESH_SECTION_DEF_FLASH(mesh_config_files, const mesh_config_file_params_t);
 NRF_MESH_SECTION_DEF_FLASH(mesh_config_entries, const mesh_config_entry_params_t);
 NRF_MESH_SECTION_DEF_FLASH(mesh_config_entry_listeners, const mesh_config_listener_t);
 
-/* This flag is set only if mesh_config shall fulfill handling all kind of files in the dirty_entries_process.
- * There are two emergency actions:
- * Power Down
- * Configuration cleaning */
-static bool m_emergency_action;
+/* This flag is set only if mesh_config shall fulfill handling all kind of entries in the dirty_entries_process.
+ * There is only one emergency action: Power Down. */
+static bool m_is_emergency_action;
+static bool m_is_emergency_cache_exist;
 /* Counter of entities that are in progress with hw part. */
 static uint32_t m_entry_in_progress_cnt;
 static uint32_t m_file_in_progress_cnt;
+
+#if PERSISTENT_STORAGE == 0
+static bearer_event_flag_t m_bearer_event_flag;
+#endif
 
 /* This is architectural hook because dsm entries with the same id can have differed size.
  * Otherwise, these entries will be interpreted as invalid length entries.
@@ -138,6 +145,19 @@ static void listeners_notify(const mesh_config_entry_params_t * p_params,
     }
 }
 
+#if PERSISTENT_STORAGE
+static uint32_t default_file_store(const mesh_config_entry_params_t * p_params,
+                                   mesh_config_entry_id_t id)
+{
+    /* The backend has to make a copy, as the buffer is on stack! */
+    uint8_t buf[MESH_CONFIG_ENTRY_MAX_SIZE] __attribute__((aligned(WORD_SIZE)));
+
+    p_params->callbacks.getter(id, buf);
+
+    return mesh_config_backend_store(id, buf, p_params->entry_size);
+}
+#endif
+
 static void dirty_entries_process(void)
 {
 #if PERSISTENT_STORAGE
@@ -151,7 +171,7 @@ static void dirty_entries_process(void)
         const mesh_config_file_params_t * p_file = file_params_find(p_params->p_id->file);
         NRF_MESH_ASSERT(p_file);
         if (p_file->strategy == MESH_CONFIG_STRATEGY_CONTINUOUS ||
-           (p_file->strategy == MESH_CONFIG_STRATEGY_ON_POWER_DOWN && m_emergency_action))
+           (p_file->strategy == MESH_CONFIG_STRATEGY_ON_POWER_DOWN && m_is_emergency_action))
         {
             for (uint32_t j = 0; j < p_params->max_count; ++j)
             {
@@ -164,12 +184,16 @@ static void dirty_entries_process(void)
 
                     if (p_params->p_state[j] & MESH_CONFIG_ENTRY_FLAG_ACTIVE)
                     {
-                        /* The backend has to make a copy, as the buffer is on stack! */
-                        uint8_t buf[MESH_CONFIG_ENTRY_MAX_SIZE] __attribute__((aligned(WORD_SIZE)));
-
-                        p_params->callbacks.getter(id, buf);
-
-                        status = mesh_config_backend_store(id, buf, p_params->entry_size);
+                        /* Files with strategy MESH_CONFIG_STRATEGY_ON_POWER_DOWN have the prepared flash area in advance.
+                         * They should be stored in a default manner. */
+                        if (p_file->strategy == MESH_CONFIG_STRATEGY_CONTINUOUS && m_is_emergency_action)
+                        {
+                            status = emergency_cache_item_store(p_params, id);
+                        }
+                        else
+                        {
+                            status = default_file_store(p_params, id);
+                        }
                     }
                     else
                     {
@@ -208,6 +232,9 @@ static uint32_t entry_store(const mesh_config_entry_params_t * p_params, mesh_co
         const mesh_config_file_params_t * p_file = file_params_find(p_params->p_id->file);
         NRF_MESH_ASSERT(p_file != NULL);
         dirty_entries_process();
+#if PERSISTENT_STORAGE == 0
+        bearer_event_flag_set(m_bearer_event_flag);
+#endif
         listeners_notify(p_params, MESH_CONFIG_CHANGE_REASON_SET, id, p_entry);
     }
 
@@ -216,7 +243,21 @@ static uint32_t entry_store(const mesh_config_entry_params_t * p_params, mesh_co
 
 static mesh_config_backend_iterate_action_t restore_callback(mesh_config_entry_id_t id, const uint8_t * p_entry, uint32_t entry_len)
 {
-    dsm_legacy_pretreatment_do(&id, entry_len);
+    bool is_restored_from_ec = false;
+
+    if (id.file == MESH_OPT_EMERGENCY_CACHE_FILE_ID)
+    { /* restore real entry from the emergency cache item. */
+        emergency_cache_item_t * p_ec_item = emergency_cache_item_get(p_entry);
+        id = p_ec_item->id;
+        p_entry = p_ec_item->body;
+        entry_len = emergency_cache_restored_item_length_get(entry_len);
+        is_restored_from_ec = true;
+        m_is_emergency_cache_exist = true;
+    }
+    else
+    { /* Version with legacy entries didn't support emergency cache functionality. */
+        dsm_legacy_pretreatment_do(&id, entry_len);
+    }
 
     const mesh_config_entry_params_t * p_params = entry_params_find(id);
     mesh_config_load_failure_t load_failure;
@@ -235,7 +276,9 @@ static mesh_config_backend_iterate_action_t restore_callback(mesh_config_entry_i
     }
     else
     {
-        *entry_flags_get(p_params, id) = MESH_CONFIG_ENTRY_FLAG_ACTIVE;
+        *entry_flags_get(p_params, id) = is_restored_from_ec ?
+                (mesh_config_entry_flags_t)(MESH_CONFIG_ENTRY_FLAG_ACTIVE | MESH_CONFIG_ENTRY_FLAG_DIRTY) :
+                MESH_CONFIG_ENTRY_FLAG_ACTIVE;
         /* Success causes early return */
         return MESH_CONFIG_BACKEND_ITERATE_ACTION_CONTINUE;
     }
@@ -258,25 +301,57 @@ static mesh_config_backend_iterate_action_t restore_callback(mesh_config_entry_i
 #if PERSISTENT_STORAGE
 static void backend_entry_evt_handler(const mesh_config_backend_evt_t * p_evt)
 {
-    const mesh_config_entry_params_t * p_params = entry_params_find(p_evt->id);
+    mesh_config_entry_id_t id;
+
+    /* Restore actual entry id in case of the emergency cache entry. */
+    if (p_evt->id.file == MESH_OPT_EMERGENCY_CACHE_FILE_ID)
+    { /* restore real entry from emergency cache item. */
+        NRF_MESH_ASSERT(p_evt->type == MESH_CONFIG_BACKEND_EVT_TYPE_STORE_COMPLETE);
+        emergency_cache_item_t * p_ec_item = emergency_cache_item_get(p_evt->p_data);
+        id = p_ec_item->id;
+    }
+    else
+    {
+        id = p_evt->id;
+    }
+
+    const mesh_config_entry_params_t * p_params = entry_params_find(id);
     NRF_MESH_ASSERT(p_params);
 
-    mesh_config_entry_flags_t * p_flags = entry_flags_get(p_params, p_evt->id);
+    mesh_config_entry_flags_t * p_flags = entry_flags_get(p_params, id);
     NRF_MESH_ASSERT_DEBUG(*p_flags & MESH_CONFIG_ENTRY_FLAG_BUSY);
     *p_flags &= (mesh_config_entry_flags_t)~MESH_CONFIG_ENTRY_FLAG_BUSY;
     NRF_MESH_ASSERT(m_entry_in_progress_cnt != 0);
     m_entry_in_progress_cnt--;
 
-    if (p_evt->type == MESH_CONFIG_BACKEND_EVT_TYPE_STORAGE_MEDIUM_FAILURE)
+    if (p_evt->type != MESH_CONFIG_BACKEND_EVT_TYPE_STORAGE_MEDIUM_FAILURE)
     {
-        const nrf_mesh_evt_t evt = {
-            .type = NRF_MESH_EVT_CONFIG_STORAGE_FAILURE,
-            .params.config_storage_failure = {
-                .id = p_evt->id, /*lint !e64 Type mismatch */
-            }
-        };
-        event_handle(&evt);
+        return;
     }
+
+    if (m_is_emergency_action && p_evt->id.file != MESH_OPT_EMERGENCY_CACHE_FILE_ID)
+    {
+        const mesh_config_file_params_t * p_file = file_params_find(p_evt->id.file);
+        if (p_file->strategy == MESH_CONFIG_STRATEGY_CONTINUOUS &&
+            (*p_flags & MESH_CONFIG_ENTRY_FLAG_ACTIVE))
+        { /* This is the failed writing of the entry because
+           * the action was put in the flash manager queue before the power down happened.
+           * Defragmentation has been frozen and there is a lack of place for the entry.
+           * Try one more time in the emergency cache. */
+            *p_flags |= (mesh_config_entry_flags_t)MESH_CONFIG_ENTRY_FLAG_DIRTY;
+            return;
+        }
+    }
+
+    const nrf_mesh_evt_t evt =
+    {
+        .type = NRF_MESH_EVT_CONFIG_STORAGE_FAILURE,
+        .params.config_storage_failure =
+        {
+            .id = id, /*lint !e64 Type mismatch */
+        }
+    };
+    event_handle(&evt);
 }
 
 static void backend_file_evt_handler(const mesh_config_backend_evt_t * p_evt)
@@ -309,7 +384,6 @@ static void backend_evt_handler(const mesh_config_backend_evt_t * p_evt)
         return;
     }
 
-    m_emergency_action = false;
     nrf_mesh_evt_t evt = {.type = NRF_MESH_EVT_CONFIG_STABLE};
     event_handle(&evt);
 }
@@ -341,32 +415,62 @@ static void entry_validation(void)
 #endif
 }
 
+#if PERSISTENT_STORAGE == 0
+static bool bearer_event_cb(void)
+{
+    nrf_mesh_evt_t evt = {.type = NRF_MESH_EVT_CONFIG_STABLE};
+    event_handle(&evt);
+    return true;
+}
+#endif
+
 void mesh_config_init(void)
 {
     m_entry_in_progress_cnt = 0;
     m_file_in_progress_cnt = 0;
+    m_is_emergency_action = false;
+    m_is_emergency_cache_exist = false;
 
     entry_validation();
 #if PERSISTENT_STORAGE
     mesh_config_backend_init(entry_params_get(0), CONFIG_ENTRY_COUNT, file_params_get(0), CONFIG_FILE_COUNT, backend_evt_handler);
 #else
-    (void)m_emergency_action;
+    (void)m_is_emergency_action;
+    m_bearer_event_flag = bearer_event_flag_add(bearer_event_cb);
 #endif
 }
 
 void mesh_config_load(void)
 {
     mesh_config_backend_read_all(restore_callback);
+
+    if (m_is_emergency_cache_exist)
+    {
+        m_is_emergency_cache_exist = false;
+        mesh_config_file_clear(MESH_OPT_EMERGENCY_CACHE_FILE_ID);
+    }
+
+    FOR_EACH_FILE(p_file)
+    {
+        if (p_file->strategy == MESH_CONFIG_STRATEGY_ON_POWER_DOWN)
+        {
+            if (p_file->id != MESH_OPT_EMERGENCY_CACHE_FILE_ID &&
+                    !mesh_config_backend_is_there_power_down_place(p_file->p_backend_data))
+            {
+                mesh_config_file_clear(p_file->id);
+            }
+        }
+    }
 }
 
 void mesh_config_power_down(void)
 {
-    m_emergency_action = true;
+    m_is_emergency_action = true;
+    mesh_config_backend_power_down();
     dirty_entries_process();
 
     if (!mesh_config_is_busy())
     { // there was no data for emergency storage
-        m_emergency_action = false;
         nrf_mesh_evt_t evt = {.type = NRF_MESH_EVT_CONFIG_STABLE};
         event_handle(&evt);
     }
@@ -374,7 +478,6 @@ void mesh_config_power_down(void)
 
 bool mesh_config_is_busy(void)
 {
-
     return m_entry_in_progress_cnt != 0 || m_file_in_progress_cnt != 0;
 }
 
@@ -452,6 +555,9 @@ uint32_t mesh_config_entry_delete(mesh_config_entry_id_t id)
             }
 
             dirty_entries_process();
+#if PERSISTENT_STORAGE == 0
+            bearer_event_flag_set(m_bearer_event_flag);
+#endif
             listeners_notify(p_params, MESH_CONFIG_CHANGE_REASON_DELETE, id, NULL);
             return NRF_SUCCESS;
         }
@@ -471,7 +577,12 @@ uint32_t mesh_config_power_down_time_get(void)
 void mesh_config_file_clear(uint16_t file_id)
 {
     const mesh_config_file_params_t * p_file = file_params_find(file_id);
-    NRF_MESH_ASSERT(p_file);
+
+    if (p_file == NULL)
+    {
+        /* If certain file is not found, there is no use for the clear call, silently return. */
+        return;
+    }
 
     FOR_EACH_ENTRY(p_params)
     {
@@ -510,8 +621,6 @@ void mesh_config_file_clear(uint16_t file_id)
 
 void mesh_config_clear(void)
 {
-    m_emergency_action = true;
-
     FOR_EACH_FILE(p_file)
     {
         if (MESH_OPT_FIRST_FREE_ID > p_file->id)

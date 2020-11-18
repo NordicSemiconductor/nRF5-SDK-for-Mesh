@@ -30,7 +30,7 @@ set(CMAKE_EXE_LINKER_FLAGS
     "--map --xref --summary_stderr --info summarysizes --info stack --callgraph --symbols --info sizes --info totals --info unused --info veneers")
 # 6304: Suppress the "duplicate input" warning caused by circular linking by CMake
 # 6330: Supress undefined symbol warning
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --diag_suppress 6304,6330" CACHE STRING "")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --diag_suppress 6304,6330")
 set(CMAKE_ASM_FLAGS "--cpreproc --apcs=interwork  --predefine \"__HEAP_SIZE SETA 1024\"")
 
 set(MATH_LIB)

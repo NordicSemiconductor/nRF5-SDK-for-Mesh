@@ -3,12 +3,16 @@ set(target "light_switch_server_${PLATFORM}_${SOFTDEVICE}")
 add_executable(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/app_onoff.c"
+    "${CMAKE_SOURCE_DIR}/examples/common/src/app_dtt.c"
+    "${CMAKE_SOURCE_DIR}/examples/common/src/app_scene.c"
     "${CMAKE_SOURCE_DIR}/mesh/stack/src/mesh_stack.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_provisionee.c"
     "${MBTLE_SOURCE_DIR}/examples/common/src/rtt_input.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/simple_hal.c"
+    "${SDK_ROOT}/modules/nrfx/drivers/src/nrfx_gpiote.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_app_utils.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/app_transition.c"
+    ${MODEL_CONFIG_FILE_SOURCE_FILES}
     ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${WEAK_SOURCE_FILES}
     ${MESH_CORE_SOURCE_FILES}
@@ -16,7 +20,9 @@ add_executable(${target}
     ${MESH_GATT_SOURCE_FILES}
     ${CONFIG_SERVER_SOURCE_FILES}
     ${HEALTH_SERVER_SOURCE_FILES}
-    ${GENERIC_ONOFF_SERVER_SOURCE_FILES}
+    ${GENERIC_ONOFF_SERVER_WITH_MC_SOURCE_FILES}
+    ${GENERIC_DTT_SERVER_WITH_MC_SOURCE_FILES}
+    ${SCENE_SETUP_SERVER_SOURCE_FILES}
     ${ACCESS_SOURCE_FILES}
     ${MESH_APP_TIMER_SOURCE_FILES}
     ${PROV_PROVISIONEE_SOURCE_FILES}
@@ -36,6 +42,8 @@ target_include_directories(${target} PUBLIC
     ${CONFIG_SERVER_INCLUDE_DIRS}
     ${HEALTH_SERVER_INCLUDE_DIRS}
     ${GENERIC_ONOFF_SERVER_INCLUDE_DIRS}
+    ${GENERIC_DTT_SERVER_INCLUDE_DIRS}
+    ${SCENE_SETUP_SERVER_INCLUDE_DIRS}
     ${MESH_FRIEND_INCLUDE_DIRS}
     ${MESH_INCLUDE_DIRS}
     ${${SOFTDEVICE}_INCLUDE_DIRS}
@@ -68,5 +76,9 @@ get_property(target_include_dirs TARGET ${target} PROPERTY INCLUDE_DIRECTORIES)
 add_pc_lint(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c;"
     "${target_include_dirs}"
-    "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES}")
+    "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES};-DSCENE_SETUP_SERVER_INSTANCES_MAX=1")
+add_pc_lint(no_scene_${target}
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c;"
+    "${target_include_dirs}"
+    "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES};-DSCENE_SETUP_SERVER_INSTANCES_MAX=0")
 add_ses_project(${target})

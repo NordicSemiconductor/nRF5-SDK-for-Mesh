@@ -96,6 +96,8 @@
 #define SERIAL_OPCODE_EVT_MESH_KEY_REFRESH_NOTIFICATION      (0xD4) /**< Params: @ref serial_evt_mesh_key_refresh_t */
 #define SERIAL_OPCODE_EVT_MESH_SAR_FAILED                    (0xD7) /**< Params: None. */
 #define SERIAL_OPCODE_EVT_MESH_HEARTBEAT_RECEIVED            (0xD8) /**< Params: @ref serial_evt_mesh_hb_message_t */
+#define SERIAL_OPCODE_EVT_MESH_IV_ENTRY_SET_NOTIFICATION     (0xD9) /**< Params: @ref serial_evt_mesh_iv_entry_set_notification_t */
+#define SERIAL_OPCODE_EVT_MESH_SEQNUM_ENTRY_SET_NOTIFICATION (0xDA) /**< Params: @ref serial_evt_mesh_seqnum_entry_set_notification_t */
 
 #define SERIAL_OPCODE_EVT_MODEL_SPECIFIC                     (0xF0) /**< Params: @ref serial_evt_model_specific_t */
 
@@ -325,14 +327,32 @@ typedef struct __attribute((packed))
     uint16_t src;
 } serial_evt_mesh_hb_message_t;
 
+typedef struct __attribute((packed))
+{
+    /** The current IV index. */
+    uint32_t iv_index;
+    /** Indicating the phase in the IV update process. */
+    uint8_t  iv_update_in_progress;
+    /** Counter for the IV update process. */
+    uint16_t iv_update_timout_counter;
+} serial_evt_mesh_iv_entry_set_notification_t;
+
+typedef struct __attribute((packed))
+{
+    /** The next unallocated sequence number block. */
+    uint32_t next_block;
+} serial_evt_mesh_seqnum_entry_set_notification_t;
+
 /** Union of all serial event parameters */
 typedef union __attribute((packed))
 {
-    serial_evt_mesh_message_received_t  message_received; /**< Message received parameters. */
-    serial_evt_mesh_tx_complete_t       tx_complete;      /**< TX complete parameters. */
-    serial_evt_mesh_iv_update_t         iv_update;        /**< IV update parameters. */
-    serial_evt_mesh_key_refresh_t       key_refresh;      /**< Key refresh parameters. */
-    serial_evt_mesh_hb_message_t        heartbeat;        /**< Heartbeat message parameters. */
+    serial_evt_mesh_message_received_t              message_received; /**< Message received parameters. */
+    serial_evt_mesh_tx_complete_t                   tx_complete;      /**< TX complete parameters. */
+    serial_evt_mesh_iv_update_t                     iv_update;        /**< IV update parameters. */
+    serial_evt_mesh_key_refresh_t                   key_refresh;      /**< Key refresh parameters. */
+    serial_evt_mesh_hb_message_t                    heartbeat;        /**< Heartbeat message parameters. */
+    serial_evt_mesh_iv_entry_set_notification_t     iv_entry_set;     /**< IV index mesh config entry set parameters. */
+    serial_evt_mesh_seqnum_entry_set_notification_t seqnum_entry_set; /**< Seqnum block mesh config entry set parameters. */
 } serial_evt_mesh_t;
 
 /********* DFU parameters *********/

@@ -110,7 +110,7 @@ static void purge_preemptable(void)
             current_evt.event_type == RADIO_EVENT_TYPE_RX_PREEMPTABLE)
         {
             /* event is preemptable, stop it */
-            fifo_pop(&m_radio_fifo, NULL);
+            (void) fifo_pop(&m_radio_fifo, NULL);
 
             radio_disable();
             while (NRF_RADIO->STATE != RADIO_STATE_STATE_Disabled);
@@ -205,7 +205,7 @@ void radio_init(radio_idle_cb_t idle_cb,
 
     /* Configure Access Address  */
     NRF_RADIO->PREFIX0	= ((BEARER_ACCESS_ADDR_DEFAULT >> 24) & 0x000000FF);
-    NRF_RADIO->BASE0    = ((BEARER_ACCESS_ADDR_DEFAULT <<  8) & 0xFFFFFF00);
+    NRF_RADIO->BASE0    = ((BEARER_ACCESS_ADDR_DEFAULT << 8) & 0xFFFFFF00); /*lint !e648 Overflow in computing constant for operation. */
     NRF_RADIO->PREFIX0 |= (((m_alt_aa >> 24) << 8) & 0x0000FF00);
     NRF_RADIO->BASE1    = ((m_alt_aa <<  8) & 0xFFFFFF00);
     NRF_RADIO->TXADDRESS    = 0x00;			    // Use logical address 0 (prefix0 + base0) = 0x8E89BED6 when transmitting

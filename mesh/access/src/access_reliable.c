@@ -74,6 +74,8 @@ typedef struct
     bool in_use;
 } access_reliable_ctx_t;
 
+static bool m_is_in_reliable_timer_cb;
+
 static uint32_t calculate_interval(const access_reliable_t * p_message);
 
 /* ******************* Static asserts ******************* */
@@ -98,6 +100,7 @@ static void reliable_timer_cb(timestamp_t timestamp, void * p_context)
 {
     NRF_MESH_ASSERT(0 < m_reliable.active_count);
 
+    m_is_in_reliable_timer_cb = true;
     timestamp += ACCESS_RELIABLE_TIMEOUT_MARGIN; /* TODO: Divide by two? */
     m_reliable.next_timeout_index = ACCESS_RELIABLE_INDEX_INVALID;
 
@@ -175,6 +178,7 @@ static void reliable_timer_cb(timestamp_t timestamp, void * p_context)
     {
         m_reliable.timer.interval = 0;
     }
+    m_is_in_reliable_timer_cb = false;
 }
 
 /**
@@ -283,7 +287,11 @@ static void add_reliable_message(uint16_t index, const access_reliable_t * p_mes
     m_reliable.pool[index].next_timeout = time_now + m_reliable.pool[index].interval;
 
     bearer_event_critical_section_begin();
-    if (is_earliest_timeout(index))
+    if (m_is_in_reliable_timer_cb && m_reliable.next_timeout_index == ACCESS_RELIABLE_INDEX_INVALID)
+    {
+        m_reliable.next_timeout_index = index;
+    }
+    else if (is_earliest_timeout(index))
     {
         timer_sch_reschedule(&m_reliable.timer, m_reliable.pool[index].next_timeout);
         m_reliable.next_timeout_index = index;
@@ -352,6 +360,7 @@ void access_reliable_init(void)
 {
     memset(&m_reliable, 0, sizeof(m_reliable));
     m_reliable.timer.cb = reliable_timer_cb;
+    m_is_in_reliable_timer_cb = false;
 }
 
 void access_reliable_cancel_all(void)

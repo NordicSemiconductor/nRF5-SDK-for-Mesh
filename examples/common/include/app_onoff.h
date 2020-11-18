@@ -43,6 +43,9 @@
 #include "generic_onoff_server.h"
 #include "app_transition.h"
 #include "app_timer.h"
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+#include "app_scene.h"
+#endif
 
 
 /**
@@ -91,7 +94,7 @@
  * @param[in] _set_cb               Callback for setting the application state to given value.
  * @param[in] _get_cb               Callback for reading the state from the application.
  * @param[in] _transition_cb        Callback for setting the application transition time and state value to given values.
-*/
+ */
 #define APP_ONOFF_SERVER_DEF(_name, _force_segmented, _mic_size, _set_cb, _get_cb, _transition_cb)  \
     APP_TIMER_DEF(_name ## _timer); \
     static app_onoff_server_t _name =  \
@@ -182,9 +185,14 @@ struct __app_onoff_server_t
     app_onoff_state_t state;
     /** Internal variable. It is used for acquiring RTC counter value. */
     uint32_t last_rtc_counter;
-    /** Internal variable. To flag if the received message has been processed to update the present
-     * OnOff value */
-    bool value_updated;
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+    /** Internal variable. Scene callback interface.
+     * @note Available only if  @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1. */
+    app_scene_model_interface_t scene_if;
+    /** Internal variable. Pointer to app_scene context.
+     * @note Available only if @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1. */
+    app_scene_setup_server_t  * p_app_scene;
+#endif
 };
 
 /** Initiates value fetch from the user application by calling a get callback, updates internal
@@ -221,6 +229,38 @@ void app_onoff_status_publish(app_onoff_server_t * p_app);
  * @retval NRF_ERROR_INVALID_STATE  If the application timer is running.
 */
 uint32_t app_onoff_init(app_onoff_server_t * p_app, uint8_t element_index);
+
+/** Restores the onoff value from persistent storage
+ *
+ * This is called by main.c when the mesh is initialized and stable.
+ * Note that this function must be called from the same IRQ level that
+ * mesh_init() is set at.
+ *
+ * @param[in] p_app                  Pointer to [app_onoff_server_t](@ref __app_onoff_server_t)
+ *                                   context.
+ *
+ * @retval NRF_SUCCESS               Value is restored successfully
+ * @retval NRF_ERROR_NULL            If NULL pointer is provided as input context
+ */
+uint32_t app_onoff_value_restore(app_onoff_server_t * p_app);
+
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+
+/** Sets the scene context
+ *
+ * This is needed for app onoff to inform app scene when the state change occurs.
+ * @note Available only if @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1.
+ *
+ * @param[in] p_app                  Pointer to [app_onoff_server_t](@ref __app_onoff_server_t)
+ *                                   context.
+ * @param[in] p_app_scene            Pointer to scene behavioral moduel context.*
+ *
+ * @retval NRF_SUCCESS               Value is restored successfully
+ * @retval NRF_ERROR_NULL            If NULL pointer is provided as input context
+ */
+uint32_t app_onoff_scene_context_set(app_onoff_server_t * p_app, app_scene_setup_server_t  * p_app_scene);
+
+#endif
 
 /** @} end of APP_ONOFF */
 #endif /* APP_ONOFF_H__ */

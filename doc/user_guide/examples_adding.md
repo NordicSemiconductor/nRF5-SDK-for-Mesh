@@ -24,7 +24,7 @@ To add folders and the `CMakeLists.txt` file for your custom example:
 -# Copy the contents of one of the existing example folders to this new folder.
 For example, copy the contents of `examples/beaconing`.
 -# In the `examples/CMakeLists.txt` file, depending on your platform (see @ref md_doc_user_guide_mesh_compatibility):
-    - If your example supports the nRF52810 SoC, add the new folder as a new `add_subdirectory` command entry.
+    - If your example supports the nRF52810 or nRF52820 SoC, add the new folder as a new `add_subdirectory` command entry.
     For example:
 
             set(WEAK_SOURCE_FILES
@@ -35,20 +35,26 @@ For example, copy the contents of `examples/beaconing`.
             add_subdirectory("common")
             add_subdirectory("beaconing")
             add_subdirectory("pb_remote")
-            add_subdirectory("light_switch")
+            add_subdirectory("provisioner")
             add_subdirectory("my_app")
-     
-    - If your example does not support the nRF52810 SoC, add the new folder
+
+    - If your example does not support the nRF52810 or nRF52820 SoC, add the new folder
     as a new `add_subdirectory` command entry in the platform-related `if` section.
     For example:
 
-            if (NOT PLATFORM MATCHES "nrf52810")
+            if ((NOT PLATFORM MATCHES "nrf52810") AND (NOT PLATFORM MATCHES "nrf52820"))
                 add_subdirectory("my_app")
+                add_subdirectory("sensor")
+                add_subdirectory("scene")
+                add_subdirectory("light_lightness")
+                add_subdirectory("light_lc")
+                add_subdirectory("light_ctl")
                 add_subdirectory("enocean_switch")
                 add_subdirectory("dimming")
                 add_subdirectory("lpn")
                 add_subdirectory("dfu")
                 add_subdirectory("serial")
+                add_subdirectory("light_switch")
             endif()
 
 -# Modify the target name in the first line of the `examples/my_app/CMakeLists.txt` file
@@ -58,7 +64,7 @@ to `set(target "my_app")`.
 ---
 
 ## Defining application configuration @anchor examples_adding_configuration
-        
+
 When you created custom example folder and CMakeLists.txt file, you also copied
 the following files used for configuring the application:
 - `nrf_mesh_config_app.h`
@@ -71,7 +77,7 @@ based on your needs.
 and override the configuration of the nRF5 SDK (see @link_SDK_configuration_header_file).
 -# Edit `nrf_mesh_config_app.h` file to modify:
     - the application support module section (see @ref NRF_MESH_CONFIG_EXAMPLES and @ref MESH_API_GROUP_APP_CONFIG)
-    - the mesh stack (see configuration pages for modules in @link_APIref, for example @ref NRF_MESH_CONFIG_DFU)
+    - the Bluetooth mesh stack (see configuration pages for modules in @link_APIref, for example @ref NRF_MESH_CONFIG_DFU)
 
 After defining the configuration, build the example with the following procedure.
 
@@ -87,14 +93,14 @@ you must [generate new project files using CMake](@ref how_to_build_cmake_genera
 after you have configured the application.
 - If you want to build examples with CMake using ninja, build your example with the following commands:
     - The first time you build your custom example after adding it:
-        
+
             build $ ninja
-            
+
     - Each next time you build your custom example after building it for the first time:
-    
+
             build $ ninja my_app
-        
+
 When [running the example in CMake-based environment](@ref md_doc_getting_started_how_to_run_examples),
 flash your example with the following command:
-    
+
     build $ ninja flash_my_app

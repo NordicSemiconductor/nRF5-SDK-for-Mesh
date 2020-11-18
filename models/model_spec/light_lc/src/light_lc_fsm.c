@@ -330,8 +330,8 @@ static void util_abort_timer(light_lc_setup_server_t * p_s_server)
     p_s_server->transition_info.transition_time_ms = 0;
     p_s_server->transition_info.requested_transition_time_ms = 0;
     p_s_server->transition_info.requested_delay_ms = 0;
-    p_s_server->transition_info.present_light_onoff =
-    p_s_server->transition_info.target_light_onoff;
+    p_s_server->transition_info.transition_time_is_provided = false;
+    p_s_server->transition_info.present_light_onoff = p_s_server->transition_info.target_light_onoff;
     /* This may have been a change to light onoff - so send a publish status */
     light_onoff_status_publish(p_s_server);
 }
@@ -434,10 +434,14 @@ static void util_start_lightness_transition_timer(light_lc_setup_server_t * p_s_
          * machine). If 6.2.5.4 is correct, then delete this ifdef FIXME... code.  If the decision is
          * made that present should follow the binary rules 3.1.1.1, then and keep this ifdef
          * code. */
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "present=%d, target=%d\n", p_s_server->transition.present_light_onoff, p_s_server->transition.target_light_onoff);
-    if (p_s_server->transition.present_light_onoff != p_s_server->transition.target_light_onoff)
+#if LIGHT_LC_FSM_DEBUG
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "present=%d, target=%d\n",
+            p_s_server->transition_info.present_light_onoff,
+            p_s_server->transition_info.target_light_onoff);
+#endif
+    if (p_s_server->transition_info.present_light_onoff != p_s_server->transition_info.target_light_onoff)
     {
-        p_s_server->transition.present_light_onoff = p_s_server->transition.target_light_onoff;
+        p_s_server->transition_info.present_light_onoff = p_s_server->transition_info.target_light_onoff;
     }
 #endif
 
@@ -540,7 +544,7 @@ static void a_light_on_tt_fade_on(void * p_data)
 
     /* Set timer to TT or Fade On time and change target lightness to run's
      * lightness, and target luxlevel to run's luxlevel */
-    if (p_s_server->transition_info.requested_transition_time_ms != 0)
+    if (p_s_server->transition_info.transition_time_is_provided)
     {
         time_ms = p_s_server->transition_info.requested_transition_time_ms;
     }
@@ -599,7 +603,7 @@ static void a_light_off_tt_st_man(void * p_data)
 
     /* Set timer to TT or Fade Standby Manual time and change target lightness to Standby's
      * lightness, and target luxlevel to Standby's luxlevel */
-    if (p_s_server->transition_info.requested_transition_time_ms != 0)
+    if (p_s_server->transition_info.transition_time_is_provided)
     {
         time_ms = p_s_server->transition_info.requested_transition_time_ms;
     }
@@ -763,7 +767,7 @@ static void a_occ_on_tt_fade_on(void * p_data)
 
     /* Set timer to TT or Fade On time and change target lightness to run's lightness, and target
      * luxlevel to run's luxlevel */
-    if (p_s_server->transition_info.requested_transition_time_ms != 0)
+    if (p_s_server->transition_info.transition_time_is_provided)
     {
         time_ms = p_s_server->transition_info.requested_transition_time_ms;
     }
@@ -834,7 +838,7 @@ static void a_timer_tt_fade_on(void * p_data)
 
     /* Set timer to TT or Fade On time and change target lightness to run's lightness, and target
      * luxlevel to run's luxlevel */
-    if (p_s_server->transition_info.requested_transition_time_ms != 0)
+    if (p_s_server->transition_info.transition_time_is_provided)
     {
         time_ms = p_s_server->transition_info.requested_transition_time_ms;
     }
@@ -1027,6 +1031,7 @@ uint32_t light_lc_fsm_light_on_off_event_generate(light_lc_setup_server_t * p_s_
     p_s_server->transition_info.requested_light_onoff = light_onoff;
     if (p_transition != NULL)
     {
+        p_s_server->transition_info.transition_time_is_provided = true;
         p_s_server->transition_info.requested_transition_time_ms = p_transition->transition_time_ms;
         p_s_server->transition_info.requested_delay_ms = p_transition->delay_ms;
         if (p_transition->delay_ms != 0)
@@ -1039,6 +1044,7 @@ uint32_t light_lc_fsm_light_on_off_event_generate(light_lc_setup_server_t * p_s_
     }
     else
     {
+        p_s_server->transition_info.transition_time_is_provided = false;
         p_s_server->transition_info.requested_transition_time_ms = 0;
         p_s_server->transition_info.requested_delay_ms = 0;
     }
@@ -1098,6 +1104,7 @@ uint32_t light_lc_fsm_init(light_lc_setup_server_t * p_s_server, bool initial_fs
     p_s_server->transition_info.transition_time_ms = 0;
     p_s_server->transition_info.requested_transition_time_ms = 0;
     p_s_server->transition_info.requested_delay_ms = 0;
+    p_s_server->transition_info.transition_time_is_provided = false;
     p_s_server->transition_info.requested_light_onoff = 0;
 
     p_s_server->onoff_timer.cb = onoff_event_cb;

@@ -29,6 +29,7 @@ link_libraries(
 set(COMMON_MESH_FILES
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_provisionee.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/simple_hal.c"
+    "${SDK_ROOT}/modules/nrfx/drivers/src/nrfx_gpiote.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_app_utils.c"
     ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${ACCESS_SOURCE_FILES}
@@ -49,7 +50,7 @@ set(COMMON_MESH_FILES
 ####### DFU example with an active serial connection:
 set(target "dfu_${PLATFORM}_${SOFTDEVICE}")
 
-if (NOT PLATFORM MATCHES "nrf52810")
+if ((NOT PLATFORM MATCHES "nrf52810") AND (NOT PLATFORM MATCHES "nrf52820"))
 
 add_executable(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"

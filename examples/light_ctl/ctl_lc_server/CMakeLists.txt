@@ -10,6 +10,7 @@ add_executable(${target}
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_provisionee.c"
     "${MBTLE_SOURCE_DIR}/examples/common/src/rtt_input.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_app_utils.c"
+    ${MODEL_CONFIG_FILE_SOURCE_FILES}
     ${PWM_UTILS_SOURCE_FILES}
     ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${WEAK_SOURCE_FILES}
@@ -48,6 +49,7 @@ target_include_directories(${target} PUBLIC
     ${LIGHT_CTL_SETUP_SERVER_INCLUDE_DIRS}
     ${LIGHT_LIGHTNESS_SETUP_SERVER_INCLUDE_DIRS}
     ${LIGHT_LC_SETUP_SERVER_INCLUDE_DIRS}
+    ${SCENE_SETUP_SERVER_INCLUDE_DIRS}
     ${SENSOR_CLIENT_INCLUDE_DIRS}
     ${MESH_INCLUDE_DIRS}
     ${${SOFTDEVICE}_INCLUDE_DIRS}

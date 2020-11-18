@@ -4,6 +4,7 @@ add_executable(${target}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
     "${CMAKE_SOURCE_DIR}/mesh/stack/src/mesh_stack.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/simple_hal.c"
+    "${SDK_ROOT}/modules/nrfx/drivers/src/nrfx_gpiote.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_app_utils.c"
     ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${PROV_PROVISIONER_SOURCE_FILES}
@@ -29,6 +30,7 @@ target_include_directories(${target} PUBLIC
     ${CONFIG_SERVER_INCLUDE_DIRS}
     ${HEALTH_SERVER_INCLUDE_DIRS}
     ${MESH_INCLUDE_DIRS}
+    ${COMMON_EXAMPLES_INCLUDE_DIRS}
     ${${SOFTDEVICE}_INCLUDE_DIRS}
     ${${PLATFORM}_INCLUDE_DIRS}
     ${${BOARD}_INCLUDE_DIRS}

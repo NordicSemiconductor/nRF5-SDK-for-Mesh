@@ -54,6 +54,28 @@
  * @{
  */
 /**
+ * The number of the Generic Default Transition Time Server (independent, root only) instances used
+ * by the application.
+ */
+#ifndef GENERIC_DTT_SERVER_INSTANCES_MAX
+#define GENERIC_DTT_SERVER_INSTANCES_MAX  (0)
+#endif
+
+/**
+ * The number of the Generic Level Server (independent, root only) instances used by the application.
+ */
+#ifndef GENERIC_LEVEL_SERVER_INSTANCES_MAX
+#define GENERIC_LEVEL_SERVER_INSTANCES_MAX  (0)
+#endif
+
+/**
+ * The number of the Generic OnOff Server (independent, root only) instances used by the application.
+ */
+#ifndef GENERIC_ONOFF_SERVER_INSTANCES_MAX
+#define GENERIC_ONOFF_SERVER_INSTANCES_MAX  (0)
+#endif
+
+/**
  * The number of the Light Lightness Setup Server instances used by the application.
  */
 #ifndef LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX
@@ -75,30 +97,11 @@
 #endif
 
 /**
- * The number of the Scene Setup Server instances used by the application
+ * The number of the Scene Setup Server instances used by the application.
  */
 #ifndef SCENE_SETUP_SERVER_INSTANCES_MAX
 #define SCENE_SETUP_SERVER_INSTANCES_MAX (0)
 #endif
-
-/** Model common record entry ID */
-#define MESH_APP_MODEL_COMMON_ID                    (0x0001)
-/** Start of Light Lightness Setup Server record entry IDs */
-#define MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_START     (0x1000)
-/** End of Light Lightness Setup Server record entry IDs */
-#define MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_END       (0x10FF)
-/** Start of LC Setup Server record entry IDs */
-#define MESH_APP_MODEL_LIGHT_LC_SERVER_ID_START     (0x1100)
-/** End of Light LC Setup Server record entry IDs */
-#define MESH_APP_MODEL_LIGHT_LC_SERVER_ID_END       (0x12FF)
-/** Start of Light CTL Setup Server record entry IDs */
-#define MESH_APP_MODEL_LIGHT_CTL_SERVER_ID_START    (0x1300)
-/** End of Light CTL Setup Server record entry IDs */
-#define MESH_APP_MODEL_LIGHT_CTL_SERVER_ID_END      (0x13FF)
-/** Start of Scene Setup Server record entry IDs */
-#define MESH_APP_MODEL_SCENE_SERVER_ID_START        (0x1400)
-/** End of Scene Setup Server record entry IDs */
-#define MESH_APP_MODEL_SCENE_SERVER_ID_END          (0x14FF)
 
 /** Transition time value to indicate unknown transition time */
 #define MODEL_TRANSITION_TIME_UNKNOWN               (UINT32_MAX)
@@ -188,6 +191,7 @@ typedef enum
     MODEL_TIMER_MODE_REPEATED
 } model_timer_mode_t;
 
+ /** Timer callback prototype */
 typedef void(*model_timer_cb_t)(void * p_context);
 
 /** Structure for model timers */
@@ -213,8 +217,18 @@ typedef struct
     uint32_t last_rtc_stamp;
     /** Internal variable. */
     bool cb_active;
+    /** Internal variable. */
+    bool timer_running;
 } model_timer_t;
 
+/** Default transition time get callback prototype
+ *
+ * @param[in]  element_index    Index of the model element that is requesting default transition
+ *                              time value.
+ *
+ * @retval Returns value of default transition time in milliseconds, zero, if unavailable.
+ */
+ typedef uint32_t (*default_transition_time_value_get_cb_t)(uint16_t element_index);
 
 /**
  * Gets the decoded value of the transition time in milliseconds.
@@ -336,6 +350,21 @@ void model_timer_abort(model_timer_t * p_timer);
 uint64_t model_timer_elapsed_ticks_get(model_timer_t * p_timer);
 
 /**
+ * Returns whether the specified timer is running.
+ *
+ * If the current mode is MODEL_TIMER_MODE_REPEATED, returns true
+ * until model_timer_abort is called. If the current mode is MODLE_TIMER_MODE_SINGLE_SHOT, returns false after
+ * the timeout completes. The behavior also applies when this function is called from within the
+ * timer callback.
+ *
+ * @param[in] p_timer       Pointer to the @ref model_timer_t structure.
+ *
+ * @retval true             If the timer is running
+ * @retval false            If the timer is not running
+ */
+bool model_timer_is_running(model_timer_t * p_timer);
+
+/**
  * Creates a model timer.
  *
  * This model timer implementation uses App Timer which is based on RTC. The timing parameters
@@ -350,27 +379,6 @@ uint64_t model_timer_elapsed_ticks_get(model_timer_t * p_timer);
  *                                  the timer is running.
  */
 uint32_t model_timer_create(model_timer_t * p_timer);
-
-/**
- * Initialize persistent memory of all models used.
- *
- * @note If models are not linked in the model will not be initialized and this function will call a
- * a dummy funcion for those models.
- */
-void model_common_init(void);
-
-/**
- * Apply data loaded from the mesh configuration system into persistent memory structures.
- *
- * @note Actual metadata is restored automatically if it was not found or if read out data is not
- * equal configuration parameters.
- *
- * @retval NRF_SUCCESS            Presistent memory data applied successfully. Default values are
- *                                stored if no data existed.
- * @retval NRF_ERROR_INVALID_DATA Data stored in the persistent memory was corrupted, old data was
- *                                cleared and restored with default values. Stack config is cleared.
- */
-uint32_t model_common_config_apply(void);
 
 /** @} end of MODEL_COMMON */
 

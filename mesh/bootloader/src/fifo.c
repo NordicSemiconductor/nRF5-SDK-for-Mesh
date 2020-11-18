@@ -155,7 +155,7 @@ uint32_t fifo_get_len(fifo_t* p_fifo)
     return (p_fifo->head - p_fifo->tail);
 }
 
-inline bool fifo_is_full(fifo_t* p_fifo)
+bool fifo_is_full(fifo_t* p_fifo)
 {
     return FIFO_IS_FULL(p_fifo);
 }

@@ -784,8 +784,53 @@ void test_recover_defrag_last_page(void)
     TEST_ASSERT_EQUAL_HEX8_ARRAY(expected_result[2].raw, area[2].raw, PAGE_SIZE);
 }
 
-/** Fuzzy test with sets of arbitrary parameters */
-void test_fuzzy(void)
+void test_defragmentation_freezing(void)
 {
+    test_entry_t entries[] = {
+        {0x0010, 0x0001, 0x01010101},
+        {0x0010, 0x0000, 0x02020202}, /* invalid */
+        {0x0001, 0x0003, 0x03030303}, /* smallest */
+        {0x0010, 0x00FF, 0x0f0f0f0f},
+        {0x0010, 0x0102, 0x22222222},
+        {0x0010, 0x0100, 0x00000000},
+        {0x0010, 0x0101, 0x11111111},
+        {0x0010, 0x0000, 0x33333333}, /* invalid */
+        {0x0010, 0x0000, 0x44444444}, /* invalid */
+        {0x0010, 0x0105, 0x55555555},
+        {0x0010, 0x0000, 0x88888888}, /* invalid */
+        {0x0010, 0x0177, 0x77777777}
+    };
 
+
+    /* Build a table of the same entries, but without all the invalid ones: */
+    test_entry_t resulting_entries[ARRAY_SIZE(entries)];
+    uint32_t     result_index = 0;
+    for (uint32_t i = 0; i < ARRAY_SIZE(entries); ++i)
+    {
+        if (entries[i].handle != FLASH_MANAGER_HANDLE_INVALID)
+        {
+            memcpy(&resulting_entries[result_index], &entries[i], sizeof(test_entry_t));
+            result_index++;
+        }
+    }
+    flash_manager_page_t expected_result __attribute__((aligned((PAGE_SIZE))));
+    memset(expected_result.raw, 0xFF, PAGE_SIZE);
+    build_test_page(&expected_result, 1, resulting_entries, result_index, true);
+
+    flash_manager_page_t area[1] __attribute__((aligned(PAGE_SIZE)));
+    memset(area, 0xFF, sizeof(area));
+    build_test_page(area, 1, entries, ARRAY_SIZE(entries), true);
+
+    flash_manager_t manager = DEFAULT_MANAGER(area, 1);
+
+    TEST_ASSERT_FALSE(flash_manager_defrag_init());
+    mp_on_defrag_end_expected_manager = &manager;
+    flash_manager_defrag(&manager);
+    TEST_ASSERT_TRUE(flash_manager_defrag_is_running());
+    flash_manager_defrag_reset();
+    TEST_ASSERT_FALSE(flash_manager_defrag_init());
+    mp_on_defrag_end_expected_manager = NULL;
+    flash_manager_defrag_freeze();
+    flash_manager_defrag(&manager);
+    TEST_ASSERT_FALSE(flash_manager_defrag_is_running());
 }

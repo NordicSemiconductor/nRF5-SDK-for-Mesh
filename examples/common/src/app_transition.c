@@ -62,11 +62,12 @@ In this case it is intentional.*/
 #define STATE_LIST  S_IDLE,                     \
                     S_IN_PROGRESS
 
-#define ACTION_LIST A_DELAY_START,          a_delay_start,         \
-                    A_TRANSITION_START,     a_transition_start,    \
-                    A_TRANSITION_COMPLETE,  a_transition_complete, \
-                    A_TRANSITION_TICK,      a_transition_tick,     \
-                    A_ABORT,                a_abort
+#define ACTION_LIST A_DELAY_START,              a_delay_start,         \
+                    A_TRANSITION_START,         a_transition_start,    \
+                    A_TRANSITION_COMPLETE,      a_transition_complete, \
+                    A_TRANSITION_COMPLETE_WPS,  a_transition_complete_with_param_swap, \
+                    A_TRANSITION_TICK,          a_transition_tick,     \
+                    A_ABORT,                    a_abort
 
 #define GUARD_LIST  G_SET_DELAY,            g_set_delay,           \
                     G_SET_TRANSITION,       g_set_transition,      \
@@ -107,16 +108,16 @@ static const fsm_transition_t m_app_transition_fsm_transition_table[] =
     FSM_STATE(S_IDLE),
 
     FSM_STATE(S_IN_PROGRESS),
-    FSM_TRANSITION(E_DELAY_EXPIRED,  G_SET_TRANSITION,       A_TRANSITION_START,    FSM_SAME_STATE),
-    FSM_TRANSITION(E_DELAY_EXPIRED,  FSM_OTHERWISE,          A_TRANSITION_COMPLETE, S_IDLE),
-    FSM_TRANSITION(E_TIMEOUT,        G_TRANSITION_COMPLETE,  A_TRANSITION_COMPLETE, S_IDLE),
-    FSM_TRANSITION(E_TIMEOUT,        FSM_OTHERWISE,          A_TRANSITION_TICK,     FSM_SAME_STATE),
+    FSM_TRANSITION(E_DELAY_EXPIRED,  G_SET_TRANSITION,       A_TRANSITION_START,        FSM_SAME_STATE),
+    FSM_TRANSITION(E_DELAY_EXPIRED,  FSM_OTHERWISE,          A_TRANSITION_COMPLETE_WPS, S_IDLE),
+    FSM_TRANSITION(E_TIMEOUT,        G_TRANSITION_COMPLETE,  A_TRANSITION_COMPLETE,     S_IDLE),
+    FSM_TRANSITION(E_TIMEOUT,        FSM_OTHERWISE,          A_TRANSITION_TICK,         FSM_SAME_STATE),
 
     FSM_STATE(FSM_ANY_STATE),
-    FSM_TRANSITION(E_START,          G_SET_DELAY,            A_DELAY_START,         S_IN_PROGRESS),
-    FSM_TRANSITION(E_START,          G_SET_TRANSITION,       A_TRANSITION_START,    S_IN_PROGRESS),
-    FSM_TRANSITION(E_START,          FSM_OTHERWISE,          A_TRANSITION_COMPLETE, S_IDLE),
-    FSM_TRANSITION(E_ABORT,          FSM_ALWAYS,             A_ABORT,               S_IDLE)
+    FSM_TRANSITION(E_START,          G_SET_DELAY,            A_DELAY_START,             S_IN_PROGRESS),
+    FSM_TRANSITION(E_START,          G_SET_TRANSITION,       A_TRANSITION_START,        S_IN_PROGRESS),
+    FSM_TRANSITION(E_START,          FSM_OTHERWISE,          A_TRANSITION_COMPLETE_WPS, S_IDLE),
+    FSM_TRANSITION(E_ABORT,          FSM_ALWAYS,             A_ABORT,                   S_IDLE)
 };
 
 #if FSM_DEBUG
@@ -252,10 +253,8 @@ static void a_transition_tick(void * p_data)
     }
 }
 
-static void a_transition_complete(void * p_data)
+static void transition_complete_common(app_transition_t * p_transition)
 {
-    app_transition_t * p_transition = (app_transition_t *) p_data;
-
     model_timer_abort(&p_transition->timer);
     app_transition_params_t * p_params = &p_transition->ongoing_params;
     p_params->transition_time_ms = 0;
@@ -264,6 +263,21 @@ static void a_transition_complete(void * p_data)
     {
         p_transition->transition_complete_cb(p_transition);
     }
+}
+
+static void a_transition_complete(void * p_data)
+{
+    app_transition_t * p_transition = (app_transition_t *) p_data;
+
+    transition_complete_common(p_transition);
+}
+
+static void a_transition_complete_with_param_swap(void * p_data)
+{
+    app_transition_t * p_transition = (app_transition_t *) p_data;
+
+    p_transition->ongoing_params = p_transition->requested_params;
+    transition_complete_common(p_transition);
 }
 
 static void a_abort(void * p_data)

@@ -530,11 +530,13 @@ void test_packet_out(void)
         get_test_vector(run_testvectors[i], &test_vector);
         __LOG(LOG_SRC_TEST, LOG_LEVEL_INFO, "Running test vector %d\n", run_testvectors[i]);
 
-        net_state_tx_iv_index_get_ExpectAndReturn(test_vector.metadata.internal.iv_index);
-
-        net_state_seqnum_alloc_ExpectAndReturn(NULL, NRF_SUCCESS);
-        net_state_seqnum_alloc_IgnoreArg_p_seqnum();
-        net_state_seqnum_alloc_ReturnMemThruPtr_p_seqnum(
+        net_state_iv_index_and_seqnum_alloc_ExpectAndReturn(NULL, NULL, NRF_SUCCESS);
+        net_state_iv_index_and_seqnum_alloc_IgnoreArg_p_iv_index();
+        net_state_iv_index_and_seqnum_alloc_IgnoreArg_p_seqnum();
+        net_state_iv_index_and_seqnum_alloc_ReturnMemThruPtr_p_iv_index(
+            &test_vector.metadata.internal.iv_index,
+            sizeof(test_vector.metadata.internal.iv_index));
+        net_state_iv_index_and_seqnum_alloc_ReturnMemThruPtr_p_seqnum(
             &test_vector.metadata.internal.sequence_number,
             sizeof(test_vector.metadata.internal.sequence_number));
 

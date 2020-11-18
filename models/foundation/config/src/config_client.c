@@ -170,42 +170,58 @@ static uint32_t send_reliable(config_opcode_t opcode, uint16_t length, config_op
 
 static const config_message_lut_t m_config_message_lut[] =
 {
-    {CONFIG_OPCODE_COMPOSITION_DATA_STATUS,       COMPOSITION_DATA_LENGTH_MIN,                                   PAYLOAD_LENGTH_MAX},
-    {CONFIG_OPCODE_APPKEY_STATUS,                 sizeof(config_msg_appkey_status_t),                            sizeof(config_msg_appkey_status_t)},
-    {CONFIG_OPCODE_APPKEY_LIST,                   sizeof(config_msg_appkey_list_t),                              PAYLOAD_LENGTH_MAX},
-    {CONFIG_OPCODE_BEACON_STATUS,                 sizeof(config_msg_net_beacon_status_t),                        sizeof(config_msg_net_beacon_status_t)},
-    {CONFIG_OPCODE_DEFAULT_TTL_STATUS,            sizeof(config_msg_default_ttl_status_t),                       sizeof(config_msg_default_ttl_status_t)},
-    {CONFIG_OPCODE_MODEL_APP_STATUS,              PACKET_LENGTH_WITH_ID(config_msg_app_status_t, true),          PACKET_LENGTH_WITH_ID(config_msg_app_status_t, false)},
-    {CONFIG_OPCODE_MODEL_PUBLICATION_STATUS,      PACKET_LENGTH_WITH_ID(config_msg_publication_status_t, true),  PACKET_LENGTH_WITH_ID(config_msg_publication_status_t, false)},
-    {CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS,     PACKET_LENGTH_WITH_ID(config_msg_subscription_status_t, true), PACKET_LENGTH_WITH_ID(config_msg_subscription_status_t, false)},
-    {CONFIG_OPCODE_NETKEY_STATUS,                 sizeof(config_msg_netkey_status_t),                            sizeof(config_msg_netkey_status_t)},
-    {CONFIG_OPCODE_NETKEY_LIST,                   0,                                                             PAYLOAD_LENGTH_MAX},
-    {CONFIG_OPCODE_NODE_RESET_STATUS,             0,                                                             0},
-    {CONFIG_OPCODE_RELAY_STATUS,                  sizeof(config_msg_relay_status_t),                             sizeof(config_msg_relay_status_t)},
-    {CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS,       sizeof(config_msg_network_transmit_status_t),                  sizeof(config_msg_network_transmit_status_t)},
-    {CONFIG_OPCODE_KEY_REFRESH_PHASE_STATUS,      sizeof(config_msg_key_refresh_phase_status_t),                 sizeof(config_msg_key_refresh_phase_status_t)},
-    {CONFIG_OPCODE_HEARTBEAT_PUBLICATION_STATUS,  sizeof(config_msg_heartbeat_publication_status_t),             sizeof(config_msg_heartbeat_publication_status_t)},
-    {CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS, sizeof(config_msg_heartbeat_subscription_status_t),            sizeof(config_msg_heartbeat_subscription_status_t)},
+    {CONFIG_OPCODE_COMPOSITION_DATA_STATUS,             COMPOSITION_DATA_LENGTH_MIN,                                    PAYLOAD_LENGTH_MAX},
+    {CONFIG_OPCODE_APPKEY_STATUS,                       sizeof(config_msg_appkey_status_t),                             sizeof(config_msg_appkey_status_t)},
+    {CONFIG_OPCODE_APPKEY_LIST,                         sizeof(config_msg_appkey_list_t),                               PAYLOAD_LENGTH_MAX},
+    {CONFIG_OPCODE_BEACON_STATUS,                       sizeof(config_msg_net_beacon_status_t),                         sizeof(config_msg_net_beacon_status_t)},
+    {CONFIG_OPCODE_DEFAULT_TTL_STATUS,                  sizeof(config_msg_default_ttl_status_t),                        sizeof(config_msg_default_ttl_status_t)},
+    {CONFIG_OPCODE_MODEL_APP_STATUS,                    PACKET_LENGTH_WITH_ID(config_msg_app_status_t, true),           PACKET_LENGTH_WITH_ID(config_msg_app_status_t, false)},
+    {CONFIG_OPCODE_MODEL_PUBLICATION_STATUS,            PACKET_LENGTH_WITH_ID(config_msg_publication_status_t, true),   PACKET_LENGTH_WITH_ID(config_msg_publication_status_t, false)},
+    {CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS,           PACKET_LENGTH_WITH_ID(config_msg_subscription_status_t, true),  PACKET_LENGTH_WITH_ID(config_msg_subscription_status_t, false)},
+    {CONFIG_OPCODE_NETKEY_STATUS,                       sizeof(config_msg_netkey_status_t),                             sizeof(config_msg_netkey_status_t)},
+    {CONFIG_OPCODE_NETKEY_LIST,                         0,                                                              PAYLOAD_LENGTH_MAX},
+    {CONFIG_OPCODE_NODE_RESET_STATUS,                   0,                                                              0},
+    {CONFIG_OPCODE_RELAY_STATUS,                        sizeof(config_msg_relay_status_t),                              sizeof(config_msg_relay_status_t)},
+    {CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS,             sizeof(config_msg_network_transmit_status_t),                   sizeof(config_msg_network_transmit_status_t)},
+    {CONFIG_OPCODE_KEY_REFRESH_PHASE_STATUS,            sizeof(config_msg_key_refresh_phase_status_t),                  sizeof(config_msg_key_refresh_phase_status_t)},
+    {CONFIG_OPCODE_HEARTBEAT_PUBLICATION_STATUS,        sizeof(config_msg_heartbeat_publication_status_t),              sizeof(config_msg_heartbeat_publication_status_t)},
+    {CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS,       sizeof(config_msg_heartbeat_subscription_status_t),             sizeof(config_msg_heartbeat_subscription_status_t)},
+    {CONFIG_OPCODE_FRIEND_STATUS,                       sizeof(config_msg_friend_status_t),                             sizeof(config_msg_friend_status_t)},
+    {CONFIG_OPCODE_GATT_PROXY_STATUS,                   sizeof(config_msg_proxy_status_t),                              sizeof(config_msg_proxy_status_t)},
+    {CONFIG_OPCODE_NODE_IDENTITY_STATUS,                sizeof(config_msg_identity_status_t),                           sizeof(config_msg_identity_status_t)},
+    {CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_STATUS,   sizeof(config_msg_low_power_node_polltimeout_status_t),         sizeof(config_msg_low_power_node_polltimeout_status_t)},
+    {CONFIG_OPCODE_SIG_MODEL_APP_LIST,                  sizeof(config_msg_sig_model_app_list_t),                        PAYLOAD_LENGTH_MAX},
+    {CONFIG_OPCODE_VENDOR_MODEL_APP_LIST,               sizeof(config_msg_vendor_model_app_list_t),                     PAYLOAD_LENGTH_MAX},
+    {CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_LIST,         sizeof(config_msg_sig_model_subscription_list_t),               PAYLOAD_LENGTH_MAX},
+    {CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_LIST,      sizeof(config_msg_vendor_model_subscription_list_t),            PAYLOAD_LENGTH_MAX},
 };
 
 static const access_opcode_handler_t m_opcode_handlers[] =
 {
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_COMPOSITION_DATA_STATUS),       config_opcode_handler },
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_APPKEY_STATUS),                 config_opcode_handler },
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_APPKEY_LIST),                   config_opcode_handler },
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_BEACON_STATUS),                 config_opcode_handler },
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_DEFAULT_TTL_STATUS),            config_opcode_handler },
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_MODEL_APP_STATUS),              config_opcode_handler },
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS),      config_opcode_handler },
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS),     config_opcode_handler },
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETKEY_STATUS),                 config_opcode_handler },
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETKEY_LIST),                   config_opcode_handler },
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NODE_RESET_STATUS),             config_opcode_handler },
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_RELAY_STATUS),                  config_opcode_handler },
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS),       config_opcode_handler },
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_KEY_REFRESH_PHASE_STATUS),      config_opcode_handler },
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_HEARTBEAT_PUBLICATION_STATUS),  config_opcode_handler },
-    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS), config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_COMPOSITION_DATA_STATUS),             config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_APPKEY_STATUS),                       config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_APPKEY_LIST),                         config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_BEACON_STATUS),                       config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_DEFAULT_TTL_STATUS),                  config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_MODEL_APP_STATUS),                    config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_MODEL_PUBLICATION_STATUS),            config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS),           config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETKEY_STATUS),                       config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETKEY_LIST),                         config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NODE_RESET_STATUS),                   config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_RELAY_STATUS),                        config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NETWORK_TRANSMIT_STATUS),             config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_KEY_REFRESH_PHASE_STATUS),            config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_HEARTBEAT_PUBLICATION_STATUS),        config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS),       config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_FRIEND_STATUS),                       config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_GATT_PROXY_STATUS),                   config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_NODE_IDENTITY_STATUS),                config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_STATUS),   config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_SIG_MODEL_APP_LIST),                  config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_VENDOR_MODEL_APP_LIST),               config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_LIST),         config_opcode_handler },
+    { ACCESS_OPCODE_SIG(CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_LIST),      config_opcode_handler },
 };
 
 /* Ensure that the two tables are the same size. */
@@ -776,7 +792,8 @@ uint32_t config_client_model_subscription_get(uint16_t element_address, access_m
     config_msg_model_id_set(&p_msg->model_id, &model_id, sig_model);
 
     config_opcode_t opcode = sig_model ? CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_GET : CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_GET;
-    return send_reliable(opcode, length, CONFIG_OPCODE_MODEL_SUBSCRIPTION_STATUS);
+    config_opcode_t reply_opcode = sig_model ? CONFIG_OPCODE_SIG_MODEL_SUBSCRIPTION_LIST : CONFIG_OPCODE_VENDOR_MODEL_SUBSCRIPTION_LIST;
+    return send_reliable(opcode, length, reply_opcode);
 }
 
 uint32_t config_client_model_subscription_overwrite(uint16_t element_address, nrf_mesh_address_t address, access_model_id_t model_id)
@@ -892,7 +909,8 @@ uint32_t config_client_model_app_get(uint16_t element_address, access_model_id_t
     config_msg_model_id_set(&p_msg->model_id, &model_id, sig_model);
 
     config_opcode_t opcode = sig_model ? CONFIG_OPCODE_SIG_MODEL_APP_GET : CONFIG_OPCODE_VENDOR_MODEL_APP_GET;
-    return send_reliable(opcode, length, CONFIG_OPCODE_MODEL_APP_STATUS);
+    config_opcode_t reply_opcode = sig_model ? CONFIG_OPCODE_SIG_MODEL_APP_LIST : CONFIG_OPCODE_VENDOR_MODEL_APP_LIST;
+    return send_reliable(opcode, length, reply_opcode);
 }
 
 
@@ -1036,32 +1054,109 @@ uint32_t config_client_key_refresh_phase_set(uint16_t netkey_index, nrf_mesh_key
 
 uint32_t config_client_friend_get(void)
 {
-    return NRF_ERROR_NOT_SUPPORTED;
+    uint32_t status = NRF_SUCCESS;
+    if (client_in_wrong_state(&status))
+    {
+        return status;
+    }
+
+    return send_reliable(CONFIG_OPCODE_FRIEND_GET, 0, CONFIG_OPCODE_FRIEND_STATUS);
 }
 
-uint32_t config_client_friend_set(bool state)
+uint32_t config_client_friend_set(config_friend_state_t state)
 {
-    return NRF_ERROR_NOT_SUPPORTED;
+    uint32_t status = NRF_SUCCESS;
+    if (client_in_wrong_state(&status))
+    {
+        return status;
+    }
+
+    NRF_MESH_ASSERT(mp_packet_buffer == NULL);
+    uint16_t length = sizeof(config_msg_friend_set_t);
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
+    {
+        return NRF_ERROR_NO_MEM;
+    }
+
+    config_msg_friend_set_t * p_msg = (config_msg_friend_set_t *) mp_packet_buffer;
+    p_msg->friend_state = state;
+    return send_reliable(CONFIG_OPCODE_FRIEND_SET, length, CONFIG_OPCODE_FRIEND_STATUS);
 }
 
 uint32_t config_client_gatt_proxy_get(void)
 {
-    return NRF_ERROR_NOT_SUPPORTED;
+    uint32_t status = NRF_SUCCESS;
+    if (client_in_wrong_state(&status))
+    {
+        return status;
+    }
+
+    return send_reliable(CONFIG_OPCODE_GATT_PROXY_GET, 0, CONFIG_OPCODE_GATT_PROXY_STATUS);
 }
 
-uint32_t config_client_gatt_proxy_set(bool state)
+uint32_t config_client_gatt_proxy_set(config_gatt_proxy_state_t state)
 {
-    return NRF_ERROR_NOT_SUPPORTED;
+    uint32_t status = NRF_SUCCESS;
+    if (client_in_wrong_state(&status))
+    {
+        return status;
+    }
+
+    NRF_MESH_ASSERT(mp_packet_buffer == NULL);
+    uint16_t length = sizeof(config_msg_proxy_set_t);
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
+    {
+        return NRF_ERROR_NO_MEM;
+    }
+
+    config_msg_proxy_set_t * p_msg = (config_msg_proxy_set_t *) mp_packet_buffer;
+    p_msg->proxy_state = state;
+    return send_reliable(CONFIG_OPCODE_GATT_PROXY_SET, length, CONFIG_OPCODE_GATT_PROXY_STATUS);
 }
 
 uint32_t config_client_node_identity_get(uint16_t netkey_index)
 {
-    return NRF_ERROR_NOT_SUPPORTED;
+    uint32_t status = NRF_SUCCESS;
+    if (client_in_wrong_state(&status))
+    {
+        return status;
+    }
+
+    NRF_MESH_ASSERT(mp_packet_buffer == NULL);
+    uint16_t length = sizeof(config_msg_identity_get_t);
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
+    {
+        return NRF_ERROR_NO_MEM;
+    }
+
+    config_msg_identity_get_t * p_msg = (config_msg_identity_get_t *) mp_packet_buffer;
+    p_msg->netkey_index = netkey_index & CONFIG_MSG_KEY_INDEX_12_MASK;
+    return send_reliable(CONFIG_OPCODE_NODE_IDENTITY_GET, length, CONFIG_OPCODE_NODE_IDENTITY_STATUS);
 }
 
 uint32_t config_client_node_identity_set(uint16_t netkey_index, config_identity_state_t state)
 {
-    return NRF_ERROR_NOT_SUPPORTED;
+    uint32_t status = NRF_SUCCESS;
+    if (client_in_wrong_state(&status))
+    {
+        return status;
+    }
+
+    NRF_MESH_ASSERT(mp_packet_buffer == NULL);
+    uint16_t length = sizeof(config_msg_identity_set_t);
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
+    {
+        return NRF_ERROR_NO_MEM;
+    }
+
+    config_msg_identity_set_t * p_msg = (config_msg_identity_set_t *) mp_packet_buffer;
+    p_msg->netkey_index = netkey_index & CONFIG_MSG_KEY_INDEX_12_MASK;
+    p_msg->identity_state = state;
+    return send_reliable(CONFIG_OPCODE_NODE_IDENTITY_SET, length, CONFIG_OPCODE_NODE_IDENTITY_STATUS);
 }
 
 uint32_t config_client_heartbeat_publication_get(void)
@@ -1127,6 +1222,27 @@ uint32_t config_client_heartbeat_subscription_set(const config_msg_heartbeat_sub
     *p_msg = *p_subscription;
 
     return send_reliable(CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_SET, length, CONFIG_OPCODE_HEARTBEAT_SUBSCRIPTION_STATUS);
+}
+
+uint32_t config_client_low_power_node_polltimeout_get(uint16_t lpn_address)
+{
+    uint32_t status = NRF_SUCCESS;
+    if (client_in_wrong_state(&status))
+    {
+        return status;
+    }
+
+    NRF_MESH_ASSERT(mp_packet_buffer == NULL);
+    uint16_t length = sizeof(config_msg_low_power_node_polltimeout_get_t);
+    mp_packet_buffer = mesh_mem_alloc(length);
+    if (mp_packet_buffer == NULL)
+    {
+        return NRF_ERROR_NO_MEM;
+    }
+
+    config_msg_low_power_node_polltimeout_get_t * p_msg = (config_msg_low_power_node_polltimeout_get_t *) mp_packet_buffer;
+    p_msg->lpn_address = lpn_address;
+    return send_reliable(CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_GET, length, CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_STATUS);
 }
 
 void config_client_pending_msg_cancel(void)

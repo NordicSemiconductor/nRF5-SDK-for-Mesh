@@ -173,7 +173,13 @@ uint32_t bl_cmd_handler(bl_cmd_t* p_bl_cmd)
             }
             break;
         case BL_CMD_TYPE_INFO_ERASE:
-            bootloader_info_entry_invalidate(p_bl_cmd->params.info.erase.type);
+            {
+                uint32_t status = bootloader_info_entry_invalidate(p_bl_cmd->params.info.erase.type);
+                if (status != NRF_SUCCESS)
+                {
+                    return status;
+                }
+            }
             break;
 #if 0
         case BL_CMD_TYPE_UECC_SHARED_SECRET:
@@ -254,7 +260,7 @@ void send_end_evt(dfu_end_t end_reason)
     bl_evt_t end_evt;
     end_evt.type = BL_EVT_TYPE_DFU_ABORT;
     end_evt.params.dfu.abort.reason = end_reason;
-    bootloader_evt_send(&end_evt);
+    (void) bootloader_evt_send(&end_evt);
 }
 
 uint32_t flash_write(void* p_dest, void* p_data, uint32_t length)
@@ -290,23 +296,6 @@ uint32_t flash_erase(void* p_dest, uint32_t length)
     return error_code;
 }
 
-uint32_t timer_set(uint32_t delay_us)
-{
-    bl_evt_t set_evt;
-    set_evt.type = BL_EVT_TYPE_TIMER_SET;
-    set_evt.params.timer.set.delay_us = delay_us;
-    set_evt.params.timer.set.index = 0;
-    return bootloader_evt_send(&set_evt);
-}
-
-uint32_t timer_abort(void)
-{
-    bl_evt_t abort_evt;
-    abort_evt.type = BL_EVT_TYPE_TIMER_ABORT;
-    abort_evt.params.timer.abort.index = 0;
-    return bootloader_evt_send(&abort_evt);
-}
-
 uint32_t tx_abort(uint8_t slot)
 {
     bl_evt_t abort_evt;
@@ -323,7 +312,7 @@ uint32_t bootloader_error_post(uint32_t error, const char* file, uint32_t line)
     error_evt.params.error.error_code = error;
     error_evt.params.error.p_file = file;
     error_evt.params.error.line = line;
-    bootloader_evt_send(&error_evt);
+    (void) bootloader_evt_send(&error_evt);
     __disable_irq();
     while (1);
 }

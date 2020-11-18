@@ -300,7 +300,6 @@ uint32_t scene_client_get(scene_client_t * p_client);
  * @note Expected response: Status, if the message is sent as acknowledged message.
  *
  * @param[in]     p_client          Client model context pointer.
- * @param[in]     p_params          Message parameters.
  *
  * @retval NRF_SUCCESS              The message is handed over to the mesh stack for transmission.
  * @retval NRF_ERROR_NULL           NULL pointer given to function.

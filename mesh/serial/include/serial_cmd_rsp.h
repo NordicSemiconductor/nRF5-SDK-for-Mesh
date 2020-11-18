@@ -300,6 +300,15 @@ typedef struct __attribute((packed))
     nrf_mesh_tx_token_t token; /**< TX Token assigned to the packet. Can be used to resolve which packet a @ref SERIAL_OPCODE_EVT_MESH_TX_COMPLETE event refers to. */
 } serial_evt_cmd_rsp_data_packet_send_t;
 
+/** Command response to @ref SERIAL_OPCODE_CMD_MESH_NET_STATE_GET with the current net state */
+typedef struct __attribute((packed))
+{
+    uint32_t  iv_index; /**< The current IV index. */
+    uint8_t   iv_update_in_progress; /**< Value indicating the phase of the IV update process. */
+    uint16_t  iv_update_timeout_counter; /**< Current value of timeout counter for IV update. */
+    uint32_t  next_seqnum_block; /**< The start of the next unused sequence number block. */
+} serial_evt_cmd_rsp_data_net_state_get_t;
+
 /** Command response packet. */
 typedef struct __attribute((packed))
 {
@@ -338,6 +347,7 @@ typedef struct __attribute((packed))
         serial_evt_cmd_rsp_data_models_get_t           model_ids;      /**< All the available models.*/
         serial_evt_cmd_rsp_data_model_init_t           model_init;     /**< Reserved handle for the initialized model instance. */
         serial_evt_cmd_rsp_data_packet_send_t          packet_send;    /**< Information about the sent packet. */
+        serial_evt_cmd_rsp_data_net_state_get_t        net_state_get;  /**< Net state. */
 
     } data; /**< Optional command response data. */
 } serial_evt_cmd_rsp_t;

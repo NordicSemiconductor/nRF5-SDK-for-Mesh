@@ -44,29 +44,35 @@
 #include "light_lc_common.h"
 #include "light_lc_state_utils.h"
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+#define STORED_WITH_SCENE_STATE    (1 + SCENE_REGISTER_ARRAY_SIZE)
+#else
+#define STORED_WITH_SCENE_STATE    (1)
+#endif
+
 typedef struct
 {
-    uint8_t lc_mode;
-    uint8_t lc_occ_mode;
-    uint8_t lc_light_onoff;
-    uint32_t lc_pr_luxlevel_on;
-    uint32_t lc_pr_luxlevel_prolong;
-    uint32_t lc_pr_luxlevel_standby;
-    uint16_t lc_pr_lightness_on;
-    uint16_t lc_pr_lightness_prolong;
-    uint16_t lc_pr_lightness_standby;
-    uint8_t lc_pr_regulator_accuracy;
-    float lc_pr_regulator_kid;
-    float lc_pr_regulator_kiu;
-    float lc_pr_regulator_kpd;
-    float lc_pr_regulator_kpu;
-    uint32_t lc_pr_time_fade;
-    uint32_t lc_pr_time_fade_on;
-    uint32_t lc_pr_time_fade_standby_auto;
-    uint32_t lc_pr_time_fade_standby_manual;
-    uint32_t lc_pr_time_occupancy_delay;
-    uint32_t lc_pr_time_prolong;
-    uint32_t lc_pr_time_run_on;
+    uint8_t lc_mode[STORED_WITH_SCENE_STATE];
+    uint8_t lc_occ_mode[STORED_WITH_SCENE_STATE];
+    uint8_t lc_light_onoff[STORED_WITH_SCENE_STATE];
+    uint32_t lc_pr_luxlevel_on[STORED_WITH_SCENE_STATE];
+    uint32_t lc_pr_luxlevel_prolong[STORED_WITH_SCENE_STATE];
+    uint32_t lc_pr_luxlevel_standby[STORED_WITH_SCENE_STATE];
+    uint16_t lc_pr_lightness_on[STORED_WITH_SCENE_STATE];
+    uint16_t lc_pr_lightness_prolong[STORED_WITH_SCENE_STATE];
+    uint16_t lc_pr_lightness_standby[STORED_WITH_SCENE_STATE];
+    uint8_t lc_pr_regulator_accuracy[STORED_WITH_SCENE_STATE];
+    float lc_pr_regulator_kid[STORED_WITH_SCENE_STATE];
+    float lc_pr_regulator_kiu[STORED_WITH_SCENE_STATE];
+    float lc_pr_regulator_kpd[STORED_WITH_SCENE_STATE];
+    float lc_pr_regulator_kpu[STORED_WITH_SCENE_STATE];
+    uint32_t lc_pr_time_fade[STORED_WITH_SCENE_STATE];
+    uint32_t lc_pr_time_fade_on[STORED_WITH_SCENE_STATE];
+    uint32_t lc_pr_time_fade_standby_auto[STORED_WITH_SCENE_STATE];
+    uint32_t lc_pr_time_fade_standby_manual[STORED_WITH_SCENE_STATE];
+    uint32_t lc_pr_time_occupancy_delay[STORED_WITH_SCENE_STATE];
+    uint32_t lc_pr_time_prolong[STORED_WITH_SCENE_STATE];
+    uint32_t lc_pr_time_run_on[STORED_WITH_SCENE_STATE];
 } lc_flash_storage_state_t;
 
 /* Setter and getter declarations.
@@ -142,6 +148,8 @@ static void     lc_pr_time_prolong_state_getter(mesh_config_entry_id_t id, void 
 static uint32_t lc_pr_time_run_on_state_setter(mesh_config_entry_id_t id, const void * p_entry);
 static void     lc_pr_time_run_on_state_getter(mesh_config_entry_id_t id, void * p_entry);
 
+NRF_MESH_STATIC_ASSERT(MESH_APP_MODEL_LIGHT_LC_SERVER_ID_END >= (LIGHT_LC_PR_TIME_RUN_ON_EID_START + LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES));
+
 /* A mesh config entry associates a state variable with LIGHT_LC_SETUP_SERVER_INSTANCES_MAX
  * file locations each identified by a unique entry ID. Given an integer i in
  * [0, LIGHT_LC_SETUP_SERVER_INSTANCES_MAX-1], base ID + i identifies the i-th instance. The
@@ -151,7 +159,7 @@ static void     lc_pr_time_run_on_state_getter(mesh_config_entry_id_t id, void *
 
 MESH_CONFIG_ENTRY(m_lc_mode_entry,
                   LIGHT_LC_MODE_EID,      /* The base entry id */
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,   /* The number of instances. */
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,   /* The number of instances. */
                   sizeof(uint8_t),       /* The size of an instance. */
                   lc_mode_state_setter,  /* Stores a value in primary memory. */
                   lc_mode_state_getter,  /* Retrieves a value from primary memory. */
@@ -160,7 +168,7 @@ MESH_CONFIG_ENTRY(m_lc_mode_entry,
 
 MESH_CONFIG_ENTRY(m_lc_occ_mode_entry,
                   LIGHT_LC_OCC_MODE_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint8_t),
                   lc_occ_mode_state_setter,
                   lc_occ_mode_state_getter,
@@ -169,7 +177,7 @@ MESH_CONFIG_ENTRY(m_lc_occ_mode_entry,
 
 MESH_CONFIG_ENTRY(m_lc_light_onoff_entry,
                   LIGHT_LC_LIGHT_ONOFF_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint8_t),
                   lc_light_onoff_state_setter,
                   lc_light_onoff_state_getter,
@@ -178,7 +186,7 @@ MESH_CONFIG_ENTRY(m_lc_light_onoff_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_luxlevel_on_entry,
                   LIGHT_LC_PR_LUXLEVEL_ON_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint32_t),
                   lc_pr_luxlevel_on_state_setter,
                   lc_pr_luxlevel_on_state_getter,
@@ -187,7 +195,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_luxlevel_on_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_luxlevel_prolong_entry,
                   LIGHT_LC_PR_LUXLEVEL_PROLONG_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint32_t),
                   lc_pr_luxlevel_prolong_state_setter,
                   lc_pr_luxlevel_prolong_state_getter,
@@ -196,7 +204,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_luxlevel_prolong_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_luxlevel_standby_entry,
                   LIGHT_LC_PR_LUXLEVEL_STANDBY_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint32_t),
                   lc_pr_luxlevel_standby_state_setter,
                   lc_pr_luxlevel_standby_state_getter,
@@ -205,7 +213,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_luxlevel_standby_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_lightness_on_entry,
                   LIGHT_LC_PR_LIGHTNESS_ON_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint16_t),
                   lc_pr_lightness_on_state_setter,
                   lc_pr_lightness_on_state_getter,
@@ -214,7 +222,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_lightness_on_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_lightness_prolong_entry,
                   LIGHT_LC_PR_LIGHTNESS_PROLONG_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint16_t),
                   lc_pr_lightness_prolong_state_setter,
                   lc_pr_lightness_prolong_state_getter,
@@ -223,7 +231,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_lightness_prolong_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_lightness_standby_entry,
                   LIGHT_LC_PR_LIGHTNESS_STANDBY_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint16_t),
                   lc_pr_lightness_standby_state_setter,
                   lc_pr_lightness_standby_state_getter,
@@ -232,7 +240,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_lightness_standby_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_regulator_accuracy_entry,
                   LIGHT_LC_PR_REGULATOR_ACCURACY_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint8_t),
                   lc_pr_regulator_accuracy_state_setter,
                   lc_pr_regulator_accuracy_state_getter,
@@ -241,7 +249,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_regulator_accuracy_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_regulator_kid_entry,
                   LIGHT_LC_PR_REGULATOR_KID_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(float),
                   lc_pr_regulator_kid_state_setter,
                   lc_pr_regulator_kid_state_getter,
@@ -250,7 +258,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_regulator_kid_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_regulator_kiu_entry,
                   LIGHT_LC_PR_REGULATOR_KIU_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(float),
                   lc_pr_regulator_kiu_state_setter,
                   lc_pr_regulator_kiu_state_getter,
@@ -259,7 +267,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_regulator_kiu_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_regulator_kpd_entry,
                   LIGHT_LC_PR_REGULATOR_KPD_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(float),
                   lc_pr_regulator_kpd_state_setter,
                   lc_pr_regulator_kpd_state_getter,
@@ -268,7 +276,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_regulator_kpd_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_regulator_kpu_entry,
                   LIGHT_LC_PR_REGULATOR_KPU_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(float),
                   lc_pr_regulator_kpu_state_setter,
                   lc_pr_regulator_kpu_state_getter,
@@ -277,7 +285,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_regulator_kpu_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_time_fade_entry,
                   LIGHT_LC_PR_TIME_FADE_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint32_t),
                   lc_pr_time_fade_state_setter,
                   lc_pr_time_fade_state_getter,
@@ -286,7 +294,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_time_fade_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_time_fade_on_entry,
                   LIGHT_LC_PR_TIME_FADE_ON_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint32_t),
                   lc_pr_time_fade_on_state_setter,
                   lc_pr_time_fade_on_state_getter,
@@ -295,7 +303,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_time_fade_on_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_time_fade_standby_auto_entry,
                   LIGHT_LC_PR_TIME_FADE_STANDBY_AUTO_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint32_t),
                   lc_pr_time_fade_standby_auto_state_setter,
                   lc_pr_time_fade_standby_auto_state_getter,
@@ -304,7 +312,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_time_fade_standby_auto_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_time_fade_standby_manual_entry,
                   LIGHT_LC_PR_TIME_FADE_STANDBY_MANUAL_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint32_t),
                   lc_pr_time_fade_standby_manual_state_setter,
                   lc_pr_time_fade_standby_manual_state_getter,
@@ -313,7 +321,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_time_fade_standby_manual_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_time_occupancy_delay_entry,
                   LIGHT_LC_PR_TIME_OCCUPANCY_DELAY_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint32_t),
                   lc_pr_time_occupancy_delay_state_setter,
                   lc_pr_time_occupancy_delay_state_getter,
@@ -322,7 +330,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_time_occupancy_delay_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_time_prolong_entry,
                   LIGHT_LC_PR_TIME_PROLONG_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint32_t),
                   lc_pr_time_prolong_state_setter,
                   lc_pr_time_prolong_state_getter,
@@ -331,7 +339,7 @@ MESH_CONFIG_ENTRY(m_lc_pr_time_prolong_entry,
 
 MESH_CONFIG_ENTRY(m_lc_pr_time_run_on_entry,
                   LIGHT_LC_PR_TIME_RUN_ON_EID,
-                  LIGHT_LC_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_LC_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(uint32_t),
                   lc_pr_time_run_on_state_setter,
                   lc_pr_time_run_on_state_getter,
@@ -359,27 +367,31 @@ static lc_flash_storage_state_t * model_context_get(uint16_t address, uint16_t b
 
 static void state_contexts_default_set(uint8_t handle)
 {
-    m_state_contexts[handle].lc_mode = LIGHT_LC_DEFAULT_MODE;
-    m_state_contexts[handle].lc_occ_mode = LIGHT_LC_DEFAULT_OCC_MODE;
-    m_state_contexts[handle].lc_light_onoff = LIGHT_LC_DEFAULT_LIGHT_ONOFF;
-    m_state_contexts[handle].lc_pr_luxlevel_on = LIGHT_LC_DEFAULT_PR_LUXLEVEL_ON;
-    m_state_contexts[handle].lc_pr_luxlevel_prolong = LIGHT_LC_DEFAULT_PR_LUXLEVEL_PROLONG;
-    m_state_contexts[handle].lc_pr_luxlevel_standby = LIGHT_LC_DEFAULT_PR_LUXLEVEL_STANDBY;
-    m_state_contexts[handle].lc_pr_lightness_on = LIGHT_LC_DEFAULT_PR_LIGHTNESS_ON;
-    m_state_contexts[handle].lc_pr_lightness_prolong = LIGHT_LC_DEFAULT_PR_LIGHTNESS_PROLONG;
-    m_state_contexts[handle].lc_pr_lightness_standby = LIGHT_LC_DEFAULT_PR_LIGHTNESS_STANDBY;
-    m_state_contexts[handle].lc_pr_regulator_accuracy = LIGHT_LC_DEFAULT_PR_REGULATOR_ACCURACY;
-    m_state_contexts[handle].lc_pr_regulator_kid = LIGHT_LC_DEFAULT_PR_REGULATOR_KID;
-    m_state_contexts[handle].lc_pr_regulator_kiu = LIGHT_LC_DEFAULT_PR_REGULATOR_KIU;
-    m_state_contexts[handle].lc_pr_regulator_kpd = LIGHT_LC_DEFAULT_PR_REGULATOR_KPD;
-    m_state_contexts[handle].lc_pr_regulator_kpu = LIGHT_LC_DEFAULT_PR_REGULATOR_KPU;
-    m_state_contexts[handle].lc_pr_time_fade = LIGHT_LC_DEFAULT_PR_TIME_FADE_MS;
-    m_state_contexts[handle].lc_pr_time_fade_on = LIGHT_LC_DEFAULT_PR_TIME_FADE_ON_MS;
-    m_state_contexts[handle].lc_pr_time_fade_standby_auto = LIGHT_LC_DEFAULT_PR_TIME_FADE_STANDBY_AUTO_MS;
-    m_state_contexts[handle].lc_pr_time_fade_standby_manual = LIGHT_LC_DEFAULT_PR_TIME_FADE_STANDBY_MANUAL_MS;
-    m_state_contexts[handle].lc_pr_time_occupancy_delay = LIGHT_LC_DEFAULT_PR_TIME_OCCUPANCY_DELAY_MS;
-    m_state_contexts[handle].lc_pr_time_prolong = LIGHT_LC_DEFAULT_PR_TIME_PROLONG_MS;
-    m_state_contexts[handle].lc_pr_time_run_on = LIGHT_LC_DEFAULT_PR_TIME_RUN_ON_MS;
+
+    for(uint32_t i = 0; i < STORED_WITH_SCENE_STATE; i++)
+    {
+        m_state_contexts[handle].lc_mode[i] = LIGHT_LC_DEFAULT_MODE;
+        m_state_contexts[handle].lc_occ_mode[i] = LIGHT_LC_DEFAULT_OCC_MODE;
+        m_state_contexts[handle].lc_light_onoff[i] = LIGHT_LC_DEFAULT_LIGHT_ONOFF;
+        m_state_contexts[handle].lc_pr_luxlevel_on[i] = LIGHT_LC_DEFAULT_PR_LUXLEVEL_ON;
+        m_state_contexts[handle].lc_pr_luxlevel_prolong[i] = LIGHT_LC_DEFAULT_PR_LUXLEVEL_PROLONG;
+        m_state_contexts[handle].lc_pr_luxlevel_standby[i] = LIGHT_LC_DEFAULT_PR_LUXLEVEL_STANDBY;
+        m_state_contexts[handle].lc_pr_lightness_on[i] = LIGHT_LC_DEFAULT_PR_LIGHTNESS_ON;
+        m_state_contexts[handle].lc_pr_lightness_prolong[i] = LIGHT_LC_DEFAULT_PR_LIGHTNESS_PROLONG;
+        m_state_contexts[handle].lc_pr_lightness_standby[i] = LIGHT_LC_DEFAULT_PR_LIGHTNESS_STANDBY;
+        m_state_contexts[handle].lc_pr_regulator_accuracy[i] = LIGHT_LC_DEFAULT_PR_REGULATOR_ACCURACY;
+        m_state_contexts[handle].lc_pr_regulator_kid[i] = LIGHT_LC_DEFAULT_PR_REGULATOR_KID;
+        m_state_contexts[handle].lc_pr_regulator_kiu[i] = LIGHT_LC_DEFAULT_PR_REGULATOR_KIU;
+        m_state_contexts[handle].lc_pr_regulator_kpd[i] = LIGHT_LC_DEFAULT_PR_REGULATOR_KPD;
+        m_state_contexts[handle].lc_pr_regulator_kpu[i] = LIGHT_LC_DEFAULT_PR_REGULATOR_KPU;
+        m_state_contexts[handle].lc_pr_time_fade[i] = LIGHT_LC_DEFAULT_PR_TIME_FADE_MS;
+        m_state_contexts[handle].lc_pr_time_fade_on[i] = LIGHT_LC_DEFAULT_PR_TIME_FADE_ON_MS;
+        m_state_contexts[handle].lc_pr_time_fade_standby_auto[i] = LIGHT_LC_DEFAULT_PR_TIME_FADE_STANDBY_AUTO_MS;
+        m_state_contexts[handle].lc_pr_time_fade_standby_manual[i] = LIGHT_LC_DEFAULT_PR_TIME_FADE_STANDBY_MANUAL_MS;
+        m_state_contexts[handle].lc_pr_time_occupancy_delay[i] = LIGHT_LC_DEFAULT_PR_TIME_OCCUPANCY_DELAY_MS;
+        m_state_contexts[handle].lc_pr_time_prolong[i] = LIGHT_LC_DEFAULT_PR_TIME_PROLONG_MS;
+        m_state_contexts[handle].lc_pr_time_run_on[i] = LIGHT_LC_DEFAULT_PR_TIME_RUN_ON_MS;
+    }
 }
 
 static void state_contexts_all_default_set()
@@ -426,333 +438,520 @@ static void lc_flash_storage_config_clear(void)
         mesh_config_entry_id_t id = *entries[j].id;
         for (uint8_t i = 0; i < m_next_handle; i++)
         {
-            id.record = entries[j].start + i;
-            (void) mesh_config_entry_delete(id);
+            for (uint8_t k = 0; k < STORED_WITH_SCENE_STATE; k++)
+            {
+                (void) mesh_config_entry_delete(id);
+                id.record++;
+            }
         }
     }
 }
 
+static void id_record_to_address_array_index(uint16_t id_record, uint16_t start,
+                                             uint16_t * p_address, uint8_t * p_array_index)
+{
+    uint16_t shift = id_record - start;
+    *p_array_index = shift / LIGHT_LC_SETUP_SERVER_INSTANCES_MAX;
+    *p_address = id_record - (*p_array_index * LIGHT_LC_SETUP_SERVER_INSTANCES_MAX);
+}
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static uint16_t lc_instance_index_array_index_to_id_record(uint8_t lc_instance_index,
+                                                           uint8_t array_index)
+{
+    return (lc_instance_index + (LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX * array_index));
+}
+#endif
+
 static uint32_t lc_mode_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint8_t * p_value = (const uint8_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_MODE_EID_START)->lc_mode = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_MODE_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_MODE_EID_START)->lc_mode[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_mode_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint8_t * p_value = (uint8_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_MODE_EID_START)->lc_mode;
+    id_record_to_address_array_index(id.record, LIGHT_LC_MODE_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_MODE_EID_START)->lc_mode[array_index];
 }
 
 static uint32_t lc_occ_mode_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint8_t * p_value = (const uint8_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_OCC_MODE_EID_START)->lc_occ_mode = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_OCC_MODE_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_OCC_MODE_EID_START)->lc_occ_mode[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_occ_mode_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint8_t * p_value = (uint8_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_OCC_MODE_EID_START)->lc_occ_mode;
+    id_record_to_address_array_index(id.record, LIGHT_LC_OCC_MODE_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_OCC_MODE_EID_START)->lc_occ_mode[array_index];
 }
 
 static uint32_t lc_light_onoff_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint8_t * p_value = (const uint8_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_LIGHT_ONOFF_EID_START)->lc_light_onoff = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_LIGHT_ONOFF_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_LIGHT_ONOFF_EID_START)->lc_light_onoff[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_light_onoff_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint8_t * p_value = (uint8_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_LIGHT_ONOFF_EID_START)->lc_light_onoff;
+    id_record_to_address_array_index(id.record, LIGHT_LC_LIGHT_ONOFF_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_LIGHT_ONOFF_EID_START)->lc_light_onoff[array_index];
 }
 
 static uint32_t lc_pr_luxlevel_on_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint32_t * p_value = (const uint32_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_LUXLEVEL_ON_EID_START)->lc_pr_luxlevel_on = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_LUXLEVEL_ON_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_LUXLEVEL_ON_EID_START)->lc_pr_luxlevel_on[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_luxlevel_on_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint32_t * p_value = (uint32_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_LUXLEVEL_ON_EID_START)->lc_pr_luxlevel_on;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_LUXLEVEL_ON_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_LUXLEVEL_ON_EID_START)->lc_pr_luxlevel_on[array_index];
 }
 
 static uint32_t lc_pr_luxlevel_prolong_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint32_t * p_value = (const uint32_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_LUXLEVEL_PROLONG_EID_START)->lc_pr_luxlevel_prolong = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_LUXLEVEL_PROLONG_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_LUXLEVEL_PROLONG_EID_START)->lc_pr_luxlevel_prolong[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_luxlevel_prolong_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint32_t * p_value = (uint32_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_LUXLEVEL_PROLONG_EID_START)->lc_pr_luxlevel_prolong;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_LUXLEVEL_PROLONG_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_LUXLEVEL_PROLONG_EID_START)->lc_pr_luxlevel_prolong[array_index];
 }
 
 static uint32_t lc_pr_luxlevel_standby_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint32_t * p_value = (const uint32_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_LUXLEVEL_STANDBY_EID_START)->lc_pr_luxlevel_standby = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_LUXLEVEL_STANDBY_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_LUXLEVEL_STANDBY_EID_START)->lc_pr_luxlevel_standby[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_luxlevel_standby_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint32_t * p_value = (uint32_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_LUXLEVEL_STANDBY_EID_START)->lc_pr_luxlevel_standby;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_LUXLEVEL_STANDBY_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_LUXLEVEL_STANDBY_EID_START)->lc_pr_luxlevel_standby[array_index];
 }
 
 static uint32_t lc_pr_lightness_on_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint16_t * p_value = (const uint16_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_LIGHTNESS_ON_EID_START)->lc_pr_lightness_on = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_LIGHTNESS_ON_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_LIGHTNESS_ON_EID_START)->lc_pr_lightness_on[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_lightness_on_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint16_t * p_value = (uint16_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_LIGHTNESS_ON_EID_START)->lc_pr_lightness_on;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_LIGHTNESS_ON_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_LIGHTNESS_ON_EID_START)->lc_pr_lightness_on[array_index];
 }
 
 static uint32_t lc_pr_lightness_prolong_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint16_t * p_value = (const uint16_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_LIGHTNESS_PROLONG_EID_START)->lc_pr_lightness_prolong = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_LIGHTNESS_PROLONG_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_LIGHTNESS_PROLONG_EID_START)->lc_pr_lightness_prolong[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_lightness_prolong_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint16_t * p_value = (uint16_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_LIGHTNESS_PROLONG_EID_START)->lc_pr_lightness_prolong;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_LIGHTNESS_PROLONG_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_LIGHTNESS_PROLONG_EID_START)->lc_pr_lightness_prolong[array_index];
 }
 
 
 static uint32_t lc_pr_lightness_standby_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint16_t * p_value = (const uint16_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_LIGHTNESS_STANDBY_EID_START)->lc_pr_lightness_standby = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_LIGHTNESS_STANDBY_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_LIGHTNESS_STANDBY_EID_START)->lc_pr_lightness_standby[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_lightness_standby_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint16_t * p_value = (uint16_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_LIGHTNESS_STANDBY_EID_START)->lc_pr_lightness_standby;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_LIGHTNESS_STANDBY_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_LIGHTNESS_STANDBY_EID_START)->lc_pr_lightness_standby[array_index];
 }
 
 static uint32_t lc_pr_regulator_accuracy_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint8_t * p_value = (const uint8_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_REGULATOR_ACCURACY_EID_START)->lc_pr_regulator_accuracy = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_REGULATOR_ACCURACY_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_REGULATOR_ACCURACY_EID_START)->lc_pr_regulator_accuracy[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_regulator_accuracy_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint8_t * p_value = (uint8_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_REGULATOR_ACCURACY_EID_START)->lc_pr_regulator_accuracy;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_REGULATOR_ACCURACY_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_REGULATOR_ACCURACY_EID_START)->lc_pr_regulator_accuracy[array_index];
 }
 
 static uint32_t lc_pr_regulator_kid_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const float * p_value = (const float *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_REGULATOR_KID_EID_START)->lc_pr_regulator_kid = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_REGULATOR_KID_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_REGULATOR_KID_EID_START)->lc_pr_regulator_kid[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_regulator_kid_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     float * p_value = (float *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_REGULATOR_KID_EID_START)->lc_pr_regulator_kid;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_REGULATOR_KID_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_REGULATOR_KID_EID_START)->lc_pr_regulator_kid[array_index];
 }
 
 static uint32_t lc_pr_regulator_kiu_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const float * p_value = (const float *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_REGULATOR_KIU_EID_START)->lc_pr_regulator_kiu = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_REGULATOR_KIU_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_REGULATOR_KIU_EID_START)->lc_pr_regulator_kiu[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_regulator_kiu_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     float * p_value = (float *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_REGULATOR_KIU_EID_START)->lc_pr_regulator_kiu;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_REGULATOR_KIU_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_REGULATOR_KIU_EID_START)->lc_pr_regulator_kiu[array_index];
 }
 
 static uint32_t lc_pr_regulator_kpd_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const float * p_value = (const float *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_REGULATOR_KPD_EID_START)->lc_pr_regulator_kpd = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_REGULATOR_KPD_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_REGULATOR_KPD_EID_START)->lc_pr_regulator_kpd[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_regulator_kpd_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     float * p_value = (float *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_REGULATOR_KPD_EID_START)->lc_pr_regulator_kpd;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_REGULATOR_KPD_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_REGULATOR_KPD_EID_START)->lc_pr_regulator_kpd[array_index];
 }
 
 static uint32_t lc_pr_regulator_kpu_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const float * p_value = (const float *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_REGULATOR_KPU_EID_START)->lc_pr_regulator_kpu = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_REGULATOR_KPU_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_REGULATOR_KPU_EID_START)->lc_pr_regulator_kpu[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_regulator_kpu_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     float * p_value = (float *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_REGULATOR_KPU_EID_START)->lc_pr_regulator_kpu;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_REGULATOR_KPU_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_REGULATOR_KPU_EID_START)->lc_pr_regulator_kpu[array_index];
 }
 
 static uint32_t lc_pr_time_fade_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint32_t * p_value = (const uint32_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_TIME_FADE_EID_START)->lc_pr_time_fade = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_TIME_FADE_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_TIME_FADE_EID_START)->lc_pr_time_fade[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_time_fade_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint32_t * p_value = (uint32_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_TIME_FADE_EID_START)->lc_pr_time_fade;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_TIME_FADE_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_TIME_FADE_EID_START)->lc_pr_time_fade[array_index];
 }
 
 static uint32_t lc_pr_time_fade_on_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint32_t * p_value = (const uint32_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_TIME_FADE_ON_EID_START)->lc_pr_time_fade_on = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_TIME_FADE_ON_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_TIME_FADE_ON_EID_START)->lc_pr_time_fade_on[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_time_fade_on_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint32_t * p_value = (uint32_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_TIME_FADE_ON_EID_START)->lc_pr_time_fade_on;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_TIME_FADE_ON_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_TIME_FADE_ON_EID_START)->lc_pr_time_fade_on[array_index];
 }
 
 static uint32_t lc_pr_time_fade_standby_auto_state_setter(mesh_config_entry_id_t id,
                                                           const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint32_t * p_value = (const uint32_t *) p_entry;
 
-    model_context_get(id.record,
-                      LIGHT_LC_PR_TIME_FADE_STANDBY_AUTO_EID_START)->lc_pr_time_fade_standby_auto = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_TIME_FADE_STANDBY_AUTO_EID_START, &address, &array_index);
+
+    model_context_get(address,
+                      LIGHT_LC_PR_TIME_FADE_STANDBY_AUTO_EID_START)->lc_pr_time_fade_standby_auto[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_time_fade_standby_auto_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint32_t * p_value = (uint32_t *) p_entry;
 
-    *p_value = model_context_get(id.record,
-                                 LIGHT_LC_PR_TIME_FADE_STANDBY_AUTO_EID_START)->lc_pr_time_fade_standby_auto;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_TIME_FADE_STANDBY_AUTO_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address,
+                                 LIGHT_LC_PR_TIME_FADE_STANDBY_AUTO_EID_START)->lc_pr_time_fade_standby_auto[array_index];
 }
 
 static uint32_t lc_pr_time_fade_standby_manual_state_setter(mesh_config_entry_id_t id,
                                                             const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint32_t * p_value = (const uint32_t *) p_entry;
 
-    model_context_get(id.record,
-                      LIGHT_LC_PR_TIME_FADE_STANDBY_MANUAL_EID_START)->lc_pr_time_fade_standby_manual = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_TIME_FADE_STANDBY_MANUAL_EID_START, &address, &array_index);
+
+    model_context_get(address,
+                      LIGHT_LC_PR_TIME_FADE_STANDBY_MANUAL_EID_START)->lc_pr_time_fade_standby_manual[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_time_fade_standby_manual_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint32_t * p_value = (uint32_t *) p_entry;
 
-    *p_value = model_context_get(id.record,
-                                 LIGHT_LC_PR_TIME_FADE_STANDBY_MANUAL_EID_START)->lc_pr_time_fade_standby_manual;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_TIME_FADE_STANDBY_MANUAL_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address,
+                                 LIGHT_LC_PR_TIME_FADE_STANDBY_MANUAL_EID_START)->lc_pr_time_fade_standby_manual[array_index];
 }
 
 static uint32_t lc_pr_time_occupancy_delay_state_setter(mesh_config_entry_id_t id,
                                                         const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint32_t * p_value = (const uint32_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_TIME_OCCUPANCY_DELAY_EID_START)->lc_pr_time_occupancy_delay = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_TIME_OCCUPANCY_DELAY_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_TIME_OCCUPANCY_DELAY_EID_START)->lc_pr_time_occupancy_delay[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_time_occupancy_delay_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint32_t * p_value = (uint32_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_TIME_OCCUPANCY_DELAY_EID_START)->lc_pr_time_occupancy_delay;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_TIME_OCCUPANCY_DELAY_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_TIME_OCCUPANCY_DELAY_EID_START)->lc_pr_time_occupancy_delay[array_index];
 }
 
 static uint32_t lc_pr_time_prolong_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint32_t * p_value = (const uint32_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_TIME_PROLONG_EID_START)->lc_pr_time_prolong = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_TIME_PROLONG_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_TIME_PROLONG_EID_START)->lc_pr_time_prolong[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_time_prolong_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint32_t * p_value = (uint32_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_TIME_PROLONG_EID_START)->lc_pr_time_prolong;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_TIME_PROLONG_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_TIME_PROLONG_EID_START)->lc_pr_time_prolong[array_index];
 }
 
 static uint32_t lc_pr_time_run_on_state_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint32_t * p_value = (const uint32_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LC_PR_TIME_RUN_ON_EID_START)->lc_pr_time_run_on = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_TIME_RUN_ON_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_LC_PR_TIME_RUN_ON_EID_START)->lc_pr_time_run_on[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void lc_pr_time_run_on_state_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint32_t * p_value = (uint32_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LC_PR_TIME_RUN_ON_EID_START)->lc_pr_time_run_on;
+    id_record_to_address_array_index(id.record, LIGHT_LC_PR_TIME_RUN_ON_EID_START, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LC_PR_TIME_RUN_ON_EID_START)->lc_pr_time_run_on[array_index];
 }
 
 /***********************************************
@@ -803,6 +1002,40 @@ uint32_t light_lc_mc_state_get(uint8_t index, light_lc_state_t lc_state, void * 
     id.record += index;
     return mesh_config_entry_get(id, p_value);
 }
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+uint32_t light_lc_mc_scene_state_store(uint8_t index, uint8_t scene_index, light_lc_state_t lc_state, const void * p_value)
+{
+    uint32_t status;
+    mesh_config_entry_id_t id;
+
+    status = light_lc_state_utils_flash_id_from_lc_state(lc_state, &id);
+    if (status != NRF_SUCCESS)
+    {
+        return status;
+    }
+
+    id.record += lc_instance_index_array_index_to_id_record(index, (scene_index + 1));
+
+    return mesh_config_entry_set(id, p_value);
+}
+
+uint32_t light_lc_mc_scene_state_recall(uint8_t index, uint8_t scene_index, light_lc_state_t lc_state, void * p_value)
+{
+    uint32_t status;
+    mesh_config_entry_id_t id;
+
+    status = light_lc_state_utils_flash_id_from_lc_state(lc_state, &id);
+    if (status != NRF_SUCCESS)
+    {
+        return status;
+    }
+
+    id.record += lc_instance_index_array_index_to_id_record(index, (scene_index + 1));
+
+    return mesh_config_entry_get(id, p_value);
+}
+#endif /* SCENE_SETUP_SERVER_INSTANCES_MAX > 0 */
 
 uint32_t light_lc_mc_open(uint8_t * p_handle)
 {

@@ -90,9 +90,13 @@ extern void nrf_mesh_net_secmat_next_get(uint8_t nid, const nrf_mesh_network_sec
  * @param[in] aid The application identifier used for lookup of application keys.
  * @param[in, out] pp_app_secmat The application security material, which is used as a starting
  * point if valid, the next match or NULL (if no new match is found) is returned via this parameter.
+ * @param[in, out] pp_app_secmat_secondary Additional security material. This is used if a key refresh procedure
+ * is in progress and a node has an additional application key with the same AID that can be used for
+ * decrypting packets.
  */
 extern void nrf_mesh_app_secmat_next_get(const nrf_mesh_network_secmat_t * p_network_secmat,
-        uint8_t aid, const nrf_mesh_application_secmat_t ** pp_app_secmat);
+        uint8_t aid, const nrf_mesh_application_secmat_t ** pp_app_secmat,
+        const nrf_mesh_application_secmat_t ** pp_app_secmat_secondary);
 
 /**
  * Requests device key security material for a specific device address.

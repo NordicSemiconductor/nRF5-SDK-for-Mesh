@@ -81,11 +81,7 @@
 
 #define IV_UPDATE_TIMEOUT_NEEDS_TO_BE_SAVED(t) (((t) % IV_UPDATE_TIMEOUT_PERIODIC_SAVE_MINUTES) == 0)
 
-#if PERSISTENT_STORAGE
-    #define RESET_SEQNUM_MAX() (m_net_state.seqnum_max_available = 0)
-#else
-    #define RESET_SEQNUM_MAX() (m_net_state.seqnum_max_available = NETWORK_SEQNUM_MAX + 1)
-#endif
+#define RESET_SEQNUM_MAX() (m_net_state.seqnum_max_available = 0)
 
 /*****************************************************************************
 * Local typedefs
@@ -307,7 +303,6 @@ static void mesh_evt_handler(const nrf_mesh_evt_t * p_evt)
 * FLASH MANAGER CODE
 *****************************************************************************/
 
-#if PERSISTENT_STORAGE
 /* The only actual pair (iv index and sequence number) has a sense in case of restoring.
  * The "synchro index" has been added to understand that the restored values are relevant to each other.
  * Only values stored with the same synchro index should be used after restoring from the persistent subsystem. */
@@ -559,33 +554,6 @@ void net_state_reset(void)
     seqnum_block_allocate();
 }
 
-#else /* PERSISTENT_STORAGE*/
-static void iv_index_store(void)
-{}
-
-static void iv_update_timeout_counter_store(void)
-{}
-
-static void seqnum_block_allocate(void)
-{}
-
-void restored_result_apply(void)
-{
-    m_status.is_synchronized = 1;
-}
-
-static void legacy_remove(void)
-{}
-
-void net_state_reset(void)
-{
-    memset(&m_net_state, 0, sizeof(m_net_state));
-    m_status.is_iv_state_set_externally = 0;
-    m_status.is_synchronized = 1;
-    RESET_SEQNUM_MAX();
-}
-#endif /* PERSISTENT_STORAGE*/
-
 /*****************************************************************************
 * Interface functions
 *****************************************************************************/
@@ -615,7 +583,7 @@ void net_state_enable(void)
     }
 }
 
-uint32_t net_state_seqnum_alloc(uint32_t * p_seqnum)
+uint32_t net_state_iv_index_and_seqnum_alloc(uint32_t * p_iv_index, uint32_t * p_seqnum)
 {
     // Attempt to allocate the sequence number before it is fully restored from persistent storage.
     if (!m_status.is_synchronized)
@@ -631,6 +599,7 @@ uint32_t net_state_seqnum_alloc(uint32_t * p_seqnum)
         {
             threshold = NETWORK_SEQNUM_IV_UPDATE_END_THRESHOLD;
         }
+
         bool ivu_triggered = false;
         if (m_net_state.seqnum >= threshold)
         {
@@ -638,15 +607,18 @@ uint32_t net_state_seqnum_alloc(uint32_t * p_seqnum)
             ivu_triggered = iv_update_trigger_if_pending();
         }
 
-        if (!ivu_triggered && m_net_state.seqnum >= m_net_state.seqnum_max_available - NETWORK_SEQNUM_FLASH_BLOCK_THRESHOLD)
+        if (!ivu_triggered &&
+            m_net_state.seqnum >= (m_net_state.seqnum_max_available - NETWORK_SEQNUM_FLASH_BLOCK_THRESHOLD))
         {
             seqnum_block_allocate();
         }
+
         /* Get the sequence number after doing the state updates, as they might
          * trigger changes to it. */
         uint32_t was_masked;
         _DISABLE_IRQS(was_masked);
         *p_seqnum = m_net_state.seqnum++;
+        *p_iv_index = net_state_tx_iv_index_get();
         _ENABLE_IRQS(was_masked);
 
         return NRF_SUCCESS;
@@ -775,7 +747,7 @@ net_state_iv_update_t net_state_iv_update_get(void)
     return m_net_state.iv_update.state;
 }
 
-uint32_t net_state_iv_index_set(uint32_t iv_index, bool iv_update)
+uint32_t net_state_iv_index_and_seqnum_block_set(uint32_t iv_index, bool iv_update, uint32_t next_seqnum_block)
 {
     if (!!m_status.is_iv_state_set_externally)
     {
@@ -792,14 +764,18 @@ uint32_t net_state_iv_index_set(uint32_t iv_index, bool iv_update)
         iv_index_store();
         iv_index_notify(NULL);
 
-        /* Force reseting of sequence numbers upon IV index set */
-        m_net_state.seqnum = 0;
-        RESET_SEQNUM_MAX();
+        m_net_state.seqnum = next_seqnum_block;
+        m_net_state.seqnum_max_available = m_net_state.seqnum;
         m_status.is_synchronized = 1;
         seqnum_block_allocate();
 
         return NRF_SUCCESS;
     }
+}
+
+uint32_t net_state_iv_index_set(uint32_t iv_index, bool iv_update)
+{
+    return net_state_iv_index_and_seqnum_block_set(iv_index, iv_update, 0);
 }
 
 #if defined UNIT_TEST

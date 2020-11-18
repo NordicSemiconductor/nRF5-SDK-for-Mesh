@@ -51,6 +51,13 @@
 /** Model Company ID */
 #define GENERIC_DTT_COMPANY_ID 0xFFFF
 
+/**
+ * Defines default value for Generic Default Transition Time (independent, root only) state.
+ */
+#ifndef GENERIC_DTT_DEFAULT_DTT
+#define GENERIC_DTT_DEFAULT_DTT                    (0x0)
+#endif
+
 
 /**
  * Unpacked message structure typedefs are used for API interfaces and for implementing model code. This helps to minimize code

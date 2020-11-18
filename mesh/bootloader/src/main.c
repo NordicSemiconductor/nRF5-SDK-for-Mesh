@@ -65,7 +65,7 @@ uint32_t* m_uicr_bootloader_start_address
 #pragma push
 #pragma diag_suppress 170 /* Disable warning "pointer points outside of underlying object" */
 volatile uint32_t* m_uicr_bootloader_mbrparam_address
-__attribute__((at(NRF_UICR_MBR_PARAM_ADDRESS))) = (uint32_t*) (((uint8_t *) &__Vectors) - PAGE_SIZE);
+__attribute__((at(NRF_UICR_MBR_PARAM_ADDRESS))) = (uint32_t*) (((uint8_t *) &__Vectors) - PAGE_SIZE);   /*lint !e428 negative sibscript (-4096) in operator 'ptr-int'. */
 #pragma pop
 #endif
 

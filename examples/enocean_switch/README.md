@@ -1,28 +1,28 @@
 # EnOcean switch translator client example
 
 @tag52840and52833and52832
-@tag52810nosupport
+@tag52810and52820nosupport
 
 This example demonstrates:
-- how a PTM215B EnOcean switch can be integrated in the mesh ecosystem;
+- how a PTM215B EnOcean switch can be integrated in the Bluetooth mesh ecosystem;
 - how to capture the commissioning data of the EnOcean switch;
-- how to translate the EnOcean switch messages into equivalent mesh messages.
+- how to translate the EnOcean switch messages into equivalent Bluetooth mesh messages.
 
 The example uses two instances of the [Generic OnOff client model](@ref GENERIC_ONOFF_MODEL).
 These on/off clients can be configured to control desired servers by the provisioner.
 
 The following figure shows such a hybrid network that contains a device outside
-of the Bluetooth Mesh Network, a translator client, and servers. All servers have
+of the Bluetooth mesh network, a translator client, and servers. All servers have
 the relay functionality enabled, which allows the EnOcean switch to control the state
 of any of the servers in the network.
 
-![Integrating EnOcean switches in the Mesh Network](images/example_nw_config.png "Integrating EnOcean switches in the Mesh Network")
+![Integrating EnOcean switches in the Bluetooth mesh network](images/example_nw_config.png "Integrating EnOcean switches in the Bluetooth mesh network")
 
 The translator client linked with the EnOcean switch has a provisionee role in the network.
 The client receives messages from the PTM215B switch and converts them to
 equivalent on/off client messages to control the state of LED 1 on servers.
 The client instantiates two instances of the Generic OnOff Client model (A and B, each
-with two buttons) and can either be provisioned and configured by 
+with two buttons) and can either be provisioned and configured by
 the [provisioner example](@ref md_examples_provisioner_README)
 or by a GATT-based provisioner (@link_nrf_mesh_app).
 
@@ -98,7 +98,7 @@ You can find the source code of the EnOcean example in the following folder:
     - Capturing commissioning telegrams:
         - LED 1 to 4: Blink four times to indicate a commissioning telegram is captured.
     - For node reset:
-        - Button 4 (on the board): Reset the node by erasing mesh and application data.
+        - Button 4 (on the board): Reset the node by erasing Bluetooth mesh and application data.
         - LED 1: Blinks twice to indicate node reset is being executed.
 - Provisioner
     - Button 1: Start provisioning.
@@ -115,7 +115,7 @@ You can find the source code of the EnOcean example in the following folder:
 ## Testing the example @anchor enocean_example_setup_testing
 
 To test the EnOcean switch example, build the examples by following the instructions in
-[Building the mesh stack](@ref md_doc_getting_started_how_to_build).
+[Building the Bluetooth mesh stack](@ref md_doc_getting_started_how_to_build).
 
 After building is complete, use one of the following methods, depending on the preferred
 provisioning approach:
@@ -145,7 +145,7 @@ This can also be done after the translator client provisioning.
 - The following naming convention is used in the app:
     - The switch board is `nRF5x Mesh Enocean Translator`.
     - The server board is `nRF5x Mesh Light`.
-    
+
 The following model instances must be configured in the app for this example:
 - For the `nRF5x Mesh Light` server board: Generic On Off Server.
 - For the `nRF5x Mesh Enocean Translator` switch board: Generic On Off Client.
@@ -178,19 +178,19 @@ Once one of the commissioning telegrams is captured by the translator, 4 LEDs wi
 @note
 The example supports two EnOcean switches to be connected in parallel. You can repeat
 the commissioning configuration steps to commission the second switch.
-From the mesh network's perspective, both switches will be seen as one device,
+From the Bluetooth mesh network's perspective, both switches will be seen as one device,
 and their messages will be forwarded through the same Generic OnOff clients.
 
 ### Interacting with the boards @anchor enocean_example_testing_interacting
 
 Once the provisioning and the configuration of the EnOcean translator client node and at least one
 of the server nodes are complete and the commissioning data is captured, you can press
-rocker switches on the EnOcean switch to control various servers. 
+rocker switches on the EnOcean switch to control various servers.
 See [LED and button assignments](@ref enocean_example_setup_assignments) section.
 
 If any of the devices is powered off and back on, it will remember its flash configuration
 and rejoin the network. For more information about the flash manager, see @ref md_doc_user_guide_modules_flash_manager.
 
 If you want to reset the application data without re-flashing the firmware, press Button 4.
-LED 1 will blink twice to indicate that application specific data and mesh related data has been erased.
+LED 1 will blink twice to indicate that application-specific data and data related to Bluetooth mesh has been erased.
 Press Reset button to reset the board and start the application.

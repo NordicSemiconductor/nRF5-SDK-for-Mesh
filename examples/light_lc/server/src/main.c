@@ -69,9 +69,10 @@
 #include "light_lightness_utils.h"
 #include "light_lc_state_utils.h"
 #include "light_lc_server_property_constants.h"
-#include "model_common.h"
+#include "model_config_file.h"
 #include "ble_softdevice_support.h"
 #include "app_timer.h"
+#include "app_scene.h"
 
 /*****************************************************************************
  * Definitions
@@ -95,6 +96,12 @@ static void lightness_get_cb(const app_light_lightness_setup_server_t * p_app, u
 static void lightness_transition_cb(const app_light_lightness_setup_server_t * p_server,
                                          uint32_t transition_time_ms, uint16_t target_lightness);
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static void scene_transition_lightness_cb(const app_scene_setup_server_t * p_app,
+                                          uint32_t transition_time_ms,
+                                          uint16_t target_scene);
+#endif
+
 /*****************************************************************************
  * Static variables
  *****************************************************************************/
@@ -106,15 +113,24 @@ static nrf_mesh_evt_handler_t m_event_handler =
 };
 
 /* LC Setup Server and associated model structures' definition and initialization */
-APP_LIGHT_LC_SETUP_SERVER_DEF(m_lc_server_0,
-                              APP_FORCE_SEGMENTATION,
-                              APP_MIC_SIZE)
 APP_LIGHT_LIGHTNESS_SETUP_SERVER_DEF(m_lc_server_0_ll,
                                      APP_FORCE_SEGMENTATION,
                                      APP_MIC_SIZE,
                                      lightness_set_cb,
                                      lightness_get_cb,
                                      lightness_transition_cb)
+APP_LIGHT_LC_SETUP_SERVER_DEF(m_lc_server_0,
+                              APP_FORCE_SEGMENTATION,
+                              APP_MIC_SIZE)
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+/* Scene Setup server structure definition and initialization */
+APP_SCENE_SETUP_SERVER_DEF(m_scene_server_0,
+                           APP_FORCE_SEGMENTATION,
+                           APP_MIC_SIZE,
+                           scene_transition_lightness_cb,
+                           &m_lc_server_0_ll.light_lightness_setup_server.generic_ponoff_setup_srv.generic_dtt_srv)
+#endif
 
 /* Application variable for holding instantaneous lightness value */
 static uint16_t m_pwm0_present_actual_lightness;
@@ -138,7 +154,7 @@ static pwm_utils_contex_t m_pwm = {
 static void lightness_set_cb(const app_light_lightness_setup_server_t * p_app, uint16_t lightness)
 {
     m_pwm0_present_actual_lightness = lightness;
-    pwm_utils_level_set(&m_pwm, light_lightness_utils_actual_to_generic_level(m_pwm0_present_actual_lightness));
+    (void)pwm_utils_level_set_unsigned(&m_pwm, m_pwm0_present_actual_lightness);
 }
 
 /* Callback for reading the hardware state */
@@ -155,6 +171,16 @@ static void lightness_transition_cb(const app_light_lightness_setup_server_t * p
                                        transition_time_ms, target_lightness);
 }
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static void scene_transition_lightness_cb(const app_scene_setup_server_t * p_app,
+                                          uint32_t transition_time_ms,
+                                          uint16_t target_scene)
+{
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Transition time: %d, Target Scene: %d\n",
+                                       transition_time_ms, target_scene);
+}
+#endif
+
 static void models_init_cb(void)
 {
     /* Initialize the LC Setup Server and associated models */
@@ -169,6 +195,18 @@ static void models_init_cb(void)
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App LC (%d, %d) = (Model Handle, element index)\n",
           m_lc_server_0.light_lc_setup_srv.model_handle,
           m_lc_server_0.light_lc_setup_srv.settings.element_index);
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    /* Instantiate scene server and register light LC server to have scene support. The Light
+    Lightness Setup Server is not added to the scene as it is handled throught the Light LC Setup
+    Server. */
+    APP_ERROR_CHECK(app_scene_model_init(&m_scene_server_0, APP_LL_ELEMENT_INDEX));
+    APP_ERROR_CHECK(app_scene_model_add(&m_scene_server_0, &m_lc_server_0.scene_if));
+    APP_ERROR_CHECK(app_light_lc_scene_context_set(&m_lc_server_0, &m_scene_server_0));
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "App Scene Model handle: %d, Element index: %d\n",
+          m_scene_server_0.scene_setup_server.model_handle,
+          m_scene_server_0.scene_setup_server.settings.element_index);
+#endif
 }
 
 /*************************************************************************************************/
@@ -203,6 +241,7 @@ static void mesh_events_handle(const nrf_mesh_evt_t * p_evt)
 static void node_reset(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset  -----\n");
+    model_config_file_clear();
     /* This function may return if there are ongoing flash operations. */
     mesh_stack_device_reset();
 }
@@ -321,8 +360,8 @@ static void provisioning_complete_cb(void)
 
 static void mesh_init(void)
 {
-    /* Initiate the application storage for light lightness and lc server. */
-    model_common_init();
+    /* Initialize the application storage for models */
+    model_config_file_init();
 
     mesh_stack_init_params_t init_params =
     {
@@ -338,15 +377,17 @@ static void mesh_init(void)
     if (status == NRF_SUCCESS)
     {
         /* Check if application stored data is valid, if not clear all data and use default values. */
-        status = model_common_config_apply();
+        status = model_config_file_config_apply();
     }
 
     switch (status)
     {
         case NRF_ERROR_INVALID_DATA:
+            /* Clear model config file as loading failed */
+            model_config_file_clear();
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
                   "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before starting of the provisioning process.\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reboot device before starting of the provisioning process.\n");
             break;
         case NRF_SUCCESS:
             break;

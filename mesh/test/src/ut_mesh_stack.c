@@ -46,6 +46,7 @@
 #include "access_mock.h"
 #include "access_config_mock.h"
 #include "net_state_mock.h"
+#include "replay_cache_mock.h"
 #include "flash_manager_mock.h"
 #include "config_server_mock.h"
 #include "health_server_mock.h"
@@ -54,6 +55,12 @@
 #include "nrf_mesh_events.h"
 #include "mesh_config_backend_glue_mock.h"
 #include "mesh_opt_mock.h"
+#include "scanner_mock.h"
+#include "bearer_handler_mock.h"
+#include "event_mock.h"
+#include "mesh_adv_mock.h"
+#include "timer_scheduler_mock.h"
+#include "proxy_mock.h"
 
 /********** Additional mock functions **********/
 
@@ -66,13 +73,57 @@
 #define KEY_REFRESH     true
 
 static bool m_mesh_stack_models_init_cb_expected;
-
 static nrf_mesh_evt_handler_cb_t m_mesh_evt_cb;
+static nrf_mesh_evt_handler_t * mp_power_down_cb;
+static bool m_is_power_down_triggered;
+static bool m_test_load_failed;
+
+static void event_handler_add_cb(nrf_mesh_evt_handler_t * p_handler_params, int num_calls)
+{
+    (void)num_calls;
+    TEST_ASSERT_NOT_NULL(p_handler_params);
+    TEST_ASSERT_NOT_NULL(p_handler_params->evt_cb);
+    mp_power_down_cb = p_handler_params;
+}
+
+static void event_handle_cb(const nrf_mesh_evt_t * p_evt, int num_calls)
+{
+    (void)num_calls;
+    TEST_ASSERT_NOT_NULL(p_evt);
+    TEST_ASSERT_EQUAL(NRF_MESH_EVT_READY_TO_POWER_OFF, p_evt->type);
+    m_is_power_down_triggered = true;
+}
 
 void nrf_mesh_evt_handler_add(nrf_mesh_evt_handler_t * p_handler_params)
 {
     TEST_ASSERT_NULL(m_mesh_evt_cb);
     m_mesh_evt_cb = p_handler_params->evt_cb;
+}
+
+void nrf_mesh_evt_handler_remove(nrf_mesh_evt_handler_t * p_handler_params)
+{
+    TEST_ASSERT_EQUAL(m_mesh_evt_cb, p_handler_params->evt_cb);
+    m_mesh_evt_cb = NULL;
+}
+
+static void mesh_config_load_stub_cb(int count)
+{
+    TEST_ASSERT_NOT_NULL(m_mesh_evt_cb);
+
+    if (m_test_load_failed)
+    {
+        const nrf_mesh_evt_t load_failure_event = {
+            .type = NRF_MESH_EVT_CONFIG_LOAD_FAILURE,
+            .params.config_load_failure = {
+                .p_data = NULL, /* don't care for test */
+                .id.file = MESH_OPT_FIRST_FREE_ID - 1, /*lint !e64 Type mismatch */
+                .data_len = 1, /* don't care for test */
+                .reason = MESH_CONFIG_LOAD_FAILURE_INVALID_DATA /* don't care for test */
+            }
+        };
+
+        m_mesh_evt_cb(&load_failure_event);
+    }
 }
 
 static void config_server_evt_cb(const config_server_evt_t * p_evt)
@@ -96,7 +147,7 @@ static void mesh_stack_models_init_cb_Verify(void)
     TEST_ASSERT_FALSE(m_mesh_stack_models_init_cb_expected);
 }
 
-static void successful_init_test(bool dsm_load_config_apply_return, bool access_load_config_apply_return)
+static void successful_init_test(bool dsm_load_config_success, bool access_load_config_success, bool load_failed)
 {
     health_server_selftest_t test_array[] = {{ .test_id = 1, .selftest_function = NULL }};
     bool device_provisioned;
@@ -119,12 +170,19 @@ static void successful_init_test(bool dsm_load_config_apply_return, bool access_
     config_server_init_ExpectAndReturn(config_server_evt_cb, NRF_SUCCESS);
     health_server_init_ExpectAndReturn(NULL, 0, DEVICE_COMPANY_ID, health_server_attention_cb, test_array, sizeof(test_array) / sizeof(test_array[0]), NRF_SUCCESS);
     health_server_init_IgnoreArg_p_server();
-    dsm_load_config_apply_ExpectAndReturn(dsm_load_config_apply_return ? NRF_SUCCESS : NRF_ERROR_INVALID_DATA);
-    access_load_config_apply_ExpectAndReturn(access_load_config_apply_return ? NRF_SUCCESS : NRF_ERROR_INVALID_DATA);
-    mesh_config_load_Expect();
-    nrf_mesh_is_device_provisioned_ExpectAndReturn(dsm_load_config_apply_return && access_load_config_apply_return);
+    dsm_load_config_apply_ExpectAndReturn(dsm_load_config_success ? NRF_SUCCESS : NRF_ERROR_INVALID_DATA);
+    access_load_config_apply_ExpectAndReturn(access_load_config_success ? NRF_SUCCESS : NRF_ERROR_INVALID_DATA);
+    m_test_load_failed = load_failed;
+    mesh_config_load_StubWithCallback(mesh_config_load_stub_cb);
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    if (dsm_load_config_success && access_load_config_success && !load_failed)
+    {
+        proxy_init_Expect();
+    }
+#endif
+    nrf_mesh_is_device_provisioned_ExpectAndReturn(dsm_load_config_success && access_load_config_success && !load_failed);
 
-    if (dsm_load_config_apply_return && access_load_config_apply_return)
+    if (dsm_load_config_success && access_load_config_success && !load_failed)
     {
         TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_stack_init(&init_params, &device_provisioned));
     }
@@ -134,10 +192,11 @@ static void successful_init_test(bool dsm_load_config_apply_return, bool access_
         dsm_clear_Expect();
         access_clear_Expect();
         net_state_reset_Expect();
+        replay_cache_clear_Expect();
         TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_DATA, mesh_stack_init(&init_params, &device_provisioned));
     }
 
-    TEST_ASSERT_EQUAL(dsm_load_config_apply_return && access_load_config_apply_return, device_provisioned);
+    TEST_ASSERT_EQUAL(dsm_load_config_success && access_load_config_success && !load_failed, device_provisioned);
 
     mesh_stack_models_init_cb_Verify();
     device_state_manager_mock_Verify();
@@ -154,6 +213,7 @@ void setUp(void)
     access_mock_Init();
     access_config_mock_Init();
     net_state_mock_Init();
+    replay_cache_mock_Init();
     flash_manager_mock_Init();
     config_server_mock_Init();
     health_server_mock_Init();
@@ -162,8 +222,15 @@ void setUp(void)
     mesh_config_backend_glue_mock_Init();
     nrf_mesh_externs_mock_Init();
     mesh_opt_mock_Init();
+    scanner_mock_Init();
+    bearer_handler_mock_Init();
+    event_mock_Init();
+    mesh_adv_mock_Init();
+    timer_scheduler_mock_Init();
+    proxy_mock_Init();
     m_mesh_stack_models_init_cb_expected = false;
     m_mesh_evt_cb = NULL;
+    m_test_load_failed = false;
 }
 
 void tearDown(void)
@@ -178,6 +245,8 @@ void tearDown(void)
     access_config_mock_Destroy();
     net_state_mock_Verify();
     net_state_mock_Destroy();
+    replay_cache_mock_Verify();
+    replay_cache_mock_Destroy();
     flash_manager_mock_Verify();
     flash_manager_mock_Destroy();
     config_server_mock_Verify();
@@ -194,6 +263,18 @@ void tearDown(void)
     nrf_mesh_externs_mock_Destroy();
     mesh_opt_mock_Verify();
     mesh_opt_mock_Destroy();
+    scanner_mock_Verify();
+    scanner_mock_Destroy();
+    bearer_handler_mock_Verify();
+    bearer_handler_mock_Destroy();
+    event_mock_Verify();
+    event_mock_Destroy();
+    mesh_adv_mock_Verify();
+    mesh_adv_mock_Destroy();
+    timer_scheduler_mock_Verify();
+    timer_scheduler_mock_Destroy();
+    proxy_mock_Verify();
+    proxy_mock_Destroy();
 
     mesh_stack_models_init_cb_Verify();
 }
@@ -206,19 +287,37 @@ void test_init(void)
     TEST_ASSERT_EQUAL(NRF_ERROR_NULL, mesh_stack_init(NULL, NULL));
 
     /* Test normal initialization */
-    successful_init_test(false, false);
-    successful_init_test(true, false);
-    successful_init_test(false, true);
-    successful_init_test(true, true);
+    mesh_opt_mock_Verify();
+    successful_init_test(false, false, false);
+    mesh_opt_mock_Verify();
+    successful_init_test(true, false, false);
+    mesh_opt_mock_Verify();
+    successful_init_test(false, true, false);
+    mesh_opt_mock_Verify();
+    successful_init_test(true, true, false);
+    mesh_opt_mock_Verify();
+    /* Test load failure */
+    successful_init_test(true, true, true);
 }
 
 void test_start(void)
 {
     /* Test failing start */
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    nrf_mesh_is_device_provisioned_ExpectAndReturn(true);
+    proxy_is_enabled_ExpectAndReturn(false);
+#endif
+
     nrf_mesh_enable_ExpectAndReturn(NRF_ERROR_INVALID_STATE);
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, mesh_stack_start());
 
     /* Test successful start */
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    nrf_mesh_is_device_provisioned_ExpectAndReturn(true);
+    proxy_is_enabled_ExpectAndReturn(true);
+    proxy_start_ExpectAndReturn(NRF_SUCCESS);
+#endif
+
     nrf_mesh_enable_ExpectAndReturn(NRF_SUCCESS);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_stack_start());
 }
@@ -235,14 +334,18 @@ void test_provisioning_data_store(void)
         .flags.key_refresh = KEY_REFRESH
     };
     uint8_t devkey[] = DEVKEY;
+    uint16_t subnet_handle = 1;
 
     dsm_local_unicast_addresses_set_IgnoreAndReturn(NRF_SUCCESS);
     dsm_subnet_add_ExpectAndReturn(prov_data.netkey_index, prov_data.netkey, NULL, NRF_SUCCESS);
     dsm_subnet_add_IgnoreArg_p_subnet_handle();
+    dsm_subnet_add_ReturnThruPtr_p_subnet_handle(&subnet_handle);
     dsm_devkey_add_ExpectAndReturn(prov_data.address, 0, devkey, NULL, NRF_SUCCESS);
     dsm_devkey_add_IgnoreArg_subnet_handle();
     dsm_devkey_add_IgnoreArg_p_devkey_handle();
     net_state_iv_index_set_ExpectAndReturn(prov_data.iv_index, prov_data.flags.iv_update, NRF_SUCCESS);
+    dsm_subnet_update_ExpectAndReturn(subnet_handle, prov_data.netkey, NRF_SUCCESS);
+    dsm_subnet_update_swap_keys_ExpectAndReturn(subnet_handle, NRF_SUCCESS);
     config_server_bind_IgnoreAndReturn(NRF_SUCCESS);
 
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_stack_provisioning_data_store(&prov_data, devkey));
@@ -254,6 +357,7 @@ void test_mesh_stack_config_clear(void)
     access_clear_Expect();
     dsm_clear_Expect();
     net_state_reset_Expect();
+    replay_cache_clear_Expect();
 
     mesh_stack_config_clear();
 }
@@ -325,4 +429,33 @@ void test_mesh_stack_persistence_flash_usage(void)
 
 void test_mesh_stack_power_down(void)
 {
+    scanner_disable_Expect();
+#if MESH_FEATURE_GATT_PROXY_ENABLED
+    proxy_node_id_disable_ExpectAndReturn(NRF_SUCCESS);
+    proxy_disconnect_Expect();
+    proxy_stop_ExpectAndReturn(NRF_SUCCESS);
+    proxy_disable_Expect();
+#endif
+    timer_sch_stop_Expect();
+    event_handler_add_StubWithCallback(event_handler_add_cb);
+    bearer_handler_force_mode_enable_Expect();
+    mesh_config_power_down_Expect();
+    mesh_stack_power_down();
+
+    TEST_ASSERT_NOT_NULL(mp_power_down_cb);
+    /* third party event. */
+    nrf_mesh_evt_t evt = {.type = NRF_MESH_EVT_PROXY_STOPPED};
+    mp_power_down_cb->evt_cb(&evt);
+
+    /* mesh config completed deal with emergency cache. */
+    event_handle_StubWithCallback(event_handle_cb);
+    bearer_handler_force_mode_disable_Expect();
+    nrf_mesh_disable_ExpectAndReturn(NRF_SUCCESS);
+    evt.type = NRF_MESH_EVT_CONFIG_STABLE;
+    mp_power_down_cb->evt_cb(&evt);
+    TEST_ASSERT_FALSE(m_is_power_down_triggered);
+
+    evt.type = NRF_MESH_EVT_DISABLED;
+    mp_power_down_cb->evt_cb(&evt);
+    TEST_ASSERT_TRUE(m_is_power_down_triggered);
 }

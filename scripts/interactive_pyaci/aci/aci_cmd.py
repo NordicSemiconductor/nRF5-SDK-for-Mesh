@@ -939,6 +939,36 @@ class ConfigServerBind(CommandPacket):
         super(ConfigServerBind, self).__init__(0xAD, __data)
 
 
+class NetStateSet(CommandPacket):
+    """Sets the network state
+
+    Parameters
+    ----------
+        iv_index : uint32_t
+            The IV index to set.
+        iv_update_in_progress : uint8_t
+            Value indicating the phase of the IV update process.
+        iv_update_timeout_counter : uint16_t
+            Timeout counter for IV update process.
+        next_seqnum_block : uint32_t
+            First sequence number block not yet allocated.
+    """
+    def __init__(self, iv_index, iv_update_in_progress, iv_update_timeout_counter, next_seqnum_block):
+        __data = bytearray()
+        __data += struct.pack("<I", iv_index)
+        __data += struct.pack("<B", iv_update_in_progress)
+        __data += struct.pack("<H", iv_update_timeout_counter)
+        __data += struct.pack("<I", next_seqnum_block)
+        super(NetStateSet, self).__init__(0xAE, __data)
+
+
+class NetStateGet(CommandPacket):
+    """Gets the network state"""
+    def __init__(self):
+        __data = bytearray()
+        super(NetStateGet, self).__init__(0xAF, __data)
+
+
 class JumpToBootloader(CommandPacket):
     """Immediately jump to bootloader mode."""
     def __init__(self):
@@ -1700,6 +1730,17 @@ class PacketSendRsp(ResponsePacket):
         super(PacketSendRsp, self).__init__("PacketSend", 0xAB, __data)
 
 
+class NetStateGetRsp(ResponsePacket):
+    """Response to a(n) NetStateGet command."""
+    def __init__(self, raw_data):
+        __data = {}
+        __data["iv_index"], = struct.unpack("<I", raw_data[0:4])
+        __data["iv_update_in_progress"], = struct.unpack("<B", raw_data[4:5])
+        __data["iv_update_timout_counter"], = struct.unpack("<H", raw_data[5:7])
+        __data["next_seqnum_block"], = struct.unpack("<I", raw_data[7:11])
+        super(NetStateGetRsp, self).__init__("NetStateGet", 0xAF, __data)
+
+
 class BankInfoGetRsp(ResponsePacket):
     """Response to a(n) BankInfoGet command."""
     def __init__(self, raw_data):
@@ -1888,6 +1929,7 @@ RESPONSE_LUT = {
     0xA5: {"object": AddrPublicationAddVirtualRsp, "name": "AddrPublicationAddVirtual"},
     0xA6: {"object": AddrPublicationRemoveRsp, "name": "AddrPublicationRemove"},
     0xAB: {"object": PacketSendRsp, "name": "PacketSend"},
+    0xAF: {"object": NetStateGetRsp, "name": "NetStateGet"},
     0xD4: {"object": BankInfoGetRsp, "name": "BankInfoGet"},
     0xD6: {"object": StateGetRsp, "name": "StateGet"},
     0xE1: {"object": ModelPubAddrGetRsp, "name": "ModelPubAddrGet"},

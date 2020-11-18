@@ -54,6 +54,7 @@
 #include "mesh_gatt_mock.h"
 #include "mesh_config_entry.h"
 #include "mesh_opt_gatt.h"
+#include "bearer_event_mock.h"
 
 #define NET_ENC_KEY_1     0x3a, 0x4f, 0xe8, 0x4a, 0x6c, 0xc2, 0xc6, 0xa7, 0x66, 0xea, 0x93, 0xf1, 0x08, 0x4d, 0x40, 0x39
 #define NET_PRIVACY_KEY_1 0xf6, 0x95, 0xfc, 0xce, 0x70, 0x9c, 0xcf, 0xac, 0xe4, 0xd8, 0xb7, 0xa1, 0xe6, 0xe3, 0x9d, 0x25
@@ -61,6 +62,8 @@
 #define NET_ID_2          0x3e, 0xca, 0xff, 0x67, 0x2f, 0x67, 0x33, 0x70
 #define ID_KEY_2          0x84, 0x39, 0x6c, 0x43, 0x5a, 0xc4, 0x85, 0x60, 0xb5, 0x96, 0x53, 0x85, 0x25, 0x3e, 0x21, 0x0c
 #define RANDOM_DATA       0x34, 0xae, 0x60, 0x8f, 0xbb, 0xc1, 0xf2, 0xc6
+
+extern void proxy_deinit(void);
 
 static const struct
 {
@@ -133,6 +136,8 @@ void setUp(void)
     advertiser_mock_Init();
     beacon_mock_Init();
     mesh_gatt_mock_Init();
+    bearer_event_mock_Init();
+    bearer_event_flag_add_IgnoreAndReturn(0);
 
     msg_cache_entry_exists_IgnoreAndReturn(false);
 }
@@ -157,6 +162,10 @@ void tearDown(void)
     beacon_mock_Destroy();
     mesh_gatt_mock_Verify();
     mesh_gatt_mock_Destroy();
+    bearer_event_mock_Verify();
+    bearer_event_mock_Destroy();
+
+    proxy_deinit();
 }
 /*****************************************************************************
 * Mock functions
@@ -196,10 +205,11 @@ void test_config_msg_rx(void)
                                               m_proxy_config_msg_vector.iv_index);
 
     // expect it to respond with a config message:
-    net_state_tx_iv_index_get_ExpectAndReturn(m_proxy_config_msg_vector.iv_index);
     uint32_t seqnum = 1;
-    net_state_seqnum_alloc_ExpectAnyArgsAndReturn(NRF_SUCCESS);
-    net_state_seqnum_alloc_ReturnThruPtr_p_seqnum(&seqnum);
+    uint32_t iv_index = m_proxy_config_msg_vector.iv_index;
+    net_state_iv_index_and_seqnum_alloc_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    net_state_iv_index_and_seqnum_alloc_ReturnThruPtr_p_iv_index(&iv_index);
+    net_state_iv_index_and_seqnum_alloc_ReturnThruPtr_p_seqnum(&seqnum);
 
     mesh_gatt_evt_t rx_evt;
     rx_evt.type = MESH_GATT_EVT_TYPE_RX;

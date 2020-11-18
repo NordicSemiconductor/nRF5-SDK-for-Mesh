@@ -216,3 +216,13 @@ uint32_t generic_onoff_server_status_publish(generic_onoff_server_t * p_server, 
 
     return status_send(p_server, NULL, p_params);
 }
+
+uint32_t generic_onoff_server_state_set(generic_onoff_server_t * p_server, bool onoff)
+{
+    generic_onoff_set_params_t in_data = {0};
+
+    in_data.on_off = onoff;
+    p_server->settings.p_callbacks->onoff_cbs.set_cb(p_server, NULL, &in_data, NULL, NULL);
+
+    return NRF_SUCCESS;
+}

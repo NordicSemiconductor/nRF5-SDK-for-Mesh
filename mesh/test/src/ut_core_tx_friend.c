@@ -178,7 +178,7 @@ void test_init(void)
     core_tx_bearer_add_StubWithCallback(core_tx_bearer_add_mock);
 
 
-    core_tx_friend_init(&m_friend, TX_TOKEN);
+    core_tx_friend_init(&m_friend, TX_TOKEN, RADIO_POWER_NRF_0DBM);
     TEST_ASSERT_EQUAL(TX_TOKEN, m_friend.token);
     TEST_ASSERT_NOT_NULL(m_friend.tx_complete_event.callback);
     TEST_ASSERT_NOT_NULL(m_friend.tx_timer.cb);

@@ -71,7 +71,7 @@ typedef struct
 
 MOCK_QUEUE_DEF(net_packet_decrypt_mock_queue, net_packet_decrypt_expect_t, NULL);
 MOCK_QUEUE_DEF(net_metadata_mock_queue, network_packet_metadata_t*, NULL);
-MOCK_QUEUE_DEF(bearer_bitmap_mock_queue, core_tx_bearer_selector_t, NULL);
+MOCK_QUEUE_DEF(bearer_selector_mock_queue, core_tx_bearer_selector_t, NULL);
 
 /*****************************************************************************
 * Mocked functions
@@ -81,14 +81,17 @@ static core_tx_bearer_bitmap_t core_tx_packet_alloc_mock(const core_tx_alloc_par
 {
     UNUSED_PARAMETER(num_calls);
 
-    core_tx_bearer_bitmap_t bearer_selector_expected;
-    bearer_bitmap_mock_queue_Consume(&bearer_selector_expected);
+    core_tx_bearer_selector_t bearer_selector_expected;
+    bearer_selector_mock_queue_Consume(&bearer_selector_expected);
     TEST_ASSERT_EQUAL(bearer_selector_expected, p_params->bearer_selector);
 
     static uint8_t payload[PACKET_MESH_NET_MAX_SIZE];
     *pp_packet = payload;
 
-    return p_params->bearer_selector;
+    /* For the purpose of this test, we don't care what bearer bitmap was returned, as
+     * return value of `core_tx_packet_alloc()` is only compared against 0 and not really
+     * used by the network layer */
+    return 1;
 }
 
 static void proxy_net_packet_processed_mock(const network_packet_metadata_t * p_net_metadata,
@@ -166,7 +169,7 @@ void setUp(void)
     net_packet_mock_Init();
     nrf_mesh_externs_mock_Init();
     proxy_mock_Init();
-    bearer_bitmap_mock_queue_Init();
+    bearer_selector_mock_queue_Init();
     net_metadata_mock_queue_Init();
     net_packet_decrypt_mock_queue_Init();
 
@@ -191,8 +194,8 @@ void tearDown(void)
     nrf_mesh_externs_mock_Destroy();
     proxy_mock_Verify();
     proxy_mock_Destroy();
-    bearer_bitmap_mock_queue_Verify();
-    bearer_bitmap_mock_queue_Destroy();
+    bearer_selector_mock_queue_Verify();
+    bearer_selector_mock_queue_Destroy();
     net_metadata_mock_queue_Verify();
     net_metadata_mock_queue_Destroy();
     net_packet_decrypt_mock_queue_Verify();
@@ -204,7 +207,7 @@ void tearDown(void)
 *****************************************************************************/
 static void relay_Expect(core_tx_bearer_selector_t bearer_selector)
 {
-    bearer_bitmap_mock_queue_Expect(&bearer_selector);
+    bearer_selector_mock_queue_Expect(&bearer_selector);
     static packet_mesh_net_packet_t relay_packet;
     net_packet_from_payload_ExpectAnyArgsAndReturn(&relay_packet);
     net_packet_header_set_ExpectAnyArgs();
@@ -253,7 +256,7 @@ static void network_packet_in_Trigger(nrf_mesh_rx_source_t source)
 
     net_packet_decrypt_mock_queue_Verify();
     net_metadata_mock_queue_Verify();
-    bearer_bitmap_mock_queue_Verify();
+    bearer_selector_mock_queue_Verify();
 }
 
 /*****************************************************************************

@@ -1,11 +1,12 @@
 # Light switch example
 
 @tag52840and52833and52832
-@tag52810nosupport
+@tag52840donglelimitedsupport
+@tag52810and52820nosupport
 
-This example demonstrates the mesh ecosystem that contains devices acting in the Node role
+This example demonstrates the Bluetooth mesh ecosystem that contains devices acting in the Node role
 (also referred to as provisionee role).
-It also demonstrates how to use Mesh models by using the [Generic OnOff model](@ref GENERIC_ONOFF_MODEL)
+It also demonstrates how to use Bluetooth mesh models by using the [Generic OnOff model](@ref GENERIC_ONOFF_MODEL)
 in an application.
 
 **Table of contents**
@@ -13,6 +14,7 @@ in an application.
 - [Software requirements](@ref light_switch_example_sw_requirements)
 - [Setup](@ref light_switch_example_setup)
     - [LED and button assignments](@ref light_switch_example_setup_leds_buttons)
+    - [Scene model integration](@ref light_switch_example_setup_scene_model)
 - [Testing the example](@ref light_switch_example_testing)
     - [Evaluating using the static provisioner](@ref light_switch_example_testing_dk)
     - [Evaluating using the nRF Mesh mobile app](@ref light_switch_example_testing_app)
@@ -29,8 +31,8 @@ configured destination address.
 
 You can use the [provisioner example](@ref md_examples_provisioner_README) to [evaluate the light switch example](@ref light_switch_example_testing_dk).
 The provisioner example provides a simple static provisioner implementation that sets up the demonstration network.
-The example provisions all the nodes in one mesh network. Additionally, it also configures
-key bindings and publication and subscription settings of the mesh model instances on these nodes
+The example provisions all the nodes in one Bluetooth mesh network. Additionally, it also configures
+key bindings and publication and subscription settings of the Bluetooth mesh model instances on these nodes
 to enable them to talk to each other.
 
 @note For provisioning purposes, you can also use the @link_nrf_mesh_app.
@@ -45,15 +47,15 @@ see the following pages:
 - @subpage md_examples_light_switch_server_README
 - @subpage md_examples_light_switch_client_README
 
-The following figure gives the overall view of the mesh network that will be set up
+The following figure gives the overall view of the Bluetooth mesh network that will be set up
 by the static provisioner. Numbers in parentheses indicate the addresses that are assigned
 to these nodes by the provisioner.
 
-![Mesh network demonstration](images/mesh-nw-demo_r02.svg "Mesh network demonstration")
+![Bluetooth mesh network demonstration](images/mesh-nw-demo_r02.svg "Bluetooth mesh network demonstration")
 
 Both the light switch server and light switch client examples have provisionee role.
 They support provisioning over Advertising bearer (PB-ADV) and GATT bearer (PB-GATT) and also support
-Mesh Proxy Service (Server). Read more about the Proxy feature in @ref md_doc_user_guide_modules_provisioning_gatt_proxy.
+Bluetooth mesh Proxy Service (Server). Read more about the Proxy feature in @ref md_doc_user_guide_modules_provisioning_gatt_proxy.
 
 @note The *Proxy Client* role is **not** supported.
 
@@ -122,13 +124,24 @@ the status of actions as follows:
   of LED and button assignments if you use the static provisioner.
 
 
+### Scene model integration @anchor light_switch_example_setup_scene_model
+
+[Scene Setup Server model instance](@ref light_switch_demo_server_scene_model) is used by default
+by the [Light switch server example](@ref light_switch_demo_server).
+You can exclude it by setting @ref SCENE_SETUP_SERVER_INSTANCES_MAX to `0` (from the default value of `1`) in
+`examples/light_switch/server/include/nrf_mesh_config_app.h`.
+
+If you decide to exclude the Scene Setup Server model instance from [Light switch server example](@ref light_switch_demo_server),
+exclude it also from the [Provisioner example](@ref provisioner_example_no_scene_setup_server)
+if you want to [evaluate using the static provisioner](@ref light_switch_example_testing_dk).
+
 ---
 
 
 ## Testing the example @anchor light_switch_example_testing
 
 To test the light switch example, build the examples by following the instructions in
-[Building the mesh stack](@ref md_doc_getting_started_how_to_build).
+[Building the Bluetooth mesh stack](@ref md_doc_getting_started_how_to_build).
 
 After building is complete, use one of the following methods, depending on the preferred
 provisioning approach:
@@ -150,9 +163,12 @@ to provision and configure the boards using the nRF Mesh mobile app.
 When using the nRF Mesh app with this example, the following naming convention is used in the app:
 - The client board is `nRF5x Mesh Switch`.
 - The server board is `nRF5x Mesh Light`.
-    
+
 The following model instances must be configured in the app for this example:
-- For the `nRF5x Mesh Light` server board: Generic On Off Server.
+- For the `nRF5x Mesh Light` server board:
+    - Mandatory: Generic On Off Server
+    - Optional (with [Scene model integration included](@ref light_switch_example_setup_scene_model)):
+    Scene Setup Server, Scene Server, and Default Transition Time Server
 - For the `nRF5x Mesh Switch` client board: Generic On Off Client.
 
 At the end of the configuration process, the client example will be configured as follows:

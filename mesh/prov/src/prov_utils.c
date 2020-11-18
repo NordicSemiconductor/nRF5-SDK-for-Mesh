@@ -354,6 +354,12 @@ bool prov_utils_confirmation_check(const nrf_mesh_prov_ctx_t * p_ctx)
 {
     uint8_t confirmation_key[NRF_MESH_KEY_SIZE];
 
+    if (p_ctx->role == NRF_MESH_PROV_ROLE_PROVISIONER &&
+        memcmp(p_ctx->node_random, p_ctx->peer_random, PROV_RANDOM_LEN) == 0)
+    {
+        return false;
+    }
+
     /* ConfirmationKey = k1(ECDHSecret, ConfirmationSalt, "prck") */
     enc_k1(p_ctx->shared_secret,
            NRF_MESH_ECDH_SHARED_SECRET_SIZE,

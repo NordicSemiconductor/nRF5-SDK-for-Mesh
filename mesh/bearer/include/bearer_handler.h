@@ -247,6 +247,24 @@ void bearer_handler_radio_irq_handler(void);
  */
 void bearer_handler_timer_irq_handler(void);
 
+/**
+ * Enable the force mode of the bearer handler.
+ *
+ * @note That prevents the time slot stopping after finishing activity
+ * even scanner is disabled and there are not queued actions.
+ * If the next action is added in this mode the bearer handler does not require
+ * to request a new time slot. It tries to fit action in the ongoing slot if possible.
+ *
+ * It is used to speed up storing the unstored data in case of the power down.
+ *
+ * @warning This mode enforces power consumption.
+ */
+void bearer_handler_force_mode_enable(void);
+
+/**
+ * Disable the force mode.
+ */
+void bearer_handler_force_mode_disable(void);
 
 /** @} */
 

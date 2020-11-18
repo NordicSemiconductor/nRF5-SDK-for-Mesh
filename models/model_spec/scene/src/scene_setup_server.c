@@ -41,6 +41,8 @@
 
 #include "log.h"
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+
 /* Each element can host only one light lightness instance.*/
 STATIC_ASSERT(SCENE_SETUP_SERVER_INSTANCES_MAX <= ACCESS_ELEMENT_COUNT,
               "SCENE_SETUP_SERVER_INSTANCES_MAX is greater than allowed.");
@@ -142,12 +144,13 @@ static uint32_t register_status_send(const void * p_ctx,
     p_msg_pkt->status_code = p_params->status_code;
     p_msg_pkt->current_scene = p_params->current_scene;
     uint16_t len = SCENE_REGISTER_STATUS_MINLEN;
+    uint32_t j = 0;
     for (uint32_t k = 0; k < ARRAY_SIZE(p_params->scenes); k++)
     {
-         if (p_params->scenes[k] != SCENE_NUMBER_DEFAULT_SCENE)
+         if (p_params->scenes[k] != SCENE_NUMBER_NO_SCENE)
          {
-            p_msg_pkt->scenes[k] = p_params->scenes[k];
-            len += 2;
+             p_msg_pkt->scenes[j++] = p_params->scenes[k];
+             len += 2;
          }
     }
 
@@ -191,7 +194,7 @@ static void handle_get(access_model_handle_t model_handle,
                                void * p_args)
 {
     scene_server_t * p_server = (scene_server_t *) p_args;
-    scene_setup_server_t * p_s_server = 
+    scene_setup_server_t * p_s_server =
             PARENT_BY_FIELD_GET(scene_setup_server_t, scene_srv, p_args);
     scene_status_params_t out_data = {0};
 
@@ -209,7 +212,7 @@ static void handle_register_get(access_model_handle_t model_handle,
                                void * p_args)
 {
     scene_server_t * p_server = (scene_server_t *) p_args;
-    scene_setup_server_t * p_s_server = 
+    scene_setup_server_t * p_s_server =
             PARENT_BY_FIELD_GET(scene_setup_server_t, scene_srv, p_args);
     scene_register_status_params_t out_data = {0};
 
@@ -227,7 +230,7 @@ static void handle_recall(access_model_handle_t model_handle,
                                void * p_args)
 {
     scene_server_t * p_server = (scene_server_t *) p_args;
-    scene_setup_server_t * p_s_server = 
+    scene_setup_server_t * p_s_server =
             PARENT_BY_FIELD_GET(scene_setup_server_t, scene_srv, p_args);
     scene_recall_params_t in_data = {0};
     model_transition_t in_data_tr = {0};
@@ -254,10 +257,10 @@ static void handle_recall(access_model_handle_t model_handle,
                 __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Server: delay_ms = %X\n", in_data_tr.delay_ms);
             }
 
-            p_s_server->settings.p_callbacks->scene_cbs.recall_cb(p_s_server, 
-                                                                  &p_rx_msg->meta_data, 
+            p_s_server->settings.p_callbacks->scene_cbs.recall_cb(p_s_server,
+                                                                  &p_rx_msg->meta_data,
                                                                   &in_data,
-                                                                  (p_rx_msg->length == SCENE_RECALL_MINLEN) ? NULL : &in_data_tr, 
+                                                                  (p_rx_msg->length == SCENE_RECALL_MINLEN) ? NULL : &in_data_tr,
                                                                   (p_rx_msg->opcode.opcode == SCENE_OPCODE_RECALL) ? &out_data : NULL);
 
             if (p_rx_msg->opcode.opcode == SCENE_OPCODE_RECALL)
@@ -295,7 +298,7 @@ static uint32_t scene_server_init(scene_server_t * p_server,
         .p_args = p_server,
         .publish_timeout_cb = periodic_publish_cb
     };
-    
+
     status = access_model_add(&init_params, &p_server->model_handle);
 
     return status;
@@ -305,8 +308,7 @@ static uint32_t scene_server_init(scene_server_t * p_server,
 uint32_t scene_server_status_publish(const scene_server_t * p_server,
                                      const scene_status_params_t * p_params)
 {
-    if (p_server == NULL ||
-        p_params == NULL)
+    if (p_server == NULL || p_params == NULL)
     {
         return NRF_ERROR_NULL;
     }
@@ -340,9 +342,9 @@ static void handle_store(access_model_handle_t model_handle,
         scene_store_msg_pkt_t * p_msg_params_packed = (scene_store_msg_pkt_t *) p_rx_msg->p_data;
         in_data.scene_number = p_msg_params_packed->scene_number;
 
-        p_s_server->settings.p_callbacks->scene_cbs.store_cb(p_s_server, 
-                                                             &p_rx_msg->meta_data, 
-                                                             &in_data, 
+        p_s_server->settings.p_callbacks->scene_cbs.store_cb(p_s_server,
+                                                             &p_rx_msg->meta_data,
+                                                             &in_data,
                                                              (p_rx_msg->opcode.opcode == SCENE_OPCODE_STORE) ? &out_data : NULL);
 
         if (p_rx_msg->opcode.opcode == SCENE_OPCODE_STORE)
@@ -365,9 +367,9 @@ static void handle_delete(access_model_handle_t model_handle,
         scene_delete_msg_pkt_t * p_msg_params_packed = (scene_delete_msg_pkt_t *) p_rx_msg->p_data;
         in_data.scene_number = p_msg_params_packed->scene_number;
 
-        p_s_server->settings.p_callbacks->scene_cbs.delete_cb(p_s_server, 
-                                                              &p_rx_msg->meta_data, 
-                                                              &in_data, 
+        p_s_server->settings.p_callbacks->scene_cbs.delete_cb(p_s_server,
+                                                              &p_rx_msg->meta_data,
+                                                              &in_data,
                                                               (p_rx_msg->opcode.opcode == SCENE_OPCODE_DELETE) ? &out_data : NULL);
 
         if (p_rx_msg->opcode.opcode == SCENE_OPCODE_DELETE)
@@ -394,7 +396,8 @@ uint32_t scene_setup_server_init(scene_setup_server_t * p_s_server, uint8_t elem
         p_s_server->settings.p_callbacks->scene_cbs.delete_cb == NULL       ||
         p_s_server->settings.p_callbacks->scene_cbs.get_cb == NULL          ||
         p_s_server->settings.p_callbacks->scene_cbs.register_get_cb == NULL ||
-        p_s_server->settings.p_callbacks->scene_cbs.recall_cb == NULL)
+        p_s_server->settings.p_callbacks->scene_cbs.recall_cb == NULL ||
+        p_s_server->p_gen_dtt_server == NULL)
     {
         return NRF_ERROR_NULL;
     }
@@ -404,11 +407,26 @@ uint32_t scene_setup_server_init(scene_setup_server_t * p_s_server, uint8_t elem
         return NRF_ERROR_RESOURCES;
     }
 
+    /* Ensure that default transition time server is already initialized and it is on the same
+     * element as that of the scene setup server. */
+    uint16_t dtt_server_element;
+    uint32_t status = access_model_element_index_get(p_s_server->p_gen_dtt_server->model_handle,
+                                                     &dtt_server_element);
+    if (status != NRF_SUCCESS)
+    {
+        return status;
+    }
+
+    if (dtt_server_element != element_index)
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+
     p_s_server->settings.element_index = element_index;
 
     p_s_server->scene_srv.settings.force_segmented = p_s_server->settings.force_segmented;
     p_s_server->scene_srv.settings.transmic_size = p_s_server->settings.transmic_size;
-    uint32_t status = scene_server_init(&p_s_server->scene_srv, element_index);
+    status = scene_server_init(&p_s_server->scene_srv, element_index);
     if (status != NRF_SUCCESS)
     {
         return status;
@@ -431,8 +449,10 @@ uint32_t scene_setup_server_init(scene_setup_server_t * p_s_server, uint8_t elem
         return status;
     }
 
-    /* Scene Server sets up its subscription list, then shares it with its extended model. */
-    status = access_model_subscription_list_alloc(p_s_server->model_handle);
+    /* The subscription list of scene models is shared with the default transition time model on the
+     * same element. */
+    status = access_model_subscription_lists_share(p_s_server->p_gen_dtt_server->model_handle,
+                                                   p_s_server->model_handle);
     if (status != NRF_SUCCESS)
     {
         return status;
@@ -443,21 +463,10 @@ uint32_t scene_setup_server_init(scene_setup_server_t * p_s_server, uint8_t elem
     if (status != NRF_SUCCESS)
     {
         return status;
-    }                 
+    }
 
     m_total_scene_instances++;
     return status;
 }
 
-uint32_t scene_setup_server_status_publish(const scene_setup_server_t * p_s_server,
-                                           const scene_status_params_t * p_params)
-{
-    if (p_s_server == NULL ||
-        p_params == NULL)
-    {
-        return NRF_ERROR_NULL;
-    }
-
-    return status_send(p_s_server, SCENE_SETUP_SERVER, NULL, p_params);
-}
-
+#endif /* SCENE_SETUP_SERVER_INSTANCES_MAX > 0*/

@@ -4,9 +4,9 @@ SEARCH_DIR(.)
 GROUP(-lgcc -lc -lnosys)
 MEMORY
 {
-    FLASH (rx) :           ORIGIN = 0xf8000, LENGTH = 0x6000
-    RAM (rw) :             ORIGIN = 0x20000004, LENGTH = 0x3fcfc
-    CORE_BL_RAM (rw) :     ORIGIN = 0x2003fd00, LENGTH = 0x300
+    FLASH (rx) :           ORIGIN = 0x000f8000, LENGTH = 0x00006000
+    RAM (rw) :             ORIGIN = 0x20000004, LENGTH = 0x0003fcfc
+    CORE_BL_RAM (rw) :     ORIGIN = 0x2003fd00, LENGTH = 0x00000300
     UICR_BOOTADDR (r) :    ORIGIN = 0x10001014, LENGTH = 0x04
     UICR_MBRPARAMADDR (r): ORIGIN = 0x10001018, LENGTH = 0x04
 }

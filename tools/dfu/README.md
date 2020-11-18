@@ -1,6 +1,6 @@
 # DFU Utilities and Tools
 
-The Mesh DFU requires a number of scripts to work correctly. Several scripts are provided with the nRF5 SDK for Mesh.
+The proprietary mesh DFU requires a number of scripts to work correctly. Several scripts are provided with the nRF5 SDK for Mesh.
 You can find them at the following folder: `<InstallFolder>\tools\dfu`.
 
 **Table of contents**
@@ -25,7 +25,7 @@ This simple tool generates a device page for the combination of:
 - platform, for example nRF52832_xxAA;
 - SoftDevice, for example S132 v5.0.0;
 - application, for example Blinky v1.0;
-- bootloader, for example mesh bootloader v0.8.
+- bootloader, for example nRF5 SDK for Mesh bootloader v0.8.
 
 
 ### Requirements @anchor dfu-device-page-generator-requirements
@@ -36,6 +36,14 @@ available on `pypi`.
 
 ### Usage @anchor dfu-device-page-generator-usage
 
+To generate a device page, run the following command:
+```
+python2 device_page_generator.py -c bootloader_config_default.json
+```
+Where `bootloader_config_default.json` can be replaced with the name of your [input file](@ref dfu-device-page-generator-input).
+The device page file is created in the `bin/` directory.
+
+Moreover, the Device Page Generator Tool comes with the following configuration options:
 ```
 python2 device_page_generator.py -h
 usage: device_page_generator.py [-h] [-d DEVICE] [-sd SOFTDEVICE]
@@ -89,7 +97,7 @@ To run the script, use the following command with the serial number and the COM 
 ```
 python bootloader_verify.py <serial number> <COM port>
 ```
-For information about where to find the COM port number, see the [Configuring DFU over Mesh](@ref dfu_configuration_transfer) page.
+For information about where to find the COM port number, see the [Configuring DFU over Bluetooth mesh](@ref dfu_configuration_transfer) page.
 
 The script output looks like this:
 

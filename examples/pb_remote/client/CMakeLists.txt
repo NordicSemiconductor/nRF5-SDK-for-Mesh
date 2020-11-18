@@ -5,6 +5,7 @@ add_executable(${target}
     "${CMAKE_SOURCE_DIR}/mesh/stack/src/mesh_stack.c"
     "${MBTLE_SOURCE_DIR}/examples/common/src/rtt_input.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/simple_hal.c"
+    "${SDK_ROOT}/modules/nrfx/drivers/src/nrfx_gpiote.c"
     "${CMAKE_SOURCE_DIR}/examples/common/src/mesh_app_utils.c"
     ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${PB_REMOTE_CLIENT_SOURCE_FILES}

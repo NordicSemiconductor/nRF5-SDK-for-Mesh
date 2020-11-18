@@ -143,8 +143,11 @@ static void network_packet_send_stub(const network_tx_packet_buffer_t * p_buffer
 
 void nrf_mesh_app_secmat_next_get(const nrf_mesh_network_secmat_t * p_network_secmat,
                                   uint8_t aid,
-                                  const nrf_mesh_application_secmat_t ** pp_app_secmat)
+                                  const nrf_mesh_application_secmat_t ** pp_app_secmat,
+                                  const nrf_mesh_application_secmat_t ** pp_app_secmat_secondary)
 {
+    (void) pp_app_secmat_secondary;
+
     TEST_ASSERT_EQUAL(AID, aid);
     TEST_ASSERT_EQUAL_PTR(&m_net_secmat, p_network_secmat);
 

@@ -110,6 +110,9 @@ NRF_MESH_STATIC_ASSERT(DSM_ADDR_MAX <= DSM_ADDR_MAX_LIMIT);
     #define MESH_FRIENDSHIP_CREDENTIALS (MESH_FRIEND_FRIENDSHIP_COUNT)
 #endif
 
+/* Compares 2 application key identifiers. */
+#define IS_AIDS_EQUAL(aid1, aid2) (((aid1) & PACKET_MESH_TRS_ACCESS_AID_MASK) == ((aid2) & PACKET_MESH_TRS_ACCESS_AID_MASK))
+
 /*****************************************************************************
 * Local typedefs
 *****************************************************************************/
@@ -713,16 +716,17 @@ static dsm_handle_t get_app_handle(const nrf_mesh_application_secmat_t * p_secma
 {
     NRF_MESH_ASSERT(NULL != p_secmat);
 
-    if (p_secmat >= &m_appkeys[0].secmat &&
-        p_secmat <= &m_appkeys[DSM_APP_MAX - 1].secmat)
+    for (size_t i = 0; i < DSM_APP_MAX; i++)
     {
-        /* The secmat is offset by the same amount in each structure, so since
-         * we're getting the delta between two substructures of the same structure
-         * type, this will get the right index. */
-        return (((uint32_t) p_secmat - (uint32_t) &m_appkeys[0].secmat) / sizeof(appkey_t));
+        if (p_secmat == &m_appkeys[i].secmat ||
+            p_secmat == &m_appkeys[i].secmat_updated)
+        {
+            return i;
+        }
     }
-    else if (p_secmat >= &m_devkeys[0].secmat &&
-             p_secmat <= &m_devkeys[DSM_DEVICE_MAX - 1].secmat)
+
+    if (p_secmat >= &m_devkeys[0].secmat &&
+        p_secmat <= &m_devkeys[DSM_DEVICE_MAX - 1].secmat)
     {
         /* The secmat is offset by the same amount in each structure, so since
          * we're getting the delta between two substructures of the same structure
@@ -843,7 +847,8 @@ static const nrf_mesh_application_secmat_t * get_devkey_secmat(uint16_t key_addr
     return NULL;
 }
 
-static void get_app_secmat(dsm_handle_t subnet_handle, uint8_t aid, const nrf_mesh_application_secmat_t ** pp_app_secmat)
+static void get_app_secmat(dsm_handle_t subnet_handle, uint8_t aid, const nrf_mesh_application_secmat_t ** pp_app_secmat,
+                           const nrf_mesh_application_secmat_t ** pp_app_secmat_secondary)
 {
     uint32_t i = 0;
     if (*pp_app_secmat != NULL)
@@ -853,15 +858,37 @@ static void get_app_secmat(dsm_handle_t subnet_handle, uint8_t aid, const nrf_me
     }
     for (; i < DSM_APP_MAX; i++)
     {
-        if (bitfield_get(m_appkey_allocated, i) &&
-            m_appkeys[i].subnet_handle == subnet_handle &&
-            ((m_appkeys[i].secmat.aid & PACKET_MESH_TRS_ACCESS_AID_MASK) == (aid & PACKET_MESH_TRS_ACCESS_AID_MASK)))
+        if (bitfield_get(m_appkey_allocated, i) && m_appkeys[i].subnet_handle == subnet_handle)
         {
-            *pp_app_secmat = &m_appkeys[i].secmat;
-            return;
+            /* If the AIDs for the old and the new application keys are equal, return both: */
+            if (m_subnets[subnet_handle].key_refresh_phase != NRF_MESH_KEY_REFRESH_PHASE_0
+                && m_appkeys[i].key_updated
+                && IS_AIDS_EQUAL(m_appkeys[i].secmat.aid, aid)
+                && IS_AIDS_EQUAL(m_appkeys[i].secmat_updated.aid, aid))
+            {
+                *pp_app_secmat = &m_appkeys[i].secmat;
+                *pp_app_secmat_secondary = &m_appkeys[i].secmat_updated;
+                return;
+            }
+            /* During key refresh, return the updated key if it matches the AID: */
+            else if (m_subnets[subnet_handle].key_refresh_phase != NRF_MESH_KEY_REFRESH_PHASE_0
+                     && m_appkeys[i].key_updated
+                     && IS_AIDS_EQUAL(m_appkeys[i].secmat_updated.aid, aid))
+            {
+                *pp_app_secmat = &m_appkeys[i].secmat_updated;
+                *pp_app_secmat_secondary = NULL;
+                return;
+            }
+            else if (IS_AIDS_EQUAL(m_appkeys[i].secmat.aid, aid))
+            {
+                *pp_app_secmat = &m_appkeys[i].secmat;
+                *pp_app_secmat_secondary = NULL;
+                return;
+            }
         }
     }
     *pp_app_secmat = NULL;
+    *pp_app_secmat_secondary = NULL;
 }
 
 static uint32_t app_tx_secmat_get(dsm_handle_t app_handle, dsm_handle_t *p_subnet_handle, const nrf_mesh_application_secmat_t ** p_app)
@@ -1308,6 +1335,11 @@ static uint32_t dsm_unicast_addr_setter(mesh_config_entry_id_t id, const void * 
     }
 
     dsm_entry_addr_unicast_t * p_src = (dsm_entry_addr_unicast_t *)p_entry;
+    if (nrf_mesh_address_type_get(p_src->addr.address_start) != NRF_MESH_ADDRESS_TYPE_UNICAST)
+    {
+        return NRF_ERROR_INVALID_DATA;
+    }
+
     memcpy(&m_local_unicast_addr, &p_src->addr, sizeof(m_local_unicast_addr));
     bitfield_set(m_addr_unicast_allocated, 0);
 
@@ -2864,19 +2896,23 @@ void nrf_mesh_net_secmat_next_get(uint8_t nid, const nrf_mesh_network_secmat_t *
 }
 
 /* returns null via pp_app_secmat if end of search */
-void nrf_mesh_app_secmat_next_get(const nrf_mesh_network_secmat_t * p_network_secmat, uint8_t aid, const nrf_mesh_application_secmat_t ** pp_app_secmat)
+void nrf_mesh_app_secmat_next_get(const nrf_mesh_network_secmat_t * p_network_secmat, uint8_t aid,
+                                  const nrf_mesh_application_secmat_t ** pp_app_secmat,
+                                  const nrf_mesh_application_secmat_t ** pp_app_secmat_secondary)
 {
     NRF_MESH_ASSERT(NULL != pp_app_secmat);
+    NRF_MESH_ASSERT(NULL != pp_app_secmat_secondary);
     NRF_MESH_ASSERT(NULL != p_network_secmat);
 
     dsm_handle_t subnet_handle = dsm_subnet_handle_get(p_network_secmat);
     if (subnet_handle == DSM_HANDLE_INVALID)
     {
         *pp_app_secmat = NULL;
+        *pp_app_secmat_secondary = NULL;
     }
     else
     {
-        get_app_secmat(subnet_handle,aid, pp_app_secmat);
+        get_app_secmat(subnet_handle, aid, pp_app_secmat, pp_app_secmat_secondary);
     }
 }
 

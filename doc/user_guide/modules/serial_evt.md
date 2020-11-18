@@ -50,6 +50,8 @@ Event                                                                    | Opcod
 [Mesh IV Update Notification](#mesh-iv-update-notification)              | 0xd3
 [Mesh Key Refresh Notification](#mesh-key-refresh-notification)          | 0xd4
 [Mesh Heartbeat Received](#mesh-heartbeat-received)                      | 0xd8
+[Mesh IV Entry Set Notification](#mesh-iv-entry-set-notification)        | 0xd9
+[Mesh Seqnum Entry Set Notification](#mesh-seqnum-entry-set-notification)| 0xda
 [Mesh SAR Failed](#mesh-sar-failed)                                      | 0xd7
 [Model Specific](#model-specific)                                        | 0xf0
 
@@ -637,6 +639,38 @@ Type              | Name                                    | Size  | Offset | D
 `uint8_t`         | Hops                                    | 1     | 1      | Number of hops equals: (Initial TTL - Received message TTL + 1).
 `uint16_t`        | Features                                | 2     | 2      | State bitmap of the feature. See @ref MESH_DEFINES_HEARTBEAT to interpret bit fields.
 `uint16_t`        | SRC                                     | 2     | 4      | Source address for the received heartbeat message.
+
+---
+### Mesh IV Entry Set Notification          {#mesh-iv-entry-set-notification}
+
+_Opcode:_ `0xd9`
+
+_Total length:_ 8 bytes
+
+The mesh config entry for the IV index has been set.
+
+_Mesh IV Entry Set Notification Parameters:_
+
+Type              | Name                                    | Size  | Offset | Description
+------------------|-----------------------------------------|-------|--------|------------
+`uint32_t`        | Iv Index                                | 4     | 0      | The current IV index.
+`uint8_t`         | Iv Update In Progress                   | 1     | 4      | Indicating the phase in the IV update process.
+`uint16_t`        | Iv Update Timout Counter                | 2     | 5      | Counter for the IV update process.
+
+---
+### Mesh Seqnum Entry Set Notification          {#mesh-seqnum-entry-set-notification}
+
+_Opcode:_ `0xda`
+
+_Total length:_ 5 bytes
+
+The mesh config entry for the next sequence number block has been set.
+
+_Mesh Seqnum Entry Set Notification Parameters:_
+
+Type              | Name                                    | Size  | Offset | Description
+------------------|-----------------------------------------|-------|--------|------------
+`uint32_t`        | Next Block                              | 4     | 0      | The next unallocated sequence number block.
 
 ---
 ### Mesh SAR Failed          {#mesh-sar-failed}

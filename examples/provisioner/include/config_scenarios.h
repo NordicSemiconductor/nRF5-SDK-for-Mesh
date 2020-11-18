@@ -108,6 +108,14 @@ typedef enum
     NODE_SETUP_CONFIG_PUBLICATION_DTT_SERVER,           \
     NODE_SETUP_CONFIG_SUBSCRIPTION_DTT_SERVER
 
+#define CONFIG_SCENE_SERVER                            \
+    NODE_SETUP_CONFIG_APPKEY_BIND_SCENE_SERVER,        \
+    NODE_SETUP_CONFIG_APPKEY_BIND_SCENE_SETUP_SERVER,  \
+    NODE_SETUP_CONFIG_PUBLICATION_SCENE_SERVER,        \
+    NODE_SETUP_CONFIG_PUBLICATION_SCENE_SETUP_SERVER,  \
+    NODE_SETUP_CONFIG_SUBSCRIPTION_SCENE_SERVER,       \
+    NODE_SETUP_CONFIG_SUBSCRIPTION_SCENE_SETUP_SERVER
+
 #define CONFIG_LIGHT_LIGHTNESS_SERVER                   \
     NODE_SETUP_CONFIG_APPKEY_BIND_LL_SERVER,            \
     NODE_SETUP_CONFIG_APPKEY_BIND_LL_SETUP_SERVER,      \
@@ -172,6 +180,12 @@ typedef enum
     NODE_SETUP_CONFIG_PUBLICATION_SENSOR_CLIENT, \
     NODE_SETUP_CONFIG_SUBSCRIPTION_SENSOR_CLIENT
 
+#define CONFIG_SCENE_CLIENT                     \
+    NODE_SETUP_GET_NEXT_ELEMENT,                \
+    NODE_SETUP_CONFIG_APPKEY_BIND_SCENE_CLIENT, \
+    NODE_SETUP_CONFIG_PUBLICATION_SCENE_CLIENT, \
+    NODE_SETUP_CONFIG_SUBSCRIPTION_SCENE_CLIENT
+
 /* USER_NOTE:
 You can define one or more such configuration steps for a given node in your network. The choice
 of the steps can be done in @ref setup_select_steps() function.
@@ -187,10 +201,18 @@ of the steps can be done in @ref setup_select_steps() function.
     CONFIG_ONOFF_CLIENT,                               \
     NODE_SETUP_DONE
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+#define CONFIG_SCENARIO_LIGHT_SWITCH_SERVER_EXAMPLE    \
+    CONFIG_SCENARIO_COMMON,                            \
+    CONFIG_ONOFF_SERVER,                               \
+    CONFIG_SCENE_SERVER,                               \
+    NODE_SETUP_DONE
+#else
 #define CONFIG_SCENARIO_LIGHT_SWITCH_SERVER_EXAMPLE    \
     CONFIG_SCENARIO_COMMON,                            \
     CONFIG_ONOFF_SERVER,                               \
     NODE_SETUP_DONE
+#endif
 
 /* Sequence of steps for the level clients */
 #define CONFIG_SCENARIO_DIMMING_CLIENT_EXAMPLE     \
@@ -200,10 +222,18 @@ of the steps can be done in @ref setup_select_steps() function.
     NODE_SETUP_DONE
 
 /* Sequence of steps for the level servers */
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+#define CONFIG_SCENARIO_DIMMING_SERVER_EXAMPLE     \
+    CONFIG_SCENARIO_COMMON,                        \
+    CONFIG_LEVEL_SERVER,                           \
+    CONFIG_SCENE_SERVER,                           \
+    NODE_SETUP_DONE
+#else
 #define CONFIG_SCENARIO_DIMMING_SERVER_EXAMPLE     \
     CONFIG_SCENARIO_COMMON,                        \
     CONFIG_LEVEL_SERVER,                           \
     NODE_SETUP_DONE
+#endif
 
 #define CONFIG_SCENARIO_LIGHTNESS_CLIENT_EXAMPLE   \
     CONFIG_SCENARIO_COMMON,                        \
@@ -211,22 +241,48 @@ of the steps can be done in @ref setup_select_steps() function.
     CONFIG_LL_CLIENT,                              \
     NODE_SETUP_DONE
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+#define CONFIG_SCENARIO_LIGHTNESS_SERVER_EXAMPLE   \
+    CONFIG_SCENARIO_COMMON,                        \
+    CONFIG_LIGHT_LIGHTNESS_SERVER,                 \
+    CONFIG_SCENE_SERVER,                           \
+    NODE_SETUP_DONE
+#else
 #define CONFIG_SCENARIO_LIGHTNESS_SERVER_EXAMPLE   \
     CONFIG_SCENARIO_COMMON,                        \
     CONFIG_LIGHT_LIGHTNESS_SERVER,                 \
     NODE_SETUP_DONE
+#endif
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+#define CONFIG_SCENARIO_LIGHT_LC_SERVER_EXAMPLE    \
+    CONFIG_SCENARIO_COMMON,                        \
+    CONFIG_LIGHT_LIGHTNESS_SERVER_NO_ONOFF_SERVER, \
+    CONFIG_SCENE_SERVER,                           \
+    CONFIG_LIGHT_CONTROL_SERVER,                   \
+    NODE_SETUP_DONE
+#else
 #define CONFIG_SCENARIO_LIGHT_LC_SERVER_EXAMPLE    \
     CONFIG_SCENARIO_COMMON,                        \
     CONFIG_LIGHT_LIGHTNESS_SERVER_NO_ONOFF_SERVER, \
     CONFIG_LIGHT_CONTROL_SERVER,                   \
     NODE_SETUP_DONE
+#endif
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+#define CONFIG_SCENARIO_LIGHT_CTL_SERVER_EXAMPLE  \
+    CONFIG_SCENARIO_COMMON,                       \
+    CONFIG_LIGHT_LIGHTNESS_SERVER,                \
+    CONFIG_SCENE_SERVER,                          \
+    CONFIG_CTL_SERVER,                            \
+    NODE_SETUP_DONE
+#else
 #define CONFIG_SCENARIO_LIGHT_CTL_SERVER_EXAMPLE  \
     CONFIG_SCENARIO_COMMON,                       \
     CONFIG_LIGHT_LIGHTNESS_SERVER,                \
     CONFIG_CTL_SERVER,                            \
     NODE_SETUP_DONE
+#endif
 
 #define CONFIG_SCENARIO_LIGHT_CTL_LC_SERVER_EXAMPLE   \
     CONFIG_SCENARIO_COMMON,                           \
@@ -250,6 +306,12 @@ of the steps can be done in @ref setup_select_steps() function.
     CONFIG_SCENARIO_COMMON,                    \
     CONFIG_SENSOR_CLIENT,                      \
     CONFIG_SENSOR_CLIENT,                      \
+    NODE_SETUP_DONE
+
+#define CONFIG_SCENARIO_SCENE_CLIENT_EXAMPLE  \
+    CONFIG_SCENARIO_COMMON,                   \
+    CONFIG_SCENE_CLIENT,                      \
+    CONFIG_SCENE_CLIENT,                      \
     NODE_SETUP_DONE
 
 #endif /* CONFIG_SCENARIOS_H_ */

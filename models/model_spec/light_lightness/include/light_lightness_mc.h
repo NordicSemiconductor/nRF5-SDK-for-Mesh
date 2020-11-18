@@ -43,6 +43,11 @@
 #include "light_lightness_common.h"
 #include "mesh_config.h"
 #include "mesh_opt.h"
+#include "model_config_file.h"
+
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+#include "scene_common.h"
+#endif
 
 /**
  * @defgroup LIGHT_LIGHTNESS_MC Persistence module for the Light Lightness Setup Server model related states
@@ -52,15 +57,25 @@
  *
  * @{
  */
+/** Defines number of state instances required to store current state and state for each scene
+ *  @note If @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal to 0, then this is equal to @ref
+ *  LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX.
+ */
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+#define STORED_WITH_SCENE_INSTANCES (LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX + \
+                                     (SCENE_REGISTER_ARRAY_SIZE * LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX))
+#else
+#define STORED_WITH_SCENE_INSTANCES (LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX)
+#endif
 
-#define LIGHT_LIGHTNESS_ONPOWERUP_EID_START    (MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_START + (1 * LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX))
-#define LIGHT_LIGHTNESS_LAST_EID_START         (MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_START + (2 * LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX))
-#define LIGHT_LIGHTNESS_DEFAULT_EID_START      (MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_START + (3 * LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX))
-#define LIGHT_LIGHTNESS_RANGE_MIN_EID_START    (MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_START + (4 * LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX))
-#define LIGHT_LIGHTNESS_RANGE_MAX_EID_START    (MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_START + (5 * LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX))
-#define LIGHT_LIGHTNESS_RANGE_STATUS_EID_START (MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_START + (6 * LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX))
-#define LIGHT_LIGHTNESS_ACTUAL_EID_START       (MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_START + (7 * LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX))
-#define LIGHT_LIGHTNESS_DTT_EID_START          (MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_START + (8 * LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX))
+#define LIGHT_LIGHTNESS_ONPOWERUP_EID_START    (MESH_APP_MODEL_LIGHT_LIGHTNESS_ID_START)
+#define LIGHT_LIGHTNESS_LAST_EID_START         (LIGHT_LIGHTNESS_ONPOWERUP_EID_START + LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX)
+#define LIGHT_LIGHTNESS_DEFAULT_EID_START      (LIGHT_LIGHTNESS_LAST_EID_START + LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX)
+#define LIGHT_LIGHTNESS_RANGE_MIN_EID_START    (LIGHT_LIGHTNESS_DEFAULT_EID_START + LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX)
+#define LIGHT_LIGHTNESS_RANGE_MAX_EID_START    (LIGHT_LIGHTNESS_RANGE_MIN_EID_START + LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX)
+#define LIGHT_LIGHTNESS_RANGE_STATUS_EID_START (LIGHT_LIGHTNESS_RANGE_MAX_EID_START + LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX)
+#define LIGHT_LIGHTNESS_ACTUAL_EID_START       (LIGHT_LIGHTNESS_RANGE_STATUS_EID_START + LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX)
+#define LIGHT_LIGHTNESS_DTT_EID_START          (LIGHT_LIGHTNESS_ACTUAL_EID_START + STORED_WITH_SCENE_INSTANCES)
 
 /** Light Lightness On PowerUp state entry ID */
 #define LIGHT_LIGHTNESS_ONPOWERUP_EID    MESH_CONFIG_ENTRY_ID(MESH_OPT_MODEL_FILE_ID, LIGHT_LIGHTNESS_ONPOWERUP_EID_START)
@@ -295,6 +310,37 @@ uint32_t light_lightness_mc_dtt_state_set(uint8_t index, uint32_t value);
  * @retval NRF_ERROR_INVALID_STATE  The given index is known, but has no data associated with it.
  */
 uint32_t light_lightness_mc_dtt_state_get(uint8_t index, uint32_t * p_value);
+
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+/** Store internal Scene Actual state variable.
+ * @note Available only if @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1.
+ *
+ * @param[in] index         An index to identify an instance of a state variable.
+ * @param[in] scene_index   The scene index to idenitfy the scene of a state variable.
+ * @param[in] value         Value to store.
+ *
+ * @retval NRF_SUCCESS              The value was successfully set.
+ * @retval NRF_ERROR_NOT_FOUND      The given index is unknown.
+ * @retval NRF_ERROR_INVALID_DATA   The value is invalid.
+ */
+uint32_t light_lightness_mc_scene_actual_state_store(uint8_t index, uint8_t scene_index,
+                                                     uint16_t value);
+
+/** Recall internal Scene Actual state variable.
+ * @note Available only if @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1.
+ *
+ * @param[in]  index        An index to identify an instance of a state variable.
+ * @param[in]  scene_index  The scene index to idenitfy the scene of a state variable.
+ * @param[out] p_value      Pointer to a buffer to copy the value into. Cannot be NULL.
+ *
+ * @retval NRF_SUCCESS              The entry value was successfully copied into @p p_value.
+ * @retval NRF_ERROR_NULL           A parameter is NULL.
+ * @retval NRF_ERROR_NOT_FOUND      The given index is unknown.
+ * @retval NRF_ERROR_INVALID_STATE  The given index is known, but has no data associated with it.
+ */
+uint32_t light_lightness_mc_scene_actual_state_recall(uint8_t index, uint8_t scene_index,
+                                                      uint16_t * p_value);
+#endif
 
 /** Create an instance of the Light Lightness Setup Server model states and return the corresponding handle.
  *

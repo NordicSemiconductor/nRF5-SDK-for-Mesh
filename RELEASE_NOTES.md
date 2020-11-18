@@ -3,12 +3,13 @@
 This page contains all the notes for the major and minor production releases of the nRF5 SDK for Mesh.
 
 **Table of contents**
+- [BLE Mesh v5.0.0](@ref release_notes_500)
+    - [New features and highlights](@ref release_notes_500_highlights)
+    - [Changes](@ref release_notes_500_changes)
+    - [Bugfixes](@ref release_notes_500_bugfixes)
+    - [Limitations](@ref release_notes_500_limitations)
+    - [Known issues](@ref release_notes_500_known_issues)
 - [BLE Mesh v4.2.0](@ref release_notes_420)
-    - [New features and highlights](@ref release_notes_420_highlights)
-    - [Changes](@ref release_notes_420_changes)
-    - [Bugfixes](@ref release_notes_420_bugfixes)
-    - [Limitations](@ref release_notes_420_limitations)
-    - [Known issues](@ref release_notes_420_known_issues)
 - [BLE Mesh v4.1.0](@ref release_notes_410)
 - [BLE Mesh v4.0.0](@ref release_notes_400)
 - [BLE Mesh v3.2.0](@ref release_notes_320)
@@ -31,6 +32,87 @@ This page contains all the notes for the major and minor production releases of 
 Check [Migration guide](@ref md_MIGRATION_GUIDE) for mandatory changes to your projects caused by
 the release of new features and updates.
 
+## BLE Mesh v5.0.0 @anchor release_notes_500
+
+@par Release Date: Week 47, 2020
+
+This is a major release that introduces Scene Client and Scene Server models with the respective API and example.
+It also brings support for the nRF52840 dongle and the nRF52820 device and fixes several bugs.
+Because of the updates to nRF5 SDK v17.0.2 and the recompilation of the bootloader binaries, it is recommended to upgrade to this version.
+
+### New features and highlights @anchor release_notes_500_highlights
+- Implemented Scene Client and Scene Server models with the respective API and the scene client example.
+- Implemented the power-down storage.
+- Added support for the nRF52840 dongle.
+- Added support for the nRF52820 device.
+- Added support for the nRF5 SDK v17.0.2, which introduces the new SoftDevice v7.2.0.
+
+### Changes @anchor release_notes_500_changes
+- Removed support for S113 on the nRF52810 device, as the nRF5 SDK for Mesh does not fit on the flash with S113.
+- Added support for S112 on the nRF52832 device.
+- Added support for more than 32 instances for bearers.
+- Expanded serial interface to provide API for setting the IV index and sequence number.
+
+#### Changes to examples
+
+- Added support for the Scene Server model in the following examples:
+    - @ref md_examples_light_switch_server_README "Light switch server example"
+    - @ref md_examples_dimming_README "Dimming server example"
+    - @ref md_examples_light_lightness_README "Light lightness server example"
+    - @ref md_examples_light_ctl_README "Light CTL server example"
+    - @ref md_examples_light_lc_server_README "Light LC server example"
+- Added support for scene client examples to the static provisioner.
+- Added support for scene server configuration to the static provisioner for examples that support the Scene Server model.
+
+### Bugfixes @anchor release_notes_500_bugfixes
+- Fixed a bug where Power OnOff Setup Server would allow setting up publishing. (MBTLE-4176)
+- Fixed a bug where the Low Power node would keep scanner running until it issues the first Friend Poll message. (MBTLE-4168)
+- Fixed a bug where repeated Friend Request messages were sent without the required waiting period of 1.1 second. (MBTLE-4165)
+- Fixed a bug where Light PI regulator was using incorrect scaling for the accuracy factor during the calculation of the final output. (MBTLE-4158)
+- Fixed a bug where the default TTL setting value was not stored in the persistent storage. (MBTLE-4148)
+- Fixed a bug where the presence of a new mesh configuration file in a firmware that was updated using DFU could cause assertion when `mesh_config_clear()` API is used during the initialization of the device. (MBTLE-4143).
+- Fixed a bug where a non-zero value of the key refresh flag that was received during provisioning process would not be handled. (MBTLE-4115)
+- Fixed a bug where the API for setting TX Power would only set the TX power for `core_tx_adv`, and not for LPN and Friend. (MBTLE-4086)
+- Fixed a bug where the Generic Power OnOff Setup Server model would not share subscription list with other associated CTL server models. (MBTLE-4077)
+- Fixed several other bugs.
+
+#### Known issue fixes
+- Fixed a previously known issue where the replay protection list would not be stored in flash. (MBTLE-1975)
+- Fixed a previously known issue where the Mesh Configuration Power-down files would require significant time for storing if defragmentation was in progress. (MBTLE-3467)
+- Fixed a previously known issue where the Proxy Server would not propagate a locally generated SNB to the Proxy Client when IV update state or key refresh state is changed. (MBTLE-3945)
+- Fixed a previously known issue where Sensor Status Delta Trigger would not consider Status Min Interval. (MBTLE-3968)
+
+### Limitations @anchor release_notes_500_limitations
+- If a poll is planned during the delay of another poll, the attempt counter is reset to the default
+  value. (MBTLE-3175)
+- It is not possible to use SAR for both request and response by using loopback. Use separate
+  elements for such client-server models instantiated on the same device. (MBTLE-3439)
+- The PA/LNA module is supported on nRF52840 and nRF52833, but only verified on nRF52832.
+  (MBTLE-3576)
+
+### Known issues @anchor release_notes_500_known_issues
+- If the Bluetooth mesh stack is configured with the IRQ priority @ref NRF_MESH_IRQ_PRIORITY_THREAD and runs
+  in the main loop with app_scheduler, there might be delays of ~15 ms. (MBTLE-2624)
+- During the provisioning of a device, the Device Name is changed to the default `nRF5x` after
+  completion of the PB-GATT connection. The name is later changed back to the correct name when the
+  initial configuration of the device is complete. (MBTLE-3151)
+- The app_timer library fails to trigger the timer correctly if no active timer is present
+  for the RTC_MAX/2 value. (A workaround has been implemented for this issue in `app_timer_workaround.c`.) (MBTLE-3347)
+- After the firmware upgrade, if the composition data has been changed
+  or corrupted persistent data has been found (or both), the device will boot up as unprovisioned device.
+  If the device is provisioned at that point without resetting, it asserts.
+  As a workaround, reset the device once more before the start of provisioning. (MBTLE-3840)
+- The device may assert after the application is started after the DFU, when the application is flashed for the first time.
+  This happens when the device has the bootloader and SoftDevice flashed before the booting, but does not have the application flashed at that stage.
+  As a workaround, reset the device after the assert.
+  (MBTLE-3652)
+- An SDK coexistence example will assert at the `peer_manager_init()` function if it is flashed
+  on top of a previously provisioned example. As a workaround, erase the device before flashing
+  any of the @ref md_examples_sdk_coexist_README. (MBTLE-4182)
+
+
+---
+
 ## BLE Mesh v4.2.0 @anchor release_notes_420
 
 @par Release Date: Week 26, 2020
@@ -45,12 +127,12 @@ Because of updates to DFU and the recompilation of bootloader binaries, it is re
 ### Changes @anchor release_notes_420_changes
 - Added support for friendship poll timeouts greater than 2100 seconds for both Friend and Low Power nodes. This fixes the previously known MBTLE-3563 issue.
 - Added a new flashing target in order to enable sector-only erase.
-- Added functionality to clean mesh config files. The files are now cleaned as flash pages and not anymore as separate entries.
+- Added functionality to clean Bluetooth mesh config files. The files are now cleaned as flash pages and not anymore as separate entries.
 - Updated Level, Lightness, and CTL behavioral modules. The state variables for ongoing transitions for these modules are not affected until the delay for newly received message expires.
 - Modified the common part for models, so that the device will boot as unprovisioned device if the stack detects the wrong model metadata.
 - Bootloader binaries were recompiled because of changes and fixes to DFU.
 - Made several minor improvements to the documentation pages.
-  For example, reorganized sections on the [Building the mesh stack and examples](@ref md_doc_getting_started_how_to_build) page.
+  For example, reorganized sections on the [Building the Bluetooth mesh stack and examples](@ref md_doc_getting_started_how_to_build) page.
 
 #### Example updates
 - Added support for sensor server and client examples to the static provisioner.
@@ -71,7 +153,7 @@ Because of updates to DFU and the recompilation of bootloader binaries, it is re
 #### DFU bugfixes
 - Fixed an issue where a PC-connected device not undergoing DFU would not respond to requests for missing packets. (MBTLE-3686)
 - Fixed an issue where the DFU functionality would infinitely send or retransmit the state packets within the network. (MBTLE-3687)
-- Updated nrfutil for mesh DFU in order to add dynamic delay and additional logging messages. This allows nrfutil to wait for sufficient amount of time to allow full erase of bank area for large DFU transfers. (MBTLE-3813, MBTLE-3823)
+- Updated nRF Util for the proprietary mesh DFU in order to add dynamic delay and additional logging messages. This allows nRF Util to wait for sufficient amount of time to allow full erase of bank area for large DFU transfers. (MBTLE-3813, MBTLE-3823)
 - Fixed several other bugs.
 
 #### Known issue fixes
@@ -87,7 +169,7 @@ Because of updates to DFU and the recompilation of bootloader binaries, it is re
   (MBTLE-3576)
 
 ### Known issues @anchor release_notes_420_known_issues
-- If the mesh stack is configured with the IRQ priority @ref NRF_MESH_IRQ_PRIORITY_THREAD and runs
+- If the Bluetooth mesh stack is configured with the IRQ priority @ref NRF_MESH_IRQ_PRIORITY_THREAD and runs
   in the main loop with app_scheduler, there might be delays of ~15 ms. (MBTLE-2624)
 - During the provisioning of a device, the Device Name is changed to the default `nRF5x` after
   completion of the PB-GATT connection. The name is later changed back to the correct name when the
@@ -110,7 +192,7 @@ Because of updates to DFU and the recompilation of bootloader binaries, it is re
 
 @par Release Date: Week 14, 2020
 
-This is a minor release that introduces support for new models from the Mesh Model specification
+This is a minor release that introduces support for new models from the Bluetooth mesh model specification
 and adds the related examples. It also includes changes to the documentation structure
 and fixes several bugs.
 
@@ -140,8 +222,8 @@ and fixes several bugs.
 #### Documentation
 - Changed the structure of the conceptual documentation pages to make it similar to the nRF5 SDK documentation structure.
     - The Getting Started section now includes only the pages that are related to starting the work with the nRF5 SDK for Mesh, including the Migration Guide.
-    - The new User Guide section now includes pages about Mesh concepts and architecture, libraries, and other pages that are more advanced than the Getting Started pages.
-- Added basic information about Mesh packet data flow to the Bluetooth Mesh stack architecture page.
+    - The new User Guide section now includes pages about Bluetooth mesh concepts and architecture, libraries, and other pages that are more advanced than the Getting Started pages.
+- Added basic information about Bluetooth mesh packet data flow to the Bluetooth mesh stack architecture page.
 - Updated the Supported features section on the main overview page and removed the experimental label from some of the pages.
 
 ### Bugfixes @anchor release_notes_410_bugfixes
@@ -167,10 +249,10 @@ and fixes several bugs.
 #### Known issue fixes
 - Fixed a previously known issue where the `flash_manager` API might write to `p_manager->internal.state` without considering the existing state. (MBTLE-1972)
 - Fixed a previously known issue where calling @ref access_clear() when a reliable transfer was ongoing would result in an assert. (MBTLE-3181)
-- Fixed a previously known issue where the Mesh bootloader would not turn off UART before switching to the application. (MBTLE-3215)
-- Fixed a previously known issue where the PA/LNA module in the BLE SoftDevice stack would not be switched on after the mesh provisioning process. (MBTLE-3279)
+- Fixed a previously known issue where the nRF5 SDK for Mesh bootloader would not turn off UART before switching to the application. (MBTLE-3215)
+- Fixed a previously known issue where the PA/LNA module in the BLE SoftDevice stack would not be switched on after the Bluetooth mesh provisioning process. (MBTLE-3279)
 - Fixed a previously known issue where the DFU example would back out of a DFU target state to service a relay request. (MBTLE-3376)
-- Fixed a previously known issue with the Link Open behavior of the mesh stack provisioner. This was fixed by aligning with the specification v1.0.1. (MBTLE-3547)
+- Fixed a previously known issue with the Link Open behavior of the Bluetooth mesh stack provisioner. This was fixed by aligning with the specification v1.0.1. (MBTLE-3547)
 
 ### Limitations @anchor release_notes_410_limitations
 - The replay protection list is not stored in flash. (MBTLE-1975)
@@ -220,7 +302,7 @@ and the official support for the SoftDevice S113 v7.0.1.
 - Support for the Friendship feature is now production-ready.
 
 #### Persistent storage
-- Migrated Access, DSM, and Net State modules, and EnOcean and Light Switch Provisioner examples to use the Mesh configuration module.
+- Migrated Access, DSM, and Net State modules, and EnOcean and Light Switch Provisioner examples to use the Bluetooth mesh configuration module.
 Each of these components has a separate file, and the files are handled within the Mesh configuration module.
 See [Migration guide](@ref mesh_config_for_dsm_and_access) for details about changes required in your application.
     - The following APIs have been removed as part of this change:
@@ -239,7 +321,7 @@ See [Migration guide](@ref mesh_config_for_dsm_and_access) for details about cha
 - Introduced several minor documentation improvements.
 
 #### Other changes
-- Added independent, dynamically registered AD listeners for Beacons, Mesh core, Provisioning, and DFU.
+- Added independent, dynamically registered AD listeners for Beacons, Bluetooth mesh core, Provisioning, and DFU.
 - Removed the experimental support for the SoftDevice S113 v7.0.0.
 - Changed the behavior of how network cache entries are managed. Now, if relaying of a packet fails, the packet is no longer cached by the network layer.
 - Increased the default value for @ref MESH_FRIEND_QUEUE_SIZE from 16 to 35.
@@ -248,7 +330,7 @@ This allows the Friend node to receive at least one full segmented message meant
 - Added heartbeat event handling to the serial interface.
 
 ### Bugfixes @anchor release_notes_400_bugfixes
-- Fixed an issue where the Mesh configuration finds corrupted persistent parameters from Access or DSM files during initialization, which causes the persistent areas to be cleaned and the device start as unprovisioned.
+- Fixed an issue where the Bluetooth mesh configuration finds corrupted persistent parameters from Access or DSM files during initialization, which causes the persistent areas to be cleaned and the device start as unprovisioned.
 - Fixed an issue where resetting a node might cause the node to wait for IV Update timeout again. Now the time to the next IV Update is stored in the flash each 30 minutes.
 - Fixed an issue where it was not possible to set the authentication size to 0x00 for the static OOB method.
 - Fixed an issue with the action type of the Input and Output requests in @ref NRF_MESH_PROV_EVT_INPUT_REQUEST and @ref NRF_MESH_PROV_EVT_OUTPUT_REQUEST provisioning events.
@@ -277,16 +359,16 @@ This allows the Friend node to receive at least one full segmented message meant
 - When using the GNU ARM Embedded Toolchain `8-2018-q4-major` release, building with CMake on Windows is not working correctly because of a bug in this release. (MBTLE-3105)
 - If a poll is planned during the delay of another poll, the attempt counter is reset to the default value. (MBTLE-3175)
 - It is not possible to use SAR for both request and response by using loopback. Use separate elements for such client-server models instantiated on the same device. (MBTLE-3439)
-- When the provisioning is started by the mesh stack provisioner, the Link Open message will be sent for a maximum of 6 times with an interval of about 60 ms (instead of resending it continuously for up to 60 seconds). If a link could not be established within this time, the application should start the procedure again. (MBTLE-3547)
+- When the provisioning is started by the Bluetooth mesh stack provisioner, the Link Open message will be sent for a maximum of 6 times with an interval of about 60 ms (instead of resending it continuously for up to 60 seconds). If a link could not be established within this time, the application should start the procedure again. (MBTLE-3547)
 - The PA/LNA module is supported on nRF52840 and nRF52833, but only verified on nRF52832. (MBTLE-3576)
 
 ### Known issues @anchor release_notes_400_known_issues
 - The `flash_manager` API might write to `p_manager->internal.state` without considering the existing state. (MBTLE-1972)
-- If the mesh stack is configured with the IRQ priority @ref NRF_MESH_IRQ_PRIORITY_THREAD and runs in the main loop with app_scheduler, there might be delays of ~15 ms. (MBTLE-2624)
+- If the Bluetooth mesh stack is configured with the IRQ priority @ref NRF_MESH_IRQ_PRIORITY_THREAD and runs in the main loop with app_scheduler, there might be delays of ~15 ms. (MBTLE-2624)
 - During the provisioning of a device, the Device Name is changed to the default `nRF5x` after completion of the PB-GATT connection. The name is later changed back to the correct name when the initial configuration of the device is complete. (MBTLE-3151)
 - Calling access_clear() when a reliable transfer is ongoing will result in an assert. (MBTLE-3181)
-- The Mesh bootloader does not turn off UART before switching to the application. (MBTLE-3215)
-- The PA/LNA module in the BLE SoftDevice stack is not switched on after the mesh provisioning process. (MBTLE-3279)
+- The nRF5 SDK for Mesh bootloader does not turn off UART before switching to the application. (MBTLE-3215)
+- The PA/LNA module in the BLE SoftDevice stack is not switched on after the Bluetooth mesh provisioning process. (MBTLE-3279)
 - The app_timer library fails to trigger the timer correctly if no active timer is present for the RTC_MAX/2 value. (MBTLE-3347)
 - The DFU example will back out of a DFU target state to service a relay request. (MBTLE-3376)
 - The DFU segment recovery may get deadlocked. (MBTLE-3423)
@@ -318,7 +400,7 @@ and fixes to several bugs.
 
 #### Documentation
 - Added a new @ref md_doc_user_guide_modules_dfu_protocol subsection in the @ref md_doc_user_guide_modules_modules_main section.
-    - Moved the page about configuring DFU over mesh from Getting started to the new section.
+    - Moved the page about configuring DFU from Getting started to the new section.
     It is now called @ref md_doc_user_guide_modules_dfu_configuring_performing and has received several updates.
     - Added new pages about the DFU protocol, @ref md_tools_dfu_README, @ref md_doc_user_guide_modules_dfu_integrating_into_app,
     and @ref md_doc_user_guide_modules_dfu_packet_format.
@@ -357,13 +439,13 @@ a new RX address logic and additional SAR RX complete logic.
   of the specification.
 - Fixed a bug that would cause asserts in the extended model initialization. Additionally,
   to maintain integrity of the device composition, new models cannot be initialized during runtime
-  after the mesh stack has been initialized when persistent storage is used.
+  after the Bluetooth mesh stack has been initialized when persistent storage is used.
 - Made changes at the scanner level to ignore the non-mesh packets and reduce memory footprint.
 - Added APIs to the Config Client model for sending Network Transmit Set and Network Transmit Get
   messages.
 - Started using nRF5 SDK as a backend for static asserts.
 - Implemented a change to the bootloader. It now explicitly disables the radio before moving to the application.
-- Improved the bank address selection of the Mesh DFU example.
+- Improved the bank address selection of the Bluetooth mesh DFU example.
 - Added the possibility to set CMock and Unity paths through environment variables on Windows and Linux.
 - Added a log message to the @ref BLE_DFU_SUPPORT module if the @ref ble_dfu_support_init function
 fails to initialize the Buttonless DFU Service due to the missing bootloader.
@@ -463,7 +545,7 @@ As part of this release, several files have been modified. See
 - Implemented stricter rules for transaction number handling in PB-ADV to avoid unexpected behavior
   when paired with misbehaving nodes. See [Migration guide](@ref migration_310_pb-adv_change) page
   for details and required changes.
-- Added support for clearing the state in mesh config.
+- Added support for clearing the state in Bluetooth mesh config.
 - Added upper boundaries to the number of keys, models, and addresses to avoid unexpected behavior
   when configuration messages exceed maximum access layer message size.
 - Simplified Generic Power OnOff client initialization API.
@@ -524,7 +606,7 @@ As part of this release, several files have been added and removed. See
   for required changes.
 - Added experimental support for Low Power node feature. See @ref md_doc_user_guide_modules_lpn_concept
   and @ref md_doc_user_guide_modules_lpn_integrating for documentation.
-	- Due to this change, the high frequency crystal is stopped when the mesh is inactive.
+	- Due to this change, the high frequency crystal is stopped when the Bluetooth mesh is inactive.
 	- Implemented Low Power node example. See @ref md_examples_lpn_README for documentation.
 - Implemented experimental support for Generic PowerOnOff models.
 
@@ -540,15 +622,15 @@ As part of this release, several files have been added and removed. See
   source and a destination address by returning `NRF_MESH_ERROR_INVALID_STATE` on publish calls.
   See [Migration guide](@ref migration_300_segmented_messages) for details.
 - Added new event @ref NRF_MESH_EVT_DISABLED.
-    - After calling nrf_mesh_disable(), the mesh stack cannot be considered disabled until the
+    - After calling nrf_mesh_disable(), the Bluetooth mesh stack cannot be considered disabled until the
       new @ref NRF_MESH_EVT_DISABLED is received.
-- Added a function to get the Health Server structure from the Mesh Stack module for usage in the
+- Added a function to get the Health Server structure from the Bluetooth mesh stack module for usage in the
   Health Server API.
-- Unified compile time flags for enabling and disabling mesh features. See
+- Unified compile time flags for enabling and disabling Bluetooth mesh features. See
   [Migration guide](@ref migration_300_compile_time) for details.
 
 #### Core changes
-- The mesh stack scheduler now runs on `app_timer`.
+- The Bluetooth mesh stack scheduler now runs on `app_timer`.
 	- Some modifications to the SDK 15.2 version are required. More information can be found in the
       [Migration guide](@ref migration_300_stack_separation).
 		- The modified version can be found in `external/app_timer/app_timer_mesh.c`.
@@ -561,7 +643,7 @@ As part of this release, several files have been added and removed. See
       deallocates any excess allocated lists.
 - Removed all uses of Variable Length Arrays (VLAs). If compiled with ARMCC, the program will use
   heap allocated memory for the array and will hardfault if the allocation fails.
-- Unified all dynamic memory management in the mesh stack into one @ref MESH_MEM module.
+- Unified all dynamic memory management in the Bluetooth mesh stack into one @ref MESH_MEM module.
 
 #### Example changes
 - GATT Provisioning and Proxy features are now enabled in the Light Switch Server, Light Switch Client, Dimming Server, Dimming Client, and EnOcean examples.
@@ -572,7 +654,7 @@ As part of this release, several files have been added and removed. See
       faster when using the nRF Mesh mobile app.
 - The `mesh_softdevice_init` module is replaced with the @ref BLE_SOFTDEVICE_SUPPORT.
 	- The function @ref ble_stack_init() is used to initialize the SoftDevice Handler and the BLE
-      stack and to register Mesh handler for SoC events.
+      stack and to register Bluetooth mesh handler for SoC events.
 	- The functions @ref gap_params_init() and @ref conn_params_init() are used to run GATT
       Provisioning and Proxy features.
 
@@ -642,16 +724,18 @@ As part of this release, several files have been added and removed. See
   Configuration Client.
 
 #### Assertion and crash fixes
-- Fixed a bug that would cause the mesh devices to hardfault because of misformed packets. Network
+- Fixed a bug that would cause the mesh network devices to hardfault because of misformed packets. Network
   packets are now subject to length checks.
 - Fixed a bug that caused GATT to assert when in connection, if the network ran out of sequence numbers.
 - Fixed some rare asserts in the transition from provisioning to configuration when adding a device
   with the nRF Mesh App.
 
 ### Known issues and limitations @anchor release_notes_300_known_issues
-- If the mesh stack is configured with IRQ priority @ref NRF_MESH_IRQ_PRIORITY_THREAD and run in the
+- If the Bluetooth mesh stack is configured with IRQ priority @ref NRF_MESH_IRQ_PRIORITY_THREAD and run in the
   main loop with app_scheduler, there might be delays of ~15 ms.
 - Publish re-transmission settings are not supported.
+
+
 
 ---
 
@@ -665,7 +749,7 @@ As part of this release, several files have been added and removed. See
   - New Mesh Config module that provides high-level access to persistent storage. This module uses
     the existing Flash Manager and aims to enable multiple flash backends (including nRF5 SDK
     fstorage) in the future.
-  - Moved mesh runtime configuration options to a new, type-safe mesh_opt_* API in their
+  - Moved Bluetooth mesh runtime configuration options to a new, type-safe mesh_opt_* API in their
   respective submodules. The options are stored in persistent memory through the new
   mesh_config module.
   - Added persistent storage to several internal states:
@@ -704,7 +788,7 @@ As part of this release, several files have been added and removed. See
   be used.
   Otherwise the examples which use GATT will generate assertion
   `Mesh error 3 at <address> (examples/common/include/mesh_app_utils.h:100)`
-  - If the mesh stack is configured with IRQ priority NRF_MESH_IRQ_PRIORITY_THREAD and run in
+  - If the Bluetooth mesh stack is configured with IRQ priority NRF_MESH_IRQ_PRIORITY_THREAD and run in
     the main loop with app_scheduler, there might be delays of ~15 ms.
 
 
@@ -727,11 +811,11 @@ As part of this release, several files have been added and removed. See
 - light_switch_proxy_client SES project imports app_error.c twice, leads to compile error
 - Light switch client requires all buttons to be configured
 - Heartbeat Publication Set message duplicates count value
-- Mesh GATT asserts on MTU requests
+- Bluetooth mesh GATT asserts on MTU requests
 - In-place modification of event list during event handling
 - Device page generator outputs file for nrf52832 no matter platform chosen
-- Mesh timeslot extension is prohibiting softdevice advertising (GATT)
-- Mesh proxy sets advertising timing in wrong order
+- Bluetooth mesh timeslot extension is prohibiting softdevice advertising (GATT)
+- Bluetooth mesh proxy sets advertising timing in wrong order
 - Invalid handling of service changed attribute
 - Application defined softdevice settings are lost during GATT dabase reset
 - Core TX alloc rejected by GATT proxy bearer
@@ -741,7 +825,7 @@ As part of this release, several files have been added and removed. See
 - Segger Embedded Studio projects have invalid memory configurations
 - Connecting and disconnecting from PB-GATT leaves provisioning bearers in undefined state
 - Persistent storage is turned off for proxy client
-- Mesh GATT module does not propagate ADV timeout event
+- Bluetooth mesh GATT module does not propagate ADV timeout event
 - hal_led_blink_ms call is blocking and used in IRQs
 - `device_page_generator.py` key parsing errors
 - `device_page_generator.py` wrong output filename
@@ -757,9 +841,9 @@ As part of this release, several files have been added and removed. See
   response of a previous configuration step as the status response of the current configuration step.
   This may cause a node configuration to remain incomplete, without the provisioner noticing. If
   this happens, provisioned client or server nodes will not respond to user inputs as expected.
-  This occurs due to mesh message re-transmissions logic built into the stack causing responses to
+  This occurs due to Bluetooth mesh message re-transmissions logic built into the stack causing responses to
   SET messages to arrive out of order. This scenario is most likely to manifest itself in situations
-  when the mesh stack is not scanning for the majority of the time. For example, while running other
+  when the Bluetooth mesh stack is not scanning for the majority of the time. For example, while running other
   BLE connections with a short connection interval.
 
 
@@ -789,7 +873,7 @@ As part of this release, several files have been added and removed. See
 - Generic GATT interface for PB-GATT and Proxy (experimental)
 - Interactive Configuration client for the Interactive PyACI
 - Concurrent provisioning link listening
-- Third party BLE device integration example: Integrating EnOcean switch with Mesh networks
+- Third party BLE device integration example: Integrating EnOcean switch with Bluetooth mesh networks
 - Separate Light switch provisioner example
 
 ### Other
@@ -808,7 +892,7 @@ As part of this release, several files have been added and removed. See
 - Provisionee does not sanitize input in provisioning start message
 - `access_reliable_cancel_all()` and `access_model_reliable_cancel()` does not actually cancel
   pending reliable transfers
-- Access status codes does not align with Mesh Profile v1.0 values
+- Access status codes does not align with Bluetooth Mesh Profile v1.0 values
 - Config server doesn't reply to Composition Data Get message requesting page `0xFF`
 - Config server reports error for duplicate NetKey Add command
 - Config server `send_publication_status()` always sends status code as `ACCESS_STATUS_SUCCESS` or
@@ -830,9 +914,9 @@ As part of this release, several files have been added and removed. See
   response of a previous configuration step as the status response of the current configuration step.
   This may cause a node configuration to remain incomplete, without the provisioner noticing. If
   this happens, provisioned client or server nodes will not respond to user inputs as expected.
-  This occurs due to mesh message re-transmissions logic built into the stack causing responses to
+  This occurs due to Bluetooth mesh message re-transmissions logic built into the stack causing responses to
   SET messages to arrive out of order. This scenario is most likely to manifest itself in situations
-  when the mesh stack is not scanning for the majority of the time. For example, while running other
+  when the Bluetooth mesh stack is not scanning for the majority of the time. For example, while running other
   BLE connections with a short connection interval.
 - `device_page_generator.py`
   - The script will not parse the `public_key` property of `bootloader_config_default.json` when
@@ -863,7 +947,7 @@ This is a hotfix release with documentation/bug fixes.
 - DFU quick start guide fixed along with device_page_generator.py script
 - SDK patch file updated
 - Serial Example documentation updated
-- Mesh Assert cleanup
+- Bluetooth mesh Assert cleanup
 
 ### Verification / Test Errata
 - nRF51 platform testing has been put on hold
@@ -968,13 +1052,13 @@ This is a minor feature release for the experimental nRF5 SDK for Mesh
 
 ### Document updates
 - Revised documentation for better distinction between implementation-specific information and
-  concepts defined by the Bluetooth Mesh Profile Specification, updated references to the latter
+  concepts defined by the Bluetooth mesh profile specification, updated references to the latter
 - Updated DFU Quick Start guide
 - Added more detailed installation instructions
 
 ### Other
 - "Light control example" has been renamed "Light switch example" to resolve similarity with the
-  Light Control model in the Mesh Model Bluetooth Specification
+  Light Control model in the Bluetooth mesh model specification
 - Step-by-step howto for setting up Keil projects for Mesh now available on
   DevZone: https://devzone.nordicsemi.com/blogs/1180/creating-a-keil-project-for-a-bluetooth-mesh-examp/
 
@@ -1013,9 +1097,9 @@ This is a hotfix release, providing critical bug fixes and improvements.
 
 ### Document updates
 
-- Rename "Bluetooth Mesh SDK" to "nRF5 SDK for Bluetooth Mesh"
+- Rename "Bluetooth Mesh SDK" to "nRF5 SDK for Bluetooth mesh"
 - How to create a model document updated to current API
-- Minor fixes to cryptography section in the "Bluetooth Mesh basic concepts" document
+- Minor fixes to cryptography section in the "Bluetooth mesh basic concepts" document
 - Added installation instructions for CMake, Ninja and ARM toolchain
 - Added information on how to select compile target
 
@@ -1040,12 +1124,12 @@ This is a hotfix release, providing critical bug fixes and improvements.
 
 ## BLE Mesh v0.9.1-Alpha @anchor release_notes_091
 
-This is an experimental release for exploration of the BLE Mesh stack on the nRF5 device family.
+This is an experimental release for exploration of the Bluetooth mesh stack on the nRF5 device family.
 It is not intended for commercial use.
 
 ### Key Features
 
-- Bluetooth Mesh software core stack
+- Bluetooth mesh software core stack
     - Based on Bluetooth 4.0 PHY
     - Bearer, network, transport, and access layers
     - Foundation models
@@ -1090,7 +1174,7 @@ It is not intended for commercial use.
 
 ### Known limitations of this release
 
-- Packet format in Alpha is not entirely BLE Mesh compatible
+- Packet format in Alpha is not entirely Bluetooth mesh compatible
 - Heartbeat and Health model not implemented
 - ASZMIC field is missing from application/device nonce for segmented access messages
 - Source for bootloader must be downloaded from OpenMesh GitHub repo

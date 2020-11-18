@@ -206,6 +206,12 @@ typedef struct
     bool is_triggered;
 } test_metadata_t;
 
+typedef struct
+{
+    bool is_triggered;
+    uint8_t default_ttl;
+} test_default_ttl_t;
+
 /*******************************************************************************
  * Static Variables
  *******************************************************************************/
@@ -234,6 +240,7 @@ static test_model_t    m_expected_model_info[ACCESS_MODEL_COUNT];
 static test_sublist_t  m_expected_subs_list[ACCESS_SUBSCRIPTION_LIST_COUNT];
 static test_element_t  m_expected_element_location[ACCESS_ELEMENT_COUNT];
 static test_metadata_t m_expected_metadata;
+static test_default_ttl_t m_expected_default_ttl;
 
 static persistent_indexes_t m_pst_indexes =
 {
@@ -248,6 +255,7 @@ extern const mesh_config_entry_params_t m_access_metadata_params;
 extern const mesh_config_entry_params_t m_subscriptions_params;
 extern const mesh_config_entry_params_t m_elements_params;
 extern const mesh_config_entry_params_t m_models_params;
+extern const mesh_config_entry_params_t m_default_ttl_params;
 
 /*******************************************************************************
  * Helper Functions // Mocks // Callbacks
@@ -328,6 +336,18 @@ static uint32_t entry_set_cb(mesh_config_entry_id_t id, const void* p_entry, int
         TEST_ASSERT_EQUAL_UINT16(ACCESS_SUBSCRIPTION_LIST_COUNT, p_metadata->subscription_list_count);
 
         TEST_ASSERT_EQUAL(NRF_SUCCESS, m_access_metadata_params.callbacks.setter(id, p_entry));
+
+        return NRF_SUCCESS;
+    }
+
+    if (id.record == MESH_OPT_ACCESS_DEFAULT_TTL_RECORD)
+    {
+        uint8_t * p_ttl = (uint8_t *)p_entry;
+        TEST_ASSERT_TRUE(m_expected_default_ttl.is_triggered);
+        m_expected_default_ttl.is_triggered = false;
+
+        TEST_ASSERT_EQUAL(m_expected_default_ttl.default_ttl, *p_ttl);
+        m_default_ttl_params.callbacks.setter(id, p_ttl);
 
         return NRF_SUCCESS;
     }
@@ -716,7 +736,9 @@ static uint8_t expected_tx_ttl_get(access_model_handle_t handle)
 
     if (model_ttl == ACCESS_TTL_USE_DEFAULT)
     {
-        return (access_default_ttl_get());
+        uint8_t ttl = access_default_ttl_get();
+        TEST_ASSERT_EQUAL(m_expected_default_ttl.default_ttl, ttl);
+        return ttl;
     }
 
     return model_ttl;
@@ -1061,6 +1083,7 @@ void setUp(void)
     access_init();
 
     m_dsm_tx_friendship_secmat_get_retval = NRF_SUCCESS;
+    m_expected_default_ttl.default_ttl = ACCESS_DEFAULT_TTL;
 }
 
 void tearDown(void)
@@ -2424,4 +2447,16 @@ void test_access_model_publish_period_divisor_set(void)
     access_publish_period_set_Expect(NULL, exp_resolution, exp_step_number);
     access_publish_period_set_IgnoreArg_p_pubstate();
     TEST_ASSERT_EQUAL(NRF_SUCCESS, access_model_publish_period_divisor_set(handle0, 100));
+}
+
+void test_access_default_ttl_get_set(void)
+{
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, access_default_ttl_set(128));
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, access_default_ttl_set(1));
+    TEST_ASSERT_EQUAL(ACCESS_DEFAULT_TTL, access_default_ttl_get());
+
+    m_expected_default_ttl.is_triggered = true;
+    m_expected_default_ttl.default_ttl = 11;
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, access_default_ttl_set(m_expected_default_ttl.default_ttl));
+    TEST_ASSERT_EQUAL(m_expected_default_ttl.default_ttl, access_default_ttl_get());
 }

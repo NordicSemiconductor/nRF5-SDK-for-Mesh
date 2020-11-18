@@ -98,6 +98,11 @@
 #define FLASH_TIME_TO_ERASE_PAGE_US         (85000)
 /** Timer to write a single flash word. */
 #define FLASH_TIME_TO_WRITE_ONE_WORD_US     (41)
+#elif defined(NRF52820)
+/** Timer to erase a single flash page. */
+#define FLASH_TIME_TO_ERASE_PAGE_US         (87500)
+/** Timer to write a single flash word. */
+#define FLASH_TIME_TO_WRITE_ONE_WORD_US     (43)
 #elif defined(NRF52832)
 /** Timer to erase a single flash page. */
 #define FLASH_TIME_TO_ERASE_PAGE_US         (89700)

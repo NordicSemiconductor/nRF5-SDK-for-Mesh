@@ -350,7 +350,7 @@ uint32_t sensor_client_cadence_set(sensor_client_t * p_client,
         return NRF_ERROR_BUSY;
     }
 
-    uint8_t * p_message;
+    uint8_t * p_message = NULL;
     uint32_t status;
 
     if (NRF_SUCCESS != (status = message_cache(p_client, &p_message, (uint8_t *)p_params, length)))
@@ -358,6 +358,7 @@ uint32_t sensor_client_cadence_set(sensor_client_t * p_client,
         return status;
     }
 
+    NRF_MESH_ASSERT(p_message != NULL);
     message_create(p_client, SENSOR_OPCODE_CADENCE_SET, p_message, length,
                    &p_client->access_message.message);
 
@@ -405,7 +406,7 @@ uint32_t sensor_client_setting_set(sensor_client_t * p_client,
         return NRF_ERROR_BUSY;
     }
 
-    uint8_t * p_message;
+    uint8_t * p_message = NULL;
     uint32_t status;
 
     if (NRF_SUCCESS != (status = message_cache(p_client, &p_message, (uint8_t *)p_params, length)))
@@ -413,6 +414,7 @@ uint32_t sensor_client_setting_set(sensor_client_t * p_client,
         return status;
     }
 
+    NRF_MESH_ASSERT(p_message != NULL);
     message_create(p_client, SENSOR_OPCODE_SETTING_SET, (const uint8_t *) p_message, length,
                    &p_client->access_message.message);
 

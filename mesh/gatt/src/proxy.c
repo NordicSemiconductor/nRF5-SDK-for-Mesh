@@ -61,6 +61,7 @@
 #include "mesh_config_entry.h"
 #include "mesh_opt_gatt.h"
 #include "event.h"
+#include "bearer_event.h"
 
 #if MESH_GATT_PROXY_NODE_IDENTITY_DURATION_MS > 60000
 #error The MESH_GATT_PROXY_NODE_IDENTITY_DURATION_MS shall not be greater than 60,000 ms
@@ -145,7 +146,11 @@ static const core_tx_bearer_interface_t m_interface = {core_tx_packet_alloc_cb,
 static proxy_connection_t m_connections[MESH_GATT_CONNECTION_COUNT_MAX];
 static nrf_mesh_evt_handler_t m_mesh_evt_handler;
 static bool m_enabled = PROXY_ENABLED_DEFAULT;
+static bool m_initialized;
 static bool m_stop_requested;
+static bearer_event_flag_t m_key_refresh_flag = BEARER_EVENT_FLAG_INVALID;
+static bearer_event_flag_t m_iv_update_flag = BEARER_EVENT_FLAG_INVALID;
+static const uint8_t * mp_key_refresh_network_id = NULL;
 
 static struct
 {
@@ -302,6 +307,7 @@ static uint32_t beacon_packet_send(proxy_connection_t * p_connection,
 
 static void beacon_cycle_trigger(proxy_connection_t * p_connection)
 {
+    p_connection->p_pending_beacon_info = NULL;
     nrf_mesh_beacon_info_next_get(NULL, &p_connection->p_pending_beacon_info, &p_connection->kr_phase);
 }
 
@@ -341,6 +347,37 @@ static uint32_t beacon_packet_send_to_all(const nrf_mesh_beacon_secmat_t * p_bea
         }
     }
     return status;
+}
+
+static bool send_beacon_on_iv_update(void)
+{
+    for (uint32_t i = 0; i < MESH_GATT_CONNECTION_COUNT_MAX; ++i)
+    {
+        if (m_connections[i].connected)
+        {
+            beacon_cycle_trigger(&m_connections[i]);
+            beacon_cycle_send(&m_connections[i]);
+        }
+    }
+
+    return true;
+}
+
+static bool send_beacon_on_key_refresh(void)
+{
+    const nrf_mesh_beacon_info_t * p_beacon_info = NULL;
+    nrf_mesh_key_refresh_phase_t kr_phase;
+
+    nrf_mesh_beacon_info_next_get(mp_key_refresh_network_id, &p_beacon_info, &kr_phase);
+
+    NRF_MESH_ASSERT(p_beacon_info);
+    mp_key_refresh_network_id = NULL;
+
+    (void) beacon_packet_send_to_all(nrf_mesh_beacon_secmat_from_info(p_beacon_info, kr_phase),
+                                     net_state_beacon_iv_index_get(),
+                                     net_state_iv_update_get(),
+                                     net_beacon_key_refresh_flag(kr_phase));
+    return true;
 }
 
 static bool config_packet_decrypt(network_packet_metadata_t * p_net_meta,
@@ -397,15 +434,13 @@ static uint32_t config_packet_send(proxy_connection_t * p_connection,
         },
         .ttl = 0,
         .control_packet = true,
-        .internal = {
-            .iv_index = net_state_tx_iv_index_get()
-        }, /*lint !e446 side effect in initializer */
         .p_security_material = p_secmat
     };
 
     nrf_mesh_unicast_address_get(&tx_net_meta.src, &src_addr_count);
 
-    if (net_state_seqnum_alloc(&tx_net_meta.internal.sequence_number) != NRF_SUCCESS)
+    if (net_state_iv_index_and_seqnum_alloc(&tx_net_meta.internal.iv_index,
+                                            &tx_net_meta.internal.sequence_number) != NRF_SUCCESS)
     {
         packet_discard(p_connection);
         return NRF_ERROR_BUSY;
@@ -663,7 +698,12 @@ static void gatt_evt_handler(const mesh_gatt_evt_t * p_evt, void * p_context)
                                  p_evt->params.tx_complete.token);
             }
 
-            if (m_stop_requested && !has_pending_packets())
+            if (!m_stop_requested)
+            {
+                /* Send pending beacons if requested. */
+                beacon_cycle_send(p_connection);
+            }
+            else if (m_stop_requested && !has_pending_packets())
             {
                 proxy_disconnect();
             }
@@ -703,6 +743,16 @@ static void mesh_evt_handle(const nrf_mesh_evt_t * p_evt)
                 cache_put(&m_beacon_cache, p_evt->params.net_beacon.p_auth_value);
             }
         }
+    }
+    else if (p_evt->type == NRF_MESH_EVT_KEY_REFRESH_NOTIFICATION)
+    {
+        NRF_MESH_ASSERT(p_evt->params.key_refresh.p_network_id);
+        mp_key_refresh_network_id = p_evt->params.key_refresh.p_network_id;
+        bearer_event_flag_set(m_key_refresh_flag);
+    }
+    else if (p_evt->type == NRF_MESH_EVT_IV_UPDATE_NOTIFICATION)
+    {
+        bearer_event_flag_set(m_iv_update_flag);
     }
 }
 
@@ -821,6 +871,11 @@ void core_tx_packet_discard_cb(core_tx_bearer_t * p_bearer)
 *****************************************************************************/
 void proxy_init(void)
 {
+    if (m_initialized)
+    {
+        return;
+    }
+
     mesh_gatt_uuids_t uuids = {.service = PROXY_UUID_SERVICE,
                                .tx_char = PROXY_UUID_CHAR_TX,
                                .rx_char = PROXY_UUID_CHAR_RX};
@@ -842,6 +897,11 @@ void proxy_init(void)
         m_connections[i].connected = false;
     }
 
+    m_iv_update_flag = bearer_event_flag_add(send_beacon_on_iv_update);
+    m_key_refresh_flag = bearer_event_flag_add(send_beacon_on_key_refresh);
+
+    m_initialized = true;
+
     /* NOTE: We're not setting the m_enabled state here. It is stored in zero-initialized memory and
      * set by mesh_config_load() which _has to be called before this function_.
      *
@@ -852,7 +912,7 @@ void proxy_init(void)
 
 uint32_t proxy_start(void)
 {
-    if (m_enabled)
+    if (m_initialized && m_enabled)
     {
         /* Can't start connectable advertisements if run out of connections. */
         if (!m_advertising.running
@@ -871,7 +931,7 @@ uint32_t proxy_start(void)
 
 uint32_t proxy_stop(void)
 {
-    if (m_enabled)
+    if (m_initialized && m_enabled)
     {
         if (m_advertising.running)
         {
@@ -983,6 +1043,10 @@ void proxy_disable(void)
 
 uint32_t proxy_node_id_enable(const nrf_mesh_beacon_info_t * p_beacon_info, nrf_mesh_key_refresh_phase_t kr_phase)
 {
+    if (!m_initialized)
+    {
+    	return NRF_ERROR_INVALID_STATE;
+    }
     if (active_connection_count() >= MESH_GATT_CONNECTION_COUNT_MAX)
     {
         return NRF_ERROR_BUSY;
@@ -999,7 +1063,11 @@ uint32_t proxy_node_id_enable(const nrf_mesh_beacon_info_t * p_beacon_info, nrf_
 
 uint32_t proxy_node_id_disable(void)
 {
-    if (proxy_node_id_is_enabled(NULL))
+    if (!m_initialized || !proxy_node_id_is_enabled(NULL))
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+    else
     {
         /* If the Proxy state is enabled, we'll go back to advertising
          * the Network ID. */
@@ -1014,10 +1082,6 @@ uint32_t proxy_node_id_disable(void)
         }
         return NRF_SUCCESS;
     }
-    else
-    {
-        return NRF_ERROR_INVALID_STATE;
-    }
 }
 
 /*****************************************************************************
@@ -1028,27 +1092,18 @@ static uint32_t proxy_set(mesh_config_entry_id_t id, const void * p_entry)
 {
     const bool enable = *((bool *) p_entry);
 
-    if (enable && !m_enabled)
+    if (enable != m_enabled)
     {
-        m_enabled = true;
-        return NRF_SUCCESS;
-    }
-    else if (!enable && m_enabled)
-    {
-        m_enabled = false;
+        m_enabled = enable;
 
-        if (m_advertising.running)
+        if (!m_enabled && m_advertising.running)
         {
             mesh_adv_stop();
             on_adv_end();
         }
+    }
 
-        return NRF_SUCCESS;
-    }
-    else
-    {
-        return NRF_ERROR_INVALID_STATE;
-    }
+    return NRF_SUCCESS;
 }
 
 static void proxy_get(mesh_config_entry_id_t id, void * p_entry)
@@ -1086,5 +1141,13 @@ uint32_t mesh_opt_gatt_proxy_get(bool * p_enabled)
 {
     return mesh_config_entry_get(MESH_OPT_GATT_PROXY_EID, p_enabled);
 }
+
+#if defined UNIT_TEST
+/* This function MUST be only used by unit tests. */
+void proxy_deinit(void)
+{
+    m_initialized = false;
+}
+#endif /* UNIT_TEST */
 
 #endif /* MESH_FEATURE_GATT_PROXY_ENABLED */

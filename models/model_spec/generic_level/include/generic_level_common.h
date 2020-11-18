@@ -59,6 +59,13 @@
 #define GENERIC_LEVEL_MAX (INT16_MAX)
 
 /**
+ * Defines default value for the Generic Level state.
+ */
+#ifndef GENERIC_LEVEL_DEFAULT_LEVEL
+#define GENERIC_LEVEL_DEFAULT_LEVEL     (0x0)
+#endif
+
+/**
  * Unpacked message structure typedefs are used for API interfaces and for implementing model code. This helps to minimize code
  * footprint.
  */

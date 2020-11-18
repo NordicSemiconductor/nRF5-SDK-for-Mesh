@@ -55,7 +55,7 @@ typedef enum
     PONOFF_SETUP_SERVER
 } server_context_type_t;
 
-static uint32_t status_send(void * p_ctx,
+static uint32_t status_send(const void * p_ctx,
                             server_context_type_t ctx_type,
                             const access_message_rx_t * p_message,
                             const generic_ponoff_status_params_t * p_params)
@@ -67,14 +67,15 @@ static uint32_t status_send(void * p_ctx,
 
     if (ctx_type == PONOFF_SERVER)
     {
-        generic_ponoff_server_t * p_server = (generic_ponoff_server_t *) p_ctx;
+        const generic_ponoff_server_t * p_server = (generic_ponoff_server_t *) p_ctx;
         model_handle = p_server->model_handle;
         force_segmented = p_server->settings.force_segmented;
         transmic_size = p_server->settings.transmic_size;
     }
     else
     {
-        generic_ponoff_setup_server_t * p_server = (generic_ponoff_setup_server_t *) p_ctx;
+        NRF_MESH_ASSERT(p_message != NULL);
+        const generic_ponoff_setup_server_t * p_server = (generic_ponoff_setup_server_t *) p_ctx;
         model_handle = p_server->model_handle;
         force_segmented = p_server->settings.force_segmented;
         transmic_size = p_server->settings.transmic_size;
@@ -114,15 +115,6 @@ static void periodic_publish_cb(access_model_handle_t handle, void * p_args)
 
     p_s_server->settings.p_callbacks->ponoff_cbs.get_cb(p_s_server, NULL, &out_data);
     (void) status_send(p_server, PONOFF_SERVER, NULL, &out_data);
-}
-
-static void periodic_publish_ss_cb(access_model_handle_t handle, void * p_args)
-{
-    generic_ponoff_setup_server_t * p_server = (generic_ponoff_setup_server_t *)p_args;
-    generic_ponoff_status_params_t out_data = {0};
-
-    p_server->settings.p_callbacks->ponoff_cbs.get_cb(p_server, NULL, &out_data);
-    (void) status_send(p_server, PONOFF_SETUP_SERVER, NULL, &out_data);
 }
 
 
@@ -273,7 +265,7 @@ uint32_t generic_ponoff_setup_server_init(generic_ponoff_setup_server_t * p_serv
             .p_opcode_handlers = &m_opcode_handlers_setup[0],
             .opcode_count = ARRAY_SIZE(m_opcode_handlers_setup),
             .p_args = p_server,
-            .publish_timeout_cb = periodic_publish_ss_cb
+            .publish_timeout_cb = NULL
         };
 
         status = access_model_add(&init_params, &p_server->model_handle);
@@ -300,15 +292,4 @@ uint32_t generic_ponoff_setup_server_init(generic_ponoff_setup_server_t * p_serv
     }
 
     return status;
-}
-
-uint32_t generic_ponoff_setup_server_status_publish(generic_ponoff_setup_server_t * p_server, const generic_ponoff_status_params_t * p_params)
-{
-    if (p_server == NULL ||
-        p_params == NULL)
-    {
-        return NRF_ERROR_NULL;
-    }
-
-    return status_send(p_server, PONOFF_SETUP_SERVER, NULL, p_params);
 }

@@ -1,6 +1,9 @@
 set(MODEL_COMMON_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/model_common.c" CACHE INTERNAL "")
 
+set(MODEL_CONFIG_FILE_SOURCE_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/model_config_file.c" CACHE INTERNAL "")
+
 set(MODEL_COMMON_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/include" CACHE INTERNAL "")
 
@@ -16,6 +19,6 @@ set(lint_include_dirs
     ${CMAKE_SOURCE_DIR}/mesh/test/include)
 
 add_pc_lint(model_common_${PLATFORM}
-            "${MODEL_COMMON_SOURCE_FILES}"
+            "${MODEL_COMMON_SOURCE_FILES};${MODEL_CONFIG_FILE_SOURCE_FILES}"
             "${lint_include_dirs}"
             "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};-D__WEAK=")

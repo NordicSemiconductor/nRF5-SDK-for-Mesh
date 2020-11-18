@@ -8,6 +8,7 @@ add_executable(${target}
     "${MBTLE_SOURCE_DIR}/examples/common/src/rtt_input.c"
     "${MBTLE_SOURCE_DIR}/examples/common/src/simple_hal.c"
     "${MBTLE_SOURCE_DIR}/examples/common/src/mesh_app_utils.c"
+    "${SDK_ROOT}/modules/nrfx/drivers/src/nrfx_gpiote.c"
     ${BLE_SOFTDEVICE_SUPPORT_SOURCE_FILES}
     ${WEAK_SOURCE_FILES}
     ${MESH_CORE_SOURCE_FILES}

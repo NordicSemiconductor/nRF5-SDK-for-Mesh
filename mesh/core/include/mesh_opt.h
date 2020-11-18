@@ -50,7 +50,12 @@
  */
 
 /** File IDs for the stack subsystems that store their parameters in the persistence memory.
- * The IDs must be unique within stack. */
+ * The IDs must be unique within stack.
+ * The emergency cache must be the last one among all files (including custom files).
+ * The rest files might have the not invalidated entries after the power down.
+ * During data restoring from the flash, deprecated data from the regular files will be
+ * replaced by the actual data from the emergency cache.
+ * File ID 0xFFFF is prohibited value. */
 enum
 {
     MESH_OPT_NET_STATE_FILE_ID       = 0x0000,
@@ -58,7 +63,9 @@ enum
     MESH_OPT_ACCESS_FILE_ID          = 0x0002,
     MESH_OPT_CORE_FILE_ID            = 0x0003,
     MESH_OPT_MODEL_FILE_ID           = 0x0004,
-    MESH_OPT_FIRST_FREE_ID
+    MESH_OPT_REPLAY_CACHE_FILE_ID    = 0x0005,
+    MESH_OPT_FIRST_FREE_ID           = 0x0010,
+    MESH_OPT_EMERGENCY_CACHE_FILE_ID = 0xFFFE
 };
 
 /** Macro for mesh option entry IDs */

@@ -172,6 +172,9 @@ struct __generic_level_server_t
 
     /** Model settings and callbacks for this instance. */
     generic_level_server_settings_t settings;
+
+    /** State handle for this instance. */
+    uint8_t state_handle;
 };
 
 /**
@@ -215,6 +218,23 @@ uint32_t generic_level_server_init(generic_level_server_t * p_server, uint8_t el
  *                                  new segmented packets.
  */
 uint32_t generic_level_server_status_publish(generic_level_server_t * p_server, const generic_level_status_params_t * p_params);
+
+/**
+ * Function to trigger level value set as a Generic Level server callback.
+ *
+ * This is called when the mesh is initialized and stable.  The caller
+ * is responsible for reading the saved state values out of flash and
+ * pass those to this function. So that function calls set_cb to propogate
+ * given value to higher layers.
+ *
+ *
+ * @param[in]     p_server          Server context pointer.
+ * @param[in]     level             Set value of the level state.
+ *
+ * @retval NRF_SUCCESS      The model is initialized successfully.
+ * @retval NRF_ERROR_NULL   NULL pointer given to function.
+ */
+uint32_t generic_level_server_state_set(generic_level_server_t * p_server, int16_t level);
 
 /**@} end of GENERIC_LEVEL_SERVER */
 #endif /* GENERIC_LEVEL_SERVER_H__ */

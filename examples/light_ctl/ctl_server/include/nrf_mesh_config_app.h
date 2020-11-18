@@ -124,6 +124,8 @@
                             1 + /* Light Lightness Setup Server (required by Light CTL Server)                  */ \
                             1 + /* Light CTL Server (extended by Light CTL Setup Server)                        */ \
                             1 + /* Light CTL Setup Server                                                       */ \
+                            1 + /* Scene Server (extends Scene Setup Server)                                    */ \
+                            1 + /* Scene Setup Server                                                           */ \
                             /* Element 1:                                                                       */ \
                             1 + /* Generic Level Server (extended by Light CTL Temperature Server)              */ \
                             1   /* Light CTL Temperature Server (required by Light CTL Server)                  */)
@@ -135,6 +137,17 @@
  * cannot be in the same element and a separate element is needed for each new instance of the same model.
  */
 #define ACCESS_ELEMENT_COUNT (2)
+
+/**
+ * The number of scene setup server instances used by the application.
+ */
+#ifndef SCENE_SETUP_SERVER_INSTANCES_MAX
+#define SCENE_SETUP_SERVER_INSTANCES_MAX (1)
+#endif
+
+/** Number of Scene Models to support storage.
+ */
+#define APP_SCENE_MODEL_COUNT (2)
 
 /**
  * The number of allocated subscription lists for the application.

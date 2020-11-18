@@ -39,58 +39,44 @@
 #include "log.h"
 #include "nrf_mesh_assert.h"
 
-/* Input is a signed 16-bit integer. The following scaling maps the range
- * [INT16_MIN, INT16_MAX] to [0, pwm_tick_max], where pwm_tick_max is the tick value for
- * the 100% PWM duty cycle.
+/* Input is a signed 16-bit integer. The following scaling maps the range [INT16_MIN, INT16_MAX] to
+ * [1, pwm_tick_max], where pwm_tick_max is the tick value for the 100% PWM duty cycle.
  */
-static inline uint16_t pwm_level_to_ticks(pwm_utils_contex_t * p_ctx, int16_t signed_value)
+static inline uint16_t pwm_signed_level_to_ticks(pwm_utils_contex_t * p_ctx, int16_t signed_value)
 {
-    uint16_t retval;
-
-    NRF_MESH_ASSERT(p_ctx->pwm_ticks_max);
-    /* The pwm peripheral is enabled. */
-
-    retval = (uint16_t)(((int32_t)(signed_value - INT16_MIN) * p_ctx->pwm_ticks_max)/UINT16_MAX);
-
-    if (retval == 0)
-    {
-        retval = 1;
-    }
-
-    return retval;
+    return (uint16_t)((((int32_t)(signed_value - INT16_MIN) * (p_ctx->pwm_ticks_max - 1))/UINT16_MAX) + 1);
 }
 
-/* Input is a unsigned 16-bit integer. The following scaling maps the range
- * [0, pwm_tick_max] to [INT16_MIN, INT16_MAX], where pwm_tick_max is the tick value for
- * the 100% PWM duty cycle.
+/* Input is a unsigned 16-bit integer. The following scaling maps the range [0, UINT16_MAX] to [1,
+ * pwm_tick_max], where pwm_tick_max is the tick value for the 100% PWM duty cycle.
  */
-static inline int16_t pwm_ticks_to_level(pwm_utils_contex_t * p_ctx, uint16_t ticks)
+static inline uint16_t pwm_unsigned_level_to_ticks(pwm_utils_contex_t * p_ctx, uint16_t unsigned_value)
 {
-    NRF_MESH_ASSERT(p_ctx->pwm_ticks_max);
-    /* The pwm peripheral is enabled. */
+    return (uint16_t)(((uint32_t)(unsigned_value * (p_ctx->pwm_ticks_max - 1))/UINT16_MAX) + 1);
+}
 
-    /* pwm_level_to_ticks(INT16_MIN) = 1. */
-    /* So 1 is a special case. */
-    ticks = (1 == ticks) ? 0 : ticks;
+/* Input is a unsigned 16-bit integer. The following scaling maps the range [1, pwm_tick_max] to
+ * [0, UINT16_MAX], where pwm_tick_max is the tick value for the 100% PWM duty cycle.
+ */
+static inline uint16_t pwm_ticks_to_unsigned_level(pwm_utils_contex_t * p_ctx, uint16_t ticks)
+{
+    if (ticks == 0)
+    {
+        ticks = 1;
+    }
 
-    return ((int32_t)(UINT16_MAX * ticks)
-            - (int32_t)(INT16_MIN * p_ctx->pwm_ticks_max)) / p_ctx->pwm_ticks_max;
+    return (uint16_t)(((uint32_t)(ticks - 1) * UINT16_MAX) / (uint32_t)(p_ctx->pwm_ticks_max - 1));
+}
+
+/* Input is a unsigned 16-bit integer. The following scaling maps the range [1, pwm_tick_max] to
+ * [INT16_MIN, INT16_MAX], where pwm_tick_max is the tick value for the 100% PWM duty cycle.
+ */
+static inline int16_t pwm_ticks_to_signed_level(pwm_utils_contex_t * p_ctx, uint16_t ticks)
+{
+    return (int16_t)((int32_t)pwm_ticks_to_unsigned_level(p_ctx, ticks) + INT16_MIN);
 }
 
 /***** Interface functions *****/
-void pwm_utils_level_set(pwm_utils_contex_t * p_ctx, int16_t level)
-{
-    (void) app_pwm_channel_duty_ticks_set(p_ctx->p_pwm, p_ctx->channel, pwm_level_to_ticks(p_ctx, level));
-}
-
-int16_t pwm_utils_level_get(pwm_utils_contex_t * p_ctx)
-{
-    NRF_MESH_ASSERT(p_ctx->pwm_ticks_max);
-    /* The pwm peripheral is enabled. */
-
-    return pwm_ticks_to_level(p_ctx, app_pwm_channel_duty_ticks_get(p_ctx->p_pwm, p_ctx->channel));
-}
-
 void pwm_utils_enable(pwm_utils_contex_t * p_ctx)
 {
     /* Prior to instantiation the value of pwm_tick_max is zero. */
@@ -106,4 +92,32 @@ void pwm_utils_enable(pwm_utils_contex_t * p_ctx)
     NRF_MESH_ASSERT(p_ctx->pwm_ticks_max);
 
     app_pwm_enable(p_ctx->p_pwm);
+}
+
+void pwm_utils_level_set(pwm_utils_contex_t * p_ctx, int16_t level)
+{
+    /* The pwm peripheral is enabled. */
+    NRF_MESH_ASSERT(p_ctx->pwm_ticks_max);
+    (void) app_pwm_channel_duty_ticks_set(p_ctx->p_pwm, p_ctx->channel, pwm_signed_level_to_ticks(p_ctx, level));
+}
+
+int16_t pwm_utils_level_get(pwm_utils_contex_t * p_ctx)
+{
+    /* The pwm peripheral is enabled. */
+    NRF_MESH_ASSERT(p_ctx->pwm_ticks_max);
+    return pwm_ticks_to_signed_level(p_ctx, app_pwm_channel_duty_ticks_get(p_ctx->p_pwm, p_ctx->channel));
+}
+
+uint32_t pwm_utils_level_set_unsigned(pwm_utils_contex_t * p_ctx, uint16_t level)
+{
+    /* The pwm peripheral is enabled. */
+    NRF_MESH_ASSERT(p_ctx->pwm_ticks_max);
+    return (app_pwm_channel_duty_ticks_set(p_ctx->p_pwm, p_ctx->channel, pwm_unsigned_level_to_ticks(p_ctx, level)));
+}
+
+uint16_t pwm_utils_level_get_unsigned(pwm_utils_contex_t * p_ctx)
+{
+    /* The pwm peripheral is enabled. */
+    NRF_MESH_ASSERT(p_ctx->pwm_ticks_max);
+    return pwm_ticks_to_unsigned_level(p_ctx, app_pwm_channel_duty_ticks_get(p_ctx->p_pwm, p_ctx->channel));
 }

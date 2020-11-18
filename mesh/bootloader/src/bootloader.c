@@ -187,14 +187,14 @@ void FLASH_HANDLER_IRQHandler(void)
             rsp_cmd.type                      = BL_CMD_TYPE_FLASH_ERASE_COMPLETE;
             rsp_cmd.params.flash.erase.p_dest = (uint32_t*) flash_entry.op.erase.start_addr;
         }
-        bl_cmd_handler(&rsp_cmd);
+        (void) bl_cmd_handler(&rsp_cmd);
     }
 
     if (op_count > 0)
     {
         bl_cmd_t idle_cmd;
         idle_cmd.type = BL_CMD_TYPE_FLASH_ALL_COMPLETE;
-        bl_cmd_handler(&idle_cmd);
+        (void) bl_cmd_handler(&idle_cmd);
     }
     if (fifo_is_empty(&m_flash_fifo) && m_go_to_app)
     {
@@ -215,7 +215,7 @@ static void rx_cb(mesh_packet_t* p_packet)
         rx_cmd.type = BL_CMD_TYPE_RX;
         rx_cmd.params.rx.p_dfu_packet = (dfu_packet_t*) &p_adv_data->handle;
         rx_cmd.params.rx.length = p_adv_data->adv_data_length - MESH_DFU_DATA_OVERHEAD;
-        bl_cmd_handler(&rx_cmd);
+        (void) bl_cmd_handler(&rx_cmd);
     }
 }
 
@@ -240,7 +240,7 @@ static uint32_t bl_evt_handler(bl_evt_t* p_evt)
                 return NRF_ERROR_NO_MEM;
             }
 
-            mesh_packet_set_local_addr(p_packet);
+            (void) mesh_packet_set_local_addr(p_packet);
             p_packet->header.type = BLE_PACKET_TYPE_ADV_NONCONN_IND;
             p_packet->header.length = DFU_PACKET_OVERHEAD + p_evt->params.tx.radio.length;
             ((ble_ad_t*) p_packet->payload)->adv_data_type = MESH_ADV_DATA_TYPE;
@@ -253,7 +253,7 @@ static uint32_t bl_evt_handler(bl_evt_t* p_evt)
                                         p_evt->params.tx.radio.tx_slot,
                                         p_evt->params.tx.radio.tx_count,
                                         (tx_interval_type_t) p_evt->params.tx.radio.interval_type);
-            mesh_packet_ref_count_dec(p_packet);
+            (void) mesh_packet_ref_count_dec(p_packet);
 
             if (!success)
             {
@@ -293,7 +293,7 @@ static uint32_t bl_evt_handler(bl_evt_t* p_evt)
                     /* Abort the ongoing request for a transfer. */
                     bl_cmd_t abort_cmd;
                     abort_cmd.type = BL_CMD_TYPE_DFU_ABORT;
-                    bootloader_cmd_send(&abort_cmd);
+                    (void) bootloader_cmd_send(&abort_cmd);
                     p_evt->params.dfu.new_fw.state = DFU_STATE_FIND_FWID;
                 }
                 if (p_evt->params.dfu.new_fw.state == DFU_STATE_FIND_FWID &&
@@ -340,7 +340,7 @@ static uint32_t bl_evt_handler(bl_evt_t* p_evt)
             {
                 if (!dfu_mesh_app_is_valid())
                 {
-                    dfu_bank_flash(DFU_TYPE_BOOTLOADER);
+                    (void) dfu_bank_flash(DFU_TYPE_BOOTLOADER);
                 }
             }
             break;
@@ -357,7 +357,7 @@ static uint32_t bl_evt_handler(bl_evt_t* p_evt)
                     relay_cmd.params.dfu.start.relay.fwid = p_evt->params.dfu.req.fwid;
                     relay_cmd.params.dfu.start.relay.type = p_evt->params.dfu.req.dfu_type;
                     relay_cmd.params.dfu.start.relay.transaction_id = p_evt->params.dfu.req.transaction_id;
-                    bootloader_cmd_send(&relay_cmd);
+                    (void) bootloader_cmd_send(&relay_cmd);
                 }
             }
             break;
@@ -448,7 +448,7 @@ void bootloader_init(void)
     NVIC_SetPriority(FLASH_HANDLER_IRQn, 3);
     NVIC_EnableIRQ(FLASH_HANDLER_IRQn);
 
-    bootloader_app_bridge_init();
+    APP_ERROR_CHECK(bootloader_app_bridge_init());
 
     bl_cmd_t init_cmd;
     init_cmd.type = BL_CMD_TYPE_INIT;
@@ -477,11 +477,11 @@ void bootloader_init(void)
 void bootloader_enable(void)
 {
 #ifdef RBC_MESH_SERIAL
-    mesh_aci_start();
+    (void) mesh_aci_start();
 #endif
     bl_cmd_t enable_cmd;
     enable_cmd.type = BL_CMD_TYPE_ENABLE;
-    bl_cmd_handler(&enable_cmd);
+    (void) bl_cmd_handler(&enable_cmd);
     transport_start();
 
     /* Recover from broken state */
@@ -525,7 +525,7 @@ void bootloader_enable(void)
 
         if (new_flags != 0xFFFFFFFF)
         {
-            bootloader_info_entry_overwrite(BL_INFO_TYPE_FLAGS, (bl_info_entry_t*) &new_flags);
+            (void) bootloader_info_entry_overwrite(BL_INFO_TYPE_FLAGS, (bl_info_entry_t*) &new_flags);
         }
 
         dfu_type_t missing = dfu_mesh_missing_type_get();
@@ -547,7 +547,7 @@ void bootloader_enable(void)
                     APP_ERROR_CHECK(NRF_ERROR_INVALID_DATA);
             }
 
-            dfu_mesh_req(missing, &req_fwid, (uint32_t*) 0xFFFFFFFF);
+            (void) dfu_mesh_req(missing, &req_fwid, (uint32_t*) 0xFFFFFFFF);
         }
     }
 }
@@ -606,6 +606,7 @@ void bootloader_abort(dfu_end_t end_reason)
             break;
         case DFU_END_ERROR_INVALID_PERSISTENT_STORAGE:
             APP_ERROR_CHECK_BOOL(false);
+            break;
         default:
             __LOG(RTT_CTRL_TEXT_RED "SYSTEM RESET (reason 0x%x)\n", end_reason);
             __disable_irq();
@@ -634,5 +635,5 @@ void bootloader_timeout(void)
             APP_ERROR_CHECK(NRF_ERROR_INVALID_STATE);
     }
     m_timeout_action = TIMEOUT_ACTION_NONE;
-    bootloader_cmd_send(&cmd);
+    (void) bootloader_cmd_send(&cmd);
 }

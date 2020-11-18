@@ -43,6 +43,9 @@
 #include "generic_level_server.h"
 #include "app_timer.h"
 #include "app_transition.h"
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+#include "app_scene.h"
+#endif
 
 /**
  * @defgroup APP_LEVEL Generic Level server behaviour
@@ -222,6 +225,14 @@ struct __app_level_server_t
     /** Internal variable. Representation of the Level state related data and transition parameters
      *  required for behavioral implementation, and for communicating with the application. */
     app_level_state_t state;
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+    /** Internal variable. Scene callback interface. 
+     * @note Available only if  @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1. */
+    app_scene_model_interface_t scene_if;
+    /** Internal variable. Pointer to app_scene context. 
+     * @note Available only if  @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1. */
+    app_scene_setup_server_t  * p_app_scene;
+#endif
 };
 
 /** Initiates value fetch from the user application by calling a get callback, updates internal
@@ -270,6 +281,37 @@ uint32_t app_level_current_value_publish(app_level_server_t * p_app);
  * @retval NRF_ERROR_INVALID_STATE  If the application timer is running.
 */
 uint32_t app_level_init(app_level_server_t * p_app, uint8_t element_index);
+
+/** Restores the level value from persistent storage
+ *
+ * This is called by main.c when the mesh is initialized and stable.
+ * Note that this function must be called from the same IRQ level that
+ * mesh_init() is set at.
+ *
+ * @param[in] p_app                  Pointer to [app_level_server_t](@ref __app_level_server_t)
+ *                                   context.
+ *
+ * @retval NRF_SUCCESS               Value is restored successfully
+ * @retval NRF_ERROR_NULL            If NULL pointer is provided as input context
+ */
+uint32_t app_level_value_restore(app_level_server_t * p_app);
+
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN)
+/** Sets the scene context
+ *
+ * This is needed for app level to inform app scene when the state change occurs.
+ * @note Available only if @ref SCENE_SETUP_SERVER_INSTANCES_MAX is equal or larger than 1.
+ *
+ * @param[in] p_app                 Pointer to [app_level_server_t](@ref __app_level_server_t) 
+ *                                  context.
+ * @param[in] p_app_scene           Pointer to scene behavioral moduel context.
+ *
+ * @retval NRF_SUCCESS              Value is restored successfully
+ * @retval NRF_ERROR_NULL           If NULL pointer is provided as input context
+ */
+uint32_t app_level_scene_context_set(app_level_server_t * p_app, 
+                                     app_scene_setup_server_t  * p_app_scene);
+#endif
 
 /** @} end of APP_LEVEL */
 #endif /* APP_LEVEL_H__ */

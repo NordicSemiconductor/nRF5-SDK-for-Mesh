@@ -39,12 +39,55 @@
 
 #include "transport.h"
 #include "transport_test_common.h"
+#include "mesh_opt.h"
 
 #include "friend_internal_mock.h"
+#include "mesh_config_entry_mock.h"
+#include "mesh_config_mock.h"
+
+/* These are the copy of definitions from replay_cache.c. They shall be synchronized. */
+/** Replay cache start ID of the item range */
+#define MESH_OPT_REPLY_CACHE_RECORD      0x0001
+/** SeqZero cache start ID of the item range */
+#define MESH_OPT_SEQZERO_CACHE_RECORD    (MESH_OPT_REPLY_CACHE_RECORD + REPLAY_CACHE_ENTRIES)
+
+/*****************************************************************************
+* Extern stub
+*****************************************************************************/
+extern const mesh_config_entry_params_t m_replay_cache_params;
+extern const mesh_config_entry_params_t m_seqzero_cache_params;
+
+static uint32_t entry_set_cb(mesh_config_entry_id_t id, const void* p_entry, int num_calls)
+{
+    (void)num_calls;
+
+    TEST_ASSERT_EQUAL(MESH_OPT_REPLAY_CACHE_FILE_ID, id.file);
+
+    if (IS_IN_RANGE(id.record, MESH_OPT_REPLY_CACHE_RECORD,
+                    MESH_OPT_REPLY_CACHE_RECORD + REPLAY_CACHE_ENTRIES - 1))
+    {
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, m_replay_cache_params.callbacks.setter(id, p_entry));
+        return NRF_SUCCESS;
+    }
+
+    if (IS_IN_RANGE(id.record, MESH_OPT_SEQZERO_CACHE_RECORD,
+                    MESH_OPT_SEQZERO_CACHE_RECORD + REPLAY_CACHE_ENTRIES - 1))
+    {
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, m_seqzero_cache_params.callbacks.setter(id, p_entry));
+        return NRF_SUCCESS;
+    }
+
+    TEST_FAIL();
+    return NRF_ERROR_INTERNAL;
+}
 
 void setUp(void)
 {
     friend_internal_mock_Init();
+    mesh_config_entry_mock_Init();
+    mesh_config_mock_Init();
+    mesh_config_entry_set_StubWithCallback(entry_set_cb);
+    mesh_config_entry_delete_IgnoreAndReturn(NRF_SUCCESS);
     transport_test_common_setup();
 }
 
@@ -52,6 +95,10 @@ void tearDown(void)
 {
     friend_internal_mock_Verify();
     friend_internal_mock_Destroy();
+    mesh_config_entry_mock_Verify();
+    mesh_config_entry_mock_Destroy();
+    mesh_config_mock_Verify();
+    mesh_config_mock_Destroy();
     transport_test_common_teardown();
 }
 

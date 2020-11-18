@@ -37,9 +37,8 @@
 
 #include "app_onoff.h"
 
-#include <stdint.h>
-
 #include "utils.h"
+#include "mesh_app_utils.h"
 #include "sdk_config.h"
 #include "example_common.h"
 #include "generic_onoff_server.h"
@@ -47,6 +46,7 @@
 
 #include "log.h"
 #include "app_timer.h"
+#include "generic_onoff_mc.h"
 
 /** This sample implementation shows how the model behavior requirements of Generic OnOff server can
  * be implemented.
@@ -62,7 +62,27 @@ static void generic_onoff_state_set_cb(const generic_onoff_server_t * p_self,
                                        const model_transition_t * p_in_transition,
                                        generic_onoff_status_params_t * p_out);
 
-const generic_onoff_server_callbacks_t onoff_srv_cbs =
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+
+static void app_onoff_scene_store(const app_scene_model_interface_t * p_app_scene_if,
+                                  uint8_t scene_index);
+static void app_onoff_scene_recall(const app_scene_model_interface_t * p_app_scene_if,
+                                   uint8_t scene_index,
+                                   uint32_t delay_ms,
+                                   uint32_t transition_time_ms);
+static void app_onoff_scene_delete(const app_scene_model_interface_t * p_app_scene_if,
+                                   uint8_t scene_index);
+
+const app_scene_callbacks_t m_scene_onoff_cbs =
+{
+    .scene_store_cb = app_onoff_scene_store,
+    .scene_recall_cb = app_onoff_scene_recall,
+    .scene_delete_cb = app_onoff_scene_delete
+};
+
+#endif
+
+const generic_onoff_server_callbacks_t m_onoff_srv_cbs =
 {
     .onoff_cbs.set_cb = generic_onoff_state_set_cb,
     .onoff_cbs.get_cb = generic_onoff_state_get_cb
@@ -78,8 +98,18 @@ static void transition_parameters_set(app_onoff_server_t * p_app,
 
     if (p_in_transition == NULL)
     {
-        p_app->state.transition.delay_ms = 0;
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+        generic_dtt_status_params_t dtt_params = {0};
+        /* For this implementation, the app_onoff uses the DTT instance available with Scene
+         * Setup server */
+        p_app->p_app_scene->scene_setup_server.p_gen_dtt_server->settings.p_callbacks->dtt_cbs.get_cb(p_app->p_app_scene->scene_setup_server.p_gen_dtt_server,
+                                                                                                      NULL, &dtt_params);
+        p_params->transition_time_ms = dtt_params.transition_time_ms;
+#else
         p_params->transition_time_ms = 0;
+#endif
+
+        p_app->state.transition.delay_ms = 0;
     }
     else
     {
@@ -128,8 +158,9 @@ static void generic_onoff_state_set_cb(const generic_onoff_server_t * p_self,
     bool present_on_off;
     p_app->onoff_get_cb(p_app, &present_on_off);
     /* Update internal representation of OnOff value, process timing */
-    p_app->value_updated = false;
     p_app->state.target_onoff = p_in->on_off;
+    ERROR_CHECK(generic_onoff_mc_onoff_state_set(p_app->server.state_handle,
+                                                 p_app->state.target_onoff));
 
     uint32_t transition_time_ms = 0;
     if (present_on_off != p_in->on_off)
@@ -137,6 +168,10 @@ static void generic_onoff_state_set_cb(const generic_onoff_server_t * p_self,
         transition_parameters_set(p_app, p_in_transition);
         transition_time_ms = app_transition_requested_get(&p_app->state.transition)->transition_time_ms;
         app_transition_trigger(&p_app->state.transition);
+
+        #if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+            app_scene_model_scene_changed(p_app->p_app_scene);
+        #endif
     }
 
     /* Prepare response */
@@ -194,13 +229,16 @@ static void transition_complete_cb(const app_transition_t * p_transition)
 
         onoff_current_value_update(p_app);
 
-        generic_onoff_status_params_t status = {
-                    .present_on_off = p_app->state.present_onoff,
-                    .target_on_off = p_app->state.target_onoff,
-                    .remaining_time_ms = 0
-                };
-        (void) generic_onoff_server_status_publish(&p_app->server, &status);
     }
+
+    /* Requirement: Status message is published immediately after the state transition ends (see
+     * @tagMeshSp section 3.7.6.1.2). */
+    generic_onoff_status_params_t status = {
+                .present_on_off = p_app->state.present_onoff,
+                .target_on_off = p_app->state.target_onoff,
+                .remaining_time_ms = 0
+            };
+    (void) generic_onoff_server_status_publish(&p_app->server, &status);
 
     /* Inform the application that the transition is complete */
     if (p_app->onoff_transition_cb != NULL)
@@ -209,12 +247,58 @@ static void transition_complete_cb(const app_transition_t * p_transition)
     }
 }
 
+/***** Scene Interface functions *****/
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+
+static void app_onoff_scene_store(const app_scene_model_interface_t * p_app_scene_if,
+                                  uint8_t scene_index)
+{
+    app_onoff_server_t * p_app = PARENT_BY_FIELD_GET(app_onoff_server_t, scene_if, p_app_scene_if);
+    ERROR_CHECK(generic_onoff_mc_scene_onoff_store(scene_index, p_app->server.state_handle, p_app->state.present_onoff));
+}
+
+static void app_onoff_scene_recall(const app_scene_model_interface_t * p_app_scene_if,
+                                   uint8_t scene_index,
+                                   uint32_t delay_ms,
+                                   uint32_t transition_time_ms)
+{
+    app_onoff_server_t * p_app = PARENT_BY_FIELD_GET(app_onoff_server_t, scene_if, p_app_scene_if);
+
+    bool present_on_off;
+    p_app->onoff_get_cb(p_app, &present_on_off);
+
+    ERROR_CHECK(generic_onoff_mc_scene_onoff_recall(scene_index, p_app->server.state_handle, &p_app->state.target_onoff));
+    model_transition_t in_transition = {.delay_ms = delay_ms, .transition_time_ms = transition_time_ms};
+
+    if (present_on_off != p_app->state.target_onoff)
+    {
+        app_transition_abort(&p_app->state.transition);
+        transition_parameters_set(p_app, &in_transition);
+        app_transition_trigger(&p_app->state.transition);
+    }
+}
+
+static void app_onoff_scene_delete(const app_scene_model_interface_t * p_app_scene_if,
+                                   uint8_t scene_index)
+{
+    app_onoff_server_t * p_app = PARENT_BY_FIELD_GET(app_onoff_server_t, scene_if, p_app_scene_if);
+    app_transition_abort(&p_app->state.transition);
+    /* No need to do anything else */
+}
+
+#endif /* SCENE_SETUP_SERVER_INSTANCES_MAX > 0 */
 
 /***** Interface functions *****/
 
 void app_onoff_status_publish(app_onoff_server_t * p_app)
 {
     app_transition_abort(&p_app->state.transition);
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    bool old_present_onoff = p_app->state.present_onoff;
+#endif
+
     p_app->onoff_get_cb(p_app, &p_app->state.present_onoff);
     p_app->state.target_onoff = p_app->state.present_onoff;
 
@@ -224,6 +308,14 @@ void app_onoff_status_publish(app_onoff_server_t * p_app)
                 .remaining_time_ms = 0
             };
     (void) generic_onoff_server_status_publish(&p_app->server, &status);
+    ERROR_CHECK(generic_onoff_mc_onoff_state_set(p_app->server.state_handle,
+                                                 p_app->state.present_onoff));
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    if (old_present_onoff != p_app->state.present_onoff)
+    {
+        app_scene_model_scene_changed(p_app->p_app_scene);
+    }
+#endif
 }
 
 uint32_t app_onoff_init(app_onoff_server_t * p_app, uint8_t element_index)
@@ -235,7 +327,7 @@ uint32_t app_onoff_init(app_onoff_server_t * p_app, uint8_t element_index)
         return NRF_ERROR_NULL;
     }
 
-    p_app->server.settings.p_callbacks = &onoff_srv_cbs;
+    p_app->server.settings.p_callbacks = &m_onoff_srv_cbs;
     if ( (p_app->onoff_get_cb == NULL) ||
          ( (p_app->onoff_set_cb == NULL) &&
            (p_app->onoff_transition_cb == NULL) ) )
@@ -249,6 +341,17 @@ uint32_t app_onoff_init(app_onoff_server_t * p_app, uint8_t element_index)
         return status;
     }
 
+    /* Set the default state.
+     */
+    status = generic_onoff_mc_open(&p_app->server.state_handle);
+    if (status != NRF_SUCCESS)
+    {
+        return status;
+    }
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+    p_app->scene_if.p_callbacks = &m_scene_onoff_cbs;
+#endif
     p_app->state.transition.delay_start_cb = NULL;
     p_app->state.transition.transition_start_cb = transition_start_cb;
     p_app->state.transition.transition_tick_cb = NULL;
@@ -260,3 +363,27 @@ uint32_t app_onoff_init(app_onoff_server_t * p_app, uint8_t element_index)
 
     return app_transition_init(&p_app->state.transition);
 }
+
+uint32_t app_onoff_value_restore(app_onoff_server_t * p_app)
+{
+    bool onoff;
+
+    ERROR_CHECK(generic_onoff_mc_onoff_state_get(p_app->server.state_handle, &onoff));
+
+    return (generic_onoff_server_state_set(&p_app->server, onoff));
+}
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+
+uint32_t app_onoff_scene_context_set(app_onoff_server_t * p_app, app_scene_setup_server_t  * p_app_scene)
+{
+    if (p_app == NULL || p_app_scene == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+
+    p_app->p_app_scene = p_app_scene;
+    return NRF_SUCCESS;
+}
+
+#endif

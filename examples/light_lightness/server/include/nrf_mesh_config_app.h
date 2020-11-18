@@ -94,7 +94,9 @@
                             1 + /* Generic Power OnOff Setup Server (extended by Light Lightness Server)        */ \
                             1 + /* Generic Level Server (extended by Light Lightness Server)                    */ \
                             1 + /* Light Lightness Server (extended by Light Lightness Setup Server)            */ \
-                            1   /* Light Lightness Setup Server                                                 */)
+                            1 + /* Light Lightness Setup Server                                                 */ \
+                            1 + /* Scene Server                                                                 */ \
+                            1   /* Scene Setup Server (extends Scene Server)                                    */)
 
 /**
  * The number of elements in the application.
@@ -108,6 +110,13 @@
  * The number of light lightlightness instances used by the application. *
  */
 #define LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX (1)
+
+/**
+ * The number of scene setup server instances used by the application.
+ */
+#ifndef SCENE_SETUP_SERVER_INSTANCES_MAX
+#define SCENE_SETUP_SERVER_INSTANCES_MAX (1)
+#endif
 
 /**
  * The number of allocated subscription lists for the application.

@@ -44,7 +44,9 @@
 #include "mesh_config_backend_file.h"
 #include "event_mock.h"
 #include "flash_manager_mock.h"
+#include "flash_manager_defrag_mock.h"
 #include "utils.h"
+#include "test_assert.h"
 
 #define FILE_ID    0
 #define FILE_SIZE  PAGE_SIZE
@@ -79,6 +81,7 @@ static struct
     uint32_t data_size;
 } m_flash_manager_entries[ENTRIES];
 static uint32_t m_records_read_cb_count;
+static uint8_t * mp_fm_entry;
 
 static void backend_event(const mesh_config_backend_evt_t * p_evt)
 {
@@ -90,10 +93,14 @@ static void backend_event(const mesh_config_backend_evt_t * p_evt)
         case EVENT_STORE_COMPLETE:
             TEST_ASSERT_TRUE(p_evt->id.record == m_file.curr_pos);
             TEST_ASSERT_TRUE(p_evt->type == MESH_CONFIG_BACKEND_EVT_TYPE_STORE_COMPLETE);
+            TEST_ASSERT_TRUE((uint8_t *)(((fm_entry_t *)mp_fm_entry)->data) == p_evt->p_data);
+            TEST_ASSERT_TRUE((((fm_entry_t *)mp_fm_entry)->header.len_words * WORD_SIZE - sizeof(fm_header_t)) == p_evt->length);
             break;
         case EVENT_ERASE_COMPLETE:
             TEST_ASSERT_TRUE(p_evt->id.record == m_file.curr_pos);
             TEST_ASSERT_TRUE(p_evt->type == MESH_CONFIG_BACKEND_EVT_TYPE_ERASE_COMPLETE);
+            TEST_ASSERT_TRUE(NULL == p_evt->p_data);
+            TEST_ASSERT_TRUE(0 == p_evt->length);
             break;
         case EVENT_ERROR:
             TEST_ASSERT_TRUE(p_evt->id.record == m_file.curr_pos);
@@ -179,6 +186,7 @@ static mesh_config_backend_iterate_action_t records_read_cb(mesh_config_entry_id
 void setUp(void)
 {
     flash_manager_mock_Init();
+    flash_manager_defrag_mock_Init();
     event_mock_Init();
     m_records_read_cb_count = 0;
 
@@ -192,6 +200,8 @@ void tearDown(void)
 {
     flash_manager_mock_Verify();
     flash_manager_mock_Destroy();
+    flash_manager_defrag_mock_Verify();
+    flash_manager_defrag_mock_Destroy();
     event_mock_Verify();
     event_mock_Destroy();
 }
@@ -292,24 +302,25 @@ void test_records_read(void)
 void test_flashman_glue_events(void)
 {
     TEST_ASSERT_NOT_NULL(m_write_complete_cb);
-    uint8_t * p_fm_entry = malloc(sizeof(fm_entry_t) + sizeof(m_entry));
+    mp_fm_entry = malloc(sizeof(fm_entry_t) + sizeof(m_entry));
 
-    ((fm_entry_t *)p_fm_entry)->header.handle = 1;
-    m_file.curr_pos = ((fm_entry_t *)p_fm_entry)->header.handle;
+    ((fm_entry_t *)mp_fm_entry)->header.handle = 1;
+    ((fm_entry_t *)mp_fm_entry)->header.len_words = sizeof(m_entry) / WORD_SIZE + sizeof(fm_entry_t);
+    m_file.curr_pos = ((fm_entry_t *)mp_fm_entry)->header.handle;
 
     m_event_stage = EVENT_STORE_COMPLETE;
-    m_write_complete_cb(&m_file.glue_data.flash_manager, (fm_entry_t *)p_fm_entry, FM_RESULT_SUCCESS);
+    m_write_complete_cb(&m_file.glue_data.flash_manager, (fm_entry_t *)mp_fm_entry, FM_RESULT_SUCCESS);
 
     m_event_stage = EVENT_ERROR;
-    m_write_complete_cb(&m_file.glue_data.flash_manager, (fm_entry_t *)p_fm_entry, FM_RESULT_ERROR_NOT_FOUND);
+    m_write_complete_cb(&m_file.glue_data.flash_manager, (fm_entry_t *)mp_fm_entry, FM_RESULT_ERROR_NOT_FOUND);
 
     m_event_stage = EVENT_ERASE_COMPLETE;
-    m_invalidate_complete_cb(&m_file.glue_data.flash_manager, ((fm_entry_t *)p_fm_entry)->header.handle, FM_RESULT_SUCCESS);
+    m_invalidate_complete_cb(&m_file.glue_data.flash_manager, ((fm_entry_t *)mp_fm_entry)->header.handle, FM_RESULT_SUCCESS);
 
     m_event_stage = EVENT_ERROR;
-    m_invalidate_complete_cb(&m_file.glue_data.flash_manager, ((fm_entry_t *)p_fm_entry)->header.handle, FM_RESULT_ERROR_NOT_FOUND);
+    m_invalidate_complete_cb(&m_file.glue_data.flash_manager, ((fm_entry_t *)mp_fm_entry)->header.handle, FM_RESULT_ERROR_NOT_FOUND);
 
-    free(p_fm_entry);
+    free(mp_fm_entry);
 }
 
 void test_file_clean_normal(void)
@@ -321,6 +332,7 @@ void test_file_clean_normal(void)
 
     /* 1. Run cleaning */
     flash_manager_remove_ExpectAndReturn(p_manager, NRF_SUCCESS);
+    flash_manager_is_removing_ExpectAndReturn(p_manager, false);
     mesh_config_backend_file_clean(&m_file);
 
     /* 2. Complete cleaning and start metadata restoring.  */
@@ -337,6 +349,55 @@ void test_file_clean_normal(void)
     p_listener->callback(p_listener->p_args);
 }
 
+void test_file_clean_file_already_building(void)
+{
+    m_event_stage = EVENT_ERROR;
+
+    flash_manager_t * p_manager = &m_file.glue_data.flash_manager;
+    fm_mem_listener_t * p_listener = &m_file.glue_data.listener;
+
+    /* 1. Start file cleaning with invalid state in the flash manager but file is not building. */
+    flash_manager_is_removing_ExpectAndReturn(p_manager, false);
+    flash_manager_remove_ExpectAndReturn(p_manager, NRF_ERROR_INVALID_STATE);
+    flash_manager_is_building_ExpectAndReturn(p_manager, false);
+    TEST_NRF_MESH_ASSERT_EXPECT(mesh_config_backend_file_clean(&m_file));
+
+    /* 2. Start file cleaning with invalid state in the flash manager and file is building. */
+    flash_manager_is_removing_ExpectAndReturn(p_manager, false);
+    flash_manager_remove_ExpectAndReturn(p_manager, NRF_ERROR_INVALID_STATE);
+    flash_manager_is_building_ExpectAndReturn(p_manager, true);
+    flash_manager_mem_listener_register_Expect(p_listener);
+    mesh_config_backend_file_clean(&m_file);
+
+    /* Restart the file cleaning using listener wrapper but expect no memory error. */
+    flash_manager_is_removing_ExpectAndReturn(p_manager, false);
+    flash_manager_remove_ExpectAndReturn(p_manager, NRF_ERROR_NO_MEM);
+    flash_manager_mem_listener_register_Expect(p_listener);
+    p_listener->callback(p_listener->p_args);
+
+    /* Restart the file cleaning using listener wrapper and succeed. */
+    flash_manager_is_removing_ExpectAndReturn(p_manager, false);
+    flash_manager_remove_ExpectAndReturn(p_manager, NRF_SUCCESS);
+    p_listener->callback(p_listener->p_args);
+
+    /* Complete cleaning and start metadata restoring.  */
+    /* result is checked in flash_manager_add_cb. */
+    flash_manager_add_StubWithCallback(flash_manager_add_cb);
+    flash_manager_mem_listener_register_Expect(p_listener);
+    m_remove_complete_cb(p_manager);
+
+    /* Complete metadata restoring. */
+    p_manager->internal.state = FM_STATE_READY;
+    m_event_stage = EVENT_FILE_CLEANING_COMPLETE;
+    TEST_ASSERT_NOT_NULL(p_listener->callback);
+    TEST_ASSERT_NOT_NULL(p_listener->p_args);
+    p_listener->callback(p_listener->p_args);
+
+    /* 3. Start file cleaning with invalid state in the flash manager and file is removing. */
+    flash_manager_is_removing_ExpectAndReturn(p_manager, true);
+    mesh_config_backend_file_clean(&m_file);
+}
+
 void test_file_clean_lack_of_memory(void)
 {
     m_event_stage = EVENT_ERROR;
@@ -345,11 +406,13 @@ void test_file_clean_lack_of_memory(void)
     fm_mem_listener_t * p_listener = &m_file.glue_data.listener;
 
     /* 1. Start file cleaning with lack of memory in the flash manager. */
+    flash_manager_is_removing_ExpectAndReturn(p_manager, false);
     flash_manager_remove_ExpectAndReturn(p_manager, NRF_ERROR_NO_MEM);
     flash_manager_mem_listener_register_Expect(p_listener);
     mesh_config_backend_file_clean(&m_file);
 
     /* 2. Restart the file cleaning using listener wrapper. */
+    flash_manager_is_removing_ExpectAndReturn(p_manager, false);
     flash_manager_remove_ExpectAndReturn(p_manager, NRF_SUCCESS);
     mesh_config_backend_file_clean(&m_file);
 
@@ -367,4 +430,41 @@ void test_file_clean_lack_of_memory(void)
     p_manager->internal.state = FM_STATE_READY;
     m_event_stage = EVENT_FILE_CLEANING_COMPLETE;
     p_listener->callback(p_listener->p_args);
+}
+
+
+void test_backend_flashman_power_down(void)
+{
+    flash_manager_defrag_freeze_Expect();
+    mesh_config_backend_power_down();
+}
+
+void test_remaining_place_calculation(void)
+{
+    /* Emulate the allocated file area that is equal to 3 pages. */
+    uint8_t pseudo_flash[PAGE_SIZE * 3] = {0};
+
+    for (uint8_t i = 0; i < 3; i++)
+    {
+        flash_manager_page_t * p_page = (flash_manager_page_t *)&pseudo_flash[i * PAGE_SIZE];
+        p_page->metadata.pages_in_area = 3;
+        p_page->metadata.page_index = i;
+    }
+    m_file.glue_data.flash_manager.config.page_count = 3;
+    m_file.glue_data.flash_manager.config.min_available_space = PAGE_SIZE / 2 + 1;
+
+    m_file.glue_data.flash_manager.config.p_area = (flash_manager_page_t *)&pseudo_flash[0];
+    m_file.glue_data.flash_manager.internal.p_seal = (const fm_entry_t *)(&pseudo_flash[0] + PAGE_SIZE / 2);
+
+    TEST_ASSERT_TRUE(mesh_config_backend_is_there_power_down_place(&m_file));
+
+    m_file.glue_data.flash_manager.config.p_area = (flash_manager_page_t *)&pseudo_flash[1 * PAGE_SIZE];
+    m_file.glue_data.flash_manager.internal.p_seal = (const fm_entry_t *)(&pseudo_flash[1 * PAGE_SIZE] + PAGE_SIZE / 2);
+
+    TEST_ASSERT_TRUE(mesh_config_backend_is_there_power_down_place(&m_file));
+
+    m_file.glue_data.flash_manager.config.p_area = (flash_manager_page_t *)&pseudo_flash[2 * PAGE_SIZE];
+    m_file.glue_data.flash_manager.internal.p_seal = (const fm_entry_t *)(&pseudo_flash[2 * PAGE_SIZE] + PAGE_SIZE / 2);
+
+    TEST_ASSERT_FALSE(mesh_config_backend_is_there_power_down_place(&m_file));
 }

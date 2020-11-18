@@ -453,17 +453,9 @@ static void sensor_last_published_set(sensor_cadence_t * p)
     memcpy(p->p_previous_value, p->p_current_value, p->range_value_bytes_allocated);
 }
 
-static uint64_t cadence_unsolicited_status_send(sensor_cadence_t * p)
+static void cadence_unsolicited_status_send(sensor_cadence_t * p)
 {
     app_sensor_server_t * p_server = (app_sensor_server_t *)p->p_server;
-    uint64_t publish_period_us = publish_period_get(p_server->server.sensor_srv.model_handle);
-    if (!publish_period_us)
-    {
-        /* The server's publish period value is 0; no publish period is set. Unsolicited cadence
-         * publications are inhibited.
-         */
-        return 0;
-    }
 
     if (p->marshalled_bytes == p->value_marshall(p,
                                                  mp_marshalled_data,
@@ -485,8 +477,27 @@ static uint64_t cadence_unsolicited_status_send(sensor_cadence_t * p)
                   status);
         }
     }
+}
 
-    return publish_period_us;
+static void min_interval_limited_status_schedule(sensor_cadence_t * p_cadence)
+{
+    model_timer_t * p_timer = &p_cadence->min_interval_timer;
+
+    if (model_timer_is_running(p_timer))
+    {
+        p_cadence->min_interval_publication_pending = true;
+    }
+    else
+    {
+        cadence_unsolicited_status_send(p_cadence);
+
+        uint64_t min_us = MS_TO_US(1ull << p_cadence->min_interval_exponent);
+        p_timer->timeout_rtc_ticks = (min_us < m_minimum_publish_interval)
+                                   ? MODEL_TIMER_TIMEOUT_MIN_TICKS
+                                   : MODEL_TIMER_TICKS_GET_US(min_us);
+        p_timer->mode = MODEL_TIMER_MODE_SINGLE_SHOT;
+        (void) model_timer_schedule(p_timer);
+    }
 }
 
 static uint16_t marshalled_entry_bytes_get(uint16_t property_id, uint16_t data_bytes)
@@ -617,7 +628,6 @@ static bool cadence_activate(sensor_cadence_t * p, uint64_t publish_period_us)
     /* Initially, cadence period, period_us, is the same as publish_period_us.
      */
     uint64_t period_us = publish_period_us;
-
     /* Fast cadence selection reduces the period.
      */
     if (p->in_fast_region(p))
@@ -718,14 +728,47 @@ static void cadence_timer_cb(void * p_context)
     /* Establish context.
      */
     p = (sensor_cadence_t *)p_context;
+    app_sensor_server_t * p_server = (app_sensor_server_t *)p->p_server;
+    uint64_t publish_period_us = publish_period_get(p_server->server.sensor_srv.model_handle);
 
     /* Update the sensor's current value.
      */
     sensor_current_value_set(p);
 
+    if (publish_period_us == 0)
+    {
+        // No publish period set, should not publish cadence timer status
+        return;
+    }
+
     /* Attempt to send an unsolicited status message. Then re-set the cadence timer.
      */
-    (void) cadence_activate(p, cadence_unsolicited_status_send(p));
+    min_interval_limited_status_schedule(p);
+    (void) cadence_activate(p, publish_period_us);
+}
+
+static void min_interval_timer_cb(void * p_context)
+{
+    sensor_cadence_t * p_cadence = (sensor_cadence_t *)p_context;
+    model_timer_t * p_timer = &(p_cadence->min_interval_timer);
+
+    if (p_cadence->min_interval_publication_pending)
+    {
+        p_cadence->min_interval_publication_pending = false;
+        cadence_unsolicited_status_send(p_cadence);
+
+        uint64_t min_us = MS_TO_US(1ull << p_cadence->min_interval_exponent);
+        p_timer->timeout_rtc_ticks = (min_us < m_minimum_publish_interval)
+                                   ? MODEL_TIMER_TIMEOUT_MIN_TICKS
+                                   : MODEL_TIMER_TICKS_GET_US(min_us);
+
+        p_timer->mode = MODEL_TIMER_MODE_SINGLE_SHOT;
+        (void) model_timer_schedule(p_timer);
+    }
+    else
+    {
+        model_timer_abort(p_timer);
+    }
 }
 
 static void cadence_status_get(sensor_cadence_t * p,
@@ -972,6 +1015,11 @@ void sensor_initialize(app_sensor_server_t *p_server)
                 p->timer.cb = cadence_timer_cb;
                 (void) model_timer_create(&p->timer);
 
+                p->min_interval_timer.p_timer_id = &p_server->p_min_interval_timer_ids[i];
+                p->min_interval_timer.p_context = p;
+                p->min_interval_timer.cb = min_interval_timer_cb;
+                (void) model_timer_create(&p->min_interval_timer);
+
                 p->in_fast_region     = motion_sensor_in_fast_region;
                 p->delta_trigger_fast = motion_sensor_delta_trigger_fast;
 
@@ -1099,23 +1147,7 @@ uint32_t sensor_status_publish(app_sensor_server_t * p_server, uint16_t property
         return NRF_SUCCESS;
     }
 
-    /* cadence_status_get() provides a message suitable as a response or as a publication. p_out
-     * gives the message base; bytes gives the size of the message in bytes. The message buffer is
-     * not dynamically allocated; do not attempt to free it.
-     */
-    uint32_t status = sensor_server_status_publish(&p_server->server.sensor_srv, p_out, bytes,
-                                          SENSOR_OPCODE_STATUS);
-    if (NRF_SUCCESS == status)
-    {
-        sensor_last_published_set(p);
-    }
-    else
-    {
-    __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR,
-          "ERR: publication failed (0x%04x (%d)) = (status)\n",
-          status,
-          status);
-    }
+    min_interval_limited_status_schedule(p);
 
-    return status;
+    return NRF_SUCCESS;
 }

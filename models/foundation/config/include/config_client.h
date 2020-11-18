@@ -111,6 +111,7 @@ typedef union
     config_msg_friend_status_t friend_status;
     config_msg_heartbeat_publication_status_t heartbeat_publication_status;
     config_msg_heartbeat_subscription_status_t heartbeat_subscription_status;
+    config_msg_default_ttl_status_t default_ttl_status;
     config_msg_app_status_t app_status;
     config_msg_identity_status_t identity_status;
     config_msg_composition_data_status_t composition_data_status;
@@ -631,6 +632,87 @@ uint32_t config_client_key_refresh_phase_get(uint16_t netkey_index);
 uint32_t config_client_key_refresh_phase_set(uint16_t netkey_index, nrf_mesh_key_refresh_phase_t phase);
 
 /**
+ * Gets the current Friend state of a node.
+ *
+ * @note Response: @ref CONFIG_OPCODE_FRIEND_STATUS
+ *
+ * @retval NRF_SUCCESS             Successfully sent request.
+ * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
+ * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
+ * @retval NRF_ERROR_INVALID_STATE Client not initialized.
+ */
+uint32_t config_client_friend_get(void);
+
+/**
+ * Sets the Friend state of a node.
+ *
+ * @note Response: @ref CONFIG_OPCODE_FRIEND_STATUS
+ *
+ * @param[in] state New Friend state.
+ *
+ * @retval NRF_SUCCESS             Successfully sent request.
+ * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
+ * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
+ * @retval NRF_ERROR_INVALID_STATE Client not initialized.
+ */
+uint32_t config_client_friend_set(config_friend_state_t state);
+
+/**
+ * Gets the current GATT Proxy state of a node.
+ *
+ * @note Response: @ref CONFIG_OPCODE_GATT_PROXY_STATUS
+ *
+ * @retval NRF_SUCCESS             Successfully sent request.
+ * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
+ * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
+ * @retval NRF_ERROR_INVALID_STATE Client not initialized.
+ */
+uint32_t config_client_gatt_proxy_get(void);
+
+/**
+ * Sets the GATT Proxy state of a node.
+ *
+ * @note Response: @ref CONFIG_OPCODE_GATT_PROXY_STATUS
+ *
+ * @param[in] state New Friend state.
+ *
+ * @retval NRF_SUCCESS             Successfully sent request.
+ * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
+ * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
+ * @retval NRF_ERROR_INVALID_STATE Client not initialized.
+ */
+uint32_t config_client_gatt_proxy_set(config_gatt_proxy_state_t state);
+
+/**
+ * Gets the current Node Identity state of a node.
+ *
+ * @note Response: @ref CONFIG_OPCODE_NODE_IDENTITY_STATUS
+ *
+ * @param[in] netkey_index Network key index.
+ *
+ * @retval NRF_SUCCESS             Successfully sent request.
+ * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
+ * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
+ * @retval NRF_ERROR_INVALID_STATE Client not initialized.
+ */
+uint32_t config_client_node_identity_get(uint16_t netkey_index);
+
+/**
+ * Sets the current Node Identity state of a node.
+ *
+ * @note Response: @ref CONFIG_OPCODE_NODE_IDENTITY_STATUS
+ *
+ * @param[in] netkey_index Network key index.
+ * @param[in] state        Node Identity state to set for the node.
+ *
+ * @retval NRF_SUCCESS             Successfully sent request.
+ * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
+ * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
+ * @retval NRF_ERROR_INVALID_STATE Client not initialized.
+ */
+uint32_t config_client_node_identity_set(uint16_t netkey_index, config_identity_state_t state);
+
+/**
  * Gets the heartbeat publication state value of a node.
  *
  * @note Response: @ref CONFIG_OPCODE_HEARTBEAT_PUBLICATION_STATUS
@@ -683,22 +765,23 @@ uint32_t config_client_heartbeat_subscription_get(void);
 uint32_t config_client_heartbeat_subscription_set(const config_msg_heartbeat_subscription_set_t * p_subscription);
 
 /**
+ * Gets the current value of the PollTimeout timer of the Low Power node.
+ *
+ * @note Response: @ref CONFIG_OPCODE_LOW_POWER_NODE_POLLTIMEOUT_STATUS
+ *
+ * @param[in] lpn_address Address of the Low Power node.
+ *
+ * @retval NRF_SUCCESS             Successfully sent request.
+ * @retval NRF_ERROR_BUSY          The client is in a transaction. Try again later.
+ * @retval NRF_ERROR_NO_MEM        Not enough memory available for sending request.
+ * @retval NRF_ERROR_INVALID_STATE Client not initialized.
+ */
+uint32_t config_client_low_power_node_polltimeout_get(uint16_t lpn_address);
+
+/**
  * Cancel any ongoing reliable message transfer.
  */
 void config_client_pending_msg_cancel(void);
-
-
-
-/** @todo Unsupported API calls */
-
-// uint32_t config_client_friend_get(void);
-// uint32_t config_client_friend_set(bool state);
-
-// uint32_t config_client_gatt_proxy_get(void);
-// uint32_t config_client_gatt_proxy_set(bool state);
-// uint32_t config_client_node_identity_get(uint16_t netkey_index);
-// uint32_t config_client_node_identity_set(uint16_t netkey_index, config_identity_state_t state);
-
 
 /** @} end of CONFIG_CLIENT */
 

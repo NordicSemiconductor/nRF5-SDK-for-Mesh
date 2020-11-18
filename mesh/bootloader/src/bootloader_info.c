@@ -377,7 +377,7 @@ static void copy_page_on_flash_idle(void)
     {
         case INFO_COPY_STATE_ERASE:
             /* We went idle without getting the erase operation success, try again */
-            flash_erase(m_info_copy.p_dst, PAGE_SIZE);
+            (void) flash_erase(m_info_copy.p_dst, PAGE_SIZE);
             break;
         case INFO_COPY_STATE_METAWRITE:
             /* We went idle without getting the write operation success, try again */
@@ -421,8 +421,7 @@ static void copy_page_on_flash_op_end(flash_op_type_t op, void* p_context)
             {
                 info_copy_state_set(INFO_COPY_STATE_IDLE);
             }
-
-
+            break;
         default:
             break;
     }
@@ -625,7 +624,7 @@ bl_info_entry_t* bootloader_info_entry_put(bl_info_type_t type,
     /* We've run out of space, and need to recover. */
     if (((uint32_t) mp_write_pos + HEADER_LEN + INFO_ENTRY_MAX_LEN) >= ((uint32_t) mp_bl_info_page + PAGE_SIZE))
     {
-        bootloader_info_reset();
+        (void) bootloader_info_reset();
     }
     __LOG( "PUT 0x%x @0x%x\n", type, &p_new_buf->entry);
     return &p_new_buf->entry;
@@ -685,7 +684,7 @@ void bootloader_info_on_flash_op_end(flash_op_type_t type, void* p_context)
     {
         if (m_state == BL_INFO_STATE_BACKUP)
         {
-            recover();
+            (void) recover();
         }
         else if (m_state == BL_INFO_STATE_RECOVER)
         {

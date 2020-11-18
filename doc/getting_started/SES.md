@@ -1,12 +1,12 @@
 # Segger Embedded Studio: SDK_ROOT first time setup
 
 Segger Embedded Studio determines the location of the nRF5 SDK through macros.
-Before building the mesh examples with SEGGER Embedded Studio, you must complete
-a one-time setup of the `SDK_ROOT` macro in SEGGER Embedded Studio. 
+Before building the Bluetooth mesh examples with SEGGER Embedded Studio, you must complete
+a one-time setup of the `SDK_ROOT` macro in SEGGER Embedded Studio.
 
 You can either:
-- Use the default settings of the `SDK_ROOT` macro. It defaults to an nRF5 SDK 16.0.0
-instance unzipped right next to the mesh folder.
+- Use the default settings of the `SDK_ROOT` macro. It defaults to an nRF5 SDK 17.0.2
+instance unzipped right next to the nRF5 SDK for Mesh folder.
 - Set the `SDK_ROOT` macro to a custom nRF5 SDK instance.
 
 To set the `SDK_ROOT` macro manually in SEGGER Embedded Studio:

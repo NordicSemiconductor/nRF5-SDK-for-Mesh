@@ -163,7 +163,7 @@ uint32_t mesh_stack_start(void);
  * Start the power down procedure.
  * The function stops timer scheduler (timeslot system still works
  * to store @ref MESH_CONFIG_STRATEGY_ON_POWER_DOWN files, app_timer works as well).
- * The function stops and disables scanner, advertiser and GATT functionality.
+ * The function stops and disables scanner, advertiser, bearer handler and GATT functionality.
  * When the power down procedure has been completed, the event
  * @ref NRF_MESH_EVT_READY_TO_POWER_OFF is generated and the stack is ready for power off.
  *

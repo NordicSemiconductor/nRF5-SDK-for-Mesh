@@ -1,6 +1,6 @@
 # Setting interrupt priority levels
 
-The mesh stack has different interrupt priority levels defined by its architecture. It includes
+The Bluetooth mesh stack has different interrupt priority levels defined by its architecture. It includes
 various interrupt priority level restrictions that are imposed on the application when using
 the stack to avoid race condition scenarios and ensure that all operations execute
 in non-overlapping manner.
@@ -9,15 +9,15 @@ in non-overlapping manner.
 - [Interrupt priority level list and configuration](@ref irq_levels_list_configuration)
 - [Interrupt priority level restrictions](@ref irq_levels_restrictions)
 - [Changes in application IRQ priority from nRF5 SDK for Mesh v1.0.0](@ref irq_levels_changes)
-    - [Run application and mesh event handling in low priority interrupt](@ref irq_levels_changes_low_priority_interrupt)
-    - [Run application and mesh event handling in main loop](@ref irq_levels_changes_main_loop)
+    - [Run application and Bluetooth mesh event handling in low priority interrupt](@ref irq_levels_changes_low_priority_interrupt)
+    - [Run application and Bluetooth mesh event handling in main loop](@ref irq_levels_changes_main_loop)
 
-    
+
 ---
 
 ## Interrupt priority level list and configuration @anchor irq_levels_list_configuration
 
-The mesh stack runs in the following interrupt priorities:
+The Bluetooth mesh stack runs in the following interrupt priorities:
 - _IRQ priority 0 (radio interrupt priority)_ -- for the time-critical parts of the stack.
 - _Same IRQ priority as the user application's low priority code_ -- for the less time-critical
 parts of the stack.
@@ -25,9 +25,9 @@ parts of the stack.
     as the SoftDevice event IRQ handler. When using the nRF5 SDK, this will normally be
     @ref NRF_MESH_IRQ_PRIORITY_LOWEST (@link_app_irq_priority_lowest). However, if you use the nRF5
     SDK's app_scheduler module to run the application from the main loop, the low priority parts
-    of the mesh stack should also run from the main loop.
+    of the Bluetooth mesh stack should also run from the main loop.
 
-The mesh network must know in which IRQ priority the user application is running.
+The Bluetooth mesh network must know in which IRQ priority the user application is running.
 To know this, nrf_mesh_init_params_t (used by @ref nrf_mesh_init) now has an `irq_priority` field.
 Normally, it must be set to @ref NRF_MESH_IRQ_PRIORITY_LOWEST, or @ref NRF_MESH_IRQ_PRIORITY_THREAD
 if running in the main loop. You can also use the APP_IRQ_PRIORITY_* defines in the nRF5 SDK.
@@ -36,14 +36,14 @@ if running in the main loop. You can also use the APP_IRQ_PRIORITY_* defines in 
 
 ## Interrupt priority level restrictions @anchor irq_levels_restrictions
 
-You must ensure that no mesh API functions are called from an IRQ priority other than
+You must ensure that no Bluetooth mesh API functions are called from an IRQ priority other than
 the one specified in the configuration. The only exception is calling the initialization-related
 functions before calling @ref mesh_stack_start(). Breaking this rule can cause unpredictable behavior.
 
-The mesh stack uses the @link_SoftDevice_NVIC for accessing NVIC. In particular,
+The Bluetooth mesh stack uses the @link_SoftDevice_NVIC for accessing NVIC. In particular,
 the functions @link_sd_nvic_criticial_region_enter and @link_sd_nvic_criticial_region_exit
-are used to prevent the mesh event handler from being started in some cases. The application
-must not use these functions in any callback functions provided by the application to the mesh stack.
+are used to prevent the Bluetooth mesh event handler from being started in some cases. The application
+must not use these functions in any callback functions provided by the application to the Bluetooth mesh stack.
 
 ---
 
@@ -52,13 +52,13 @@ must not use these functions in any callback functions provided by the applicati
 Starting with the nRF5 SDK for Mesh v1.0.0, all event processing must run in the same IRQ priority.
 
 Depending on your application, you can choose to:
-- [Run application and mesh event handling in low priority interrupt](@ref irq_levels_changes_low_priority_interrupt)
-- [Run application and mesh event handling in main loop](@ref irq_levels_changes_main_loop)
+- [Run application and Bluetooth mesh event handling in low priority interrupt](@ref irq_levels_changes_low_priority_interrupt)
+- [Run application and Bluetooth mesh event handling in main loop](@ref irq_levels_changes_main_loop)
 
 Before the release of the nRF5 SDK for Mesh v1.0.0, applications made using nRF5 SDK for Mesh
 v0.10.0-Alpha or an older version of the Mesh SDK would normally run low priority event handling
 in several IRQ priorities:
-- Mesh events were processed in the main loop by simply calling nrf_mesh_process():
+- Bluetooth mesh events were processed in the main loop by simply calling nrf_mesh_process():
 ```
     while (true)
     {
@@ -70,7 +70,7 @@ For most SoftDevice versions, the IRQ handler would be running in
 @link_app_irq_priority_lowest by default. Bearer events were handled in @link_app_irq_priority_low.
 
 
-### Running application and mesh event handling in low priority interrupt @anchor irq_levels_changes_low_priority_interrupt
+### Running application and Bluetooth mesh event handling in low priority interrupt @anchor irq_levels_changes_low_priority_interrupt
 
 When running in a low priority interrupt, the application can no longer call @ref nrf_mesh_process().
 You must change the main loop. For example:
@@ -81,9 +81,9 @@ while (true)
 }
 ```
 
-### Running application and mesh event handling in main loop @anchor irq_levels_changes_main_loop
+### Running application and Bluetooth mesh event handling in main loop @anchor irq_levels_changes_main_loop
 
-You can use the application scheduler from the @link_nRF5SDK to run the application and the mesh
+You can use the application scheduler from the @link_nRF5SDK to run the application and the Bluetooth mesh
 event handling.
 
 To add app_scheduler to the application and initialize it:

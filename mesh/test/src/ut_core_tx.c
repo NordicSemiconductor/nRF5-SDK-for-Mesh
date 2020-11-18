@@ -185,7 +185,7 @@ static void clear_interface_mocks(void)
 void test_bearer_add(void)
 {
     memset(&m_interface, 0, sizeof(m_interface));
-    core_tx_bearer_t bearers[10];
+    core_tx_bearer_t bearers[64];
 
     TEST_NRF_MESH_ASSERT_EXPECT(core_tx_bearer_add(&bearers[0], &m_interface, CORE_TX_BEARER_TYPE_ADV));
     TEST_NRF_MESH_ASSERT_EXPECT(core_tx_bearer_add(&bearers[0], NULL, CORE_TX_BEARER_TYPE_ADV));
@@ -199,15 +199,16 @@ void test_bearer_add(void)
     TEST_NRF_MESH_ASSERT_EXPECT(core_tx_bearer_add(&bearers[0], &m_interface, CORE_TX_BEARER_TYPE_ALLOW_ALL));
 
     /* Successful */
+    core_tx_reset();
     for (uint32_t i = 0; i < ARRAY_SIZE(bearers); ++i)
     {
         core_tx_bearer_add(&bearers[i], &m_interface, i + CORE_TX_BEARER_TYPE_ADV);
-        TEST_ASSERT_EQUAL(i + 1, bearers[i].bearer_index);
+        TEST_ASSERT_EQUAL(i, bearers[i].bearer_index);
         TEST_ASSERT_EQUAL(&m_interface, bearers[i].p_interface);
         TEST_ASSERT_EQUAL(i + CORE_TX_BEARER_TYPE_ADV, bearers[i].type);
 
-        TEST_ASSERT_EQUAL(bearers[i].type, core_tx_bearer_type_get(i+1));
-        TEST_ASSERT_EQUAL(i + 2, core_tx_bearer_count_get());
+        TEST_ASSERT_EQUAL(bearers[i].type, core_tx_bearer_type_get(i));
+        TEST_ASSERT_EQUAL(i + 1, core_tx_bearer_count_get());
     }
 
     /* duplicate */

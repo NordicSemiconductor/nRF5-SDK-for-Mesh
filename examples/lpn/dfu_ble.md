@@ -1,11 +1,11 @@
 # Configuring DFU over BLE using the LPN example
 
-Device Firmware Upgrade (DFU) over BLE is the process that provides ability to update the application,
+Device Firmware Upgrade (DFU) over Bluetooth LE (BLE) is the process that provides ability to update the application,
 SoftDevice, and bootloader through BLE.
 
 While this example is closely related to the @ref md_examples_lpn_README, it is not related
 to the nRF5 SDK for Mesh DFU functionality described in @ref md_doc_user_guide_modules_dfu_configuring_performing.
-The Mesh DFU is not normally suitable for the LPN device, because it requires an always-on radio, which
+The proprietary mesh DFU is not normally suitable for the LPN device, because it requires an always-on radio, which
 increases power consumption significantly. For this reason, the LPN example uses the DFU solution
 of the nRF5 SDK, which is GATT-based. In particular, it uses the following features of the nRF5 SDK
 DFU over BLE functionality:
@@ -20,7 +20,7 @@ For more information about these features, see @link_bootloader_and_dfu_modules.
 @warning
 In the Low Power node example, the DFU over BLE support is disabled by default.
 You need to enable it to continue with this example. To do this, set @ref BLE_DFU_SUPPORT_ENABLED
-to 1 in `examples/lpn/include/app_config.h`.
+to 1 in `examples/lpn/include/nrf_mesh_config_app.h`.
 
 **Table of contents**
 - [Hardware requirements](@ref examples_lpn_dfu_ble_requirements_hw)
@@ -79,11 +79,11 @@ Power example, and then how to further upgrade this example with the new version
 @note
 If you get the device configuration broken after
 performing the firmware update, increase the value of the @link_app_data_area_size parameter.
-The example code keeps the mesh configuration unchanged when the device enters the DFU mode.
+The example code keeps the Bluetooth mesh configuration unchanged when the device enters the DFU mode.
 So if the device was provisioned before the firmware update, it stays provisioned
 after the firmware update is completed. This is achieved by configuring the @link_app_data_area_size
 parameter that allows to reserve a flash area used by the application. As a consequence, this flash area won't
-be used by the bootloader when the DFU is performed. 
+be used by the bootloader when the DFU is performed.
 
 ### Creating signature for the Low Power node example @anchor examples_lpn_dfu_ble_create_signature
 
@@ -104,13 +104,13 @@ nrfutil keys display --key pk --format code lpn_private_key.pem --out_file dfu_p
 
 To generate a firmware package:
 1. Make sure the DFU over BLE support is enabled (@ref BLE_DFU_SUPPORT_ENABLED is set to 1
-in examples/lpn/include/app_config.h).
+in examples/lpn/include/nrf_mesh_config_app.h).
 2. Build the Low Power node example. To build the example, follow the instructions in
-[Building the mesh stack](@ref md_doc_getting_started_how_to_build).
+[Building the Bluetooth mesh stack](@ref md_doc_getting_started_how_to_build).
 3. Generate a firmware package with the Low Power node example by using the
 Low Power node hex file and the private key generated when building the example:
 ```
-nrfutil pkg generate --application <path-to-lpn-example-hex-file> --application-version <application-version> --hw-version 52 --sd-req 0xCB --key-file lpn_private_key.pem lpn_dfu_package.zip
+nrfutil pkg generate --application <path-to-lpn-example-hex-file> --application-version <application-version> --hw-version 52 --sd-req 0x0101 --key-file lpn_private_key.pem lpn_dfu_package.zip
 ```
     In this command:
         - Replace `<path-to-lpn-example-hex-file>` with the path to the LPN example HEX file and the file name.
@@ -139,21 +139,6 @@ To build the bootloader:
     `.../ses` and follow the [Building with SEGGER Embedded Studio](@ref how_to_build_segger)
     instruction.
     - Compile using `make`: Run `make` under `.../armgcc`.
-3. Optionally, complete the following steps:
-    1. Generate a HEX file that contains the Bootloader settings page:
-```
-nrfutil settings generate --family <board-family> --application <path-to-lpn-example-hex-file> --application-version <application-version> --bootloader-version 2 --bl-settings-version 1 settings.hex
-```
-    In this command, replace:
-        - `<board-family>` either with `NRF52` to generate the file for nRF5832 and nRF52833 or with `NRF52840` to generate the file for nRF52840. These values can be checked with the following command:
-```
-nrfutil settings generate --help
-```
-        - `<path-to-lpn-example-hex-file>` with the path to the LPN example HEX file and the file name.
-        - `<application-version>` should be the same as for the generated firmware package.
-    2. Use mergehex (part of the @link_nrf_command_line_tools) to merge the bootloader HEX file and the bootloader settings HEX file.
-
-For more information about generating a HEX file that contains the Bootloader settings, see @link_nrfutil_bootloader_settings.
 
 **Programming**<br>
 To program the bootloader:
@@ -161,11 +146,11 @@ To program the bootloader:
     - Program using SES: Follow the [Running examples using SEGGER Embedded Studio](@ref how_to_run_examples_ses)
     instruction.
     - Program using `make`:
-            
+
             $ make erase
             $ make flash_softdevice
             $ make flash
-    
+
     @note See the @link_programming_bootloader page in the nRF5 SDK documentation for more information.
 2. Observe LED 1 and LED 2 on the device. Both light up when the bootloader enters the DFU mode.
 

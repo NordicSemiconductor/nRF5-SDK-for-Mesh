@@ -58,6 +58,7 @@ typedef struct
 *****************************************************************************/
 static volatile scheduler_t m_scheduler; /**< Global scheduler instance */
 static bearer_event_flag_t m_event_flag;
+static bool m_is_power_down_triggered;
 
 /*****************************************************************************
 * Static functions
@@ -183,6 +184,7 @@ static bool flag_event_cb(void)
 *****************************************************************************/
 void timer_sch_init(void)
 {
+    m_is_power_down_triggered = false;
     memset((scheduler_t*) &m_scheduler, 0, sizeof(m_scheduler));
     m_event_flag = bearer_event_flag_add(flag_event_cb);
     timer_init();
@@ -190,6 +192,7 @@ void timer_sch_init(void)
 
 void timer_sch_schedule(timer_event_t* p_timer_evt)
 {
+    NRF_MESH_ASSERT_DEBUG(!m_is_power_down_triggered);
     NRF_MESH_ASSERT_DEBUG(bearer_event_in_correct_irq_priority());
     NRF_MESH_ASSERT(p_timer_evt != NULL);
     NRF_MESH_ASSERT(p_timer_evt->cb != NULL);
@@ -211,6 +214,7 @@ void timer_sch_abort(timer_event_t* p_timer_evt)
 
 void timer_sch_reschedule(timer_event_t* p_timer_evt, timestamp_t new_timeout)
 {
+    NRF_MESH_ASSERT_DEBUG(!m_is_power_down_triggered);
     NRF_MESH_ASSERT_DEBUG(bearer_event_in_correct_irq_priority());
     NRF_MESH_ASSERT(p_timer_evt != NULL);
     remove_evt(p_timer_evt);
@@ -224,4 +228,11 @@ bool timer_sch_is_scheduled(const timer_event_t * p_timer_evt)
 {
     return (p_timer_evt->state == TIMER_EVENT_STATE_ADDED ||
             p_timer_evt->state == TIMER_EVENT_STATE_IN_CALLBACK);
+}
+
+void timer_sch_stop(void)
+{
+    m_is_power_down_triggered = true;
+    m_scheduler.p_head = NULL;
+    timer_stop();
 }

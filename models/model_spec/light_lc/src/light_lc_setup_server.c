@@ -195,11 +195,11 @@ static void periodic_publish_cb(access_model_handle_t handle, void * p_args)
     light_lc_server_t * p_server = (light_lc_server_t *)p_args;
     light_lc_setup_server_t * p_s_server = PARENT_BY_FIELD_GET(light_lc_setup_server_t, lc_srv, p_args);
 
-    light_lc_mode_status_params_t out_data = {0};
+    light_lc_light_onoff_status_params_t out_data;
 
-    out_data.mode = light_lc_state_utils_mode_get(p_s_server);
+    out_data = light_lc_state_utils_light_onoff_get(p_s_server);
 
-    (void) status_mode_send(p_server, NULL, &out_data);
+    (void) status_light_onoff_send(p_server, NULL, &out_data);
 }
 
 /**************************************************************************************************/

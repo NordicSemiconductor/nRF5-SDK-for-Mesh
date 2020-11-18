@@ -92,7 +92,7 @@ static bool segment_is_missing(uint16_t segment)
     {
         return true;
     }
-    if (m_transfer.segment_max - segment > MISSING_BITFIELD_WIDTH)
+    if ((m_transfer.segment_max - segment) > (uint16_t)MISSING_BITFIELD_WIDTH)
     {
         return false;
     }
@@ -133,8 +133,8 @@ uint32_t dfu_transfer_start(
     }
 
     /* erase all affected pages. */
-    flash_erase((uint32_t*) PAGE_ALIGN(m_transfer.p_bank_addr),
-                            PAGE_ALIGN(size + PAGE_SIZE - 1));
+    uint32_t status = flash_erase((uint32_t*) PAGE_ALIGN(m_transfer.p_bank_addr),
+                                              PAGE_ALIGN((size + PAGE_SIZE - 1)));
 
     m_transfer.p_start_addr = p_start_addr;
     m_transfer.segment_count = segment_count;
@@ -143,7 +143,7 @@ uint32_t dfu_transfer_start(
     m_transfer.missing_segments = 0;
     m_transfer.segment_prev = INVALID_SEGMENT_INDEX;
     m_transfer.segment_max = 0;
-    return NRF_SUCCESS;
+    return status;
 }
 
 uint32_t dfu_transfer_data(uint32_t p_addr, uint8_t* p_data, uint16_t length)
@@ -196,7 +196,7 @@ uint32_t dfu_transfer_data(uint32_t p_addr, uint8_t* p_data, uint16_t length)
     else
     {
         uint16_t segment_offset = m_transfer.segment_max - segment;
-        m_transfer.missing_segments &= ~(1 << segment_offset);
+        m_transfer.missing_segments &= ~((bitfield_t)1 << segment_offset);
     }
 
     m_transfer.segment_prev = segment;

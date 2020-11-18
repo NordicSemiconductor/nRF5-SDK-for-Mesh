@@ -75,6 +75,7 @@
 #define NRFX_PPI_ENABLED 1
 #define GPIOTE_ENABLED 1
 #define NRFX_GPIOTE_ENABLED 1
+
 /** @} end of APP_SDK_CONFIG */
 
 #endif /* APP_CONFIG_H__ */

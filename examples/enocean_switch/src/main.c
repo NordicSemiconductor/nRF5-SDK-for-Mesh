@@ -53,6 +53,7 @@
 #include "mesh_stack.h"
 #include "access_config.h"
 #include "proxy.h"
+#include "mesh_opt.h"
 
 /* Provisioning and configuration */
 #include "nrf_mesh_configure.h"
@@ -157,6 +158,7 @@ const generic_onoff_client_callbacks_t client_cbs =
 };
 
 /* Declare a mesh config file with a unique file ID */
+NRF_MESH_STATIC_ASSERT(MESH_OPT_FIRST_FREE_ID <= MESH_APP_FILE_ID);
 MESH_CONFIG_FILE(m_enocean_switch_file, MESH_APP_FILE_ID, MESH_CONFIG_STRATEGY_CONTINUOUS);
 
 MESH_CONFIG_ENTRY(light_switch_provisioner,
@@ -353,7 +355,7 @@ static void app_enocean_cb(enocean_evt_t * p_evt)
                 m_enocean_dev_cnt++;
             }
 
-            hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
+            hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
         }
         else
         {
@@ -383,7 +385,7 @@ static void app_gen_onoff_client_transaction_status_cb(access_model_handle_t mod
             break;
 
         case ACCESS_RELIABLE_TRANSFER_TIMEOUT:
-            hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
+            hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Acknowledged transfer timeout.\n");
             break;
 
@@ -417,7 +419,7 @@ static void app_generic_onoff_client_status_cb(const generic_onoff_client_t * p_
 static void node_reset(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset  -----\n");
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
     /* This function may return if there are ongoing flash operations. */
     mesh_stack_device_reset();
 }
@@ -515,8 +517,8 @@ static void models_init_cb(void)
 
 static void device_identification_start_cb(uint8_t attention_duration_s)
 {
-    hal_led_mask_set(LEDS_MASK, false);
-    hal_led_blink_ms(BSP_LED_2_MASK  | BSP_LED_3_MASK,
+    hal_led_mask_set(HAL_LED_MASK, false);
+    hal_led_blink_ms(HAL_LED_MASK_HALF,
                      LED_BLINK_ATTENTION_INTERVAL_MS,
                      LED_BLINK_ATTENTION_COUNT(attention_duration_s));
 }
@@ -546,8 +548,8 @@ static void provisioning_complete_cb(void)
 
     unicast_address_print();
     hal_led_blink_stop();
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
+    hal_led_mask_set(HAL_LED_MASK, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
 }
 
 static void app_rtt_input_handler(int key)
@@ -579,7 +581,7 @@ static void mesh_init(void)
     {
         case NRF_ERROR_INVALID_DATA:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before starting of the provisioning process.\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reboot device before starting of the provisioning process.\n");
             break;
         case NRF_SUCCESS:
             break;
@@ -675,8 +677,8 @@ static void start(void)
         unicast_address_print();
     }
 
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
+    hal_led_mask_set(HAL_LED_MASK, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
 
 #if !PERSISTENT_STORAGE
     app_start();

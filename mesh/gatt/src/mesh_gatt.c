@@ -821,6 +821,7 @@ void mesh_gatt_on_ble_evt(const ble_evt_t * p_ble_evt, void * p_context)
             break;
         }
 
+#if !defined(S112)
         case BLE_GAP_EVT_DATA_LENGTH_UPDATE_REQUEST:
         {
             ble_gap_data_length_params_t dl_params;
@@ -830,6 +831,7 @@ void mesh_gatt_on_ble_evt(const ble_evt_t * p_ble_evt, void * p_context)
                                                                NULL));
             break;
         }
+#endif
 
         case BLE_GAP_EVT_SEC_PARAMS_REQUEST:
             NRF_MESH_ERROR_CHECK(sd_ble_gap_sec_params_reply(p_ble_evt->evt.gap_evt.conn_handle,

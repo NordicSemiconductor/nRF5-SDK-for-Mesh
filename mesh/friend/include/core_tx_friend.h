@@ -98,8 +98,9 @@ typedef struct
  * @param[in,out]   p_bearer    Friend bearer instance to initialize.
  * @param[in]       token       TX token associated with all packets that will go out on this bearer. Used to
  *                              determine whether a packet will be enqueued when it comes down from Core TX.
+ * @param[in]       tx_power    transmit power
  */
-void core_tx_friend_init(core_tx_friend_t * p_bearer, nrf_mesh_tx_token_t token);
+void core_tx_friend_init(core_tx_friend_t * p_bearer, nrf_mesh_tx_token_t token, radio_tx_power_t tx_power);
 
 /**
  * Enables a Friend bearer instance.

@@ -1,15 +1,16 @@
-# Light switch server details and Mesh APIs
+# Light switch server details and Bluetooth mesh APIs
 @anchor light_switch_demo_server
 
 The light switch server is a Generic OnOff server that has a provisionee role in
 the [light switch example](@ref md_examples_light_switch_README) network demonstration, which is also composed of
 [light switch client](@ref md_examples_light_switch_client_README)
-and [mesh provisioner](@ref md_examples_provisioner_README). There can be one or more servers in this network,
+and [Bluetooth mesh provisioner](@ref md_examples_provisioner_README). There can be one or more servers in this network,
 for example light bulbs.
 
 The light switch server instantiates one instance of the Generic OnOff server model to control the state of LED 1.
 
 **Table of contents**
+- [Scene model](@ref light_switch_demo_server_scene_model)
 - [Source code](@ref light_switch_server_code)
 - [Use of APIs](@ref light_switch_server_APIs)
 
@@ -22,10 +23,24 @@ The provisioner configures this server model instance to communicate with the cl
 ![State diagram for the Light switch server](images/light_switch_server_state_diagram.svg)
 
 After provisioning, the proxy server application starts sending out connectable advertisements
-with Mesh Proxy Service present, which a Proxy Client can connect to in order to interact with the mesh.
+with Bluetooth mesh Proxy Service present, which a Proxy Client can connect to in order to interact with the Bluetooth mesh.
 
-The Proxy Client acts like any other mesh device, but sends all of its mesh communication
-over a BLE connection to a Proxy Server, which relays it into the mesh.
+The Proxy Client acts like any other Bluetooth mesh device, but sends all of its Bluetooth mesh communication
+over a BLE connection to a Proxy Server, which relays it into the Bluetooth mesh.
+
+---
+## Scene model @anchor light_switch_demo_server_scene_model
+
+The light switch server example implements one instance of the [Scene Setup Server model](@ref SCENE_SETUP_SERVER)
+and the associated root [Default Transition Time Server](@ref GENERIC_DTT_SERVER) model.
+The Scene Setup Server instance can be used together with the [Scene Client](@ref SCENE_CLIENT),
+although both model instances are optional and [can be excluded](@ref light_switch_example_setup_scene_model).
+
+For the value stored and recalled by the Scene model, see the @tagMeshMdlSp, Table 3.85.
+For more information on how to use the [Scene models](@ref SCENE_MODELS),
+see the [Scene example](@ref scene_example_scene_server).
+The Default Transition Time Server instance can be used only
+when [evaluating the example using mobile app](@ref light_switch_example_testing_app).
 
 
 ---
@@ -39,7 +54,7 @@ To run the light switch server example, see @ref md_examples_light_switch_README
 
 ---
 
-## Use of Mesh APIs @anchor light_switch_server_APIs
+## Use of Bluetooth mesh APIs @anchor light_switch_server_APIs
 
 The server uses the following set of APIs:
 - [Application support modules](@ref MESH_API_GROUP_APP_SUPPORT)
@@ -60,6 +75,6 @@ The main application (`examples/light_switch/server/src/main.c`) implements the 
 When the `provisioning_complete_cb()` callback is called, the device is provisioned and ready to be
 configured by the provisioner.
 
-The following figure shows the calling sequence of key mesh stack APIs used by this example.
+The following figure shows the calling sequence of key Bluetooth mesh stack APIs used by this example.
 
 ![Light switch server setup](images/light_switch_server_interface.svg "Light switch server setup")

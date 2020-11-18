@@ -59,6 +59,13 @@
 #define GENERIC_ONOFF_MAX        (0x01)
 
 /**
+ * Defines default value for the Generic OnOff state.
+ */
+#ifndef GENERIC_ONOFF_DEFAULT_ONOFF
+#define GENERIC_ONOFF_DEFAULT_ONOFF                         (0x0)
+#endif
+
+/**
  * Unpacked message structure typedefs are used for API interfaces and for implementing model code. This helps to minimize code
  * footprint.
  */

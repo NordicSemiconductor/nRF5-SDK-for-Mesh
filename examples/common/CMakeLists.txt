@@ -5,6 +5,8 @@ set(COMMON_EXAMPLES_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/app_light_lc.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/app_level.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/app_light_ctl.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_scene.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_dtt.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/app_sensor.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/app_sensor_utils.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/app_transition.c"
@@ -93,7 +95,7 @@ set(BLE_DFU_SUPPORT_INCLUDE_FILES
     "${SDK_ROOT}/components/libraries/pwr_mgmt"
     "${SDK_ROOT}/components/libraries/svc"
     CACHE INTERNAL "")
-    
+
 set(PWM_UTILS_SOURCE_FILES
     "${CMAKE_SOURCE_DIR}/examples/common/src/pwm_utils.c"
     "${SDK_ROOT}/components/libraries/pwm/app_pwm.c"
@@ -102,7 +104,7 @@ set(PWM_UTILS_SOURCE_FILES
     "${SDK_ROOT}/modules/nrfx/drivers/src/nrfx_gpiote.c"
     "${SDK_ROOT}/integration/nrfx/legacy/nrf_drv_ppi.c"
     CACHE INTERNAL "")
-    
+
 set(PWM_UTILS_INCLUDE_DIRS
     "${SDK_ROOT}/modules/nrfx/drivers/include/"
     "${SDK_ROOT}/integration/nrfx/legacy/"
@@ -135,6 +137,7 @@ set(lint_include_dirs
     ${CMAKE_SOURCE_DIR}/models/model_spec/light_lc/include
     ${CMAKE_SOURCE_DIR}/models/model_spec/light_lightness/include
     ${CMAKE_SOURCE_DIR}/models/model_spec/light_ctl/include
+    ${CMAKE_SOURCE_DIR}/models/model_spec/scene/include
     ${CMAKE_SOURCE_DIR}/models/model_spec/sensor/include
     ${CMAKE_SOURCE_DIR}/external/rtt/include
     ${CMAKE_SOURCE_DIR}/examples/templates
@@ -153,9 +156,37 @@ set(additional_defines_for_lint
     -DLIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX=1
     -DLIGHT_LC_SETUP_SERVER_INSTANCES_MAX=1
     -DLIGHT_LIGHTNESS_DEFAULT_RANGE_MAX=0xFFFE
-    -DLIGHT_CTL_SETUP_SERVER_INSTANCES_MAX=1)
+    -DLIGHT_CTL_SETUP_SERVER_INSTANCES_MAX=1
+    -DGENERIC_LEVEL_SERVER_INSTANCES_MAX=1
+    -DGENERIC_ONOFF_SERVER_INSTANCES_MAX=1
+    -DGENERIC_DTT_SERVER_INSTANCES_MAX=1
+    -DSCENE_SETUP_SERVER_INSTANCES_MAX=1)
 
 add_pc_lint(examples_common_${PLATFORM}
     "${COMMON_EXAMPLES_SOURCE_FILES}"
     "${lint_include_dirs}"
     "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES};-D__WEAK=;${additional_defines_for_lint}")
+
+
+set(COMMON_EXAMPLES_SOURCE_FILES_NO_SCENE_LINT
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_onoff.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_light_lightness.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_light_lc.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_level.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_light_ctl.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_scene.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/app_dtt.c")
+
+set(additional_defines_for_no_scene_lint
+    -DLIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX=1
+    -DLIGHT_LC_SETUP_SERVER_INSTANCES_MAX=1
+    -DLIGHT_LIGHTNESS_DEFAULT_RANGE_MAX=0xFFFE
+    -DLIGHT_CTL_SETUP_SERVER_INSTANCES_MAX=1
+    -DGENERIC_LEVEL_SERVER_INSTANCES_MAX=1
+    -DGENERIC_ONOFF_SERVER_INSTANCES_MAX=1
+    -DGENERIC_DTT_SERVER_INSTANCES_MAX=1
+    -DSCENE_SETUP_SERVER_INSTANCES_MAX=0)
+add_pc_lint(examples_common_no_scene_${PLATFORM}
+    "${COMMON_EXAMPLES_SOURCE_FILES_NO_SCENE_LINT}"
+    "${lint_include_dirs}"
+    "${${PLATFORM}_DEFINES};${${SOFTDEVICE}_DEFINES};${${BOARD}_DEFINES};-D__WEAK=;${additional_defines_for_no_scene_lint}")

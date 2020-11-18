@@ -122,6 +122,9 @@ struct __generic_dtt_server_t
 
     /** Model settings and callbacks for this instance */
     generic_dtt_server_settings_t settings;
+
+    /** State handle for this instance. */
+    uint8_t state_handle;
 };
 
 /**

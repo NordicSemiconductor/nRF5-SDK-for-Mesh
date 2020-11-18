@@ -137,8 +137,8 @@ static const generic_onoff_client_callbacks_t client_cbs =
 static void device_identification_start_cb(uint8_t attention_duration_s)
 {
 #if SIMPLE_HAL_LEDS_ENABLED
-    hal_led_mask_set(LEDS_MASK, false);
-    hal_led_blink_ms(BSP_LED_2_MASK  | BSP_LED_3_MASK,
+    hal_led_mask_set(HAL_LED_MASK, false);
+    hal_led_blink_ms(HAL_LED_MASK_HALF,
                      LED_BLINK_ATTENTION_INTERVAL_MS,
                      LED_BLINK_ATTENTION_COUNT(attention_duration_s));
 #endif
@@ -175,8 +175,8 @@ static void provisioning_complete_cb(void)
 
 #if SIMPLE_HAL_LEDS_ENABLED
     hal_led_blink_stop();
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
+    hal_led_mask_set(HAL_LED_MASK, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
 #endif
 }
 
@@ -216,7 +216,7 @@ static void node_reset(void)
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset  -----\n");
 
 #if SIMPLE_HAL_LEDS_ENABLED
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
 #endif
 
     /* This function may return if there are ongoing flash operations. */
@@ -264,7 +264,7 @@ static void send_app_state(bool is_state_on)
         case NRF_ERROR_INVALID_STATE:
             __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Cannot send the message\n");
 #if SIMPLE_HAL_LEDS_ENABLED
-            hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
+            hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_NO_REPLY);
 #endif
             break;
 
@@ -278,7 +278,7 @@ static void send_app_state(bool is_state_on)
              */
             __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Publication not configured\n");
 #if SIMPLE_HAL_LEDS_ENABLED
-            hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_ERROR);
+            hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_ERROR);
 #endif
             break;
 
@@ -308,14 +308,14 @@ static void initiate_friendship()
         case NRF_ERROR_INVALID_STATE:
             __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Already in an active friendship\n");
 #if SIMPLE_HAL_LEDS_ENABLED
-            hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_ERROR);
+            hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_ERROR);
 #endif
             break;
 
         case NRF_ERROR_INVALID_PARAM:
             __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Friend request parameters outside of valid ranges.\n");
 #if SIMPLE_HAL_LEDS_ENABLED
-            hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_ERROR);
+            hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_ERROR);
 #endif
             break;
 
@@ -338,7 +338,7 @@ static void terminate_friendship()
         case NRF_ERROR_INVALID_STATE:
             __LOG(LOG_SRC_APP, LOG_LEVEL_ERROR, "Not in an active friendship\n");
 #if SIMPLE_HAL_LEDS_ENABLED
-            hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_ERROR);
+            hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_ERROR);
 #endif
             break;
 
@@ -463,7 +463,7 @@ static void app_mesh_core_event_cb(const nrf_mesh_evt_t * p_evt)
                           "Cannot accept friendship: %d\n",
                           status);
 #if SIMPLE_HAL_LEDS_ENABLED
-                    hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS,
+                    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_SHORT_INTERVAL_MS,
                                      LED_BLINK_CNT_ERROR);
 #endif
                     break;
@@ -483,7 +483,7 @@ static void app_mesh_core_event_cb(const nrf_mesh_evt_t * p_evt)
         case NRF_MESH_EVT_LPN_FRIEND_REQUEST_TIMEOUT:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Friend Request timed out\n");
 #if SIMPLE_HAL_LEDS_ENABLED
-            hal_led_blink_ms(LEDS_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_ERROR);
+            hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_SHORT_INTERVAL_MS, LED_BLINK_CNT_ERROR);
 #endif
             break;
 
@@ -553,7 +553,7 @@ static void mesh_init(void)
     {
         case NRF_ERROR_INVALID_DATA:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before starting of the provisioning process.\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reboot device before starting of the provisioning process.\n");
             break;
         case NRF_SUCCESS:
             break;
@@ -644,8 +644,8 @@ static void start(void)
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
 
 #if SIMPLE_HAL_LEDS_ENABLED
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
+    hal_led_mask_set(HAL_LED_MASK, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
 #endif
 }
 

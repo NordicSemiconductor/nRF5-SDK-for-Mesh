@@ -47,6 +47,7 @@
 #include "nrf_mesh_config_examples.h"
 #include "nrf_mesh_config_prov.h"
 #include "nrf_mesh_gatt.h"
+#include "nrf_mesh_events.h"
 
 #if MESH_FEATURE_PB_GATT_ENABLED
 #include "nrf_sdh.h"
@@ -80,6 +81,20 @@ static uint8_t                         m_private_key[NRF_MESH_PROV_PRIVKEY_SIZE]
 static bool                            m_device_provisioned;
 static bool                            m_device_identification_started;
 
+static void power_down_evt_handle(const nrf_mesh_evt_t * p_evt);
+static bool m_is_in_power_down;
+static nrf_mesh_evt_handler_t m_power_down_evt_handler =
+{
+    .evt_cb = power_down_evt_handle,
+};
+
+static void power_down_evt_handle(const nrf_mesh_evt_t * p_evt)
+{
+    if (p_evt->type == NRF_MESH_EVT_READY_TO_POWER_OFF)
+    {
+        m_is_in_power_down = true;
+    }
+}
 
 #if MESH_FEATURE_PB_GATT_ENABLED
 
@@ -192,6 +207,11 @@ static void gatt_database_reset(void)
 
 static uint32_t provisionee_start(void)
 {
+    if (m_is_in_power_down)
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+
     uint32_t bearers = 0;
 
 #if MESH_FEATURE_PB_ADV_ENABLED
@@ -312,6 +332,9 @@ uint32_t mesh_provisionee_prov_start(const mesh_provisionee_start_params_t * p_s
                         &m_prov_ctx,
                         nrf_mesh_prov_bearer_gatt_interface_get(&m_prov_bearer_gatt)));
 #endif
+
+    nrf_mesh_evt_handler_add(&m_power_down_evt_handler);
+
     return provisionee_start();
 }
 

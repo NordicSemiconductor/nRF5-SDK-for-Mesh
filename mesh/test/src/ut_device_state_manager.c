@@ -1827,6 +1827,7 @@ void test_app(void)
         }
     }
     const nrf_mesh_application_secmat_t * p_secmat = NULL;
+    const nrf_mesh_application_secmat_t * p_secmat_secondary = NULL;
     uint32_t represented_aids = 0;
     for (uint32_t i = 0; i < ARRAY_SIZE(aid_groups); i++)
     {
@@ -1840,7 +1841,7 @@ void test_app(void)
             p_secmat = NULL;
             for (uint32_t j = 0; j < aid_groups[i].count; j++)
             {
-                nrf_mesh_app_secmat_next_get(p_net_secmats[net], aid_groups[i].aid, &p_secmat);
+                nrf_mesh_app_secmat_next_get(p_net_secmats[net], aid_groups[i].aid, &p_secmat, &p_secmat_secondary);
                 TEST_ASSERT_NOT_NULL(p_secmat);
                 TEST_ASSERT_EQUAL_HEX8(aid_groups[i].aid, p_secmat->aid);
 
@@ -1860,7 +1861,7 @@ void test_app(void)
                 }
                 TEST_ASSERT_TRUE(found);
             }
-            nrf_mesh_app_secmat_next_get(p_net_secmats[net], aid_groups[i].aid, &p_secmat);
+            nrf_mesh_app_secmat_next_get(p_net_secmats[net], aid_groups[i].aid, &p_secmat, &p_secmat_secondary);
             TEST_ASSERT_EQUAL_PTR_MESSAGE(NULL, p_secmat, "Found more applications than expected");
         }
     }
@@ -1868,15 +1869,16 @@ void test_app(void)
     TEST_ASSERT_EQUAL(keys_in_storage, represented_aids);
 
     /* Illegal params */
-    nrf_mesh_app_secmat_next_get(p_net_secmats[0], 0x55, &p_secmat); /* no such aid */
+    nrf_mesh_app_secmat_next_get(p_net_secmats[0], 0x55, &p_secmat, &p_secmat_secondary); /* no such aid */
     TEST_ASSERT_EQUAL(NULL, p_secmat);
     nrf_mesh_application_secmat_t dummy_secmat = {};
     TEST_ASSERT_EQUAL(DSM_HANDLE_INVALID, dsm_appkey_handle_get(&dummy_secmat)); /* not in the list */
     nrf_mesh_network_secmat_t dummy_net_secmat = {};
-    nrf_mesh_app_secmat_next_get(&dummy_net_secmat, aid_groups[0].aid, &p_secmat); /* net secmat not in the list */
+    nrf_mesh_app_secmat_next_get(&dummy_net_secmat, aid_groups[0].aid, &p_secmat, &p_secmat_secondary); /* net secmat not in the list */
     TEST_ASSERT_EQUAL_PTR(NULL, p_secmat);
-    TEST_NRF_MESH_ASSERT_EXPECT(nrf_mesh_app_secmat_next_get(NULL, aid_groups[0].aid, &p_secmat));
-    TEST_NRF_MESH_ASSERT_EXPECT(nrf_mesh_app_secmat_next_get(p_net_secmats[0], aid_groups[0].aid, NULL));
+    TEST_NRF_MESH_ASSERT_EXPECT(nrf_mesh_app_secmat_next_get(NULL, aid_groups[0].aid, &p_secmat, &p_secmat_secondary));
+    TEST_NRF_MESH_ASSERT_EXPECT(nrf_mesh_app_secmat_next_get(p_net_secmats[0], aid_groups[0].aid, NULL, &p_secmat_secondary));
+    TEST_NRF_MESH_ASSERT_EXPECT(nrf_mesh_app_secmat_next_get(p_net_secmats[0], aid_groups[0].aid, &p_secmat, NULL));
 }
 
 void test_devkey(void)
@@ -2653,17 +2655,19 @@ void test_key_refresh_all_phases(void)
     struct
     {
         dsm_handle_t handle;
-        uint8_t aid;
+        uint8_t old_aid;
+        uint8_t new_aid;
         uint8_t key[NRF_MESH_KEY_SIZE];
     } app[6];
     for (uint32_t i = 0; i < ARRAY_SIZE(app); i++)
     {
-        app[i].aid = i;
+        app[i].old_aid = i;
+        app[i].new_aid = ARRAY_SIZE(app) + i;
         memset(app[i].key, i, NRF_MESH_KEY_SIZE);
 
         nrf_mesh_keygen_aid_ExpectAndReturn(app[i].key, NULL, NRF_SUCCESS);
         nrf_mesh_keygen_aid_IgnoreArg_p_aid();
-        nrf_mesh_keygen_aid_ReturnMemThruPtr_p_aid(&app[i].aid, sizeof(app[i].aid));
+        nrf_mesh_keygen_aid_ReturnMemThruPtr_p_aid(&app[i].old_aid, sizeof(app[i].old_aid));
         persist_expect_appkey(app[i].key, i, network_handle, true);
         TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_appkey_add(i, network_handle, app[i].key, &app[i].handle));
         check_stored_appkey(app[i].key, NULL, i, network_handle, app[i].handle, false);
@@ -2700,12 +2704,11 @@ void test_key_refresh_all_phases(void)
     TEST_ASSERT_EQUAL_HEX8_ARRAY(old_key, net_key, NRF_MESH_KEY_SIZE);
 
     uint8_t new_appkey[NRF_MESH_KEY_SIZE] = { 7, 6, 5, 4, 3, 2, 1, 0, 0, 1, 2, 3, 4, 5, 6, 7};
-    uint8_t new_aid = 0xbe;
 
     /* Update the first application key: */
     nrf_mesh_keygen_aid_ExpectAndReturn(new_appkey, NULL, NRF_SUCCESS);
     nrf_mesh_keygen_aid_IgnoreArg_p_aid();
-    nrf_mesh_keygen_aid_ReturnMemThruPtr_p_aid(&new_aid, sizeof(new_aid));
+    nrf_mesh_keygen_aid_ReturnMemThruPtr_p_aid(&app[0].new_aid, sizeof(app[0].new_aid));
     persist_expect_appkey_update(app[0].key, new_appkey, 0, network_handle, app[0].handle, true);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_appkey_update(app[0].handle, new_appkey));
     check_stored_appkey(app[0].key, new_appkey, 0, network_handle, app[0].handle, true);
@@ -2713,7 +2716,7 @@ void test_key_refresh_all_phases(void)
     /* Update the second application key: */
     nrf_mesh_keygen_aid_ExpectAndReturn(new_appkey, NULL, NRF_SUCCESS);
     nrf_mesh_keygen_aid_IgnoreArg_p_aid();
-    nrf_mesh_keygen_aid_ReturnMemThruPtr_p_aid(&new_aid, sizeof(new_aid));
+    nrf_mesh_keygen_aid_ReturnMemThruPtr_p_aid(&app[1].new_aid, sizeof(app[1].new_aid));
     persist_expect_appkey_update(app[1].key, new_appkey, 1, network_handle, app[1].handle, true);
     TEST_ASSERT_EQUAL(NRF_SUCCESS, dsm_appkey_update(app[1].handle, new_appkey));
     check_stored_appkey(app[1].key, new_appkey, 1, network_handle, app[1].handle, true);
@@ -2726,7 +2729,7 @@ void test_key_refresh_all_phases(void)
 
         /* Verify application secmat: */
         TEST_ASSERT_EQUAL_HEX8_ARRAY(app[i].key, secmat.p_app->key, NRF_MESH_KEY_SIZE);
-        TEST_ASSERT_EQUAL_HEX8(app[i].aid, secmat.p_app->aid);
+        TEST_ASSERT_EQUAL_HEX8(app[i].old_aid, secmat.p_app->aid);
 
         /* Verify network secmat: */
         TEST_ASSERT_EQUAL_HEX8_ARRAY(old_secmat.encryption_key, secmat.p_net->encryption_key, NRF_MESH_KEY_SIZE);
@@ -2772,6 +2775,48 @@ void test_key_refresh_all_phases(void)
     TEST_ASSERT_NULL(p_primary);
     TEST_ASSERT_NULL(p_secondary);
 
+    /* Old and new application keys should be used to receive packets */
+    for (uint32_t i = 0; i < ARRAY_SIZE(app); i++)
+    {
+        /* Check if the old AID can still be used: */
+        const nrf_mesh_application_secmat_t * p_app_primary = NULL, * p_app_secondary = NULL;
+
+        p_primary = NULL;
+        p_secondary = NULL;
+        nrf_mesh_net_secmat_next_get(old_nid, &p_primary, &p_secondary);
+
+        nrf_mesh_app_secmat_next_get(p_primary, app[i].old_aid, &p_app_primary, &p_app_secondary);
+        TEST_ASSERT_NOT_NULL(p_app_primary);
+        TEST_ASSERT_NULL(p_app_secondary);
+
+        TEST_ASSERT_EQUAL_HEX8_ARRAY(app[i].key, p_app_primary->key, NRF_MESH_KEY_SIZE);
+
+        nrf_mesh_app_secmat_next_get(p_primary, app[i].old_aid, &p_app_primary, &p_app_secondary);
+        TEST_ASSERT_NULL(p_app_primary);
+        TEST_ASSERT_NULL(p_app_secondary);
+
+        if (i == 0 || i == 1)
+        {
+            /* Check that the new AID can also be used: */
+            nrf_mesh_app_secmat_next_get(p_primary, app[i].new_aid, &p_app_primary, &p_app_secondary);
+            TEST_ASSERT_NOT_NULL(p_app_primary);
+            TEST_ASSERT_NULL(p_app_secondary);
+
+            TEST_ASSERT_EQUAL_HEX8_ARRAY(new_appkey, p_app_primary->key, NRF_MESH_KEY_SIZE);
+
+            nrf_mesh_app_secmat_next_get(p_primary, app[i].new_aid, &p_app_primary, &p_app_secondary);
+            TEST_ASSERT_NULL(p_app_primary);
+            TEST_ASSERT_NULL(p_app_secondary);
+        }
+        else
+        {
+            /* The rest application keys should not be updated. */
+            nrf_mesh_app_secmat_next_get(p_primary, app[i].new_aid, &p_app_primary, &p_app_secondary);
+            TEST_ASSERT_NULL(p_app_primary);
+            TEST_ASSERT_NULL(p_app_secondary);
+        }
+    }
+
     /* Enter key refresh phase 2, by swapping the keys used for transmission of packets: */
     persist_expect_subnet_update(old_key, new_key, key_index, NRF_MESH_KEY_REFRESH_PHASE_2, network_handle, true);
     net_state_key_refresh_phase_changed_Expect(key_index, new_beacon_secmat.net_id, NRF_MESH_KEY_REFRESH_PHASE_2);
@@ -2794,12 +2839,12 @@ void test_key_refresh_all_phases(void)
         /* Verify application secmat: */
         if (i == 0 || i == 1) /* The first two application keys were set to 0 above */
         {
-            TEST_ASSERT_EQUAL_HEX8(new_aid, secmat.p_app->aid);
+            TEST_ASSERT_EQUAL_HEX8(app[i].new_aid, secmat.p_app->aid);
             TEST_ASSERT_EQUAL_HEX8_ARRAY(new_appkey, secmat.p_app->key, NRF_MESH_KEY_SIZE);
         }
         else /* The other application keys have not been updated and should be the same as before */
         {
-            TEST_ASSERT_EQUAL_HEX8(app[i].aid, secmat.p_app->aid);
+            TEST_ASSERT_EQUAL_HEX8(app[i].old_aid, secmat.p_app->aid);
             TEST_ASSERT_EQUAL_HEX8_ARRAY(app[i].key, secmat.p_app->key, NRF_MESH_KEY_SIZE);
         }
 
@@ -2809,7 +2854,7 @@ void test_key_refresh_all_phases(void)
         TEST_ASSERT_EQUAL_HEX8(new_secmat.nid, secmat.p_net->nid);
 
         /* Ensure that application keys cannot be updated in key refresh phase 2: */
-        TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, dsm_appkey_update(app[i].aid, new_appkey));
+        TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, dsm_appkey_update(app[i].old_aid, new_appkey));
     }
 
     /* Both old and new security materials are still used when receiving packets: */
@@ -2848,6 +2893,48 @@ void test_key_refresh_all_phases(void)
     TEST_ASSERT_NULL(p_primary);
     TEST_ASSERT_NULL(p_secondary);
 
+    /* Old and new application keys should be used to receive packets */
+    for (uint32_t i = 0; i < ARRAY_SIZE(app); i++)
+    {
+        /* Check if the old AID can still be used: */
+        const nrf_mesh_application_secmat_t * p_app_primary = NULL, * p_app_secondary = NULL;
+
+        p_primary = NULL;
+        p_secondary = NULL;
+        nrf_mesh_net_secmat_next_get(old_nid, &p_primary, &p_secondary);
+
+        nrf_mesh_app_secmat_next_get(p_primary, app[i].old_aid, &p_app_primary, &p_app_secondary);
+        TEST_ASSERT_NOT_NULL(p_app_primary);
+        TEST_ASSERT_NULL(p_app_secondary);
+
+        TEST_ASSERT_EQUAL_HEX8_ARRAY(app[i].key, p_app_primary->key, NRF_MESH_KEY_SIZE);
+
+        nrf_mesh_app_secmat_next_get(p_primary, app[i].old_aid, &p_app_primary, &p_app_secondary);
+        TEST_ASSERT_NULL(p_app_primary);
+        TEST_ASSERT_NULL(p_app_secondary);
+
+        if (i == 0 || i == 1)
+        {
+            /* Check that the new AID can also be used */
+            nrf_mesh_app_secmat_next_get(p_primary, app[i].new_aid, &p_app_primary, &p_app_secondary);
+            TEST_ASSERT_NOT_NULL(p_app_primary);
+            TEST_ASSERT_NULL(p_app_secondary);
+
+            TEST_ASSERT_EQUAL_HEX8_ARRAY(new_appkey, p_app_primary->key, NRF_MESH_KEY_SIZE);
+
+            nrf_mesh_app_secmat_next_get(p_primary, app[i].new_aid, &p_app_primary, &p_app_secondary);
+            TEST_ASSERT_NULL(p_app_primary);
+            TEST_ASSERT_NULL(p_app_secondary);
+        }
+        else
+        {
+            /* The rest application keys should not be updated. */
+            nrf_mesh_app_secmat_next_get(p_primary, app[i].new_aid, &p_app_primary, &p_app_secondary);
+            TEST_ASSERT_NULL(p_app_primary);
+            TEST_ASSERT_NULL(p_app_secondary);
+        }
+    }
+
     /* Move to key refresh phase 3 (which is immediately goes back to phase 0): */
     net_state_key_refresh_phase_changed_Expect(key_index, new_beacon_secmat.net_id, NRF_MESH_KEY_REFRESH_PHASE_0);
     persist_expect_appkey_update(app[0].key, new_appkey, 0, network_handle, app[0].handle, true);
@@ -2873,12 +2960,12 @@ void test_key_refresh_all_phases(void)
         /* Verify application secmat: */
         if (i == 0 || i == 1)
         {
-            TEST_ASSERT_EQUAL_HEX8(new_aid, secmat.p_app->aid);
+            TEST_ASSERT_EQUAL_HEX8(app[i].new_aid, secmat.p_app->aid);
             TEST_ASSERT_EQUAL_HEX8_ARRAY(new_appkey, secmat.p_app->key, NRF_MESH_KEY_SIZE);
         }
         else
         {
-            TEST_ASSERT_EQUAL_HEX8(app[i].aid, secmat.p_app->aid);
+            TEST_ASSERT_EQUAL_HEX8(app[i].old_aid, secmat.p_app->aid);
             TEST_ASSERT_EQUAL_HEX8_ARRAY(app[i].key, secmat.p_app->key, NRF_MESH_KEY_SIZE);
         }
 
@@ -2888,6 +2975,53 @@ void test_key_refresh_all_phases(void)
         TEST_ASSERT_EQUAL_HEX8(new_secmat.nid, secmat.p_net->nid);
     }
 
+    /* Verify application keys */
+    for (uint32_t i = 0; i < ARRAY_SIZE(app); i++)
+    {
+        const nrf_mesh_application_secmat_t * p_app_primary = NULL, * p_app_secondary = NULL;
+
+        p_primary = NULL;
+        p_secondary = NULL;
+        nrf_mesh_net_secmat_next_get(new_nid, &p_primary, &p_secondary);
+
+        if (i == 0 || i == 1)
+        {
+            /* Verify new application keys */
+            nrf_mesh_app_secmat_next_get(p_primary, app[i].new_aid, &p_app_primary, &p_app_secondary);
+            TEST_ASSERT_NOT_NULL(p_app_primary);
+            TEST_ASSERT_NULL(p_app_secondary);
+
+            TEST_ASSERT_EQUAL_HEX8_ARRAY(new_appkey, p_app_primary->key, NRF_MESH_KEY_SIZE);
+
+            nrf_mesh_app_secmat_next_get(p_primary, app[i].new_aid, &p_app_primary, &p_app_secondary);
+            TEST_ASSERT_NULL(p_app_primary);
+            TEST_ASSERT_NULL(p_app_secondary);
+
+            nrf_mesh_app_secmat_next_get(p_primary, app[i].old_aid, &p_app_primary, &p_app_secondary);
+            TEST_ASSERT_NULL(p_app_primary);
+            TEST_ASSERT_NULL(p_app_secondary);
+        }
+        else
+        {
+            /* The rest application keys should not be updated. */
+            nrf_mesh_app_secmat_next_get(p_primary, app[i].old_aid, &p_app_primary, &p_app_secondary);
+            TEST_ASSERT_NOT_NULL(p_app_primary);
+            TEST_ASSERT_NULL(p_app_secondary);
+
+            TEST_ASSERT_EQUAL_HEX8_ARRAY(app[i].key, p_app_primary->key, NRF_MESH_KEY_SIZE);
+
+            nrf_mesh_app_secmat_next_get(p_primary, app[i].old_aid, &p_app_primary, &p_app_secondary);
+            TEST_ASSERT_NULL(p_app_primary);
+            TEST_ASSERT_NULL(p_app_secondary);
+
+            nrf_mesh_app_secmat_next_get(p_primary, app[i].new_aid, &p_app_primary, &p_app_secondary);
+            TEST_ASSERT_NULL(p_app_primary);
+            TEST_ASSERT_NULL(p_app_secondary);
+        }
+    }
+
+    p_primary = NULL;
+    p_secondary = NULL;
     /* Check that the new NID can be used to receive packets: */
     mesh_lpn_is_in_friendship_IgnoreAndReturn(m_test_in_friendship);
     nrf_mesh_net_secmat_next_get(new_nid, &p_primary, &p_secondary);

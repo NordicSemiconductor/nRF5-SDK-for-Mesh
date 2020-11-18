@@ -74,7 +74,7 @@
 #include "light_lc_server_property_constants.h"
 #include "ble_softdevice_support.h"
 #include "app_timer.h"
-#include "model_common.h"
+#include "model_config_file.h"
 #include "mesh_config_listener.h"
 #include "light_ctl_mc.h"
 
@@ -210,9 +210,9 @@ static void pwm_lightness_ctemp_duv_set(uint16_t lightness, uint16_t temperature
               warm_level, cool_level, delta_uv);
 
         m_pwm.channel = 0;
-        pwm_utils_level_set(&m_pwm, light_lightness_utils_actual_to_generic_level(warm_level));
+        (void)pwm_utils_level_set_unsigned(&m_pwm, warm_level);
         m_pwm.channel = 1;
-        pwm_utils_level_set(&m_pwm, light_lightness_utils_actual_to_generic_level(cool_level));
+        (void)pwm_utils_level_set_unsigned(&m_pwm, cool_level);
     }
     else
     {
@@ -338,6 +338,7 @@ static void node_reset(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset  -----\n");
     /* This function may return if there are ongoing flash operations. */
+    model_config_file_clear();
     mesh_stack_device_reset();
 }
 
@@ -485,8 +486,8 @@ static void provisioning_complete_cb(void)
 
 static void mesh_init(void)
 {
-    /* Initiate the application storage for light lightness and lc server. */
-    model_common_init();
+    /* Initialize the application storage for models */
+    model_config_file_init();
 
     mesh_stack_init_params_t init_params =
     {
@@ -502,15 +503,17 @@ static void mesh_init(void)
     if (status == NRF_SUCCESS)
     {
         /* Check if application stored data is valid, if not clear all data and use default values. */
-        status = model_common_config_apply();
+        status = model_config_file_config_apply();
     }
 
     switch (status)
     {
         case NRF_ERROR_INVALID_DATA:
+            /* Clear model config file as loading failed */
+            model_config_file_clear();
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,
                   "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before starting of the provisioning process.\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reboot device before starting of the provisioning process.\n");
             break;
         case NRF_SUCCESS:
             break;

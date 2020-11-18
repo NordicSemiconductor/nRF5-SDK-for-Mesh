@@ -35,6 +35,9 @@
 -d__CC_ARM                   // We use armcc, so let lint pretend to be armcc as well
 -d__ARMCC_VERSION=400677     // The arm libraries require armcc >= V4.0.677
 -d__LINT__                   // Definition to let people know that PC-Lint is coming to town
+-d__INITIAL_SP=0UL
+-d__STACK_LIMIT=256UL
+-dARM_MPU_ARMV7_H
 
 // Enable support for variable-length arrays:
 +fvl

@@ -52,6 +52,7 @@
 #include "manual_mock_queue.h"
 #include "test_helper.h"
 #include "test_assert.h"
+#include "mesh_opt_core_mock.h"
 #include "device_state_manager_mock.h"
 #include "long_timer_mock.h"
 
@@ -115,8 +116,17 @@ uint32_t mesh_config_entry_set_mock(mesh_config_entry_id_t entry_id, const void 
 uint32_t mesh_config_entry_get_mock(mesh_config_entry_id_t entry_id, void * p_entry, int calls)
 {
     UNUSED_PARAMETER(calls);
-    m_mesh_opt_friend_params.callbacks.getter(entry_id, p_entry);
-    return NRF_SUCCESS;
+    if (entry_id.file == MESH_OPT_CORE_FILE_ID &&
+        entry_id.record == (MESH_OPT_CORE_TX_POWER_RECORD_START + CORE_TX_ROLE_ORIGINATOR))
+    {
+        *((radio_tx_power_t *)p_entry) = RADIO_POWER_NRF_0DBM;
+        return NRF_SUCCESS;
+    }
+    else
+    {
+        m_mesh_opt_friend_params.callbacks.getter(entry_id, p_entry);
+        return NRF_SUCCESS;
+    }
 }
 
 uint32_t mesh_config_entry_delete_mock(mesh_config_entry_id_t entry_id, int calls)

@@ -41,6 +41,7 @@
 #include <stdint.h>
 #include "scene_common.h"
 #include "scene_messages.h"
+#include "generic_dtt_server.h"
 
 /**
  * @defgroup SCENE_SETUP_SERVER Scene Setup server model interface
@@ -232,8 +233,14 @@ struct __scene_setup_server_t
     /** Parent model context for - Scene server. */
     scene_server_t scene_srv;
 
+    /** Default transition time server context pointer */
+    generic_dtt_server_t * p_gen_dtt_server;
+
     /** Model settings and callbacks for this instance */
     scene_setup_server_settings_t settings;
+
+    /** State handle for this instance. */
+    uint8_t state_handle;
 };
 
 /**
@@ -258,29 +265,6 @@ struct __scene_setup_server_t
  *                                  @ref SCENE_SETUP_SERVER_INSTANCES_MAX.
  */
 uint32_t scene_setup_server_init(scene_setup_server_t * p_s_server, uint8_t element_index);
-
-/**
- * Publishes unsolicited Status message.
- *
- * This API can be used to send unsolicited messages to report updated
- * state value as a result of local action.
- *
- * @param[in]     p_s_server        Scene setup server context pointer.
- * @param[in]     p_params          Message parameters.
- *
- * @retval NRF_SUCCESS              If the message is published successfully.
- * @retval NRF_ERROR_NULL           NULL pointer given to function.
- * @retval NRF_ERROR_NO_MEM         No memory available to send the message at this point.
- * @retval NRF_ERROR_NOT_FOUND      The model is not initialized.
- * @retval NRF_ERROR_INVALID_PARAM  Incorrect message parameters, the model not bound to application
- *                                  key, or publish address not set.
- * @retval NRF_ERROR_FORBIDDEN      Failed to allocate a sequence number from network.
- * @retval NRF_ERROR_INVALID_STATE  There's already a segmented packet that is being to sent to this
- *                                  destination. Wait for the transmission to finish before sending
- *                                  new segmented packets.
- */
-uint32_t scene_setup_server_status_publish(const scene_setup_server_t * p_s_server,
-                                           const scene_status_params_t * p_params);
 
 /**@} end of SCENE_SETUP_SERVER */
 #endif /* SCENE_SETUP_SERVER_H__ */

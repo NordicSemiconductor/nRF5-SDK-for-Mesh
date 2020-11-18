@@ -47,11 +47,16 @@
 
 #include "generic_ponoff_common.h"
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+#define STORED_WITH_SCENE_STATE (1 + SCENE_REGISTER_ARRAY_SIZE)
+#else
+#define STORED_WITH_SCENE_STATE (1)
+#endif
 typedef struct
 {
     uint32_t dtt;
     uint16_t last;
-    uint16_t actual;
+    uint16_t actual[STORED_WITH_SCENE_STATE];
     uint16_t default_lightness;
     uint16_t ramonly_state_last;
     uint16_t range_min;
@@ -164,7 +169,7 @@ MESH_CONFIG_ENTRY(m_ll_range_max_entry,
 
 MESH_CONFIG_ENTRY(m_ll_actual_entry,
                   LIGHT_LIGHTNESS_ACTUAL_EID,
-                  LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX,
+                  STORED_WITH_SCENE_INSTANCES,
                   sizeof(uint16_t),
                   actual_setter,
                   actual_getter,
@@ -203,7 +208,12 @@ static void state_contexts_default_set(uint8_t handle)
 {
     m_state_contexts[handle].onpowerup         = LIGHT_LIGHTNESS_DEFAULT_ON_POWERUP;
     m_state_contexts[handle].last              = LIGHT_LIGHTNESS_DEFAULT_LIGHTNESS_LAST;
-    m_state_contexts[handle].actual            = LIGHT_LIGHTNESS_DEFAULT_LIGHTNESS_ACTUAL;
+
+    for(uint32_t i = 0; i < STORED_WITH_SCENE_STATE; i++)
+    {
+        m_state_contexts[handle].actual[i] = LIGHT_LIGHTNESS_DEFAULT_LIGHTNESS_ACTUAL;
+    }
+
     m_state_contexts[handle].default_lightness = LIGHT_LIGHTNESS_DEFAULT_LIGHTNESS_DEFAULT;
     m_state_contexts[handle].dtt               = LIGHT_LIGHTNESS_DEFAULT_DTT;
     m_state_contexts[handle].range_status      = LIGHT_LIGHTNESS_RANGE_STATUS_SUCCESS;
@@ -242,11 +252,38 @@ static void ll_flash_storage_config_clear(void)
         mesh_config_entry_id_t id = *entries[j].id;
         for (uint8_t i = 0; i < m_next_handle; i++)
         {
-            id.record = entries[j].start + i;
-            (void) mesh_config_entry_delete(id);
+            if (entries[j].start != LIGHT_LIGHTNESS_ACTUAL_EID_START)
+            {
+                id.record = entries[j].start + i;
+                (void) mesh_config_entry_delete(id);
+            }
+            else
+            {
+                for (uint8_t k = 0; k < STORED_WITH_SCENE_STATE; k++)
+                {
+                    id.record = entries[j].start + i + (k * LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX);
+                    (void) mesh_config_entry_delete(id);
+                }
+            }
         }
     }
 }
+
+static void id_record_to_address_array_index(uint16_t id_record,
+                                             uint16_t * p_address, uint8_t * p_array_index)
+{
+    uint16_t shift = id_record - LIGHT_LIGHTNESS_ACTUAL_EID_START;
+    *p_array_index = shift / LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX;
+    *p_address = id_record - (*p_array_index * LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX);
+}
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static uint16_t ll_instance_index_array_index_to_id_record(uint8_t ll_instance_index,
+                                                       uint8_t array_index)
+{
+    return (ll_instance_index + (LIGHT_LIGHTNESS_SETUP_SERVER_INSTANCES_MAX * array_index));
+}
+#endif
 
 /* Setter and getter definitions.
  */
@@ -348,18 +385,26 @@ static void range_max_getter(mesh_config_entry_id_t id, void * p_entry)
 
 static uint32_t actual_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint16_t * p_value = (const uint16_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_LIGHTNESS_ACTUAL_EID_START)->actual = *p_value;
+    id_record_to_address_array_index(id.record, &address, &array_index);
+
+    model_context_get(address, LIGHT_LIGHTNESS_ACTUAL_EID_START)->actual[array_index] = *p_value;
 
     return NRF_SUCCESS;
 }
 
 static void actual_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint16_t * p_value = (uint16_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_LIGHTNESS_ACTUAL_EID_START)->actual;
+    id_record_to_address_array_index(id.record, &address, &array_index);
+
+    *p_value = model_context_get(address, LIGHT_LIGHTNESS_ACTUAL_EID_START)->actual[array_index];
 }
 
 static uint32_t dtt_setter(mesh_config_entry_id_t id, const void * p_entry)
@@ -572,6 +617,28 @@ uint32_t light_lightness_mc_dtt_state_get(uint8_t index, uint32_t * p_value)
     id.record += index;
     return mesh_config_entry_get(id, p_value);
 }
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+uint32_t light_lightness_mc_scene_actual_state_store(uint8_t index, uint8_t scene_index, 
+                                                     uint16_t value)
+{
+    mesh_config_entry_id_t id = LIGHT_LIGHTNESS_ACTUAL_EID;
+
+    id.record += ll_instance_index_array_index_to_id_record(index, (scene_index + 1));
+
+    return mesh_config_entry_set(id, &value);
+}
+
+uint32_t light_lightness_mc_scene_actual_state_recall(uint8_t index, uint8_t scene_index, 
+                                                      uint16_t * p_value)
+{
+    mesh_config_entry_id_t id = LIGHT_LIGHTNESS_ACTUAL_EID;
+
+    id.record += ll_instance_index_array_index_to_id_record(index, (scene_index + 1));
+
+    return mesh_config_entry_get(id, p_value);
+}
+#endif
 
 uint32_t light_lightness_mc_open(uint8_t * p_handle)
 {

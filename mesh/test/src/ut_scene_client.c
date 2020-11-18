@@ -441,6 +441,12 @@ void test_scene_client_recall(void)
     TEST_ASSERT_EQUAL(NRF_ERROR_NULL, scene_client_recall(NULL, &set_params, &transition_params));
     TEST_ASSERT_EQUAL(NRF_ERROR_NULL, scene_client_recall(&m_client, NULL, &transition_params));
 
+    /* case: Invalid scene_number value */
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, scene_client_recall(&m_client, &set_params, &transition_params));
+
+    /* set valid params */
+    set_params.scene_number = 1;
+
     /* case: Busy check fails */
     access_reliable_model_is_free_ExpectAndReturn(m_client.model_handle, false);
     TEST_ASSERT_EQUAL(NRF_ERROR_BUSY, scene_client_recall(&m_client, &set_params, &transition_params));
@@ -484,7 +490,11 @@ void test_scene_client_recall_unack(void)
     TEST_ASSERT_EQUAL(NRF_ERROR_NULL, scene_client_recall_unack(NULL, &set_params, &transition_params, TEST_MODEL_UNACK_REPEATS));
     TEST_ASSERT_EQUAL(NRF_ERROR_NULL, scene_client_recall_unack(&m_client, NULL, &transition_params, TEST_MODEL_UNACK_REPEATS));
 
+    /* case: Invalid scene_number value */
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, scene_client_recall_unack(&m_client, &set_params, &transition_params, TEST_MODEL_UNACK_REPEATS));
+
     /* case: Invalid transition time */
+    set_params.scene_number = 1;
     transition_params.transition_time_ms = TRANSITION_TIME_MAX_MS + 1;
     TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_PARAM, scene_client_recall_unack(&m_client, &set_params, &transition_params, TEST_MODEL_UNACK_REPEATS));
     transition_params.transition_time_ms = TRANSITION_TIME_MAX_MS;
@@ -548,18 +558,18 @@ void test_status_handle(void)
 
     /* case: Optional params not included */
     pkt.status_code = SCENE_STATUS_SUCCESS;
-    pkt.current_scene = SCENE_NUMBER_DEFAULT_SCENE;
+    pkt.current_scene = SCENE_NUMBER_NO_SCENE;
 
     m_expected_status.status_code = pkt.status_code;
     m_expected_status.current_scene = pkt.current_scene;
-    m_expected_status.target_scene = SCENE_NUMBER_DEFAULT_SCENE;
+    m_expected_status.target_scene = SCENE_NUMBER_NO_SCENE;
     m_expected_status.remaining_time_ms = 0;
     ACCESS_MESSAGE_RX(request_msg, pkt, opcode, SCENE_STATUS_MINLEN);
     helper_call_opcode_handler(m_client.model_handle, &request_msg, &m_client);
 
     /* case: Optional params included, transition to target*/
     pkt.status_code = SCENE_STATUS_SUCCESS;
-    pkt.current_scene = SCENE_NUMBER_DEFAULT_SCENE;
+    pkt.current_scene = SCENE_NUMBER_NO_SCENE;
     pkt.target_scene = 0xA5A5;
     pkt.remaining_time = model_transition_time_encode(1000);
 
@@ -573,7 +583,7 @@ void test_status_handle(void)
     /* case: Optional params included transition completed. */
     pkt.status_code = SCENE_STATUS_SUCCESS;
     pkt.current_scene = 0xA5A5;
-    pkt.target_scene = SCENE_NUMBER_DEFAULT_SCENE;
+    pkt.target_scene = SCENE_NUMBER_NO_SCENE;
     pkt.remaining_time = 0;
 
     m_expected_status.status_code = pkt.status_code;
@@ -586,7 +596,7 @@ void test_status_handle(void)
     /* case: Message with invalid length was received, this should not trigger any TEST() */
     m_expected_status.status_code = SCENE_STATUS_SUCCESS;
     m_expected_status.current_scene = 0xCAFE;
-    m_expected_status.target_scene = SCENE_NUMBER_DEFAULT_SCENE;
+    m_expected_status.target_scene = SCENE_NUMBER_NO_SCENE;
     m_expected_status.remaining_time_ms = 0;
     ACCESS_MESSAGE_RX(request_msg, pkt, opcode, SCENE_STATUS_MAXLEN+1);
     helper_call_opcode_handler(m_client.model_handle, &request_msg, &m_client);
@@ -618,7 +628,7 @@ void test_register_status_handle(void)
 
     /* case: Scenes params not included */
     pkt.status_code = SCENE_STATUS_SUCCESS;
-    pkt.current_scene = SCENE_NUMBER_DEFAULT_SCENE;
+    pkt.current_scene = SCENE_NUMBER_NO_SCENE;
     len = SCENE_REGISTER_STATUS_MINLEN;
     m_expected_register_status.status_code = pkt.status_code;
     m_expected_register_status.current_scene = pkt.current_scene;
@@ -634,7 +644,7 @@ void test_register_status_handle(void)
         memset(m_expected_register_status.scenes, 0, SCENE_REGISTER_ARRAY_SIZE);
         uint32_t element = 0;
         while ((element < SCENE_REGISTER_ARRAY_SIZE) && 
-               (test_vector[i].scenes[element] != SCENE_NUMBER_DEFAULT_SCENE))
+               (test_vector[i].scenes[element] != SCENE_NUMBER_NO_SCENE))
         {
             m_expected_register_status.scenes[element] = test_vector[i].scenes[element];
             element++;

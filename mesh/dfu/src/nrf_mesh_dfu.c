@@ -750,6 +750,11 @@ uint32_t nrf_mesh_dfu_init(void)
 
     mp_curr_fwid = &fwid_cmd.params.info.get.p_entry->version;
 
+    __LOG(LOG_SRC_DFU, LOG_LEVEL_INFO, "Version info: BL(ver, id): 0x%02x 0x%02x SD: 0x%04x\n",
+    mp_curr_fwid->bootloader.bl_version, mp_curr_fwid->bootloader.bl_id, mp_curr_fwid->sd);
+    __LOG(LOG_SRC_DFU, LOG_LEVEL_INFO, "Version info: APP company: 0x%08x id: 0x%04x version: 0x%08x\n",
+    mp_curr_fwid->app.company_id, mp_curr_fwid->app.app_id, mp_curr_fwid->app.app_version);
+
     mesh_flash_user_callback_set(MESH_FLASH_USER_DFU, flash_op_complete);
 
     m_transfer_state.state = NRF_MESH_DFU_STATE_INITIALIZED;

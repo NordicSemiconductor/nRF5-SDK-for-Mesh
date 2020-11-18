@@ -184,7 +184,11 @@ uint32_t mesh_packet_build(mesh_packet_t* p_packet,
         return NRF_ERROR_INVALID_LENGTH;
     }
 
-    mesh_packet_set_local_addr(p_packet);
+    uint32_t status = mesh_packet_set_local_addr(p_packet);
+    if (status != NRF_SUCCESS)
+    {
+        return status;
+    }
 
     p_packet->header.length = MESH_PACKET_OVERHEAD + length;
     p_packet->header.type = BLE_PACKET_TYPE_ADV_NONCONN_IND;
@@ -302,10 +306,10 @@ void mesh_packet_take_ownership(mesh_packet_t* p_packet)
        removed. */
     if (mesh_packet_has_additional_data(p_packet))
     {
-        mesh_packet_adv_data_sanitize(p_packet);
+        (void) mesh_packet_adv_data_sanitize(p_packet);
     }
 
-    mesh_packet_set_local_addr(p_packet);
+    (void) mesh_packet_set_local_addr(p_packet);
 }
 
 mesh_packet_t* mesh_packet_get_start_pointer(void* p_content)

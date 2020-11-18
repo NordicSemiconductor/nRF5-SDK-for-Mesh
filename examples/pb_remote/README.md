@@ -4,7 +4,7 @@
 
 This example demonstrates the PB remote models, which allows you to provision devices
 that are outside of the provisioner's radio range. Normally, you have to be within radio range
-of the device you want to provision, but PB remote channels your commands through the mesh.
+of the device you want to provision, but PB remote channels your commands through the Bluetooth mesh.
 
 This solution allows to save time and usability by allowing you to provision all the nodes
 in the network after all of them have been installed, for example in an ecosystem with one
@@ -63,7 +63,7 @@ You can find the source code of this example and its minor examples in the follo
 ## Testing the example @anchor pb-remote_example_testing
 
 To test the remote provisioning example:
-1. Build the examples by following the instructions in [Building the mesh stack](@ref md_doc_getting_started_how_to_build).
+1. Build the examples by following the instructions in [Building the Bluetooth mesh stack](@ref md_doc_getting_started_how_to_build).
 2. Flash the examples by following the instructions in @ref md_doc_getting_started_how_to_run_examples,
 including:
     1. Erase the flash of your development boards and program the SoftDevice.

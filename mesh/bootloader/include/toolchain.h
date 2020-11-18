@@ -40,7 +40,14 @@
 
 #include "nrf.h"
 
-#if defined(__CC_ARM)
+#if defined(_lint)
+    #define __packed_gcc
+    #define __packed_armcc
+
+    #define _DISABLE_IRQS(_was_masked) _was_masked = 0; __disable_irq()
+    #define _ENABLE_IRQS(_was_masked) (void) _was_masked; __enable_irq()
+
+#elif defined(__CC_ARM)
 
 /* ARMCC and GCC have different ordering for packed typedefs, must separate macros */
     #define __packed_gcc

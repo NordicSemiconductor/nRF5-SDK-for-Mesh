@@ -9,6 +9,8 @@ set(lint_include_dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/api
     ${CMAKE_CURRENT_SOURCE_DIR}/../access/api
     ${CMAKE_CURRENT_SOURCE_DIR}/../access/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../bearer/api
+    ${CMAKE_CURRENT_SOURCE_DIR}/../bearer/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../prov/api
     ${CMAKE_CURRENT_SOURCE_DIR}/../prov/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/api

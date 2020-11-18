@@ -274,3 +274,13 @@ uint32_t generic_level_server_status_publish(generic_level_server_t * p_server, 
     return status_send(p_server, NULL, p_params);
 }
 
+
+uint32_t generic_level_server_state_set(generic_level_server_t * p_server, int16_t level)
+{
+    generic_level_set_params_t in_data = {0};
+
+    in_data.level = level;
+    p_server->settings.p_callbacks->level_cbs.set_cb(p_server, NULL, &in_data, NULL, NULL);
+
+    return NRF_SUCCESS;
+}

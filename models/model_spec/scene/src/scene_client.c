@@ -59,7 +59,7 @@ static void status_handle(access_model_handle_t handle,
 
         if (p_rx_msg->length == SCENE_STATUS_MINLEN)
         {
-            in_data.target_scene = SCENE_NUMBER_DEFAULT_SCENE;
+            in_data.target_scene = SCENE_NUMBER_NO_SCENE;
             in_data.remaining_time_ms = 0;
         }
         else
@@ -90,7 +90,7 @@ static void register_status_handle(access_model_handle_t handle,
 
         if (p_rx_msg->length > SCENE_REGISTER_STATUS_MINLEN)
         {
-            memcpy(in_data.scenes, p_msg_params_packed->scenes,
+            memcpy(in_data.scenes, (const void *)p_msg_params_packed->scenes,
                    (p_rx_msg->length - SCENE_REGISTER_STATUS_MINLEN));
         }
 
@@ -205,7 +205,7 @@ uint32_t scene_client_store(scene_client_t * p_client, const scene_store_params_
         return NRF_ERROR_NULL;
     }
 
-    if (p_params->scene_number == SCENE_NUMBER_DEFAULT_SCENE)
+    if (p_params->scene_number == SCENE_NUMBER_NO_SCENE)
     {
         return NRF_ERROR_INVALID_PARAM;
     }
@@ -234,7 +234,7 @@ uint32_t scene_client_store_unack(scene_client_t * p_client, const scene_store_p
         return NRF_ERROR_NULL;
     }
 
-    if (p_params->scene_number == SCENE_NUMBER_DEFAULT_SCENE)
+    if (p_params->scene_number == SCENE_NUMBER_NO_SCENE)
     {
         return NRF_ERROR_INVALID_PARAM;
     }
@@ -262,7 +262,7 @@ uint32_t scene_client_delete(scene_client_t * p_client, const scene_delete_param
         return NRF_ERROR_NULL;
     }
 
-    if (p_params->scene_number == SCENE_NUMBER_DEFAULT_SCENE)
+    if (p_params->scene_number == SCENE_NUMBER_NO_SCENE)
     {
         return NRF_ERROR_INVALID_PARAM;
     }
@@ -291,7 +291,7 @@ uint32_t scene_client_delete_unack(scene_client_t * p_client, const scene_delete
         return NRF_ERROR_NULL;
     }
 
-    if (p_params->scene_number == SCENE_NUMBER_DEFAULT_SCENE)
+    if (p_params->scene_number == SCENE_NUMBER_NO_SCENE)
     {
         return NRF_ERROR_INVALID_PARAM;
     }
@@ -320,7 +320,7 @@ uint32_t scene_client_recall(scene_client_t * p_client, const scene_recall_param
         return NRF_ERROR_NULL;
     }
 
-    if (is_p_transition_invalid(p_transition))
+    if (is_p_transition_invalid(p_transition) || p_params->scene_number == SCENE_NUMBER_NO_SCENE)
     {
         return NRF_ERROR_INVALID_PARAM;
     }
@@ -350,7 +350,7 @@ uint32_t scene_client_recall_unack(scene_client_t * p_client, const scene_recall
         return NRF_ERROR_NULL;
     }
 
-    if (is_p_transition_invalid(p_transition))
+    if (is_p_transition_invalid(p_transition) || p_params->scene_number == SCENE_NUMBER_NO_SCENE)
     {
         return NRF_ERROR_INVALID_PARAM;
     }

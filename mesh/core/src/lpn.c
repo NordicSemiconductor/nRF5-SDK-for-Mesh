@@ -43,6 +43,9 @@
 #include "fsm_assistant.h"
 #include "bearer_event.h"
 #include "scanner.h"
+#include "mesh_opt_core.h"
+#include "core_tx.h"
+#include "core_tx_lpn.h"
 #include "transport.h"
 #include "packet_mesh.h"
 #include "long_timer.h"
@@ -86,6 +89,16 @@
 #define FRIEND_UPDATE_IV_UPDATE_FLAG_UNPACK(PKT) packet_mesh_trs_control_friend_update_iv_update_flag_get(PKT)
 #define FRIEND_UPDATE_IV_INDEX_UNPACK(PKT) packet_mesh_trs_control_friend_update_iv_index_get(PKT)
 #define FRIEND_UPDATE_MD_UNPACK(PKT) packet_mesh_trs_control_friend_update_md_get(PKT)
+
+/* ReceiveDelay already takes into account the timeslot start time,
+ * ReceiveWindow timeout should also consider it:
+ *                            |          Actual ReceiveDelay          |  Actual ReceiveWindow  |
+ * --|------------------------|--------------|------------------------|------------------------|--> time
+ *   |  TS start time (adv)   |   Sleeping   |  TS start time (scan)  |        Listening       |
+ *   |                                       |
+ *   \ (receive_delay_ms + TIMER_JITTER_US)  \ (receive_window_ms + TIMESLOT_SHORTEST_START_TIME_US)
+ */
+#define SCANNING_TIME_US(receive_window_ms) (MS_TO_US(receive_window_ms) + TIMESLOT_SHORTEST_START_TIME_US)
 
 /*lint -e123 */
 #define EVENT_LIST  E_ESTABLISH,             \
@@ -189,6 +202,8 @@ DECLARE_GUARD_PROTOTYPE(GUARD_LIST)
 static void lpn_fsm_action(fsm_action_id_t action_id, void * p_data);
 static bool lpn_fsm_guard(fsm_action_id_t action_id, void * p_data);
 static void lpn_fault_task_post(void);
+static void friend_request_receive_delay_handle(void * p_context);
+static void friend_request_receive_window_handle(void * p_context);
 static void receive_delay_handle(void * p_context);
 static void timeout_handle(void * p_context);
 static void friend_offer_handle(const transport_control_packet_t * p_control_packet,
@@ -651,19 +666,47 @@ static void friend_update_handle(const transport_control_packet_t * p_control_pa
     fsm_event_post(&m_lpn_fsm, E_FRIEND_UPDATE_RX, &data);
 }
 
-static void receive_delay_handle(void * p_context)
+static void friend_request_receive_delay_handle(void * p_context)
 {
-    /* Note: ReceiveDelay already takes into account the timeslot start time,
-     * ReceiveWindow timeout should also consider it:
-     *                            |          Actual ReceiveDelay          |  Actual ReceiveWindow  |
-     * --|------------------------|--------------|------------------------|------------------------|--> time
-     *   |  TS start time (adv)   |   Sleeping   |  TS start time (scan)  |        Listening       |
-     *   |                                       |
-     *   \ (receive_delay_ms + TIMER_JITTER_US)  \ (receive_window_ms + TIMESLOT_SHORTEST_START_TIME_US)
+    uint32_t receive_window_ms = (uint32_t) p_context;
+    uint64_t scanning_time_us = SCANNING_TIME_US((uint64_t) receive_window_ms);
+
+    /* MshPRFv1.0.1, section 3.6.6.4.1:
+     * "If no acceptable Friend Offer message is received, the node may send a new Friend Request message.
+     * The time interval between two consecutive Friend Request messages shall be greater than 1.1 seconds."
+     * This is a remaining time until next Friend Request is allowed to send.
      */
+    NRF_MESH_ASSERT(receive_window_ms <= MESH_LPN_FRIEND_REQUEST_TIMEOUT_MAX_MS);
+    uint32_t remaining_time_ms = MESH_LPN_FRIEND_REQUEST_TIMEOUT_MAX_MS - receive_window_ms;
 
     scanner_enable();
-    lt_schedule(&m_lpn.timeout_scheduler, timeout_handle, NULL, ((uint32_t) p_context) + TIMESLOT_SHORTEST_START_TIME_US);
+    lt_schedule(&m_lpn.timeout_scheduler,
+                friend_request_receive_window_handle,
+                (void *) remaining_time_ms,
+                scanning_time_us);
+}
+
+static void friend_request_receive_window_handle(void * p_context)
+{
+    uint32_t remaining_time_ms = (uint32_t) p_context;
+
+    scanner_disable();
+    if (remaining_time_ms > 0)
+    {
+        lt_schedule(&m_lpn.timeout_scheduler, timeout_handle, NULL, MS_TO_US((uint64_t) remaining_time_ms));
+    }
+    else
+    {
+        fsm_event_post(&m_lpn_fsm, E_TIMEOUT, NULL);
+    }
+}
+
+static void receive_delay_handle(void * p_context)
+{
+    uint32_t receive_window_ms = (uint32_t) p_context;
+
+    scanner_enable();
+    lt_schedule(&m_lpn.timeout_scheduler, timeout_handle, NULL, SCANNING_TIME_US((uint64_t) receive_window_ms));
 }
 
 static void timeout_handle(void * p_context)
@@ -700,10 +743,20 @@ static void transmit_and_reschedule(const transport_control_packet_t * p_packet,
 
     if (err_code == NRF_SUCCESS)
     {
-        lt_schedule(&m_lpn.timeout_scheduler,
-                    receive_delay_handle,
-                    (void*) MS_TO_US(receive_window_ms),
-                    MS_TO_US((uint64_t)receive_delay_ms) + TIMER_JITTER_US);
+        if (token == NRF_MESH_FRIEND_REQUEST_TOKEN)
+        {
+            lt_schedule(&m_lpn.timeout_scheduler,
+                        friend_request_receive_delay_handle,
+                        (void*) receive_window_ms,
+                        MS_TO_US((uint64_t)receive_delay_ms) + TIMER_JITTER_US);
+        }
+        else
+        {
+            lt_schedule(&m_lpn.timeout_scheduler,
+                        receive_delay_handle,
+                        (void*) receive_window_ms,
+                        MS_TO_US((uint64_t)receive_delay_ms) + TIMER_JITTER_US);
+        }
     }
     else
     {
@@ -799,6 +852,15 @@ static bool is_friendship_secmat(const network_packet_metadata_t * p_net_metadat
 /******************************* API *****************************************/
 void mesh_lpn_init(void)
 {
+    mesh_config_entry_id_t id =
+    {
+        .file = MESH_OPT_CORE_FILE_ID,
+        .record = MESH_OPT_CORE_TX_POWER_RECORD_START + CORE_TX_ROLE_ORIGINATOR
+    };
+    radio_tx_power_t tx_power;
+    NRF_MESH_ERROR_CHECK(mesh_config_entry_get(id, (void *)(&tx_power)));
+    core_tx_lpn_init(tx_power);
+
     fsm_init(&m_lpn_fsm, &m_lpn_fsm_descriptor);
 
     NRF_MESH_ERROR_CHECK(transport_control_packet_consumer_add(m_incoming_command_handler,
@@ -867,6 +929,8 @@ uint32_t mesh_lpn_friend_accept(const nrf_mesh_evt_lpn_friend_offer_t * p_friend
     {
         return NRF_ERROR_INVALID_STATE;
     }
+
+    scanner_disable();
 
     uint16_t local_address;
     uint16_t local_address_count;

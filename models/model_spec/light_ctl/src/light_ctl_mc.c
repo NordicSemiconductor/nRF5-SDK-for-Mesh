@@ -45,10 +45,16 @@
 #include "light_ctl_common.h"
 #include "light_ctl_utils.h"
 
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+#define STORED_WITH_SCENE_STATE    (1 + SCENE_REGISTER_ARRAY_SIZE)
+#else
+#define STORED_WITH_SCENE_STATE    (1)
+#endif
+
 typedef struct
 {
-    uint32_t temperature32;
-    int16_t delta_uv;
+    uint32_t temperature32[STORED_WITH_SCENE_STATE];
+    int16_t delta_uv[STORED_WITH_SCENE_STATE];
     uint32_t default_temperature32;
     int16_t default_delta_uv;
     light_ctl_temperature_range_set_params_t temperature32_range;
@@ -89,7 +95,7 @@ STATIC_ASSERT(LIGHT_CTL_SETUP_SERVER_INSTANCES_MAX <= ACCESS_ELEMENT_COUNT, "LIG
  */
 MESH_CONFIG_ENTRY(m_temperature32_entry,
                   LIGHT_CTL_TEMPERATURE_EID,            /* The base entry id */
-                  LIGHT_CTL_SETUP_SERVER_INSTANCES_MAX,             /* The number of instances. */
+                  LIGHT_CTL_SETUP_SERVER_STORED_WITH_SCENE_STATES,             /* The number of instances. */
                   sizeof(uint32_t),          /* The size of an instance. */
                   temperature32_setter,      /* Stores a value in primary memory. */
                   temperature32_getter,      /* Retrieve a value from primary memory. */
@@ -98,7 +104,7 @@ MESH_CONFIG_ENTRY(m_temperature32_entry,
 
 MESH_CONFIG_ENTRY(m_delta_uv_entry,
                   LIGHT_CTL_DELTA_UV_EID,
-                  LIGHT_CTL_SETUP_SERVER_INSTANCES_MAX,
+                  LIGHT_CTL_SETUP_SERVER_STORED_WITH_SCENE_STATES,
                   sizeof(int16_t),
                   delta_uv_setter,
                   delta_uv_getter,
@@ -153,9 +159,12 @@ static state_t * model_context_get(uint16_t address, uint16_t base)
 
 static void state_contexts_default_set(uint8_t handle)
 {
-    m_state_contexts[handle].temperature32 =
-        light_ctl_utils_temperature_to_temperature32(LIGHT_CTL_DEFAULT_TEMPERATURE);
-    m_state_contexts[handle].delta_uv = LIGHT_CTL_DEFAULT_DELTA_UV;
+    for(uint32_t i = 0; i < STORED_WITH_SCENE_STATE; i++)
+    {
+        m_state_contexts[handle].temperature32[i] =
+            light_ctl_utils_temperature_to_temperature32(LIGHT_CTL_DEFAULT_TEMPERATURE);
+        m_state_contexts[handle].delta_uv[i] = LIGHT_CTL_DEFAULT_DELTA_UV;
+    }
     m_state_contexts[handle].default_temperature32 =
         light_ctl_utils_temperature_to_temperature32(LIGHT_CTL_DEFAULT_TEMPERATURE_DEFAULT);
     m_state_contexts[handle].default_delta_uv = LIGHT_CTL_DEFAULT_DELTA_UV_DEFAULT;
@@ -193,44 +202,87 @@ static void ctl_flash_storage_config_clear(void)
         mesh_config_entry_id_t id = *entries[j].id;
         for (uint8_t i = 0; i < m_next_handle; i++)
         {
-            id.record = entries[j].start + i;
-            (void) mesh_config_entry_delete(id);
+            if (entries[j].start == LIGHT_CTL_TEMPERATURE_EID_START ||
+                entries[j].start == LIGHT_CTL_DELTA_UV_EID_START)
+            {
+                for (uint32_t k = 0; k < STORED_WITH_SCENE_STATE; k++)
+                {
+                    id.record = entries[j].start + (i * STORED_WITH_SCENE_STATE) + k;
+                    (void) mesh_config_entry_delete(id);
+                }
+            }
+            else
+            {
+                id.record = entries[j].start + i;
+                (void) mesh_config_entry_delete(id);
+            }
+
         }
     }
 }
+
+static void id_record_to_address_array_index(uint16_t id_record, uint16_t start,
+                                             uint16_t * p_address, uint8_t * p_array_index)
+{
+    uint16_t shift = id_record - start;
+    *p_array_index = shift / LIGHT_CTL_SETUP_SERVER_INSTANCES_MAX;
+    *p_address = id_record - (*p_array_index * LIGHT_CTL_SETUP_SERVER_INSTANCES_MAX);
+}
+
+#if SCENE_SETUP_SERVER_INSTANCES_MAX > 0
+static uint16_t ctl_instance_index_array_index_to_id_record(uint8_t ctl_instance_index,
+                                                            uint8_t array_index)
+{
+    return (ctl_instance_index + (LIGHT_CTL_SETUP_SERVER_INSTANCES_MAX * array_index));
+}
+#endif
+
 
 /* Setter and getter definitions.
  */
 
 static uint32_t temperature32_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const uint32_t * p_value = (const uint32_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_CTL_TEMPERATURE_EID_START)->temperature32 = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_CTL_TEMPERATURE_EID_START, &address, &array_index);
+
+    model_context_get(address, LIGHT_CTL_TEMPERATURE_EID_START)->temperature32[array_index] = *p_value;
     return NRF_SUCCESS;
 }
 
 static void temperature32_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     uint32_t * p_value = (uint32_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_CTL_TEMPERATURE_EID_START)->temperature32;
+    id_record_to_address_array_index(id.record, LIGHT_CTL_TEMPERATURE_EID_START, &address, &array_index);
+    *p_value = model_context_get(address, LIGHT_CTL_TEMPERATURE_EID_START)->temperature32[array_index];
 }
 
 static uint32_t delta_uv_setter(mesh_config_entry_id_t id, const void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     const int16_t * p_value = (const int16_t *) p_entry;
 
-    model_context_get(id.record, LIGHT_CTL_DELTA_UV_EID_START)->delta_uv = *p_value;
+    id_record_to_address_array_index(id.record, LIGHT_CTL_DELTA_UV_EID_START, &address, &array_index);
+    model_context_get(address, LIGHT_CTL_DELTA_UV_EID_START)->delta_uv[array_index] = *p_value;
 
     return NRF_SUCCESS;
 }
 
 static void delta_uv_getter(mesh_config_entry_id_t id, void * p_entry)
 {
+    uint16_t address;
+    uint8_t array_index;
     int16_t * p_value = (int16_t *) p_entry;
 
-    *p_value = model_context_get(id.record, LIGHT_CTL_DELTA_UV_EID_START)->delta_uv;
+    id_record_to_address_array_index(id.record, LIGHT_CTL_DELTA_UV_EID_START, &address, &array_index);
+    *p_value = model_context_get(address, LIGHT_CTL_DELTA_UV_EID_START)->delta_uv[array_index];
 }
 
 static uint32_t default_temperature32_setter(mesh_config_entry_id_t id, const void * p_entry)
@@ -377,6 +429,44 @@ uint32_t light_ctl_mc_temperature32_range_state_get(uint8_t index, light_ctl_tem
     id.record += index;
     return mesh_config_entry_get(id, p_value);
 }
+
+#if (SCENE_SETUP_SERVER_INSTANCES_MAX > 0)
+uint32_t light_ctl_mc_scene_temperature32_state_store(uint8_t index, uint8_t scene_index, uint32_t value)
+{
+    mesh_config_entry_id_t id = LIGHT_CTL_TEMPERATURE_EID;
+
+    id.record += ctl_instance_index_array_index_to_id_record(index, (scene_index + 1));
+
+    return mesh_config_entry_set(id, &value);
+}
+
+uint32_t light_ctl_mc_scene_temperature32_state_recall(uint8_t index, uint8_t scene_index, uint32_t * p_value)
+{
+    mesh_config_entry_id_t id = LIGHT_CTL_TEMPERATURE_EID;
+
+    id.record += ctl_instance_index_array_index_to_id_record(index, (scene_index + 1));
+
+    return mesh_config_entry_get(id, p_value);
+}
+
+uint32_t light_ctl_mc_scene_delta_uv_state_store(uint8_t index, uint8_t scene_index, int16_t value)
+{
+    mesh_config_entry_id_t id = LIGHT_CTL_DELTA_UV_EID;
+
+    id.record += ctl_instance_index_array_index_to_id_record(index, (scene_index + 1));
+
+    return mesh_config_entry_set(id, &value);
+}
+
+uint32_t light_ctl_mc_scene_delta_uv_state_recall(uint8_t index, uint8_t scene_index, int16_t * p_value)
+{
+    mesh_config_entry_id_t id = LIGHT_CTL_DELTA_UV_EID;
+
+    id.record += ctl_instance_index_array_index_to_id_record(index, (scene_index + 1));
+
+    return mesh_config_entry_set(id, p_value);
+}
+#endif /* (SCENE_SETUP_SERVER_INSTANCES_MAX > 0) || (DOXYGEN) */
 
 uint32_t light_ctl_mc_open(uint8_t * p_handle)
 {

@@ -173,17 +173,17 @@ ec = 0
 eList = errorList()
 server_devices = []
 
-provisioner_hex52832 = find_file(os.path.join(cwd, "bin"), 'provisioner_nrf52832_xxAA_s132_7.0.1_merged_sd.hex')[0]
-client_hex52832 = find_file(os.path.join(cwd, "bin"), "light_switch_client_nrf52832_xxAA_s132_7.0.1_merged_sd.hex")[0]
-server_hex52832 = find_file(os.path.join(cwd, "bin"), "light_switch_server_nrf52832_xxAA_s132_7.0.1_merged_sd.hex")[0]
+provisioner_hex52832 = find_file(os.path.join(cwd, "bin"), 'provisioner_nrf52832_xxAA_s132_7.2.0_merged_sd.hex')[0]
+client_hex52832 = find_file(os.path.join(cwd, "bin"), "light_switch_client_nrf52832_xxAA_s132_7.2.0_merged_sd.hex")[0]
+server_hex52832 = find_file(os.path.join(cwd, "bin"), "light_switch_server_nrf52832_xxAA_s132_7.2.0_merged_sd.hex")[0]
 
-provisioner_hex52833 = find_file(cwd, 'provisioner_nrf52833_xxAA_s113_7.0.1_merged_sd.hex')[0]
-client_hex52833 = find_file(cwd, "light_switch_client_nrf52833_xxAA_s113_7.0.1_merged_sd.hex")[0]
-server_hex52833 = find_file(cwd, "light_switch_server_nrf52833_xxAA_s113_7.0.1_merged_sd.hex")[0]
+provisioner_hex52833 = find_file(cwd, 'provisioner_nrf52833_xxAA_s113_7.2.0_merged_sd.hex')[0]
+client_hex52833 = find_file(cwd, "light_switch_client_nrf52833_xxAA_s113_7.2.0_merged_sd.hex")[0]
+server_hex52833 = find_file(cwd, "light_switch_server_nrf52833_xxAA_s113_7.2.0_merged_sd.hex")[0]
 
-provisioner_hex52840 = find_file(cwd, 'provisioner_nrf52840_xxAA_s140_7.0.1_merged_sd.hex')[0]
-client_hex52840 = find_file(cwd, "light_switch_client_nrf52840_xxAA_s140_7.0.1_merged_sd.hex")[0]
-server_hex52840 = find_file(cwd, "light_switch_server_nrf52840_xxAA_s140_7.0.1_merged_sd.hex")[0]
+provisioner_hex52840 = find_file(cwd, 'provisioner_nrf52840_xxAA_s140_7.2.0_merged_sd.hex')[0]
+client_hex52840 = find_file(cwd, "light_switch_client_nrf52840_xxAA_s140_7.2.0_merged_sd.hex")[0]
+server_hex52840 = find_file(cwd, "light_switch_server_nrf52840_xxAA_s140_7.2.0_merged_sd.hex")[0]
 
 # All files must be valid
 for f in [provisioner_hex52832, client_hex52832, server_hex52832, provisioner_hex52833, client_hex52833, server_hex52833, provisioner_hex52840, client_hex52840, server_hex52840]:

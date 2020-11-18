@@ -21,7 +21,7 @@ calls, messages, and events.
 ![Provisioning Procedure](images/provisioning.svg)
 
 
-@note Before using the provisioning stack, the SoftDevice and mesh stack must
+@note Before using the provisioning stack, the SoftDevice and Bluetooth mesh stack must
 be initialized and enabled. As a reference, see `mesh_init()` in the `main.c` file of
 the `light-switch\server` example or any other example exhibiting the Node role.
 
@@ -34,11 +34,11 @@ will return `NRF_ERROR_NOT_SUPPORTED`.
 
 ## Using provisioner APIs on the provisioner @anchor provisioning_provisioners
 
-Provisioners are mesh nodes that are responsible for the configuration of other nodes
+Provisioners are Bluetooth mesh nodes that are responsible for the configuration of other nodes
 in the network. Typically, provisioners contain a configuration client and
 client nodes for controlling specific functionality in other nodes, such
 as lights or air conditioners. Provisioners are often a part of gateway devices,
-which are devices that provide a bridge between a mesh network and other networking
+which are devices that provide a bridge between a Bluetooth mesh network and other networking
 technologies (such as the Internet).
 
 There are two main ways of setting up a provisioner:
@@ -58,7 +58,7 @@ which is necessary for the provisioner to be able to configure the nodes.
 
 Because of the limited amount of memory available in embedded processors, using
 a standalone provisioner limits the amount of nodes that can be provisioned.
-This limit corresponds to the maximum size of the mesh network.
+This limit corresponds to the maximum size of the Bluetooth mesh network.
 
 To provision a device using the standalone provisioner, make sure you implement the following steps
 in your provisioner application:
@@ -102,7 +102,7 @@ Make sure the following parameters are provided to this API:
     - This data contains information about netkey, netkey index, IV index, target address,
     IV update flag, and Key Refresh Flag to be provided to the unprovisioned device.
 - Bearer to use.
-    - Currently, the  mesh stack supports only @ref NRF_MESH_PROV_BEARER_ADV in provisioner role.
+    - Currently, the Bluetooth mesh stack supports only @ref NRF_MESH_PROV_BEARER_ADV in provisioner role.
 
 As a result, the provisioning modules:
 -# Open the provisioning link with the device indicated by the UUID.
@@ -150,15 +150,15 @@ and no event will be generated.
 #### Step 5: Authenticating the provisioning procedure @anchor provisioning_provisioners_standalone_auth
 
 Depending on the authentication method choice in Step 3, the stack will generate different events:
--  For static OOB (@ref NRF_MESH_PROV_OOB_METHOD_STATIC): the mesh stack will generate
+-  For static OOB (@ref NRF_MESH_PROV_OOB_METHOD_STATIC): the Bluetooth mesh stack will generate
 the @ref NRF_MESH_PROV_EVT_STATIC_REQUEST event.
     - After this event is received, the provisioner application should provide the static OOB value
     by calling @ref nrf_mesh_prov_auth_data_provide() API to continue the process.
-- For output OOB (@ref NRF_MESH_PROV_OOB_METHOD_OUTPUT): the mesh stack will generate
+- For output OOB (@ref NRF_MESH_PROV_OOB_METHOD_OUTPUT): the Bluetooth mesh stack will generate
 @ref NRF_MESH_PROV_EVT_INPUT_REQUEST.
     - After this event is received, the provisioner application should request the input data from
     user and provide it by calling @ref nrf_mesh_prov_auth_data_provide() API to continue the process.
-- For input OOB (@ref NRF_MESH_PROV_OOB_METHOD_INPUT): the mesh stack will generate
+- For input OOB (@ref NRF_MESH_PROV_OOB_METHOD_INPUT): the Bluetooth mesh stack will generate
 @ref NRF_MESH_PROV_EVT_OUTPUT_REQUEST and provide data as output to the application.
     - After this event is received, the application should use the provided data to carry
     out the output action.
@@ -171,7 +171,7 @@ If the authentication succeeds:
 -# The stack will distribute the provisioning data to the unprovisioned device.
 -# The unprovisioned device will then send a Provisioning Complete message
 to indicate that it has received the data.
--# After receiving this message, the mesh stack will generate @ref NRF_MESH_PROV_EVT_COMPLETE event.
+-# After receiving this message, the Bluetooth mesh stack will generate @ref NRF_MESH_PROV_EVT_COMPLETE event.
 The provisioner application can then store the device key and address of the newly provisioned device.
 
 After this step, the provisioning link will be closed and the @ref NRF_MESH_PROV_EVT_LINK_CLOSED
@@ -180,14 +180,14 @@ event will be generated.
 ### Setting up serial provisioner @anchor provisioning_provisioners_serial
 
 Serial provisioners use the serial interface to do provisioning, allowing a host
-controller to interact with the mesh network using an external microcontroller.
+controller to interact with the Bluetooth mesh network using an external microcontroller.
 
 The host controller stores information about the nodes on the network, which saves RAM
 in the external microcontroller for other application-specific uses.
-The size of the mesh network is limited only by the resources available in the host machine.
+The size of the Bluetooth mesh network is limited only by the resources available in the host machine.
 
 The steps to include in your serial provisioner application are the following:
--# Initialize the SoftDevice and the mesh stack using the @ref md_doc_getting_started_how_to_run_examples "standard procedure".
+-# Initialize the SoftDevice and the Bluetooth mesh stack using the @ref md_doc_getting_started_how_to_run_examples "standard procedure".
 -# Initialize and enable the serial interface using `nrf_mesh_serial_init()` and
    `nrf_mesh_serial_enable()` API functions.
 -# [Enable the ECDH offloading](@ref provisioning_provisioners_serial_ecdh).
@@ -215,7 +215,7 @@ when initializing the device.
 ## Using provisioning APIs on the provisionee (unprovisioned device) @anchor provisioning_provisionee
 
 Provisionee is a device that will be provisioned by the provisioner. After provisioning completes
-successfully, this device becomes a node in the mesh network.
+successfully, this device becomes a node in the Bluetooth mesh network.
 
 The following figure shows a sample flow chart of the provisioning process when the Static OOB
 authentication is used.
@@ -272,7 +272,7 @@ on the parameter values provided by the user:
         - For no authentication: set only the [algorithms](@ref nrf_mesh_prov_oob_caps_t::algorithms)
         field.
 
-For regular mesh devices (the devices exhibiting the node role), the initialization of the
+For regular Bluetooth mesh devices (the devices exhibiting the node role), the initialization of the
 provisioning stack with bearers is encapsulated
 by the @ref MESH_STACK within the @ref mesh_provisionee_prov_start() API.
 
@@ -286,7 +286,7 @@ and sends a provisioning invite.
 
 Before the provisioning link can be opened, the unprovisioned device must initialize
 the provisioning APIs and bearers and it must be ready to receive the request to open the link.
-For mesh example applications, this process is encapsulated in the @ref mesh_provisionee_prov_start()
+For Bluetooth mesh example applications, this process is encapsulated in the @ref mesh_provisionee_prov_start()
 API in the [mesh_provisionee.c](@ref MESH_PROVISIONEE) module and includes the following actions:
 - Select the default values for public key exchange (In-Band).
 - Select the authentication options (Static OOB).
@@ -305,9 +305,9 @@ Modifying `prov_caps` options here will change these options for all examples.
 Alternatively, you can copy this module with some other name, update the `prov_caps` values,
 and use this new module in your project.
 
-Once the provisioner opens the link, the mesh stack generates @ref NRF_MESH_PROV_EVT_LINK_ESTABLISHED event.
+Once the provisioner opens the link, the Bluetooth mesh stack generates @ref NRF_MESH_PROV_EVT_LINK_ESTABLISHED event.
 When the [Provisioning Invite message](@ref provisioning_provisioners_standalone_start) is received,
-the mesh stack generates the @ref NRF_MESH_PROV_EVT_INVITE_RECEIVED event and provides
+the Bluetooth mesh stack generates the @ref NRF_MESH_PROV_EVT_INVITE_RECEIVED event and provides
 the [attention timer duration](@ref nrf_mesh_prov_evt_invite_received_t::attention_duration_s)
 value as the event parameter. This event is handled by the [mesh_provisionee.c](@ref MESH_PROVISIONEE) module
 and the user application callback is called to allow the application to attract attention of the end-user.
@@ -340,17 +340,17 @@ After this step, the authentication will be performed.
 ### Step 5: Authenticating the provisioning procedure @anchor provisioning_provisionee_auth
 
 Depending on the available capabilities and [the authentication method chosen by the provisioner](@ref provisioning_provisioners_standalone_rx-select),
-the mesh stack will generate different events:
-- For static OOB authentication (@ref NRF_MESH_PROV_OOB_METHOD_STATIC): the mesh stack will generate
+the Bluetooth mesh stack will generate different events:
+- For static OOB authentication (@ref NRF_MESH_PROV_OOB_METHOD_STATIC): the Bluetooth mesh stack will generate
 the @ref NRF_MESH_PROV_EVT_STATIC_REQUEST event.
     - After this event is received, the application should provide the static OOB value
     by calling @ref nrf_mesh_prov_auth_data_provide() API to continue the process.
     - @note The static OOB value is always 16-byte long.
-- For output OOB authentication (@ref NRF_MESH_PROV_OOB_METHOD_OUTPUT): the mesh stack will generate
+- For output OOB authentication (@ref NRF_MESH_PROV_OOB_METHOD_OUTPUT): the Bluetooth mesh stack will generate
 the @ref NRF_MESH_PROV_EVT_OUTPUT_REQUEST and provide data output to the application as
 the event parameter.
     - The application should then use this output data to carry out the output action.
-- For input OOB authentication (@ref NRF_MESH_PROV_OOB_METHOD_INPUT): the mesh stack will generate
+- For input OOB authentication (@ref NRF_MESH_PROV_OOB_METHOD_INPUT): the Bluetooth mesh stack will generate
 the @ref NRF_MESH_PROV_EVT_INPUT_REQUEST event.
     - The provisioner application should then request the input data from the user and provide it
     by calling @ref nrf_mesh_prov_auth_data_provide() API to continue the process.
@@ -361,8 +361,8 @@ generated during the authentication step.
 
 If the authentication succeeds:
 -# The stack receives the provisioning data from the provisioner.
--# The mesh stack generates the @ref NRF_MESH_PROV_EVT_COMPLETE event.
--# The mesh stack sends the Provisioning Complete message to indicate that it has received
+-# The Bluetooth mesh stack generates the @ref NRF_MESH_PROV_EVT_COMPLETE event.
+-# The Bluetooth mesh stack sends the Provisioning Complete message to indicate that it has received
 the provisioning data.
 -# If @ref PERSISTENT_STORAGE is enabled, upon receiving the @ref NRF_MESH_PROV_EVT_COMPLETE event,
 the `mesh_provisionee` module saves the provisioning data to the flash.

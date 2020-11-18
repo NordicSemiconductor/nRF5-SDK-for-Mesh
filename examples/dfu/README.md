@@ -2,10 +2,10 @@
 @anchor dfu_example
 
 @tag52840and52833and52832
-@tag52810nosupport
+@tag52840dongle52810and52820nosupport
 
 This Device Firmware Update (DFU) example illustrates how to create an application that can be updated
-over the mesh using background mode DFU. In this mode, the new firmware is transferred in the background
+over Bluetooth mesh using background mode DFU. In this mode, the new firmware is transferred in the background
 while the application is running and the DFU reports to the application when the transfer is done.
 The application can then flash the new firmware when ready.
 

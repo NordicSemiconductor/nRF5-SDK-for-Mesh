@@ -43,6 +43,7 @@
 #include "mesh_opt.h"
 #include "mesh_config_backend_mock.h"
 #include "event_mock.h"
+#include "emergency_cache_mock.h"
 #include "nordic_common.h"
 #include "manual_mock_queue.h"
 #include "test_assert.h"
@@ -92,6 +93,7 @@ mesh_config_entry_params_t mesh_config_entries[NRF_SECTION_ENTRIES];
 mesh_config_listener_t mesh_config_entry_listeners[NRF_SECTION_ENTRIES];
 static entry_t m_entries[NRF_SECTION_ENTRIES + EXTRA_ENTRIES];
 static entry_t m_load_entries[NRF_SECTION_ENTRIES];
+static uint8_t m_load_ec_items[(sizeof(emergency_cache_item_t) + sizeof(entry_t)) * NRF_SECTION_ENTRIES];
 static bool m_active[NRF_SECTION_ENTRIES + EXTRA_ENTRIES];
 static mesh_config_backend_evt_cb_t m_backend_evt_cb;
 static const mesh_config_entry_id_t m_invalid_id = {0, 0};
@@ -104,6 +106,7 @@ static void event_handler(const nrf_mesh_evt_t * p_evt, int calls);
 
 MESH_CONFIG_FILE(file0, FILE_ID_0, MESH_CONFIG_STRATEGY_CONTINUOUS);
 MESH_CONFIG_FILE(file1, FILE_ID_1, MESH_CONFIG_STRATEGY_CONTINUOUS);
+MESH_CONFIG_FILE(emergency_cache, MESH_OPT_EMERGENCY_CACHE_FILE_ID, MESH_CONFIG_STRATEGY_ON_POWER_DOWN);
 
 MESH_CONFIG_ENTRY(entry0, TEST_ENTRY(0), 1, sizeof(entry_t), entry_set, entry_get, entry_delete, true);
 MESH_CONFIG_ENTRY(entry1, TEST_ENTRY(1), 1, sizeof(entry_t), entry_set, entry_get, entry_delete, false);
@@ -138,6 +141,7 @@ void setUp(void)
 {
     memset(m_entries, 0, sizeof(m_entries));
     memset(m_load_entries, 0, sizeof(m_load_entries));
+    memset(m_load_ec_items, 0, sizeof(m_load_ec_items));
     memset(m_active, 0, sizeof(m_active));
     memset(mesh_config_entry_listeners, 0, sizeof(mesh_config_entry_listeners));
 
@@ -156,6 +160,7 @@ void setUp(void)
 
     mesh_config_files[0] = file0;
     mesh_config_files[1] = file1;
+    mesh_config_files[2] = emergency_cache;
 
     for (uint32_t i = 0; i < NRF_SECTION_ENTRIES; ++i)
     {
@@ -169,6 +174,7 @@ void setUp(void)
     listener_Init();
     event_mock_Init();
     event_handle_StubWithCallback(event_handler);
+    emergency_cache_mock_Init();
 
     mesh_config_backend_init_StubWithCallback(mesh_config_backend_init_callback);
     mesh_config_init();
@@ -186,6 +192,8 @@ void tearDown(void)
     custom_load_Destroy();
     listener_Verify();
     listener_Destroy();
+    emergency_cache_mock_Verify();
+    emergency_cache_mock_Destroy();
 }
 
 static uint32_t entry_set(mesh_config_entry_id_t id, const void * p_entry)
@@ -270,6 +278,19 @@ static void mesh_config_backend_read_all_cb(mesh_config_backend_iterate_cb_t cb,
                           cb(*mesh_config_entries[i].p_id,
                              (const uint8_t *) &m_load_entries[i],
                              sizeof(entry_t)));
+    }
+}
+
+static void mesh_config_backend_read_all_from_ec_cb(mesh_config_backend_iterate_cb_t cb, int calls)
+{
+    for (uint32_t i = 0; i < NRF_SECTION_ENTRIES; ++i)
+    {
+        mesh_config_entry_id_t id = {.file = MESH_OPT_EMERGENCY_CACHE_FILE_ID, .record = i + 1};
+
+        TEST_ASSERT_EQUAL(MESH_CONFIG_BACKEND_ITERATE_ACTION_CONTINUE,
+                          cb(id,
+                             (const uint8_t *) &m_load_ec_items[(sizeof(emergency_cache_item_t) + sizeof(entry_t)) * i],
+                             sizeof(emergency_cache_item_t) + sizeof(entry_t)));
     }
 }
 
@@ -867,6 +888,7 @@ void test_power_down(void)
 
     /* mesh_config_power_down shall cause NRF_MESH_EVT_CONFIG_STABLE in any case (even if there is no data for storage) */
     config_evt_Expect(&stable_evt);
+    mesh_config_backend_power_down_Expect();
     mesh_config_power_down();
 
     /* Dirty power down, do the action! */
@@ -877,6 +899,7 @@ void test_power_down(void)
                                                        sizeof(entry_t),
                                                        NRF_SUCCESS);
     TEST_ASSERT_FALSE(mesh_config_is_busy());
+    mesh_config_backend_power_down_Expect();
     mesh_config_power_down();
     TEST_ASSERT_TRUE(mesh_config_is_busy());
 
@@ -904,6 +927,7 @@ void test_power_down(void)
                                                        sizeof(entry_t),
                                                        sizeof(entry_t),
                                                        NRF_SUCCESS);
+    mesh_config_backend_power_down_Expect();
     mesh_config_power_down();
 
     mesh_config_entries[NRF_SECTION_ENTRIES - 1].p_state[0] &= ~MESH_CONFIG_ENTRY_FLAG_DIRTY;
@@ -912,6 +936,14 @@ void test_power_down(void)
     /* Should also support delete: */
     mesh_config_entries[0].p_state[0] = MESH_CONFIG_ENTRY_FLAG_DIRTY; // no longer active
     mesh_config_backend_erase_ExpectAndReturn(*mesh_config_entries[0].p_id, NRF_SUCCESS);
+    mesh_config_backend_power_down_Expect();
+    mesh_config_power_down();
+
+    /* Entries from files with MESH_CONFIG_STRATEGY_CONTINUOUS should go to the emergency cache. */
+    mesh_config_files[0].strategy = MESH_CONFIG_STRATEGY_CONTINUOUS;
+    mesh_config_entries[0].p_state[0] = MESH_CONFIG_ENTRY_FLAG_DIRTY | MESH_CONFIG_ENTRY_FLAG_ACTIVE;
+    emergency_cache_item_store_ExpectAndReturn(&mesh_config_entries[0], *mesh_config_entries[0].p_id, NRF_SUCCESS);
+    mesh_config_backend_power_down_Expect();
     mesh_config_power_down();
 }
 
@@ -1143,4 +1175,138 @@ void test_file_to_entry_prioritization(void)
     TEST_ASSERT_EQUAL(MESH_CONFIG_ENTRY_FLAG_ACTIVE, mesh_config_entries[0].p_state[0]);
 
     TEST_ASSERT_FALSE(mesh_config_is_busy());
+}
+
+void test_load_from_emergency_cache(void)
+{
+    /* Load again but from the emergency cache. */
+    for (uint32_t i = 0; i < NRF_SECTION_ENTRIES; ++i)
+    {
+        emergency_cache_item_t * p_cache_item =
+                (emergency_cache_item_t *)&m_load_ec_items[(sizeof(emergency_cache_item_t) + sizeof(entry_t)) * i];
+
+        p_cache_item->id = *mesh_config_entries[i].p_id;
+
+        entry_t * p_entry = (entry_t *)p_cache_item->body;
+        p_entry->var1 = (i + 1) * 50;
+        p_entry->var2 = (i + 1) * 60;
+        m_load_entries[i].var1 = (i + 1) * 50;
+        m_load_entries[i].var2 = (i + 1) * 60;
+        entry_set_params_t expect_params = {
+            .id = *mesh_config_entries[i].p_id,
+            .entry = *p_entry,
+            .return_value = NRF_SUCCESS
+        };
+        entry_set_Expect(&expect_params);
+    }
+    mesh_config_backend_read_all_StubWithCallback(mesh_config_backend_read_all_from_ec_cb);
+    /* the emergency cache is removed after restoring from the file. */
+    mesh_config_backend_file_clean_Expect(mesh_config_files[2].p_backend_data);
+    m_is_legacy_handled = false;
+
+    mesh_config_load();
+
+    TEST_ASSERT_EQUAL_MEMORY(m_load_entries, m_entries, NRF_SECTION_ENTRIES * sizeof(entry_t));
+    TEST_ASSERT_EACH_EQUAL_UINT8(true, m_active, NRF_SECTION_ENTRIES);
+    TEST_ASSERT_FALSE(m_is_legacy_handled);
+}
+
+void test_backend_cb_after_emrgency_item_storing(void)
+{
+    TEST_ASSERT_FALSE(mesh_config_is_busy());
+
+    mesh_config_files[0].strategy = MESH_CONFIG_STRATEGY_CONTINUOUS;
+    mesh_config_entries[0].p_state[0] = MESH_CONFIG_ENTRY_FLAG_DIRTY | MESH_CONFIG_ENTRY_FLAG_ACTIVE;
+    emergency_cache_item_store_ExpectAndReturn(&mesh_config_entries[0], *mesh_config_entries[0].p_id, NRF_SUCCESS);
+    uint8_t ec_item[sizeof(emergency_cache_item_t) + 10];
+    emergency_cache_item_t * p_cache_item = (emergency_cache_item_t *)ec_item;
+    p_cache_item->id = *mesh_config_entries[0].p_id;
+    mesh_config_backend_power_down_Expect();
+    mesh_config_power_down();
+    TEST_ASSERT_EQUAL(MESH_CONFIG_ENTRY_FLAG_ACTIVE | MESH_CONFIG_ENTRY_FLAG_BUSY, mesh_config_entries[0].p_state[0]);
+
+    TEST_ASSERT_TRUE(mesh_config_is_busy());
+
+    nrf_mesh_evt_t stable_evt = {.type = NRF_MESH_EVT_CONFIG_STABLE};
+    config_evt_Expect(&stable_evt);
+
+    mesh_config_backend_evt_t backend_evt =
+    {
+        .type = MESH_CONFIG_BACKEND_EVT_TYPE_STORE_COMPLETE,
+        .id.file = MESH_OPT_EMERGENCY_CACHE_FILE_ID,
+        .id.record = 1,
+        .p_data = ec_item
+    };
+    m_backend_evt_cb(&backend_evt);
+    /* Entry is stored in the emergency cache. */
+    TEST_ASSERT_EQUAL(MESH_CONFIG_ENTRY_FLAG_ACTIVE, mesh_config_entries[0].p_state[0]);
+
+    TEST_ASSERT_FALSE(mesh_config_is_busy());
+}
+
+void test_backend_cb_failed_writing_after_power_down(void)
+{
+    /* test checks that we try to write again into the emergency cache
+     *  if we got failed status because of the frozen defragmentation. */
+
+    TEST_ASSERT_FALSE(mesh_config_is_busy());
+
+    entry_t entry;
+    entry_set_params_t expect_params;
+    entry.var1 = 23;
+    entry.var2 = 45;
+    expect_params.id.file = mesh_config_entries[0].p_id->file;
+    expect_params.id.record = mesh_config_entries[0].p_id->record;
+    expect_params.entry = entry;
+    expect_params.return_value = NRF_SUCCESS;
+
+    entry_set_Expect(&expect_params);
+
+    mesh_config_backend_store_ExpectWithArrayAndReturn(expect_params.id,
+                                                       (const uint8_t *) &entry,
+                                                       sizeof(entry),
+                                                       sizeof(entry),
+                                                       NRF_SUCCESS);
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_config_entry_set(expect_params.id, &entry));
+    TEST_ASSERT_EQUAL(MESH_CONFIG_ENTRY_FLAG_ACTIVE | MESH_CONFIG_ENTRY_FLAG_BUSY, mesh_config_entries[0].p_state[0]);
+    TEST_ASSERT_TRUE(mesh_config_is_busy());
+
+    mesh_config_backend_power_down_Expect();
+    mesh_config_power_down();
+    TEST_ASSERT_TRUE(mesh_config_is_busy());
+
+    emergency_cache_item_store_ExpectAndReturn(&mesh_config_entries[0], *mesh_config_entries[0].p_id, NRF_SUCCESS);
+
+    mesh_config_backend_evt_t backend_evt =
+    {
+        .type = MESH_CONFIG_BACKEND_EVT_TYPE_STORAGE_MEDIUM_FAILURE,
+        .id = {mesh_config_entries[0].p_id->file,
+               mesh_config_entries[0].p_id->record}
+    };
+    m_backend_evt_cb(&backend_evt);
+    /* Entry is stored in the emergency cache. */
+    TEST_ASSERT_EQUAL(MESH_CONFIG_ENTRY_FLAG_ACTIVE | MESH_CONFIG_ENTRY_FLAG_BUSY, mesh_config_entries[0].p_state[0]);
+
+    TEST_ASSERT_TRUE(mesh_config_is_busy());
+}
+
+void test_smart_strategy_power_down_file_cleaning(void)
+{
+    /* test checks that the files with power down strategy are cleaned only
+     * if there is no place to store all data during the next the power down situation.
+     * The emergency cache is an exception and has its own rule.  */
+
+    mesh_config_backend_read_all_ExpectAnyArgs();
+    /* no checking expected since there are no the power down files. */
+    mesh_config_load();
+
+    mesh_config_files[0].strategy = MESH_CONFIG_STRATEGY_ON_POWER_DOWN;
+    mesh_config_files[1].strategy = MESH_CONFIG_STRATEGY_ON_POWER_DOWN;
+
+    mesh_config_backend_read_all_ExpectAnyArgs();
+    mesh_config_backend_is_there_power_down_place_ExpectAndReturn(mesh_config_files[0].p_backend_data, true);
+    mesh_config_backend_is_there_power_down_place_ExpectAndReturn(mesh_config_files[1].p_backend_data, false);
+    mesh_config_backend_file_clean_Expect(mesh_config_files[1].p_backend_data);
+
+    mesh_config_load();
 }

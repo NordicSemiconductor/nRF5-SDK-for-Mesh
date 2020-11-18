@@ -48,6 +48,8 @@
 #include "nrf_mesh_assert.h"
 #include "mesh_opt_friend.h"
 #include "mesh_config_entry.h"
+#include "mesh_config_listener.h"
+#include "mesh_opt_core.h"
 #include "net_state.h"
 #include "internal_event.h"
 
@@ -1254,6 +1256,31 @@ static void mesh_evt_cb(const nrf_mesh_evt_t * p_evt)
     }
 }
 
+static void tx_power_config_listener_cb(mesh_config_change_reason_t reason, mesh_config_entry_id_t id, const void * p_entry)
+{
+    if (id.file == MESH_OPT_CORE_FILE_ID &&
+        id.record == (MESH_OPT_CORE_TX_POWER_RECORD_START + CORE_TX_ROLE_ORIGINATOR))
+    {
+        const radio_tx_power_t * p_tx_power = p_entry;
+        for (uint32_t i = 0; i < MESH_FRIEND_FRIENDSHIP_COUNT; ++i)
+        {
+            switch (reason)
+            {
+                case MESH_CONFIG_CHANGE_REASON_SET:
+                    m_friend.friends[i].bearer.broadcast.params.radio_config.tx_power = *p_tx_power;
+                    break;
+                case MESH_CONFIG_CHANGE_REASON_DELETE:
+                    m_friend.friends[i].bearer.broadcast.params.radio_config.tx_power = RADIO_POWER_NRF_0DBM;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+MESH_CONFIG_LISTENER(m_friend_tx_power_config_listener, MESH_OPT_CORE_TX_POWER_EID, tx_power_config_listener_cb);
+
 /*****************************************************************************
  * Interface functions
  *****************************************************************************/
@@ -1262,6 +1289,15 @@ uint32_t mesh_friend_init(void)
 #ifdef UNIT_TEST
     memset(&m_friend, 0, sizeof(m_friend));
 #endif
+
+    mesh_config_entry_id_t id =
+    {
+            .file = MESH_OPT_CORE_FILE_ID,
+            .record = MESH_OPT_CORE_TX_POWER_RECORD_START + CORE_TX_ROLE_ORIGINATOR
+    };
+    radio_tx_power_t tx_power;
+    NRF_MESH_ERROR_CHECK(mesh_config_entry_get(id, (void *)(&tx_power)));
+
     for (uint32_t i = 0; i < MESH_FRIEND_FRIENDSHIP_COUNT; ++i)
     {
         m_friend.friends[i].state = FRIEND_STATE_IDLE;
@@ -1269,7 +1305,8 @@ uint32_t mesh_friend_init(void)
         friend_sublist_init(&m_friend.friends[i].sublist);
 
         core_tx_friend_init(&m_friend.friends[i].bearer,
-                            NRF_MESH_FRIEND_TOKEN_BEGIN + i);
+                            NRF_MESH_FRIEND_TOKEN_BEGIN + i,
+                            tx_power);
     }
 
     for (uint32_t i = 0; i < FRIEND_RECENT_LPNS_LIST_COUNT; i++)

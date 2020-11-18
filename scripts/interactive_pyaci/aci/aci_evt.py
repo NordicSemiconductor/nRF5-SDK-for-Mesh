@@ -705,6 +705,40 @@ class MeshHeartbeatReceived(EventPacket):
         super(MeshHeartbeatReceived, self).__init__("MeshHeartbeatReceived", 0xD8, __data)
 
 
+class MeshIvEntrySetNotification(EventPacket):
+    """An IV entry has been set.
+
+    Parameters
+    ------------
+        iv_index : uint32_t
+            The current IV index.
+        iv_update_in_progress : uint8_t
+            Value indiciting the phase of the IV update process.
+        iv_update_timeout_counter : uint16_t
+            Timeout counter for IV update process.
+    """
+    def __init__(self, raw_data):
+        __data = {}
+        __data["iv_index"], = struct.unpack("<I", raw_data[0:4])
+        __data["iv_update_in_progress"], = struct.unpack("<B", raw_data[4:5])
+        __data["iv_update_timeout_counter"], = struct.unpack("<H", raw_data[5:7])
+        super(MeshIvEntrySetNotification, self).__init__("MeshIvEntrySetNotification", 0xD9, __data)
+
+
+class MeshSeqnumEntrySetNotification(EventPacket):
+    """An Sequence number block entry has been set.
+
+    Parameters
+    ------------
+        next_block : uint32_t
+            The next unallocated sequence number block.
+    """
+    def __init__(self, raw_data):
+        __data = {}
+        __data["next_block"], = struct.unpack("<I", raw_data[0:4])
+        super(MeshSeqnumEntrySetNotification, self).__init__("MeshSeqnumEntrySetNotification", 0xDA, __data)
+
+
 class MeshSarFailed(EventPacket):
     """A Mesh transmission of a SAR packet failed."""
     def __init__(self, raw_data):
@@ -743,11 +777,13 @@ class Event(object):
     DFU_REQ_SOURCE = 0xA1
     DFU_START = 0xA2
     MESH_HEARTBEAT_RECEIVED = 0xD8
+    MESH_IV_ENTRY_SET_NOTIFICATION = 0xD9
     MESH_IV_UPDATE_NOTIFICATION = 0xD3
     MESH_KEY_REFRESH_NOTIFICATION = 0xD4
     MESH_MESSAGE_RECEIVED_SUBSCRIPTION = 0xD1
     MESH_MESSAGE_RECEIVED_UNICAST = 0xD0
     MESH_SAR_FAILED = 0xD7
+    MESH_SEQNUM_ENTRY_SET_NOTIFICATION = 0xDA
     MESH_TX_COMPLETE = 0xD2
     MODEL_SPECIFIC = 0xF0
     OPENMESH_CONFLICTING = 0xB5
@@ -783,11 +819,13 @@ EVENT_LUT = {
     Event.DFU_REQ_SOURCE: DfuReqSource,
     Event.DFU_START: DfuStart,
     Event.MESH_HEARTBEAT_RECEIVED: MeshHeartbeatReceived,
+    Event.MESH_IV_ENTRY_SET_NOTIFICATION: MeshIvEntrySetNotification,
     Event.MESH_IV_UPDATE_NOTIFICATION: MeshIvUpdateNotification,
     Event.MESH_KEY_REFRESH_NOTIFICATION: MeshKeyRefreshNotification,
     Event.MESH_MESSAGE_RECEIVED_SUBSCRIPTION: MeshMessageReceivedSubscription,
     Event.MESH_MESSAGE_RECEIVED_UNICAST: MeshMessageReceivedUnicast,
     Event.MESH_SAR_FAILED: MeshSarFailed,
+    Event.MESH_SEQNUM_ENTRY_SET_NOTIFICATION: MeshSeqnumEntrySetNotification,
     Event.MESH_TX_COMPLETE: MeshTxComplete,
     Event.MODEL_SPECIFIC: ModelSpecific,
     Event.OPENMESH_CONFLICTING: OpenmeshConflicting,

@@ -36,6 +36,9 @@
  */
 #ifndef CORE_TX_LPN_H__
 #define CORE_TX_LPN_H__
+
+#include "radio_config.h"
+
 /**
  * @defgroup CORE_TX_LPN Core TX LPN bearer
  * LPN bearer for sending LPN control packets. Only accepts packets that are explicitly sent on the
@@ -45,8 +48,10 @@
 
 /**
  * Initialize the LPN Core TX bearer.
+ *
+ * @param[in] tx_power transmit power.
  */
-void core_tx_lpn_init(void);
+void core_tx_lpn_init(radio_tx_power_t tx_power);
 
 /** @} */
 

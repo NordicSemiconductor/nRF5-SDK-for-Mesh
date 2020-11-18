@@ -281,6 +281,8 @@ typedef struct
     uint32_t requested_transition_time_ms;
     /** Requested delay from incoming message */
     uint32_t requested_delay_ms;
+    /** Transition time is provided. */
+    bool transition_time_is_provided;
     /** Requested light_onoff from incoming message */
     bool requested_light_onoff;
 

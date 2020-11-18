@@ -140,13 +140,20 @@ static const sensor_descriptor_t m_pir_descriptor[NUM_DESCRIPTORS] =
  */
 static uint16_t property_array[] = {1, SENSOR_MOTION_SENSED_PROPERTY_ID};
 
-/* Define a cadence timer for each of the properties that the server supports.
+/* Define a cadence timer and a min interval timer for each of the properties that the
+ * server supports.
  */
 APP_TIMER_DEF(m_sensor_server_0_cadence_timer_0);
+APP_TIMER_DEF(m_sensor_server_0_min_interval_timer_0);
 
 static app_timer_id_t cadence_timer_ids[1] =
 {
     &m_sensor_server_0_cadence_timer_0_data
+};
+
+static app_timer_id_t min_interval_timer_ids[1] =
+{
+    &m_sensor_server_0_min_interval_timer_0_data
 };
 
 static uint8_t m_message_buffer[APP_CONFIG_MAX_MESSAGE_BYTES];
@@ -162,6 +169,7 @@ APP_SENSOR_SERVER_DEF(m_sensor_server_0,
                       app_sensor_series_get_cb,
                       property_array,
                       cadence_timer_ids,
+                      min_interval_timer_ids,
                       m_pir_descriptor,
                       NUM_DESCRIPTORS,
                       m_message_buffer,
@@ -347,7 +355,7 @@ static void app_sensor_series_get_cb(const app_sensor_server_t * p_server,
 static void node_reset(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset  -----\n");
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
     /* This function may return if there are ongoing flash operations. */
     mesh_stack_device_reset();
 }
@@ -363,8 +371,8 @@ static void config_server_evt_cb(const config_server_evt_t * p_evt)
 static void provisioning_device_identification_start_cb(uint8_t attention_duration_sec)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Device identification started\n");
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(BSP_LED_2_MASK  | BSP_LED_3_MASK,
+    hal_led_mask_set(HAL_LED_MASK, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(HAL_LED_MASK_HALF,
                      LED_BLINK_ATTENTION_INTERVAL_MS,
                      LED_BLINK_ATTENTION_COUNT(attention_duration_sec));
 }
@@ -374,29 +382,6 @@ static void provisioning_device_identification_stop_cb(void)
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Device identification stopped\n");
     hal_led_blink_stop();
 }
-
-/*
- * For PTS testing, set the PTS IXIT TSPX_sensor_property_ids to the string "0042,0000,00FF".
- *
- * Setting any button in [0, 6] places the server into a mode that mocks the sensor.
- * Re-initialization removes the mock sensor.
- *
- * Set button 5 when BV-08-C prompts for an out-of-range value.
- * Set button 6 when BV-08-C prompts for an in-range value.
- * Set button 7 when BV-09-C prompts for an initial value.
- * BV-09-C tests delta publication triggering. This takes two forms: absolute change and percent
- * change. Buttons in [3, 6] support changing in absolute form. It will require several changes
- * to provide suitable delta for unitless trigger in percentages.
- * Set button 1 for a small decrement.
- * Set button 2 for a large decrement.
- * Set button 3 for a small increment.
- * Set button 4 for a large increment.
- *
- * The sensor interrupt period is long enough to avoid violations of the minimum publication
- * interval. This is not true for the mock sensor: one can set keys fast enough to cause test
- * failures due to violations of the minimum publication interval. If you see this failure, take
- * more time between setting buttons.
- */
 
 static const char m_usage_string[] =
     "\n"
@@ -512,8 +497,8 @@ static void provisioning_complete_cb(void)
 
     unicast_address_print();
     hal_led_blink_stop();
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
+    hal_led_mask_set(HAL_LED_MASK, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_PROV);
 
 }
 
@@ -552,7 +537,7 @@ static void mesh_init(void)
     {
         case NRF_ERROR_INVALID_DATA:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before starting of the provisioning process.\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reboot device before starting of the provisioning process.\n");
             break;
         case NRF_SUCCESS:
             break;
@@ -571,6 +556,8 @@ static void initialize(void)
     /* Use m_sensor_server_0_cadence_timer_0.
      */
     const app_timer_id_t m_timer __attribute__((unused)) = m_sensor_server_0_cadence_timer_0;
+    const app_timer_id_t m_min_interval_timer __attribute__((unused))
+        = m_sensor_server_0_min_interval_timer_0;
 
     __LOG_INIT(LOG_SRC_APP | LOG_SRC_ACCESS, LOG_LEVEL_INFO, LOG_CALLBACK_DEFAULT);
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- BLE Mesh Sensor Server Demo -----\n");
@@ -615,15 +602,15 @@ static void start(void)
     {
         unicast_address_print();
     }
-    
+
     mesh_app_uuid_print(nrf_mesh_configure_device_uuid_get());
 
     ERROR_CHECK(mesh_stack_start());
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
 
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
+    hal_led_mask_set(HAL_LED_MASK, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
 }
 
 int main(void)

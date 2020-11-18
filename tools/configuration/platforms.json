@@ -8,7 +8,9 @@
             "ram_size": 16384,
             "page_size": 1024,
             "arch": "cortex-m0",
-            "softdevices": ["s110_8.0.0", "s130_2.0.1"]
+            "softdevices": ["s110_8.0.0", "s130_2.0.1"],
+            "enable_bootloader": true,
+            "ignore": true
         },
         {
             "name": "nrf51422_xxAB",
@@ -18,7 +20,9 @@
             "ram_size": 16384,
             "page_size": 1024,
             "arch": "cortex-m0",
-            "softdevices": ["s110_8.0.0", "s130_2.0.1"]
+            "softdevices": ["s110_8.0.0", "s130_2.0.1"],
+            "enable_bootloader": true,
+            "ignore": true
         },
         {
             "name": "nrf51422_xxAC",
@@ -28,7 +32,9 @@
             "ram_size": 32768,
             "page_size": 1024,
             "arch": "cortex-m0",
-            "softdevices": ["s110_8.0.0", "s130_2.0.1"]
+            "softdevices": ["s110_8.0.0", "s130_2.0.1"],
+            "enable_bootloader": true,
+            "ignore": false
         },
         {
             "name": "nrf52810_xxAA",
@@ -38,7 +44,21 @@
             "ram_size": 24576,
             "page_size": 4096,
             "arch": "cortex-m4",
-            "softdevices": ["s112_6.0.0", "s112_6.1.0", "s112_6.1.1", "s112_7.0.1", "s113_7.0.1"]
+            "softdevices": ["s112_6.0.0", "s112_6.1.0", "s112_6.1.1", "s112_7.0.1", "s112_7.2.0"],
+            "enable_bootloader": false,
+            "ignore": false
+        },
+        {
+            "name": "nrf52820_xxAA",
+            "flash_start": 0,
+            "flash_size": 262144,
+            "ram_start": 536870912,
+            "ram_size": 32768,
+            "page_size": 4096,
+            "arch": "cortex-m4",
+            "softdevices": ["s112_7.2.0", "s113_7.2.0"],
+            "enable_bootloader": true,
+            "ignore": false
         },
         {
             "name": "nrf52832_xxAA",
@@ -48,7 +68,9 @@
             "ram_size": 65536,
             "page_size": 4096,
             "arch": "cortex-m4f",
-            "softdevices": ["s132_3.1.0", "s132_4.0.4", "s132_5.0.0", "s132_6.0.0", "s132_6.1.0", "s132_6.1.1", "s132_7.0.1", "s113_7.0.1"]
+            "softdevices": ["s132_3.1.0", "s132_4.0.4", "s132_5.0.0", "s132_6.0.0", "s132_6.1.0", "s132_6.1.1", "s132_7.0.1", "s132_7.2.0", "s113_7.0.1", "s113_7.2.0", "s112_7.2.0"],
+            "enable_bootloader": true,
+            "ignore": false
         },
         {
             "name": "nrf52833_xxAA",
@@ -58,7 +80,9 @@
             "ram_size": 131072,
             "page_size": 4096,
             "arch": "cortex-m4f",
-            "softdevices": ["s140_7.0.1", "s113_7.0.1"]
+            "softdevices": ["s140_7.0.1", "s140_7.2.0", "s113_7.0.1", "s113_7.2.0"],
+            "enable_bootloader": true,
+            "ignore": false
         },
         {
             "name": "nrf52840_xxAA",
@@ -68,7 +92,9 @@
             "ram_size": 262144,
             "page_size": 4096,
             "arch": "cortex-m4f",
-            "softdevices": ["s140_5.0.0-3.alpha", "s140_6.0.0", "s140_6.1.0", "s140_6.1.1", "s140_7.0.1", "s113_7.0.1"]
+            "softdevices": ["s140_5.0.0-3.alpha", "s140_6.0.0", "s140_6.1.0", "s140_6.1.1", "s140_7.0.1", "s113_7.0.1", "s140_7.2.0", "s113_7.2.0"],
+            "enable_bootloader": true,
+            "ignore": false
         }
     ]
 }

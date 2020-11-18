@@ -40,6 +40,8 @@
 #include "packet.h"
 #include "bearer_event.h"
 #include "advertiser.h"
+#include "mesh_opt_core.h"
+#include "mesh_config_listener.h"
 
 #if MESH_FEATURE_LPN_ENABLED
 
@@ -142,14 +144,37 @@ static void tx_complete_cb(broadcast_params_t * p_params, timestamp_t timestamp)
     m_lpn_bearer.packet.timestamp = timestamp;
     NRF_MESH_ERROR_CHECK(bearer_event_sequential_post(&m_lpn_bearer.tx_complete_event));
 }
+
+static void tx_power_config_listener_cb(mesh_config_change_reason_t reason, mesh_config_entry_id_t id, const void * p_entry)
+{
+    if (id.file == MESH_OPT_CORE_FILE_ID &&
+        id.record == (MESH_OPT_CORE_TX_POWER_RECORD_START + CORE_TX_ROLE_ORIGINATOR))
+    {
+        const radio_tx_power_t * p_tx_power = p_entry;
+        switch (reason)
+        {
+            case MESH_CONFIG_CHANGE_REASON_SET:
+                m_lpn_bearer.broadcast.params.radio_config.tx_power = *p_tx_power;
+                break;
+            case MESH_CONFIG_CHANGE_REASON_DELETE:
+                m_lpn_bearer.broadcast.params.radio_config.tx_power = RADIO_POWER_NRF_0DBM;
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+MESH_CONFIG_LISTENER(m_lpn_tx_power_config_listener, MESH_OPT_CORE_TX_POWER_EID, tx_power_config_listener_cb);
+
 /*****************************************************************************
 * Interface functions
 *****************************************************************************/
-void core_tx_lpn_init(void)
+void core_tx_lpn_init(radio_tx_power_t tx_power)
 {
     m_lpn_bearer.broadcast.params.access_address = BEARER_ACCESS_ADDR_DEFAULT;
     m_lpn_bearer.broadcast.params.radio_config.radio_mode = RADIO_MODE_BLE_1MBIT;
-    m_lpn_bearer.broadcast.params.radio_config.tx_power = RADIO_POWER_NRF_0DBM;
+    m_lpn_bearer.broadcast.params.radio_config.tx_power = tx_power;
     m_lpn_bearer.broadcast.params.radio_config.payload_maxlen = RADIO_CONFIG_ADV_MAX_PAYLOAD_SIZE;
     m_lpn_bearer.broadcast.params.p_channels = m_adv_channels;
     m_lpn_bearer.broadcast.params.channel_count = ARRAY_SIZE((uint8_t[]) NRF_MESH_ADV_CHAN_DEFAULT);

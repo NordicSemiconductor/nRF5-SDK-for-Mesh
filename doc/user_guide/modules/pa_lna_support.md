@@ -10,7 +10,7 @@ these signals must be activated some time before the start of the radio transmis
 @anchor pa-lna-Figure1
 ![Interfacing PA/LNA with an nRF52 device](images/pa-lna-block-dia.svg "Interfacing PA/LNA with an nRF52 device")
 
-The Mesh PA/LNA module enables users to control such external components using GPIOs
+The Bluetooth mesh PA/LNA module enables users to control such external components using GPIOs
 that are synchronized to the radio operation. The PA/LNA module drives the chosen GPIO pins
 according to the chosen polarity (Active High/Active Low).
 
@@ -18,7 +18,7 @@ See the following section for an example of how to use the PA/LNA module.
 You can find more information about the available APIs
 in the [PA/LNA API documentation](@ref MESH_PA_LNA).
 
-The Mesh PA/LNA module works with all the [fully compatible configurations based on nRF52 devices](@ref compatibility_list).
+The PA/LNA module works with all the [fully compatible configurations based on nRF52 devices](@ref compatibility_list).
 
 ---
 
@@ -40,7 +40,7 @@ Complete the following steps:
 -# Select the unused GPIO pins that can be used by the PA/LNA module.
     - For this example, use GPIO 25 for controlling the LNA and GPIO 24 for controlling the PA.
     - Also, assume that the control signals required by the external hardware module are Active High.
-    The Mesh PA/LNA module uses the PPI and GPIOTE hardware modules to generate these signals.
+    The PA/LNA module uses the PPI and GPIOTE hardware modules to generate these signals.
     To read more about these modules in nRF52832, see the following documents: @link_52832_PPI and @link_52832_GPIOTE .
 -# Select the unused PPI channels 0 and 1, and the GPIOTE channel 0.
 
@@ -75,7 +75,7 @@ with the selected values:
 -# Enable the PA/LNA module in the BLE stack by completing the following steps:
     -# Create a static global variable of type @link_ble_opt_t.
     You can use the same GPIO pins and the same PPI and GPIO channels as for
-    Mesh PA/LNA configuration:
+    Bluetooth mesh PA/LNA configuration:
 ```
         static ble_opt_t ble_pa_lna_opts = {
              .common_opt = {
@@ -102,7 +102,7 @@ with the selected values:
         err_code = sd_ble_opt_set(BLE_COMMON_OPT_PA_LNA, &ble_pa_lna_opts);
         APP_ERROR_CHECK(err_code);
 ```
-    -# If @ref MESH_PROVISIONEE is used, implement @ref mesh_provisionee_start_params_t.prov_sd_ble_opt_set_cb 
+    -# If @ref MESH_PROVISIONEE is used, implement @ref mesh_provisionee_start_params_t.prov_sd_ble_opt_set_cb
     callback and call @link_sd_ble_opt_set in the callback:
 ```
         static void provisioning_sd_ble_opt_cb()
@@ -110,7 +110,7 @@ with the selected values:
             err_code = sd_ble_opt_set(BLE_COMMON_OPT_PA_LNA, &ble_pa_lna_opts);
             APP_ERROR_CHECK(err_code);
         }
-        
+
         ...
 
         static void start(void)
@@ -135,9 +135,9 @@ with the selected values:
 
             ...
         }
-```        
-    This is required to restore the PA/LNA configuration in the BLE stack after it is 
-    restarted during the provisioning when [PB GATT feature](@ref MESH_FEATURE_PB_GATT_ENABLED) 
+```
+    This is required to restore the PA/LNA configuration in the BLE stack after it is
+    restarted during the provisioning when [PB GATT feature](@ref MESH_FEATURE_PB_GATT_ENABLED)
     is enabled.
 
 

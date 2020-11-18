@@ -58,12 +58,29 @@
 #include "mesh_gatt_mock.h"
 #include "mesh_config_entry.h"
 #include "mesh_opt_gatt.h"
+#include "bearer_event_mock.h"
 
 #define NET_ID {0x3e, 0xca, 0xff, 0x67, 0x2f, 0x67, 0x33, 0x70}
 #define ID_KEY {0x84, 0x39, 0x6c, 0x43, 0x5a, 0xc4, 0x85, 0x60, 0xb5, 0x96, 0x53, 0x85, 0x25, 0x3e, 0x21, 0x0c}
 
 #define CONFIG_MSG_OVERHEAD (9 /* network header */ + 8 /* mic */)
 #define TX_TOKEN (0x12345678)
+
+static struct {
+    bool flag_added;
+    bearer_event_flag_t flag;
+    bearer_event_flag_callback_t p_flag_callback;
+} m_bearer_event_ctx[2];
+
+typedef enum {
+    BEARER_EVENT_CTX_IV_UPDATE = 0,
+    BEARER_EVENT_CTX_KEY_REFRESH,
+    BEARER_EVENT_CTX_END,
+} bearer_event_ctx_t;
+
+static uint8_t m_flag_set_counter;
+
+extern void proxy_deinit(void);
 
 typedef enum
 {
@@ -152,12 +169,51 @@ static void send_packet(void)
     TEST_ASSERT_FALSE(gatt_tx_packet_is_allocated());
 }
 
-void setUp(void)
+static void disable_proxy(void)
 {
-    /* Clear the state */
     bool enabled;
     TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_get(&enabled));
+    if (enabled)
+    {
+        /* Expect the proxy to kill the advertiser when disabling it. */
+        mesh_adv_stop_Expect();
+        timer_sch_abort_ExpectAnyArgs();
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(false));
+    }
+}
 
+static bearer_event_flag_t bearer_event_flag_add_mock(bearer_event_flag_callback_t callback, int n)
+{
+    for (size_t i = 0; i < ARRAY_SIZE(m_bearer_event_ctx); i++)
+    {
+        if (m_bearer_event_ctx[i].p_flag_callback == NULL ||
+            m_bearer_event_ctx[i].p_flag_callback == callback)
+        {
+            m_bearer_event_ctx[i].p_flag_callback = callback;
+            return m_bearer_event_ctx[i].flag;
+        }
+    }
+
+    TEST_ASSERT_TRUE(false);
+    return 0;
+}
+
+static void helper_bearer_event_trigger(bearer_event_ctx_t be)
+{
+    TEST_ASSERT_TRUE(m_flag_set_counter > 0);
+    TEST_ASSERT_NOT_NULL(m_bearer_event_ctx[be].p_flag_callback);
+    TEST_ASSERT_TRUE(m_bearer_event_ctx[be].p_flag_callback());
+    m_flag_set_counter--;
+}
+
+static void helper_bearer_event_flag_set_expect(bearer_event_ctx_t be)
+{
+    bearer_event_flag_set_Expect(m_bearer_event_ctx[be].flag);
+    m_flag_set_counter++;
+}
+
+void setUp(void)
+{
     proxy_filter_mock_Init();
     timer_scheduler_mock_Init();
     network_mock_Init();
@@ -172,13 +228,8 @@ void setUp(void)
     event_handler_mock_Init();
     event_mock_Init();
     event_handle_StubWithCallback(event_handle_mock);
-    if (enabled)
-    {
-        /* Expect the proxy to kill the advertiser when disabling it. */
-        mesh_adv_stop_Expect();
-        timer_sch_abort_ExpectAnyArgs();
-        TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(false));
-    }
+    bearer_event_mock_Init();
+    bearer_event_flag_add_StubWithCallback(bearer_event_flag_add_mock);
 }
 
 void tearDown(void)
@@ -209,6 +260,10 @@ void tearDown(void)
     event_handler_mock_Destroy();
     event_mock_Verify();
     event_mock_Destroy();
+    bearer_event_mock_Verify();
+    bearer_event_mock_Destroy();
+
+    proxy_deinit();
 }
 
 static uint8_t * net_packet_payload_get_callback(const packet_mesh_net_packet_t * p_net_packet, int count)
@@ -284,9 +339,9 @@ static void expect_filter_status(void)
     net_metadata.src                      = 0x1201;
     net_metadata.ttl                      = 0;
 
-    net_state_tx_iv_index_get_ExpectAndReturn(net_metadata.internal.iv_index);
-    net_state_seqnum_alloc_ExpectAnyArgsAndReturn(NRF_SUCCESS);
-    net_state_seqnum_alloc_ReturnThruPtr_p_seqnum(&net_metadata.internal.sequence_number);
+    net_state_iv_index_and_seqnum_alloc_ExpectAnyArgsAndReturn(NRF_SUCCESS);
+    net_state_iv_index_and_seqnum_alloc_ReturnThruPtr_p_iv_index(&net_metadata.internal.iv_index);
+    net_state_iv_index_and_seqnum_alloc_ReturnThruPtr_p_seqnum(&net_metadata.internal.sequence_number);
 
     net_packet_header_set_Expect((packet_mesh_net_packet_t *) gatt_tx_packet_get(NULL), &net_metadata);
 
@@ -297,8 +352,39 @@ static void expect_filter_status(void)
 /*****************************************************************************
 * Test functions
 *****************************************************************************/
+void test_invalid_state()
+{
+    nrf_mesh_key_refresh_phase_t kr_phase = {0};
+
+    /* Proxy not enabled. */
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, proxy_start());
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, proxy_stop());
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, proxy_node_id_enable(NULL, kr_phase));
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, proxy_node_id_disable());
+
+    /* Proxy enabled, but not initialized. */
+    TEST_ASSERT_EQUAL(NRF_SUCCESS, proxy_enable());
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, proxy_start());
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, proxy_stop());
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, proxy_node_id_enable(NULL, kr_phase));
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, proxy_node_id_disable());
+
+    /* Turn off the proxy as we didn't start the service. */
+    proxy_disable();
+
+    /* Proxy initialized, but not enabled. */
+    cache_init_ExpectAnyArgs();
+    init();
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, proxy_start());
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, proxy_stop());
+    TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, proxy_node_id_disable());
+}
+
 void test_adv_net_id(void)
 {
+    /* Clear the state */
+    disable_proxy();
+
     cache_init_ExpectAnyArgs();
     init();
 
@@ -320,6 +406,9 @@ void test_adv_net_id(void)
 
 void test_adv_node_id(void)
 {
+    /* Clear the state */
+    disable_proxy();
+
     cache_init_ExpectAnyArgs();
     init();
 
@@ -355,6 +444,9 @@ void test_adv_node_id(void)
 
 void test_rx_config(void)
 {
+    /* Clear the state */
+    disable_proxy();
+
     cache_init_ExpectAnyArgs();
     init();
     establish_connection(0);
@@ -438,6 +530,9 @@ void test_rx_config(void)
 /** Test RX of messages that'll be forwarded to other modules */
 void test_rx_forward(void)
 {
+    /* Clear the state */
+    disable_proxy();
+
     cache_init_ExpectAnyArgs();
     init();
     establish_connection(0);
@@ -470,6 +565,9 @@ void test_rx_forward(void)
 
 void test_tx_mesh(void)
 {
+    /* Clear the state */
+    disable_proxy();
+
     cache_init_ExpectAnyArgs();
     init();
     establish_connection(0);
@@ -524,6 +622,9 @@ void test_tx_mesh(void)
  */
 void test_tx_beacon(void)
 {
+    /* Clear the state */
+    disable_proxy();
+
     cache_init_ExpectAnyArgs();
     init();
 
@@ -650,6 +751,9 @@ void test_tx_beacon(void)
 
 void test_disconnect(void)
 {
+    /* Clear the state */
+    disable_proxy();
+
     cache_init_ExpectAnyArgs();
     init();
     /* Start an advertisement */
@@ -683,6 +787,9 @@ void test_disconnect(void)
 
 void test_enable_get_set(void)
 {
+    /* Clear the state */
+    disable_proxy();
+
     cache_init_ExpectAnyArgs();
     init();
 
@@ -692,7 +799,7 @@ void test_enable_get_set(void)
         TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_get(&enabled));
         TEST_ASSERT_FALSE(enabled);
 
-        TEST_ASSERT_EQUAL(NRF_ERROR_INVALID_STATE, mesh_opt_gatt_proxy_set(false));
+        TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(false));
 
         TEST_ASSERT_EQUAL(NRF_SUCCESS, mesh_opt_gatt_proxy_set(true));
 
@@ -747,6 +854,9 @@ void test_enable_get_set(void)
 
 void test_stop_no_connections(void)
 {
+    /* Clear the state */
+    disable_proxy();
+
     cache_init_ExpectAnyArgs();
     init();
     /* Deinit callback to monitor calls */
@@ -763,6 +873,9 @@ void test_stop_no_connections(void)
 
 void test_stop_without_pending_packets(void)
 {
+    /* Clear the state */
+    disable_proxy();
+
     cache_init_ExpectAnyArgs();
     init();
 
@@ -786,6 +899,9 @@ void test_stop_without_pending_packets(void)
 
 void test_stop_with_pending_packets(void)
 {
+    /* Clear the state */
+    disable_proxy();
+
     cache_init_ExpectAnyArgs();
     init();
     /* Deinit callback to monitor calls */
@@ -821,6 +937,9 @@ void test_stop_with_pending_packets(void)
 
 void test_stop_through_proxy_state(void)
 {
+    /* Clear the state */
+    disable_proxy();
+
     cache_init_ExpectAnyArgs();
     init();
 
@@ -833,4 +952,135 @@ void test_stop_through_proxy_state(void)
 
     /* Send DISCONNECTED event. PROXY_STOPPED event should not be generated */
     disconnect(0);
+}
+
+void test_ivi_update(void)
+{
+    /* Clear the state */
+    disable_proxy();
+
+    cache_init_ExpectAnyArgs();
+    init();
+
+    nrf_mesh_beacon_info_t beacon_info[2];
+    beacon_info_set(&beacon_info[0], 2);
+
+    establish_connection(0);
+
+    uint8_t beacon_packet[NET_BEACON_BUFFER_SIZE];
+    memset(beacon_packet, 0xbe, sizeof(beacon_packet));
+
+    nrf_mesh_evt_t mesh_evt;
+    mesh_evt.type = NRF_MESH_EVT_IV_UPDATE_NOTIFICATION;
+
+    /* Send mesh event and expect bearer_event to be triggered. */
+    helper_bearer_event_flag_set_expect(BEARER_EVENT_CTX_IV_UPDATE);
+    mesh_evt_post(&mesh_evt);
+
+    /* Prepare for bearer event to be triggered and trigger it. */
+    for (uint32_t j = 0; j < ARRAY_SIZE(beacon_info); ++j)
+    {
+        net_state_beacon_iv_index_get_ExpectAndReturn(0x12345678);
+        net_state_iv_update_get_ExpectAndReturn(18);
+        net_beacon_build_ExpectAndReturn(&beacon_info[j].secmat, 0x12345678, 18, false, NULL, NRF_SUCCESS);
+        net_beacon_build_IgnoreArg_p_buffer();
+        net_beacon_build_ReturnArrayThruPtr_p_buffer(beacon_packet, sizeof(beacon_packet));
+    }
+
+    helper_bearer_event_trigger(BEARER_EVENT_CTX_IV_UPDATE);
+}
+
+void test_ivi_update_no_mem(void)
+{
+    /* Clear the state */
+    disable_proxy();
+
+    cache_init_ExpectAnyArgs();
+    init();
+
+    nrf_mesh_beacon_info_t beacon_info[2];
+    beacon_info_set(&beacon_info[0], 2);
+
+    establish_connection(0);
+
+    uint8_t beacon_packet[NET_BEACON_BUFFER_SIZE];
+    memset(beacon_packet, 0xbe, sizeof(beacon_packet));
+
+    nrf_mesh_evt_t mesh_evt;
+    mesh_evt.type = NRF_MESH_EVT_IV_UPDATE_NOTIFICATION;
+
+    /* Send mesh event to trigger bearer event. */
+    helper_bearer_event_flag_set_expect(BEARER_EVENT_CTX_IV_UPDATE);
+    mesh_evt_post(&mesh_evt);
+
+    /* Case 1: mesh_gatt_packet_alloc() can't allocate a packet.
+     * The transmission is postponed until TX_COMPLETE. */
+    gatt_tx_packet_availability_set(false);
+    net_state_beacon_iv_index_get_ExpectAndReturn(0x12345678);
+    net_state_iv_update_get_ExpectAndReturn(18);
+    helper_bearer_event_trigger(BEARER_EVENT_CTX_IV_UPDATE);
+
+    /* Case 2: TX_COMPLETE happened, but mesh_gatt_packet_alloc() still can't allocate a packet.
+     * Wait for the next TX_COMPLETE. */
+    net_state_beacon_iv_index_get_ExpectAndReturn(0x12345678);
+    net_state_iv_update_get_ExpectAndReturn(18);
+    mesh_gatt_evt_t tx_complete_evt;
+    tx_complete_evt.type = MESH_GATT_EVT_TYPE_TX_COMPLETE;
+    tx_complete_evt.conn_index = 0;
+    tx_complete_evt.params.tx_complete.pdu_type = MESH_GATT_PDU_TYPE_NETWORK_PDU;
+    tx_complete_evt.params.tx_complete.token = TX_TOKEN;
+    gatt_evt_post(&tx_complete_evt);
+
+    /* Case 3: Now we can send beacons. */
+    gatt_tx_packet_availability_set(true);
+    for (uint32_t j = 0; j < ARRAY_SIZE(beacon_info); ++j)
+    {
+        net_state_beacon_iv_index_get_ExpectAndReturn(0x12345678);
+        net_state_iv_update_get_ExpectAndReturn(18);
+        net_beacon_build_ExpectAndReturn(&beacon_info[j].secmat, 0x12345678, 18, false, NULL, NRF_SUCCESS);
+        net_beacon_build_IgnoreArg_p_buffer();
+        net_beacon_build_ReturnArrayThruPtr_p_buffer(beacon_packet, sizeof(beacon_packet));
+    }
+
+    tx_complete_evt.type = MESH_GATT_EVT_TYPE_TX_COMPLETE;
+    tx_complete_evt.conn_index = 0;
+    tx_complete_evt.params.tx_complete.pdu_type = MESH_GATT_PDU_TYPE_NETWORK_PDU;
+    tx_complete_evt.params.tx_complete.token = TX_TOKEN;
+    gatt_evt_post(&tx_complete_evt);
+}
+
+void test_key_refresh(void)
+{
+    /* Clear the state */
+    disable_proxy();
+
+    cache_init_ExpectAnyArgs();
+    init();
+
+    nrf_mesh_beacon_info_t beacon_info[2];
+    beacon_info_set(&beacon_info[0], 2);
+
+    establish_connection(0);
+
+    uint8_t beacon_packet[NET_BEACON_BUFFER_SIZE];
+    memset(beacon_packet, 0xbe, sizeof(beacon_packet));
+
+    uint8_t net_id[NRF_MESH_NETID_SIZE];
+    nrf_mesh_evt_t mesh_evt;
+    mesh_evt.type = NRF_MESH_EVT_KEY_REFRESH_NOTIFICATION;
+    mesh_evt.params.key_refresh.p_network_id = net_id;
+    mesh_evt.params.key_refresh.phase = NRF_MESH_KEY_REFRESH_PHASE_0;
+    mesh_evt.params.key_refresh.subnet_index = 0;
+
+    /* This should only trigger bearer event. */
+    helper_bearer_event_flag_set_expect(BEARER_EVENT_CTX_KEY_REFRESH);
+    mesh_evt_post(&mesh_evt);
+
+    /* Now beacons should be sent. */
+    net_state_beacon_iv_index_get_ExpectAndReturn(0x12345678);
+    net_state_iv_update_get_ExpectAndReturn(18);
+    net_beacon_build_ExpectAndReturn(&beacon_info[0].secmat, 0x12345678, 18, false, NULL, NRF_SUCCESS);
+    net_beacon_build_IgnoreArg_p_buffer();
+    net_beacon_build_ReturnArrayThruPtr_p_buffer(beacon_packet, sizeof(beacon_packet));
+    helper_bearer_event_trigger(BEARER_EVENT_CTX_KEY_REFRESH);
 }

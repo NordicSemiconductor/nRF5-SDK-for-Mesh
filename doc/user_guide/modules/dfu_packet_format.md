@@ -1,10 +1,11 @@
-# Mesh DFU protocol packet formats
+# DFU protocol packet formats
 @anchor dfu-packet-format
 
-Mesh DFU packets are packets of data transferred between devices during the Mesh DFU protocol process.
+The proprietary mesh DFU packets are packets of data transferred between devices during the proprietary mesh
+DFU protocol process.
 
 Their format corresponds to the proprietary @link_openmesh_github packets.
-The Mesh DFU packets do not share any packet fields with the Bluetooth Mesh packets,
+The proprietary mesh DFU packets do not share any packet fields with the Bluetooth mesh packets,
 apart from their common underlying Bluetooth 4.0 protocol.
 
 @note All fields use the little-endian order.
@@ -16,7 +17,7 @@ apart from their common underlying Bluetooth 4.0 protocol.
 - [Transfer info and ID fields](@ref dfu-packet-state-transfer-subsection)
     - [Transfer info field](@ref dfu-packet-state-transfer-info)
     - [Transfer ID field](@ref dfu-packet-state-transfer-id)
-- [Mesh DFU packets](@ref dfu-packet-packets)
+- [DFU packets](@ref dfu-packet-packets)
     - [Firmware ID](@ref dfu-packet-fwid)
     - [DFU state](@ref dfu-packet-state)
         - [DFU state SoftDevice](@ref dfu-packet-state-sd)
@@ -33,16 +34,16 @@ apart from their common underlying Bluetooth 4.0 protocol.
 
 ## Bearers @anchor dfu-packet-bearers
 
-The Mesh DFU packets are sent:
+The proprietary mesh DFU packets are sent:
 - over the air as nRF OpenMesh packets,
-- through the [Mesh serial interface](@ref md_doc_user_guide_modules_serial).
+- through the [Bluetooth mesh serial interface](@ref md_doc_user_guide_modules_serial).
 
 ### OpenMesh bearer @anchor dfu-packet-bearers-om
 
-When going over the air between Mesh devices, the DFU packets are sent as OpenMesh advertising
+When going over the air between Bluetooth mesh devices, the DFU packets are sent as OpenMesh advertising
 data in the Bluetooth 4.0 advertisements. The OpenMesh data is sent as "Service Data - 16-bit UUID"
 Advertising Data Type, with the Nordic Semiconductor's Service UUID `0xFEE4`. Just like the
-Bluetooth Mesh packets, the OpenMesh data is placed in the Advertisement data of an advertisement packet.
+Bluetooth mesh packets, the OpenMesh data is placed in the Advertisement data of an advertisement packet.
 
 See the following table for the advertising data breakdown.
 
@@ -51,21 +52,21 @@ See the following table for the advertising data breakdown.
 | AD length    | 0              | 1              | `L + 4`                |
 | AD type      | 1              | 1              | `0x16`                 |
 | Service UUID | 2              | 2              | `0xFEE4`               |
-| DFU packet   | 4              | `L`            | Mesh DFU protocol data. |
+| DFU packet   | 4              | `L`            | Proprietary mesh DFU protocol data. |
 
 ### Serial bearer @anchor dfu-packet-bearers-serial
 
-The Mesh DFU packets have an assigned command opcode in the
-[Mesh Serial interface](@ref md_doc_user_guide_modules_serial), which allows them to be encapsulated in the
+The proprietary mesh DFU packets have an assigned command opcode in the
+[Bluetooth mesh serial interface](@ref md_doc_user_guide_modules_serial), which allows them to be encapsulated in the
 payload of the [serial packets](@ref serial_interface_packet_format).
 
-See the following table for the Mesh DFU serial packet breakdown.
+See the following table for the proprietary mesh DFU serial packet breakdown.
 
 | Field      | Offset (bytes) | Length (bytes) | Value                  |
 |------------|----------------|----------------|------------------------|
 | Length     | 0              | 1              | `L + 1`                |
 | Opcode     | 1              | 1              | `0x78`                 |
-| DFU packet | 2              | `L`            | Mesh DFU protocol data. |
+| DFU packet | 2              | `L`            | Proprietary mesh DFU protocol data. |
 
 
 ---
@@ -98,7 +99,7 @@ The _RFU_ field must be set to `0` by the sender and ignored by the receivers.
 ### Transfer ID field @anchor dfu-packet-state-transfer-id
 
 Each DFU transfer is identified by a 32-bit random number identifier. This identifier is present
-in all DFU packets (except for the Firmware ID packet) and is used by the mesh devices to determine
+in all DFU packets (except for the Firmware ID packet) and is used by the Bluetooth mesh devices to determine
 which transfer the packets belong to.
 
 Transfer sources must pick a new pseudorandom number for every transfer to minimize risk of conflicts
@@ -107,9 +108,9 @@ and invalid behavior.
 
 ---
 
-## Mesh DFU packets @anchor dfu-packet-packets
+## DFU packets @anchor dfu-packet-packets
 
-The following Mesh DFU packet types exist, with some types having slight variations depending
+The following proprietary mesh DFU packet types exist, with some types having slight variations depending
 on which type of transfer is being performed:
 - [Firmware ID](@ref dfu-packet-fwid)
 - [DFU state](@ref dfu-packet-state)
@@ -118,10 +119,10 @@ on which type of transfer is being performed:
 - [DFU data request](@ref dfu-packet-data-request)
 - [DFU data response](@ref dfu-packet-data-response)
 
-The Mesh DFU packets are inserted into the _DFU packet_ field of the bearer packets
-without any form of encryption or obfuscation. 
+The proprietary mesh DFU packets are inserted into the _DFU packet_ field of the bearer packets
+without any form of encryption or obfuscation.
 
-All Mesh DFU packets start with a 16-bit _Packet type_ field.
+All proprietary mesh DFU packets start with a 16-bit _Packet type_ field.
 
 ### Firmware ID @anchor dfu-packet-fwid
 
@@ -130,10 +131,10 @@ Their role is to inform the neighboring devices of the firmware version of the s
 This allows the devices to discover whether their firmware ID is outdated,
 while providing diagnostic information to the user.
 
-See [Mesh DFU Firmware IDs](@ref dfu-protocol-fwid) for more information about the fields
+See [DFU Firmware IDs](@ref dfu-protocol-fwid) for more information about the fields
 in the Firmware ID packets.
 
-See the following table for Mesh DFU Firmware ID packet breakdown.
+See the following table for proprietary mesh DFU Firmware ID packet breakdown.
 
 | Field               | Offset (bytes) | Length (bytes) | Value                                     |
 |---------------------|----------------|----------------|-------------------------------------------|

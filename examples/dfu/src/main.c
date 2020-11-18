@@ -55,8 +55,9 @@
 /*****************************************************************************
  * Definitions
  *****************************************************************************/
-#define LEDS_MASK_DFU_RUNNING   (BSP_LED_0_MASK | BSP_LED_2_MASK)
-#define LEDS_MASK_DFU_ENDED     (BSP_LED_0_MASK | BSP_LED_1_MASK)
+/* LED mask bit 0 (1,2,..) represents BSP_LED_0 (1,2,..) from boards.h */
+#define LEDS_MASK_DFU_RUNNING   (0x05)  /* BSP_LED_0 and BSP_LED_2 */
+#define LEDS_MASK_DFU_ENDED     (0x03)  /* BSP_LED_0 and BSP_LED_1 */
 
 
 /*****************************************************************************
@@ -75,15 +76,18 @@ static bool fw_updated_event_is_for_me(const nrf_mesh_evt_dfu_t * p_evt)
     switch (p_evt->fw_outdated.transfer.dfu_type)
     {
         case NRF_MESH_DFU_TYPE_APPLICATION:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "DFU type Application\n");
             return (p_evt->fw_outdated.current.application.app_id == p_evt->fw_outdated.transfer.id.application.app_id &&
                     p_evt->fw_outdated.current.application.company_id == p_evt->fw_outdated.transfer.id.application.company_id &&
                     p_evt->fw_outdated.current.application.app_version < p_evt->fw_outdated.transfer.id.application.app_version);
 
         case NRF_MESH_DFU_TYPE_BOOTLOADER:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "DFU type Bootloader\n");
             return (p_evt->fw_outdated.current.bootloader.bl_id == p_evt->fw_outdated.transfer.id.bootloader.bl_id &&
                     p_evt->fw_outdated.current.bootloader.bl_version < p_evt->fw_outdated.transfer.id.bootloader.bl_version);
 
         case NRF_MESH_DFU_TYPE_SOFTDEVICE:
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "DFU type Softdevice\n");
             return false;
 
         default:
@@ -121,7 +125,7 @@ static void mesh_evt_handler(const nrf_mesh_evt_t* p_evt)
                 ERROR_CHECK(nrf_mesh_dfu_request(p_evt->params.dfu.fw_outdated.transfer.dfu_type,
                                                  &p_evt->params.dfu.fw_outdated.transfer.id,
                                                  p_bank));
-                hal_led_mask_set(LEDS_MASK, false); /* Turn off all LEDs */
+                hal_led_mask_set(HAL_LED_MASK, false); /* Turn off all LEDs */
             }
             else
             {
@@ -141,6 +145,7 @@ static void mesh_evt_handler(const nrf_mesh_evt_t* p_evt)
                                                   state.state == NRF_MESH_DFU_STATE_RELAY_CANDIDATE ||
                                                   state.state == NRF_MESH_DFU_STATE_RELAY))
                 {
+                    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Starting relay\n");
                     ERROR_CHECK(nrf_mesh_dfu_relay(p_evt->params.dfu.fw_outdated.transfer.dfu_type,
                                                     &p_evt->params.dfu.fw_outdated.transfer.id));
                 }
@@ -152,12 +157,12 @@ static void mesh_evt_handler(const nrf_mesh_evt_t* p_evt)
             break;
 
         case NRF_MESH_EVT_DFU_END:
-            hal_led_mask_set(LEDS_MASK, false); /* Turn off all LEDs */
+            hal_led_mask_set(HAL_LED_MASK, false); /* Turn off all LEDs */
             hal_led_mask_set(LEDS_MASK_DFU_ENDED, true);
             break;
 
         case NRF_MESH_EVT_DFU_BANK_AVAILABLE:
-            hal_led_mask_set(LEDS_MASK, false); /* Turn off all LEDs */
+            hal_led_mask_set(HAL_LED_MASK, false); /* Turn off all LEDs */
             ERROR_CHECK(nrf_mesh_dfu_bank_flash(p_evt->params.dfu.bank.transfer.dfu_type));
             break;
 
@@ -170,7 +175,7 @@ static void mesh_evt_handler(const nrf_mesh_evt_t* p_evt)
 static void node_reset(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset  -----\n");
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
     /* This function may return if there are ongoing flash operations. */
     mesh_stack_device_reset();
 }
@@ -197,7 +202,7 @@ static void mesh_init(void)
     {
         case NRF_ERROR_INVALID_DATA:
             __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before starting of the provisioning process.\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reboot device before starting of the provisioning process.\n");
             break;
         case NRF_SUCCESS:
             break;

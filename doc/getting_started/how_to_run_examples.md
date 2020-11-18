@@ -3,7 +3,7 @@
 
 This page describes how to run [examples included in the nRF5 SDK for Mesh package](@ref md_examples_README).
 
-Just as with [installing the toolchain](@ref md_doc_getting_started_how_to_toolchain) and [building the mesh stack and examples](@ref md_doc_getting_started_how_to_build),
+Just as with [installing the toolchain](@ref md_doc_getting_started_how_to_toolchain) and [building the Bluetooth mesh stack and examples](@ref md_doc_getting_started_how_to_build),
 the procedure for running examples depends on the IDE.
 
 Once you have an example running, you can [interact with it through command line with SEGGER RTT](@ref segger-rtt).
@@ -57,21 +57,21 @@ Depending on you choice, you have to use different commands:
 2. Wait until the board is detected.
 3. Flash the example by running one of the following commands from the `build` directory:
 	- for ninja: `ninja flash_<target-name>`. Example:
-	
-			build $ ninja flash_light_switch_server_nrf52832_xxAA_s132_7.0.1
-			
+
+			build $ ninja flash_light_switch_server_nrf52832_xxAA_s132_7.2.0
+
 	- for make: `make flash_<target-name>`. Example:
-			
-			build $ make flash_light_switch_server_nrf52832_xxAA_s132_7.0.1
-			
+
+			build $ make flash_light_switch_server_nrf52832_xxAA_s132_7.2.0
+
 	@note
 	Targets that flash examples start with "flash_".
 	To list all the available targets, run:
 		- when using `ninja` build tool: `ninja -t targets` or `ninja help`
 		- when using `make`: `make help`
-	
+
 	After you issue the command to flash the example, the build system checks
-    whether the example binaries are up-to-date. 
+    whether the example binaries are up-to-date.
 	If required, it rebuilds them before flashing.
 	It then displays a list of connected boards.
 4. From the list of connected boards, choose the board to program the SoftDevice and example firmware onto.
@@ -85,25 +85,25 @@ You need to know the path to SoftDevice binaries to run examples with `nrfjprog`
 The SoftDevice binaries are located in the `bin/softdevice/` folder. The example binaries are built
 in the corresponding example folder, in the `build/` directory.
 
-If you do not know the SoftDevice version that was used to build the mesh stack, check the name
+If you do not know the SoftDevice version that was used to build the Bluetooth mesh stack, check the name
 of the example binary.
-For example, if the example's binary name is `light_switch_client_nrf52832_xxAA_s132_7.0.1.hex`,
-the required SoftDevice binary is `s132_nrf52_7.0.1_softdevice.hex`.
+For example, if the example's binary name is `light_switch_client_nrf52832_xxAA_s132_7.2.0.hex`,
+the required SoftDevice binary is `s132_nrf52_7.2.0_softdevice.hex`.
 
 To run an example with `nrfjprog`:
 1. Connect a Development Kit to your computer with a USB cable.
 2. Wait until the board is detected.
 3. Program the SoftDevice:
-	1. Download the SoftDevice that you want to build mesh stack with.
+	1. Download the SoftDevice that you want to build the Bluetooth mesh stack with.
 	2. Run the following command: `nrfjprog --program <path_to_the_example_binary_file> --chiperase`.
        Example:
-	
-			nrf5_sdk_for_mesh$ nrfjprog --program ./bin/softdevice/s132_nrf52_7.0.1_softdevice.hex --chiperase
-		
-4. Program the example application with the following command: `nrfjprog --program <path_to_the_example_binary_file> --sectorerase`. Example: 
 
-		nrf5_sdk_for_mesh$ nrfjprog --program ./build/examples/light_switch/client/light_switch_client_nrf52832_xxAA_s132_7.0.1.hex --sectorerase
-		
+			nrf5_sdk_for_mesh$ nrfjprog --program ./bin/softdevice/s132_nrf52_7.2.0_softdevice.hex --chiperase
+
+4. Program the example application with the following command: `nrfjprog --program <path_to_the_example_binary_file> --sectorerase`. Example:
+
+		nrf5_sdk_for_mesh$ nrfjprog --program ./build/examples/light_switch/client/light_switch_client_nrf52832_xxAA_s132_7.2.0.hex --sectorerase
+
 5. Launch the example by using one of the following options:
 	- power the device off and on;
 	- initiate a soft-reset by using the following command: `nrfjprog -r`. Soft-reset is particularly
@@ -113,7 +113,7 @@ To run an example with `nrfjprog`:
 
 ---
 
-		
+
 ## Interacting with examples using SEGGER RTT @anchor segger-rtt
 
 The nRF5 SDK for Mesh examples can communicate with a host computer through @link_rtt,
@@ -144,13 +144,13 @@ both CMake or SEGGER.
 To see the RTT log of single development boards in this tool, make sure you connect the nRF5 boards
 to the USB ports.
 When the boards are connected, complete the following steps for each board:
-1. Start J-Link RTT viewer. The Configuration window appears. 
+1. Start J-Link RTT viewer. The Configuration window appears.
 @note You can also press the **F2** button or select **File > Connect** to open the Configuration window.
 2. In the Configuration window,
 depending on the [development kit board chip number](@ref compatibility_list) you are using,
 make sure that the appropriate SoC is selected in the Specify Target Device dropdown menu.
 3. Click **OK**. The Emulator selection window appears.
-4. Choose the desired board by selecting its USB Identification (SEGGER ID). 
+4. Choose the desired board by selecting its USB Identification (SEGGER ID).
 
 After flashing the example firmware and running the example, you will see output printed
 in the RTT log while testing.

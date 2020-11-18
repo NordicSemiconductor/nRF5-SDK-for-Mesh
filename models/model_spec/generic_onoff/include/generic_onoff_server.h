@@ -128,6 +128,9 @@ struct __generic_onoff_server_t
 
     /** Model settings and callbacks for this instance. */
     generic_onoff_server_settings_t settings;
+
+    /** State handle for this instance. */
+    uint8_t state_handle;
 };
 
 /**
@@ -172,6 +175,23 @@ uint32_t generic_onoff_server_init(generic_onoff_server_t * p_server, uint8_t el
  *                                  new segmented packets.
  */
 uint32_t generic_onoff_server_status_publish(generic_onoff_server_t * p_server, const generic_onoff_status_params_t * p_params);
+
+/**
+ * Function to trigger onoff value set as a Generic OnOff server callback.
+ *
+ * This is called when the mesh is initialized and stable.  The caller
+ * is responsible for reading the saved state values out of flash and
+ * pass those to this function. So that function calls set_cb to propogate
+ * given value to higher layers.
+ *
+ *
+ * @param[in]     p_server          Server context pointer.
+ * @param[in]     onoff             Set value of the onoff state.
+ *
+ * @retval NRF_SUCCESS      The model is initialized successfully.
+ * @retval NRF_ERROR_NULL   NULL pointer given to function.
+ */
+uint32_t generic_onoff_server_state_set(generic_onoff_server_t * p_server, bool onoff);
 
 /**@} end of GENERIC_ONOFF_SERVER */
 #endif /* GENERIC_ONOFF_SERVER_H__ */

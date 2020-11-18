@@ -54,6 +54,8 @@ struct __sensor_cadence_t
 {
     list_node_t list_node;
     model_timer_t timer;                             /**< For providing cadence */
+    model_timer_t min_interval_timer;                /**< For enforcing status min interval */
+    bool min_interval_publication_pending;           /**< Has a publication been scheduled waiting for min interval to expire */
     app_sensor_server_t * p_server;                  /**< Identifies the owning server */
     uint8_t * p_trigger_delta_down;                  /**< Value triggers fast cadence */
     uint8_t * p_trigger_delta_up;                    /**< Value triggers fast cadence */

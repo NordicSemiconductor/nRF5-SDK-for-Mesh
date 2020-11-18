@@ -235,15 +235,15 @@ TAB_SIZE               = 4
 ALIASES               = \
 link_BluetoothSIG="<a href=\"http://www.bluetooth.org/\" target=\"_blank\">Bluetooth SIG</a>" \
 link_companyID="<a href=\"https://www.bluetooth.com/specifications/assigned-numbers/company-identifiers\" target=\"_blank\">Company ID assigned by Bluetooth SIG</a>" \
-link_btsig_glossary="Check the <a href=\"https://www.bluetooth.com/bluetooth-technology/topology-options/le-mesh/mesh-glossary\" target=\"_blank\">official Bluetooth Mesh glossary</a> for definitions of the most important Mesh-related terms used in this documentation" \
-link_btsig_intro="<a href=\"https://blog.bluetooth.com/introducing-bluetooth-mesh-networking\" target=\"_blank\">Bluetooth SIG's introduction to Bluetooth Mesh</a>" \
-link_btsig_spec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications?_ga=2.18257471.723078495.1501226603-93769939.1480503530\" target=\"_blank\">Bluetooth Mesh Networking Specifications</a>" \
-link_MeshSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\" target=\"_blank\">Mesh Profile Specification</a>" \
-link_ModelSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\" target=\"_blank\">Mesh Model Specification</a>" \
-link_MeshDeviceProperties="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\" target=\"_blank\">Mesh Device Properties</a>" \
-link_ModelOverview="<a href=\"https://www.bluetooth.com/wp-content/uploads/2019/04/1903_Mesh-Models-Overview_FINAL.pdf\" target=\"_blank\">Mesh Model Overview</a>" \
-link_MeshProperties="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications/mesh-properties\" target=\"_blank\">Mesh Device Properties XML</a>" \
-link_MeshCharacteristics="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications/mesh-characteristics\" target=\"_blank\">Mesh Characteristics XML</a>" \
+link_btsig_glossary="Check the <a href=\"https://www.bluetooth.com/bluetooth-technology/topology-options/le-mesh/mesh-glossary\" target=\"_blank\">official Bluetooth mesh glossary</a> for definitions of the most important mesh-related terms used in this documentation" \
+link_btsig_intro="<a href=\"https://blog.bluetooth.com/introducing-bluetooth-mesh-networking\" target=\"_blank\">Bluetooth SIG's introduction to Bluetooth mesh</a>" \
+link_btsig_spec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications?_ga=2.18257471.723078495.1501226603-93769939.1480503530\" target=\"_blank\">Bluetooth mesh networking specifications</a>" \
+link_MeshSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\" target=\"_blank\">Bluetooth mesh profile specification</a>" \
+link_ModelSpec="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\" target=\"_blank\">Bluetooth mesh model specification</a>" \
+link_MeshDeviceProperties="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications\" target=\"_blank\">Bluetooth mesh device properties</a>" \
+link_ModelOverview="<a href=\"https://www.bluetooth.com/wp-content/uploads/2019/04/1903_Mesh-Models-Overview_FINAL.pdf\" target=\"_blank\">Bluetooth mesh model overview</a>" \
+link_MeshProperties="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications/mesh-properties\" target=\"_blank\">Bluetooth mesh device properties XML</a>" \
+link_MeshCharacteristics="<a href=\"https://www.bluetooth.com/specifications/mesh-specifications/mesh-characteristics\" target=\"_blank\">Bluetooth mesh characteristics XML</a>" \
 
 # Nordic (non-Mesh)
 ALIASES               += \
@@ -253,7 +253,7 @@ link_SLIP="<a href=\"https://en.wikipedia.org/wiki/Serial_Line_Internet_Protocol
 link_mesh_doclib="<a href=\"https://infocenter.nordicsemi.com/topic/struct_sdk/struct/sdk_mesh_latest.html\" target=\"_blank\">nRF5 SDK for Mesh documentation website</a>" \
 link_meshsdk_github="<a href=\"https://github.com/NordicSemiconductor/nRF5-SDK-for-Mesh\" target=\"_blank\">nRF5 SDK for Mesh GitHub repository</a>" \
 link_nrfutil_github="<a href=\"https://github.com/NordicSemiconductor/pc-nrfutil/tree/mesh_dfu\" target=\"_blank\">https://github.com/NordicSemiconductor/pc-nrfutil/tree/mesh_dfu</a>" \
-link_nrfutil_github_name="<a href=\"https://github.com/NordicSemiconductor/pc-nrfutil/tree/mesh_dfu\" target=\"_blank\">nrfutil</a>" \
+link_nrfutil_github_name="<a href=\"https://github.com/NordicSemiconductor/pc-nrfutil/tree/mesh_dfu\" target=\"_blank\">nRF Util</a>" \
 link_openmesh_github="<a href=\"https://github.com/NordicPlayground/nRF51-ble-bcast-mesh\" target=\"_blank\">nRF OpenMesh</a>" \
 link_nordicsemi="<a href=\"https://www.nordicsemi.com/\" target=\"_blank\">nordicsemi.com</a>" \
 link_devzone="<a href=\"https://devzone.nordicsemi.com/\" target=\"_blank\">DevZone</a>" \
@@ -310,7 +310,7 @@ link_nrf_connect_mobile_android="<a href=\"https://play.google.com/store/apps/de
 # Zephyr RTOS
 ALIASES               += \
 link_zephyr="<a href="https://github.com/zephyrproject-rtos/zephyr" target="_blank_">Zephyr RTOS</a>" \
-link_zephyr_BTMesh_example="<a href="https://github.com/zephyrproject-rtos/zephyr/tree/zephyr-v1.13.0/samples/bluetooth/mesh" target="_blank">Bluetooth Mesh example</a>" \
+link_zephyr_BTMesh_example="<a href="https://github.com/zephyrproject-rtos/zephyr/tree/zephyr-v1.13.0/samples/bluetooth/mesh" target="_blank">Bluetooth mesh example</a>" \
 link_zephyr_apache_license="<a href="https://github.com/zephyrproject-rtos/zephyr/blob/master/LICENSE" target="_blank">Apache 2.0</a>" \
 link_zephyr_licensing="<a href="https://docs.zephyrproject.org/latest/LICENSING.html" target="_blank">Licensing of Zephyr Project components</a>" \
 
@@ -324,48 +324,49 @@ link_52832_GPIOTE="<a href="https://infocenter.nordicsemi.com/pdf/nRF52832_PS_v1
 
 # Infocenter: nRF5 SDK
 ALIASES               += \
-link_app_timer="[App timer](../sdk_nrf5_v16.0.0/lib_timer.html)" \
-link_app_timer_group="[App timer](../sdk_nrf5_v16.0.0/group__app__timer.html)" \
-link_app_irq_priority_lowest="[APP_IRQ_PRIORITY_LOWEST](../sdk_nrf5_v16.0.0/group__app__util__platform.html)" \
-link_app_irq_priority_low="[APP_IRQ_PRIORITY_LOW](../sdk_nrf5_v16.0.0/group__app__util__platform.html)" \
-link_section_vars="[Section variables](../sdk_nrf5_v16.0.0/lib_section_vars.html)" \
-link_BLE_CPN="[Connection Parameters Negotiation](../sdk_nrf5_v16.0.0/group__ble__conn__params.html)" \
-link_ble_app_proximity_example="[Proximity Application](../sdk_nrf5_v16.0.0/ble_sdk_app_proximity.html)" \
-link_ble_app_uart_example="[UART/Serial Port Emulation over BLE](../sdk_nrf5_v16.0.0/ble_sdk_app_nus_eval.html)" \
-link_buttonless_secure_dfu_service="[Buttonless Secure DFU Service](../sdk_nrf5_v16.0.0/service_dfu.html)" \
-link_bootloader_and_dfu_modules="[nRF5 SDK Bootloader and DFU modules](../sdk_nrf5_v16.0.0/lib_bootloader_modules.html)" \
-link_working_with_keys="[Working with keys](../sdk_nrf5_v16.0.0/lib_bootloader_dfu_keys.html)" \
-link_bootloader_signature_verification="[Signature Verification](../sdk_nrf5_v16.0.0/lib_bootloader_dfu_validation.html#lib_bootloader_signatures)" \
-link_secure_bootloader="[Secure Bootloader example](../sdk_nrf5_v16.0.0/ble_sdk_app_dfu_bootloader.html)" \
-link_bootloader_settings_page="[Bootloader Settings page](../sdk_nrf5_v16.0.0/lib_bootloader.html#lib_bootloader_settings_page)" \
-link_programming_bootloader="[Programming the bootloader](../sdk_nrf5_v16.0.0/lib_bootloader.html#lib_bootloader_programming)" \
-link_micro_ecc="[micro-ecc](../sdk_nrf5_v16.0.0/lib_crypto_backend_micro_ecc.html)" \
-link_micro_ecc_install="[Installing micro-ecc](../sdk_nrf5_v16.0.0/lib_crypto_backend_micro_ecc.html#lib_crypto_backend_micro_ecc_install)" \
-link_SD_Handler="[SoftDevice Handler](../sdk_nrf5_v16.0.0/group__nrf__sdh.html)" \
-link_BLE_stack="[BLE stack](../sdk_nrf5_v16.0.0/group__nrf__sdh__ble.html)" \
-link_app_data_area_size="[NRF_DFU_APP_DATA_AREA_SIZE](../sdk_nrf5_v16.0.0/group__nrf__dfu__config.html#gafeca0997c1671ecd32a25d6c17b16af3)" \
-link_SDK_configuration_header_file="[SDK configuration header file](../sdk_nrf5_v16.0.0/sdk_config.html)" \
-link_APP_PWM="[APP_PWM](../sdk_nrf5_v16.0.0/group__app__pwm.html)" \
-link_APP_PWM_INSTANCE="[APP_PWM_INSTANCE](../sdk_nrf5_v16.0.0/group__app__pwm.html#gaf01d3e06e17705a7453d91c70d40098f)" \
-link_app_pwm_config_t="[app_pwm_config_t](../sdk_nrf5_v16.0.0/structapp__pwm__config__t.html)" \
+link_app_timer="[App timer](../sdk_nrf5_v17.0.2/lib_timer.html)" \
+link_app_timer_group="[App timer](../sdk_nrf5_v17.0.2/group__app__timer.html)" \
+link_app_irq_priority_lowest="[APP_IRQ_PRIORITY_LOWEST](../sdk_nrf5_v17.0.2/group__app__util__platform.html)" \
+link_app_irq_priority_low="[APP_IRQ_PRIORITY_LOW](../sdk_nrf5_v17.0.2/group__app__util__platform.html)" \
+link_section_vars="[Section variables](../sdk_nrf5_v17.0.2/lib_section_vars.html)" \
+link_BLE_CPN="[Connection Parameters Negotiation](../sdk_nrf5_v17.0.2/group__ble__conn__params.html)" \
+link_ble_app_proximity_example="[Proximity Application](../sdk_nrf5_v17.0.2/ble_sdk_app_proximity.html)" \
+link_ble_app_uart_example="[UART/Serial Port Emulation over BLE](../sdk_nrf5_v17.0.2/ble_sdk_app_nus_eval.html)" \
+link_buttonless_secure_dfu_service="[Buttonless Secure DFU Service](../sdk_nrf5_v17.0.2/service_dfu.html)" \
+link_bootloader_and_dfu_modules="[nRF5 SDK Bootloader and DFU modules](../sdk_nrf5_v17.0.2/lib_bootloader_modules.html)" \
+link_working_with_keys="[Working with keys](../sdk_nrf5_v17.0.2/lib_bootloader_dfu_keys.html)" \
+link_bootloader_signature_verification="[Signature Verification](../sdk_nrf5_v17.0.2/lib_bootloader_dfu_validation.html#lib_bootloader_signatures)" \
+link_secure_bootloader="[Secure Bootloader example](../sdk_nrf5_v17.0.2/ble_sdk_app_dfu_bootloader.html)" \
+link_bootloader_settings_page="[Bootloader Settings page](../sdk_nrf5_v17.0.2/lib_bootloader.html#lib_bootloader_settings_page)" \
+link_programming_bootloader="[Programming the bootloader](../sdk_nrf5_v17.0.2/lib_bootloader.html#lib_bootloader_programming)" \
+link_micro_ecc="[micro-ecc](../sdk_nrf5_v17.0.2/lib_crypto_backend_micro_ecc.html)" \
+link_micro_ecc_install="[Installing micro-ecc](../sdk_nrf5_v17.0.2/lib_crypto_backend_micro_ecc.html#lib_crypto_backend_micro_ecc_install)" \
+link_SD_Handler="[SoftDevice Handler](../sdk_nrf5_v17.0.2/group__nrf__sdh.html)" \
+link_BLE_stack="[BLE stack](../sdk_nrf5_v17.0.2/group__nrf__sdh__ble.html)" \
+link_app_data_area_size="[NRF_DFU_APP_DATA_AREA_SIZE](../sdk_nrf5_v17.0.2/group__nrf__dfu__config.html#gafeca0997c1671ecd32a25d6c17b16af3)" \
+link_SDK_configuration_header_file="[SDK configuration header file](../sdk_nrf5_v17.0.2/sdk_config.html)" \
+link_APP_PWM="[APP_PWM](../sdk_nrf5_v17.0.2/group__app__pwm.html)" \
+link_APP_PWM_INSTANCE="[APP_PWM_INSTANCE](../sdk_nrf5_v17.0.2/group__app__pwm.html#gaf01d3e06e17705a7453d91c70d40098f)" \
+link_app_pwm_config_t="[app_pwm_config_t](../sdk_nrf5_v17.0.2/structapp__pwm__config__t.html)" \
+link_nRF5_SDK_release_notes="[nRF5 SDK v17.0.2 release notes](../sdk_nrf5_v17.0.2/index.html)" \
 
 # Infocenter: SoftDevices
 ALIASES               += \
 link_ic_SDtimeslotAPI="[SoftDevice Timeslot API](../sds_s132/SDS/s1xx/concurrent_multiprotocol_tsl_api/concurrent_multiprotocol_tsl_api.html)" \
 link_softdevice_id="[SoftDevice identifier](../sds_s132/SDS/s1xx/sd_info_structure/sd_info_structure.html)" \
-link_sd_nvic_criticial_region_enter="[sd_nvic_critical_region_enter()](../com.nordic.infocenter.s132.api.v7.0.1/group___n_r_f___n_v_i_c___f_u_n_c_t_i_o_n_s.html#gac3d990530890d81f388de7d507e170b8)" \
-link_sd_nvic_criticial_region_exit="[sd_nvic_critical_region_exit()](../com.nordic.infocenter.s132.api.v7.0.1/group___n_r_f___n_v_i_c___f_u_n_c_t_i_o_n_s.html#ga7bcafdd2cd546560174d688fdbeda7dd)" \
-link_SoftDevice_NVIC="[SoftDevice NVIC APIs](../com.nordic.infocenter.s132.api.v7.0.1/group__nrf__nvic__api.html)" \
-link_GAP="[Generic Access Profile (GAP)](../com.nordic.infocenter.s132.api.v7.0.1/group___b_l_e___g_a_p.html)" \
-link_ble_opt_t="[ble_opt_t](../com.nordic.infocenter.s132.api.v7.0.1/unionble__opt__t.html)" \
-link_sd_ble_opt_set="[sd_ble_opt_set](../com.nordic.infocenter.s132.api.v7.0.1/group___b_l_e___c_o_m_m_o_n___f_u_n_c_t_i_o_n_s.html#ga511d431bc3d9ccf9bef09ad20cbf855a)" \
+link_sd_nvic_criticial_region_enter="[sd_nvic_critical_region_enter()](../com.nordic.infocenter.s132.api.v7.2.0/group___n_r_f___n_v_i_c___f_u_n_c_t_i_o_n_s.html#gac3d990530890d81f388de7d507e170b8)" \
+link_sd_nvic_criticial_region_exit="[sd_nvic_critical_region_exit()](../com.nordic.infocenter.s132.api.v7.2.0/group___n_r_f___n_v_i_c___f_u_n_c_t_i_o_n_s.html#ga7bcafdd2cd546560174d688fdbeda7dd)" \
+link_SoftDevice_NVIC="[SoftDevice NVIC APIs](../com.nordic.infocenter.s132.api.v7.2.0/group__nrf__nvic__api.html)" \
+link_GAP="[Generic Access Profile (GAP)](../com.nordic.infocenter.s132.api.v7.2.0/group___b_l_e___g_a_p.html)" \
+link_ble_opt_t="[ble_opt_t](../com.nordic.infocenter.s132.api.v7.2.0/unionble__opt__t.html)" \
+link_sd_ble_opt_set="[sd_ble_opt_set](../com.nordic.infocenter.s132.api.v7.2.0/group___b_l_e___c_o_m_m_o_n___f_u_n_c_t_i_o_n_s.html#ga511d431bc3d9ccf9bef09ad20cbf855a)" \
 
 # Infocenter: Tools
 ALIASES               += \
-link_ic_nrfutil="[nrfutil](../ug_nrfutil/UG/nrfutil/nrfutil_intro.html)" \
-link_nrfutil_installing="[Installing nrfutil](../ug_nrfutil/UG/nrfutil/nrfutil_installing.html)" \
+link_ic_nrfutil="[nRF Util](../ug_nrfutil/UG/nrfutil/nrfutil_intro.html)" \
+link_nrfutil_installing="[Installing nRF Util](../ug_nrfutil/UG/nrfutil/nrfutil_installing.html)" \
 link_nrfutil_bootloader_settings="[Generating and displaying bootloader settings](../ug_nrfutil/UG/nrfutil/nrfutil_settings_generate_display.html)" \
-link_nrfutil_generating_dfu_packages="[Generating DFU packages with nrfutil](../ug_nrfutil/UG/nrfutil/nrfutil_pkg.html)" \
+link_nrfutil_generating_dfu_packages="[Generating DFU packages with nRF Util](../ug_nrfutil/UG/nrfutil/nrfutil_pkg.html)" \
 link_nrf_command_line_tools="[nRF5x Command Line Tools](../ug_nrf5x_cltools/UG/cltools/nrf5x_command_line_tools_lpage.html)" \
 link_nrf5xclt_download="<a href="../ug_nrf5x_cltools/UG/cltools/nrf5x_installation.html" target="_blank">nRF5x Command Line Tools</a>" \
 
@@ -374,12 +375,14 @@ link_nrf5xclt_download="<a href="../ug_nrf5x_cltools/UG/cltools/nrf5x_installati
 ALIASES               += \
 tagGreenTick="@htmlonly<CENTER><font color=\"green\">✔</font></CENTER>@endhtmlonly" \
 tagRedCross="@htmlonly<CENTER><font color=\"red\">✖</font></CENTER>@endhtmlonly" \
-tag52810nosupport="<div class=\"whichnRF nRF52\"><span>This example is <b>not</b> compatible with the <b>nRF52810</b> device.</span></div>" \
+tag52810and52820nosupport="<div class=\"whichnRF nRF52\"><span>This example is <b>not</b> compatible with the <b>nRF52810</b> and <b>nRF52820</b> devices.</span></div>" \
+tag52840dongle52810and52820nosupport="<div class=\"whichnRF nRF52\"><span>This example is <b>not</b> compatible with the <b>nRF52810</b>, <b>nRF52820</b>, and <b>nRF52840 dongle</b> devices.</span></div>" \
+tag52840donglelimitedsupport="<div class=\"whichnRF nRF52\"><span>This example is <b>only partially</b> compatible with the <b>nRF52840 dongle</b> device.</span></div>" \
 tag52840and52833and52832="<div class=\"whichnRF nRF52840\"><span>You can test this example on the following devices: <b>nRF52840</b>, <b>nRF52833</b>, and <b>nRF52832</b>.</span></div>" \
-tagSupportAllCompatibleBoards="<div class=\"whichnRF nRF52840\"><span>You can test this example on the following devices: <b>nRF52840</b>, <b>nRF52833</b>, <b>nRF52832</b>, and <b>nRF52810</b>.</span></div>" \
-tagMeshSp="Mesh Profile Specification (MshPRFv1.0.1)" \
-tagMeshMdlSp="Mesh Model Specification (MshMDLv1.0.1)" \
-tagMeshDevPr="Mesh Device Properties (MDPv1.2)" \
+tagSupportAllCompatibleBoards="<div class=\"whichnRF nRF52840\"><span>You can test this example on the following devices: <b>nRF52840</b>, <b>nRF52833</b>, <b>nRF52832</b>, <b>nRF52820</b>, and <b>nRF52810</b>.</span></div>" \
+tagMeshSp="Bluetooth Mesh Profile Specification (MshPRFv1.0.1)" \
+tagMeshMdlSp="Bluetooth Mesh Model Specification (MshMDLv1.0.1)" \
+tagMeshDevPr="Bluetooth Mesh Device Properties (MDPv1.2)" \
 
 # This tag can be used to specify a number of word-keyword mappings (TCL only).
 # A mapping has the form "name=value". For example adding "class=itcl::class"
@@ -946,6 +949,7 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/models/model_spec/light_lightness/include" \
 "@PROJECT_SOURCE_DIR@/models/model_spec/light_lc/include" \
 "@PROJECT_SOURCE_DIR@/models/model_spec/light_ctl/include" \
+"@PROJECT_SOURCE_DIR@/models/model_spec/scene/include" \
 "@PROJECT_SOURCE_DIR@/models/model_spec/sensor/include" \
 "@PROJECT_SOURCE_DIR@/models/vendor/rssi_monitor/include" \
 "@PROJECT_SOURCE_DIR@/models/vendor/rssi_monitor/README.md" \
@@ -986,6 +990,7 @@ INPUT                  = \
 "@PROJECT_SOURCE_DIR@/examples/light_lightness/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/light_lc/server/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/light_ctl/README.md" \
+"@PROJECT_SOURCE_DIR@/examples/scene/README.md" \
 "@PROJECT_SOURCE_DIR@/examples/sensor/README.md" \
 
 # This tag can be used to specify the character encoding of the source files

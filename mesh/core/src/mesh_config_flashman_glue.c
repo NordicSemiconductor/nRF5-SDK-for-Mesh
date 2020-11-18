@@ -40,6 +40,8 @@
 #include "mesh_config_backend_glue.h"
 #include "nrf_mesh_assert.h"
 #include "flash_manager.h"
+#include "flash_manager_internal.h"
+#include "flash_manager_defrag.h"
 #include "event.h"
 #include "utils.h"
 #include "mesh_opt.h"
@@ -125,6 +127,8 @@ static void write_complete_cb(const flash_manager_t * p_manager,
             MESH_CONFIG_BACKEND_EVT_TYPE_STORAGE_MEDIUM_FAILURE;
     event.id.file = p_file->file_id;
     event.id.record = p_entry->header.handle;
+    event.p_data = (uint8_t *)p_entry->data;
+    event.length = p_entry->header.len_words * WORD_SIZE - sizeof(fm_header_t);
     m_evt_cb(&event);
 }
 
@@ -144,6 +148,8 @@ static void invalidate_complete_cb(const flash_manager_t * p_manager,
             MESH_CONFIG_BACKEND_EVT_TYPE_STORAGE_MEDIUM_FAILURE;
     event.id.file = p_file->file_id;
     event.id.record = handle;
+    event.p_data = NULL;
+    event.length = 0;
     m_evt_cb(&event);
 }
 
@@ -156,6 +162,7 @@ static void remove_complete_cb(const flash_manager_t * p_manager)
                                                               glue_data,
                                                               p_glue);
 
+    __LOG(LOG_SRC_FM, LOG_LEVEL_DBG1, "File %d removed\n", p_file->file_id);
     file_restore(p_file);
 }
 
@@ -184,6 +191,8 @@ static void file_ready_listener(void * p_args)
     mesh_config_backend_evt_t event;
     event.type = MESH_CONFIG_BACKEND_EVT_TYPE_FILE_CLEAN_COMPLETE;
     event.id.file = p_file->file_id;
+    event.p_data = NULL;
+    event.length = 0;
     m_evt_cb(&event);
 }
 
@@ -191,10 +200,27 @@ static void file_remove(mesh_config_backend_file_t * p_file)
 {
     flash_manager_t * p_manager = &p_file->glue_data.flash_manager;
 
-    uint32_t status = flash_manager_remove(p_manager);
-    NRF_MESH_ASSERT(status == NRF_ERROR_NO_MEM || status == NRF_SUCCESS);
+    if (flash_manager_is_removing(p_manager))
+    {
+        return;
+    }
 
-    if (status == NRF_ERROR_NO_MEM)
+    uint32_t status = flash_manager_remove(p_manager);
+
+    /* It is possible that the removal will fail due to following valid reasons and hence it will
+     * be retried.
+     * 1. No memory. In such case retry later.
+     * 2. Flash manager is already building and hence Invalid state is returned. This can happen
+     * post DFU upgrade when mesh config gets cleared due to mismatch but at the same time newly
+     * added file starts building. In such case retry later. It is necessary to remove newly built
+     * file to ensure all mesh config files are cleaned up when requested by higher module.
+     */
+    NRF_MESH_ASSERT(status == NRF_ERROR_NO_MEM || status == NRF_SUCCESS ||
+                    (status == NRF_ERROR_INVALID_STATE && flash_manager_is_building(p_manager)));
+
+    /* NRF_ERROR_INVALID_STATE status is acceptable only when file is
+     * building. */
+    if (status == NRF_ERROR_NO_MEM || status == NRF_ERROR_INVALID_STATE)
     {
         p_file->glue_data.listener.callback = file_remove_listener_wrapper;
         p_file->glue_data.listener.p_args = p_file;
@@ -409,4 +435,18 @@ uint32_t mesh_config_backend_file_power_down_time_get(const mesh_config_file_par
         return 0;
     }
     return FLASH_BASE_TIME_OVERHEAD_US + CEIL_DIV(p_file->p_backend_data->size, WORD_SIZE) * FLASH_TIME_PER_WORD_US + p_file->p_backend_data->entry_count * FLASH_ENTRY_TIME_OVERHEAD_US;
+}
+
+void mesh_config_backend_power_down(void)
+{
+    flash_manager_defrag_freeze();
+}
+
+bool mesh_config_backend_is_there_power_down_place(mesh_config_backend_file_t * p_file)
+{
+    flash_manager_t * p_manager = &p_file->glue_data.flash_manager;
+    uint32_t remaining_place = (uint32_t)((uint8_t *) get_area_end(p_manager->config.p_area) -
+            (uint8_t *) p_manager->internal.p_seal);
+
+    return p_manager->config.min_available_space <= remaining_place;
 }

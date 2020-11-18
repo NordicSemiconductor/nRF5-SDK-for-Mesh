@@ -1,7 +1,7 @@
 # Remote provisioning (PB-remote)
 
 Remote provisioning (PB-remote) allows a provisioner to provision devices located outside
-of the provisioner's radio range. This is done by using mesh nodes to relay provisioning
+of the provisioner's radio range. This is done by using Bluetooth mesh nodes to relay provisioning
 messages to a node within the range of the remote device that is to be provisioned.
 
 ![Remote provisioning topology](images/remote_provisioning.png)
@@ -67,7 +67,7 @@ scanning using the PB-remote server.
 
 To use the PB-remote client in your application, implement the following steps:
 - Initialize the PB-remote client by calling `pb_remote_client_init()`.
-- Add the remote provisioning bearer to the mesh stack:
+- Add the remote provisioning bearer to the Bluetooth mesh stack:
     - Call @ref nrf_mesh_prov_bearer_add() and provide a statically-allocated provisioning context
     structure and the remote provisioning bearer reference. The reference is obtained by calling
     @ref pb_remote_client_bearer_interface_get().

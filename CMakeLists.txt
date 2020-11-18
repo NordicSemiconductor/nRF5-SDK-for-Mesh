@@ -6,8 +6,8 @@ if (NOT CMAKE_VERSION VERSION_LESS 3.9)
     cmake_policy(SET CMP0069 NEW)
 endif ()
 
-set(VERSION_MAJOR 4)
-set(VERSION_MINOR 2)
+set(VERSION_MAJOR 5)
+set(VERSION_MINOR 0)
 set(VERSION_BUGFIX 0)
 set(VERSION_SUFFIX "")
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUGFIX}${VERSION_SUFFIX}" CACHE STRING "" FORCE)
@@ -96,6 +96,10 @@ endif()
 
 if (DEFINED PERSISTENT_STORAGE)
     add_definitions("-DPERSISTENT_STORAGE=$<BOOL:${PERSISTENT_STORAGE}>")
+endif()
+
+if (DEFINED SCENE_SETUP_SERVER_INSTANCES_MAX)
+    add_definitions("-DSCENE_SETUP_SERVER_INSTANCES_MAX=${SCENE_SETUP_SERVER_INSTANCES_MAX}")
 endif()
 
 # Export compilation commands to .json file (used by clang-complete backends)

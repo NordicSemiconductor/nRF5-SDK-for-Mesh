@@ -49,6 +49,7 @@
 *****************************************************************************/
 /** Minimum time window required for the scanner to start. */
 #define BEARER_SCANNER_MIN_TIME_US              (500)
+
 /*****************************************************************************
 * Static globals
 *****************************************************************************/
@@ -60,6 +61,8 @@ static bool             m_scanner_is_active;
 static bool             m_action_ended; /**< The event end function has been called */
 static bool             m_in_callback; /**< In the callback. */
 static bearer_handler_stopped_cb_t m_stopped_callback; /**< Single fire stop callback to call when the bearer handler has been stopped */
+static bool             m_is_in_force_mode;
+
 /*****************************************************************************
 * Static functions
 *****************************************************************************/
@@ -239,7 +242,10 @@ static void action_switch(void)
             else
             {
                 /* There's no scanner activity and no actions pending, stop the timeslot to save power. */
-                timeslot_stop();
+                if (!m_is_in_force_mode)
+                {
+                    timeslot_stop();
+                }
             }
         }
     }
@@ -498,4 +504,14 @@ void bearer_handler_on_ts_session_closed(void)
     {
         notify_stop();
     }
+}
+
+void bearer_handler_force_mode_enable(void)
+{
+    m_is_in_force_mode = true;
+}
+
+void bearer_handler_force_mode_disable(void)
+{
+    m_is_in_force_mode = false;
 }

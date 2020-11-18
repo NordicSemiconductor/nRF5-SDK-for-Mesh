@@ -402,7 +402,44 @@
 #define REPLAY_CACHE_ENTRIES 40
 #endif
 
+/**
+ * Strategy for storing the replay protection cache into persistent memory.
+ * The replay protection cache is stored into the persistent memory
+ * to avoid replay protection attacks after device is power cycled.
+ *
+ * For details, see the @ref power_down_replay_protection_cache "power-down documentation".
+ *
+ */
+#ifndef REPLAY_CACHE_STORAGE_STRATEGY
+#define REPLAY_CACHE_STORAGE_STRATEGY    MESH_CONFIG_STRATEGY_ON_POWER_DOWN
+#endif
+
 /** @} end of MESH_CONFIG_REPLAY_CACHE */
+
+/**
+ * @defgroup EMERGENCY_CACHE Power down emergency cache configuration.
+ * @{
+ */
+
+/**
+ * Number of flash pages reserved for the emergency cache.
+ *
+ * @note Since the emergency cache is created dynamically stack does not have a predefined list of
+ * the entry descriptors. The emergency cache requires preliminary allocated flash memory
+ * to store data. The size of the cache depends on potentially not stored data in a single moment of time.
+ * Generally, one page is sufficient size. If more than 4k unsaved data are expected
+ * at the one time please allocate more than 1 page for the emergency cache.
+ * However, it is important to understand a large number of not stored data at the moment of power-down causes
+ * the growing time required to go in power off.
+ *
+ * For details, see the @ref power_down_emergency_cache "power-down documentation".
+ *
+ */
+#ifndef EMERGENCY_CACHE_RESERVED_PAGE_NUMBER
+#define EMERGENCY_CACHE_RESERVED_PAGE_NUMBER 1
+#endif
+
+/** @} end of EMERGENCY_CACHE */
 
 /**
  * @defgroup MESH_CONFIG_FLASH_MANAGER Flash manager configuration defines

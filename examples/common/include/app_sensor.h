@@ -100,6 +100,7 @@ typedef uint8_t descriptor_status_t;
  * @param[in] _series_get_cb            Callback for reading series from the application.
  * @param[in] _property_array           The array of supported properties.
  * @param[in] _cadence_timer_ids        An array of timer Ids; one for each supported property.
+ * @param[in] _min_interval_timer_ids   An array of timer Ids; one for each supported property.
  * @param[in] _descriptor_struct_array  The array of descriptors.
  * @param[in] _num_descs                The number of descriptors.
  * @param[in] _p_message_buffer         Buffer used for storing messages used by the sensor model.
@@ -110,6 +111,7 @@ typedef uint8_t descriptor_status_t;
                               _setting_get_cb, _column_get_cb, _series_get_cb, \
                               _property_array,                                 \
                               _cadence_timer_ids,                              \
+                              _min_interval_timer_ids,                         \
                               _descriptor_struct_array, _num_descs,            \
                               _p_message_buffer, _message_buffer_bytes);       \
     static uint8_t m_descriptor_buf[_num_descs * SENSOR_DESCRIPTOR_MSG_SIZE];  \
@@ -125,6 +127,7 @@ typedef uint8_t descriptor_status_t;
         .sensor_series_get_cb = _series_get_cb,                                \
         .p_sensor_property_array = _property_array,                            \
         .p_cadence_timer_ids = _cadence_timer_ids,                             \
+        .p_min_interval_timer_ids = _min_interval_timer_ids,                   \
         .p_sensor_descriptor = _descriptor_struct_array,                       \
         .p_descriptor_message = m_descriptor_buf,                              \
         .sensor_num_desc = _num_descs,                                         \
@@ -294,6 +297,10 @@ struct __app_sensor_server_t
     /** array of timer IDs for supporting fast cadence.
      */
     app_timer_id_t const * p_cadence_timer_ids;
+
+    /** array of timer IDs for enforcing status min interval.
+     */
+    app_timer_id_t const * p_min_interval_timer_ids;
 
     /** Main's descriptor definition - passed in by main (main's static const) - mid app uses this to
      *  create its internal static variable in message-appropriate format.  This descriptor is not

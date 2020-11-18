@@ -54,6 +54,7 @@
 #include "net_state.h"
 #include "mesh_opt_provisioner.h"
 #include "mesh_config_entry.h"
+#include "mesh_opt.h"
 
 /* Provisioning and configuration */
 #include "provisioner_helper.h"
@@ -106,6 +107,7 @@ static network_stats_data_stored_t m_nw_state;
 static bool m_node_prov_setup_started;
 static nrf_mesh_evt_handler_t m_mesh_core_event_handler = { .evt_cb = app_mesh_core_event_cb };
 
+NRF_MESH_STATIC_ASSERT(MESH_OPT_FIRST_FREE_ID <= MESH_APP_FILE_ID);
 MESH_CONFIG_FILE(m_provisioner_file, MESH_APP_FILE_ID, MESH_CONFIG_STRATEGY_CONTINUOUS);
 
 MESH_CONFIG_ENTRY(provisioner,
@@ -187,8 +189,8 @@ static void app_config_successful_cb(void)
 static void app_config_failed_cb(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Configuration of device %u failed.\n", m_nw_state.configured_devices);
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Press Button 1 to retry configuration.\n");
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Press Button 2 to start provisioning new nodes.\n");
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Press Button/RTT 1 to retry configuration.\n");
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Press Button/RTT 2 to start provisioning new nodes.\n");
     m_node_prov_setup_started = false;
     hal_led_pin_set(APP_CONFIGURATION_LED, 0);
 }
@@ -353,7 +355,7 @@ static void node_reset(void)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- Node reset  -----\n");
 
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_RESET);
     /* This function may return if there are ongoing flash operations. */
     mesh_stack_device_reset();
 }
@@ -390,14 +392,12 @@ static void button_event_handler(uint32_t button_number)
         /* Initiate node reset */
         case 4:
         {
-            if (!mesh_stack_is_device_provisioned())
+            if (mesh_stack_is_device_provisioned())
             {
-                return;
+                /* Clear all the states to reset the node. */
+                provisioner_invalidate();
+                mesh_stack_config_clear();
             }
-
-            /* Clear all the states to reset the node. */
-            provisioner_invalidate();
-            mesh_stack_config_clear();
             node_reset();
             break;
         }
@@ -451,8 +451,8 @@ static void mesh_init(void)
     switch (status)
     {
         case NRF_ERROR_INVALID_DATA:
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted. Device starts as unprovisioned.\n");
-            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reset device before starting of the provisioning process.\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Data in the persistent memory was corrupted.\n");
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Reboot device before starting of the provisioning process.\n");
             break;
         case NRF_SUCCESS:
             break;
@@ -460,34 +460,37 @@ static void mesh_init(void)
             ERROR_CHECK(status);
     }
 
-    /* Initialize the provisioner */
-    mesh_provisioner_init_params_t m_prov_helper_init_info =
+    if (status == NRF_SUCCESS)
     {
-        .p_dev_data = &m_dev_handles,
-        .p_nw_data = &m_nw_state,
-        .netkey_idx = NETKEY_INDEX,
-        .attention_duration_s = ATTENTION_DURATION_S,
-        .p_data_store_cb  = app_data_store_cb,
-        .p_prov_success_cb = app_prov_success_cb,
-        .p_prov_failed_cb = app_prov_failed_cb
-    };
-    prov_helper_init(&m_prov_helper_init_info);
+        /* Initialize the provisioner */
+        mesh_provisioner_init_params_t m_prov_helper_init_info =
+        {
+            .p_dev_data = &m_dev_handles,
+            .p_nw_data = &m_nw_state,
+            .netkey_idx = NETKEY_INDEX,
+            .attention_duration_s = ATTENTION_DURATION_S,
+            .p_data_store_cb  = app_data_store_cb,
+            .p_prov_success_cb = app_prov_success_cb,
+            .p_prov_failed_cb = app_prov_failed_cb
+        };
+        prov_helper_init(&m_prov_helper_init_info);
 
-    if (!device_provisioned)
-    {
-        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Setup defaults: Adding keys, addresses, and bindings \n");
+        if (!device_provisioned)
+        {
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Setup defaults: Adding keys, addresses, and bindings \n");
 
-        prov_helper_provision_self();
-        app_default_models_bind_setup();
-        app_data_store_cb();
+            prov_helper_provision_self();
+            app_default_models_bind_setup();
+            app_data_store_cb();
+        }
+        else
+        {
+            __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Restored: Handles \n");
+            prov_helper_device_handles_load();
+        }
+
+        node_setup_cb_set(app_config_successful_cb, app_config_failed_cb);
     }
-    else
-    {
-        __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Restored: Handles \n");
-        prov_helper_device_handles_load();
-    }
-
-    node_setup_cb_set(app_config_successful_cb, app_config_failed_cb);
 }
 
 static void initialize(void)
@@ -515,7 +518,7 @@ static void app_start(void)
     __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "Dev key ", m_nw_state.self_devkey, NRF_MESH_KEY_SIZE);
     __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "Net key ", m_nw_state.netkey, NRF_MESH_KEY_SIZE);
     __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "App key ", m_nw_state.appkey, NRF_MESH_KEY_SIZE);
-    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Press Button 1 to start provisioning and configuration process. \n");
+    __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "Press Button/RTT 1 to start provisioning and configuration process. \n");
 }
 
 static void start(void)
@@ -531,8 +534,8 @@ static void start(void)
 
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, m_usage_string);
 
-    hal_led_mask_set(LEDS_MASK, LED_MASK_STATE_OFF);
-    hal_led_blink_ms(LEDS_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
+    hal_led_mask_set(HAL_LED_MASK, LED_MASK_STATE_OFF);
+    hal_led_blink_ms(HAL_LED_MASK, LED_BLINK_INTERVAL_MS, LED_BLINK_CNT_START);
 }
 
 int main(void)

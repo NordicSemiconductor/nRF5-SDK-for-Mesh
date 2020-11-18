@@ -128,6 +128,15 @@ void timer_sch_reschedule(timer_event_t* p_timer_evt, timestamp_t new_timestamp)
  */
 bool timer_sch_is_scheduled(const timer_event_t * p_timer_evt);
 
+/**
+ * The function causes timer scheduler to abandon the currently scheduled timers.
+ * Additionally, it stops the hardware timer.
+ *
+ * @warning The user application should not call @ref timer_sch_reschedule() or
+ *          @ref timer_sch_schedule() APIs after this point.
+ */
+void timer_sch_stop(void);
+
 /** @} */
 
 #endif /* TIMER_SCHEDULER_H__ */

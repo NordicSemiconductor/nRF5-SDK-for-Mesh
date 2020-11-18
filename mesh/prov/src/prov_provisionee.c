@@ -213,11 +213,23 @@ static uint32_t handle_prov_start(nrf_mesh_prov_ctx_t * p_ctx, const uint8_t * p
         return NRF_ERROR_INVALID_LENGTH;
     }
 
+    if (p_pdu->auth_method == NRF_MESH_PROV_OOB_METHOD_OUTPUT &&
+        !IS_SET(p_ctx->capabilities.oob_output_actions, p_pdu->auth_action))
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+
     if (p_pdu->auth_method == NRF_MESH_PROV_OOB_METHOD_INPUT &&
        (p_pdu->auth_action >= NRF_MESH_PROV_INPUT_ACTION_RFU ||
         p_pdu->auth_size < 1 || p_pdu->auth_size > 8))
     {
         return NRF_ERROR_INVALID_LENGTH;
+    }
+
+    if (p_pdu->auth_method == NRF_MESH_PROV_OOB_METHOD_INPUT &&
+        !IS_SET(p_ctx->capabilities.oob_input_actions, p_pdu->auth_action))
+    {
+        return NRF_ERROR_INVALID_PARAM;
     }
 
 #if NRF_MESH_PROV_FORCE_SECURE_PROVISIONING
@@ -384,7 +396,7 @@ static void prov_provisionee_pkt_in(prov_bearer_t * p_bearer, const uint8_t * p_
 
     if (!prov_packet_length_valid(p_buffer, length) || pdu_type >= PROV_PDU_TYPE_INVALID)
     {
-        send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_INVALID_FORMAT);
+        send_failed(p_ctx, NRF_MESH_PROV_FAILURE_CODE_INVALID_PDU);
         return;
     }
     else if (!prov_utils_is_valid_pdu(p_ctx->role, p_ctx->state, pdu_type))

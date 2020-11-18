@@ -9,8 +9,16 @@ Always refer to the migration guide from the latest documentation release on the
 regardless of the versions you are migrating to and from.
 
 **Table of contents**
+- [Migration from v4.2.0 to v5.0.0](@ref md_doc_migration_4_2_0_to_5_0_0)
+    - [Recompiled bootloader binaries](@ref bootloader_binaries_recompiled_500)
+    - [New timer in Sensor Server API](@ref new_timer_sensor_server_api)
+    - [Revised entry ID constants](@ref revised_entry_id_start_end)
+    - [MemorySegment section renamed](@ref MemorySegment_renamed)
+    - [model_common functions replaced](@ref model_common_replace)
+    - [generic_ponoff_setup_server_status_publish removed](@ref ponoff_status_publish_removed)
+    - [Replay cache is now stored] (@ref replay_cache_stored)
 - [Migration from v4.1.0 to v4.2.0](@ref md_doc_migration_4_1_0_to_4_2_0)
-    - [Recompiled Bootloader binaries](@ref bootloader_binaries_recompiled)
+    - [Recompiled bootloader binaries](@ref bootloader_binaries_recompiled)
     - [Removed prebuilt sensor for LC example](@ref lc_example_sensor)
     - [Updated nrfutil branch](@ref nrfutil_updated)
 - [Migration from v4.0.0 to v4.1.0](@ref md_doc_migration_4_0_0_to_4_1_0)
@@ -38,9 +46,97 @@ regardless of the versions you are migrating to and from.
 
 ---
 
+## Migration from v4.2.0 to v5.0.0 @anchor md_doc_migration_4_2_0_to_5_0_0
+
+Read this migration guide together with the [nRF5 SDK for Mesh v5.0.0 release notes](@ref release_notes_500).
+
+### Recompiled Bootloader binaries @anchor bootloader_binaries_recompiled_500
+- The nRF5 SDK for Mesh bootloader binaries were recompiled in the latest version of the nRF5 SDK for Mesh.
+
+#### Required actions
+- Make sure to use the latest version of the binaries.
+- During DFU, the nRF5 SDK for Mesh bootloader should be updated first to get the new code.
+
+### New timer in Sensor Server API @anchor new_timer_sensor_server_api
+- The @ref SENSOR_MODEL's Sensor Server API has been changed to support the enforcement of the status min interval.
+  The macro @ref APP_SENSOR_SERVER_DEF now requires an array of `app_timer_id_t` with a timer
+  for each supported property in the application for handling the min interval timing.
+  This is required in addition to the similar array needed for handling cadence timing
+  in the Sensor Server API in v4.2.0. The new parameter for the macro is `_min_interval_timer_ids`.
+
+#### Required actions
+- For each Sensor Server defined, define an additional App Timer for each supported property
+  and supply an array of their `app_timer_id_ts` to @ref APP_SENSOR_SERVER_DEF (parameter `_min_interval_timer_ids`).
+
+### Revised entry ID constants @anchor revised_entry_id_start_end
+- The entry ID constants ending with `ID_START` and `ID_END` in model_common.h
+  have been revised to grant more space for model instances.
+  This was done because @ref LIGHT_LC_MODELS and @ref LIGHT_CTL_MODELS
+  required a lot more space for stored values when the @ref SCENE_MODELS were added.
+
+#### Required actions
+- If you are using end applications based on nRF5 SDK for Mesh examples and you do not want to change the
+  device composition data, remove the scene model instantiation from the example
+  and restore the model entry IDs ending with `ID_START` and `ID_END`
+  to values from the nRF5 SDK for Mesh v4.2.0.
+    - If you do not restore the v4.2.0 values, the devices will unprovision themselves after a DFU upgrade.
+
+### MemorySegment section renamed @anchor MemorySegment_renamed
+- The `MemorySegment` section in the SES project files for the @ref md_examples_sdk_coexist_README has been renamed from `RAM` to `RAM1`.
+  This is done due to migration to the nRF5 SDK v17.0.2. See the @link_nRF5_SDK_release_notes for details.
+  The SES project files for the coexistence examples have been updated.
+
+#### Required actions
+- If you have been using the coexistence examples, make sure to rename `MemorySegment` accordingly.
+
+### model_common functions replaced @anchor model_common_replace
+- The `model_common_init` has been replaced by @ref model_config_file_init.
+- The `model_common_config_apply` has been replaced by @ref model_config_file_config_apply.
+
+#### Required actions
+- Complete the following steps:
+    1. Include model_config_file.h in files where the removed functions were used.
+    2. Replace occurrences of the removed function names with the new functions names.
+    3. Add `${MODEL_CONFIG_FILE_SOURCE_FILES}` to `add_executable(${target}` in the application
+       CMakeLists.txt file.
+
+### generic_ponoff_setup_server_status_publish removed @anchor ponoff_status_publish_removed
+- `generic_ponoff_setup_server_status_publish` was removed because the publication support was removed,
+  as per @tagMeshMdlSp.
+
+#### Required actions
+- Remove occurrences of this deprecated API from you application.
+
+### Replay cache is now stored @anchor replay_cache_stored
+- As part of the fix for the previously known issue MBTLE-1975, a new mesh configuration file has
+been added. This file stores replay cache entries in the [default power-down strategy](@ref power_down_replay_protection_cache)
+based on @ref MESH_CONFIG_STRATEGY_ON_POWER_DOWN.
+
+#### Required actions
+- If you want continuity of behavior with the previous versions of the nRF5 SDK for Mesh,
+set the [replay protection cache strategy](@ref power_down_replay_protection_cache)
+to @ref MESH_CONFIG_STRATEGY_NON_PERSISTENT in the application's nrf_mesh_config_app.h file.
+
+
+---
+
 ## Migration from v4.1.0 to v4.2.0 @anchor md_doc_migration_4_1_0_to_4_2_0
 
 Read this migration guide together with the [nRF5 SDK for Mesh v4.2.0 release notes](@ref release_notes_420).
+
+### Change to mesh_config_clear() behavior
+
+- The behavior of the `mesh_config_clear()` was changed in nRF5 SDK for Mesh v4.2.0.
+  It now cleans up all the files instead of cleaning individual entries.
+  Due to this change, if the new v4.2.0 applications are making use of this function,
+  they have new mesh configuration files present (such as `MESH_OPT_MODEL_FILE_ID`),
+  and the device configuration change is detected post-DFU, the use of this function during boot-up
+  will cause an assertion.
+
+#### Required steps
+- To mitigate this issue, in the new firmware using nRF5 SDK for Mesh v4.2.0,
+  when `NRF_ERROR_INVALID_DATA` is detected during `mesh_init()`, call `mesh_config_clear()`
+  once after the `NRF_MESH_EVT_CONFIG_STABLE` event is received.
 
 ### Recompiled Bootloader binaries @anchor bootloader_binaries_recompiled
 - The bootloader binaries were recompiled in the latest version of the nRF5 SDK for Mesh,
@@ -135,6 +231,15 @@ Now, it is a responsibility of the application to erase application specific dat
 
 Read this migration guide together with the [nRF5 SDK for Mesh v3.2.0 release notes](@ref release_notes_320).
 
+### Node unprovisioning requirement
+
+- To perform DFU update from the nRF5 SDK for Mesh v3.1.0 to the v3.2.0 or greater,
+you must first unprovision the node, and then carry out the DFU transfer.
+Otherwise, the node will always fall into assertion after DFU.
+
+#### Required actions
+- Unprovision the node by executing Node Reset before performing DFU that updates the SDK version.
+
 ### Health Server subscription list addition @anchor health_server_subscription
  - The Health Server model now allocates a subscription list during
  the initialization procedure. Because of this change, an insufficient number of available subscription
@@ -199,7 +304,7 @@ if you need to check whether the device will process packets received on the giv
 destination address.
 
 ### Updated DFU @anchor dfu_updates
-- DFU has received updates and bugfixes in the nRF5 SDK for Mesh v3.2.0 that impact the upgrade from previous release versions. 
+- DFU has received updates and bugfixes in the nRF5 SDK for Mesh v3.2.0 that impact the upgrade from previous release versions.
 
 #### Required actions
 - The DFU update from the SDK v3.1.0 to the SDK v3.2.0 or newer will require you to first unprovision the node (execute Node Reset), and then carry out the DFU transfer.
@@ -428,14 +533,14 @@ The following source files have been removed in this release:
         - Configuration model moved from `models/config` to `models/foundation/config`
         - Health model moved from `models/health` to `models/foundation/health`
     - Generic models are present in models/model_spec:
-        - Common functionality used by the Mesh models: `models/model_spec/common`
+        - Common functionality used by the Bluetooth mesh models: `models/model_spec/common`
         - Generic Default Transition Time model: `models/model_spec/generic_dtt`
         - Generic Level model: `models/model_spec/generic_level`
         - Generic OnOff model: `models/model_spec/generic_onoff`
     - Vendor-specific models have been moved to models/vendor:
         - Simple OnOff model moved from `models/simple_on_off` to `models/vendor/simple_on_off`
     - Experimental models have been moved to models/experimental:
-        - Provisioning over Mesh model moved from `models/pb_remote` to `models/experimental/pb_remote`
+        - Provisioning over models moved from `models/pb_remote` to `models/experimental/pb_remote`
 - The `light_switch` examples and `enocean` example have been updated to use Generic OnOff models.
 
 #### Backwards-compatible changes to model API

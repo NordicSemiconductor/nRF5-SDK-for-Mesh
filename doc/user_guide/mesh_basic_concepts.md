@@ -1,21 +1,21 @@
-# Bluetooth Mesh concepts
+# Bluetooth mesh concepts
 
-Bluetooth Mesh is a profile specification developed and published by the @link_BluetoothSIG.
-This document explains the basic concepts of the Bluetooth Mesh and gives an overview of the operation
-and capabilities of the profile, as well as explaining the life cycle of a mesh device.
-For more specific information about Nordic Semiconductor's implementation of the Bluetooth Mesh,
-see [mesh architecture documentation](@ref md_doc_user_guide_mesh_basic_architecture).
+Bluetooth mesh is a profile specification developed and published by the @link_BluetoothSIG.
+This document explains the basic concepts of the Bluetooth mesh and gives an overview of the operation
+and capabilities of the profile, as well as explaining the life cycle of a mesh network device.
+For more specific information about Nordic Semiconductor's implementation of the Bluetooth mesh,
+see [Bluetooth mesh architecture documentation](@ref md_doc_user_guide_mesh_basic_architecture).
 
-The Bluetooth Mesh is based on the Bluetooth low energy part of the Bluetooth 4.0 Specification
-and shares the lowest layers with this protocol. On-air, the Bluetooth Mesh physical representation
-is compatible with existing Bluetooth low energy devices, as mesh messages are contained
-inside the payload of Bluetooth low energy _advertisement_ packets. However, Bluetooth Mesh specifies
-a completely new host layer, and although some concepts are shared, Bluetooth Mesh
+The Bluetooth mesh is based on the Bluetooth low energy part of the Bluetooth 4.0 specification
+and shares the lowest layers with this protocol. On-air, the Bluetooth mesh physical representation
+is compatible with existing Bluetooth low energy devices, as mesh network messages are contained
+inside the payload of Bluetooth low energy _advertisement_ packets. However, Bluetooth mesh specifies
+a completely new host layer, and although some concepts are shared, Bluetooth mesh
 is incompatible with the Bluetooth low energy host layer.
 
-![Relationship between Bluetooth Mesh and Bluetooth low energy specifications](images/mesh_and_ble.svg)
+![Relationship between Bluetooth mesh and Bluetooth low energy specifications](images/mesh_and_ble.svg)
 
-Read more about basic Bluetooth Mesh concepts in the following sections:
+Read more about basic Bluetooth mesh concepts in the following sections:
 - [Application areas](@ref concepts_application_areas)
 - [Network topology and relaying](@ref concepts_network_topo), including information about
 [transport](@ref concepts_network_topo_transport), [relays](@ref concepts_network_topo_relays),
@@ -35,61 +35,61 @@ and [replay protection](@ref concepts_security_replay_protection).
 
 ## Application areas @anchor concepts_application_areas
 
-Bluetooth Mesh primarily targets simple control and monitoring applications, like light control
+Bluetooth mesh primarily targets simple control and monitoring applications, like light control
 or sensor data gathering. The packet format is optimized for small control packets,
 issuing single commands or reports, and is not intended for data streaming or other high-bandwidth
 applications.
 
-Using Bluetooth Mesh causes higher power consumption than traditional Bluetooth low energy applications.
+Using Bluetooth mesh causes higher power consumption than traditional Bluetooth low energy applications.
 This is mainly due to the need for keeping the radio running constantly. Therefore, unlike Bluetooth
-low energy advertisers, active mesh devices cannot be run off coin-cell batteries
+low energy advertisers, active mesh network devices cannot be run off coin-cell batteries
 for extended periods of time.
 
-Bluetooth Mesh supports up to 32767 devices in a network, with a maximum network diameter of 126 hops.
+Bluetooth mesh supports up to 32767 devices in a network, with a maximum network diameter of 126 hops.
 
 ---
 
 
 ## Network topology and relaying @anchor concepts_network_topo
 
-Bluetooth Mesh is a broadcast-based network protocol, where every device in the network sends
+Bluetooth mesh is a broadcast-based network protocol, where every device in the network sends
 and receives all messages to and from all devices within radio range.
 
 There is no concept of connections in a mesh network. Any device in the network may relay
-messages from any other device, which makes it possible for a mesh device to send a message
+messages from any other device, which makes it possible for a Bluetooth mesh device to send a message
 to a device outside of radio range by having one or more other devices relay the message
 towards the destination. This property also allows devices to move around and drop in
 and out of the network at any time.
 
 ### Mesh transport @anchor concepts_network_topo_transport
 
-Bluetooth Mesh utilizes the Bluetooth low energy advertiser and scanner roles,
+Bluetooth mesh utilizes the Bluetooth low energy advertiser and scanner roles,
 communicating through Bluetooth low energy advertisement packets. The advertisement packets
-are picked up by nearby mesh devices and handled like other Bluetooth low energy
-advertisement packets. The mesh packets are represented with a unique AD type
+are picked up by nearby Bluetooth mesh devices and handled like other Bluetooth low energy
+advertisement packets. The Bluetooth mesh packets are represented with a unique AD type
 and added to the advertisement packet payload.
 
 Bluetooth low energy devices send advertisement packets at regular _advertisement intervals_,
-and mesh packets are no exception. However, unlike traditional advertisers, mesh devices will change
-their advertisement payload on every transmission, broadcasting new mesh packets
+and mesh packets are no exception. However, unlike traditional advertisers, Bluetooth mesh devices
+will change their advertisement payload on every transmission, broadcasting new Bluetooth mesh packets
 as they are queued up in the stack.
 
-If there is no traffic in the mesh network or the mesh stack, or if the application does not generate
-any messages, the devices stay silent until there is something to transmit.
+If there is no traffic in the Bluetooth mesh network or the Bluetooth mesh stack, or if the application
+does not generate any messages, the devices stay silent until there is something to transmit.
 
 ### Relays @anchor concepts_network_topo_relays
 
-Bluetooth Mesh expands the range of the network by relaying messages. Any mesh device may be configured
-to act as a relay, and no dedicated relay devices are needed to build a network.
+Bluetooth mesh expands the range of the network by relaying messages. Any Bluetooth mesh device
+may be configured to act as a relay, and no dedicated relay devices are needed to build a network.
 
 Every device acting as a relay will decrement the Time To Live (TTL)
 value in received messages and forward them if the TTL equals two or higher. This undirected relaying
 is referred to as _message flooding_ and ensures a high probability of message delivery,
 without requiring any information on the network topology.
 
-The Mesh Profile Specification does not provide any routing mechanisms, and all messages are forwarded
+The Bluetooth mesh profile specification does not provide any routing mechanisms, and all messages are forwarded
 by all relays until the TTL value reaches zero. To avoid messages being forwarded by the same relays
-over and over, all mesh devices maintain a _message cache_. This cache is used for filtering out
+over and over, all Bluetooth mesh devices maintain a _message cache_. This cache is used for filtering out
 packets that the device has already handled.
 
 The flooding-based approach to message relaying can cause a lot of redundant traffic on air, which may impact the throughput and
@@ -108,18 +108,18 @@ To enable broadcast-based communication, the devices must continuously keep thei
 This causes significantly higher power consumption than in a typical Bluetooth low energy device.
 
 To enable low power devices to take part in the mesh
-network, Bluetooth Mesh contains a _friendship_ feature.
-This protocol lets low power devices establish a relationship with a regular mesh device,
+network, Bluetooth mesh contains a _friendship_ feature.
+This protocol lets low power devices establish a relationship with a regular Bluetooth mesh device,
 which will then cache and forward messages to the low power device at regular intervals.
 This saves the low power device from having to stay on to listen for incoming messages.
 
 ### GATT proxy @anchor concepts_network_topo_gatt
 
-To enable support for legacy Bluetooth low energy devices that do not support receiving mesh packets,
-Bluetooth Mesh defines a separate protocol for tunneling mesh messages over the Bluetooth low energy
-GATT protocol. For this purpose, the Mesh Profile Specification defines a GATT bearer
+To enable support for legacy Bluetooth low energy devices that do not support receiving mesh network packets,
+Bluetooth mesh defines a separate protocol for tunneling mesh messages over the Bluetooth low energy
+GATT protocol. For this purpose, the Bluetooth mesh profile specification defines a GATT bearer
 and the corresponding GATT Proxy Protocol. This protocol allows legacy Bluetooth low energy devices
-to participate in the mesh network by establishing a GATT connection to a mesh device
+to participate in the Bluetooth mesh network by establishing a GATT connection to a Bluetooth mesh device
 that has the proxy feature enabled.
 
 The legacy device gets assigned an address and the necessary keys to become a full-fledged member
@@ -131,7 +131,7 @@ or through some out-of-band mechanism.
 
 ## Addressing @anchor concepts_addressing
 
-The Bluetooth Mesh addressing scheme is different from the Bluetooth low energy addressing scheme.
+The Bluetooth mesh addressing scheme is different from the Bluetooth low energy addressing scheme.
 It features three types of addresses:
 - *Unicast addresses*: unique for every device
 - *Group addresses*: for forming a group of devices and addressing them all at once
@@ -139,7 +139,7 @@ It features three types of addresses:
 
 When a device is added to a network, it is assigned a range of unicast addresses that represents it.
 A device's unicast addresses cannot be changed and are always sequential. The unicast address space
-supports having 32767 unicast addresses in a single mesh
+supports having 32767 unicast addresses in a single Bluetooth mesh
 network. Unicast addresses can be used by any application to directly send a message to a device.
 
 Group addresses are allocated and assigned as part of the network configuration procedure.
@@ -157,17 +157,17 @@ ad-hoc between devices in the network.
 
 ## Models and Elements @anchor concepts_models_and_elements
 
-To standardize communication between devices from different vendors, the Mesh Profile Specification
-defines an access layer, which routes mesh messages between the various _models_ in a device.
+To standardize communication between devices from different vendors, the Bluetooth mesh profile specification
+defines an access layer, which routes Bluetooth mesh messages between the various _models_ in a device.
 A model represents a specific behavior or service and defines a set of states and messages that act
-on these states. The Mesh Profile Specification and the Mesh Model Specification each define a set
+on these states. The Bluetooth mesh profile specification and the Bluetooth mesh model specification each define a set
 of models to cover typical usage scenarios like device configuration, sensor readings,
 and light control. In addition to these, vendors are free to define their own models
 with accompanying messages and states.
 
 The models in a device belong in _elements_. Every device has one or more elements,
- each acting as a virtual entity in the mesh with its own unique unicast address.
- Each incoming message is handled by a model instance in an element. 
+ each acting as a virtual entity in the Bluetooth mesh with its own unique unicast address.
+ Each incoming message is handled by a model instance in an element.
  To make it possible to uniquely resolve how messages are handled, only one model instance per element
  can implement a handler for a specific message opcode. If a device has multiple instances
  of the same model, each instance must be assigned to a separate element.
@@ -190,8 +190,8 @@ For more information about models in the nRF5 SDK for Mesh, see @ref md_doc_user
 
 ## Device life cycle @anchor concepts_lifecycle
 
-Every new device that is to be added to the mesh network must go through the following stages
-to become a mesh network node:
+Every new device that is to be added to the Bluetooth mesh network must go through the following stages
+to become a Bluetooth mesh network node:
 - [Provisioning](@ref concepts_lifecycle_provisioning) -- after this stage, an unprovisioned device
 becomes a network node. This stage includes the following steps:
     - Discovery
@@ -199,7 +199,7 @@ becomes a network node. This stage includes the following steps:
     - [Address](@ref concepts_addressing) assignment and network information exchange -- at the end
     of this step, the device becomes a node.
 - [Configuration](@ref concepts_lifecycle_network_config) -- after this stage,
-a node is able to perform its tasks that require exchanging mesh messages with neighboring nodes.
+a node is able to perform its tasks that require exchanging Bluetooth mesh messages with neighboring nodes.
 This stage includes the following steps:
     - Configuration of the node using the mandatory Config Server model
     - Addition of desired application keys and additional network keys
@@ -208,9 +208,9 @@ This stage includes the following steps:
 
 Both of these stages are typically carried out by one device that acts as provisioner and configurator.
 
-![Mesh node life cycle](images/mesh_device_lifecycle.svg)
+![Bluetooth mesh node life cycle](images/mesh_device_lifecycle.svg)
 
-A mesh node can revert to being an unprovisioned device by performing a Node Reset procedure,
+A Bluetooth mesh node can revert to being an unprovisioned device by performing a Node Reset procedure,
 which removes the node from the network.
 
 The node can be also forcibly excluded from participating in the network with the key refresh procedure.
@@ -219,7 +219,7 @@ the node's unicast address can be allocated to a new unprovisioned device.
 
 ### Provisioning @anchor concepts_lifecycle_provisioning
 
-Before a device can participate in normal mesh operation, it must be provisioned.
+Before a device can participate in normal Bluetooth mesh operations, it must be provisioned.
 
 The provisioning is done by a _Provisioner_, which is a trusted device with access to the full list
 of devices in the network, and their configuration data. After the new device, called _Provisionee_,
@@ -230,7 +230,7 @@ For more information about provisioning in the nRF5 SDK for Mesh, see @ref md_do
 
 ### Configuration @anchor concepts_lifecycle_network_config
 
-Bluetooth Mesh leaves the network configuration to a central network configurator.
+Bluetooth mesh leaves the network configuration to a central network configurator.
 Devices are not expected to do any sort of service discovery on their own.
 
 To control other devices, new devices must be configured by a provisioner, either through user interaction
@@ -259,7 +259,7 @@ The next time the new light switch is pressed, all light bulbs in the kitchen tu
 
 ## Security @anchor concepts_security
 
-Bluetooth Mesh employs several security measures to prevent third-party interference and monitoring:
+Bluetooth mesh employs several security measures to prevent third-party interference and monitoring:
 - [Authentication](@ref concepts_security_authentication)
 - [Message encryption](@ref concepts_security_encryption)
 - [Privacy key](@ref concepts_security_privacy)
@@ -270,9 +270,9 @@ Bluetooth Mesh employs several security measures to prevent third-party interfer
 Device authentication is part of the provisioning process and lets the user confirm that the device
 being added to the network is indeed the device they think it is.
 
-The Mesh Profile Specification defines a range of out-of-band authentication methods, such as:
+The Bluetooth mesh profile specification defines a range of out-of-band authentication methods, such as:
 - blinking of lights,
-- output and input of passphrases, 
+- output and input of passphrases,
 - static authentication against a pre-shared key.
 
 To secure the provisioning procedure, elliptic curve Diffie-Helman (ECDH) public key cryptography is used.
@@ -281,16 +281,16 @@ are considered authenticated.
 
 ### Message encryption @anchor concepts_security_encryption
 
-Bluetooth Mesh features two levels of AES-CCM encryption with 128-bit keys for all messages going
+Bluetooth mesh features two levels of AES-CCM encryption with 128-bit keys for all messages going
 across the network:
-- **Network encryption**: The lowest layer that protects all messages in a mesh network from being
+- **Network encryption**: The lowest layer that protects all messages in a Bluetooth mesh network from being
 readable by devices that are not part of the network.
     - The encryption is done with a network encryption key, and any network may consist
     of up to 4096 different subnets, each with their own network key.
     - All devices sharing a network key are considered part of the network and may send
     and relay messages across it.
     - By using multiple network keys, a network administrator may effectively divide their network
-    into multiple subnets, because a mesh relay only forwards messages that are encrypted
+    into multiple subnets, because a Bluetooth mesh relay only forwards messages that are encrypted
     with a known network key.
 - **Transport encryption**: The second encryption layer that limits which devices can do what
 _within a network_ by encrypting the application payload with an application or device key.
@@ -316,14 +316,14 @@ of the message was encrypted with the indicated encryption keys.
 
 ### Privacy key @anchor concepts_security_privacy
 
-All mesh message payloads are fully encrypted. Message metadata like source address
+All Bluetooth mesh message payloads are fully encrypted. Message metadata like source address
 and message sequence number is obfuscated with the privacy key, derived from the network key,
 providing limited privacy even for public header fields.
 
 ### Replay protection @anchor concepts_security_replay_protection
 
 To guard against malicious devices replaying previous messages, every device keeps a running sequence number,
-which is used for outbound messages. Each mesh message is sent with a unique pair of sequence number
+which is used for outbound messages. Each Bluetooth mesh message is sent with a unique pair of sequence number
 and source address. When receiving a message, the receiving device stores the sequence number
 and makes sure that it is more recent than the last sequence number it received from the same source
 address.

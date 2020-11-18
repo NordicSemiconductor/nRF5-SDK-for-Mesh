@@ -1,35 +1,37 @@
 # Light CTL example
 
 @tag52840and52833and52832
-@tag52810nosupport
+@tag52810and52820nosupport
 
-This example demonstrates how you can use mesh messages and events
+This example demonstrates how you can use Bluetooth mesh messages and events
 from the [Light CTL models](@ref LIGHT_CTL_MODELS) API to implement a tunable white light.
 
-The example is composed of three minor examples that use the Light CTL client and server models:
-- Light CTL Client
-- Light CTL Server
-- Light CTL Server with Light LC Server
+The example is composed of three minor examples that use the Light CTL Client and Light CTL Server models:
+- Light CTL client model example
+- Light CTL server model example
+- Light CTL server with Light LC server models' example
 
-For more information about the Light CTL Client/Server models, see the @link_ModelOverview from Bluetooth SIG.
+For more information about the Light CTL Client and Server models, see the @link_ModelOverview from Bluetooth SIG.
 
 For provisioning purposes, the example requires either [the provisioner example](@ref md_examples_provisioner_README)
 or the @link_nrf_mesh_app.
 
 All the minor examples have the provisionee role in the network.
 They support provisioning over Advertising bearer (PB-ADV) and GATT bearer (PB-GATT)
-and also support Mesh Proxy Service (Server).
+and also support Bluetooth mesh Proxy Service (Server).
 Read more about the Proxy feature in @ref md_doc_user_guide_modules_provisioning_gatt_proxy.
 
 **Table of contents**
-- [Light CTL Client example](@ref light_ctl_example_light_ctl_client)
-- [Light CTL Server example](@ref light_ctl_example_light_ctl_server)
-- [Light CTL Server and Light LC Server example](@ref light_ctl_example_light_ctl_lc_server)
+- [Light CTL client model example](@ref light_ctl_example_light_ctl_client)
+- [Light CTL server model example](@ref light_ctl_example_light_ctl_server)
+    - [Scene model](@ref light_ctl_example_light_ctl_server_scene_model)
+- [Light CTL Server and Light LC Server models' example](@ref light_ctl_example_light_ctl_lc_server)
 - [Light CTL models](@ref light_ctl_example_light_ctl_model)
 - [Hardware requirements](@ref light_ctl_example_hw_requirements)
 - [Software requirements](@ref light_ctl_example_sw_requirements)
 - [Setup](@ref light_ctl_example_setup)
     - [LED and button assignments](@ref light_ctl_example_setup_leds_buttons)
+    - [Scene model integration](@ref light_ctl_example_setup_scene_model)
 - [Testing the example](@ref light_ctl_example_testing)
     - [Evaluating using the static provisioner](@ref light_ctl_example_testing_dk)
     - [Evaluating using the nRF Mesh mobile app](@ref light_ctl_example_testing_app)
@@ -41,17 +43,19 @@ Read more about the Proxy feature in @ref md_doc_user_guide_modules_provisioning
         - [Other factory default configuration](@ref light_ctl_example_other_factory_default_configuration)
 
 
-### Light CTL Client example @anchor light_ctl_example_light_ctl_client
+---
+## Light CTL client model example @anchor light_ctl_example_light_ctl_client
 
-The Light CTL Client example has a provisionee role in the network.
+The light CTL client model example has a provisionee role in the network.
 It implements two instances of the [Light CTL Client model](@ref LIGHT_CTL_CLIENT).
 These instances are used to control the brightness of the LEDs on the servers,
 the range of supported CTL temperature levels, and the CTL lightness, temperature, and delta UV
 values after the servers' boot-up.
 
-### Light CTL Server example @anchor light_ctl_example_light_ctl_server
+---
+## Light CTL server model example @anchor light_ctl_example_light_ctl_server
 
-The Light CTL Server example has a provisionee role in the network.
+The light CTL server model example has a provisionee role in the network.
 It implements one instance of the [Light CTL Setup Server model](@ref LIGHT_CTL_SETUP_SERVER),
 and [Light Lightness Setup Server model] (@ref LIGHT_LIGHTNESS_SETUP_SERVER). These instances
 in-turn initialize other necessary models.
@@ -72,25 +76,38 @@ are then converted to the generic level values to map them to the PWM tick value
 
 ![Light CTL example structure](ctl_example_structure.svg)
 
+### Scene model @anchor light_ctl_example_light_ctl_server_scene_model
 
-### Light CTL Server and Light LC Server example @anchor light_ctl_example_light_ctl_lc_server
+The light CTL server model example also implements one instance of the [Scene Setup Server model](@ref SCENE_SETUP_SERVER).
+The Scene Setup Server instance can be used together with the [Scene Client](@ref SCENE_CLIENT),
+although both model instances are optional and [can be excluded](@ref light_ctl_example_setup_scene_model).
+The Scene Server model uses the Default Transition Time Server instance instantiated
+in the Light CTL Setup Server model instance.
 
-The Light CTL Server and Light LC Server example has a provisionee role in the network.
+For the values stored and recalled by the Scene model, see the @tagMeshMdlSp, Table 6.123.
+For more information on how to use the [Scene models](@ref SCENE_MODELS),
+see the [scene example](@ref md_examples_scene_README).
+
+---
+## Light CTL server and light LC server models' example @anchor light_ctl_example_light_ctl_lc_server
+
+The light CTL server and light LC server models' example has a provisionee role in the network.
 It implements one instance of the [Light CTL Setup Server model](@ref LIGHT_CTL_SETUP_SERVER),
 a [Light LC Setup Server model](@ref LIGHT_LC_SETUP_SERVER), and other necessary models in such
-a way that Light LC server is able to control the lightness output. This shows how a tunable white
+a way that light LC server is able to control the lightness output. This shows how a tunable white
 light can be implemented to have a feature of automated lighting control.
 
 The Light CTL Server model instance is used to receive the CTL lightness, temperature, and
 delta UV values and change the brightness and color temperature of the lights. The LC model
 adds the capability for automated lightness control handled by the LC FSM and
 PI regulator, based on predefined settings and sensor inputs. Refer to
-[Light LC server example](@ref light_lc_server_example_testing_interacting) for information about
-how a Light LC server works.
+[light LC server model example](@ref light_lc_server_example_testing_interacting) for information about
+how a light LC server works.
 
-The hardware interface of this example is similar to the Light CTL Server example.
+The hardware interface of this example is similar to the light CTL server model example.
 
-### Light CTL models @anchor light_ctl_example_light_ctl_model
+---
+## Light CTL models @anchor light_ctl_example_light_ctl_model
 
 The Light CTL Client model is used for manipulating the following states
 associated with the peer Light CTL Server, Light CTL Setup Server, and Light CTL Temperature
@@ -119,16 +136,16 @@ You need at least two compatible development kits for this example:
 - One compatible development kit for the client.
 - One or more compatible development kits for the servers.
 
-  On the server boards, you can either run the Light CTL Server example or
-  the Light CTL Server with Light LC Server example, or both of them.
+  On the server boards, you can either run the light CTL server model example or
+  the light CTL server with light LC server models' example, or both of them.
 
-  If you choose the Light CTL Server with Light LC Server example, you also need at least one of the
+  If you choose the light CTL server with light LC server models' example, you also need at least one of the
   following:
   - One compatible development kit for emulating the occupancy sensor.
-  - One compatible development kit for the [Light switch client](@ref light_switch_demo_client).
+  - One compatible development kit for the [light switch client](@ref light_switch_demo_client).
 
-  See [Light LC Server example testing](@ref light_lc_server_example_testing) section
-  for more information about how the Light switch client and sensor example is used for testing
+  See [light LC server model example testing](@ref light_lc_server_example_testing) section
+  for more information about how the light switch client and sensor example is used for testing
   the Light LC Server model.
 
 Additionally, you need one of the following for provisioning:
@@ -161,27 +178,28 @@ You can find the source code of this example in the following folder:
 
 ### LED and button assignments @anchor light_ctl_example_setup_leds_buttons
 
-- Light CTL Server example:
+- Light CTL server model example:
     - LED 1: Represents a warm white LED and reflects the effective lightness and color temperature.
     - LED 2: Represents a cool white LED and reflects the effective lightness and color temperature.
-    When interacting with the boards, you cannot use the buttons on the server boards, because the Light Lightness Setup Server
+    When interacting with the boards, you cannot use the buttons on the server boards, because the light lightness server model example
     does not use the `simple_hal` module. Instead of the buttons on the server boards, use the following RTT input:
       | RTT input     | DK Button     |   Effect                                                             |
       |---------------|---------------|----------------------------------------------------------------------|
       | `1`           | -             | The brightness of the LEDs is decreased in a large step.             |
       | `2`           | -             | The brightness of the LEDs is increased in a large step.             |
       | `3`           | -             | The delta UV value is increased in large steps. The value wraps around when maximum value is reached. |
-      | `4`           | -             | All mesh data is erased and the device is reset.                     |
-- Light CTL and Light LC Server example:
+      | `4`           | -             | All Bluetooth mesh data is erased and the device is reset.           |
+
+- Light CTL and light LC server models' example:
     - LED 1: Represents a warm white LED and reflects the effective lightness and color temperature.
     - LED 2: Represents a cool white LED and reflects the effective lightness and color temperature.
-    When interacting with the boards, you cannot use buttons on the server boards, because the Light CTL and Light LC server example
+    When interacting with the boards, you cannot use buttons on the server boards, because the light CTL and light LC server model example
     does not use the `simple_hal` module. Instead of the buttons on the server boards, use the following RTT input:
       | RTT input     | DK Button     |   Effect                                                                 |
       |---------------|---------------|--------------------------------------------------------------------------|
       | `1`           | -             | Toggles the values of the properties between 0 and the default values.   |
-	  | `2`           | -             | The color temperature of the LEDs is increased in large steps. The value wraps around when maximum value is reached. |
-      | `4`           | -             | All mesh data is erased and the device is reset.                         |
+      | `2`           | -             | The color temperature of the LEDs is increased in large steps. The value wraps around when maximum value is reached. |
+      | `4`           | -             | All Bluetooth mesh data is erased and the device is reset.               |
 
         - When sending the `1` RTT command, the following properties are toggled between 0 and the default values:
           - Light Control Time Fade
@@ -197,7 +215,8 @@ You can find the source code of this example in the following folder:
     Chaning the brightness manually will switch off the Light LC Server
     (by setting Light LC Mode state to `0`) as soon as the Light
     Lightness Status message is published on account of the local state change.
-- Light CTL Client example:
+
+- Light CTL client model example:
   - When interacting with the boards, you can use one of the following options:
       - RTT input (recommended): Due to a limited number of buttons on the DK board,
       use the following RTT input when testing this example:
@@ -227,19 +246,28 @@ You can find the source code of this example in the following folder:
       - Buttons: If you decide to use the buttons on the DK instead of the RTT input, you can only
       change the Light CTL Lightness and Light CTL Temperature states.
 
+### Scene model integration @anchor light_ctl_example_setup_scene_model
+
+[Scene Setup Server model instance](@ref light_ctl_example_light_ctl_server_scene_model) is used by default by this example.
+You can exclude it by setting @ref SCENE_SETUP_SERVER_INSTANCES_MAX to `0` (from the default value of `1`) in
+`examples/light_ctl/ctl_server/include/nrf_mesh_config_app.h`.
+
+If you decide to exclude the Scene Setup Server model instance, exclude it also from the
+[provisioner example](@ref provisioner_example_no_scene_setup_server) if you want
+to [evaluate using the static provisioner](@ref light_ctl_example_testing_dk).
 
 ---
 
 ## Testing the example @anchor light_ctl_example_testing
 
 To test the light CTL example, build the examples by following the instructions in
-[Building the mesh stack](@ref md_doc_getting_started_how_to_build).
+[Building the Bluetooth mesh stack](@ref md_doc_getting_started_how_to_build).
 
 @note
 The @link_ModelSpec mentions that the default value of the mode of the light controller should be set
 to `(0x0)`. This means that the light controller is turned off by default.
 To enable the light controller, the Light LC Client model is used.
-However, this SDK does not provide the Light LC Client example.
+However, this SDK does not provide the light LC client example.
 For this reason, in this example the light controller is switched on by default.
 This has been done by changing the default value of the @ref LIGHT_LC_DEFAULT_MODE in
 `nrf_mesh_config_app.h` to `(0x1)`.
@@ -265,15 +293,18 @@ The following naming convention is used in the app:
 
 The following model instances must be configured in the app for evaluating this example:
 - For the `nRF5x Mesh CTL Client` boards: Light CTL Client.
-- For the `nRF5x Mesh Light CTL Setup Server` boards: Light CTL Setup Server, Light CTL Server.
+- For the `nRF5x Mesh Light CTL Setup Server` boards:
+    - Mandatory: Light CTL Setup Server, Light CTL Server
+    - Optional (with [Scene model integration included](@ref light_ctl_example_setup_scene_model)):
+    Scene Setup Server, Scene Server
 - For the `nRF5x Mesh Light CTL+LC Setup Server` boards: Light CTL Setup Server,
   Light CTL Server, Light LC Server.
-  Refer to [Light LC example configuration using nRF Mesh mobile app section]
+  Refer to [light LC example configuration using nRF Mesh mobile app section]
   (@ref light_lc_server_example_testing_app) for configuring `nRF5x Mesh Switch` and
   `nRF Mesh Sensor Server` boards to work with Light LC server instantiated on this example.
 
 
-@note The Light CTL Client example allows to control the Light CTL states.
+@note The light CTL client model example allows to control the Light CTL states.
 For this purpose, it is enough to configure only the Light CTL Setup Server and Light CTL Server model
 instances. If you want to see how the binding works between the Light CTL Lightness states and
 the Generic states, configure the Generic models instantiated in the server examples
@@ -283,7 +314,7 @@ Once the provisioning is complete, you can start [interacting with the boards]
 (@ref light_ctl_example_testing_interacting).
 
 @note
-You can also configure the publish address of the second Light CTL client model instance.
+You can also configure the publish address of the second Light CTL Client model instance.
 To do this, repeat [step 3 from binding nodes](@ref nrf-mesh-mobile-app-binding) and
 [all steps from setting publication](@ref nrf-mesh-mobile-app-publication).
 
@@ -295,7 +326,7 @@ the server nodes are complete, you can press buttons on the client or send comma
 numbers using the RTT Viewer to observe the changes in the brightness and emulated color
 temperature of the LEDs on the corresponding server boards.
 
-There is a set of message types available for this demonstration:
+The following set of message types is available for this demonstration:
 - Light CTL Set Unacknowledged
 - Light CTL Get
 - Light CTL Temperature Set Unacknowledged
@@ -321,8 +352,8 @@ using the RTT commands `1` - `4` or the buttons 1 - 4 on the client board.
 Use the RTT commands `7`,`8`,`9`, and `a` on the client board to retrieve the current
 CTL state values from the servers.
 
-@note If you are using the Light CTL server with LC server example, the light controller
-is switched off automatically by the Light LC Server as soon any mesh message to change
+@note If you are using the Light CTL server with LC server models' example, the light controller
+is switched off automatically by the Light LC Server as soon any Bluetooth mesh message to change
 the lightness value is received (for example, the Light CTL Set (that can change
 the lightness) or any other message that can change the bound lightness state value).
 Use a Light LC Client model to turn the light controller on again.
@@ -386,7 +417,7 @@ values in the `nrf_mesh_config_app.h` file of the server examples.
 As the Light CTL Lightness state is bound with the Light Lightness Actual state, you can restrict
 the range of the light CTL lightness values by changing the Light Lightness Range state using
 the Light Lightness Client. See [Restricting the range of the lightness value]
-(@ref light_lightness_example_changing_lightness_range) section in light lightness example
+(@ref light_lightness_example_changing_lightness_range) section in the light lightness example
 documentation.
 
 #### Other factory default configuration @anchor light_ctl_example_other_factory_default_configuration
@@ -397,5 +428,5 @@ transition time in milliseconds when changing the lightness levels.
 The transition time used by the Light CTL Server model uses the Default Transition Time state
 instance that belongs to the the Light Lightness Server model.
 For this reason, to change the factory default transition time
-for the server example, redefine the @ref LIGHT_LIGHTNESS_DEFAULT_DTT value of the
+for the server model example, redefine the @ref LIGHT_LIGHTNESS_DEFAULT_DTT value of the
 Generic Default Transition Time state in the `nrf_mesh_config_app.h` file of the server examples.

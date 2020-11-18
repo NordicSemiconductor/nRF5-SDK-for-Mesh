@@ -1,4 +1,4 @@
-set(nRF5_SDK_VERSION "nRF5_SDK_16.0.0_98a08e2" CACHE STRING "nRF5 SDK")
+set(nRF5_SDK_VERSION "nRF5_SDK_17.0.2_d674dde" CACHE STRING "nRF5 SDK")
 
 if (NOT nRF5_SDK_VERSION)
     message(FATAL_ERROR "You need to specifiy a nRF5_SDK_VERSION to use.")

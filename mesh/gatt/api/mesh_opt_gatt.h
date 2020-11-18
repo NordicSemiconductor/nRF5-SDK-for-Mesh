@@ -60,8 +60,7 @@
  *
  * @param[in] enabled Set to @c true to enable the Proxy state, @c false otherwise.
  *
- * @retval NRF_SUCCESS             Successfully started advertisements.
- * @retval NRF_ERROR_INVALID_STATE In an invalid for enabling the proxy state.
+ * @retval NRF_SUCCESS             The Proxy state is successfully set.
  */
 uint32_t mesh_opt_gatt_proxy_set(bool enabled);
 

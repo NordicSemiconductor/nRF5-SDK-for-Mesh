@@ -28,7 +28,7 @@ Make sure you implement the following points in your code:
 - Specify the required key timing parameters. Choosing the right values is particularly important.
 It will influence the overall power consumption of the LPN for the duration of friendship.
 The choice also depends on the use case and the desired responsiveness of the LPN node
-to the incoming mesh messages. See the following table and the detailed description
+to the incoming Bluetooth mesh messages. See the following table and the detailed description
 in the following sections.
 
 | Timing parameter 														| Short description 																	|	Chosen by		| Timing value				| Reference 																|
@@ -42,7 +42,7 @@ in the following sections.
 using the specified timing parameters.
 If the potential Friend nodes within the radio range can accept the request,
 they respond with a Friend Offer message (one per potential Friend node).
-- Once the application firmware receives a callback from the mesh stack with an offer event
+- Once the application firmware receives a callback from the Bluetooth mesh stack with an offer event
 (@ref NRF_MESH_EVT_LPN_FRIEND_OFFER) with acceptable offer details provided as event parameters,
 make sure it calls @ref mesh_lpn_friend_accept() to accept the offer. The application must call
 this function before the procedure times out
@@ -50,7 +50,7 @@ this function before the procedure times out
 	- Typically, the first offer received will be the most suitable offer for the LPN. However,
 	the application can wait for multiple offers before it selects the desired Friend. The criteria
 	for selecting the Friend Offer depend on the parameters received in the offer.
-- After the user application accepts the offer, the mesh stack sends a Friend Poll message
+- After the user application accepts the offer, the Bluetooth mesh stack sends a Friend Poll message
 to the chosen Friend node.
 	- If the Friend node responds with a Friend Update message, the friendship is considered established.
 	- If the Friend node fails to send a response within the required timeframe or the LPN does not
@@ -78,7 +78,7 @@ MESH_LPN->APP   [label="NRF_MESH_EVT_FRIENDSHIP_ESTABLISHED"];
 Once the friendship is established, the communication between the LPN and the Friend node happens
 through a request-response mechanism.
 
-If the mesh stack is unable to receive a response to the previously sent request, it will resend
+If the Bluetooth mesh stack is unable to receive a response to the previously sent request, it will resend
 the previous request. If there is no response after multiple attempts (@ref MESH_LPN_POLL_RETRY_COUNT),
 the stack will terminate friendship and generate a termination event (@ref NRF_MESH_EVT_FRIENDSHIP_TERMINATED).
 The application can start the friendship establishment procedure to re-establish friendship.

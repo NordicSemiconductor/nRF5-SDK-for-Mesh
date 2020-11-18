@@ -1,12 +1,12 @@
 # Resource usage
 
-To be functional, the mesh stack requires a minimum set of the hardware resources provided
+To be functional, the Bluetooth mesh stack requires a minimum set of the hardware resources provided
 by the Nordic SoCs. The stack is designed to be built together with the user application
 and it resides in the application code space. Moreover, it relies on the SoftDevice being present
 and thus requires the same hardware resources as the SoftDevice.
 
 For information on SoftDevice hardware resource requirements,
-see the relevant SoftDevice Specification.
+see the relevant SoftDevice specification.
 
 **Table of contents**
 - [SoftDevice Radio Timeslot API](@ref resource_usage_radio_timeslot)
@@ -28,43 +28,43 @@ see the relevant SoftDevice Specification.
 
 ## SoftDevice Radio Timeslot API @anchor resource_usage_radio_timeslot
 
-The mesh stack operates concurrently with the SoftDevice through the SoftDevice Radio Timeslot API.
-Because the mesh stack takes complete control over the Radio Timeslot API,
+The Bluetooth mesh stack operates concurrently with the SoftDevice through the SoftDevice Radio Timeslot API.
+Because the stack takes complete control over the Radio Timeslot API,
 this API is unavailable to the application.
 
 ---
 
 ## Hardware peripherals @anchor resource_usage_hardware_peripherals
 
-The following hardware peripherals are occupied by the mesh stack:
+The following hardware peripherals are occupied by the Bluetooth mesh stack:
 - **RTC1**
     - @link_app_timer_group uses RTC1 as hardware base.
 - **QDEC**
-    - Although the quadrature decoder hardware is not used by the mesh, the interrupt request line
-    dedicated to the QDEC module is utilized for post processing within the mesh stack. Because all
+    - Although the quadrature decoder hardware is not used by the mesh network, the interrupt request line
+    dedicated to the QDEC module is utilized for post processing within the Bluetooth mesh stack. Because all
     the software interrupts available to the application on the nRF51 are frequently used
-    in the nRF5 SDK, the mesh stack uses the QDEC IRQ handler for processing, as this peripheral
-    is not commonly used. This makes combining the mesh stack with SDK applications easier.
+    in the nRF5 SDK, the Bluetooth mesh stack uses the QDEC IRQ handler for processing, as this peripheral
+    is not commonly used. This makes combining the Bluetooth mesh stack with SDK applications easier.
         @note If the QDEC peripheral and its interrupt request line is needed by the application,
-        the mesh stack can be configured to use the SWI0 IRQ by defining @ref BEARER_EVENT_USE_SWI0
+        the Bluetooth mesh stack can be configured to use the SWI0 IRQ by defining @ref BEARER_EVENT_USE_SWI0
         during the build.
 - **RADIO**
-    - Shared with the SoftDevice, the RADIO peripheral is occupied by the mesh stack during
+    - Shared with the SoftDevice, the RADIO peripheral is occupied by the Bluetooth mesh stack during
     the acquired Radio Timeslot sessions. The application must not modify the RADIO peripheral.
 - **TIMER0**
-    - Shared with the SoftDevice, the TIMER0 peripheral is occupied by the mesh stack during
+    - Shared with the SoftDevice, the TIMER0 peripheral is occupied by the Bluetooth mesh stack during
     the acquired Radio Timeslot sessions. The application must not modify the TIMER0 peripheral.
 - **TIMER2**
-    - By default, the mesh stack uses TIMER2 to manage its radio timing for all low-level operations.
+    - By default, the Bluetooth mesh stack uses TIMER2 to manage its radio timing for all low-level operations.
     Which timer to use can be controlled by changing @ref BEARER_ACTION_TIMER_INDEX
     in mesh/bearer/api/nrf_mesh_config_bearer.h.
 - **ECB**
-    - The mesh stack uses the SoftDevice interface for the ECB.
+    - The Bluetooth mesh stack uses the SoftDevice interface for the ECB.
 - **UART0**
-    - If built with serial support, the mesh stack uses the UART0 peripheral to serialize its API.
-    The mesh stack takes full control over the peripheral. The application must not modify it.
+    - If built with serial support, the Bluetooth mesh stack uses the UART0 peripheral to serialize its API.
+    The Bluetooth mesh stack takes full control over the peripheral. The application must not modify it.
 - **PPI**
-    - The mesh uses PPI channels 8, 9, 10, and 11 for various timing-related tasks
+    - The Bluetooth mesh uses PPI channels 8, 9, 10, and 11 for various timing-related tasks
     when controlling the radio.
 
 
@@ -72,10 +72,10 @@ The following hardware peripherals are occupied by the mesh stack:
 
 
 ## RAM and flash usage @anchor resource_usage_ram_and_flash
-Depending on the application needs, the core mesh can be configured to achieve
+Depending on the application needs, the mesh core can be configured to achieve
 either higher performance and functionality or a reduced footprint.
 
-When it comes to memory, the mesh stack:
+When it comes to memory, the Bluetooth mesh stack:
 - shares its call stack with the application and the SoftDevice;
 - requires a minimum call stack size of 2 kB;
 - requires the presence of a heap (of minimum @ref MESH_MEM_SIZE_MIN bytes), unless it is configured
@@ -83,7 +83,7 @@ with a custom memory allocator to replace the need for `stdlib.h`'s `malloc()`.
 
 See the @ref MESH_MEM interface for more details on how to replace the memory manager backend.
 
-The following tables show the flash and RAM requirements for the [mesh examples](@ref md_examples_README).
+The following tables show the flash and RAM requirements for the [Bluetooth mesh examples](@ref md_examples_README).
 The values are valid for all [fully compatible configurations](@ref compatibility_list)
 based on the nRF52 Series Development Kits.
 
@@ -94,67 +94,69 @@ The examples are built with the [minimum recommended version of GNU Arm Embedded
 
 | Flash usage (kB) | RAM usage (kB) | Example                                                                         |
 |-----------------:|---------------:|:--------------------------------------------------------------------------------|
-|           96.240 |         11.784 | [Beaconing](@ref md_examples_beaconing_README)                                  |
-|           98.776 |         12.064 | [DFU without serial interface](@ref md_examples_dfu_README)                     |
-|          109.048 |         15.184 | [DFU with serial interface](@ref md_examples_dfu_README)                        |
-|          111.608 |         13.096 | [Dimming client](@ref md_examples_dimming_README)                               |
-|          115.680 |         13.244 | [Dimming server](@ref md_examples_dimming_README)                               |
-|          112.824 |         13.504 | [EnOcean switch translator client](@ref md_examples_enocean_switch_README)      |
-|          114.648 |         13.120 | [Light CTL client](@ref md_examples_light_ctl_README)                           |
-|          151.156 |         17.368 | [Light CTL+LC server](@ref md_examples_light_ctl_README)                        |
-|          137.152 |         15.752 | [Light CTL server](@ref md_examples_light_ctl_README)                           |
-|          139.300 |         16.164 | [Light LC server](@ref md_examples_light_lc_server_README)                      |
-|          114.220 |         13.084 | [Light Lightness client](@ref md_examples_light_lightness_README)               |
-|          125.328 |         14.556 | [Light Lightness server](@ref md_examples_light_lightness_README)               |
-|          110.040 |         13.064 | [Light switch client](@ref md_examples_light_switch_client_README)              |
-|          123.944 |         17.252 | [Light switch server](@ref md_examples_light_switch_server_README)              |
-|          124.108 |         13.272 | [Low Power node](@ref md_examples_lpn_README)                                   |
-|          103.848 |         11.184 | [PB-remote client](@ref md_examples_pb_remote_README)                           |
-|           99.836 |         11.612 | [PB-remote server](@ref md_examples_pb_remote_README)                           |
-|          110.048 |         12.528 | [Provisioner](@ref md_examples_provisioner_README)                              |
-|          119.208 |         17.128 | [Sensor client](@ref md_examples_sensor_README)                                 |
-|          117.600 |         13.320 | [Sensor server](@ref md_examples_sensor_README)                                 |
-|           96.636 |         14.232 | [Serial](@ref md_examples_serial_README)                                        |
+|           98.904 |         12.300 | [Beaconing](@ref md_examples_beaconing_README)                                  |
+|          102.176 |         12.592 | [DFU without serial interface](@ref md_examples_dfu_README)                     |
+|          112.704 |         15.728 | [DFU with serial interface](@ref md_examples_dfu_README)                        |
+|          114.888 |         13.552 | [Dimming client](@ref md_examples_dimming_README)                               |
+|          125.640 |         14.680 | [Dimming server](@ref md_examples_dimming_README)                               |
+|          116.088 |         13.960 | [EnOcean switch translator client](@ref md_examples_enocean_switch_README)      |
+|          117.928 |         13.576 | [Light CTL client](@ref md_examples_light_ctl_README)                           |
+|          154.136 |         17.856 | [Light CTL+LC server](@ref md_examples_light_ctl_README)                        |
+|          146.388 |         17.076 | [Light CTL server](@ref md_examples_light_ctl_README)                           |
+|          149.740 |         18.996 | [Light LC server](@ref md_examples_light_lc_server_README)                      |
+|          117.516 |         13.540 | [Light Lightness client](@ref md_examples_light_lightness_README)               |
+|          133.416 |         15.720 | [Light Lightness server](@ref md_examples_light_lightness_README)               |
+|          113.304 |         13.520 | [Light switch client](@ref md_examples_light_switch_client_README)              |
+|          134.732 |         18.776 | [Light switch server](@ref md_examples_light_switch_server_README)              |
+|          127.652 |         13.736 | [Low Power node](@ref md_examples_lpn_README)                                   |
+|          106.436 |         11.700 | [PB-remote client](@ref md_examples_pb_remote_README)                           |
+|          102.516 |         12.140 | [PB-remote server](@ref md_examples_pb_remote_README)                           |
+|          113.512 |         13.048 | [Provisioner](@ref md_examples_provisioner_README)                              |
+|          114.988 |         13.532 | [Scene client](@ref md_examples_scene_README)                                   |
+|          122.584 |         17.640 | [Sensor client](@ref md_examples_sensor_README)                                 |
+|          121.160 |         13.808 | [Sensor server](@ref md_examples_sensor_README)                                 |
+|          100.316 |         14.996 | [Serial](@ref md_examples_serial_README)                                        |
 
 ### Build type: `MinSizeRel` (`-Os`), Logging: None @anchor resource_usage_ram_and_flash_nRF52832-2
 
 | Flash usage (kB) | RAM usage (kB) | Example                                                                         |
 |-----------------:|---------------:|:--------------------------------------------------------------------------------|
-|           82.924 |          9.520 | [Beaconing](@ref md_examples_beaconing_README)                                  |
-|           83.428 |          9.800 | [DFU without serial interface](@ref md_examples_dfu_README)                     |
-|           92.884 |         12.920 | [DFU with serial interface](@ref md_examples_dfu_README)                        |
-|           93.640 |         13.080 | [Dimming client](@ref md_examples_dimming_README)                               |
-|           98.288 |         13.228 | [Dimming server](@ref md_examples_dimming_README)                               |
-|           94.680 |         13.488 | [EnOcean switch translator client](@ref md_examples_enocean_switch_README)      |
-|           94.904 |         13.104 | [Light CTL client](@ref md_examples_light_ctl_README)                           |
-|          124.612 |         17.352 | [Light CTL+LC server](@ref md_examples_light_ctl_README)                        |
-|          114.976 |         15.736 | [Light CTL server](@ref md_examples_light_ctl_README)                           |
-|          116.292 |         16.148 | [Light LC server](@ref md_examples_light_lc_server_README)                      |
-|           94.732 |         13.068 | [Light Lightness client](@ref md_examples_light_lightness_README)               |
-|          106.640 |         14.540 | [Light Lightness server](@ref md_examples_light_lightness_README)               |
-|           93.336 |         13.048 | [Light switch client](@ref md_examples_light_switch_client_README)              |
-|          103.720 |         17.236 | [Light switch server](@ref md_examples_light_switch_server_README)              |
-|          108.404 |         13.256 | [Low Power node](@ref md_examples_lpn_README)                                   |
-|           83.348 |         11.168 | [PB-remote client](@ref md_examples_pb_remote_README)                           |
-|           83.584 |          9.348 | [PB-remote server](@ref md_examples_pb_remote_README)                           |
-|           87.328 |         12.512 | [Provisioner](@ref md_examples_provisioner_README)                              |
-|           95.256 |         17.112 | [Sensor client](@ref md_examples_sensor_README)                                 |
-|           97.184 |         13.304 | [Sensor server](@ref md_examples_sensor_README)                                 |
-|           83.640 |         11.968 | [Serial](@ref md_examples_serial_README)                                        |
+|           85.492 |         10.036 | [Beaconing](@ref md_examples_beaconing_README)                                  |
+|           85.996 |         10.328 | [DFU without serial interface](@ref md_examples_dfu_README)                     |
+|           95.708 |         13.464 | [DFU with serial interface](@ref md_examples_dfu_README)                        |
+|           96.856 |         13.536 | [Dimming client](@ref md_examples_dimming_README)                               |
+|          105.656 |         14.664 | [Dimming server](@ref md_examples_dimming_README)                               |
+|           97.864 |         13.944 | [EnOcean switch translator client](@ref md_examples_enocean_switch_README)      |
+|           98.104 |         13.560 | [Light CTL client](@ref md_examples_light_ctl_README)                           |
+|          127.496 |         17.840 | [Light CTL+LC server](@ref md_examples_light_ctl_README)                        |
+|          121.476 |         17.060 | [Light CTL server](@ref md_examples_light_ctl_README)                           |
+|          123.516 |         18.980 | [Light LC server](@ref md_examples_light_lc_server_README)                      |
+|           97.948 |         13.524 | [Light Lightness client](@ref md_examples_light_lightness_README)               |
+|          112.376 |         15.704 | [Light Lightness server](@ref md_examples_light_lightness_README)               |
+|           96.520 |         13.504 | [Light switch client](@ref md_examples_light_switch_client_README)              |
+|          112.380 |         18.760 | [Light switch server](@ref md_examples_light_switch_server_README)              |
+|          111.852 |         13.720 | [Low Power node](@ref md_examples_lpn_README)                                   |
+|           85.840 |         11.684 | [PB-remote client](@ref md_examples_pb_remote_README)                           |
+|           86.184 |          9.876 | [PB-remote server](@ref md_examples_pb_remote_README)                           |
+|           90.600 |         13.032 | [Provisioner](@ref md_examples_provisioner_README)                              |
+|           96.940 |         13.516 | [Scene client](@ref md_examples_scene_README)                                   |
+|           98.536 |         17.624 | [Sensor client](@ref md_examples_sensor_README)                                 |
+|          100.776 |         13.792 | [Sensor server](@ref md_examples_sensor_README)                                 |
+|           87.352 |         12.732 | [Serial](@ref md_examples_serial_README)                                        |
 
 
 ---
 
 ## Flash hardware lifetime @anchor resource_usage_flash_lifetime
 The flash hardware can withstand a limited number of write and erase cycles.
-As the mesh stack uses the flash to store state across power failures, the device flash
-will eventually start failing, resulting in unexpected behavior in the mesh stack.
+As the Bluetooth mesh stack uses the flash to store state across power failures, the device flash
+will eventually start failing, resulting in unexpected behavior in the Bluetooth mesh stack.
 
 To improve flash lifetime, flash manager does wear leveling by writing a new data to the flash page
 by allocating a new entry and then invalidating the old one. Eventually, flash page fills up
 and must be erased and re-written (see [flash manager documentation](@ref md_doc_user_guide_modules_flash_manager)).
 
-The mesh stack uses flash to store the following states:
+The Bluetooth mesh stack uses flash to store the following states:
 - Encryption keys
 - Mesh addresses
 - Access model composition

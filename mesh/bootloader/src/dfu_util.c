@@ -186,18 +186,26 @@ bool is_upgrade(fwid_union_t* p_fwid, dfu_type_t dfu_type)
     switch (dfu_type)
     {
         case DFU_TYPE_APP:
-            return (p_fwid->app.app_id     == p_fwid_entry->version.app.app_id &&
-                    p_fwid->app.company_id == p_fwid_entry->version.app.company_id &&
-                    (p_fwid->app.app_version > p_fwid_entry->version.app.app_version || (p_flag_entry && !p_flag_entry->flags.app_intact)));
+            return ( p_fwid_entry != NULL &&
+                     p_fwid->app.app_id     == p_fwid_entry->version.app.app_id &&
+                     p_fwid->app.company_id == p_fwid_entry->version.app.company_id &&
+                     (  p_fwid->app.app_version > p_fwid_entry->version.app.app_version || 
+                        (p_flag_entry && !p_flag_entry->flags.app_intact)
+                     ) );
 
         case DFU_TYPE_BOOTLOADER:
-            return (p_fwid->bootloader.id == p_fwid_entry->version.bootloader.id &&
-                    (p_fwid->bootloader.ver > p_fwid_entry->version.bootloader.ver || (p_flag_entry && !p_flag_entry->flags.bl_intact)));
+            return ( p_fwid_entry != NULL &&
+                     p_fwid->bootloader.id == p_fwid_entry->version.bootloader.id &&
+                     (  p_fwid->bootloader.ver > p_fwid_entry->version.bootloader.ver || 
+                        (p_flag_entry && !p_flag_entry->flags.bl_intact)
+                     ) );
 
         case DFU_TYPE_SD:
             /* Only accept the Softdevice if ours is broken. Otherwise, we would be DFUing the same
                SD over and over. */
-            return (p_fwid->sd == p_fwid_entry->version.sd && (p_flag_entry && !p_flag_entry->flags.sd_intact));
+            return ( p_fwid_entry != NULL &&
+                     p_fwid->sd == p_fwid_entry->version.sd && 
+                     (p_flag_entry && !p_flag_entry->flags.sd_intact) );
         default:
             return false;
     }
@@ -206,16 +214,26 @@ bool is_upgrade(fwid_union_t* p_fwid, dfu_type_t dfu_type)
 bool app_is_newer(app_id_t* p_app_id)
 {
     bl_info_entry_t* p_fwid_entry = bootloader_info_entry_get(BL_INFO_TYPE_VERSION);
-    return (p_app_id->app_id     == p_fwid_entry->version.app.app_id &&
-            p_app_id->company_id == p_fwid_entry->version.app.company_id &&
-            p_app_id->app_version > p_fwid_entry->version.app.app_version);
+    if (p_fwid_entry != NULL)
+    {
+        return (p_app_id->app_id     == p_fwid_entry->version.app.app_id &&
+                p_app_id->company_id == p_fwid_entry->version.app.company_id &&
+                p_app_id->app_version > p_fwid_entry->version.app.app_version);
+    }
+
+    return true;
 }
 
 bool bootloader_is_newer(bl_id_t bl_id)
 {
     bl_info_entry_t* p_fwid_entry = bootloader_info_entry_get(BL_INFO_TYPE_VERSION);
-    return (bl_id.id == p_fwid_entry->version.bootloader.id &&
-            bl_id.ver > p_fwid_entry->version.bootloader.ver);
+    if (p_fwid_entry != NULL)
+    {
+        return (bl_id.id == p_fwid_entry->version.bootloader.id &&
+                bl_id.ver > p_fwid_entry->version.bootloader.ver);
+    }
+
+    return true;
 }
 
 bool fw_is_verified(void)

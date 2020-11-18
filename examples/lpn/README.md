@@ -1,7 +1,7 @@
 # Low Power node example
 
 @tag52840and52833and52832
-@tag52810nosupport
+@tag52810and52820nosupport
 
 This example shows the implementation of a device supporting the Low Power node (LPN) feature. It
 emulates an occupancy sensor device through button presses and a timer.
@@ -82,7 +82,7 @@ These assignments refer to the LPN device only.
     - Button 1: Send the on message.
     - Button 2: Send the off message.
     - Button 3: Establish or terminate friendship.
-    - Button 4: Reset the device (erase all mesh data).
+    - Button 4: Reset the device (erase all Bluetooth mesh data).
 
 
 ---
@@ -104,31 +104,31 @@ To set up the example:
 1. Decide about the Device Firmware Upgrade approach for the Low Power node:
     - Use the standard setting (Device Firmware Upgrade over BLE disabled by default).
         1. Build the Low Power node example. To build the example, follow the instructions in
-        [Building the mesh stack](@ref md_doc_getting_started_how_to_build).
+        [Building the Bluetooth mesh stack](@ref md_doc_getting_started_how_to_build).
         2. Program the Low Power node example onto one development kit.
         See @ref md_doc_getting_started_how_to_run_examples for the instructions.
     - Use the node with DFU over BLE:
         - Follow the instructions on the @subpage md_examples_lpn_dfu_ble page and program
         the example onto one development kit.
 2. Build the Light switch server example. To build the example, follow the instructions
-in [Building the mesh stack](@ref md_doc_getting_started_how_to_build).
+in [Building the Bluetooth mesh stack](@ref md_doc_getting_started_how_to_build).
 3. Program the Light Switch Server example onto two development kits.
 See @ref md_doc_getting_started_how_to_run_examples for the instructions.
 
-All three devices are now running Bluetooth-Mesh-enabled firmware.
+All three devices are now running Bluetooth-mesh-enabled firmware.
 
 @note When building and running the firmware, you might encounter the following error:
 ```
 app_error_weak.c, 119, Mesh error 4 at 0x00000000
 ```
-This error means that the bootloader is not flashed. Go to 
+This error means that the bootloader is not flashed. Go to
 [Building and programming the bootloader](@ref examples_lpn_dfu_ble_program_bootloader)
 to flash the bootloader.
 
 ### Provisioning and configuration @anchor examples_lpn_running_provisioning
 
 Before a friendship can be established between the LPN device and the Friend device,
-they both must be provisioned to the same mesh network.
+they both must be provisioned to the same Bluetooth mesh network.
 
 As the Low Power node example only supports the PB-GATT bearer for provisioning, use @link_nrf_mesh_app
 (for @link_nrf_mesh_app_ios or @link_nrf_mesh_app_android) to provision and configure
@@ -148,15 +148,15 @@ When [setting publication with nRF Mesh mobile app](@ref nrf-mesh-mobile-app-pub
 3. Set the publication to a group address:
     1. Select an existing group to subscribe or create a new one.
     2. Apply the changes for the client node.
-    3. On the server nodes, set the Subscription Address of the Generic On Off Server model instance menu to the selected group address.
-    4. Apply the changes for the server nodes.
 4. On `nRF5x Mesh Light`, in the publication section of the Generic On Off Server model instance menu, tap **Set Publication**.
 5. Tap the publication address field. A dropdown menu appears.
 6. Set the publication to a unicast address of the `nRF5x Mesh LPN` node.
+7. In the subscriptions section of the Generic On Off Server model instance menu, tap **Subscribe**.
+8. Set the subscription address to the selected group address.
 
 At the end of the configuration process:
-- The light switch servers are part of the mesh network, and are ready to receive messages from the LPN device.
-- The LPN device is part of the mesh network and can control the LEDs of the light switch server device.
+- The light switch servers are part of the Bluetooth mesh network, and are ready to receive messages from the LPN device.
+- The LPN device is part of the Bluetooth mesh network and can control the LEDs of the light switch server device.
 It has not entered the low power mode yet, as the friendship is not established.
 - After assigning the addresses of the server nodes to the client, you can see the messages received from the servers in the RTT log of the LPN device.
 
@@ -166,7 +166,7 @@ It has not entered the low power mode yet, as the friendship is not established.
 After the initial configuration and provisioning are complete, the LPN device enters the idle state.
 
 To start the friendship establishment process, press button 3 on the LPN device. The device starts
-searching for an appropriate Friend in the mesh network.
+searching for an appropriate Friend in the Bluetooth mesh network.
 
 The LPN example always accepts the first friendship it is offered with.
 Establishing a friendship normally takes less than a second. If the LPN device cannot find a
@@ -186,7 +186,7 @@ These buttons also control the LED 1 of the light switch server through the Gene
 
 - Pressing button 1 turns on the LED 1 on the LPN device and sends message to the light switch servers.
 This message turns on the LED 1 on both of the light switch servers.
-- Pressing button 2 turns off the LED 1 on the LPN device and sends message to the light switch server.
+- Pressing button 2 turns off the LED 1 on the LPN device and sends message to the light switch servers.
 This message turns off the LED 1 on both of the light switch servers.
 
 This behavior is identical to the one in the [light switch client](@ref light_switch_demo_client) example.
@@ -201,7 +201,7 @@ the servers through the Friend node.
 
 When the Low Power node is running, you can update it using DFU over BLE:
 1. Add any changes to the Low Power node example, for example change the log message
-in the `initialize()`function to the following:
+in the `initialize()` function to the following:
 ```
 __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "----- BLE Mesh LPN Demo (Updated) -----\n");
 ```

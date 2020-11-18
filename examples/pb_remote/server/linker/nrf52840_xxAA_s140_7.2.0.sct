@@ -1,0 +1,20 @@
+; nRF5 SDK for Mesh Application scatter file.
+; 24 kB FLASH and 768 B RAM reserved for bootloader.
+;
+; This file is intended for nrf52840_xxAA with the s140_7.2.0 SoftDevice.
+
+LR_IROM1 0x00027000 0x000d0000 {
+  ; MBR:        0x00000000 0x00001000
+  ; SOFTDEVICE: 0x00001000 0x00026000
+  ; BOOTLOADER: 0x000f8000 0x00006000
+
+  ER_IROM1 0x00027000 0x000d0000 {
+   *.o (RESET, +First)
+   *(InRoot$$Sections)
+   .ANY (+RO)
+  }
+
+  RW_IRAM1 0x20002e00 0x0003cf00 {
+   .ANY (+RW +ZI)
+  }
+}
