@@ -153,7 +153,7 @@ typedef enum
     NRF_MESH_DFU_END_ERROR_BANK_AND_DESTINATION_OVERLAP,    /**< When copying the finished bank to its intended destination, it will have to overwrite itself. */
 
     /** @internal Largest number in the enum. */
-    NRF_MESH_DFU_END_ERROR__LAST = NRF_MESH_DFU_END_ERROR_BANK_IN_BOOTLOADER_AREA,
+    NRF_MESH_DFU_END_ERROR__LAST = NRF_MESH_DFU_END_ERROR_BANK_AND_DESTINATION_OVERLAP,
 } nrf_mesh_dfu_end_t;
 
 /** The various roles a device can play in a dfu transfer. */
