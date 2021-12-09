@@ -36,24 +36,24 @@
  */
 
 #include "mesh_mem.h"
-
+#include "utils.h"
 #include <stdlib.h>
 
-void mesh_mem_init(void)
+__WEAK void mesh_mem_init(void)
 {
 }
 
-void * mesh_mem_alloc(size_t size)
+__WEAK void * mesh_mem_alloc(size_t size)
 {
     return malloc(size);
 }
 
-void mesh_mem_free(void * ptr)
+__WEAK void mesh_mem_free(void * ptr)
 {
     free(ptr);
 }
 
-void * mesh_mem_calloc(size_t nmemb, size_t size)
+__WEAK void * mesh_mem_calloc(size_t nmemb, size_t size)
 {
     return calloc(nmemb, size);
 }
