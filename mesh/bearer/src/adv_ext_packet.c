@@ -123,7 +123,14 @@ static inline const uint8_t * adv_ext_header_field_get(const adv_ext_header_t * 
     /* To get the offset of the header, get the length of a header containing all the fields before
      * the desired field. We achieve this by bitwise and-ing the header's bitfield with the bits
      * before the desired field. */
-    return &p_header->header[adv_ext_header_len((adv_ext_header_bitfield_t) (header_bitfield & ((1 << field) - 1)))];
+    uint8_t offset = adv_ext_header_len((adv_ext_header_bitfield_t) (header_bitfield & ((1 << field) - 1)));
+
+    /* Byte 0 is always extended header flags. The extended header fields start at byte 1 */
+    if (offset == 0 && (1 << field) != 0)
+    {
+        offset++;
+    }
+    return &p_header->header[offset];
 }
 
 static void adv_ext_header_adv_addr_set(uint8_t * p_buffer, const ble_gap_addr_t * p_data)
@@ -255,6 +262,9 @@ static void adv_ext_header_field_set(adv_ext_header_t * p_header,
     NRF_MESH_ASSERT(adv_ext_header_bitfield_get(p_header) & (1 << field));
 
     uint8_t * p_buffer = (uint8_t *) adv_ext_header_field_get(p_header, field);
+    if (!p_buffer) {
+        return;
+    }
 
     switch (field)
     {
@@ -331,6 +341,9 @@ uint32_t adv_ext_header_data_get(const adv_ext_header_t * p_header,
         (p_header->header_len >= header_min_len))
     {
         const uint8_t * p_source = adv_ext_header_field_get(p_header, field);
+        if (!p_source) {
+            return NRF_ERROR_INTERNAL;
+        }
 
         switch (field)
         {
